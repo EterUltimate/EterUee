@@ -10,7 +10,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import me.rerere.rikkahub.ui.hooks.LocalNavController
+import me.rerere.rikkahub.ui.components.MarkdownBlock
+import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.hooks.heroAnimation
 
 @Composable
@@ -46,6 +47,22 @@ fun ChatPage() {
                 ) {
                     Text("设置")
                 }
+
+                MarkdownBlock("""
+                    # 设置
+                    这里是设置页面的内容
+                    - 设置1
+                    - 设置2
+                    - 设置3
+                    
+                    ```js
+                    console.log("Hello, World!");
+                    ```
+                    
+                    $$
+                    f(x) = x^2
+                    $$
+                """.trimIndent())
             }
         }
     }

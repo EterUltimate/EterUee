@@ -1,3 +1,4 @@
+import org.gradle.internal.impldep.bsh.commands.dir
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -73,6 +74,7 @@ dependencies {
 
     // modules
     implementation(project(":highlight"))
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
 
     // tests
     testImplementation(libs.junit)

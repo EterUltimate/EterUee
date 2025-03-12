@@ -1,8 +1,5 @@
 package me.rerere.highlight
 
-import android.annotation.SuppressLint
-import androidx.compose.foundation.text.BasicText
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,8 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 
 val LocalHighlighter = compositionLocalOf<Highlighter> { error("No Highlighter provided") }
@@ -25,10 +27,36 @@ val LocalHighlighter = compositionLocalOf<Highlighter> { error("No Highlighter p
 fun HighlightText(
     code: String,
     language: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    colors: HighlightTextColorPalette = HighlightTextColorPalette(
+        keyword = Color(0xFFCC7832),
+        string = Color(0xFF6A8759),
+        number = Color(0xFF6897BB),
+        comment = Color(0xFF808080),
+        function = Color(0xFFFFC66D),
+        operator = Color(0xFFCC7832),
+        punctuation = Color(0xFFCC7832),
+        className = Color(0xFFCB772F),
+        property = Color(0xFFCB772F),
+        boolean = Color(0xFF6897BB),
+        variable = Color(0xFF6A8759),
+        tag = Color(0xFFE8BF6A),
+        attrName = Color(0xFFBABABA),
+        attrValue = Color(0xFF6A8759),
+        fallback = Color(0xFF808080),
+    ),
+    fontSize: TextUnit = 12.sp,
+    fontFamily: FontFamily = FontFamily.Monospace,
+    fontStyle: FontStyle = FontStyle.Normal,
+    fontWeight: FontWeight = FontWeight.Normal,
+    lineHeight: TextUnit = TextUnit.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip,
+    softWrap: Boolean = true,
+    maxLines: Int = Int.MAX_VALUE,
+    minLines: Int = 1,
 ) {
     val highlighter = LocalHighlighter.current
-    var tokens: List<HighlightToken> by remember {  mutableStateOf(emptyList()) }
+    var tokens: List<HighlightToken> by remember { mutableStateOf(emptyList()) }
 
     LaunchedEffect(code, language) {
         tokens =
@@ -46,33 +74,60 @@ fun HighlightText(
                     }
 
                     is HighlightToken.Token -> {
-                        withStyle(getStyleForTokenType(token.type)) {
+                        withStyle(getStyleForTokenType(token.type, colors)) {
                             append(token.content)
                         }
                     }
                 }
             }
-        }
+        },
+        fontSize = fontSize,
+        fontFamily = fontFamily,
+        fontStyle = fontStyle,
+        fontWeight = fontWeight,
+        lineHeight = lineHeight,
+        overflow = overflow,
+        softWrap = softWrap,
+        maxLines = maxLines,
+        minLines = minLines
     )
 }
 
+data class HighlightTextColorPalette(
+    val keyword: Color,
+    val string: Color,
+    val number: Color,
+    val comment: Color,
+    val function: Color,
+    val operator: Color,
+    val punctuation: Color,
+    val className: Color,
+    val property: Color,
+    val boolean: Color,
+    val variable: Color,
+    val tag: Color,
+    val attrName: Color,
+    val attrValue: Color,
+    val fallback: Color
+)
+
 // 根据token类型返回对应的文本样式
 @Composable
-private fun getStyleForTokenType(type: String): SpanStyle {
+private fun getStyleForTokenType(type: String, colors: HighlightTextColorPalette): SpanStyle {
     return when (type) {
-        "keyword" -> SpanStyle(color = MaterialTheme.colorScheme.primary)
-        "string" -> SpanStyle(color = Color(0xFF6A8759)) // 绿色
-        "number" -> SpanStyle(color = Color(0xFF6897BB)) // 蓝色
-        "comment" -> SpanStyle(color = Color(0xFF808080), fontStyle = FontStyle.Italic) // 灰色斜体
-        "function" -> SpanStyle(color = Color(0xFFFFC66D)) // 黄色
-        "operator" -> SpanStyle(color = Color(0xFFCC7832)) // 橙色
-        "punctuation" -> SpanStyle(color = Color(0xFFCC7832)) // 橙色
-        "class-name", "property" -> SpanStyle(color = Color(0xFFCB772F)) // 棕色
-        "boolean" -> SpanStyle(color = Color(0xFF6897BB)) // 蓝色
-        "variable" -> SpanStyle(color = MaterialTheme.colorScheme.onBackground)
-        "tag" -> SpanStyle(color = Color(0xFFE8BF6A)) // 黄色
-        "attr-name" -> SpanStyle(color = Color(0xFFBABABA)) // 浅灰色
-        "attr-value" -> SpanStyle(color = Color(0xFF6A8759)) // 绿色
-        else -> SpanStyle(color = MaterialTheme.colorScheme.onBackground) // 默认颜色
+        "keyword" -> SpanStyle(color = colors.keyword)
+        "string" -> SpanStyle(color = colors.string) // 绿色
+        "number" -> SpanStyle(color = colors.number) // 蓝色
+        "comment" -> SpanStyle(color = colors.comment, fontStyle = FontStyle.Italic) // 灰色斜体
+        "function" -> SpanStyle(color = colors.function) // 黄色
+        "operator" -> SpanStyle(color = colors.operator) // 橙色
+        "punctuation" -> SpanStyle(color = colors.punctuation) // 橙色
+        "class-name", "property" -> SpanStyle(color = colors.className) // 棕色
+        "boolean" -> SpanStyle(color = colors.boolean) // 蓝色
+        "variable" -> SpanStyle(color = colors.variable)
+        "tag" -> SpanStyle(color = colors.tag) // 黄色
+        "attr-name" -> SpanStyle(color = colors.attrName) // 浅灰色
+        "attr-value" -> SpanStyle(color = colors.attrValue) // 绿色
+        else -> SpanStyle(color = colors.fallback)
     }
 }

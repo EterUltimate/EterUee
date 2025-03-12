@@ -1,9 +1,7 @@
 package me.rerere.rikkahub.ui.pages
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
@@ -12,10 +10,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import me.rerere.highlight.HighlightText
-import me.rerere.rikkahub.ui.components.MarkdownBlock
+import me.rerere.rikkahub.ui.components.HighlightCodeBlock
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.hooks.heroAnimation
 
@@ -110,7 +106,7 @@ fun ChatPage() {
 
             LazyColumn {
                 item {
-                    HighlightText(
+                    HighlightCodeBlock(
                         code = """
                             // say hello
                             function hello() {
@@ -125,7 +121,7 @@ fun ChatPage() {
                             };
 
                             console.log(parent.method()); // 3
-                            // 当调用 parent.method 时，“this”指向了 parent
+                            // 当调用 parent.method 时，“this”指向了 parent, 当调用 parent.method 时，“this”指向了 parent
 
                             // child 是一个继承了 parent 的对象
                             const child = {
@@ -147,6 +143,7 @@ fun ChatPage() {
 
                         """.trimIndent(),
                         language = "js",
+                        modifier = Modifier.padding(8.dp)
                     )
                 }
 

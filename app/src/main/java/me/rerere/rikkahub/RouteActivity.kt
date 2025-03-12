@@ -14,14 +14,21 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import me.rerere.highlight.Highlighter
+import me.rerere.highlight.LocalHighlighter
 import me.rerere.rikkahub.ui.context.LocalAnimatedVisibilityScope
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSharedTransitionScope
 import me.rerere.rikkahub.ui.pages.ChatPage
 import me.rerere.rikkahub.ui.pages.SettingPage
 import me.rerere.rikkahub.ui.theme.RikkahubTheme
+import org.koin.android.ext.android.get
+import org.koin.android.ext.android.inject
+import org.koin.androidx.compose.KoinAndroidContext
 
 class RouteActivity : ComponentActivity() {
+    private val highlighter by inject<Highlighter>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -33,28 +40,31 @@ class RouteActivity : ComponentActivity() {
     }
 
     @Composable
-    fun AppRoutes(modifier: Modifier = Modifier) {
+    fun AppRoutes() {
         val navController = rememberNavController()
         SharedTransitionLayout {
-            CompositionLocalProvider(LocalNavController provides navController) {
-                CompositionLocalProvider(LocalSharedTransitionScope provides this) {
-                    NavHost(
-                        navController = navController,
-                        startDestination = "chat"
-                    ) {
-                        composableHelper("chat") {
-                            ChatPage()
-                        }
+            CompositionLocalProvider(
+                LocalNavController provides navController,
+                LocalSharedTransitionScope provides this,
+                LocalHighlighter provides highlighter
+            ) {
+                NavHost(
+                    navController = navController,
+                    startDestination = "chat"
+                ) {
+                    composableHelper("chat") {
+                        ChatPage()
+                    }
 
-                        composableHelper("setting") {
-                            SettingPage()
-                        }
+                    composableHelper("setting") {
+                        SettingPage()
                     }
                 }
             }
         }
     }
 }
+
 
 private fun NavGraphBuilder.composableHelper(
     route: String,

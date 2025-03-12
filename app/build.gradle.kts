@@ -57,6 +57,10 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
 
+    // koin
+    implementation(libs.koin.android)
+    implementation(libs.koin.compose)
+
     // jetbrains markdown parser
     implementation(libs.jetbrains.markdown)
 
@@ -66,6 +70,9 @@ dependencies {
     // coil
     implementation(libs.coil.compose)
     implementation(libs.coil.okhttp)
+
+    // modules
+    implementation(project(":highlight"))
 
     // tests
     testImplementation(libs.junit)

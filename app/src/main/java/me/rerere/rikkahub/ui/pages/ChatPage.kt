@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import me.rerere.rikkahub.ui.components.HighlightCodeBlock
+import me.rerere.rikkahub.ui.components.MathBlock
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.hooks.heroAnimation
 
@@ -69,6 +70,12 @@ function helloWorld() {
 }
 """.trimIndent()
 
+val formula = """
+\f\relax{x} = \int_{-\infty}^\infty
+    \f\hat\xi\,e^{2 \pi i \xi x}
+    \,d\xi
+""".trimIndent()
+
 @Composable
 fun ChatPage() {
     val navController = LocalNavController.current
@@ -104,7 +111,12 @@ fun ChatPage() {
                 }
             }
 
+
             LazyColumn {
+                item {
+                    MathBlock(formula)
+                }
+
                 item {
                     HighlightCodeBlock(
                         code = """

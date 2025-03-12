@@ -8,6 +8,7 @@ import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
@@ -26,22 +27,27 @@ class RouteActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             RikkahubTheme {
-                val navController = rememberNavController()
-                SharedTransitionLayout {
-                    CompositionLocalProvider(LocalNavController provides navController) {
-                        CompositionLocalProvider(LocalSharedTransitionScope provides this) {
-                            NavHost(
-                                navController = navController,
-                                startDestination = "chat"
-                            ) {
-                                composableHelper("chat") {
-                                    ChatPage()
-                                }
+                AppRoutes()
+            }
+        }
+    }
 
-                                composableHelper("setting") {
-                                    SettingPage()
-                                }
-                            }
+    @Composable
+    fun AppRoutes(modifier: Modifier = Modifier) {
+        val navController = rememberNavController()
+        SharedTransitionLayout {
+            CompositionLocalProvider(LocalNavController provides navController) {
+                CompositionLocalProvider(LocalSharedTransitionScope provides this) {
+                    NavHost(
+                        navController = navController,
+                        startDestination = "chat"
+                    ) {
+                        composableHelper("chat") {
+                            ChatPage()
+                        }
+
+                        composableHelper("setting") {
+                            SettingPage()
                         }
                     }
                 }
@@ -50,7 +56,7 @@ class RouteActivity : ComponentActivity() {
     }
 }
 
-fun NavGraphBuilder.composableHelper(
+private fun NavGraphBuilder.composableHelper(
     route: String,
     content: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit
 ) {

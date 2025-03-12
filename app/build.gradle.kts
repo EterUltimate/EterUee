@@ -56,7 +56,18 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
+
+    // jetbrains markdown parser
     implementation(libs.jetbrains.markdown)
+
+    // okhttp
+    implementation(libs.okhttp)
+
+    // coil
+    implementation(libs.coil.compose)
+    implementation(libs.coil.okhttp)
+
+    // tests
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

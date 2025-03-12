@@ -3,6 +3,7 @@ package me.rerere.rikkahub.ui.pages
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -47,13 +48,20 @@ fun ChatPage() {
                 ) {
                     Text("设置")
                 }
+            }
 
-                MarkdownBlock("""
+            LazyColumn {
+                item {
+                    MarkdownBlock(
+                        """
                     # 设置
+                    ## 这是二级标题
+                    ### 这是三级标题
+                    #### 这是四级标题
+                    
                     这里是设置页面的内容
-                    - 设置1
-                    - 设置2
-                    - 设置3
+                    
+                    文本**加粗**, *斜体*，~~删除线~~，`代码`
                     
                     ```js
                     console.log("Hello, World!");
@@ -62,7 +70,39 @@ fun ChatPage() {
                     $$
                     f(x) = x^2
                     $$
-                """.trimIndent())
+                    
+                    | 标题1 | 标题2 | 标题3 | 
+                    | --- | --- | --- |
+                    | 内容1 | 内容2 | 内容3 |
+                    | 内容1 | 内容2 | 内容3 |
+                    
+                    > 这是一个引用
+                    
+                    [这是一个链接](https://www.google.com)
+                    
+                    - 列表1
+                    - 列表2
+                    - 列表3
+                    
+                    1. 列表1
+                    2. 列表2
+                    3. 列表3
+                    
+                    - [ ] 任务1
+                    - [x] 任务2
+                    - [ ] 任务3
+                    
+                    - [ ] 任务1
+                      - [x] 子任务1
+                      - [ ] 子任务2
+                    - [ ] 任务2
+                    - [ ] 任务3
+                    
+                    - [ ] 任务1
+                      - [x]子任务1
+                """.trimIndent()
+                    )
+                }
             }
         }
     }

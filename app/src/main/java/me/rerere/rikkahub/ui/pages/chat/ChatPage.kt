@@ -1,4 +1,4 @@
-package me.rerere.rikkahub.ui.pages
+package me.rerere.rikkahub.ui.pages.chat
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +22,7 @@ import me.rerere.rikkahub.ui.components.MarkdownBlock
 import me.rerere.rikkahub.ui.components.MathInlineText
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.hooks.heroAnimation
+import org.koin.androidx.compose.koinViewModel
 
 val content = """
 # 设置
@@ -71,10 +72,16 @@ ${'$'}${'$'}
 - [ ] 任务1
   - [x]子任务1
   
-```js
+```javascript
 function helloWorld() {
     console.log("Hello, World!");
 }
+```
+
+```python
+def hello_world():
+    print("Hello, World!")
+```
 """.trimIndent()
 
 val formula = """
@@ -84,7 +91,7 @@ val formula = """
 """.trimIndent()
 
 @Composable
-fun ChatPage() {
+fun ChatPage(vm: ChatVM = koinViewModel()) {
     val navController = LocalNavController.current
     Scaffold(
         topBar = {

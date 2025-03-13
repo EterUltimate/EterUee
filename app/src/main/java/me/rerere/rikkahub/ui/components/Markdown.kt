@@ -167,27 +167,11 @@ private fun RenderMarkdownNode(node: ASTNode, content: String) {
                 .joinToString("") { it.getTextInNode(content) }
                 .trim()
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .padding(8.dp)
-            ) {
-                if (language.isNotEmpty()) {
-                    Text(
-                        text = language.toString(),
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.align(Alignment.TopEnd)
-                    )
-                }
-
-                Text(
-                    text = codeText,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontFamily = FontFamily.Monospace
-                    )
-                )
-            }
+            HighlightCodeBlock(
+                code = codeText,
+                language = language.toString(),
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
         }
 
         MarkdownElementTypes.CODE_BLOCK -> {

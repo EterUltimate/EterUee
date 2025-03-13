@@ -8,7 +8,6 @@ import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.Modifier
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
@@ -19,12 +18,10 @@ import me.rerere.highlight.LocalHighlighter
 import me.rerere.rikkahub.ui.context.LocalAnimatedVisibilityScope
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSharedTransitionScope
-import me.rerere.rikkahub.ui.pages.ChatPage
+import me.rerere.rikkahub.ui.pages.chat.ChatPage
 import me.rerere.rikkahub.ui.pages.SettingPage
 import me.rerere.rikkahub.ui.theme.RikkahubTheme
-import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
-import org.koin.androidx.compose.KoinAndroidContext
 
 class RouteActivity : ComponentActivity() {
     private val highlighter by inject<Highlighter>()

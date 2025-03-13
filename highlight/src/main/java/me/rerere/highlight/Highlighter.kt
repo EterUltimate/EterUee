@@ -58,6 +58,8 @@ class Highlighter(ctx: Context) {
         result.release()
 
         tokens
+    }.onFailure {
+        it.printStackTrace()
     }
 
     fun destroy() {

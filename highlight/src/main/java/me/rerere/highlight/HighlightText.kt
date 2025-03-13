@@ -44,27 +44,26 @@ fun HighlightText(
 ) {
     val highlighter = LocalHighlighter.current
     var tokens: List<HighlightToken> by remember { mutableStateOf(emptyList()) }
-    var annotatedString by remember { mutableStateOf(AnnotatedString("")) }
+    var annotatedString by remember { mutableStateOf(AnnotatedString(code)) }
 
     LaunchedEffect(code, language) {
-        withContext(Dispatchers.Default) {
-            tokens =
-                highlighter.highlight(code, language).getOrNull() ?: listOf(
-                    HighlightToken.Plain(
-                        code
-                    )
+        tokens =
+            highlighter.highlight(code, language).getOrNull() ?: listOf(
+                HighlightToken.Plain(
+                    code
                 )
-            annotatedString = buildAnnotatedString {
-                tokens.fastForEach { token ->
-                    when (token) {
-                        is HighlightToken.Plain -> {
-                            append(token.content)
-                        }
+            )
 
-                        is HighlightToken.Token -> {
-                            withStyle(getStyleForTokenType(token.type, colors)) {
-                                append(token.content)
-                            }
+        annotatedString = buildAnnotatedString {
+            tokens.fastForEach { token ->
+                when (token) {
+                    is HighlightToken.Plain -> {
+                        append(token.content)
+                    }
+
+                    is HighlightToken.Token -> {
+                        withStyle(getStyleForTokenType(token.type, colors)) {
+                            append(token.content)
                         }
                     }
                 }

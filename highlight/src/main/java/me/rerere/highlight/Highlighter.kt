@@ -2,6 +2,7 @@ package me.rerere.highlight
 
 import android.content.Context
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonArray
 import com.whl.quickjs.android.QuickJSLoader
 import com.whl.quickjs.wrapper.QuickJSArray
 import com.whl.quickjs.wrapper.QuickJSContext
@@ -13,7 +14,9 @@ class Highlighter(ctx: Context) {
     }
 
     private val gson by lazy {
-        GsonBuilder().create()
+        GsonBuilder()
+            .registerTypeAdapter(HighlightToken.Token::class.java, HighlightTokenAdapter())
+            .create()
     }
 
     private val script: String by lazy {
@@ -48,6 +51,7 @@ class Highlighter(ctx: Context) {
 
                 is QuickJSObject -> {
                     val json = element.stringify()
+                    println(json)
                     val token = gson.fromJson(json, HighlightToken.Token::class.java)
                     tokens.add(token)
                 }
@@ -72,9 +76,47 @@ sealed class HighlightToken {
         val content: String,
     ) : HighlightToken()
 
-    data class Token(
+    sealed class Token(
         val type: String,
-        val content: String,
         val length: Int
-    ) : HighlightToken()
+    ) : HighlightToken() {
+        class StringContent(
+            val content: String,
+            type: String,
+            length: Int,
+        ) : Token(type, length)
+
+        class StringListContent(
+            val content: List<String>,
+            type: String,
+            length: Int,
+        ) : Token(type, length)
+    }
+}
+
+class HighlightTokenAdapter : com.google.gson.JsonDeserializer<HighlightToken.Token> {
+    override fun deserialize(
+        json: com.google.gson.JsonElement,
+        typeOfT: java.lang.reflect.Type,
+        context: com.google.gson.JsonDeserializationContext
+    ): HighlightToken.Token {
+        val jsonObject = json.asJsonObject
+        val type = jsonObject.get("type").asString
+        val length = jsonObject.get("length").asInt
+        val content = jsonObject.get("content")
+
+        return if(content is JsonArray) {
+            HighlightToken.Token.StringListContent(
+                content = content.map { it.asString },
+                type = type,
+                length = length
+            )
+        } else {
+            HighlightToken.Token.StringContent(
+                content = content.asString,
+                type = type,
+                length = length
+            )
+        }
+    }
 }

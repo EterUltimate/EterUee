@@ -61,9 +61,15 @@ fun HighlightText(
                         append(token.content)
                     }
 
-                    is HighlightToken.Token -> {
+                    is HighlightToken.Token.StringContent -> {
                         withStyle(getStyleForTokenType(token.type, colors)) {
                             append(token.content)
+                        }
+                    }
+
+                    is HighlightToken.Token.StringListContent -> {
+                        withStyle(getStyleForTokenType(token.type, colors)) {
+                            token.content.fastForEach { append(it) }
                         }
                     }
                 }

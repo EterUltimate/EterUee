@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.ui.pages.chat
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,6 +13,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import me.rerere.rikkahub.ui.components.HighlightCodeBlock
 import me.rerere.rikkahub.ui.components.MarkdownBlock
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.hooks.heroAnimation
@@ -22,6 +24,14 @@ val content = """
 ## 这是二级标题
 ### 这是三级标题
 #### 这是四级标题
+
+```java
+public class HelloWorld {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!");
+    }
+}
+```
 
 这里是设置页面的内容
 
@@ -122,8 +132,19 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
 
 
             LazyColumn(
-                contentPadding = PaddingValues(12.dp)
+                contentPadding = PaddingValues(12.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
+                item {
+                    HighlightCodeBlock(
+                        """
+                        fun helloWorld() {
+                            console.log("Hello, World!");
+                        }
+                    """.trimIndent(), "java"
+                    )
+                }
+
                 item {
                     Card {
                         MarkdownBlock(content, modifier = Modifier.padding(4.dp))

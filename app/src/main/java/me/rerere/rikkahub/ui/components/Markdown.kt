@@ -325,7 +325,7 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
                 code = code,
                 language = language,
                 modifier = Modifier
-                    .padding(4.dp)
+                    .padding(bottom = 4.dp)
                     .fillMaxWidth()
             )
         }

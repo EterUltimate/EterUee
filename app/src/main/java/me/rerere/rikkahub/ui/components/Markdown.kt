@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastForEach
 import coil3.compose.AsyncImage
 import org.intellij.markdown.IElementType
 import org.intellij.markdown.MarkdownElementTypes
@@ -292,7 +293,7 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
 
         GFMElementTypes.INLINE_MATH -> {
             val formula = node.getTextInNode(content)
-            MathInline(formula, modifier = modifier.padding(horizontal = 2.dp))
+            MathInline(formula, modifier = modifier.padding(horizontal = 1.dp))
         }
 
         GFMElementTypes.BLOCK_MATH -> {
@@ -313,11 +314,9 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
             )
         }
 
-        // 代码块和公式 (用户要求自己实现)
-        MarkdownElementTypes.CODE_BLOCK, MarkdownElementTypes.CODE_FENCE -> {
-            val code =
-                node.findChildOfType(MarkdownTokenTypes.CODE_FENCE_CONTENT)?.getTextInNode(content)
-                    ?: ""
+        // 代码块
+        MarkdownElementTypes.CODE_FENCE -> {
+            val code = node.getTextInNode(content, MarkdownTokenTypes.CODE_FENCE_CONTENT)
             val language = node.findChildOfType(MarkdownTokenTypes.FENCE_LANG)
                 ?.getTextInNode(content)
                 ?: "plaintext"
@@ -349,8 +348,24 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
     }
 }
 
-// 辅助扩展函数
 private fun ASTNode.getTextInNode(text: String): String {
+    return text.substring(startOffset, endOffset)
+}
+
+private fun ASTNode.getTextInNode(text: String, type: IElementType): String {
+    var startOffset = -1
+    var endOffset = -1
+    children.fastForEach {
+        if (it.type == type) {
+            if(startOffset == -1) {
+                startOffset = it.startOffset
+            }
+            endOffset = it.endOffset
+        }
+    }
+    if (startOffset == -1 || endOffset == -1) {
+        return ""
+    }
     return text.substring(startOffset, endOffset)
 }
 

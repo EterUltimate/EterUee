@@ -19,7 +19,7 @@ import me.rerere.rikkahub.ui.context.LocalAnimatedVisibilityScope
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSharedTransitionScope
 import me.rerere.rikkahub.ui.pages.chat.ChatPage
-import me.rerere.rikkahub.ui.pages.SettingPage
+import me.rerere.rikkahub.ui.pages.setting.SettingPage
 import me.rerere.rikkahub.ui.theme.RikkahubTheme
 import org.koin.android.ext.android.inject
 

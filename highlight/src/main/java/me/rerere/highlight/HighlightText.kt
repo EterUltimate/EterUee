@@ -10,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -20,6 +21,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 val LocalHighlighter = compositionLocalOf<Highlighter> { error("No Highlighter provided") }
 
@@ -57,30 +60,37 @@ fun HighlightText(
 ) {
     val highlighter = LocalHighlighter.current
     var tokens: List<HighlightToken> by remember { mutableStateOf(emptyList()) }
+    var annotatedString by remember { mutableStateOf(AnnotatedString("")) }
 
     LaunchedEffect(code, language) {
-        tokens =
-            highlighter.highlight(code, language).getOrNull() ?: listOf(HighlightToken.Plain(code))
-        println("tokens = $tokens")
-    }
-
-    Text(
-        modifier = modifier,
-        text = buildAnnotatedString {
-            tokens.fastForEach { token ->
-                when (token) {
-                    is HighlightToken.Plain -> {
-                        append(token.content)
-                    }
-
-                    is HighlightToken.Token -> {
-                        withStyle(getStyleForTokenType(token.type, colors)) {
+        withContext(Dispatchers.Default) {
+            tokens =
+                highlighter.highlight(code, language).getOrNull() ?: listOf(
+                    HighlightToken.Plain(
+                        code
+                    )
+                )
+            annotatedString = buildAnnotatedString {
+                tokens.fastForEach { token ->
+                    when (token) {
+                        is HighlightToken.Plain -> {
                             append(token.content)
+                        }
+
+                        is HighlightToken.Token -> {
+                            withStyle(getStyleForTokenType(token.type, colors)) {
+                                append(token.content)
+                            }
                         }
                     }
                 }
             }
-        },
+        }
+    }
+
+    Text(
+        modifier = modifier,
+        text = annotatedString,
         fontSize = fontSize,
         fontFamily = fontFamily,
         fontStyle = fontStyle,
@@ -112,7 +122,6 @@ data class HighlightTextColorPalette(
 )
 
 // 根据token类型返回对应的文本样式
-@Composable
 private fun getStyleForTokenType(type: String, colors: HighlightTextColorPalette): SpanStyle {
     return when (type) {
         "keyword" -> SpanStyle(color = colors.keyword)

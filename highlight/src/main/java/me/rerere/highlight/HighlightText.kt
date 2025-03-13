@@ -53,7 +53,6 @@ fun HighlightText(
                     code
                 )
             )
-
         annotatedString = buildAnnotatedString {
             tokens.fastForEach { token ->
                 when (token) {

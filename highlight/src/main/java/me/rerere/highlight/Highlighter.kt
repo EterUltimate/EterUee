@@ -3,10 +3,14 @@ package me.rerere.highlight
 import android.content.Context
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonArray
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
 import com.whl.quickjs.android.QuickJSLoader
 import com.whl.quickjs.wrapper.QuickJSArray
 import com.whl.quickjs.wrapper.QuickJSContext
 import com.whl.quickjs.wrapper.QuickJSObject
+import java.lang.reflect.Type
 
 class Highlighter(ctx: Context) {
     init {
@@ -35,7 +39,7 @@ class Highlighter(ctx: Context) {
         context.globalObject.getJSFunction("highlight")
     }
 
-    fun highlight(code: String, language: String) = kotlin.runCatching {
+    fun highlight(code: String, language: String) = runCatching {
         val result = highlightFn.call(code, language)
         require(result is QuickJSArray) {
             "highlight result must be an array"
@@ -51,7 +55,6 @@ class Highlighter(ctx: Context) {
 
                 is QuickJSObject -> {
                     val json = element.stringify()
-                    println(json)
                     val token = gson.fromJson(json, HighlightToken.Token::class.java)
                     tokens.add(token)
                 }
@@ -76,29 +79,26 @@ sealed class HighlightToken {
         val content: String,
     ) : HighlightToken()
 
-    sealed class Token(
-        val type: String,
-        val length: Int
-    ) : HighlightToken() {
-        class StringContent(
+    sealed class Token : HighlightToken() {
+        data class StringContent(
             val content: String,
-            type: String,
-            length: Int,
-        ) : Token(type, length)
+            val type: String,
+            val length: Int,
+        ) : Token()
 
-        class StringListContent(
+        data class StringListContent(
             val content: List<String>,
-            type: String,
-            length: Int,
-        ) : Token(type, length)
+            val type: String,
+            val length: Int,
+        ) : Token()
     }
 }
 
-class HighlightTokenAdapter : com.google.gson.JsonDeserializer<HighlightToken.Token> {
+class HighlightTokenAdapter : JsonDeserializer<HighlightToken.Token> {
     override fun deserialize(
-        json: com.google.gson.JsonElement,
-        typeOfT: java.lang.reflect.Type,
-        context: com.google.gson.JsonDeserializationContext
+        json: JsonElement,
+        typeOfT: Type,
+        context: JsonDeserializationContext
     ): HighlightToken.Token {
         val jsonObject = json.asJsonObject
         val type = jsonObject.get("type").asString

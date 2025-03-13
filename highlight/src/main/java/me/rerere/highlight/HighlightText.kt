@@ -31,23 +31,7 @@ fun HighlightText(
     code: String,
     language: String,
     modifier: Modifier = Modifier,
-    colors: HighlightTextColorPalette = HighlightTextColorPalette(
-        keyword = Color(0xFFCC7832),
-        string = Color(0xFF6A8759),
-        number = Color(0xFF6897BB),
-        comment = Color(0xFF808080),
-        function = Color(0xFFFFC66D),
-        operator = Color(0xFFCC7832),
-        punctuation = Color(0xFFCC7832),
-        className = Color(0xFFCB772F),
-        property = Color(0xFFCB772F),
-        boolean = Color(0xFF6897BB),
-        variable = Color(0xFF6A8759),
-        tag = Color(0xFFE8BF6A),
-        attrName = Color(0xFFBABABA),
-        attrValue = Color(0xFF6A8759),
-        fallback = Color(0xFF808080),
-    ),
+    colors: HighlightTextColorPalette = HighlightTextColorPalette.Default,
     fontSize: TextUnit = 12.sp,
     fontFamily: FontFamily = FontFamily.Monospace,
     fontStyle: FontStyle = FontStyle.Normal,
@@ -119,7 +103,27 @@ data class HighlightTextColorPalette(
     val attrName: Color,
     val attrValue: Color,
     val fallback: Color
-)
+) {
+    companion object {
+        val Default = HighlightTextColorPalette(
+            keyword = Color(0xFFCC7832),
+            string = Color(0xFF6A8759),
+            number = Color(0xFF6897BB),
+            comment = Color(0xFF808080),
+            function = Color(0xFFFFC66D),
+            operator = Color(0xFFCC7832),
+            punctuation = Color(0xFFCC7832),
+            className = Color(0xFFCB772F),
+            property = Color(0xFFCB772F),
+            boolean = Color(0xFF6897BB),
+            variable = Color(0xFF6A8759),
+            tag = Color(0xFFE8BF6A),
+            attrName = Color(0xFFBABABA),
+            attrValue = Color(0xFF6A8759),
+            fallback = Color(0xFF808080),
+        )
+    }
+}
 
 // 根据token类型返回对应的文本样式
 private fun getStyleForTokenType(type: String, colors: HighlightTextColorPalette): SpanStyle {

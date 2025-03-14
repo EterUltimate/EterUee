@@ -67,6 +67,7 @@ dependencies {
 
     // okhttp
     implementation(libs.okhttp)
+    implementation(libs.okhttp.sse)
 
     // coil
     implementation(libs.coil.compose)

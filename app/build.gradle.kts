@@ -78,6 +78,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     // modules
+    implementation(project(":ai"))
     implementation(project(":highlight"))
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
 

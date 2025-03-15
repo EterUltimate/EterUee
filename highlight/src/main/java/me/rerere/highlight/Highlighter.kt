@@ -1,26 +1,35 @@
 package me.rerere.highlight
 
 import android.content.Context
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonArray
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
 import com.whl.quickjs.android.QuickJSLoader
 import com.whl.quickjs.wrapper.QuickJSArray
 import com.whl.quickjs.wrapper.QuickJSContext
 import com.whl.quickjs.wrapper.QuickJSObject
-import java.lang.reflect.Type
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Polymorphic
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
+import me.rerere.highlight.HighlightToken.Token.StringContent
 
 class Highlighter(ctx: Context) {
     init {
         QuickJSLoader.init()
-    }
-
-    private val gson by lazy {
-        GsonBuilder()
-            .registerTypeAdapter(HighlightToken.Token::class.java, HighlightTokenAdapter())
-            .create()
     }
 
     private val script: String by lazy {
@@ -55,7 +64,8 @@ class Highlighter(ctx: Context) {
 
                 is QuickJSObject -> {
                     val json = element.stringify()
-                    val token = gson.fromJson(json, HighlightToken.Token::class.java)
+                    val token = format.decodeFromString<HighlightToken.Token>(
+                        HighlightTokenSerializer, json)
                     tokens.add(token)
                 }
 
@@ -74,18 +84,28 @@ class Highlighter(ctx: Context) {
     }
 }
 
+private val format by lazy {
+    Json {
+        ignoreUnknownKeys = true
+        prettyPrint = true
+    }
+}
+
 sealed class HighlightToken {
     data class Plain(
         val content: String,
     ) : HighlightToken()
 
-    sealed class Token : HighlightToken() {
+    @Serializable
+    sealed class Token() : HighlightToken() {
+        @Serializable
         data class StringContent(
             val content: String,
             val type: String,
             val length: Int,
         ) : Token()
 
+        @Serializable
         data class StringListContent(
             val content: List<String>,
             val type: String,
@@ -94,29 +114,44 @@ sealed class HighlightToken {
     }
 }
 
-class HighlightTokenAdapter : JsonDeserializer<HighlightToken.Token> {
-    override fun deserialize(
-        json: JsonElement,
-        typeOfT: Type,
-        context: JsonDeserializationContext
-    ): HighlightToken.Token {
-        val jsonObject = json.asJsonObject
-        val type = jsonObject.get("type").asString
-        val length = jsonObject.get("length").asInt
-        val content = jsonObject.get("content")
+object HighlightTokenSerializer : KSerializer<HighlightToken.Token> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("HighlightToken.Token")
 
-        return if(content is JsonArray) {
-            HighlightToken.Token.StringListContent(
-                content = content.map { it.asString },
-                type = type,
-                length = length
-            )
-        } else {
-            HighlightToken.Token.StringContent(
-                content = content.asString,
-                type = type,
-                length = length
-            )
+    override fun serialize(
+        encoder: Encoder,
+        value: HighlightToken.Token
+    ) {
+        // not used
+    }
+
+    override fun deserialize(decoder: Decoder): HighlightToken.Token {
+        val jsonDecoder = decoder as JsonDecoder
+        val jsonObject = jsonDecoder.decodeJsonElement().jsonObject
+        val type = jsonObject["type"]?.jsonPrimitive?.content
+            ?: error("Missing type field in HighlightToken.Token")
+        val length = jsonObject["length"]?.jsonPrimitive?.int
+            ?: error("Missing length field in HighlightToken.Token")
+        val content = jsonObject["content"]
+            ?: error("Missing content field in HighlightToken.Token")
+
+        return when (content) {
+            is JsonArray -> {
+                val listContent = content.map { it.jsonPrimitive.content }
+                HighlightToken.Token.StringListContent(
+                    content = listContent,
+                    type = type,
+                    length = length,
+                )
+            }
+            is JsonPrimitive -> {
+                val stringContent = content.content
+                HighlightToken.Token.StringContent(
+                    content = stringContent,
+                    type = type,
+                    length = length,
+                )
+            }
+            else -> error("Unknown content type: ${content::class.java.name}")
         }
     }
 }

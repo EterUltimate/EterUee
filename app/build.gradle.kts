@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -72,6 +73,9 @@ dependencies {
     // coil
     implementation(libs.coil.compose)
     implementation(libs.coil.okhttp)
+
+    // serialization
+    implementation(libs.kotlinx.serialization.json)
 
     // modules
     implementation(project(":highlight"))

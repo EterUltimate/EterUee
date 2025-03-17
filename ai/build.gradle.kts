@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -30,6 +32,9 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
+    }
+    tasks.withType<KotlinCompile>().configureEach {
+        compilerOptions.optIn.add("kotlin.uuid.ExperimentalUuidApi")
     }
 }
 

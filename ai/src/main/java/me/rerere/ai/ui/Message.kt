@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import me.rerere.ai.core.MessageRole
 import kotlin.uuid.Uuid
 
+// 公共消息抽象, 具体的Provider实现会转换为API接口需要的DTO
 @Serializable
 data class UIMessage(
     val modelId: Uuid,

@@ -109,16 +109,6 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     item {
-                        HighlightCodeBlock(
-                            """
-                        fun helloWorld() {
-                            console.log("Hello, World!");
-                        }
-                    """.trimIndent(), "java"
-                        )
-                    }
-
-                    item {
                         Card {
                             MarkdownBlock(content, modifier = Modifier.padding(4.dp))
                         }
@@ -147,6 +137,13 @@ val content = """
         }
     }
     ```
+    
+    ## LaTex Math
+    $$
+    a^2 + b^2 = c^2
+    $$
+    
+    and $ f(x) = x^2 $
     
     ## Image
     ![Image](https://picsum.photos/200/300)

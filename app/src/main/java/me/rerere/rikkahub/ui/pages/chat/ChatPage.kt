@@ -33,8 +33,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import me.rerere.ai.core.MessageRole
@@ -44,7 +46,9 @@ import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.provider.providers.OpenAIProvider
 import me.rerere.ai.provider.test
 import me.rerere.ai.ui.Conversation
+import me.rerere.ai.ui.MessageChunk
 import me.rerere.ai.ui.UIMessage
+import me.rerere.ai.ui.UIMessageChoice
 import me.rerere.ai.ui.handleMessageChunk
 import me.rerere.rikkahub.ui.components.HighlightCodeBlock
 import me.rerere.rikkahub.ui.components.MarkdownBlock
@@ -86,11 +90,12 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
                 providerSetting = setting,
                 conversation = conversation,
                 params = TextGenerationParams(
-                    model = Model("gemini-2.0-flash")
+                    model = Model("gpt-4o")
                 )
             ).onEach {
+                val messages = conversation.messages.handleMessageChunk(it).toList()
                 conversation = conversation.copy(
-                    messages = conversation.messages.handleMessageChunk(it).toList()
+                    messages = messages
                 )
                 println(conversation.messages)
             }.catch {

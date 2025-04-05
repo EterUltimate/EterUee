@@ -65,7 +65,7 @@ fun ChatMessage(
                             }
                         }
 
-                        is UIMessagePart.Text -> Text(it.text, Modifier.fillMaxWidth())
+                        is UIMessagePart.Text -> MarkdownBlock(it.text, Modifier.fillMaxWidth())
                         else -> {
                             // DO NOTHING
                         }

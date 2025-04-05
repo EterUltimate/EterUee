@@ -13,35 +13,41 @@ data class UIMessage(
 ) {
     private fun appendChunk(chunk: MessageChunk): UIMessage {
         val choice = chunk.choices[0]
-        choice.delta?.let { delta ->
-            val parts = this.parts.toMutableList()
-            delta.parts.forEach { deltaPart ->
-                when(deltaPart) {
+        return choice.delta?.let { delta ->
+            val newParts = delta.parts.fold(parts) { acc, deltaPart ->
+                when (deltaPart) {
                     is UIMessagePart.Text -> {
-                        var part = parts.find { it is UIMessagePart.Text } as? UIMessagePart.Text
-                        if (part == null) {
-                            part = UIMessagePart.Text(deltaPart.text)
-                            parts.add(part)
+                        val existingTextPart = acc.find { it is UIMessagePart.Text } as? UIMessagePart.Text
+                        if (existingTextPart != null) {
+                            acc.map { part ->
+                                if (part is UIMessagePart.Text) {
+                                    UIMessagePart.Text(existingTextPart.text + deltaPart.text)
+                                } else part
+                            }
+                        } else {
+                            acc + UIMessagePart.Text(deltaPart.text)
                         }
-                        part.text += deltaPart.text
                     }
-
                     is UIMessagePart.Reasoning -> {
-                        var part = parts.find { it is UIMessagePart.Reasoning } as? UIMessagePart.Reasoning
-                        if (part == null) {
-                            part = UIMessagePart.Reasoning(deltaPart.reasoning)
-                            parts.add(part)
+                        val existingReasoningPart = acc.find { it is UIMessagePart.Reasoning } as? UIMessagePart.Reasoning
+                        if (existingReasoningPart != null) {
+                            acc.map { part ->
+                                if (part is UIMessagePart.Reasoning) {
+                                    UIMessagePart.Reasoning(existingReasoningPart.reasoning + deltaPart.reasoning)
+                                } else part
+                            }
+                        } else {
+                            acc + UIMessagePart.Reasoning(deltaPart.reasoning)
                         }
-                        part.reasoning += deltaPart.reasoning
                     }
-
                     else -> {
                         println("delta part append not supported: $deltaPart")
+                        acc
                     }
                 }
             }
-        }
-        return this
+            copy(parts = newParts)
+        } ?: this
     }
 
     operator fun plus(chunk: MessageChunk): UIMessage {
@@ -72,13 +78,13 @@ fun List<UIMessage>.handleMessageChunk(chunk: MessageChunk): List<UIMessage> {
 @Serializable
 sealed class UIMessagePart {
     @Serializable
-    data class Text(var text: String) : UIMessagePart()
+    data class Text(val text: String) : UIMessagePart()
 
     @Serializable
-    data class Image(var url: String) : UIMessagePart()
+    data class Image(val url: String) : UIMessagePart()
 
     @Serializable
-    data class Reasoning(var reasoning: String) : UIMessagePart()
+    data class Reasoning(val reasoning: String) : UIMessagePart()
 }
 
 @Serializable

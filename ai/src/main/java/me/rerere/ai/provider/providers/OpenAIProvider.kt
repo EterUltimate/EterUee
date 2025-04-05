@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
@@ -133,9 +134,12 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                     .filter { it.isNotBlank() }
                     .map { json.parseToJsonElement(it).jsonObject}
                     .forEach {
+                        println(it)
                         val id = it["id"]?.jsonPrimitive?.content ?: ""
                         val model = it["model"]?.jsonPrimitive?.content ?: ""
-                        val choice = it["choices"]?.jsonArray?.get(0)?.jsonObject ?: error("choices is null")
+                        val choices = it["choices"]?.jsonArray ?: JsonArray(emptyList())
+                        if(choices.isEmpty()) return@forEach
+                        val choice = choices[0].jsonObject
                         val message = choice["delta"]?.jsonObject ?: choice["message"]?.jsonObject ?: throw Exception("delta/message is null")
                         val finishReason = choice["finish_reason"]?.jsonPrimitive?.content ?: "unknown"
                         val messageChunk = MessageChunk(
@@ -221,7 +225,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
     }
 
     private fun parseMessage(jsonObject: JsonObject): UIMessage {
-        val role = MessageRole.valueOf(jsonObject["role"]!!.jsonPrimitive.content.uppercase())
+        val role = MessageRole.valueOf(jsonObject["role"]?.jsonPrimitive?.content?.uppercase() ?: "ASSISTANT")
         val reasoning = jsonObject["reasoning_content"]?.jsonPrimitive?.content
 
         // 也许支持其他模态的输出content? 暂时只支持文本吧

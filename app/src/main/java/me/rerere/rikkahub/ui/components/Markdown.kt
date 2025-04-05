@@ -43,18 +43,36 @@ private val parser by lazy {
     MarkdownParser(flavour)
 }
 
+// 预处理markdown内容，将行内公式和块级公式转换为LaTeX格式
+// 替换行内公式 \( ... \) 到 $ ... $
+// 替换块级公式 \[ ... \] 到 $$ ... $$
+private fun preProcess(content: String): String {
+    // 替换行内公式 \( ... \) 到 $ ... $
+    var result = content.replace(Regex("\\\\\\((.+?)\\\\\\)")) { matchResult ->
+        "$" + matchResult.groupValues[1] + "$"
+    }
+    
+    // 替换块级公式 \[ ... \] 到 $$ ... $$
+    result = result.replace(Regex("\\\\\\[(.+?)\\\\\\]", RegexOption.DOT_MATCHES_ALL)) { matchResult ->
+        "$$" + matchResult.groupValues[1] + "$$"
+    }
+    
+    return result
+}
+
 @Composable
 fun MarkdownBlock(
     content: String,
     modifier: Modifier = Modifier,
 ) {
-    val astTree = remember(content) {
-        parser.buildMarkdownTreeFromString(content).also {
-            dumpAst(it)
+    val preprocessed = remember(content) { preProcess(content) }
+    val astTree = remember(preprocessed) {
+        parser.buildMarkdownTreeFromString(preprocessed).also {
+            // dumpAst(it)
         }
     }
 
-    MarkdownAst(astTree, content, modifier)
+    MarkdownAst(astTree, preprocessed, modifier)
 }
 
 // for debug

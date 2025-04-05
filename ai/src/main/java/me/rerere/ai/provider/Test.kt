@@ -7,11 +7,22 @@ import me.rerere.ai.provider.providers.OpenAIProvider
 import me.rerere.ai.ui.Conversation
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
+import me.rerere.ai.ui.handleMessageChunk
 
-val TestProvider = OpenAIProvider()
 
 suspend fun test() = withContext(Dispatchers.IO) {
-    val response = TestProvider.generateText(
+    var conversation = Conversation(
+        messages = listOf(
+            UIMessage(
+                role = MessageRole.USER,
+                parts = listOf(
+                    UIMessagePart.Text("Hi"),
+                ),
+                id = "??"
+            )
+        )
+    )
+    OpenAIProvider.streamText(
         providerSetting = ProviderSetting.OpenAI(
             enabled = true,
             name = "CloseAI",
@@ -19,20 +30,18 @@ suspend fun test() = withContext(Dispatchers.IO) {
             baseUrl = "https://api.openai-proxy.org/v1",
             models = emptyList(),
         ),
-        conversation = Conversation(
-            messages = listOf(
-                UIMessage(
-                    role = MessageRole.USER,
-                    parts = listOf(
-                        UIMessagePart.Text("你好啊")
-                    )
-                )
-            )
-        ),
+        conversation = conversation,
         params = TextGenerationParams(
-            model = Model("deepseek-reasoner")
+            model = Model("gemini-2.0-flash")
         )
-    )
-    val message = response.choices[0].message
-    println(message)
+    ).collect {
+        println(it)
+
+        conversation = conversation.copy(
+            messages = conversation.messages.handleMessageChunk(it)
+        )
+
+        println(conversation.messages)
+    }
+    println("test done")
 }

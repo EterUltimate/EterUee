@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,14 +22,34 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.neverEqualPolicy
+import androidx.compose.runtime.referentialEqualityPolicy
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import me.rerere.ai.core.MessageRole
+import me.rerere.ai.provider.Model
+import me.rerere.ai.provider.ProviderSetting
+import me.rerere.ai.provider.TextGenerationParams
+import me.rerere.ai.provider.providers.OpenAIProvider
 import me.rerere.ai.provider.test
+import me.rerere.ai.ui.Conversation
+import me.rerere.ai.ui.UIMessage
+import me.rerere.ai.ui.handleMessageChunk
 import me.rerere.rikkahub.ui.components.HighlightCodeBlock
 import me.rerere.rikkahub.ui.components.MarkdownBlock
 import me.rerere.rikkahub.ui.components.chat.ChatInput
+import me.rerere.rikkahub.ui.components.chat.ChatMessage
 import me.rerere.rikkahub.ui.components.icons.ListTree
 import me.rerere.rikkahub.ui.components.icons.MessageCirclePlus
 import me.rerere.rikkahub.ui.context.LocalNavController
@@ -39,93 +61,135 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
     val navController = LocalNavController.current
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
+    val setting = ProviderSetting.OpenAI(
+        enabled = true,
+        name = "CloseAI",
+        apiKey = "sk-8Jf80gTBWPL5mqPtuWpbNwfCHo7n8TcNUXCVx98i8cpIW1hf",
+        baseUrl = "https://api.openai-proxy.org/v1",
+        models = emptyList(),
+    )
+    var conversation by remember {
+        mutableStateOf(
+            Conversation(
+                messages = listOf()
+            ),
+        )
+    }
+
+    fun handleSend(message: String) {
+        conversation = conversation.copy(
+            messages = conversation.messages + UIMessage.ofText(MessageRole.USER, message)
+        )
+        scope.launch {
+            OpenAIProvider.streamText(
+                providerSetting = setting,
+                conversation = conversation,
+                params = TextGenerationParams(
+                    model = Model("gemini-2.0-flash")
+                )
+            ).onEach {
+                conversation = conversation.copy(
+                    messages = conversation.messages.handleMessageChunk(it).toList()
+                )
+                println(conversation.messages)
+            }.catch {
+                println(it)
+            }.collect()
+        }
+    }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            ModalDrawerSheet {
-                Column(
-                    modifier = Modifier.padding(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text("DeepSeek R1")
-                    Text("DeepSeek R1")
-                    Text("DeepSeek R1")
-                    Text("DeepSeek R1")
-                    Text("DeepSeek R1")
-                }
-            }
+            DrawerContent()
         }
     ) {
         Scaffold(
             topBar = {
-                CenterAlignedTopAppBar(
-                    navigationIcon = {
-                        IconButton(
-                            onClick = {
-                                scope.launch { drawerState.open() }
-                            }
-                        ) {
-                            Icon(ListTree, "Messages")
-                        }
-                    },
-                    title = {
-                        TextButton(onClick = {}) {
-                            Text("DeepSeek R1")
-                        }
-                    },
-                    actions = {
-                        IconButton(
-                            onClick = {
-                                navController.popBackStack()
-                            }
-                        ) {
-                            Icon(MessageCirclePlus, "New Message")
-                        }
-                    },
-                )
+                TopBar(scope, drawerState, navController)
             },
             bottomBar = {
-                ChatInput()
+                ChatInput {
+                    handleSend(message = it)
+                }
             }
         ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
             ) {
-                Card(
-                    modifier = Modifier.heroAnimation("setting_card"),
-                    onClick = {
-                        navController.navigate("setting")
-                    }
-                ) {
-                    Box(
-                        modifier = Modifier.padding(8.dp)
-                    ) {
-                        Text("设置")
-                    }
-                }
+//                Card(
+//                    modifier = Modifier.heroAnimation("setting_card"),
+//                    onClick = {
+//                        navController.navigate("setting")
+//                    }
+//                ) {
+//                    Box(
+//                        modifier = Modifier.padding(8.dp)
+//                    ) {
+//                        Text("设置")
+//                    }
+//                }
 
-
-                val scope = rememberCoroutineScope()
                 LazyColumn(
                     contentPadding = PaddingValues(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    item {
-                        Button(onClick = {
-                            scope.launch {  test() }
-                        }) {
-                            Text("click")
-                        }
-                    }
-
-                    item {
-                        Card {
-                            MarkdownBlock(content, modifier = Modifier.padding(4.dp))
-                        }
+                    items(conversation.messages, key = { it.id }) {
+                        ChatMessage(it)
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun TopBar(
+    scope: CoroutineScope,
+    drawerState: DrawerState,
+    navController: NavController
+) {
+    CenterAlignedTopAppBar(
+        navigationIcon = {
+            IconButton(
+                onClick = {
+                    scope.launch { drawerState.open() }
+                }
+            ) {
+                Icon(ListTree, "Messages")
+            }
+        },
+        title = {
+            TextButton(onClick = {}) {
+                Text("DeepSeek R1")
+            }
+        },
+        actions = {
+            IconButton(
+                onClick = {
+                    navController.popBackStack()
+                }
+            ) {
+                Icon(MessageCirclePlus, "New Message")
+            }
+        },
+    )
+}
+
+@Composable
+private fun DrawerContent() {
+    ModalDrawerSheet {
+        Column(
+            modifier = Modifier.padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text("DeepSeek R1")
+            Text("DeepSeek R1")
+            Text("DeepSeek R1")
+            Text("DeepSeek R1")
+            Text("DeepSeek R1")
         }
     }
 }

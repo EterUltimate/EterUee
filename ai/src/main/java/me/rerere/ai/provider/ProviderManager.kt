@@ -11,7 +11,7 @@ class ProviderManager {
     
     init {
         // 注册默认Provider
-        registerProvider("openai", OpenAIProvider())
+        registerProvider("openai", OpenAIProvider)
     }
     
     /**

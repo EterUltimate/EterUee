@@ -44,6 +44,7 @@ android {
         compilerOptions.optIn.add("androidx.compose.material3.ExperimentalMaterial3Api")
         compilerOptions.optIn.add("androidx.compose.animation.ExperimentalAnimationApi")
         compilerOptions.optIn.add("androidx.compose.animation.ExperimentalSharedTransitionApi")
+        compilerOptions.optIn.add("kotlin.uuid.ExperimentalUuidApi")
     }
 }
 

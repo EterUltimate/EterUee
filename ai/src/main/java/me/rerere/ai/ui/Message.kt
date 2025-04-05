@@ -2,14 +2,16 @@ package me.rerere.ai.ui
 
 import kotlinx.serialization.Serializable
 import me.rerere.ai.core.MessageRole
+import kotlin.uuid.Uuid
 
 // 公共消息抽象, 具体的Provider实现会转换为API接口需要的DTO
 @Serializable
 data class UIMessage(
+    val id: String = Uuid.random().toString(),
     val role: MessageRole,
     val parts: List<UIMessagePart>
 ) {
-    fun appendChunk(chunk: MessageChunk): UIMessage {
+    private fun appendChunk(chunk: MessageChunk): UIMessage {
         val choice = chunk.choices[0]
         choice.delta?.let { delta ->
             val parts = this.parts.toMutableList()
@@ -44,6 +46,12 @@ data class UIMessage(
 
     operator fun plus(chunk: MessageChunk): UIMessage {
         return this.appendChunk(chunk)
+    }
+
+    companion object {
+        fun ofText(role: MessageRole, text: String): UIMessage {
+            return UIMessage(Uuid.random().toString(), role, listOf(UIMessagePart.Text(text)))
+        }
     }
 }
 

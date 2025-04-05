@@ -33,7 +33,7 @@ import okhttp3.sse.EventSourceListener
 import okhttp3.sse.EventSources
 import java.util.concurrent.TimeUnit
 
-class OpenAIProvider : Provider<ProviderSetting.OpenAI> {
+object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
     private val json = Json {
         ignoreUnknownKeys = true
         encodeDefaults = true
@@ -155,6 +155,7 @@ class OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             }
 
             override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
+                t?.printStackTrace()
                 eventSource.cancel()
                 throw Exception("Stream failed: ${t?.message}, response: ${response?.body?.string()}")
             }
@@ -224,7 +225,7 @@ class OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         val reasoning = jsonObject["reasoning_content"]?.jsonPrimitive?.content
 
         // 也许支持其他模态的输出content? 暂时只支持文本吧
-        val content = jsonObject["content"]!!.jsonPrimitive.content
+        val content = jsonObject["content"]?.jsonPrimitive?.content ?: ""
 
         return UIMessage(
             role = role,
@@ -233,7 +234,7 @@ class OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                     add(UIMessagePart.Reasoning(reasoning))
                 }
                 add(UIMessagePart.Text(content))
-            }
+            },
         )
     }
 }

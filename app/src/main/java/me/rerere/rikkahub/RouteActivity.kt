@@ -7,6 +7,11 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.navigation.NavBackStackEntry
@@ -51,7 +56,19 @@ class RouteActivity : ComponentActivity() {
             ) {
                 NavHost(
                     navController = navController,
-                    startDestination = "chat"
+                    startDestination = "chat",
+                    enterTransition = {
+                        scaleIn() + fadeIn(animationSpec = tween(300))
+                    },
+                    exitTransition = {
+                        fadeOut(animationSpec = tween(300))
+                    },
+                    popEnterTransition = {
+                        fadeIn(animationSpec = tween(300))
+                    },
+                    popExitTransition = {
+                        scaleOut() + fadeOut(animationSpec = tween(300))
+                    }
                 ) {
                     composableHelper("chat") {
                         ChatPage()
@@ -71,7 +88,9 @@ private fun NavGraphBuilder.composableHelper(
     route: String,
     content: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit
 ) {
-    this.composable(route) { entry ->
+    this.composable(
+        route = route,
+    ) { entry ->
         CompositionLocalProvider(LocalAnimatedVisibilityScope provides this) {
             content(entry)
         }

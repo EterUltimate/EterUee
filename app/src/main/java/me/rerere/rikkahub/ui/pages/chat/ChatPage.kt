@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -22,6 +23,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.neverEqualPolicy
@@ -33,12 +35,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ProviderSetting
@@ -75,9 +79,7 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
     )
     var conversation by remember {
         mutableStateOf(
-            Conversation(
-                messages = listOf()
-            ),
+            Conversation.empty(),
         )
     }
 
@@ -86,13 +88,22 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
             messages = conversation.messages + UIMessage.ofText(MessageRole.USER, message)
         )
         scope.launch {
-            OpenAIProvider.streamText(
-                providerSetting = setting,
-                conversation = conversation,
-                params = TextGenerationParams(
-                    model = Model("gpt-4o")
+            flow {
+                emit(
+                    withContext(Dispatchers.IO) {
+
+                        OpenAIProvider.generateText(
+                            providerSetting = setting,
+                            conversation = conversation,
+                            params = TextGenerationParams(
+                                model = Model("gpt-4o")
+                            )
+
+                        )
+                    }
                 )
-            ).onEach {
+            }.onEach {
+                println(it)
                 val messages = conversation.messages.handleMessageChunk(it).toList()
                 conversation = conversation.copy(
                     messages = messages
@@ -104,6 +115,12 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
         }
     }
 
+    val chatListState = rememberLazyListState()
+    LaunchedEffect(conversation) {
+        if(!chatListState.isScrollInProgress && conversation.messages.size > 1) {
+            chatListState.scrollToItem(conversation.messages.size)
+        }
+    }
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -112,7 +129,9 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
     ) {
         Scaffold(
             topBar = {
-                TopBar(scope, drawerState, navController)
+                TopBar(scope, drawerState, navController) {
+                    conversation = Conversation.empty()
+                }
             },
             bottomBar = {
                 ChatInput {
@@ -140,6 +159,7 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
                 LazyColumn(
                     contentPadding = PaddingValues(12.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
+                    state = chatListState
                 ) {
                     items(conversation.messages, key = { it.id }) {
                         ChatMessage(it)
@@ -154,7 +174,8 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
 private fun TopBar(
     scope: CoroutineScope,
     drawerState: DrawerState,
-    navController: NavController
+    navController: NavController,
+    onNewChat: () -> Unit,
 ) {
     CenterAlignedTopAppBar(
         navigationIcon = {
@@ -174,7 +195,7 @@ private fun TopBar(
         actions = {
             IconButton(
                 onClick = {
-                    navController.popBackStack()
+                    onNewChat()
                 }
             ) {
                 Icon(MessageCirclePlus, "New Message")

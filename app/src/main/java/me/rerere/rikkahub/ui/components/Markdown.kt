@@ -2,6 +2,7 @@ package me.rerere.rikkahub.ui.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -19,12 +20,17 @@ import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import coil3.compose.AsyncImage
 import org.intellij.markdown.IElementType
@@ -68,7 +74,7 @@ fun MarkdownBlock(
     val preprocessed = remember(content) { preProcess(content) }
     val astTree = remember(preprocessed) {
         parser.buildMarkdownTreeFromString(preprocessed).also {
-            // dumpAst(it)
+            dumpAst(it, preprocessed)
         }
     }
 
@@ -76,10 +82,10 @@ fun MarkdownBlock(
 }
 
 // for debug
-private fun dumpAst(node: ASTNode, indent: String = "") {
-    println("$indent${node.type}")
+private fun dumpAst(node: ASTNode, text: String, indent: String = "") {
+    println("$indent${node.type} ${if(node.children.isEmpty()) node.getTextInNode(text) else ""}")
     node.children.forEach {
-        dumpAst(it, "$indent  ")
+        dumpAst(it, text, "$indent  ")
     }
 }
 
@@ -94,24 +100,63 @@ private fun MarkdownAst(astNode: ASTNode, content: String, modifier: Modifier = 
     }
 }
 
+object HeaderStyle {
+    val H1 = TextStyle(
+        fontStyle = FontStyle.Normal,
+        fontWeight = FontWeight.Bold,
+        fontSize = 24.sp
+    )
+
+    val H2 = TextStyle(
+        fontStyle = FontStyle.Normal,
+        fontWeight = FontWeight.Bold,
+        fontSize = 20.sp
+    )
+
+    val H3 = TextStyle(
+        fontStyle = FontStyle.Normal,
+        fontWeight = FontWeight.Bold,
+        fontSize = 18.sp
+    )
+
+    val H4 = TextStyle(
+        fontStyle = FontStyle.Normal,
+        fontWeight = FontWeight.Bold,
+        fontSize = 16.sp
+    )
+
+    val H5 = TextStyle(
+        fontStyle = FontStyle.Normal,
+        fontWeight = FontWeight.Bold,
+        fontSize = 14.sp
+    )
+
+    val H6 = TextStyle(
+        fontStyle = FontStyle.Normal,
+        fontWeight = FontWeight.Bold,
+        fontSize = 12.sp
+    )
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) {
+    buildAnnotatedString {  }
     when (node.type) {
         // 文件根节点
         MarkdownElementTypes.MARKDOWN_FILE -> {
             node.children.forEach { child ->
-                MarkdownNode(child, content)
+                MarkdownNode(child, content, modifier)
             }
         }
 
         // 段落
         MarkdownElementTypes.PARAGRAPH -> {
             FlowRow(
-                modifier = modifier.padding(start = 4.dp)
+                modifier = modifier.padding(start = 4.dp),
             ) {
                 node.children.forEach { child ->
-                    MarkdownNode(child, content)
+                    MarkdownNode(child, content, modifier = Modifier.align(Alignment.CenterVertically))
                 }
             }
         }
@@ -126,12 +171,12 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
             val headerContent =
                 node.findChildOfType(MarkdownTokenTypes.ATX_CONTENT)?.getTextInNode(content) ?: ""
             val style = when (node.type) {
-                MarkdownElementTypes.ATX_1 -> MaterialTheme.typography.headlineLarge
-                MarkdownElementTypes.ATX_2 -> MaterialTheme.typography.headlineMedium
-                MarkdownElementTypes.ATX_3 -> MaterialTheme.typography.headlineSmall
-                MarkdownElementTypes.ATX_4 -> MaterialTheme.typography.titleLarge
-                MarkdownElementTypes.ATX_5 -> MaterialTheme.typography.titleMedium
-                MarkdownElementTypes.ATX_6 -> MaterialTheme.typography.titleSmall
+                MarkdownElementTypes.ATX_1 -> HeaderStyle.H1
+                MarkdownElementTypes.ATX_2 -> HeaderStyle.H2
+                MarkdownElementTypes.ATX_3 -> HeaderStyle.H3
+                MarkdownElementTypes.ATX_4 -> HeaderStyle.H4
+                MarkdownElementTypes.ATX_5 -> HeaderStyle.H5
+                MarkdownElementTypes.ATX_6 -> HeaderStyle.H6
                 else -> throw IllegalArgumentException("Unknown header type")
             }
             Text(
@@ -139,7 +184,7 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
                 style = style,
                 modifier = modifier
                     .fillMaxWidth()
-                    .padding(bottom = 6.dp)
+                    .padding(bottom = 6.dp, top = 6.dp)
             )
         }
 
@@ -233,19 +278,19 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
 
         // 加粗和斜体
         MarkdownElementTypes.EMPH -> {
-            Text(
-                text = node.getTextInNode(content),
-                fontStyle = FontStyle.Italic,
-                modifier = modifier
-            )
+            ProvideTextStyle(TextStyle(fontStyle = FontStyle.Italic)) {
+                node.children.forEach { child ->
+                    MarkdownNode(child, content, modifier)
+                }
+            }
         }
 
         MarkdownElementTypes.STRONG -> {
-            Text(
-                text = node.getTextInNode(content),
-                fontWeight = FontWeight.Bold,
-                modifier = modifier
-            )
+            ProvideTextStyle(TextStyle(fontWeight = FontWeight.Bold)) {
+                node.children.forEach { child ->
+                    MarkdownNode(child, content, modifier)
+                }
+            }
         }
 
         // GFM 特殊元素
@@ -311,7 +356,7 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
 
         GFMElementTypes.INLINE_MATH -> {
             val formula = node.getTextInNode(content)
-            MathInline(formula, modifier = modifier.padding(horizontal = 1.dp))
+            MathInline(formula, modifier = modifier.padding(horizontal = 1.dp).background(Color.Red))
         }
 
         GFMElementTypes.BLOCK_MATH -> {
@@ -360,7 +405,7 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
         else -> {
             // 递归处理其他节点的子节点
             node.children.forEach { child ->
-                MarkdownNode(child, content)
+                MarkdownNode(child, content, modifier)
             }
         }
     }

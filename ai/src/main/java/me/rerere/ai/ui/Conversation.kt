@@ -14,4 +14,8 @@ data class Conversation(
     val createAt: Instant = Instant.now(),
     @Serializable(with = InstantSerializer::class)
     val updateAt: Instant = Instant.now(),
-)
+) {
+    companion object {
+        fun empty() = Conversation(messages = emptyList())
+    }
+}

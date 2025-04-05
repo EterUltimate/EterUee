@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,7 +43,7 @@ fun ChatInput(
         Column(
             modifier = modifier
                 .padding(8.dp)
-                .navigationBarsPadding(),
+                .imePadding(),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             TextField(
@@ -86,6 +87,7 @@ fun ChatInput(
                 IconButton(
                     onClick = {
                         onSendClick(text)
+                        text = ""
                     },
                     colors = IconButtonDefaults.filledIconButtonColors()
                 ) {

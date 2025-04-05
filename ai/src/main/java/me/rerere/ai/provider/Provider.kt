@@ -26,6 +26,4 @@ data class TextGenerationParams(
     val model: Model,
     val temperature: Float = 0.6f,
     val topP: Float = 1f,
-    val presencePenalty: Float = 0f,
-    val frequencyPenalty: Float = 0f,
 )

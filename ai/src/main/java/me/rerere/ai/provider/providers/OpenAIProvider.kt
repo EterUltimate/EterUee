@@ -1,6 +1,8 @@
 package me.rerere.ai.provider.providers
 
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -25,6 +27,10 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import okhttp3.sse.EventSource
+import okhttp3.sse.EventSourceListener
+import okhttp3.sse.EventSources
 import java.util.concurrent.TimeUnit
 
 class OpenAIProvider : Provider<ProviderSetting.OpenAI> {
@@ -39,7 +45,7 @@ class OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         .writeTimeout(120, TimeUnit.SECONDS)
         .retryOnConnectionFailure(true)
         .build()
-    
+
     override suspend fun generateText(
         providerSetting: ProviderSetting,
         conversation: Conversation,
@@ -48,7 +54,7 @@ class OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         if (providerSetting !is ProviderSetting.OpenAI) {
             throw IllegalArgumentException("ProviderSetting must be OpenAI")
         }
-        
+
         val requestBody = buildChatCompletionRequest(conversation, params)
         val request = Request.Builder()
             .url("${providerSetting.baseUrl}/chat/completions")
@@ -57,7 +63,7 @@ class OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             .build()
 
         println(json.encodeToString(requestBody))
-            
+
         val response = client.newCall(request).execute()
         if (!response.isSuccessful) {
             throw Exception("Failed to get response: ${response.code} ${response.body?.string()}")
@@ -70,7 +76,7 @@ class OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         val id = bodyJson["id"]?.jsonPrimitive?.content ?: ""
         val model = bodyJson["model"]?.jsonPrimitive?.content ?: ""
         val choice = bodyJson["choices"]?.jsonArray?.get(0)?.jsonObject ?: error("choices is null")
-        
+
         val message = choice["message"]?.jsonObject ?: throw Exception("message is null")
         val finishReason = choice["finish_reason"]
             ?.jsonPrimitive
@@ -95,59 +101,52 @@ class OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         providerSetting: ProviderSetting,
         conversation: Conversation,
         params: TextGenerationParams
-    ): Flow<MessageChunk> = flow {
+    ): Flow<MessageChunk> = callbackFlow {
         if (providerSetting !is ProviderSetting.OpenAI) {
             throw IllegalArgumentException("ProviderSetting must be OpenAI")
         }
-//
-//        val requestBody = buildChatCompletionRequest(conversation, params, providerSetting, stream = true)
-//        val request = Request.Builder()
-//            .url("${providerSetting.baseUrl}/v1/chat/completions")
-//            .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
-//            .addHeader("Content-Type", "application/json")
-//            .post(json.encodeToString(ChatCompletionRequest.serializer(), requestBody).toRequestBody("application/json".toMediaType()))
-//            .build()
-//
-//        val listener = object : EventSourceListener() {
-//            override fun onEvent(eventSource: EventSource, id: String?, type: String?, data: String) {
-//                if (data == "[DONE]") {
-//                    eventSource.cancel()
-//                    return
-//                }
-//
-//                try {
-//                    val chatCompletionChunk = json.decodeFromString(ChatCompletionChunk.serializer(), data)
-//                    val content = chatCompletionChunk.choices.firstOrNull()?.delta?.content
-//
-//                    val messageChunk = MessageChunk(
-//                        id = chatCompletionChunk.id,
-//                        model = chatCompletionChunk.model,
-//                        choices = chatCompletionChunk.choices.map { choice ->
-//                            UIMessageChoice(
-//                                index = choice.index,
-//                                delta = if (content != null) UIMessageContent.Text(content) else null,
-//                                message = null,
-//                                finishReason = choice.finishReason
-//                            )
-//                        }
-//                    )
-//
-//                    emit(messageChunk)
-//                } catch (e: Exception) {
-//                    eventSource.cancel()
-//                    throw e
-//                }
-//            }
-//
-//            override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
-//                eventSource.cancel()
-//                throw Exception("Stream failed: ${t?.message}, response: ${response?.body?.string()}")
-//            }
-//        }
-//
-//        EventSources.createFactory(client).newEventSource(request, listener)
+
+        val requestBody = buildChatCompletionRequest(conversation, params, stream = true)
+        val request = Request.Builder()
+            .url("${providerSetting.baseUrl}/chat/completions")
+            .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
+            .addHeader("Content-Type", "application/json")
+            .post(json.encodeToString(requestBody).toRequestBody("application/json".toMediaType()))
+            .build()
+
+        val listener = object : EventSourceListener() {
+            override fun onEvent(
+                eventSource: EventSource,
+                id: String?,
+                type: String?,
+                data: String
+            ) {
+                println(data)
+                if (data == "[DONE]") {
+                    eventSource.cancel()
+                    return
+                }
+
+            }
+
+            override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
+                eventSource.cancel()
+                throw Exception("Stream failed: ${t?.message}, response: ${response?.body?.string()}")
+            }
+
+            override fun onClosed(eventSource: EventSource) {
+                close()
+            }
+        }
+
+        val eventSource = EventSources.createFactory(client).newEventSource(request, listener)
+
+        awaitClose {
+            println("[awaitClose] 关闭eventSource ")
+            eventSource.cancel()
+        }
     }
-    
+
     private fun buildChatCompletionRequest(
         conversation: Conversation,
         params: TextGenerationParams,
@@ -158,8 +157,6 @@ class OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             put("messages", buildMessages(conversation.messages))
             put("temperature", params.temperature)
             put("top_p", params.topP)
-            put("presence_penalty", params.presencePenalty)
-            put("frequency_penalty", params.frequencyPenalty)
             put("stream", stream)
         }
     }
@@ -171,14 +168,14 @@ class OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                 putJsonArray("content") {
                     message.parts.forEach { part ->
                         val partJson = buildJsonObject {
-                            when(part) {
+                            when (part) {
                                 is UIMessagePart.Text -> {
                                     put("type", "text")
                                     put("text", part.text)
                                 }
 
                                 is UIMessagePart.Image -> {
-                                    put("type","image_url")
+                                    put("type", "image_url")
                                     put("image_url", part.url)
                                 }
 

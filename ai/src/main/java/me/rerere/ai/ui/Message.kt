@@ -32,7 +32,7 @@ data class MessageChunk(
 @Serializable
 data class UIMessageChoice(
     val index: Int,
-    val delta: UIMessagePart?,
+    val delta: UIMessage?,
     val message: UIMessage?,
     val finishReason: String?
 )

@@ -5,7 +5,7 @@ import me.rerere.ai.provider.providers.OpenAIProvider
 /**
  * Provider管理器，负责注册和获取Provider实例
  */
-class ProviderManager {
+object ProviderManager {
     // 存储已注册的Provider实例
     private val providers = mutableMapOf<String, Provider<*>>()
     
@@ -32,15 +32,6 @@ class ProviderManager {
      */
     fun getProvider(name: String): Provider<*>? {
         return providers[name]
-    }
-    
-    /**
-     * 获取所有已注册的Provider名称
-     * 
-     * @return 已注册的Provider名称列表
-     */
-    fun getProviderNames(): List<String> {
-        return providers.keys.toList()
     }
     
     /**

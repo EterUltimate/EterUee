@@ -3,37 +3,51 @@ package me.rerere.ai.provider
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlin.uuid.Uuid
 
 @Serializable
 sealed class ProviderSetting {
+    abstract var id: Uuid
     abstract var enabled: Boolean
     abstract var name: String
     abstract var models: List<Model>
 
     @Serializable
     @SerialName("openai")
-    class OpenAI(
-        override var enabled: Boolean,
-        override var name: String,
-        override var models: List<Model>,
-        var apiKey: String,
-        var baseUrl: String,
+    data class OpenAI(
+        override var id: Uuid = Uuid.random(),
+        override var enabled: Boolean = true,
+        override var name: String = "OpenAI",
+        override var models: List<Model> = emptyList(),
+        var apiKey: String = "sk-",
+        var baseUrl: String = "https://api.openai.com/v1",
     ) : ProviderSetting()
 
     @Serializable
     @SerialName("google")
-    class Google(
-        override var enabled: Boolean,
-        override var name: String,
-        override var models: List<Model>,
-        var apiKey: String,
-        var baseUrl: String
+    data class Google(
+        override var id: Uuid = Uuid.random(),
+        override var enabled: Boolean = true,
+        override var name: String = "Google",
+        override var models: List<Model> = emptyList(),
+        var apiKey: String = "",
+        var baseUrl: String = "https://generativelanguage.googleapis.com"
     ): ProviderSetting()
+
+    companion object {
+        val Types by lazy {
+            listOf(
+                OpenAI::class,
+                Google::class
+            )
+        }
+    }
 }
 
 @Serializable
 data class Model(
     val name: String,
+    val id: Uuid = Uuid.random(),
     val type: ModelType = ModelType.CHAT,
 )
 

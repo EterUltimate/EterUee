@@ -83,6 +83,7 @@ dependencies {
     implementation(project(":ai"))
     implementation(project(":highlight"))
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
+    implementation(kotlin("reflect"))
 
     // tests
     testImplementation(libs.junit)

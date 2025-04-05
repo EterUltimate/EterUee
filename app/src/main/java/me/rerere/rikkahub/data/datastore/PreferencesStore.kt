@@ -9,6 +9,10 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import me.rerere.ai.provider.Model
+import me.rerere.ai.provider.ProviderSetting
+import me.rerere.rikkahub.utils.JsonInstant
+import kotlin.uuid.Uuid
 
 private val Context.settingsStore by preferencesDataStore(
     name = "settings",
@@ -21,7 +25,8 @@ private val Context.settingsStore by preferencesDataStore(
 
 class SettingsStore(context: Context) {
     companion object {
-        val THEME = stringPreferencesKey("theme")
+        val SELECT_MODEL = stringPreferencesKey("select_model")
+        val PROVIDERS = stringPreferencesKey("providers")
     }
 
     private val dataStore = context.settingsStore
@@ -36,17 +41,33 @@ class SettingsStore(context: Context) {
         }
         .map { preferences ->
             Settings(
-                theme = preferences[THEME] ?: "system",
+                selectedModelId = preferences[SELECT_MODEL]?.let { Uuid.parse(it) } ?: Uuid.random(),
+                providers = JsonInstant
+                    .decodeFromString<List<ProviderSetting>>(preferences[PROVIDERS] ?: "[]"),
             )
         }
 
     suspend fun update(settings: Settings) {
         dataStore.edit { preferences ->
-            preferences[THEME] = settings.theme
+            preferences[SELECT_MODEL] = settings.selectedModelId.toString()
+            preferences[PROVIDERS] = JsonInstant.encodeToString(settings.providers)
         }
     }
 }
 
 data class Settings(
     val theme: String = "system",
+    val selectedModelId: Uuid = Uuid.random(),
+    val providers: List<ProviderSetting> = emptyList(),
 )
+
+fun List<ProviderSetting>.findModelById(uuid: Uuid): Model? {
+    this.forEach { setting ->
+        setting.models.forEach { model ->
+            if (model.id == uuid) {
+                return model
+            }
+        }
+    }
+    return null
+}

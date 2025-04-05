@@ -26,6 +26,7 @@ import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSharedTransitionScope
 import me.rerere.rikkahub.ui.pages.chat.ChatPage
 import me.rerere.rikkahub.ui.pages.setting.SettingPage
+import me.rerere.rikkahub.ui.pages.setting.SettingProviderPage
 import me.rerere.rikkahub.ui.theme.RikkahubTheme
 import org.koin.android.ext.android.inject
 
@@ -58,7 +59,7 @@ class RouteActivity : ComponentActivity() {
                     navController = navController,
                     startDestination = "chat",
                     enterTransition = {
-                        scaleIn() + fadeIn(animationSpec = tween(300))
+                        scaleIn(initialScale = 0.25f) + fadeIn(animationSpec = tween(300))
                     },
                     exitTransition = {
                         fadeOut(animationSpec = tween(300))
@@ -67,7 +68,7 @@ class RouteActivity : ComponentActivity() {
                         fadeIn(animationSpec = tween(300))
                     },
                     popExitTransition = {
-                        scaleOut() + fadeOut(animationSpec = tween(300))
+                        scaleOut(targetScale = 0.25f) + fadeOut(animationSpec = tween(300))
                     }
                 ) {
                     composableHelper("chat") {
@@ -76,6 +77,10 @@ class RouteActivity : ComponentActivity() {
 
                     composableHelper("setting") {
                         SettingPage()
+                    }
+
+                    composableHelper("setting/provider") {
+                        SettingProviderPage()
                     }
                 }
             }

@@ -114,6 +114,8 @@ class OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             .post(json.encodeToString(requestBody).toRequestBody("application/json".toMediaType()))
             .build()
 
+        println(requestBody)
+
         val listener = object : EventSourceListener() {
             override fun onEvent(
                 eventSource: EventSource,
@@ -121,12 +123,35 @@ class OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                 type: String?,
                 data: String
             ) {
-                println(data)
                 if (data == "[DONE]") {
                     eventSource.cancel()
                     return
                 }
-
+                data
+                    .trim()
+                    .split("\n")
+                    .filter { it.isNotBlank() }
+                    .map { json.parseToJsonElement(it).jsonObject}
+                    .forEach {
+                        val id = it["id"]?.jsonPrimitive?.content ?: ""
+                        val model = it["model"]?.jsonPrimitive?.content ?: ""
+                        val choice = it["choices"]?.jsonArray?.get(0)?.jsonObject ?: error("choices is null")
+                        val message = choice["delta"]?.jsonObject ?: choice["message"]?.jsonObject ?: throw Exception("delta/message is null")
+                        val finishReason = choice["finish_reason"]?.jsonPrimitive?.content ?: "unknown"
+                        val messageChunk = MessageChunk(
+                            id = id,
+                            model = model,
+                            choices = listOf(
+                                UIMessageChoice(
+                                    index = 0,
+                                    delta = parseMessage(message),
+                                    message = null,
+                                    finishReason = finishReason
+                                )
+                            )
+                        )
+                        trySend(messageChunk)
+                    }
             }
 
             override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
@@ -176,7 +201,9 @@ class OpenAIProvider : Provider<ProviderSetting.OpenAI> {
 
                                 is UIMessagePart.Image -> {
                                     put("type", "image_url")
-                                    put("image_url", part.url)
+                                    put("image_url", buildJsonObject {
+                                        put("url", part.url)
+                                    })
                                 }
 
                                 else -> {

@@ -8,18 +8,69 @@ import me.rerere.ai.core.MessageRole
 data class UIMessage(
     val role: MessageRole,
     val parts: List<UIMessagePart>
-)
+) {
+    fun appendChunk(chunk: MessageChunk): UIMessage {
+        val choice = chunk.choices[0]
+        choice.delta?.let { delta ->
+            val parts = this.parts.toMutableList()
+            delta.parts.forEach { deltaPart ->
+                when(deltaPart) {
+                    is UIMessagePart.Text -> {
+                        var part = parts.find { it is UIMessagePart.Text } as? UIMessagePart.Text
+                        if (part == null) {
+                            part = UIMessagePart.Text(deltaPart.text)
+                            parts.add(part)
+                        }
+                        part.text += deltaPart.text
+                    }
+
+                    is UIMessagePart.Reasoning -> {
+                        var part = parts.find { it is UIMessagePart.Reasoning } as? UIMessagePart.Reasoning
+                        if (part == null) {
+                            part = UIMessagePart.Reasoning(deltaPart.reasoning)
+                            parts.add(part)
+                        }
+                        part.reasoning += deltaPart.reasoning
+                    }
+
+                    else -> {
+                        println("delta part append not supported: $deltaPart")
+                    }
+                }
+            }
+        }
+        return this
+    }
+
+    operator fun plus(chunk: MessageChunk): UIMessage {
+        return this.appendChunk(chunk)
+    }
+}
+
+fun List<UIMessage>.handleMessageChunk(chunk: MessageChunk): List<UIMessage> {
+    require(this.isNotEmpty()) {
+        "messages must not be empty"
+    }
+    val choice = chunk.choices[0]
+    val message = choice.delta ?: choice.message ?: throw Exception("delta/message is null")
+    if(this.last().role != message.role) {
+        return this + message
+    } else {
+        val last = this.last() + chunk
+        return this.dropLast(1) + last
+    }
+}
 
 @Serializable
 sealed class UIMessagePart {
     @Serializable
-    data class Text(val text: String) : UIMessagePart()
+    data class Text(var text: String) : UIMessagePart()
 
     @Serializable
-    data class Image(val url: String) : UIMessagePart()
+    data class Image(var url: String) : UIMessagePart()
 
     @Serializable
-    data class Reasoning(val reasoning: String) : UIMessagePart()
+    data class Reasoning(var reasoning: String) : UIMessagePart()
 }
 
 @Serializable

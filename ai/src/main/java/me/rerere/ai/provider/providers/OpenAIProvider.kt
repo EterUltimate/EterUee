@@ -2,9 +2,16 @@ package me.rerere.ai.provider.providers
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.provider.Provider
 import me.rerere.ai.provider.ProviderSetting
@@ -13,16 +20,11 @@ import me.rerere.ai.ui.Conversation
 import me.rerere.ai.ui.MessageChunk
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageChoice
-import me.rerere.ai.ui.UIMessageContent
+import me.rerere.ai.ui.UIMessagePart
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
-import okhttp3.sse.EventSource
-import okhttp3.sse.EventSourceListener
-import okhttp3.sse.EventSources
-import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 class OpenAIProvider : Provider<ProviderSetting.OpenAI> {
@@ -32,9 +34,9 @@ class OpenAIProvider : Provider<ProviderSetting.OpenAI> {
     }
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
+        .connectTimeout(120, TimeUnit.SECONDS)
+        .readTimeout(120, TimeUnit.SECONDS)
+        .writeTimeout(120, TimeUnit.SECONDS)
         .retryOnConnectionFailure(true)
         .build()
     
@@ -47,9 +49,9 @@ class OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             throw IllegalArgumentException("ProviderSetting must be OpenAI")
         }
         
-        val requestBody = buildChatCompletionRequest(conversation, params, providerSetting)
+        val requestBody = buildChatCompletionRequest(conversation, params)
         val request = Request.Builder()
-            .url("${providerSetting.baseUrl}/v1/chat/completions")
+            .url("${providerSetting.baseUrl}/chat/completions")
             .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
             .post(json.encodeToString(requestBody).toRequestBody("application/json".toMediaType()))
             .build()
@@ -61,19 +63,31 @@ class OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             throw Exception("Failed to get response: ${response.code} ${response.body?.string()}")
         }
 
-        val chatCompletion = json.decodeFromString(ChatCompletion.serializer(), response.body?.string() ?: "")
+        val bodyStr = response.body?.string() ?: ""
+        val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
+
+        // 从 JsonObject 中提取必要的信息
+        val id = bodyJson["id"]?.jsonPrimitive?.content ?: ""
+        val model = bodyJson["model"]?.jsonPrimitive?.content ?: ""
+        val choice = bodyJson["choices"]?.jsonArray?.get(0)?.jsonObject ?: error("choices is null")
         
+        val message = choice["message"]?.jsonObject ?: throw Exception("message is null")
+        val finishReason = choice["finish_reason"]
+            ?.jsonPrimitive
+            ?.content
+            ?: "unknown"
+
         return MessageChunk(
-            id = chatCompletion.id,
-            model = chatCompletion.model,
-            choices = chatCompletion.choices.map { choice ->
+            id = id,
+            model = model,
+            choices = listOf(
                 UIMessageChoice(
-                    index = choice.index,
+                    index = 0,
                     delta = null,
-                    message = UIMessageContent.Text(choice.message.content ?: ""),
-                    finishReason = choice.finishReason
+                    message = parseMessage(message),
+                    finishReason = finishReason
                 )
-            }
+            )
         )
     }
 
@@ -137,85 +151,65 @@ class OpenAIProvider : Provider<ProviderSetting.OpenAI> {
     private fun buildChatCompletionRequest(
         conversation: Conversation,
         params: TextGenerationParams,
-        providerSetting: ProviderSetting.OpenAI,
         stream: Boolean = false
-    ): ChatCompletionRequest {
-        val messages = conversation.messages.map { uiMessage ->
-            val content = uiMessage.content.filterIsInstance<UIMessageContent.Text>()
-                .joinToString("\n") { it.text }
-            ChatMessage(
-                role = uiMessage.role.name.lowercase(),
-                content = content
-            )
+    ): JsonObject {
+        return buildJsonObject {
+            put("model", params.model.name)
+            put("messages", buildMessages(conversation.messages))
+            put("temperature", params.temperature)
+            put("top_p", params.topP)
+            put("presence_penalty", params.presencePenalty)
+            put("frequency_penalty", params.frequencyPenalty)
+            put("stream", stream)
         }
-        
-        // 从providerSetting中获取第一个可用模型
-        val modelName = providerSetting.models.firstOrNull()?.name ?: "gpt-4o"
-        
-        return ChatCompletionRequest(
-            model = modelName,
-            messages = messages,
-            temperature = params.temperature,
-            topP = params.topP,
-            presencePenalty = params.presencePenalty,
-            frequencyPenalty = params.frequencyPenalty,
-            stream = stream
+    }
+
+    private fun buildMessages(messages: List<UIMessage>) = buildJsonArray {
+        messages.forEach { message ->
+            add(buildJsonObject {
+                put("role", JsonPrimitive(message.role.name.lowercase()))
+                putJsonArray("content") {
+                    message.parts.forEach { part ->
+                        val partJson = buildJsonObject {
+                            when(part) {
+                                is UIMessagePart.Text -> {
+                                    put("type", "text")
+                                    put("text", part.text)
+                                }
+
+                                is UIMessagePart.Image -> {
+                                    put("type","image_url")
+                                    put("image_url", part.url)
+                                }
+
+                                else -> {
+                                    println("message part not supported: $part")
+                                    // DO NOTHING
+                                }
+                            }
+                        }
+                        add(partJson)
+                    }
+                }
+            })
+        }
+    }
+
+    private fun parseMessage(jsonObject: JsonObject): UIMessage {
+        val role = MessageRole.valueOf(jsonObject["role"]!!.jsonPrimitive.content.uppercase())
+        val reasoning = jsonObject["reasoning_content"]?.jsonPrimitive?.content
+
+        // 也许支持其他模态的输出content? 暂时只支持文本吧
+        val content = jsonObject["content"]!!.jsonPrimitive.content
+
+        return UIMessage(
+            role = role,
+            parts = buildList {
+                if (reasoning != null) {
+                    add(UIMessagePart.Reasoning(reasoning))
+                }
+                add(UIMessagePart.Text(content))
+            }
         )
     }
-    
-    @Serializable
-    private data class ChatCompletionRequest(
-        val model: String,
-        val messages: List<ChatMessage>,
-        val temperature: Float,
-        @SerialName("top_p")
-        val topP: Float,
-        @SerialName("presence_penalty")
-        val presencePenalty: Float,
-        @SerialName("frequency_penalty")
-        val frequencyPenalty: Float,
-        val stream: Boolean = false
-    )
-    
-    @Serializable
-    private data class ChatMessage(
-        val role: String,
-        val content: String
-    )
-    
-    @Serializable
-    private data class ChatCompletion(
-        val id: String,
-        val model: String,
-        val choices: List<ChatCompletionChoice>
-    )
-    
-    @Serializable
-    private data class ChatCompletionChoice(
-        val index: Int,
-        val message: ChatMessage,
-        @SerialName("finish_reason")
-        val finishReason: String?
-    )
-    
-    @Serializable
-    private data class ChatCompletionChunk(
-        val id: String,
-        val model: String,
-        val choices: List<ChatCompletionChunkChoice>
-    )
-    
-    @Serializable
-    private data class ChatCompletionChunkChoice(
-        val index: Int,
-        val delta: ChatCompletionDelta,
-        @SerialName("finish_reason")
-        val finishReason: String?
-    )
-    
-    @Serializable
-    private data class ChatCompletionDelta(
-        val role: String? = null,
-        val content: String? = null
-    )
 }

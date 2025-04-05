@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
@@ -23,6 +24,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import me.rerere.ai.provider.test
 import me.rerere.rikkahub.ui.components.HighlightCodeBlock
 import me.rerere.rikkahub.ui.components.MarkdownBlock
 import me.rerere.rikkahub.ui.components.chat.ChatInput
@@ -104,10 +106,19 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
                 }
 
 
+                val scope = rememberCoroutineScope()
                 LazyColumn(
                     contentPadding = PaddingValues(12.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
+                    item {
+                        Button(onClick = {
+                            scope.launch {  test() }
+                        }) {
+                            Text("click")
+                        }
+                    }
+
                     item {
                         Card {
                             MarkdownBlock(content, modifier = Modifier.padding(4.dp))

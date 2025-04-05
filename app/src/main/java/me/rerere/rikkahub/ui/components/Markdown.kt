@@ -2,7 +2,6 @@ package me.rerere.rikkahub.ui.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -14,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
@@ -40,6 +40,9 @@ import org.intellij.markdown.ast.ASTNode
 import org.intellij.markdown.flavours.gfm.GFMElementTypes
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.parser.MarkdownParser
+import androidx.compose.foundation.border
+import androidx.compose.ui.graphics.RectangleShape
+import org.intellij.markdown.flavours.gfm.GFMTokenTypes
 
 private val flavour by lazy {
     GFMFlavourDescriptor()
@@ -140,8 +143,7 @@ object HeaderStyle {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) {
-    buildAnnotatedString {  }
+fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier, ) {
     when (node.type) {
         // 文件根节点
         MarkdownElementTypes.MARKDOWN_FILE -> {
@@ -303,35 +305,31 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
         }
 
         GFMElementTypes.TABLE -> {
-            // 简单表格实现
-            Column(modifier = modifier) {
-                node.children.forEachIndexed { index, row ->
-                    if (row.type == GFMElementTypes.ROW) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            row.children.forEach { cell ->
-                                Text(
-                                    text = cell.getTextInNode(content).trim(),
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .padding(4.dp)
-                                )
-                            }
-                        }
+            Table(modifier = modifier) {
+                node.children.forEach {
+                    MarkdownNode(it, content)
+                }
+            }
+        }
 
-                        // 表头下方添加分隔线
-                        if (index == 0) {
-                            Spacer(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(1.dp)
-                                    .background(
-                                        MaterialTheme.colorScheme.onSurface.copy(
-                                            alpha = 0.2f
-                                        )
-                                    )
-                            )
+        GFMElementTypes.HEADER -> {
+            TableHeader(modifier = modifier) {
+                node.children.forEach {
+                    if(it.type == GFMTokenTypes.CELL) {
+                        TableCell {
+                            MarkdownNode(it, content)
+                        }
+                    }
+                }
+            }
+        }
+
+        GFMElementTypes.ROW -> {
+            TableRow(modifier = modifier) {
+                node.children.forEach {
+                    if(it.type == GFMTokenTypes.CELL) {
+                        TableCell {
+                            MarkdownNode(it, content)
                         }
                     }
                 }

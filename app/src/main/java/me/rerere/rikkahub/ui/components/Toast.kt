@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import kotlinx.coroutines.delay
+import me.rerere.rikkahub.ui.theme.extendColors
 
 /**
  * Toast 变体类型
@@ -32,17 +33,6 @@ data class ToastConfig(
     val message: String,
     val variant: ToastVariant = ToastVariant.DEFAULT,
     val duration: Long = 3000L // 默认3秒
-)
-
-/**
- * Toast 颜色配置
- */
-private val toastColors = mapOf(
-    ToastVariant.SUCCESS to Color(0xFF4CAF50),
-    ToastVariant.ERROR to Color(0xFFF44336),
-    ToastVariant.WARNING to Color(0xFFFF9800),
-    ToastVariant.INFO to Color(0xFF2196F3),
-    ToastVariant.DEFAULT to Color(0xFF323232)
 )
 
 /**
@@ -93,7 +83,13 @@ fun Toast(
                     .padding(16.dp)
                     .fillMaxWidth(0.9f),
                 shape = MaterialTheme.shapes.medium,
-                color = toastColors[config.variant] ?: Color(0xFF323232),
+                color = when (config.variant) {
+                    ToastVariant.INFO -> MaterialTheme.extendColors.blue6
+                    ToastVariant.SUCCESS -> MaterialTheme.extendColors.green6
+                    ToastVariant.WARNING -> MaterialTheme.extendColors.orange6
+                    ToastVariant.ERROR -> MaterialTheme.extendColors.red6
+                    ToastVariant.DEFAULT -> MaterialTheme.colorScheme.primary
+                },
                 shadowElevation = 8.dp
             ) {
                 Row(
@@ -102,7 +98,9 @@ fun Toast(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Icon(
-                        painter = painterResource(id = toastIcons[config.variant] ?: android.R.drawable.ic_dialog_email),
+                        painter = painterResource(
+                            id = toastIcons[config.variant] ?: android.R.drawable.ic_dialog_email
+                        ),
                         contentDescription = null,
                         tint = Color.White
                     )
@@ -122,8 +120,8 @@ fun Toast(
  */
 @Composable
 fun rememberToastState(host: Boolean = true): ToastState {
-    val state =  remember { ToastState() }
-    if(host) {
+    val state = remember { ToastState() }
+    if (host) {
         state.Show()
     }
     return state
@@ -145,7 +143,11 @@ class ToastState {
         currentConfig = config
     }
 
-    fun show(message: String, variant: ToastVariant = ToastVariant.DEFAULT, duration: Long = 3000L) {
+    fun show(
+        message: String,
+        variant: ToastVariant = ToastVariant.DEFAULT,
+        duration: Long = 3000L
+    ) {
         currentConfig = ToastConfig(message, variant, duration)
     }
 }

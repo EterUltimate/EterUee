@@ -22,6 +22,7 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -49,6 +50,8 @@ import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.rikkahub.ui.components.BackButton
+import me.rerere.rikkahub.ui.components.Tag
+import me.rerere.rikkahub.ui.components.TagType
 import me.rerere.rikkahub.ui.components.TextAvatar
 import me.rerere.rikkahub.ui.components.ToastVariant
 import me.rerere.rikkahub.ui.components.icons.Boxes
@@ -188,22 +191,12 @@ private fun ProviderItem(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(provider.name, style = MaterialTheme.typography.titleMedium)
-                    ProvideTextStyle(MaterialTheme.typography.bodySmall) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(
-                                if (provider.enabled) "启用" else "禁用",
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(MaterialTheme.colorScheme.secondaryContainer)
-                                    .padding(horizontal = 4.dp, vertical = 2.dp)
-                            )
-                            Text(
-                                "${provider.models.size}个模型",
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(MaterialTheme.colorScheme.secondaryContainer)
-                                    .padding(horizontal = 4.dp, vertical = 2.dp)
-                            )
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Tag(type = if (provider.enabled) TagType.SUCCESS else TagType.WARNING) {
+                            Text(if (provider.enabled) "启用" else "禁用")
+                        }
+                        Tag(type = TagType.INFO) {
+                            Text("${provider.models.size}个模型")
                         }
                     }
                 }
@@ -274,7 +267,8 @@ private fun ModelList(providerSetting: ProviderSetting, onUpdate: (ProviderSetti
         modifier = Modifier
             .fillMaxWidth()
             .padding(4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         // 模型列表
         if (providerSetting.models.isEmpty()) {
@@ -462,23 +456,25 @@ private fun ModelCard(
         enableDismissFromStartToEnd = false,
         gesturesEnabled = true
     ) {
-        Card {
+        ElevatedCard {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp),
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(model.displayName, style = MaterialTheme.typography.titleMedium)
-                    ProvideTextStyle(MaterialTheme.typography.labelSmall) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Tag {
                             Text(
                                 text = model.modelId,
                             )
+                        }
+                        Tag {
                             Text(
                                 text = when (model.type) {
                                     ModelType.CHAT -> "聊天模型"

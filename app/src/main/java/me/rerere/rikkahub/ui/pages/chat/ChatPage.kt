@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
@@ -80,6 +81,7 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
     }
 
     val inputState = rememberChatInputState()
+    var completionJob by remember { mutableStateOf<Job?>(null) }
 
     fun handleSend() {
         conversation = conversation.copy(
@@ -89,14 +91,15 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
             )
         )
         inputState.reset()
-        scope.launch {
+        completionJob = scope.launch {
             inputState.loading = true
             providerSetting?.let {
-                val providerImpl =
-                    ProviderManager.getProviderByType(it)
+                val providerImpl = ProviderManager.getProviderByType(it)
                 providerImpl?.let {
                     providerImpl.streamText(
-                        providerSetting, conversation, TextGenerationParams(
+                        providerSetting,
+                        conversation,
+                        TextGenerationParams(
                             model = model,
                         )
                     ).onEach {
@@ -107,12 +110,14 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
                         println(conversation.messages)
                     }.catch {
                         it.printStackTrace()
+                        toastState.show(it.message ?: "错误", ToastVariant.ERROR)
                     }.collect()
                 }
             } ?: run {
                 toastState.show("请配置模型", ToastVariant.ERROR)
             }
-        }.invokeOnCompletion {
+        }
+        completionJob?.invokeOnCompletion {
             inputState.loading = false
         }
     }
@@ -139,7 +144,9 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
             bottomBar = {
                 ChatInput(
                     state = inputState,
-                    onCancelClick = {},
+                    onCancelClick = {
+                        completionJob?.cancel()
+                    },
                     onSendClick = {
                         handleSend()
                     }

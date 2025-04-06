@@ -141,7 +141,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                     .filter { it.isNotBlank() }
                     .map { json.parseToJsonElement(it).jsonObject}
                     .forEach {
-                        println(it)
+                        // println(it)
                         val id = it["id"]?.jsonPrimitive?.content ?: ""
                         val model = it["model"]?.jsonPrimitive?.content ?: ""
                         val choices = it["choices"]?.jsonArray ?: JsonArray(emptyList())
@@ -166,9 +166,14 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             }
 
             override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
-                t?.printStackTrace()
-                eventSource.cancel()
-                throw Exception("Stream failed: ${t?.message}, response: ${response?.body?.string()}")
+                try {
+                    println("[onFailure] 发生错误: ${t?.message}")
+                    t?.printStackTrace()
+                } catch (e: Throwable) {
+                    e.printStackTrace()
+                } finally {
+                    close(t)
+                }
             }
 
             override fun onClosed(eventSource: EventSource) {

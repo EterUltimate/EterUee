@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
@@ -24,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -39,10 +37,8 @@ import org.intellij.markdown.MarkdownTokenTypes
 import org.intellij.markdown.ast.ASTNode
 import org.intellij.markdown.flavours.gfm.GFMElementTypes
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
-import org.intellij.markdown.parser.MarkdownParser
-import androidx.compose.foundation.border
-import androidx.compose.ui.graphics.RectangleShape
 import org.intellij.markdown.flavours.gfm.GFMTokenTypes
+import org.intellij.markdown.parser.MarkdownParser
 
 private val flavour by lazy {
     GFMFlavourDescriptor()
@@ -60,12 +56,13 @@ private fun preProcess(content: String): String {
     var result = content.replace(Regex("\\\\\\((.+?)\\\\\\)")) { matchResult ->
         "$" + matchResult.groupValues[1] + "$"
     }
-    
+
     // 替换块级公式 \[ ... \] 到 $$ ... $$
-    result = result.replace(Regex("\\\\\\[(.+?)\\\\\\]", RegexOption.DOT_MATCHES_ALL)) { matchResult ->
-        "$$" + matchResult.groupValues[1] + "$$"
-    }
-    
+    result =
+        result.replace(Regex("\\\\\\[(.+?)\\\\\\]", RegexOption.DOT_MATCHES_ALL)) { matchResult ->
+            "$$" + matchResult.groupValues[1] + "$$"
+        }
+
     return result
 }
 
@@ -76,9 +73,10 @@ fun MarkdownBlock(
 ) {
     val preprocessed = remember(content) { preProcess(content) }
     val astTree = remember(preprocessed) {
-        parser.buildMarkdownTreeFromString(preprocessed).also {
-            dumpAst(it, preprocessed)
-        }
+        parser.buildMarkdownTreeFromString(preprocessed)
+//            .also {
+//                dumpAst(it, preprocessed) // for debugging ast tree
+//            }
     }
 
     MarkdownAst(astTree, preprocessed, modifier)
@@ -86,7 +84,7 @@ fun MarkdownBlock(
 
 // for debug
 private fun dumpAst(node: ASTNode, text: String, indent: String = "") {
-    println("$indent${node.type} ${if(node.children.isEmpty()) node.getTextInNode(text) else ""}")
+    println("$indent${node.type} ${if (node.children.isEmpty()) node.getTextInNode(text) else ""}")
     node.children.forEach {
         dumpAst(it, text, "$indent  ")
     }
@@ -143,7 +141,7 @@ object HeaderStyle {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier, ) {
+fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) {
     when (node.type) {
         // 文件根节点
         MarkdownElementTypes.MARKDOWN_FILE -> {
@@ -158,7 +156,11 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier, 
                 modifier = modifier.padding(start = 4.dp),
             ) {
                 node.children.forEach { child ->
-                    MarkdownNode(child, content, modifier = Modifier.align(Alignment.CenterVertically))
+                    MarkdownNode(
+                        child,
+                        content,
+                        modifier = Modifier.align(Alignment.CenterVertically)
+                    )
                 }
             }
         }
@@ -315,7 +317,7 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier, 
         GFMElementTypes.HEADER -> {
             TableHeader(modifier = modifier) {
                 node.children.forEach {
-                    if(it.type == GFMTokenTypes.CELL) {
+                    if (it.type == GFMTokenTypes.CELL) {
                         TableCell {
                             MarkdownNode(it, content)
                         }
@@ -327,7 +329,7 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier, 
         GFMElementTypes.ROW -> {
             TableRow(modifier = modifier) {
                 node.children.forEach {
-                    if(it.type == GFMTokenTypes.CELL) {
+                    if (it.type == GFMTokenTypes.CELL) {
                         TableCell {
                             MarkdownNode(it, content)
                         }
@@ -354,7 +356,12 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier, 
 
         GFMElementTypes.INLINE_MATH -> {
             val formula = node.getTextInNode(content)
-            MathInline(formula, modifier = modifier.padding(horizontal = 1.dp).background(Color.Red))
+            MathInline(
+                formula,
+                modifier = modifier
+                    .padding(horizontal = 1.dp)
+                    .background(Color.Red)
+            )
         }
 
         GFMElementTypes.BLOCK_MATH -> {
@@ -418,7 +425,7 @@ private fun ASTNode.getTextInNode(text: String, type: IElementType): String {
     var endOffset = -1
     children.fastForEach {
         if (it.type == type) {
-            if(startOffset == -1) {
+            if (startOffset == -1) {
                 startOffset = it.startOffset
             }
             endOffset = it.endOffset

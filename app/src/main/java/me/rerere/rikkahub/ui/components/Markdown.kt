@@ -1,7 +1,9 @@
 package me.rerere.rikkahub.ui.components
 
+import android.content.Intent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -21,7 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -30,6 +32,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
+import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import org.intellij.markdown.IElementType
 import org.intellij.markdown.MarkdownElementTypes
@@ -74,9 +77,9 @@ fun MarkdownBlock(
     val preprocessed = remember(content) { preProcess(content) }
     val astTree = remember(preprocessed) {
         parser.buildMarkdownTreeFromString(preprocessed)
-            .also {
-                dumpAst(it, preprocessed) // for debugging ast tree
-            }
+//            .also {
+//                dumpAst(it, preprocessed) // for debugging ast tree
+//            }
     }
 
     MarkdownAst(astTree, preprocessed, modifier)
@@ -266,15 +269,19 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
         // 链接
         MarkdownElementTypes.INLINE_LINK -> {
             val linkText =
-                node.findChildOfType(MarkdownElementTypes.LINK_TEXT)?.getTextInNode(content) ?: ""
+                node.findChildOfType(MarkdownTokenTypes.TEXT)?.getTextInNode(content) ?: ""
             val linkDest =
                 node.findChildOfType(MarkdownElementTypes.LINK_DESTINATION)?.getTextInNode(content)
                     ?: ""
+            val context = LocalContext.current
             Text(
                 text = linkText,
                 color = MaterialTheme.colorScheme.primary,
                 textDecoration = TextDecoration.Underline,
-                modifier = modifier
+                modifier = modifier.clickable {
+                    val intent = Intent(Intent.ACTION_VIEW, linkDest.toUri())
+                    context.startActivity(intent)
+                }
             )
         }
 
@@ -345,7 +352,7 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
                     ?: ""
             Column(
                 modifier = modifier,
-                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // 这里可以使用Coil等图片加载库加载图片
                 AsyncImage(model = imageUrl, contentDescription = altText)
@@ -435,5 +442,10 @@ private fun ASTNode.getTextInNode(text: String, type: IElementType): String {
 }
 
 private fun ASTNode.findChildOfType(type: IElementType): ASTNode? {
-    return children.find { it.type == type }
+    if (this.type == type) return this
+    for (child in children) {
+        val result = child.findChildOfType(type)
+        if (result != null) return result
+    }
+    return null
 }

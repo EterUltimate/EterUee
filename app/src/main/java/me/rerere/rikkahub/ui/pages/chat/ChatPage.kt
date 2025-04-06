@@ -160,6 +160,26 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
                 verticalArrangement = Arrangement.spacedBy(4.dp),
                 state = chatListState
             ) {
+                item {
+                    MarkdownBlock("""
+                        这是一个Paragraph，您可以在这里输入您的消息。各种元素的, 并且可以内联 `代码`，或者使用代码块
+                        ```java
+                        这是一个代码块
+                        ```
+                        好吧，还不错吧，也可以 $ f(x)=x^2 $ 这样的数学公式
+                        
+                        ![图片](https://plus.unsplash.com/premium_photo-1676923902105-19d5c90d585c?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxfHx8ZW58MHx8fHx8)
+                        
+                        这是一段代码
+                        ```js
+                        const a = 1
+                        const b = 2
+                        ```
+                        
+                        [GitHub](https://github.com)
+                    """.trimIndent())
+                }
+
                 items(conversation.messages, key = { it.id }) {
                     ChatMessage(it)
                 }

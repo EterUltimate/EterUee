@@ -49,7 +49,6 @@ import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.handleMessageChunk
 import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.findProvider
-import me.rerere.rikkahub.ui.components.MarkdownBlock
 import me.rerere.rikkahub.ui.components.ToastVariant
 import me.rerere.rikkahub.ui.components.chat.ChatInput
 import me.rerere.rikkahub.ui.components.chat.ChatMessage
@@ -160,32 +159,6 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
                 verticalArrangement = Arrangement.spacedBy(4.dp),
                 state = chatListState
             ) {
-                item {
-                    MarkdownBlock("""
-                        这是一个Paragraph，您可以在这里输入您的消息。各种元素的 $ f(x)=2x+3y+z+12+2z+5+12+erfe $ 并且可以内联 `代码`，或者使用代码块
-                        ```java
-                        这是一个代码块
-                        ```
-                        好吧，还不错吧，也可以 $ f(x)=x^2 $ 这样的数学公式
-                        
-                        ![图片](https://plus.unsplash.com/premium_photo-1676923902105-19d5c90d585c?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxfHx8ZW58MHx8fHx8)
-                        
-                        这是一段代码
-                        ```js
-                        const a = 1
-                        const b = 2
-                        ```
-                        
-                        [GitHub](https://github.com) 违法沃尔夫wfewrf3erferf4二`分日狗`太贵违法二哥他和人不过去的柔肤乳3搞挺尴尬太高太高
-                        
-                        #### 标题测试 **哈哈**
-                        1. 第一项
-                        2. 第二项
-                        
-                        
-                    """.trimIndent())
-                }
-
                 items(conversation.messages, key = { it.id }) {
                     ChatMessage(it)
                 }

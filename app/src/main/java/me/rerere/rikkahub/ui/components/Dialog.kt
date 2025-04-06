@@ -55,9 +55,9 @@ class DialogState {
     }
 
     fun openModalBottomSheet(
-        content: @Composable () -> Unit,
         onDismiss: () -> Unit,
-        skipPartiallyExpanded: Boolean = false
+        skipPartiallyExpanded: Boolean = false,
+        content: @Composable () -> Unit,
     ) {
         _dialog.value = DialogContent.BottomSheet(content, onDismiss, skipPartiallyExpanded)
     }

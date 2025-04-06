@@ -12,6 +12,10 @@ sealed class ProviderSetting {
     abstract var name: String
     abstract var models: List<Model>
 
+    abstract fun addModel(model: Model): ProviderSetting
+    abstract fun editModel(model: Model): ProviderSetting
+    abstract fun delModel(model: Model): ProviderSetting
+
     @Serializable
     @SerialName("openai")
     data class OpenAI(
@@ -21,7 +25,19 @@ sealed class ProviderSetting {
         override var models: List<Model> = emptyList(),
         var apiKey: String = "sk-",
         var baseUrl: String = "https://api.openai.com/v1",
-    ) : ProviderSetting()
+    ) : ProviderSetting() {
+        override fun addModel(model: Model): ProviderSetting {
+            return copy(models = models + model)
+        }
+
+        override fun editModel(model: Model): ProviderSetting {
+            return copy(models = models.map { if (it.id == model.id) model else it })
+        }
+
+        override fun delModel(model: Model): ProviderSetting {
+            return copy(models = models.filter { it.id != model.id })
+        }
+    }
 
     @Serializable
     @SerialName("google")
@@ -32,7 +48,19 @@ sealed class ProviderSetting {
         override var models: List<Model> = emptyList(),
         var apiKey: String = "",
         var baseUrl: String = "https://generativelanguage.googleapis.com"
-    ): ProviderSetting()
+    ): ProviderSetting() {
+        override fun addModel(model: Model): ProviderSetting {
+            return copy(models = models + model)
+        }
+
+        override fun editModel(model: Model): ProviderSetting {
+            return copy(models = models.map { if (it.id == model.id) model else it })
+        }
+
+        override fun delModel(model: Model): ProviderSetting {
+            return copy(models = models.filter { it.id != model.id })
+        }
+    }
 
     companion object {
         val Types by lazy {

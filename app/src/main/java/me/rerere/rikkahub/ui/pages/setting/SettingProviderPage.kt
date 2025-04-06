@@ -3,9 +3,11 @@ package me.rerere.rikkahub.ui.pages.setting
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -16,19 +18,23 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,12 +45,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import me.rerere.ai.provider.Model
+import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.rikkahub.ui.components.BackButton
 import me.rerere.rikkahub.ui.components.TextAvatar
+import me.rerere.rikkahub.ui.components.ToastVariant
 import me.rerere.rikkahub.ui.components.icons.Boxes
 import me.rerere.rikkahub.ui.components.icons.Settings
 import me.rerere.rikkahub.ui.components.rememberDialogState
+import me.rerere.rikkahub.ui.components.rememberToastState
 import me.rerere.rikkahub.ui.utils.plus
 import org.koin.androidx.compose.koinViewModel
 
@@ -145,6 +155,13 @@ fun AddButton(onAdd: (ProviderSetting) -> Unit) {
     }
 }
 
+
+private enum class ProviderExpandState {
+    Setting,
+    Models,
+    None
+}
+
 @Composable
 private fun ProviderItem(
     provider: ProviderSetting,
@@ -152,8 +169,11 @@ private fun ProviderItem(
     onDelete: () -> Unit
 ) {
     val dialogState = rememberDialogState()
+    val toastState = rememberToastState()
+    // 临时复制一份用于编辑
+    // 因为data store是异步操作的，会导致UI编辑不同步
     var internalProvider by remember { mutableStateOf(provider) }
-    var expand by remember { mutableStateOf(false) }
+    var expand by remember { mutableStateOf(ProviderExpandState.None) }
     Card {
         Column(
             modifier = Modifier
@@ -165,7 +185,6 @@ private fun ProviderItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TextAvatar(provider.name, modifier = Modifier.size(32.dp))
-
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
@@ -189,16 +208,29 @@ private fun ProviderItem(
                         }
                     }
                 }
-
                 IconButton(
                     onClick = {
-                        expand = !expand
+                        expand = ProviderExpandState.Models
+                    }
+                ) {
+                    Icon(Boxes, "Models")
+                }
+                IconButton(
+                    onClick = {
+                        expand = ProviderExpandState.Setting
                     }
                 ) {
                     Icon(Settings, "Setting")
                 }
             }
-            if (expand) {
+
+            if (expand == ProviderExpandState.Models) {
+                ModelList(provider) {
+                    onEdit(it)
+                }
+            }
+
+            if (expand == ProviderExpandState.Setting) {
                 ProviderConfigure(
                     provider = internalProvider,
                     modifier = Modifier.padding(8.dp),
@@ -206,10 +238,13 @@ private fun ProviderItem(
                         internalProvider = it
                     }
                 )
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    Spacer(Modifier.weight(1f))
+
                     IconButton(
                         onClick = {
                             onDelete()
@@ -221,10 +256,268 @@ private fun ProviderItem(
                     Button(
                         onClick = {
                             onEdit(internalProvider)
+                            toastState.show("保存成功", ToastVariant.SUCCESS)
+                            expand = ProviderExpandState.None
                         }
                     ) {
                         Icon(Icons.Outlined.Edit, "Delete")
                         Text("保存")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ModelList(providerSetting: ProviderSetting, onUpdate: (ProviderSetting) -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 模型列表
+        if (providerSetting.models.isEmpty()) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "暂无模型",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "点击下方按钮添加模型",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                )
+            }
+
+            AddModelButton {
+                onUpdate(providerSetting.addModel(it))
+            }
+        } else {
+            providerSetting.models.forEach { model ->
+                ModelCard(
+                    model = model,
+                    onDelete = {
+                        onUpdate(providerSetting.delModel(model))
+                    },
+                    onEdit = { editedModel ->
+                        onUpdate(providerSetting.editModel(editedModel))
+                    }
+                )
+            }
+
+            AddModelButton {
+                onUpdate(providerSetting.addModel(it))
+            }
+        }
+    }
+}
+
+@Composable
+fun AddModelButton(onAdd: (Model) -> Unit) {
+    val dialogState = rememberDialogState()
+    var modelName by remember { mutableStateOf("") }
+    var modelType by remember { mutableStateOf(ModelType.CHAT) }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = {
+            dialogState.openAlertDialog(
+                title = {
+                    Text("添加模型")
+                },
+                text = {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = modelName,
+                            onValueChange = { modelName = it },
+                            label = { Text("模型名称") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Text("模型类型", style = MaterialTheme.typography.titleSmall)
+                        ModelTypeSelector(
+                            selectedType = modelType,
+                            onTypeSelected = { modelType = it }
+                        )
+                    }
+                },
+                confirmText = {
+                    Text("添加")
+                },
+                dismissText = {
+                    Text("取消")
+                },
+                onConfirm = {
+                    if (modelName.isNotBlank()) {
+                        onAdd(Model(name = modelName, type = modelType))
+                        modelName = ""
+                        modelType = ModelType.CHAT
+                    }
+                },
+                onDismiss = {
+                    dialogState.close()
+                }
+            )
+        }
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Outlined.Add, contentDescription = "添加模型")
+            Spacer(modifier = Modifier.size(8.dp))
+            Text("添加新模型", style = MaterialTheme.typography.bodyLarge)
+        }
+    }
+}
+
+@Composable
+fun ModelTypeSelector(
+    selectedType: ModelType,
+    onTypeSelected: (ModelType) -> Unit
+) {
+    SingleChoiceSegmentedButtonRow(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        ModelType.entries.forEachIndexed { index, type ->
+            SegmentedButton(
+                shape = SegmentedButtonDefaults.itemShape(index, ModelType.entries.size),
+                label = {
+                    Text(
+                        text = when (type) {
+                            ModelType.CHAT -> "聊天模型"
+                            ModelType.EMBEDDING -> "嵌入模型"
+                        }
+                    )
+                },
+                selected = selectedType == type,
+                onClick = { onTypeSelected(type) }
+            )
+        }
+    }
+}
+
+@Composable
+fun ModelCard(
+    model: Model,
+    onDelete: () -> Unit,
+    onEdit: (Model) -> Unit
+) {
+    val dialogState = rememberDialogState()
+    var editingModel by remember { mutableStateOf(model) }
+
+    SwipeToDismissBox(
+        state = rememberSwipeToDismissBoxState(),
+        backgroundContent = {
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End)
+            ) {
+                IconButton(
+                    onClick = {
+                        onDelete()
+                    }
+                ) {
+                    Icon(Icons.Outlined.Delete, contentDescription = "删除")
+                }
+            }
+        },
+        enableDismissFromStartToEnd = false,
+        gesturesEnabled = true
+    ) {
+        Card {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(model.name, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        text = when (model.type) {
+                            ModelType.CHAT -> "聊天模型"
+                            ModelType.EMBEDDING -> "嵌入模型"
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Row {
+                    // Edit button
+                    IconButton(
+                        onClick = {
+                            editingModel = model
+                            dialogState.openAlertDialog(
+                                title = {
+                                    Text("编辑模型")
+                                },
+                                text = {
+                                    Column(
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        OutlinedTextField(
+                                            value = editingModel.name,
+                                            onValueChange = {
+                                                editingModel = editingModel.copy(name = it)
+                                            },
+                                            label = { Text("模型名称") },
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+
+                                        Text(
+                                            "模型类型",
+                                            style = MaterialTheme.typography.titleSmall
+                                        )
+                                        ModelTypeSelector(
+                                            selectedType = editingModel.type,
+                                            onTypeSelected = {
+                                                editingModel = editingModel.copy(type = it)
+                                            }
+                                        )
+                                    }
+                                },
+                                confirmText = {
+                                    Text("保存")
+                                },
+                                dismissText = {
+                                    Text("取消")
+                                },
+                                onConfirm = {
+                                    if (editingModel.name.isNotBlank()) {
+                                        onEdit(editingModel)
+                                    }
+                                },
+                                onDismiss = {
+                                    dialogState.close()
+                                }
+                            )
+                        }
+                    ) {
+                        Icon(Icons.Outlined.Edit, "Edit")
+                    }
+
+                    // Delete button
+                    IconButton(
+                        onClick = onDelete
+                    ) {
+                        Icon(Icons.Outlined.Delete, "Delete")
                     }
                 }
             }

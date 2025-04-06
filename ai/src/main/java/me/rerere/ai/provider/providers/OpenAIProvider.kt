@@ -45,6 +45,13 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         .readTimeout(120, TimeUnit.SECONDS)
         .writeTimeout(120, TimeUnit.SECONDS)
         .retryOnConnectionFailure(true)
+        .addInterceptor { chain ->
+            val request = chain.request().newBuilder()
+                .addHeader("X-Title", "RikkaHub")
+                .addHeader("HTTP-Referer", "https://github.com/re-ovo/rikkahub")
+                .build()
+            chain.proceed(request)
+        }
         .build()
 
     override suspend fun generateText(

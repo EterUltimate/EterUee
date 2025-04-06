@@ -140,9 +140,18 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
             bottomBar = {
                 ChatInput(
                     state = inputState,
-                    onCancelClick = {}
+                    onCancelClick = {},
+                    onSendClick = {
+                        handleSend()
+                    }
                 ) {
-                    handleSend()
+                    ModelSelector(
+                        modelId = setting.chatModelId,
+                        providers = setting.providers,
+                        onSelect = {
+                            vm.setChatModel(it)
+                        }
+                    )
                 }
             }
         ) { innerPadding ->
@@ -179,13 +188,7 @@ private fun TopBar(
             }
         },
         title = {
-            ModelSelector(
-                modelId = settings.chatModelId,
-                providers = settings.providers,
-                onSelect = {
-                    vm.setChatModel(it)
-                }
-            )
+
         },
         actions = {
             IconButton(

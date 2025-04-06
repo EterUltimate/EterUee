@@ -81,6 +81,7 @@ fun ChatInput(
     modifier: Modifier = Modifier,
     onCancelClick: () -> Unit,
     onSendClick: () -> Unit,
+    actions: @Composable () -> Unit = {},
 ) {
     val text =
         state.messageContent.filterIsInstance<UIMessagePart.Text>().firstOrNull() ?: UIMessagePart.Text("")
@@ -110,6 +111,8 @@ fun ChatInput(
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
+                actions()
+
                 OutlinedIconToggleButton(
                     checked = state.useWebSearch,
                     onCheckedChange = {

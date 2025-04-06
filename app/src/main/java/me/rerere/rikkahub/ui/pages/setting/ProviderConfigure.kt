@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -80,33 +81,36 @@ private fun ProviderConfigureOpenAI(
         )
     }
 
-    TextField(
+    OutlinedTextField(
         value = provider.name,
         onValueChange = {
             onEdit(provider.copy(name = it))
         },
         label = {
             Text("名称")
-        }
+        },
+        modifier = Modifier.fillMaxWidth()
     )
 
-    TextField(
+    OutlinedTextField(
         value = provider.apiKey,
         onValueChange = {
             onEdit(provider.copy(apiKey = it))
         },
         label = {
             Text("API Key")
-        }
+        },
+        modifier = Modifier.fillMaxWidth()
     )
 
-    TextField(
+    OutlinedTextField(
         value = provider.baseUrl,
         onValueChange = {
             onEdit(provider.copy(baseUrl = it))
         },
         label = {
             Text("API Base Url")
-        }
+        },
+        modifier = Modifier.fillMaxWidth()
     )
 }

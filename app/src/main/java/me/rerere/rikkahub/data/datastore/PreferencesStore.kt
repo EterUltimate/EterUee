@@ -71,3 +71,14 @@ fun List<ProviderSetting>.findModelById(uuid: Uuid): Model? {
     }
     return null
 }
+
+fun Model.findProvider(providers: List<ProviderSetting>): ProviderSetting? {
+    providers.forEach { setting ->
+        setting.models.forEach { model ->
+            if (model.id == this.id) {
+                return setting
+            }
+        }
+    }
+    return null
+}

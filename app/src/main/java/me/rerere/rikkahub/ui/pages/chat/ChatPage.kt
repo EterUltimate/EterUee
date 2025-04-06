@@ -162,7 +162,7 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
             ) {
                 item {
                     MarkdownBlock("""
-                        这是一个Paragraph，您可以在这里输入您的消息。各种元素的, 并且可以内联 `代码`，或者使用代码块
+                        这是一个Paragraph，您可以在这里输入您的消息。各种元素的 $ f(x)=2x+3y+z+12+2z+5+12+erfe $ 并且可以内联 `代码`，或者使用代码块
                         ```java
                         这是一个代码块
                         ```
@@ -176,7 +176,13 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
                         const b = 2
                         ```
                         
-                        [GitHub](https://github.com)
+                        [GitHub](https://github.com) 违法沃尔夫wfewrf3erferf4二`分日狗`太贵违法二哥他和人不过去的柔肤乳3搞挺尴尬太高太高
+                        
+                        #### 标题测试 **哈哈**
+                        1. 第一项
+                        2. 第二项
+                        
+                        
                     """.trimIndent())
                 }
 

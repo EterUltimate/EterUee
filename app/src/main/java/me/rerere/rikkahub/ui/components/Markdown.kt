@@ -15,21 +15,36 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.core.net.toUri
@@ -155,17 +170,11 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
 
         // 段落
         MarkdownElementTypes.PARAGRAPH -> {
-            FlowRow(
-                modifier = modifier.padding(start = 4.dp),
-            ) {
-                node.children.forEach { child ->
-                    MarkdownNode(
-                        child,
-                        content,
-                        modifier = Modifier.align(Alignment.CenterVertically)
-                    )
-                }
-            }
+            Paragraph(
+                node = node,
+                content = content,
+                modifier = modifier.padding(bottom = 8.dp)
+            )
         }
 
         // 标题
@@ -185,7 +194,7 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
                 else -> throw IllegalArgumentException("Unknown header type")
             }
             ProvideTextStyle(style) {
-                FlowRow {
+                FlowRow(modifier) {
                     node.children.forEach { child ->
                         MarkdownNode(child, content, Modifier.align(Alignment.CenterVertically))
                     }
@@ -420,6 +429,157 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
     }
 }
 
+@Composable
+private fun Paragraph(node: ASTNode, content: String, modifier: Modifier) {
+    // 如果段落中包含块级数学公式，则直接渲染所有子节点，不使用AnnotatedString
+    if (node.findChildOfType(GFMElementTypes.BLOCK_MATH) != null) {
+        node.children.forEach {
+            MarkdownNode(it, content, modifier)
+        }
+        return
+    }
+
+    val colorScheme = MaterialTheme.colorScheme
+    val inlineContents = remember {
+        mutableStateMapOf<String, InlineTextContent>()
+    }
+    val annotatedString = remember(content) {
+        buildAnnotatedString {
+            node.children.forEach { child ->
+                appendMarkdownNodeContent(child, content, inlineContents, colorScheme)
+            }
+        }
+    }
+
+    Text(
+        text = annotatedString,
+        modifier = modifier
+            .padding(start = 4.dp),
+        style = LocalTextStyle.current,
+        inlineContent = inlineContents
+    )
+}
+
+private fun AnnotatedString.Builder.appendMarkdownNodeContent(
+    node: ASTNode,
+    content: String,
+    inlineContents: MutableMap<String, InlineTextContent>,
+    colorScheme: ColorScheme
+) {
+    when (node.type) {
+        MarkdownTokenTypes.TEXT -> {
+            append(node.getTextInNode(content))
+        }
+
+        MarkdownElementTypes.EMPH -> {
+            withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
+                node.children.forEach {
+                    appendMarkdownNodeContent(
+                        it,
+                        content,
+                        inlineContents,
+                        colorScheme
+                    )
+                }
+            }
+        }
+
+        MarkdownElementTypes.STRONG -> {
+            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                node.children.forEach {
+                    appendMarkdownNodeContent(
+                        it,
+                        content,
+                        inlineContents,
+                        colorScheme
+                    )
+                }
+            }
+        }
+
+        MarkdownElementTypes.INLINE_LINK -> {
+            val linkText =
+                node.findChildOfType(MarkdownTokenTypes.TEXT)?.getTextInNode(content) ?: ""
+            val linkDest =
+                node.findChildOfType(MarkdownElementTypes.LINK_DESTINATION)?.getTextInNode(content)
+                    ?: ""
+            withLink(LinkAnnotation.Url(linkDest)) {
+                withStyle(
+                    SpanStyle(
+                        color = colorScheme.primary,
+                        textDecoration = TextDecoration.Underline
+                    )
+                ) {
+                    append(linkText)
+                }
+            }
+        }
+
+        MarkdownElementTypes.CODE_SPAN -> {
+            val code = node.getTextInNode(content).trim('`')
+            withStyle(
+                SpanStyle(
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 0.95.em,
+                )
+            ) {
+                append(code)
+            }
+        }
+
+        GFMElementTypes.INLINE_MATH -> {
+            // formula as id
+            val formula = node.getTextInNode(content)
+            appendInlineContent(formula, "[${node.getTextInNode(content)}]")
+            inlineContents.putIfAbsent(formula,InlineTextContent(
+                placeholder = Placeholder(
+                    width = 1.em,
+                    height = 1.em,
+                    placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter
+                ),
+                children = {
+                    val density = LocalDensity.current
+                    MathInline(
+                        formula,
+                        modifier = Modifier
+                            .onGloballyPositioned { coord ->
+                                val width = coord.size.width
+                                val height = coord.size.height
+                                with(density) {
+                                    val widthInSp = width.toDp().toSp()
+                                    val heightInSp = height.toDp().toSp()
+                                    val inlineContent = inlineContents[formula]
+                                    if (inlineContent != null) {
+                                        inlineContents[formula] = InlineTextContent(
+                                            placeholder = Placeholder(
+                                                width = widthInSp,
+                                                height = heightInSp,
+                                                placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter
+                                            ),
+                                            children = inlineContent.children
+                                        )
+                                    }
+                                }
+                            }
+                    )
+                }
+            ))
+        }
+
+        // 其他类型继续递归处理
+        else -> {
+            node.children.forEach {
+                appendMarkdownNodeContent(
+                    it,
+                    content,
+                    inlineContents,
+                    colorScheme
+                )
+            }
+        }
+    }
+}
+
 private fun ASTNode.getTextInNode(text: String): String {
     return text.substring(startOffset, endOffset)
 }
@@ -441,11 +601,64 @@ private fun ASTNode.getTextInNode(text: String, type: IElementType): String {
     return text.substring(startOffset, endOffset)
 }
 
-private fun ASTNode.findChildOfType(type: IElementType): ASTNode? {
-    if (this.type == type) return this
+private fun ASTNode.findChildOfType(vararg types: IElementType): ASTNode? {
+    if (this.type in types) return this
     for (child in children) {
-        val result = child.findChildOfType(type)
+        val result = child.findChildOfType(*types)
         if (result != null) return result
     }
     return null
+}
+
+private fun ASTNode.traverseChildren(
+    action: (ASTNode) -> Unit
+) {
+    children.forEach { child ->
+        action(child)
+        child.traverseChildren(action)
+    }
+}
+
+private fun estimateLatexLength(latex: String): Int {
+    // 移除所有空白字符
+    var cleanedLatex = latex.replace("\\s".toRegex(), "")
+
+    // 移除常见的LaTeX命令前缀，这些通常不会增加显示宽度
+    cleanedLatex = cleanedLatex.replace("\\\\[a-zA-Z]+".toRegex(), "")
+
+    // 处理分数，分数通常会取分子和分母中较长的一个
+    val fractionPattern = "\\\\frac\\{([^{}]*)\\}\\{([^{}]*)\\}".toRegex()
+    while (fractionPattern.containsMatchIn(cleanedLatex)) {
+        cleanedLatex = fractionPattern.replace(cleanedLatex) { matchResult ->
+            val numerator = matchResult.groupValues[1]
+            val denominator = matchResult.groupValues[2]
+            if (numerator.length > denominator.length) numerator else denominator
+        }
+    }
+
+    // 处理上标和下标，它们通常比普通字符小
+    cleanedLatex = cleanedLatex.replace("_\\{[^{}]*\\}|\\^\\{[^{}]*\\}".toRegex(), "x")
+    cleanedLatex = cleanedLatex.replace("_[^{]|\\^[^{]".toRegex(), "")
+
+    // 处理根号，根号下的内容加上根号符号的宽度
+    val sqrtPattern = "\\\\sqrt\\{([^{}]*)\\}".toRegex()
+    cleanedLatex = sqrtPattern.replace(cleanedLatex) { matchResult ->
+        "√" + matchResult.groupValues[1]
+    }
+
+    // 移除括号，保留内容
+    cleanedLatex = cleanedLatex.replace("[{}]".toRegex(), "")
+
+    // 最后计算剩余字符的长度，可以根据经验为某些特殊字符赋予不同的权重
+    var length = 0
+    for (char in cleanedLatex) {
+        length += when (char) {
+            '∑', '∏', '∫', '√' -> 2  // 大型数学符号
+            'm', 'w' -> 2           // 宽字母
+            'i', 'l', '.' -> 1      // 窄字母和标点
+            else -> 1               // 默认宽度
+        }
+    }
+
+    return length
 }

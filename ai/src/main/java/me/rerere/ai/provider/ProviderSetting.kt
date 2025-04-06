@@ -74,7 +74,8 @@ sealed class ProviderSetting {
 
 @Serializable
 data class Model(
-    val name: String,
+    val modelId: String,
+    val displayName: String,
     val id: Uuid = Uuid.random(),
     val type: ModelType = ModelType.CHAT,
 )
@@ -83,32 +84,4 @@ data class Model(
 enum class ModelType {
     CHAT,
     EMBEDDING
-}
-
-fun main() {
-    val settings = listOf(
-        ProviderSetting.OpenAI(
-            enabled = true,
-            name = "OpenAI",
-            apiKey = "sk-...",
-            baseUrl = "https://api.openai.com",
-            models = listOf(
-                Model("gpt-3.5-turbo"),
-                Model("gpt-4")
-            )
-        ),
-        ProviderSetting.Google(
-            enabled = true,
-            name = "Google",
-            apiKey = "sk-...",
-            baseUrl = "https://api.openai.com",
-            models = listOf(
-                Model("gpt-3.5-turbo"),
-                Model("gpt-4")
-            )
-        )
-    )
-
-    println(Json.encodeToString(settings))
-    println(Json.decodeFromString<List<ProviderSetting>>(Json.encodeToString(settings)))
 }

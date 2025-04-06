@@ -101,7 +101,7 @@ fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
                     onEdit = { newProvider ->
                         val newSettings = settings.copy(
                             providers = settings.providers.map {
-                                if (newProvider.id == provider.id) {
+                                if (newProvider.id == it.id) {
                                     newProvider
                                 } else {
                                     it
@@ -117,7 +117,7 @@ fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
 }
 
 @Composable
-fun AddButton(onAdd: (ProviderSetting) -> Unit) {
+private fun AddButton(onAdd: (ProviderSetting) -> Unit) {
     val dialogState = rememberDialogState()
 
     var providerSetting: ProviderSetting by remember {
@@ -168,7 +168,6 @@ private fun ProviderItem(
     onEdit: (provider: ProviderSetting) -> Unit,
     onDelete: () -> Unit
 ) {
-    val dialogState = rememberDialogState()
     val toastState = rememberToastState()
     // 临时复制一份用于编辑
     // 因为data store是异步操作的，会导致UI编辑不同步
@@ -270,7 +269,7 @@ private fun ProviderItem(
 }
 
 @Composable
-fun ModelList(providerSetting: ProviderSetting, onUpdate: (ProviderSetting) -> Unit) {
+private fun ModelList(providerSetting: ProviderSetting, onUpdate: (ProviderSetting) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -322,9 +321,10 @@ fun ModelList(providerSetting: ProviderSetting, onUpdate: (ProviderSetting) -> U
 }
 
 @Composable
-fun AddModelButton(onAdd: (Model) -> Unit) {
+private fun AddModelButton(onAdd: (Model) -> Unit) {
     val dialogState = rememberDialogState()
-    var modelName by remember { mutableStateOf("") }
+    var modelId by remember { mutableStateOf("") }
+    var modelDisplayName by remember { mutableStateOf("") }
     var modelType by remember { mutableStateOf(ModelType.CHAT) }
 
     Card(
@@ -339,10 +339,26 @@ fun AddModelButton(onAdd: (Model) -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         OutlinedTextField(
-                            value = modelName,
-                            onValueChange = { modelName = it },
-                            label = { Text("模型名称") },
-                            modifier = Modifier.fillMaxWidth()
+                            value = modelId,
+                            onValueChange = {
+                                modelId = it
+                                modelDisplayName = it.uppercase()
+                            },
+                            label = { Text("模型ID") },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = {
+                                Text("例如：gpt-3.5-turbo")
+                            }
+                        )
+
+                        OutlinedTextField(
+                            value = modelDisplayName,
+                            onValueChange = { modelDisplayName = it },
+                            label = { Text("模型显示名称") },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = {
+                                Text("例如：GPT-3.5, 用于UI显示")
+                            }
                         )
 
                         Text("模型类型", style = MaterialTheme.typography.titleSmall)
@@ -359,9 +375,16 @@ fun AddModelButton(onAdd: (Model) -> Unit) {
                     Text("取消")
                 },
                 onConfirm = {
-                    if (modelName.isNotBlank()) {
-                        onAdd(Model(name = modelName, type = modelType))
-                        modelName = ""
+                    if (modelId.isNotBlank() && modelDisplayName.isNotBlank()) {
+                        onAdd(
+                            Model(
+                                modelId = modelId,
+                                displayName = modelDisplayName,
+                                type = modelType
+                            )
+                        )
+                        modelId = ""
+                        modelDisplayName = ""
                         modelType = ModelType.CHAT
                     }
                 },
@@ -386,7 +409,7 @@ fun AddModelButton(onAdd: (Model) -> Unit) {
 }
 
 @Composable
-fun ModelTypeSelector(
+private fun ModelTypeSelector(
     selectedType: ModelType,
     onTypeSelected: (ModelType) -> Unit
 ) {
@@ -412,7 +435,7 @@ fun ModelTypeSelector(
 }
 
 @Composable
-fun ModelCard(
+private fun ModelCard(
     model: Model,
     onDelete: () -> Unit,
     onEdit: (Model) -> Unit
@@ -448,77 +471,83 @@ fun ModelCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(model.name, style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        text = when (model.type) {
-                            ModelType.CHAT -> "聊天模型"
-                            ModelType.EMBEDDING -> "嵌入模型"
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Row {
-                    // Edit button
-                    IconButton(
-                        onClick = {
-                            editingModel = model
-                            dialogState.openAlertDialog(
-                                title = {
-                                    Text("编辑模型")
-                                },
-                                text = {
-                                    Column(
-                                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        OutlinedTextField(
-                                            value = editingModel.name,
-                                            onValueChange = {
-                                                editingModel = editingModel.copy(name = it)
-                                            },
-                                            label = { Text("模型名称") },
-                                            modifier = Modifier.fillMaxWidth()
-                                        )
-
-                                        Text(
-                                            "模型类型",
-                                            style = MaterialTheme.typography.titleSmall
-                                        )
-                                        ModelTypeSelector(
-                                            selectedType = editingModel.type,
-                                            onTypeSelected = {
-                                                editingModel = editingModel.copy(type = it)
-                                            }
-                                        )
-                                    }
-                                },
-                                confirmText = {
-                                    Text("保存")
-                                },
-                                dismissText = {
-                                    Text("取消")
-                                },
-                                onConfirm = {
-                                    if (editingModel.name.isNotBlank()) {
-                                        onEdit(editingModel)
-                                    }
-                                },
-                                onDismiss = {
-                                    dialogState.close()
+                    Text(model.displayName, style = MaterialTheme.typography.titleMedium)
+                    ProvideTextStyle(MaterialTheme.typography.labelSmall) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = model.modelId,
+                            )
+                            Text(
+                                text = when (model.type) {
+                                    ModelType.CHAT -> "聊天模型"
+                                    ModelType.EMBEDDING -> "嵌入模型"
                                 }
                             )
                         }
-                    ) {
-                        Icon(Icons.Outlined.Edit, "Edit")
                     }
+                }
 
-                    // Delete button
-                    IconButton(
-                        onClick = onDelete
-                    ) {
-                        Icon(Icons.Outlined.Delete, "Delete")
+                // Edit button
+                IconButton(
+                    onClick = {
+                        editingModel = model
+                        dialogState.openAlertDialog(
+                            title = {
+                                Text("编辑模型")
+                            },
+                            text = {
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    OutlinedTextField(
+                                        value = editingModel.modelId,
+                                        onValueChange = {},
+                                        label = { Text("模型ID") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        enabled = false
+                                    )
+
+                                    OutlinedTextField(
+                                        value = editingModel.displayName,
+                                        onValueChange = {
+                                            editingModel = editingModel.copy(displayName = it)
+                                        },
+                                        label = { Text("模型名称") },
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+
+                                    Text(
+                                        "模型类型",
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                    ModelTypeSelector(
+                                        selectedType = editingModel.type,
+                                        onTypeSelected = {
+                                            editingModel = editingModel.copy(type = it)
+                                        }
+                                    )
+                                }
+                            },
+                            confirmText = {
+                                Text("保存")
+                            },
+                            dismissText = {
+                                Text("取消")
+                            },
+                            onConfirm = {
+                                if (editingModel.displayName.isNotBlank()) {
+                                    onEdit(editingModel)
+                                }
+                            },
+                            onDismiss = {
+                                dialogState.close()
+                            }
+                        )
                     }
+                ) {
+                    Icon(Icons.Outlined.Edit, "Edit")
                 }
             }
         }

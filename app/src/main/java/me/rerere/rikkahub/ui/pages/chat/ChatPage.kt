@@ -37,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -56,6 +57,8 @@ import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.handleMessageChunk
 import me.rerere.rikkahub.ui.components.chat.ChatInput
 import me.rerere.rikkahub.ui.components.chat.ChatMessage
+import me.rerere.rikkahub.ui.components.chat.ModelSelector
+import me.rerere.rikkahub.ui.components.chat.rememberChatInputState
 import me.rerere.rikkahub.ui.components.icons.ListTree
 import me.rerere.rikkahub.ui.components.icons.MessageCirclePlus
 import me.rerere.rikkahub.ui.components.icons.Settings
@@ -81,10 +84,14 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
             Conversation.empty(),
         )
     }
+    val inputState = rememberChatInputState()
 
-    fun handleSend(message: String) {
+    fun handleSend() {
         conversation = conversation.copy(
-            messages = conversation.messages + UIMessage.ofText(MessageRole.USER, message)
+            messages = conversation.messages + UIMessage(
+                role = MessageRole.USER,
+                parts = inputState.messageContent
+            )
         )
         scope.launch {
             flow {
@@ -95,7 +102,7 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
                             providerSetting = setting,
                             conversation = conversation,
                             params = TextGenerationParams(
-                                model = Model("gpt-4o")
+                                model = Model("gpt-4o", "GPT-4o")
                             )
 
                         )
@@ -120,6 +127,7 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
             chatListState.scrollToItem(conversation.messages.size)
         }
     }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -128,13 +136,16 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
     ) {
         Scaffold(
             topBar = {
-                TopBar(scope, drawerState, navController) {
+                TopBar(scope, drawerState, vm) {
                     conversation = Conversation.empty()
                 }
             },
             bottomBar = {
-                ChatInput {
-                    handleSend(message = it)
+                ChatInput(
+                    state = inputState,
+                    onCancelClick = {}
+                ) {
+                    handleSend()
                 }
             }
         ) { innerPadding ->
@@ -146,7 +157,7 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
                 Card(
                     modifier = Modifier.heroAnimation("setting_card"),
                     onClick = {
-                        
+
                     }
                 ) {
                     Box(
@@ -174,9 +185,11 @@ fun ChatPage(vm: ChatVM = koinViewModel()) {
 private fun TopBar(
     scope: CoroutineScope,
     drawerState: DrawerState,
-    navController: NavController,
+    vm: ChatVM,
     onNewChat: () -> Unit,
 ) {
+    val settings by vm.settings.collectAsStateWithLifecycle()
+
     CenterAlignedTopAppBar(
         navigationIcon = {
             IconButton(
@@ -188,9 +201,13 @@ private fun TopBar(
             }
         },
         title = {
-            TextButton(onClick = {}) {
-                Text("DeepSeek R1")
-            }
+            ModelSelector(
+                modelId = settings.chatModelId,
+                providers = settings.providers,
+                onSelect = {
+                    vm.setChatModel(it)
+                }
+            )
         },
         actions = {
             IconButton(

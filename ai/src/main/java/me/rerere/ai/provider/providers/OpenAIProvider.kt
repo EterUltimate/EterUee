@@ -190,7 +190,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         stream: Boolean = false
     ): JsonObject {
         return buildJsonObject {
-            put("model", params.model.name)
+            put("model", params.model.modelId)
             put("messages", buildMessages(conversation.messages))
             put("temperature", params.temperature)
             put("top_p", params.topP)

@@ -1,9 +1,7 @@
 package me.rerere.rikkahub.ui.pages.setting
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,37 +13,38 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.ProviderSetting
@@ -176,7 +175,7 @@ private fun ProviderItem(
     // 因为data store是异步操作的，会导致UI编辑不同步
     var internalProvider by remember { mutableStateOf(provider) }
     var expand by remember { mutableStateOf(ProviderExpandState.None) }
-    Card {
+    OutlinedCard {
         Column(
             modifier = Modifier
                 .padding(8.dp)
@@ -296,15 +295,17 @@ private fun ModelList(providerSetting: ProviderSetting, onUpdate: (ProviderSetti
             }
         } else {
             providerSetting.models.forEach { model ->
-                ModelCard(
-                    model = model,
-                    onDelete = {
-                        onUpdate(providerSetting.delModel(model))
-                    },
-                    onEdit = { editedModel ->
-                        onUpdate(providerSetting.editModel(editedModel))
-                    }
-                )
+                key(model.id) {
+                    ModelCard(
+                        model = model,
+                        onDelete = {
+                            onUpdate(providerSetting.delModel(model))
+                        },
+                        onEdit = { editedModel ->
+                            onUpdate(providerSetting.editModel(editedModel))
+                        }
+                    )
+                }
             }
 
             AddModelButton {
@@ -436,9 +437,10 @@ private fun ModelCard(
 ) {
     val dialogState = rememberDialogState()
     var editingModel by remember { mutableStateOf(model) }
-
+    val swipeToDismissBoxState = rememberSwipeToDismissBoxState()
+    val scope = rememberCoroutineScope()
     SwipeToDismissBox(
-        state = rememberSwipeToDismissBoxState(),
+        state = swipeToDismissBoxState,
         backgroundContent = {
             Row(
                 modifier = Modifier.fillMaxSize(),
@@ -446,7 +448,10 @@ private fun ModelCard(
             ) {
                 IconButton(
                     onClick = {
-                        onDelete()
+                        scope.launch {
+                            onDelete()
+                            swipeToDismissBoxState.dismiss(SwipeToDismissBoxValue.EndToStart)
+                        }
                     }
                 ) {
                     Icon(Icons.Outlined.Delete, contentDescription = "删除")
@@ -456,7 +461,7 @@ private fun ModelCard(
         enableDismissFromStartToEnd = false,
         gesturesEnabled = true
     ) {
-        ElevatedCard {
+        Card {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

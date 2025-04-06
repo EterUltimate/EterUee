@@ -188,7 +188,7 @@ private fun TopBar(
             }
         },
         title = {
-
+            Text("新聊天")
         },
         actions = {
             IconButton(

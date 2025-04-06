@@ -49,6 +49,7 @@ import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.handleMessageChunk
 import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.findProvider
+import me.rerere.rikkahub.ui.components.MarkdownBlock
 import me.rerere.rikkahub.ui.components.ToastVariant
 import me.rerere.rikkahub.ui.components.chat.ChatInput
 import me.rerere.rikkahub.ui.components.chat.ChatMessage

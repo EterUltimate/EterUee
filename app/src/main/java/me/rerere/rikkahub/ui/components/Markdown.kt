@@ -74,9 +74,9 @@ fun MarkdownBlock(
     val preprocessed = remember(content) { preProcess(content) }
     val astTree = remember(preprocessed) {
         parser.buildMarkdownTreeFromString(preprocessed)
-//            .also {
-//                dumpAst(it, preprocessed) // for debugging ast tree
-//            }
+            .also {
+                dumpAst(it, preprocessed) // for debugging ast tree
+            }
     }
 
     MarkdownAst(astTree, preprocessed, modifier)
@@ -172,8 +172,6 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
         MarkdownElementTypes.ATX_4,
         MarkdownElementTypes.ATX_5,
         MarkdownElementTypes.ATX_6 -> {
-            val headerContent =
-                node.findChildOfType(MarkdownTokenTypes.ATX_CONTENT)?.getTextInNode(content) ?: ""
             val style = when (node.type) {
                 MarkdownElementTypes.ATX_1 -> HeaderStyle.H1
                 MarkdownElementTypes.ATX_2 -> HeaderStyle.H2
@@ -183,13 +181,13 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
                 MarkdownElementTypes.ATX_6 -> HeaderStyle.H6
                 else -> throw IllegalArgumentException("Unknown header type")
             }
-            Text(
-                text = headerContent.trim(),
-                style = style,
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 6.dp, top = 6.dp)
-            )
+            ProvideTextStyle(style) {
+                FlowRow {
+                    node.children.forEach { child ->
+                        MarkdownNode(child, content, Modifier.align(Alignment.CenterVertically))
+                    }
+                }
+            }
         }
 
         // 列表
@@ -360,7 +358,6 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
                 formula,
                 modifier = modifier
                     .padding(horizontal = 1.dp)
-                    .background(Color.Red)
             )
         }
 

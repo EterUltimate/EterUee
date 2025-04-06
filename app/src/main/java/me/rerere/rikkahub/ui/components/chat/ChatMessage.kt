@@ -80,7 +80,6 @@ fun ChatMessage(
 @Composable
 fun MessagePartsBlock(
     parts: List<UIMessagePart>,
-    modifier: Modifier = Modifier
 ) {
     var expandReasoning by remember {
         mutableStateOf(true)
@@ -123,6 +122,10 @@ fun MessagePartsBlock(
             }
 
             is UIMessagePart.Text -> MarkdownBlock(it.text)
+
+            is UIMessagePart.Image -> {
+                Text(it.url)
+            }
 
             else -> {
                 // DO NOTHING

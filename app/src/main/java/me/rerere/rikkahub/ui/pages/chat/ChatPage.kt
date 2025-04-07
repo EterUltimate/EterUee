@@ -65,7 +65,12 @@ import me.rerere.rikkahub.ui.utils.plus
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun ChatPage(vm: ChatVM = koinViewModel()) {
+fun ChatPage(id: String?, vm: ChatVM = koinViewModel()) {
+
+}
+
+@Composable
+fun _ChatPage(id: String?, vm: ChatVM = koinViewModel()) {
     val navController = LocalNavController.current
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()

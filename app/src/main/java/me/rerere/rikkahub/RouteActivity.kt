@@ -14,11 +14,14 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import me.rerere.highlight.Highlighter
 import me.rerere.highlight.LocalHighlighter
 import me.rerere.rikkahub.ui.context.LocalAnimatedVisibilityScope
@@ -57,7 +60,7 @@ class RouteActivity : ComponentActivity() {
             ) {
                 NavHost(
                     navController = navController,
-                    startDestination = "chat",
+                    startDestination = "chat/",
                     enterTransition = {
                         scaleIn(initialScale = 0.25f) + fadeIn(animationSpec = tween(300))
                     },
@@ -71,8 +74,16 @@ class RouteActivity : ComponentActivity() {
                         scaleOut(targetScale = 0.25f) + fadeOut(animationSpec = tween(300))
                     }
                 ) {
-                    composableHelper("chat") {
-                        ChatPage()
+                    composableHelper(
+                        route = "chat/{id}",
+                        args = listOf(
+                            navArgument("id") {
+                                type = NavType.StringType
+                                nullable = true
+                            }
+                        )
+                    ) { entry ->
+                        ChatPage(entry.arguments?.getString("id"))
                     }
 
                     composableHelper("setting") {
@@ -91,10 +102,12 @@ class RouteActivity : ComponentActivity() {
 
 private fun NavGraphBuilder.composableHelper(
     route: String,
+    args: List<NamedNavArgument> = emptyList(),
     content: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit
 ) {
     this.composable(
         route = route,
+        arguments = args,
     ) { entry ->
         CompositionLocalProvider(LocalAnimatedVisibilityScope provides this) {
             content(entry)

@@ -12,6 +12,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -43,6 +44,13 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.ArrowDown
+import com.composables.icons.lucide.ArrowUp
+import com.composables.icons.lucide.Brain
+import com.composables.icons.lucide.ChevronDown
+import com.composables.icons.lucide.ChevronUp
+import com.composables.icons.lucide.Lightbulb
+import com.composables.icons.lucide.Lucide
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
@@ -65,7 +73,8 @@ fun ChatMessage(
                     Column(
                         modifier = modifier
                             .widthIn(max = 400.dp)
-                            .padding(4.dp)
+                            .padding(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         MessagePartsBlock(message.parts)
                     }
@@ -91,14 +100,13 @@ fun ChatMessage(
 fun MessagePartsBlock(
     parts: List<UIMessagePart>,
 ) {
-    var expandReasoning by remember {
-        mutableStateOf(true)
-    }
     val interactionSource = remember { MutableInteractionSource() }
+    val contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
+    var expandReasoning by remember { mutableStateOf(true) }
     parts.forEach {
         when (it) {
+            // 思考
             is UIMessagePart.Reasoning -> {
-                val contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
                 CompositionLocalProvider(LocalContentColor provides contentColor) {
                     Row(
                         modifier = Modifier
@@ -109,12 +117,14 @@ fun MessagePartsBlock(
                             ) {
                                 expandReasoning = !expandReasoning
                             }
-                            .padding(4.dp)
+                            .padding(4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
+                        Icon(Lucide.Lightbulb, null)
                         Text("深度思考")
                         Icon(
-                            if (expandReasoning) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
-                            null
+                            if (expandReasoning) Lucide.ChevronUp else Lucide.ChevronDown, null
                         )
                     }
                 }
@@ -142,8 +152,10 @@ fun MessagePartsBlock(
                 }
             }
 
+            // 文本
             is UIMessagePart.Text -> MarkdownBlock(it.text)
 
+            // 图片
             is UIMessagePart.Image -> {
                 Text(it.url)
             }

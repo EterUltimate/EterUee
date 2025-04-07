@@ -103,6 +103,9 @@ dependencies {
     implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.compose)
 
+    // lucide icons
+    implementation(libs.lucide.icons)
+
     // modules
     implementation(project(":ai"))
     implementation(project(":highlight"))

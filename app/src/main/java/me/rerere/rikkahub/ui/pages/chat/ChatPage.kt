@@ -66,7 +66,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun ChatPage(id: String?, vm: ChatVM = koinViewModel()) {
-
+    _ChatPage(null)
 }
 
 @Composable

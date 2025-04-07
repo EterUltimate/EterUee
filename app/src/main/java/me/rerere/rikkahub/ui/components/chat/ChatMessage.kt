@@ -1,9 +1,17 @@
 package me.rerere.rikkahub.ui.components.chat
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -67,7 +75,9 @@ fun ChatMessage(
 
         MessageRole.ASSISTANT -> {
             Column(
-                modifier = modifier.padding(4.dp)
+                modifier = modifier
+                    .padding(4.dp)
+                    .animateContentSize()
             ) {
                 MessagePartsBlock(message.parts)
             }
@@ -84,6 +94,7 @@ fun MessagePartsBlock(
     var expandReasoning by remember {
         mutableStateOf(true)
     }
+    val interactionSource = remember { MutableInteractionSource() }
     parts.forEach {
         when (it) {
             is UIMessagePart.Reasoning -> {
@@ -91,7 +102,13 @@ fun MessagePartsBlock(
                 CompositionLocalProvider(LocalContentColor provides contentColor) {
                     Row(
                         modifier = Modifier
-                            .clickable { expandReasoning = !expandReasoning }
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable(
+                                indication = LocalIndication.current,
+                                interactionSource = interactionSource
+                            ) {
+                                expandReasoning = !expandReasoning
+                            }
                             .padding(4.dp)
                     ) {
                         Text("深度思考")
@@ -101,7 +118,11 @@ fun MessagePartsBlock(
                         )
                     }
                 }
-                AnimatedVisibility(expandReasoning) {
+                AnimatedVisibility(
+                    expandReasoning,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
+                ) {
                     Box(
                         modifier = Modifier
                             .drawWithContent {

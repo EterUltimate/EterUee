@@ -44,6 +44,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.composables.icons.lucide.Boxes
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Settings
 import kotlinx.coroutines.launch
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelType
@@ -53,8 +56,6 @@ import me.rerere.rikkahub.ui.components.Tag
 import me.rerere.rikkahub.ui.components.TagType
 import me.rerere.rikkahub.ui.components.TextAvatar
 import me.rerere.rikkahub.ui.components.ToastVariant
-import me.rerere.rikkahub.ui.components.icons.Boxes
-import me.rerere.rikkahub.ui.components.icons.Settings
 import me.rerere.rikkahub.ui.components.rememberDialogState
 import me.rerere.rikkahub.ui.components.rememberToastState
 import me.rerere.rikkahub.ui.utils.plus
@@ -204,14 +205,14 @@ private fun ProviderItem(
                         expand = ProviderExpandState.Models
                     }
                 ) {
-                    Icon(Boxes, "Models")
+                    Icon(Lucide.Boxes, "Models")
                 }
                 IconButton(
                     onClick = {
                         expand = ProviderExpandState.Setting
                     }
                 ) {
-                    Icon(Settings, "Setting")
+                    Icon(Lucide.Settings, "Setting")
                 }
             }
 

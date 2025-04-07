@@ -13,9 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.NavController
+import com.composables.icons.lucide.Boxes
+import com.composables.icons.lucide.Heart
+import com.composables.icons.lucide.Lucide
 import me.rerere.rikkahub.ui.components.BackButton
-import me.rerere.rikkahub.ui.components.icons.Boxes
-import me.rerere.rikkahub.ui.components.icons.Heart
 import me.rerere.rikkahub.ui.context.LocalNavController
 import org.koin.androidx.compose.koinViewModel
 
@@ -67,7 +68,7 @@ private fun DefaultModelSetting(navController: NavController) {
                 Text("设置各个功能的默认模型")
             },
             leadingContent = {
-                Icon(Heart, "Default Model")
+                Icon(Lucide.Heart, "Default Model")
             }
         )
     }
@@ -88,7 +89,7 @@ private fun ProviderSetting(navController: NavController) {
                 Text("配置AI提供商")
             },
             leadingContent = {
-                Icon(Boxes, "Models")
+                Icon(Lucide.Boxes, "Models")
             }
         )
     }

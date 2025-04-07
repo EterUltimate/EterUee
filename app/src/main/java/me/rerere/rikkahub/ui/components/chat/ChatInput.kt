@@ -8,11 +8,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedIconToggleButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -25,11 +25,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.ArrowUp
+import com.composables.icons.lucide.Earth
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Plus
+import com.composables.icons.lucide.X
 import me.rerere.ai.ui.UIMessagePart
-import me.rerere.rikkahub.ui.components.icons.ArrowUp
-import me.rerere.rikkahub.ui.components.icons.Earth
-import me.rerere.rikkahub.ui.components.icons.Plus
-import me.rerere.rikkahub.ui.components.icons.Stop
 
 class ChatInputState {
     var messageContent by mutableStateOf(listOf<UIMessagePart>())
@@ -113,13 +114,13 @@ fun ChatInput(
             ) {
                 actions()
 
-                OutlinedIconToggleButton(
+                FilledIconToggleButton(
                     checked = state.useWebSearch,
                     onCheckedChange = {
                         state.useWebSearch = it
                     },
                 ) {
-                    Icon(Earth, "Use Web Search")
+                    Icon(Lucide.Earth, "Use Web Search")
                 }
 
                 Spacer(Modifier.weight(1f))
@@ -127,7 +128,7 @@ fun ChatInput(
                 IconButton(
                     onClick = {}
                 ) {
-                    Icon(Plus, "More options")
+                    Icon(Lucide.Plus, "More options")
                 }
 
                 IconButton(
@@ -140,9 +141,9 @@ fun ChatInput(
                     )
                 ) {
                     if (state.loading) {
-                        Icon(Stop, "Stop")
+                        Icon(Lucide.X, "Stop")
                     } else {
-                        Icon(ArrowUp, "Send")
+                        Icon(Lucide.ArrowUp, "Send")
                     }
                 }
             }

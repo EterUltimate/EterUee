@@ -28,7 +28,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -37,6 +36,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.composables.icons.lucide.ListTree
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.MessageCirclePlus
+import com.composables.icons.lucide.Settings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
@@ -56,9 +59,6 @@ import me.rerere.rikkahub.ui.components.chat.ChatInput
 import me.rerere.rikkahub.ui.components.chat.ChatMessage
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
 import me.rerere.rikkahub.ui.components.chat.rememberChatInputState
-import me.rerere.rikkahub.ui.components.icons.ListTree
-import me.rerere.rikkahub.ui.components.icons.MessageCirclePlus
-import me.rerere.rikkahub.ui.components.icons.Settings
 import me.rerere.rikkahub.ui.components.rememberToastState
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.utils.plus
@@ -196,7 +196,7 @@ private fun TopBar(
                     scope.launch { drawerState.open() }
                 }
             ) {
-                Icon(ListTree, "Messages")
+                Icon(Lucide.ListTree, "Messages")
             }
         },
         title = {
@@ -208,7 +208,7 @@ private fun TopBar(
                     onNewChat()
                 }
             ) {
-                Icon(MessageCirclePlus, "New Message")
+                Icon(Lucide.MessageCirclePlus, "New Message")
             }
         },
     )
@@ -250,7 +250,7 @@ private fun DrawerContent(navController: NavController) {
                 Text("Setting")
             },
             icon = {
-                Icon(Settings, "Setting")
+                Icon(Lucide.Settings, "Setting")
             },
             onClick = {
                 navController.navigate("setting")

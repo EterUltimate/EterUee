@@ -7,11 +7,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -23,14 +28,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.ArrowUp
+import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.X
 import me.rerere.ai.ui.UIMessagePart
+import me.rerere.rikkahub.ui.theme.extendColors
 
 class ChatInputState {
     var messageContent by mutableStateOf(listOf<UIMessagePart>())
@@ -118,15 +126,6 @@ fun ChatInput(
             ) {
                 actions()
 
-                FilledIconToggleButton(
-                    checked = state.useWebSearch,
-                    onCheckedChange = {
-                        state.useWebSearch = it
-                    },
-                ) {
-                    Icon(Lucide.Earth, "Use Web Search")
-                }
-
                 Spacer(Modifier.weight(1f))
 
                 IconButton(
@@ -134,6 +133,31 @@ fun ChatInput(
                 ) {
                     Icon(Lucide.Plus, "More options")
                 }
+
+                val badgeColor = MaterialTheme.extendColors.green6
+                IconToggleButton(
+                    checked = state.useWebSearch,
+                    onCheckedChange = {
+                        state.useWebSearch = it
+                    },
+                    modifier = Modifier.drawWithContent {
+                        drawContent()
+                        if (state.useWebSearch) {
+                            drawCircle(
+                                color = badgeColor,
+                                radius = 4.dp.toPx(),
+                                center = center.copy(
+                                    x = size.width - 8.dp.toPx(),
+                                    y = 8.dp.toPx()
+                                )
+                            )
+                        }
+                    }
+                ) {
+                    Icon(Lucide.Earth, "Use Web Search")
+                }
+
+                Spacer(Modifier.width(4.dp))
 
                 IconButton(
                     onClick = {

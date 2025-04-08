@@ -14,6 +14,7 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
@@ -144,7 +145,8 @@ private fun TopBar(
         title = {
             Text(
                 text = conversation.title.ifBlank { "新聊天" },
-                maxLines = 1
+                maxLines = 1,
+                fontSize = MaterialTheme.typography.bodyMedium.fontSize
             )
         },
         actions = {

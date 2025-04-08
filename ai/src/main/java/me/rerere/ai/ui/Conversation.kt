@@ -17,5 +17,10 @@ data class Conversation(
 ) {
     companion object {
         fun empty() = Conversation(messages = emptyList())
+
+        fun ofId(id: Uuid) = Conversation(
+            id = id,
+            messages = emptyList(),
+        )
     }
 }

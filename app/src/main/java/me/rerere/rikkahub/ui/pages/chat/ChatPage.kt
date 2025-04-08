@@ -1,17 +1,12 @@
 package me.rerere.rikkahub.ui.pages.chat
 
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
@@ -25,14 +20,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -63,98 +57,59 @@ import me.rerere.rikkahub.ui.components.rememberToastState
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.utils.plus
 import org.koin.androidx.compose.koinViewModel
+import kotlin.uuid.Uuid
 
 @Composable
-fun ChatPage(id: String?, vm: ChatVM = koinViewModel()) {
-    _ChatPage(null)
-}
-
-@Composable
-fun _ChatPage(id: String?, vm: ChatVM = koinViewModel()) {
-    val navController = LocalNavController.current
+fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val toastState = rememberToastState()
+    val navController = LocalNavController.current
 
     val setting by vm.settings.collectAsStateWithLifecycle()
     val model = setting.providers.findModelById(setting.chatModelId)
     val providerSetting = model?.findProvider(setting.providers)
 
-    var conversation by remember {
-        mutableStateOf(
-            Conversation.empty(),
-        )
-    }
+    val conversationFlow = remember(id) { vm.getConversationById(id) }
+    val conversation by conversationFlow.collectAsStateWithLifecycle(
+        initialValue = Conversation.ofId(id)
+    )
+    val conversations by vm.conversations.collectAsStateWithLifecycle()
 
     val inputState = rememberChatInputState()
-    var completionJob by remember { mutableStateOf<Job?>(null) }
-
-    fun handleSend() {
-        conversation = conversation.copy(
-            messages = conversation.messages + UIMessage(
-                role = MessageRole.USER,
-                parts = inputState.messageContent
-            )
-        )
-        inputState.reset()
-        completionJob = scope.launch {
-            inputState.loading = true
-            providerSetting?.let {
-                val providerImpl = ProviderManager.getProviderByType(it)
-                providerImpl?.let {
-                    providerImpl.streamText(
-                        providerSetting,
-                        conversation,
-                        TextGenerationParams(
-                            model = model,
-                        )
-                    ).onEach {
-                        val messages = conversation.messages.handleMessageChunk(it).toList()
-                        conversation = conversation.copy(
-                            messages = messages
-                        )
-                        println(conversation.messages)
-                    }.catch {
-                        it.printStackTrace()
-                        toastState.show(it.message ?: "错误", ToastVariant.ERROR)
-                    }.collect()
-                }
-            } ?: run {
-                toastState.show("请配置模型", ToastVariant.ERROR)
-            }
-        }
-        completionJob?.invokeOnCompletion {
-            inputState.loading = false
-        }
-    }
-
-    val chatListState = rememberLazyListState()
-    LaunchedEffect(conversation) {
-        if (!chatListState.isScrollInProgress && conversation.messages.size > 1) {
-            chatListState.scrollToItem(conversation.messages.size)
-        }
-    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            DrawerContent(navController)
+            DrawerContent(
+                navController = navController,
+                current = conversation,
+                conversations = conversations
+            )
         }
     ) {
         Scaffold(
             topBar = {
-                TopBar(scope, drawerState, vm) {
-                    conversation = Conversation.empty()
-                }
+                TopBar(
+                    vm = vm,
+                    onNewChat = {
+                        navController.navigate("chat/${Uuid.random()}") {
+                            popUpTo("chat/${conversation.id}") {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    }
+                )
             },
             bottomBar = {
                 ChatInput(
                     state = inputState,
                     onCancelClick = {
-                        completionJob?.cancel()
+
                     },
                     onSendClick = {
-                        handleSend()
+
                     }
                 ) {
                     ModelSelector(
@@ -167,27 +122,34 @@ fun _ChatPage(id: String?, vm: ChatVM = koinViewModel()) {
                 }
             }
         ) { innerPadding ->
-            LazyColumn(
-                contentPadding = innerPadding + PaddingValues(12.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                state = chatListState
-            ) {
-                items(conversation.messages, key = { it.id }) {
-                    ChatMessage(it)
-                }
-            }
+            ChatList(innerPadding, conversation)
+        }
+    }
+}
+
+@Composable
+private fun ChatList(
+    innerPadding: PaddingValues,
+    conversation: Conversation
+) {
+    LazyColumn(
+        contentPadding = innerPadding + PaddingValues(12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        items(conversation.messages, key = { it.id }) {
+            ChatMessage(it)
         }
     }
 }
 
 @Composable
 private fun TopBar(
-    scope: CoroutineScope,
-    drawerState: DrawerState,
     vm: ChatVM,
     onNewChat: () -> Unit,
 ) {
     val settings by vm.settings.collectAsStateWithLifecycle()
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
     CenterAlignedTopAppBar(
         navigationIcon = {
@@ -215,35 +177,21 @@ private fun TopBar(
 }
 
 @Composable
-private fun DrawerContent(navController: NavController) {
+private fun DrawerContent(
+    navController: NavController,
+    current: Conversation,
+    conversations: List<Conversation>,
+) {
     ModalDrawerSheet(
         modifier = Modifier.width(270.dp)
     ) {
-        LazyColumn(
+        ConversationList(
+            current = current,
+            conversations = conversations,
             modifier = Modifier
-                .padding(8.dp)
-                .weight(1f),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(5) {
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(4.dp))
-                        .combinedClickable(
-                            onClick = {
-
-                            },
-                            onLongClick = {
-
-                            }
-                        )
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 2.dp),
-                ) {
-                    Text("???")
-                }
-            }
-        }
+                .fillMaxWidth()
+                .weight(1f)
+        )
         HorizontalDivider()
         NavigationDrawerItem(
             label = {

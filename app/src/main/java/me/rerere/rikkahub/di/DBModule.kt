@@ -10,4 +10,8 @@ val dbModule = module {
             .fallbackToDestructiveMigration()
             .build()
     }
+
+    single {
+        get<AppDatabase>().conversationDao()
+    }
 }

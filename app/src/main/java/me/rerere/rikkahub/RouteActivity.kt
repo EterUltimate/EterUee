@@ -6,6 +6,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -32,6 +35,7 @@ import me.rerere.rikkahub.ui.pages.setting.SettingPage
 import me.rerere.rikkahub.ui.pages.setting.SettingProviderPage
 import me.rerere.rikkahub.ui.theme.RikkahubTheme
 import org.koin.android.ext.android.inject
+import kotlin.uuid.Uuid
 
 class RouteActivity : ComponentActivity() {
     private val highlighter by inject<Highlighter>()
@@ -60,7 +64,7 @@ class RouteActivity : ComponentActivity() {
             ) {
                 NavHost(
                     navController = navController,
-                    startDestination = "chat/",
+                    startDestination = "chat/${Uuid.random()}",
                     enterTransition = {
                         scaleIn(initialScale = 0.25f) + fadeIn(animationSpec = tween(300))
                     },
@@ -79,11 +83,18 @@ class RouteActivity : ComponentActivity() {
                         args = listOf(
                             navArgument("id") {
                                 type = NavType.StringType
-                                nullable = true
                             }
-                        )
+                        ),
+                        enterTransition = {
+                            fadeIn()
+                        },
+                        exitTransition = {
+                            fadeOut()
+                        }
                     ) { entry ->
-                        ChatPage(entry.arguments?.getString("id"))
+                        ChatPage(
+                            id = Uuid.parse(entry.arguments?.getString("id")!!)
+                        )
                     }
 
                     composableHelper("setting") {
@@ -103,11 +114,19 @@ class RouteActivity : ComponentActivity() {
 private fun NavGraphBuilder.composableHelper(
     route: String,
     args: List<NamedNavArgument> = emptyList(),
+    enterTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?)? = null,
+    exitTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?)? = null,
+    popEnterTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?)? = null,
+    popExitTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?)? = null,
     content: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit
 ) {
     this.composable(
         route = route,
         arguments = args,
+        enterTransition = enterTransition,
+        exitTransition = exitTransition,
+        popEnterTransition = popEnterTransition,
+        popExitTransition = popExitTransition,
     ) { entry ->
         CompositionLocalProvider(LocalAnimatedVisibilityScope provides this) {
             content(entry)

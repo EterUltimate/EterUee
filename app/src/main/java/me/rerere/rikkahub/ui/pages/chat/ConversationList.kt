@@ -18,12 +18,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,6 +38,9 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.Delete
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Recycle
 import me.rerere.ai.ui.Conversation
 import me.rerere.rikkahub.ui.theme.extendColors
 import kotlin.uuid.Uuid
@@ -43,6 +52,8 @@ fun ConversationList(
     loadings: Collection<Uuid>,
     modifier: Modifier = Modifier,
     onClick: (Conversation) -> Unit = {},
+    onDelete: (Conversation) -> Unit = {},
+    onRegenerateTitle: (Conversation) -> Unit = {}
 ) {
     LazyColumn(
         modifier = modifier,
@@ -52,9 +63,11 @@ fun ConversationList(
         items(conversations) { conversation ->
             ConversationItem(
                 conversation = conversation,
-                onClick = onClick,
                 selected = conversation.id == current.id,
-                loading = conversation.id in loadings
+                loading = conversation.id in loadings,
+                onClick = onClick,
+                onDelete = onDelete,
+                onRegenerateTitle = onRegenerateTitle
             )
         }
     }
@@ -66,6 +79,8 @@ private fun ConversationItem(
     selected: Boolean,
     loading: Boolean,
     modifier: Modifier = Modifier,
+    onDelete: (Conversation) -> Unit = {},
+    onRegenerateTitle: (Conversation) -> Unit = {},
     onClick: (Conversation) -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -73,6 +88,9 @@ private fun ConversationItem(
         MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
     } else {
         Color.Transparent
+    }
+    var showDropdownMenu by remember {
+        mutableStateOf(false)
     }
     Box(
         modifier = modifier
@@ -82,7 +100,7 @@ private fun ConversationItem(
                 indication = LocalIndication.current,
                 onClick = { onClick(conversation) },
                 onLongClick = {
-
+                    showDropdownMenu = true
                 }
             )
             .background(backgroundColor),
@@ -108,6 +126,36 @@ private fun ConversationItem(
                         .semantics {
                             contentDescription = "Loading"
                         }
+                )
+            }
+            DropdownMenu(
+                expanded = showDropdownMenu,
+                onDismissRequest = { showDropdownMenu = false },
+            ) {
+                DropdownMenuItem(
+                    text = {
+                        Text("删除")
+                    },
+                    onClick = {
+                        onDelete(conversation)
+                        showDropdownMenu = false
+                    },
+                    leadingIcon = {
+                        Icon(Lucide.Delete, null)
+                    }
+                )
+
+                DropdownMenuItem(
+                    text = {
+                        Text("重新生成标题")
+                    },
+                    onClick = {
+                        onRegenerateTitle(conversation)
+                        showDropdownMenu = false
+                    },
+                    leadingIcon = {
+                        Icon(Lucide.Recycle, null)
+                    }
                 )
             }
         }

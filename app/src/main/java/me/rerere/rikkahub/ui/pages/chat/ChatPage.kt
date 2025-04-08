@@ -34,13 +34,10 @@ import com.composables.icons.lucide.MessageCirclePlus
 import com.composables.icons.lucide.Settings
 import kotlinx.coroutines.launch
 import me.rerere.ai.ui.Conversation
-import me.rerere.rikkahub.data.datastore.findModelById
-import me.rerere.rikkahub.data.datastore.findProvider
 import me.rerere.rikkahub.ui.components.chat.ChatInput
 import me.rerere.rikkahub.ui.components.chat.ChatMessage
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
 import me.rerere.rikkahub.ui.components.chat.rememberChatInputState
-import me.rerere.rikkahub.ui.components.rememberToastState
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.utils.plus
 import org.koin.androidx.compose.koinViewModel
@@ -63,7 +60,8 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                 navController = navController,
                 current = conversation,
                 conversations = conversations,
-                loading = loadingJob != null
+                loading = loadingJob != null,
+                vm = vm
             )
         }
     ) {
@@ -73,12 +71,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                     conversation = conversation,
                     drawerState = drawerState,
                     onNewChat = {
-                        navController.navigate("chat/${Uuid.random()}") {
-                            popUpTo("chat/${conversation.id}") {
-                                inclusive = true
-                            }
-                            launchSingleTop = true
-                        }
+                        navigateToNewChatPage(navController, conversation)
                     }
                 )
             },
@@ -164,6 +157,7 @@ private fun TopBar(
 @Composable
 private fun DrawerContent(
     navController: NavController,
+    vm: ChatVM,
     current: Conversation,
     conversations: List<Conversation>,
     loading: Boolean,
@@ -187,6 +181,15 @@ private fun DrawerContent(
                     launchSingleTop = true
                 }
             },
+            onRegenerateTitle = {
+                vm.generateTitle(true)
+            },
+            onDelete = {
+                vm.deleteConversation(it)
+                if(it.id == current.id) {
+                    navigateToNewChatPage(navController, current)
+                }
+            }
         )
         HorizontalDivider()
         NavigationDrawerItem(
@@ -202,5 +205,17 @@ private fun DrawerContent(
             selected = false,
             modifier = Modifier.wrapContentWidth()
         )
+    }
+}
+
+private fun navigateToNewChatPage(
+    navController: NavController,
+    current: Conversation
+) {
+    navController.navigate("chat/${Uuid.random()}") {
+        popUpTo("chat/${current.id}") {
+            inclusive = true
+        }
+        launchSingleTop = true
     }
 }

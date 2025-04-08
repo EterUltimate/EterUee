@@ -117,7 +117,7 @@ class ChatVM(
         }
     }
 
-    fun generateTitle() {
+    fun generateTitle(force: Boolean = false) {
         if(conversation.value.title.isNotBlank()) return
 
         val model = settings.value.providers.findModelById(settings.value.chatModelId)
@@ -140,7 +140,7 @@ class ChatVM(
                     """.trimIndent()),
                     params = TextGenerationParams(
                         model = model,
-                        temperature = 0.1f,
+                        temperature = 0.8f,
                         topP = 0.99f
                     ),
                 )
@@ -173,6 +173,12 @@ class ChatVM(
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        }
+    }
+
+    fun deleteConversation(conversation: Conversation) {
+        viewModelScope.launch {
+            conversationRepo.deleteConversation(conversation)
         }
     }
 }

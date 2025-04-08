@@ -36,6 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Delete
@@ -43,6 +44,10 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Recycle
 import me.rerere.ai.ui.Conversation
 import me.rerere.rikkahub.ui.theme.extendColors
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import kotlin.uuid.Uuid
 
 @Composable
@@ -55,21 +60,62 @@ fun ConversationList(
     onDelete: (Conversation) -> Unit = {},
     onRegenerateTitle: (Conversation) -> Unit = {}
 ) {
+    // 按日期分组对话
+    val groupedConversations = conversations.groupBy { conversation ->
+        val instant = conversation.createAt
+        instant.atZone(ZoneId.systemDefault()).toLocalDate()
+    }.toSortedMap(compareByDescending { it })
+    
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(2.dp),
         contentPadding = PaddingValues(4.dp)
     ) {
-        items(conversations) { conversation ->
-            ConversationItem(
-                conversation = conversation,
-                selected = conversation.id == current.id,
-                loading = conversation.id in loadings,
-                onClick = onClick,
-                onDelete = onDelete,
-                onRegenerateTitle = onRegenerateTitle
-            )
+        groupedConversations.forEach { (date, conversationsInGroup) ->
+            // 添加日期标题
+            item {
+                DateHeader(date = date)
+            }
+            
+            // 每组内的对话列表
+            items(conversationsInGroup) { conversation ->
+                ConversationItem(
+                    conversation = conversation,
+                    selected = conversation.id == current.id,
+                    loading = conversation.id in loadings,
+                    onClick = onClick,
+                    onDelete = onDelete,
+                    onRegenerateTitle = onRegenerateTitle
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun DateHeader(date: LocalDate) {
+    val today = LocalDate.now()
+    val yesterday = today.minusDays(1)
+    
+    val displayText = when {
+        date.isEqual(today) -> "今天"
+        date.isEqual(yesterday) -> "昨天"
+        date.year == today.year -> "${date.monthValue}月${date.dayOfMonth}日"
+        else -> "${date.year}年${date.monthValue}月${date.dayOfMonth}日"
+    }
+    
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = displayText,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
     }
 }
 

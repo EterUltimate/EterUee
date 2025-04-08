@@ -43,6 +43,10 @@ class ChatInputState {
         loading = false
     }
 
+    fun clearInput() {
+        messageContent = emptyList()
+    }
+
     fun setMessageText(text: String) {
         val newMessage = messageContent.toMutableList()
         if (newMessage.isEmpty()) {

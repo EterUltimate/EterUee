@@ -8,7 +8,7 @@ import kotlin.uuid.Uuid
 @Serializable
 data class Conversation(
     val id: Uuid = Uuid.random(),
-    val title: String = "New Message",
+    val title: String = "",
     val messages: List<UIMessage>,
     @Serializable(with = InstantSerializer::class)
     val createAt: Instant = Instant.now(),

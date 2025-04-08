@@ -3,6 +3,7 @@ package me.rerere.rikkahub.ui.pages.chat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,11 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -34,21 +31,10 @@ import com.composables.icons.lucide.ListTree
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.MessageCirclePlus
 import com.composables.icons.lucide.Settings
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import me.rerere.ai.core.MessageRole
-import me.rerere.ai.provider.ProviderManager
-import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.ui.Conversation
-import me.rerere.ai.ui.UIMessage
-import me.rerere.ai.ui.handleMessageChunk
 import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.findProvider
-import me.rerere.rikkahub.ui.components.ToastVariant
 import me.rerere.rikkahub.ui.components.chat.ChatInput
 import me.rerere.rikkahub.ui.components.chat.ChatMessage
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
@@ -61,30 +47,22 @@ import kotlin.uuid.Uuid
 
 @Composable
 fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
-    val toastState = rememberToastState()
     val navController = LocalNavController.current
 
     val setting by vm.settings.collectAsStateWithLifecycle()
-    val model = setting.providers.findModelById(setting.chatModelId)
-    val providerSetting = model?.findProvider(setting.providers)
-
-    val conversationFlow = remember(id) { vm.getConversationById(id) }
-    val conversation by conversationFlow.collectAsStateWithLifecycle(
-        initialValue = Conversation.ofId(id)
-    )
     val conversations by vm.conversations.collectAsStateWithLifecycle()
+    val conversation by vm.conversation.collectAsStateWithLifecycle()
+    val conversationJobs by vm.conversationJobs.collectAsStateWithLifecycle()
 
-    val inputState = rememberChatInputState()
-
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             DrawerContent(
                 navController = navController,
                 current = conversation,
-                conversations = conversations
+                conversations = conversations,
+                loadings = conversationJobs.keys
             )
         }
     ) {
@@ -92,6 +70,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
             topBar = {
                 TopBar(
                     vm = vm,
+                    drawerState = drawerState,
                     onNewChat = {
                         navController.navigate("chat/${Uuid.random()}") {
                             popUpTo("chat/${conversation.id}") {
@@ -103,13 +82,15 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                 )
             },
             bottomBar = {
+                val inputState = rememberChatInputState()
                 ChatInput(
                     state = inputState,
                     onCancelClick = {
 
                     },
                     onSendClick = {
-
+                        vm.handleMessageSend(inputState.messageContent)
+                        inputState.clearInput()
                     }
                 ) {
                     ModelSelector(
@@ -145,10 +126,9 @@ private fun ChatList(
 @Composable
 private fun TopBar(
     vm: ChatVM,
+    drawerState: DrawerState,
     onNewChat: () -> Unit,
 ) {
-    val settings by vm.settings.collectAsStateWithLifecycle()
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
     CenterAlignedTopAppBar(
@@ -181,6 +161,7 @@ private fun DrawerContent(
     navController: NavController,
     current: Conversation,
     conversations: List<Conversation>,
+    loadings: Collection<Uuid>,
 ) {
     ModalDrawerSheet(
         modifier = Modifier.width(270.dp)
@@ -188,9 +169,19 @@ private fun DrawerContent(
         ConversationList(
             current = current,
             conversations = conversations,
+            loadings = loadings,
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
+                .padding(8.dp),
+            onClick = {
+                navController.navigate("chat/${it.id}") {
+                    popUpTo("chat/${current.id}") {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+            },
         )
         HorizontalDivider()
         NavigationDrawerItem(

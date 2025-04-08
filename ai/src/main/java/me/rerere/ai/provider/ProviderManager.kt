@@ -30,8 +30,8 @@ object ProviderManager {
      * @param name Provider名称
      * @return Provider实例，如果不存在则返回null
      */
-    fun getProvider(name: String): Provider<*>? {
-        return providers[name]
+    fun getProvider(name: String): Provider<*> {
+        return providers[name] ?: throw IllegalArgumentException("Provider not found: $name")
     }
     
     /**
@@ -40,11 +40,10 @@ object ProviderManager {
      * @param setting Provider设置
      * @return Provider实例，如果不存在则返回null
      */
-    fun getProviderByType(setting: ProviderSetting): Provider<*>? {
+    fun getProviderByType(setting: ProviderSetting): Provider<*> {
         return when (setting) {
             is ProviderSetting.OpenAI -> getProvider("openai")
             is ProviderSetting.Google -> getProvider("google")
-            else -> null
         }
     }
 }

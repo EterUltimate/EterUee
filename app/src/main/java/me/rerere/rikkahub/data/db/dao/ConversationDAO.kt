@@ -14,7 +14,10 @@ interface ConversationDAO {
     fun getAll(): Flow<List<ConversationEntity>>
 
     @Query("SELECT * FROM conversationentity WHERE id = :id")
-    fun getById(id: String): Flow<ConversationEntity?>
+    fun getConversationFlowById(id: String): Flow<ConversationEntity?>
+
+    @Query("SELECT * FROM conversationentity WHERE id = :id")
+    suspend fun getConversationById(id: String): ConversationEntity?
 
     @Insert
     suspend fun insert(conversation: ConversationEntity)

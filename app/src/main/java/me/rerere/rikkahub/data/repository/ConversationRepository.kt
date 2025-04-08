@@ -26,8 +26,8 @@ class ConversationRepository(
             }
         }
 
-    fun getConversationById(uuid: Uuid) = conversationDAO
-        .getById(uuid.toString())
+    fun getConversationFlowById(uuid: Uuid) = conversationDAO
+        .getConversationFlowById(uuid.toString())
         .map { entity ->
             if(entity != null) Conversation(
                 id = Uuid.parse(entity.id),
@@ -37,6 +37,19 @@ class ConversationRepository(
                 updateAt = Instant.ofEpochMilli(entity.updateAt),
             ) else Conversation.ofId(uuid)
         }
+
+    suspend fun getConversationById(uuid: Uuid): Conversation? {
+        val entity = conversationDAO.getConversationById(uuid.toString())
+        return if (entity != null) {
+            Conversation(
+                id = Uuid.parse(entity.id),
+                title = entity.title,
+                messages = JsonInstant.decodeFromString<List<UIMessage>>(entity.messages),
+                createAt = Instant.ofEpochMilli(entity.createAt),
+                updateAt = Instant.ofEpochMilli(entity.updateAt),
+            )
+        } else null
+    }
 
     suspend fun insertConversation(conversation: Conversation) {
         conversationDAO.insert(

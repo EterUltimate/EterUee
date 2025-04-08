@@ -69,7 +69,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
         Scaffold(
             topBar = {
                 TopBar(
-                    vm = vm,
+                    conversation = conversation,
                     drawerState = drawerState,
                     onNewChat = {
                         navController.navigate("chat/${Uuid.random()}") {
@@ -125,7 +125,7 @@ private fun ChatList(
 
 @Composable
 private fun TopBar(
-    vm: ChatVM,
+    conversation: Conversation,
     drawerState: DrawerState,
     onNewChat: () -> Unit,
 ) {
@@ -142,7 +142,10 @@ private fun TopBar(
             }
         },
         title = {
-            Text("新聊天")
+            Text(
+                text = conversation.title.ifBlank { "新聊天" },
+                maxLines = 1
+            )
         },
         actions = {
             IconButton(
@@ -169,7 +172,7 @@ private fun DrawerContent(
         ConversationList(
             current = current,
             conversations = conversations,
-            loadings = if(loading) listOf(current.id) else emptyList(),
+            loadings = if (loading) listOf(current.id) else emptyList(),
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)

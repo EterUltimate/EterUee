@@ -107,11 +107,53 @@ class ChatVM(
                 }
             }.onFailure {
                 it.printStackTrace()
+            }.onSuccess {
+                generateTitle()
             }
         }
         this.conversationJob.value = job
         job.invokeOnCompletion {
             this.conversationJob.value = null
+        }
+    }
+
+    fun generateTitle() {
+        if(conversation.value.title.isNotBlank()) return
+
+        val model = settings.value.providers.findModelById(settings.value.chatModelId)
+        val provider = model?.findProvider(settings.value.providers) ?: return
+
+        viewModelScope.launch {
+            runCatching {
+                val providerHandler = ProviderManager.getProviderByType(provider)
+                val result = providerHandler.generateText(
+                    providerSetting = provider,
+                    conversation = Conversation.ofUser("""
+                        你是一名擅长会话的助理，我会给你一些对话内容在content内，你需要将用户的会话总结为 10 个字以内的标题
+                        1. 标题语言与用户的首要语言一致
+                        2. 不要使用标点符号和其他特殊符号
+                        3. 直接回复标题即可
+                        
+                        <content>
+                        ${conversation.value.messages.joinToString("\n\n") { it.summaryAsText()}}
+                        </content>
+                    """.trimIndent()),
+                    params = TextGenerationParams(
+                        model = model,
+                        temperature = 0.1f,
+                        topP = 0.99f
+                    ),
+                )
+                val currConversation = conversation.value
+                saveConversation(
+                    currConversation.copy(
+                        title = result.choices[0].message?.text() ?: "",
+                        updateAt = Instant.now()
+                    )
+                )
+            }.onFailure {
+                it.printStackTrace()
+            }
         }
     }
 

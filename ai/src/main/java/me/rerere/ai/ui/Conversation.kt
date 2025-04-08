@@ -1,6 +1,7 @@
 package me.rerere.ai.ui
 
 import kotlinx.serialization.Serializable
+import me.rerere.ai.core.MessageRole
 import me.rerere.ai.util.InstantSerializer
 import java.time.Instant
 import kotlin.uuid.Uuid
@@ -21,6 +22,15 @@ data class Conversation(
         fun ofId(id: Uuid) = Conversation(
             id = id,
             messages = emptyList(),
+        )
+
+        fun ofUser(prompt: String) = Conversation(
+            messages = listOf(
+                UIMessage(
+                    role = MessageRole.USER,
+                    parts = listOf(UIMessagePart.Text(prompt)),
+                ),
+            ),
         )
     }
 }

@@ -1,9 +1,11 @@
 package me.rerere.ai.provider.providers
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -24,6 +26,7 @@ import me.rerere.ai.ui.MessageChunk
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageChoice
 import me.rerere.ai.ui.UIMessagePart
+import okhttp3.Dispatcher
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -58,7 +61,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         providerSetting: ProviderSetting,
         conversation: Conversation,
         params: TextGenerationParams
-    ): MessageChunk {
+    ): MessageChunk = withContext(Dispatchers.IO) {
         if (providerSetting !is ProviderSetting.OpenAI) {
             throw IllegalArgumentException("ProviderSetting must be OpenAI")
         }
@@ -91,7 +94,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             ?.content
             ?: "unknown"
 
-        return MessageChunk(
+        MessageChunk(
             id = id,
             model = model,
             choices = listOf(

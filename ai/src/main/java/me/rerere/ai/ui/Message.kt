@@ -50,6 +50,22 @@ data class UIMessage(
         } ?: this
     }
 
+    fun summaryAsText(): String {
+        return "[${role.name}]: " + parts.joinToString(separator = "\n") { part ->
+            when (part) {
+                is UIMessagePart.Text -> part.text
+                else -> ""
+            }
+        }
+    }
+
+    fun text() = parts.joinToString(separator = "\n") { part ->
+        when (part) {
+            is UIMessagePart.Text -> part.text
+            else -> ""
+        }
+    }
+
     operator fun plus(chunk: MessageChunk): UIMessage {
         return this.appendChunk(chunk)
     }

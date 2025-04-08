@@ -22,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -77,10 +78,13 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
             },
             bottomBar = {
                 val inputState = rememberChatInputState()
+                LaunchedEffect(loadingJob) {
+                    inputState.loading = loadingJob != null
+                }
                 ChatInput(
                     state = inputState,
                     onCancelClick = {
-
+                        loadingJob?.cancel()
                     },
                     onSendClick = {
                         vm.handleMessageSend(inputState.messageContent)

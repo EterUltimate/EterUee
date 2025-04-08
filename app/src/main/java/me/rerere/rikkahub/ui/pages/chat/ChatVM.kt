@@ -24,6 +24,7 @@ import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.findProvider
 import me.rerere.rikkahub.data.repository.ConversationRepository
 import java.time.Instant
+import java.util.Locale
 import kotlin.uuid.Uuid
 
 class ChatVM(
@@ -133,6 +134,7 @@ class ChatVM(
                         1. 标题语言与用户的首要语言一致
                         2. 不要使用标点符号和其他特殊符号
                         3. 直接回复标题即可
+                        4. 使用 ${Locale.getDefault().displayName} 语言总结
                         
                         <content>
                         ${conversation.value.messages.joinToString("\n\n") { it.summaryAsText()}}

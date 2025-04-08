@@ -37,7 +37,7 @@ class ChatVM(
         get() = _conversation
 
     // 异步任务
-    val conversationJobs = MutableStateFlow(hashMapOf<Uuid, Job>())
+    val conversationJob = MutableStateFlow<Job?>(null)
 
     init {
         // Load the conversation from the repository (database)
@@ -109,13 +109,9 @@ class ChatVM(
                 it.printStackTrace()
             }
         }
-        conversationJobs.value[_conversationId] = job
+        this.conversationJob.value = job
         job.invokeOnCompletion {
-            // 任务完成后移除
-            conversationJobs.value.remove(_conversationId)
-
-            // 保存对话
-            saveConversation(conversation.value)
+            this.conversationJob.value = null
         }
     }
 

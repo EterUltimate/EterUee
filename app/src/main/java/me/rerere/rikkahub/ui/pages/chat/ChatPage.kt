@@ -52,7 +52,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
     val setting by vm.settings.collectAsStateWithLifecycle()
     val conversations by vm.conversations.collectAsStateWithLifecycle()
     val conversation by vm.conversation.collectAsStateWithLifecycle()
-    val conversationJobs by vm.conversationJobs.collectAsStateWithLifecycle()
+    val loadingJob by vm.conversationJob.collectAsStateWithLifecycle()
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     ModalNavigationDrawer(
@@ -62,7 +62,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                 navController = navController,
                 current = conversation,
                 conversations = conversations,
-                loadings = conversationJobs.keys
+                loading = loadingJob != null
             )
         }
     ) {
@@ -161,7 +161,7 @@ private fun DrawerContent(
     navController: NavController,
     current: Conversation,
     conversations: List<Conversation>,
-    loadings: Collection<Uuid>,
+    loading: Boolean,
 ) {
     ModalDrawerSheet(
         modifier = Modifier.width(270.dp)
@@ -169,7 +169,7 @@ private fun DrawerContent(
         ConversationList(
             current = current,
             conversations = conversations,
-            loadings = loadings,
+            loadings = if(loading) listOf(current.id) else emptyList(),
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)

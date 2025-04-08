@@ -10,7 +10,7 @@ import me.rerere.rikkahub.data.db.entity.ConversationEntity
 
 @Dao
 interface ConversationDAO {
-    @Query("SELECT * FROM conversationentity")
+    @Query("SELECT * FROM conversationentity ORDER BY create_at DESC")
     fun getAll(): Flow<List<ConversationEntity>>
 
     @Query("SELECT * FROM conversationentity WHERE id = :id")

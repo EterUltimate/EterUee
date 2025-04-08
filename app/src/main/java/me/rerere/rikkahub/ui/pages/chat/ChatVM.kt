@@ -119,7 +119,7 @@ class ChatVM(
     }
 
     fun generateTitle(force: Boolean = false) {
-        if(conversation.value.title.isNotBlank()) return
+        if(conversation.value.title.isNotBlank() && !force) return
 
         val model = settings.value.providers.findModelById(settings.value.chatModelId)
         val provider = model?.findProvider(settings.value.providers) ?: return

@@ -93,7 +93,7 @@ fun ModelList(providers: List<ProviderSetting>, onSelect: (Model) -> Unit) {
                 )
             }
 
-            items(providerSetting.models) { model ->
+            items(providerSetting.models, key = { it.id} ) { model ->
                 ModelItem(onSelect, model)
             }
         }

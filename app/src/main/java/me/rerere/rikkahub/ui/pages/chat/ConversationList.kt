@@ -65,7 +65,7 @@ fun ConversationList(
         val instant = conversation.createAt
         instant.atZone(ZoneId.systemDefault()).toLocalDate()
     }.toSortedMap(compareByDescending { it })
-    
+
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -76,9 +76,9 @@ fun ConversationList(
             item {
                 DateHeader(date = date)
             }
-            
+
             // 每组内的对话列表
-            items(conversationsInGroup) { conversation ->
+            items(conversationsInGroup, key = { it.id }) { conversation ->
                 ConversationItem(
                     conversation = conversation,
                     selected = conversation.id == current.id,
@@ -96,14 +96,14 @@ fun ConversationList(
 private fun DateHeader(date: LocalDate) {
     val today = LocalDate.now()
     val yesterday = today.minusDays(1)
-    
+
     val displayText = when {
         date.isEqual(today) -> "今天"
         date.isEqual(yesterday) -> "昨天"
         date.year == today.year -> "${date.monthValue}月${date.dayOfMonth}日"
         else -> "${date.year}年${date.monthValue}月${date.dayOfMonth}日"
     }
-    
+
     Row(
         modifier = Modifier
             .fillMaxWidth()

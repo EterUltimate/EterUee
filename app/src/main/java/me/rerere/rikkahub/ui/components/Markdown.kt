@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -173,7 +174,7 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
             Paragraph(
                 node = node,
                 content = content,
-                modifier = modifier.padding(bottom = 8.dp)
+                modifier = modifier
             )
         }
 
@@ -194,7 +195,7 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
                 else -> throw IllegalArgumentException("Unknown header type")
             }
             ProvideTextStyle(style) {
-                FlowRow(modifier) {
+                FlowRow(modifier = modifier.padding(vertical = 8.dp)) {
                     node.children.forEach { child ->
                         MarkdownNode(child, content, Modifier.align(Alignment.CenterVertically))
                     }

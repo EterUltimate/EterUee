@@ -1,13 +1,14 @@
 package me.rerere.ai.util
 
-import android.net.Uri
 import android.util.Base64
+import androidx.core.net.toUri
 import me.rerere.ai.ui.UIMessagePart
 import java.io.File
 
 fun UIMessagePart.Image.encodeBase64(): Result<String> = runCatching {
     if(this.url.startsWith("file://")) {
-        val file = File(Uri.parse(this.url).path)
+        val filePath = this.url.toUri().path ?: throw IllegalArgumentException("Invalid file URI: ${this.url}")
+        val file = File(filePath)
         if (file.exists()) {
             val bytes = file.readBytes()
             val encoded = Base64.encodeToString(bytes, Base64.NO_WRAP)

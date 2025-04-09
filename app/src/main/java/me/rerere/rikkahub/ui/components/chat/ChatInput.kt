@@ -33,7 +33,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,8 +45,11 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import com.composables.icons.lucide.ArrowUp
+import com.composables.icons.lucide.Camera
 import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.Image
 import com.composables.icons.lucide.Lucide
@@ -57,6 +59,9 @@ import me.rerere.ai.ui.UIMessagePart
 import me.rerere.rikkahub.ui.components.IconTextButton
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.createChatFiles
+import me.rerere.rikkahub.utils.deleteChatFiles
+import java.io.File
+import kotlin.uuid.Uuid
 
 class ChatInputState {
     var messageContent by mutableStateOf(listOf<UIMessagePart>())
@@ -79,7 +84,7 @@ class ChatInputState {
             newMessage.add(UIMessagePart.Text(text))
             messageContent = newMessage
         } else {
-            if(messageContent.filterIsInstance<UIMessagePart.Text>().isEmpty()) {
+            if (messageContent.filterIsInstance<UIMessagePart.Text>().isEmpty()) {
                 newMessage.add(UIMessagePart.Text(text))
             }
             messageContent = newMessage.map {
@@ -129,9 +134,8 @@ fun ChatInput(
         state.messageContent.filterIsInstance<UIMessagePart.Text>().firstOrNull()
             ?: UIMessagePart.Text("")
 
-    var expand by remember {
-        mutableStateOf(false)
-    }
+    val context = LocalContext.current
+    var expand by remember { mutableStateOf(false) }
 
     Surface {
         Column(
@@ -168,8 +172,11 @@ fun ChatInput(
                                 .clip(CircleShape)
                                 .size(20.dp)
                                 .clickable {
+                                    // Remove image
                                     state.messageContent =
                                         state.messageContent.filterNot { it == image }
+                                    // Delete image
+                                    context.deleteChatFiles(listOf(image.url.toUri()))
                                 }
                                 .align(Alignment.TopEnd)
                                 .background(MaterialTheme.colorScheme.secondary),
@@ -268,8 +275,14 @@ fun ChatInput(
                             .padding(16.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
+                        TakePicButton {
+                            state.addImages(it)
+                            expand = false
+                        }
+
                         ImagePickButton {
                             state.addImages(it)
+                            expand = false
                         }
                     }
                 }
@@ -299,5 +312,37 @@ private fun ImagePickButton(onAddImages: (List<Uri>) -> Unit = {}) {
         }
     ) {
         pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+    }
+}
+
+@Composable
+fun TakePicButton(onAddImages: (List<Uri>) -> Unit = {}) {
+    val context = LocalContext.current
+    var providerUri by remember { mutableStateOf<Uri?>(null) }
+    var file by remember { mutableStateOf<File?>(null) }
+    val pickMedia =
+        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            if (success) {
+                onAddImages(context.createChatFiles(listOf(providerUri!!)))
+            }
+            // delete the temp file
+            file?.delete()
+        }
+
+    IconTextButton(
+        icon = {
+            Icon(Lucide.Camera, null)
+        },
+        text = {
+            Text("拍摄")
+        }
+    ) {
+        file = context.cacheDir.resolve(Uuid.random().toString())
+        providerUri = FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            file!!
+        )
+        pickMedia.launch(providerUri!!)
     }
 }

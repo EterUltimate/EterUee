@@ -31,6 +31,7 @@ import me.rerere.rikkahub.ui.context.LocalAnimatedVisibilityScope
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSharedTransitionScope
 import me.rerere.rikkahub.ui.pages.chat.ChatPage
+import me.rerere.rikkahub.ui.pages.debug.DebugPage
 import me.rerere.rikkahub.ui.pages.setting.SettingModelPage
 import me.rerere.rikkahub.ui.pages.setting.SettingPage
 import me.rerere.rikkahub.ui.pages.setting.SettingProviderPage
@@ -108,6 +109,10 @@ class RouteActivity : ComponentActivity() {
 
                     composableHelper("setting/models") {
                         SettingModelPage()
+                    }
+
+                    composableHelper("debug") {
+                        DebugPage()
                     }
                 }
             }

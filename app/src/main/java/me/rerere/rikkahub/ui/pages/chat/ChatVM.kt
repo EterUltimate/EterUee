@@ -7,6 +7,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -58,6 +59,13 @@ class ChatVM(
     val conversations = conversationRepo.getAllConversations()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    // 当前模型
+    val currentChatModel = settings
+        .map {
+            it.providers.findModelById(it.chatModelId)
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
     // 更新设置
     fun updateSettings(settings: Settings) {
         viewModelScope.launch {
@@ -96,7 +104,6 @@ class ChatVM(
                     params = TextGenerationParams(
                         model = model,
                         temperature = 0.5f,
-                        topP = 0.99f
                     )
                 ).collect { chunk ->
                     val currConversation = conversation.value
@@ -121,8 +128,11 @@ class ChatVM(
     fun generateTitle(force: Boolean = false) {
         if(conversation.value.title.isNotBlank() && !force) return
 
-        val model = settings.value.providers.findModelById(settings.value.chatModelId)
-        val provider = model?.findProvider(settings.value.providers) ?: return
+        val model = settings.value.providers.findModelById(settings.value.titleModelId) ?: let {
+            // 如果没有标题模型，则使用聊天模型
+            settings.value.providers.findModelById(settings.value.chatModelId)
+        } ?: return
+        val provider = model.findProvider(settings.value.providers) ?: return
 
         viewModelScope.launch {
             runCatching {
@@ -143,7 +153,6 @@ class ChatVM(
                     params = TextGenerationParams(
                         model = model,
                         temperature = 0.8f,
-                        topP = 0.99f
                     ),
                 )
                 val currConversation = conversation.value

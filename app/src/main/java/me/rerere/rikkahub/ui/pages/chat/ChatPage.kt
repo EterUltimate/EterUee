@@ -36,10 +36,12 @@ import com.composables.icons.lucide.Settings
 import kotlinx.coroutines.launch
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.ui.Conversation
+import me.rerere.rikkahub.ui.components.ToastVariant
 import me.rerere.rikkahub.ui.components.chat.ChatInput
 import me.rerere.rikkahub.ui.components.chat.ChatMessage
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
 import me.rerere.rikkahub.ui.components.chat.rememberChatInputState
+import me.rerere.rikkahub.ui.components.rememberToastState
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.utils.plus
 import org.koin.androidx.compose.koinViewModel
@@ -48,11 +50,13 @@ import kotlin.uuid.Uuid
 @Composable
 fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
     val navController = LocalNavController.current
+    val toastState = rememberToastState()
 
     val setting by vm.settings.collectAsStateWithLifecycle()
     val conversations by vm.conversations.collectAsStateWithLifecycle()
     val conversation by vm.conversation.collectAsStateWithLifecycle()
     val loadingJob by vm.conversationJob.collectAsStateWithLifecycle()
+    val currentChatModel by vm.currentChatModel.collectAsStateWithLifecycle()
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     ModalNavigationDrawer(
@@ -88,6 +92,10 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                         loadingJob?.cancel()
                     },
                     onSendClick = {
+                        if(currentChatModel == null){
+                            toastState.show("请先选择模型", ToastVariant.ERROR)
+                            return@ChatInput
+                        }
                         vm.handleMessageSend(inputState.messageContent)
                         inputState.clearInput()
                     }

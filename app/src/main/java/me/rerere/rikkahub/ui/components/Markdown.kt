@@ -467,7 +467,11 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
     colorScheme: ColorScheme
 ) {
     when (node.type) {
-        MarkdownTokenTypes.TEXT -> {
+        MarkdownTokenTypes.TEXT,
+        MarkdownTokenTypes.LPAREN,
+        MarkdownTokenTypes.RPAREN,
+        MarkdownTokenTypes.WHITE_SPACE,
+        MarkdownTokenTypes.COLON -> {
             append(node.getTextInNode(content))
         }
 
@@ -531,39 +535,40 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
             // formula as id
             val formula = node.getTextInNode(content)
             appendInlineContent(formula, "[${node.getTextInNode(content)}]")
-            inlineContents.putIfAbsent(formula,InlineTextContent(
-                placeholder = Placeholder(
-                    width = 1.em,
-                    height = 1.em,
-                    placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter
-                ),
-                children = {
-                    val density = LocalDensity.current
-                    MathInline(
-                        formula,
-                        modifier = Modifier
-                            .onGloballyPositioned { coord ->
-                                val width = coord.size.width
-                                val height = coord.size.height
-                                with(density) {
-                                    val widthInSp = width.toDp().toSp()
-                                    val heightInSp = height.toDp().toSp()
-                                    val inlineContent = inlineContents[formula]
-                                    if (inlineContent != null) {
-                                        inlineContents[formula] = InlineTextContent(
-                                            placeholder = Placeholder(
-                                                width = widthInSp,
-                                                height = heightInSp,
-                                                placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter
-                                            ),
-                                            children = inlineContent.children
-                                        )
+            inlineContents.putIfAbsent(
+                formula, InlineTextContent(
+                    placeholder = Placeholder(
+                        width = 1.em,
+                        height = 1.em,
+                        placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter
+                    ),
+                    children = {
+                        val density = LocalDensity.current
+                        MathInline(
+                            formula,
+                            modifier = Modifier
+                                .onGloballyPositioned { coord ->
+                                    val width = coord.size.width
+                                    val height = coord.size.height
+                                    with(density) {
+                                        val widthInSp = width.toDp().toSp()
+                                        val heightInSp = height.toDp().toSp()
+                                        val inlineContent = inlineContents[formula]
+                                        if (inlineContent != null) {
+                                            inlineContents[formula] = InlineTextContent(
+                                                placeholder = Placeholder(
+                                                    width = widthInSp,
+                                                    height = heightInSp,
+                                                    placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter
+                                                ),
+                                                children = inlineContent.children
+                                            )
+                                        }
                                     }
                                 }
-                            }
-                    )
-                }
-            ))
+                        )
+                    }
+                ))
         }
 
         // 其他类型继续递归处理

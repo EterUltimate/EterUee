@@ -55,6 +55,7 @@ android {
         compilerOptions.optIn.add("androidx.compose.animation.ExperimentalAnimationApi")
         compilerOptions.optIn.add("androidx.compose.animation.ExperimentalSharedTransitionApi")
         compilerOptions.optIn.add("androidx.compose.foundation.ExperimentalFoundationApi")
+        compilerOptions.optIn.add("androidx.compose.foundation.layout.ExperimentalLayoutApi")
         compilerOptions.optIn.add("kotlin.uuid.ExperimentalUuidApi")
     }
 }
@@ -102,6 +103,9 @@ dependencies {
     // Paging3
     implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.compose)
+
+    // Compose Cropper
+    implementation(libs.ucrop)
 
     // lucide icons
     implementation(libs.lucide.icons)

@@ -555,7 +555,7 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
                                         val widthInSp = width.toDp().toSp()
                                         val heightInSp = height.toDp().toSp()
                                         val inlineContent = inlineContents[formula]
-                                        if (inlineContent != null) {
+                                        if (inlineContent != null && inlineContent.placeholder.width != widthInSp) {
                                             inlineContents[formula] = InlineTextContent(
                                                 placeholder = Placeholder(
                                                     width = widthInSp,

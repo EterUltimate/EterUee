@@ -77,7 +77,11 @@ class ChatInputState {
         val newMessage = messageContent.toMutableList()
         if (newMessage.isEmpty()) {
             newMessage.add(UIMessagePart.Text(text))
+            messageContent = newMessage
         } else {
+            if(messageContent.filterIsInstance<UIMessagePart.Text>().isEmpty()) {
+                newMessage.add(UIMessagePart.Text(text))
+            }
             messageContent = newMessage.map {
                 if (it is UIMessagePart.Text) {
                     it.copy(text)
@@ -85,9 +89,8 @@ class ChatInputState {
                     it
                 }
             }
-            return
         }
-        messageContent = newMessage
+        println(messageContent)
     }
 
     fun addImages(uris: List<Uri>) {

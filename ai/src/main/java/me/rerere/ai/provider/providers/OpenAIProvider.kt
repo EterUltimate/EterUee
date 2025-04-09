@@ -26,6 +26,7 @@ import me.rerere.ai.ui.MessageChunk
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageChoice
 import me.rerere.ai.ui.UIMessagePart
+import me.rerere.ai.util.encodeBase64
 import okhttp3.Dispatcher
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -220,10 +221,18 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                                 }
 
                                 is UIMessagePart.Image -> {
-                                    put("type", "image_url")
-                                    put("image_url", buildJsonObject {
-                                        put("url", part.url)
-                                    })
+                                    part.encodeBase64().onSuccess {
+                                        put("type", "image_url")
+                                        put("image_url", buildJsonObject {
+                                            put("url", it)
+                                        })
+                                    }.onFailure {
+                                        it.printStackTrace()
+                                        println("encode image failed: ${part.url}")
+
+                                        put("type", "text")
+                                        put("text", "")
+                                    }
                                 }
 
                                 else -> {

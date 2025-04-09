@@ -91,6 +91,17 @@ fun List<UIMessage>.handleMessageChunk(chunk: MessageChunk): List<UIMessage> {
     }
 }
 
+fun List<UIMessagePart>.isEmptyMessage() : Boolean {
+    if(this.isEmpty()) return true
+    return this.all { message ->
+        when (message) {
+            is UIMessagePart.Text -> message.text.isBlank()
+            is UIMessagePart.Image -> message.url.isBlank()
+            else -> false
+        }
+    }
+}
+
 @Serializable
 sealed class UIMessagePart {
     @Serializable

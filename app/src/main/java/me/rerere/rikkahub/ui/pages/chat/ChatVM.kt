@@ -19,6 +19,7 @@ import me.rerere.ai.ui.Conversation
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.handleMessageChunk
+import me.rerere.ai.ui.isEmptyMessage
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.findModelById
@@ -85,6 +86,7 @@ class ChatVM(
     }
 
     fun handleMessageSend(content: List<UIMessagePart>) {
+        if(content.isEmptyMessage()) return
         val model = settings.value.providers.findModelById(settings.value.chatModelId)
         val provider = model?.findProvider(settings.value.providers) ?: return
         val newConversation = conversation.value.copy(

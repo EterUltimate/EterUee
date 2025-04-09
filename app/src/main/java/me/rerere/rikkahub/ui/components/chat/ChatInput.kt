@@ -56,6 +56,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.X
 import me.rerere.ai.ui.UIMessagePart
+import me.rerere.ai.ui.isEmptyMessage
 import me.rerere.rikkahub.ui.components.IconTextButton
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.createChatFiles
@@ -254,7 +255,8 @@ fun ChatInput(
                     colors = IconButtonDefaults.filledIconButtonColors(
                         containerColor = if (state.loading) MaterialTheme.colorScheme.errorContainer else Color.Unspecified,
                         contentColor = if (state.loading) MaterialTheme.colorScheme.onErrorContainer else Color.Unspecified,
-                    )
+                    ),
+                    enabled = state.loading || !state.messageContent.isEmptyMessage()
                 ) {
                     if (state.loading) {
                         Icon(Lucide.X, "Stop")

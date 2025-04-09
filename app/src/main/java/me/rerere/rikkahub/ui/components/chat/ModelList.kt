@@ -25,7 +25,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastFilter
+import androidx.compose.ui.util.fastForEach
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.ProviderSetting
@@ -39,6 +43,7 @@ import kotlin.uuid.Uuid
 fun ModelSelector(
     modelId: Uuid,
     providers: List<ProviderSetting>,
+    type: ModelType,
     modifier: Modifier = Modifier,
     onSelect: (Model) -> Unit = {}
 ) {
@@ -52,7 +57,12 @@ fun ModelSelector(
             popup = true
         }, modifier = modifier
     ) {
-        Text(model?.displayName ?: "Select Model")
+        Text(
+            text = model?.displayName ?: "Select Model",
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 
     if (popup) {
@@ -63,9 +73,10 @@ fun ModelSelector(
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ) {
             Column(
-                modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)
+                modifier = Modifier.padding(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                ModelList(providers) {
+                ModelList(providers = providers, modelType = type) {
                     popup = false
                     onSelect(it)
                 }
@@ -75,7 +86,11 @@ fun ModelSelector(
 }
 
 @Composable
-fun ModelList(providers: List<ProviderSetting>, onSelect: (Model) -> Unit) {
+fun ModelList(
+    providers: List<ProviderSetting>,
+    modelType: ModelType,
+    onSelect: (Model) -> Unit
+) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         contentPadding = PaddingValues(8.dp),
@@ -83,20 +98,24 @@ fun ModelList(providers: List<ProviderSetting>, onSelect: (Model) -> Unit) {
             .fillMaxWidth()
             .height(500.dp)
     ) {
-        providers.filter { it.enabled && it.models.isNotEmpty() }.forEach { providerSetting ->
-            stickyHeader {
-                Text(
-                    text = providerSetting.name,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
-                )
-            }
+        providers
+            .fastFilter { it.enabled && it.models.isNotEmpty() }
+            .fastForEach { providerSetting ->
+                stickyHeader {
+                    Text(
+                        text = providerSetting.name,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
+                    )
+                }
 
-            items(providerSetting.models, key = { it.id} ) { model ->
-                ModelItem(onSelect, model)
+                items(
+                    providerSetting.models.fastFilter { it.type == modelType },
+                    key = { it.id }) { model ->
+                    ModelItem(onSelect, model)
+                }
             }
-        }
     }
 }
 

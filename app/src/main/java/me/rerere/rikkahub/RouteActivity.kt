@@ -31,6 +31,7 @@ import me.rerere.rikkahub.ui.context.LocalAnimatedVisibilityScope
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSharedTransitionScope
 import me.rerere.rikkahub.ui.pages.chat.ChatPage
+import me.rerere.rikkahub.ui.pages.setting.SettingModelPage
 import me.rerere.rikkahub.ui.pages.setting.SettingPage
 import me.rerere.rikkahub.ui.pages.setting.SettingProviderPage
 import me.rerere.rikkahub.ui.theme.RikkahubTheme
@@ -66,7 +67,7 @@ class RouteActivity : ComponentActivity() {
                     navController = navController,
                     startDestination = "chat/${Uuid.random()}",
                     enterTransition = {
-                        scaleIn(initialScale = 0.25f) + fadeIn(animationSpec = tween(300))
+                        scaleIn(initialScale = 0.35f) + fadeIn(animationSpec = tween(300))
                     },
                     exitTransition = {
                         fadeOut(animationSpec = tween(300))
@@ -75,7 +76,7 @@ class RouteActivity : ComponentActivity() {
                         fadeIn(animationSpec = tween(300))
                     },
                     popExitTransition = {
-                        scaleOut(targetScale = 0.25f) + fadeOut(animationSpec = tween(300))
+                        scaleOut(targetScale = 0.35f) + fadeOut(animationSpec = tween(300))
                     }
                 ) {
                     composableHelper(
@@ -103,6 +104,10 @@ class RouteActivity : ComponentActivity() {
 
                     composableHelper("setting/provider") {
                         SettingProviderPage()
+                    }
+
+                    composableHelper("setting/models") {
+                        SettingModelPage()
                     }
                 }
             }

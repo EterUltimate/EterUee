@@ -26,6 +26,7 @@ private val Context.settingsStore by preferencesDataStore(
 class SettingsStore(context: Context) {
     companion object {
         val SELECT_MODEL = stringPreferencesKey("chat_model")
+        val TITLE_MODEL = stringPreferencesKey("title_model")
         val PROVIDERS = stringPreferencesKey("providers")
     }
 
@@ -42,6 +43,7 @@ class SettingsStore(context: Context) {
         .map { preferences ->
             Settings(
                 chatModelId = preferences[SELECT_MODEL]?.let { Uuid.parse(it) } ?: Uuid.random(),
+                titleModelId = preferences[TITLE_MODEL]?.let { Uuid.parse(it) } ?: Uuid.random(),
                 providers = JsonInstant
                     .decodeFromString<List<ProviderSetting>>(preferences[PROVIDERS] ?: "[]"),
             )
@@ -50,14 +52,15 @@ class SettingsStore(context: Context) {
     suspend fun update(settings: Settings) {
         dataStore.edit { preferences ->
             preferences[SELECT_MODEL] = settings.chatModelId.toString()
+            preferences[TITLE_MODEL] = settings.titleModelId.toString()
             preferences[PROVIDERS] = JsonInstant.encodeToString(settings.providers)
         }
     }
 }
 
 data class Settings(
-    val theme: String = "system",
     val chatModelId: Uuid = Uuid.random(),
+    val titleModelId: Uuid = Uuid.random(),
     val providers: List<ProviderSetting> = emptyList(),
 )
 

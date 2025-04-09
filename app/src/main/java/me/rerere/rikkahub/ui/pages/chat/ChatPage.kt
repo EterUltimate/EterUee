@@ -34,6 +34,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.MessageCirclePlus
 import com.composables.icons.lucide.Settings
 import kotlinx.coroutines.launch
+import me.rerere.ai.provider.ModelType
 import me.rerere.ai.ui.Conversation
 import me.rerere.rikkahub.ui.components.chat.ChatInput
 import me.rerere.rikkahub.ui.components.chat.ChatMessage
@@ -96,7 +97,8 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                         providers = setting.providers,
                         onSelect = {
                             vm.setChatModel(it)
-                        }
+                        },
+                        type = ModelType.CHAT,
                     )
                 }
             }

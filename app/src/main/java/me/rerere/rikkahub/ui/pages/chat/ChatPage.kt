@@ -205,7 +205,7 @@ private fun DrawerContent(
                 }
             }
         )
-        HorizontalDivider()
+
         NavigationDrawerItem(
             label = {
                 Text("Setting")

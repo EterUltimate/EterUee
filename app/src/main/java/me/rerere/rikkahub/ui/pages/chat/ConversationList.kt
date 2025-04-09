@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Delete
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Recycle
+import com.composables.icons.lucide.RefreshCw
 import me.rerere.ai.ui.Conversation
 import me.rerere.rikkahub.ui.theme.extendColors
 import java.time.Instant
@@ -68,12 +69,12 @@ fun ConversationList(
 
     LazyColumn(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(2.dp),
-        contentPadding = PaddingValues(4.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(8.dp)
     ) {
         groupedConversations.forEach { (date, conversationsInGroup) ->
             // 添加日期标题
-            item {
+            stickyHeader {
                 DateHeader(date = date)
             }
 
@@ -107,6 +108,7 @@ private fun DateHeader(date: LocalDate) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -154,7 +156,7 @@ private fun ConversationItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 4.dp),
+                .padding(horizontal = 12.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -180,6 +182,19 @@ private fun ConversationItem(
             ) {
                 DropdownMenuItem(
                     text = {
+                        Text("重新生成标题")
+                    },
+                    onClick = {
+                        onRegenerateTitle(conversation)
+                        showDropdownMenu = false
+                    },
+                    leadingIcon = {
+                        Icon(Lucide.RefreshCw, null)
+                    }
+                )
+
+                DropdownMenuItem(
+                    text = {
                         Text("删除")
                     },
                     onClick = {
@@ -188,19 +203,6 @@ private fun ConversationItem(
                     },
                     leadingIcon = {
                         Icon(Lucide.Delete, null)
-                    }
-                )
-
-                DropdownMenuItem(
-                    text = {
-                        Text("重新生成标题")
-                    },
-                    onClick = {
-                        onRegenerateTitle(conversation)
-                        showDropdownMenu = false
-                    },
-                    leadingIcon = {
-                        Icon(Lucide.Recycle, null)
                     }
                 )
             }

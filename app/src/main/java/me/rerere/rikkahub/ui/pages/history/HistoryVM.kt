@@ -21,4 +21,10 @@ class HistoryVM(
             conversationRepo.deleteConversation(conversation)
         }
     }
+
+    fun deleteAllConversations() {
+        viewModelScope.launch {
+            conversationRepo.deleteAllConversations()
+        }
+    }
 }

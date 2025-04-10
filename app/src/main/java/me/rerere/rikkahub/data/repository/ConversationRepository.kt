@@ -103,4 +103,8 @@ class ConversationRepository(
             )
         )
     }
+
+    suspend fun deleteAllConversations() {
+        conversationDAO.deleteAll()
+    }
 }

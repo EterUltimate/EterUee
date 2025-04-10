@@ -30,4 +30,7 @@ interface ConversationDAO {
 
     @Delete
     suspend fun delete(conversation: ConversationEntity)
+
+    @Query("DELETE FROM conversationentity")
+    suspend fun deleteAll()
 }

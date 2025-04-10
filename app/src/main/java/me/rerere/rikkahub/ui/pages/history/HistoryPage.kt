@@ -66,7 +66,9 @@ fun HistoryPage(vm: HistoryVM = koinViewModel()) {
                 },
                 actions = {
                     TextButton(
-                        onClick = {}
+                        onClick = {
+                            vm.deleteAllConversations()
+                        }
                     ) {
                         Text("重置聊天")
                     }

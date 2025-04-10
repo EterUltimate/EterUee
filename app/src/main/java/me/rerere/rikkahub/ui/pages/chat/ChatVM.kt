@@ -86,7 +86,6 @@ class ChatVM(
 
     fun handleMessageSend(content: List<UIMessagePart>) {
         if(content.isEmptyMessage()) return
-
         val newConversation = conversation.value.copy(
             messages = conversation.value.messages + UIMessage(
                 role = MessageRole.USER,
@@ -122,6 +121,7 @@ class ChatVM(
             }.onFailure {
                 it.printStackTrace()
             }.onSuccess {
+                saveConversation(conversation.value)
                 generateTitle()
             }
         }

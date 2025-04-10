@@ -114,19 +114,21 @@ private fun Actions(
                 .size(16.dp)
         )
 
-        Icon(
-            Lucide.Pencil, "Edit", modifier = Modifier
-                .clip(CircleShape)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = LocalIndication.current,
-                    onClick = {
-                        onEdit()
-                    }
-                )
-                .padding(8.dp)
-                .size(16.dp)
-        )
+        if(message.role == MessageRole.USER) {
+            Icon(
+                Lucide.Pencil, "Edit", modifier = Modifier
+                    .clip(CircleShape)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = LocalIndication.current,
+                        onClick = {
+                            onEdit()
+                        }
+                    )
+                    .padding(8.dp)
+                    .size(16.dp)
+            )
+        }
     }
 }
 

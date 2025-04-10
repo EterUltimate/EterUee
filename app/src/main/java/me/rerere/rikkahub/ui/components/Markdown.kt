@@ -265,9 +265,9 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
                         )
                     }
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(4.dp))
                 ProvideTextStyle(LocalTextStyle.current.copy(fontStyle = FontStyle.Italic)) {
-                    FlowRow(modifier = Modifier.weight(1f)) {
+                    FlowRow(modifier = Modifier.weight(1f).padding(8.dp)) {
                         node.children.forEach { child ->
                             MarkdownNode(child, content)
                         }
@@ -623,48 +623,4 @@ private fun ASTNode.traverseChildren(
         action(child)
         child.traverseChildren(action)
     }
-}
-
-private fun estimateLatexLength(latex: String): Int {
-    // 移除所有空白字符
-    var cleanedLatex = latex.replace("\\s".toRegex(), "")
-
-    // 移除常见的LaTeX命令前缀，这些通常不会增加显示宽度
-    cleanedLatex = cleanedLatex.replace("\\\\[a-zA-Z]+".toRegex(), "")
-
-    // 处理分数，分数通常会取分子和分母中较长的一个
-    val fractionPattern = "\\\\frac\\{([^{}]*)\\}\\{([^{}]*)\\}".toRegex()
-    while (fractionPattern.containsMatchIn(cleanedLatex)) {
-        cleanedLatex = fractionPattern.replace(cleanedLatex) { matchResult ->
-            val numerator = matchResult.groupValues[1]
-            val denominator = matchResult.groupValues[2]
-            if (numerator.length > denominator.length) numerator else denominator
-        }
-    }
-
-    // 处理上标和下标，它们通常比普通字符小
-    cleanedLatex = cleanedLatex.replace("_\\{[^{}]*\\}|\\^\\{[^{}]*\\}".toRegex(), "x")
-    cleanedLatex = cleanedLatex.replace("_[^{]|\\^[^{]".toRegex(), "")
-
-    // 处理根号，根号下的内容加上根号符号的宽度
-    val sqrtPattern = "\\\\sqrt\\{([^{}]*)\\}".toRegex()
-    cleanedLatex = sqrtPattern.replace(cleanedLatex) { matchResult ->
-        "√" + matchResult.groupValues[1]
-    }
-
-    // 移除括号，保留内容
-    cleanedLatex = cleanedLatex.replace("[{}]".toRegex(), "")
-
-    // 最后计算剩余字符的长度，可以根据经验为某些特殊字符赋予不同的权重
-    var length = 0
-    for (char in cleanedLatex) {
-        length += when (char) {
-            '∑', '∏', '∫', '√' -> 2  // 大型数学符号
-            'm', 'w' -> 2           // 宽字母
-            'i', 'l', '.' -> 1      // 窄字母和标点
-            else -> 1               // 默认宽度
-        }
-    }
-
-    return length
 }

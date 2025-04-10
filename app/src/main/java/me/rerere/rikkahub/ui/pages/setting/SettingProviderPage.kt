@@ -51,6 +51,7 @@ import kotlinx.coroutines.launch
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.ProviderSetting
+import me.rerere.rikkahub.ui.components.AutoAIIcon
 import me.rerere.rikkahub.ui.components.BackButton
 import me.rerere.rikkahub.ui.components.Tag
 import me.rerere.rikkahub.ui.components.TagType
@@ -186,7 +187,7 @@ private fun ProviderItem(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextAvatar(provider.name, modifier = Modifier.size(32.dp))
+                AutoAIIcon(provider.name, modifier = Modifier.size(32.dp))
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
@@ -467,9 +468,13 @@ private fun ModelCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                AutoAIIcon(
+                    name = model.modelId,
+                    modifier = Modifier.size(32.dp),
+                )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(model.displayName, style = MaterialTheme.typography.titleMedium)
                     Row(

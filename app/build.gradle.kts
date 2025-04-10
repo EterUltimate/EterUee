@@ -90,6 +90,7 @@ dependencies {
     // coil
     implementation(libs.coil.compose)
     implementation(libs.coil.okhttp)
+    implementation(libs.coil.svg)
 
     // serialization
     implementation(libs.kotlinx.serialization.json)

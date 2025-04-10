@@ -62,9 +62,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
     // Handle Error
     LaunchedEffect(Unit) {
         vm.errorFlow.collect { error ->
-            error?.let {
-                toastState.show(it.message ?: "错误", ToastVariant.ERROR)
-            }
+            toastState.show(error.message ?: "错误", ToastVariant.ERROR)
         }
     }
 

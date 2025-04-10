@@ -6,9 +6,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.internal.ChannelFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -73,7 +75,7 @@ class ChatVM(
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     // 错误流
-    val errorFlow = MutableStateFlow<Throwable?>(null)
+    val errorFlow = MutableSharedFlow<Throwable>()
 
     // 更新设置
     fun updateSettings(settings: Settings) {
@@ -148,7 +150,7 @@ class ChatVM(
                 }
             }.onFailure {
                 it.printStackTrace()
-                errorFlow.value = it
+                errorFlow.emit(it)
             }.onSuccess {
                 saveConversation(conversation.value)
                 generateTitle()

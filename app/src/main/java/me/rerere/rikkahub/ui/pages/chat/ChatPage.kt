@@ -59,6 +59,15 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
     val navController = LocalNavController.current
     val toastState = rememberToastState()
 
+    // Handle Error
+    LaunchedEffect(Unit) {
+        vm.errorFlow.collect { error ->
+            error?.let {
+                toastState.show(it.message ?: "错误", ToastVariant.ERROR)
+            }
+        }
+    }
+
     val setting by vm.settings.collectAsStateWithLifecycle()
     val conversations by vm.conversations.collectAsStateWithLifecycle()
     val conversation by vm.conversation.collectAsStateWithLifecycle()

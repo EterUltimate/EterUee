@@ -1,5 +1,6 @@
 package me.rerere.ai.provider.providers
 
+import android.net.http.HttpException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -143,16 +144,18 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                     .trim()
                     .split("\n")
                     .filter { it.isNotBlank() }
-                    .map { json.parseToJsonElement(it).jsonObject}
+                    .map { json.parseToJsonElement(it).jsonObject }
                     .forEach {
                         // println(it)
                         val id = it["id"]?.jsonPrimitive?.content ?: ""
                         val model = it["model"]?.jsonPrimitive?.content ?: ""
                         val choices = it["choices"]?.jsonArray ?: JsonArray(emptyList())
-                        if(choices.isEmpty()) return@forEach
+                        if (choices.isEmpty()) return@forEach
                         val choice = choices[0].jsonObject
-                        val message = choice["delta"]?.jsonObject ?: choice["message"]?.jsonObject ?: throw Exception("delta/message is null")
-                        val finishReason = choice["finish_reason"]?.jsonPrimitive?.content ?: "unknown"
+                        val message = choice["delta"]?.jsonObject ?: choice["message"]?.jsonObject
+                        ?: throw Exception("delta/message is null")
+                        val finishReason =
+                            choice["finish_reason"]?.jsonPrimitive?.content ?: "unknown"
                         val messageChunk = MessageChunk(
                             id = id,
                             model = model,
@@ -170,13 +173,24 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             }
 
             override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
+                var exception = t
+
+                t?.printStackTrace()
+                println("[onFailure] 发生错误: ${t?.message}")
+
                 try {
-                    println("[onFailure] 发生错误: ${t?.message}")
-                    t?.printStackTrace()
+                    if (t == null && response != null) {
+                        val body = Json.parseToJsonElement(response.body?.string() ?: "").jsonObject
+                        println("body: $body")
+                        exception = Exception(
+                            body["error"]?.jsonObject?.get("message")?.jsonPrimitive?.content
+                                ?: "unknown",
+                        )
+                    }
                 } catch (e: Throwable) {
                     e.printStackTrace()
                 } finally {
-                    close(t)
+                    close(exception)
                 }
             }
 
@@ -249,7 +263,9 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
     }
 
     private fun parseMessage(jsonObject: JsonObject): UIMessage {
-        val role = MessageRole.valueOf(jsonObject["role"]?.jsonPrimitive?.content?.uppercase() ?: "ASSISTANT")
+        val role = MessageRole.valueOf(
+            jsonObject["role"]?.jsonPrimitive?.content?.uppercase() ?: "ASSISTANT"
+        )
         val reasoning = jsonObject["reasoning_content"]?.jsonPrimitive?.content
 
         // 也许支持其他模态的输出content? 暂时只支持文本吧

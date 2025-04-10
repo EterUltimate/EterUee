@@ -72,6 +72,9 @@ class ChatVM(
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
+    // 错误流
+    val errorFlow = MutableStateFlow<Throwable?>(null)
+
     // 更新设置
     fun updateSettings(settings: Settings) {
         viewModelScope.launch {
@@ -145,6 +148,7 @@ class ChatVM(
                 }
             }.onFailure {
                 it.printStackTrace()
+                errorFlow.value = it
             }.onSuccess {
                 saveConversation(conversation.value)
                 generateTitle()

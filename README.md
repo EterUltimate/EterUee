@@ -2,14 +2,18 @@
 
 一个原生开发安卓LLM聊天客户端，支持切换不同的供应商进行聊天
 
-> Still in development, there is no feature yet.
+<div align="center">
+  <img src="docs/img/chat.png" alt="聊天界面" width="150" />
+  <img src="docs/img/provider.png" alt="供应商选择" width="150" />
+  <img src="docs/img/setting.png" alt="设置界面" width="150" />
+</div>
 
 ## 功能
 
 - [x] 现代化安卓APP设计 (Material You / 预测性返回)
-- [ ] 多种类型的供应商支持 (OpenAI, Google, Anthropic, ..)
-- [ ] 多模态支持 (图片, 视频, 音频, ..)
-- [ ] 云端同步
+- [x] 多种类型的供应商支持，自定义API/URL/模型 (目前支持OpenAI, Google)
+- [x] 多模态输入
+- [x] Markdown渲染 (代码高亮，数学公式..)
 - [ ] 多语言支持
 
 ## 下载

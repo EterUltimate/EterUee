@@ -267,7 +267,9 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 ProvideTextStyle(LocalTextStyle.current.copy(fontStyle = FontStyle.Italic)) {
-                    FlowRow(modifier = Modifier.weight(1f).padding(8.dp)) {
+                    FlowRow(modifier = Modifier
+                        .weight(1f)
+                        .padding(8.dp)) {
                         node.children.forEach { child ->
                             MarkdownNode(child, content)
                         }
@@ -440,6 +442,8 @@ private fun Paragraph(node: ASTNode, content: String, modifier: Modifier) {
         return
     }
 
+    // dumpAst(node, content)
+
     val colorScheme = MaterialTheme.colorScheme
     val inlineContents = remember {
         mutableStateMapOf<String, InlineTextContent>()
@@ -474,6 +478,11 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
         MarkdownTokenTypes.WHITE_SPACE,
         MarkdownTokenTypes.COLON -> {
             append(node.getTextInNode(content))
+        }
+
+        MarkdownTokenTypes.EMPH ->{
+            val text = node.getTextInNode(content)
+            if(text != "*") append(text)
         }
 
         MarkdownElementTypes.EMPH -> {

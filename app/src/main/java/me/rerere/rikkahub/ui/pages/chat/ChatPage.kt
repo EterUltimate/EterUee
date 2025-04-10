@@ -78,6 +78,10 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
             )
         }
     ) {
+        val inputState = rememberChatInputState()
+        LaunchedEffect(loadingJob) {
+            inputState.loading = loadingJob != null
+        }
         Scaffold(
             topBar = {
                 TopBar(
@@ -89,10 +93,6 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                 )
             },
             bottomBar = {
-                val inputState = rememberChatInputState()
-                LaunchedEffect(loadingJob) {
-                    inputState.loading = loadingJob != null
-                }
                 ChatInput(
                     state = inputState,
                     onCancelClick = {
@@ -103,7 +103,14 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                             toastState.show("请先选择模型", ToastVariant.ERROR)
                             return@ChatInput
                         }
-                        vm.handleMessageSend(inputState.messageContent)
+                        if(inputState.isEditing()) {
+                            vm.handleMessageEdit(
+                                inputState.messageContent,
+                                inputState.editingMessage
+                            )
+                        } else {
+                            vm.handleMessageSend(inputState.messageContent)
+                        }
                         inputState.clearInput()
                     }
                 ) {
@@ -124,7 +131,8 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                 loading = loadingJob != null,
                 onRegenerate = { vm.regenerateAtMessage(it) },
                 onEdit = {
-
+                    inputState.editingMessage = it.id
+                    inputState.messageContent = it.parts
                 }
             )
         }

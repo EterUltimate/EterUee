@@ -97,6 +97,25 @@ class ChatVM(
         this.handleMessageComplete()
     }
 
+    fun handleMessageEdit(parts: List<UIMessagePart>, uuid: Uuid?) {
+        if(parts.isEmptyMessage()) return
+        val newConversation = conversation.value.copy(
+            messages = conversation.value.messages.map {
+                if(it.id == uuid) {
+                    it.copy(
+                        parts = parts,
+                    )
+                } else {
+                    it
+                }
+            },
+            updateAt = Instant.now()
+        )
+        this.updateConversation(newConversation)
+        val message = newConversation.messages.find { it.id == uuid } ?: return
+        this.regenerateAtMessage(message)
+    }
+
     private fun handleMessageComplete() {
         val model = settings.value.providers.findModelById(settings.value.chatModelId)
         val provider = model?.findProvider(settings.value.providers) ?: return

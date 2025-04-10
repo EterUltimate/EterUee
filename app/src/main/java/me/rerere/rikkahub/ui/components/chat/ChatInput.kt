@@ -66,18 +66,16 @@ import kotlin.uuid.Uuid
 
 class ChatInputState {
     var messageContent by mutableStateOf(listOf<UIMessagePart>())
+    var editingMessage by mutableStateOf<Uuid?>(null)
     var useWebSearch by mutableStateOf(false)
     var loading by mutableStateOf(false)
 
-    fun reset() {
-        messageContent = emptyList()
-        useWebSearch = false
-        loading = false
-    }
-
     fun clearInput() {
         messageContent = emptyList()
+        editingMessage = null
     }
+
+    fun isEditing() = editingMessage != null
 
     fun setMessageText(text: String) {
         val newMessage = messageContent.toMutableList()
@@ -96,7 +94,6 @@ class ChatInputState {
                 }
             }
         }
-        println(messageContent)
     }
 
     fun addImages(uris: List<Uri>) {

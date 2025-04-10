@@ -141,7 +141,6 @@ fun ChatInput(
     Surface {
         Column(
             modifier = modifier
-                .animateContentSize()
                 .imePadding()
                 .navigationBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(4.dp)

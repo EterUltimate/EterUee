@@ -535,7 +535,7 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
         GFMElementTypes.INLINE_MATH -> {
             // formula as id
             val formula = node.getTextInNode(content)
-            appendInlineContent(formula, "[${node.getTextInNode(content)}]")
+            appendInlineContent(formula, node.getTextInNode(content))
             inlineContents.putIfAbsent(
                 formula, InlineTextContent(
                     placeholder = Placeholder(

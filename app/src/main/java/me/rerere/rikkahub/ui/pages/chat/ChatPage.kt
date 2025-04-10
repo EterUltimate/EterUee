@@ -1,14 +1,17 @@
 package me.rerere.rikkahub.ui.pages.chat
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
@@ -25,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -37,6 +41,7 @@ import com.composables.icons.lucide.Settings
 import kotlinx.coroutines.launch
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.ui.Conversation
+import me.rerere.ai.ui.UIMessage
 import me.rerere.rikkahub.ui.components.ToastVariant
 import me.rerere.rikkahub.ui.components.chat.ChatInput
 import me.rerere.rikkahub.ui.components.chat.ChatMessage
@@ -94,7 +99,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                         loadingJob?.cancel()
                     },
                     onSendClick = {
-                        if(currentChatModel == null){
+                        if (currentChatModel == null) {
                             toastState.show("请先选择模型", ToastVariant.ERROR)
                             return@ChatInput
                         }
@@ -113,7 +118,15 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                 }
             }
         ) { innerPadding ->
-            ChatList(innerPadding, conversation)
+            ChatList(
+                innerPadding = innerPadding,
+                conversation = conversation,
+                loading = loadingJob != null,
+                onRegenerate = { vm.regenerateAtMessage(it) },
+                onEdit = {
+
+                }
+            )
         }
     }
 }
@@ -121,14 +134,34 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
 @Composable
 private fun ChatList(
     innerPadding: PaddingValues,
-    conversation: Conversation
+    conversation: Conversation,
+    loading: Boolean,
+    onRegenerate: (UIMessage) -> Unit = {},
+    onEdit: (UIMessage) -> Unit = {},
 ) {
     LazyColumn(
         contentPadding = innerPadding + PaddingValues(12.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         items(conversation.messages, key = { it.id }) {
-            ChatMessage(it)
+            ChatMessage(
+                message = it,
+                onRegenerate = {
+                    onRegenerate(it)
+                },
+                onEdit = {
+                    onEdit(it)
+                },
+            )
+        }
+
+        if (loading) {
+            item {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp
+                )
+            }
         }
     }
 }
@@ -202,7 +235,7 @@ private fun DrawerContent(
             },
             onDelete = {
                 vm.deleteConversation(it)
-                if(it.id == current.id) {
+                if (it.id == current.id) {
                     navigateToChatPage(navController)
                 }
             }

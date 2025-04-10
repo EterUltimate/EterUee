@@ -16,8 +16,11 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -35,47 +38,95 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import coil3.compose.AsyncImage
 import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.ChevronUp
+import com.composables.icons.lucide.Copy
 import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Pencil
+import com.composables.icons.lucide.RefreshCw
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.rikkahub.ui.components.MarkdownBlock
+import me.rerere.rikkahub.ui.utils.copyMessageToClipboard
 
 @Composable
 fun ChatMessage(
     message: UIMessage,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onRegenerate: () -> Unit,
+    onEdit: () -> Unit,
 ) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = if (message.role == MessageRole.USER) Alignment.End else Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        MessagePartsBlock(message.role, message.parts)
+        Actions(
+            message = message,
+            onRegenerate = onRegenerate,
+            onEdit = onEdit
+        )
+    }
+}
 
-    when (message.role) {
-        MessageRole.USER -> {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                MessagePartsBlock(message.role, message.parts)
-            }
-        }
+@Composable
+private fun Actions(
+    message: UIMessage,
+    onRegenerate: () -> Unit,
+    onEdit: () -> Unit,
+) {
+    val context = LocalContext.current
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            Lucide.Copy, "Copy", modifier = Modifier
+                .clip(CircleShape)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = LocalIndication.current,
+                    onClick = {
+                        context.copyMessageToClipboard(message)
+                    }
+                )
+                .padding(8.dp)
+                .size(16.dp)
+        )
 
-        MessageRole.ASSISTANT -> {
-            Column(
-                modifier = modifier
-                    .padding(4.dp)
-                    .animateContentSize(),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                MessagePartsBlock(message.role, message.parts)
-            }
-        }
+        Icon(
+            Lucide.RefreshCw, "Regenerate", modifier = Modifier
+                .clip(CircleShape)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = LocalIndication.current,
+                    onClick = {
+                        onRegenerate()
+                    }
+                )
+                .padding(8.dp)
+                .size(16.dp)
+        )
 
-        else -> {}
+        Icon(
+            Lucide.Pencil, "Edit", modifier = Modifier
+                .clip(CircleShape)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = LocalIndication.current,
+                    onClick = {
+                        onEdit()
+                    }
+                )
+                .padding(8.dp)
+                .size(16.dp)
+        )
     }
 }
 
@@ -137,18 +188,20 @@ fun MessagePartsBlock(
 
     // Text
     parts.filterIsInstance<UIMessagePart.Text>().fastForEach {
-        if (role == MessageRole.USER) {
-            Card(
-                modifier = Modifier
-                    .animateContentSize(),
-                shape = RoundedCornerShape(8.dp),
-            ) {
-                Column(Modifier.padding(8.dp)) {
-                    MarkdownBlock(it.text)
+        SelectionContainer {
+            if (role == MessageRole.USER) {
+                Card(
+                    modifier = Modifier
+                        .animateContentSize(),
+                    shape = RoundedCornerShape(8.dp),
+                ) {
+                    Column(Modifier.padding(8.dp)) {
+                        MarkdownBlock(it.text)
+                    }
                 }
+            } else {
+                MarkdownBlock(it.text)
             }
-        } else {
-            MarkdownBlock(it.text)
         }
     }
 

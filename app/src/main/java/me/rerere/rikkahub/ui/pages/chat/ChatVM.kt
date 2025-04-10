@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import me.rerere.ai.core.MessageRole
@@ -87,8 +86,7 @@ class ChatVM(
 
     fun handleMessageSend(content: List<UIMessagePart>) {
         if(content.isEmptyMessage()) return
-        val model = settings.value.providers.findModelById(settings.value.chatModelId)
-        val provider = model?.findProvider(settings.value.providers) ?: return
+
         val newConversation = conversation.value.copy(
             messages = conversation.value.messages + UIMessage(
                 role = MessageRole.USER,
@@ -97,12 +95,18 @@ class ChatVM(
             updateAt = Instant.now()
         )
         this.saveConversation(newConversation)
+        this.handleMessageComplete()
+    }
+
+    private fun handleMessageComplete() {
+        val model = settings.value.providers.findModelById(settings.value.chatModelId)
+        val provider = model?.findProvider(settings.value.providers) ?: return
         val job = viewModelScope.launch {
             runCatching {
                 val providerHandler = ProviderManager.getProviderByType(provider)
                 providerHandler.streamText(
                     providerSetting = provider,
-                    conversation = newConversation,
+                    conversation = conversation.value,
                     params = TextGenerationParams(
                         model = model,
                         temperature = 0.5f,
@@ -168,6 +172,31 @@ class ChatVM(
                 it.printStackTrace()
             }
         }
+    }
+
+    fun regenerateAtMessage(message: UIMessage) {
+        if(message.role == MessageRole.USER) {
+            // 如果是用户消息，则截止到当前消息
+            val indexAt = conversation.value.messages.indexOf(message)
+            val newConversation = conversation.value.copy(
+                messages = conversation.value.messages.subList(0, indexAt + 1)
+            )
+            this.saveConversation(newConversation)
+        } else {
+            // 如果是助手消息，则需要向上查找第一个用户消息
+            var indexAt = conversation.value.messages.indexOf(message)
+            for (i in indexAt downTo 0) {
+                if (conversation.value.messages[i].role == MessageRole.USER) {
+                    indexAt = i
+                    break
+                }
+            }
+            val newConversation = conversation.value.copy(
+                messages = conversation.value.messages.subList(0, indexAt + 1)
+            )
+            this.saveConversation(newConversation)
+        }
+        this.handleMessageComplete()
     }
 
     fun updateConversation(conversation: Conversation) {

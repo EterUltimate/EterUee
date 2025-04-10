@@ -13,6 +13,9 @@ interface ConversationDAO {
     @Query("SELECT * FROM conversationentity ORDER BY create_at DESC")
     fun getAll(): Flow<List<ConversationEntity>>
 
+    @Query("SELECT * FROM conversationentity WHERE title LIKE '%' || :searchText || '%' ORDER BY create_at DESC")
+    fun searchConversations(searchText: String): Flow<List<ConversationEntity>>
+
     @Query("SELECT * FROM conversationentity WHERE id = :id")
     fun getConversationFlowById(id: String): Flow<ConversationEntity?>
 

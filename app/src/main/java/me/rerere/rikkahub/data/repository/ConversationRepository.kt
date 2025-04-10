@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.data.repository
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import me.rerere.ai.ui.Conversation
 import me.rerere.ai.ui.UIMessage
@@ -25,6 +26,22 @@ class ConversationRepository(
                 )
             }
         }
+
+    fun searchConversations(titleKeyword: String): Flow<List<Conversation>> {
+        return conversationDAO
+            .searchConversations(titleKeyword)
+            .map { flow ->
+                flow.map { entity ->
+                    Conversation(
+                        id = Uuid.parse(entity.id),
+                        title = entity.title,
+                        messages = JsonInstant.decodeFromString<List<UIMessage>>(entity.messages),
+                        createAt = Instant.ofEpochMilli(entity.createAt),
+                        updateAt = Instant.ofEpochMilli(entity.updateAt),
+                    )
+                }
+            }
+    }
 
     fun getConversationFlowById(uuid: Uuid) = conversationDAO
         .getConversationFlowById(uuid.toString())

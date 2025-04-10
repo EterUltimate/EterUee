@@ -44,6 +44,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Recycle
 import com.composables.icons.lucide.RefreshCw
 import me.rerere.ai.ui.Conversation
+import me.rerere.rikkahub.ui.hooks.heroAnimation
 import me.rerere.rikkahub.ui.theme.extendColors
 import java.time.Instant
 import java.time.LocalDate
@@ -70,7 +71,6 @@ fun ConversationList(
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(8.dp)
     ) {
         groupedConversations.forEach { (date, conversationsInGroup) ->
             // 添加日期标题

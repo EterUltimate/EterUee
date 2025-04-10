@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.composables.icons.lucide.History
 import com.composables.icons.lucide.ListTree
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.MessageCirclePlus
@@ -43,6 +44,7 @@ import me.rerere.rikkahub.ui.components.chat.ModelSelector
 import me.rerere.rikkahub.ui.components.chat.rememberChatInputState
 import me.rerere.rikkahub.ui.components.rememberToastState
 import me.rerere.rikkahub.ui.context.LocalNavController
+import me.rerere.rikkahub.ui.utils.navigateToChatPage
 import me.rerere.rikkahub.ui.utils.plus
 import org.koin.androidx.compose.koinViewModel
 import kotlin.uuid.Uuid
@@ -77,7 +79,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                     conversation = conversation,
                     drawerState = drawerState,
                     onNewChat = {
-                        navigateToNewChatPage(navController, conversation)
+                        navigateToChatPage(navController)
                     }
                 )
             },
@@ -201,14 +203,27 @@ private fun DrawerContent(
             onDelete = {
                 vm.deleteConversation(it)
                 if(it.id == current.id) {
-                    navigateToNewChatPage(navController, current)
+                    navigateToChatPage(navController)
                 }
             }
         )
-
+        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
         NavigationDrawerItem(
             label = {
-                Text("Setting")
+                Text("聊天历史")
+            },
+            icon = {
+                Icon(Lucide.History, "Chat History")
+            },
+            onClick = {
+                navController.navigate("history")
+            },
+            selected = false,
+            modifier = Modifier.wrapContentWidth()
+        )
+        NavigationDrawerItem(
+            label = {
+                Text("设置")
             },
             icon = {
                 Icon(Lucide.Settings, "Setting")
@@ -222,14 +237,3 @@ private fun DrawerContent(
     }
 }
 
-private fun navigateToNewChatPage(
-    navController: NavController,
-    current: Conversation
-) {
-    navController.navigate("chat/${Uuid.random()}") {
-        popUpTo("chat/${current.id}") {
-            inclusive = true
-        }
-        launchSingleTop = true
-    }
-}

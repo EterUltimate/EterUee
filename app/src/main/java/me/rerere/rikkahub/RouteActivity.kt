@@ -32,6 +32,7 @@ import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSharedTransitionScope
 import me.rerere.rikkahub.ui.pages.chat.ChatPage
 import me.rerere.rikkahub.ui.pages.debug.DebugPage
+import me.rerere.rikkahub.ui.pages.history.HistoryPage
 import me.rerere.rikkahub.ui.pages.setting.SettingModelPage
 import me.rerere.rikkahub.ui.pages.setting.SettingPage
 import me.rerere.rikkahub.ui.pages.setting.SettingProviderPage
@@ -87,16 +88,14 @@ class RouteActivity : ComponentActivity() {
                                 type = NavType.StringType
                             }
                         ),
-                        enterTransition = {
-                            fadeIn()
-                        },
-                        exitTransition = {
-                            fadeOut()
-                        }
                     ) { entry ->
                         ChatPage(
                             id = Uuid.parse(entry.arguments?.getString("id")!!)
                         )
+                    }
+
+                    composableHelper("history") {
+                        HistoryPage()
                     }
 
                     composableHelper("setting") {

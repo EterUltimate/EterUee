@@ -33,6 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -184,22 +185,56 @@ fun ChatInput(
             }
 
             // TextField
-            TextField(
-                value = text.text,
-                onValueChange = { state.setMessageText(it) },
+            Surface(
+                shape = RoundedCornerShape(32.dp),
+                tonalElevation = 4.dp,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                shape = RoundedCornerShape(32.dp),
-                placeholder = {
-                    Text("Type a message to chat with AI")
-                },
-                maxLines = 5,
-                colors = TextFieldDefaults.colors().copy(
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent
-                )
-            )
+                    .padding(horizontal = 8.dp)
+            ) {
+                Column {
+                    if (state.isEditing()) {
+                        Surface(
+                            tonalElevation = 8.dp
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "编辑中",
+                                )
+                                Spacer(Modifier.weight(1f))
+                                Icon(
+                                    Lucide.X, "Cancel Edit",
+                                    modifier = Modifier
+                                        .clickable {
+                                            state.clearInput()
+                                        }
+                                )
+                            }
+                        }
+                    }
+                    TextField(
+                        value = text.text,
+                        onValueChange = { state.setMessageText(it) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(32.dp),
+                        placeholder = {
+                            Text("Type a message to chat with AI")
+                        },
+                        maxLines = 5,
+                        colors = TextFieldDefaults.colors().copy(
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                        )
+                    )
+                }
+            }
 
             // Actions Row
             Row(

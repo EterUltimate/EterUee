@@ -138,6 +138,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             ) {
                 if (data == "[DONE]") {
                     eventSource.cancel()
+                    close()
                     return
                 }
                 data

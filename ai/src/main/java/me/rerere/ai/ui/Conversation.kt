@@ -1,5 +1,7 @@
 package me.rerere.ai.ui
 
+import android.net.Uri
+import androidx.core.net.toUri
 import kotlinx.serialization.Serializable
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.util.InstantSerializer
@@ -16,6 +18,12 @@ data class Conversation(
     @Serializable(with = InstantSerializer::class)
     val updateAt: Instant = Instant.now(),
 ) {
+    val files: List<Uri>
+        get() = messages
+            .flatMap { it.parts }
+            .filterIsInstance<UIMessagePart.Image>()
+            .map { it.url.toUri() }
+
     companion object {
         fun empty() = Conversation(messages = emptyList())
 

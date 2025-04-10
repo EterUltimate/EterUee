@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.data.repository
 
+import android.content.Context
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import me.rerere.ai.ui.Conversation
@@ -7,11 +8,14 @@ import me.rerere.ai.ui.UIMessage
 import me.rerere.rikkahub.data.db.dao.ConversationDAO
 import me.rerere.rikkahub.data.db.entity.ConversationEntity
 import me.rerere.rikkahub.utils.JsonInstant
+import me.rerere.rikkahub.utils.deleteAllChatFiles
+import me.rerere.rikkahub.utils.deleteChatFiles
 import java.time.Instant
 import kotlin.uuid.Uuid
 
 class ConversationRepository(
-    private val conversationDAO: ConversationDAO
+    private val context: Context,
+    private val conversationDAO: ConversationDAO,
 ) {
     fun getAllConversations() = conversationDAO
         .getAll()
@@ -102,9 +106,11 @@ class ConversationRepository(
                 updateAt = conversation.updateAt.toEpochMilli(),
             )
         )
+        context.deleteChatFiles(conversation.files)
     }
 
     suspend fun deleteAllConversations() {
         conversationDAO.deleteAll()
+        context.deleteAllChatFiles()
     }
 }

@@ -35,3 +35,10 @@ fun Context.deleteChatFiles(uris: List<Uri>) {
         }
     }
 }
+
+fun Context.deleteAllChatFiles() {
+    val dir = this.filesDir.resolve("upload")
+    if (dir.exists()) {
+        dir.deleteRecursively()
+    }
+}

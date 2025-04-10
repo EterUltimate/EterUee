@@ -1,5 +1,7 @@
 package me.rerere.rikkahub.ui.pages.chat
 
+import android.app.Application
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -24,12 +26,16 @@ import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.findProvider
 import me.rerere.rikkahub.data.repository.ConversationRepository
+import me.rerere.rikkahub.utils.deleteChatFiles
 import java.time.Instant
 import java.util.Locale
 import kotlin.uuid.Uuid
 
+private const val TAG = "ChatVM"
+
 class ChatVM(
     savedStateHandle: SavedStateHandle,
+    private val context: Application,
     private val settingsStore: SettingsStore,
     private val conversationRepo: ConversationRepository,
 ) : ViewModel() {
@@ -219,7 +225,21 @@ class ChatVM(
     }
 
     fun updateConversation(conversation: Conversation) {
+        checkFilesDelete(conversation, this._conversation.value)
         this._conversation.value = conversation
+    }
+
+    // 变更消息，检查文件删除
+    private fun checkFilesDelete(newConversation: Conversation, oldConversation: Conversation) {
+        val newFiles = newConversation.files
+        val oldFiles = oldConversation.files
+        val deletedFiles = oldFiles.filter { file ->
+            newFiles.none { it == file }
+        }
+        if (deletedFiles.isNotEmpty()) {
+            context.deleteChatFiles(deletedFiles)
+            Log.w(TAG, "checkFilesDelete: $deletedFiles")
+        }
     }
 
     fun saveConversation(conversation: Conversation) {

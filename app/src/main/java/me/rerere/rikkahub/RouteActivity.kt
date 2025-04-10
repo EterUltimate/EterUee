@@ -2,6 +2,8 @@ package me.rerere.rikkahub
 
 import android.os.Build
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -17,6 +19,10 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
@@ -34,6 +40,7 @@ import me.rerere.highlight.LocalHighlighter
 import me.rerere.rikkahub.ui.context.LocalAnimatedVisibilityScope
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSharedTransitionScope
+import me.rerere.rikkahub.ui.context.LocalTTSService
 import me.rerere.rikkahub.ui.pages.chat.ChatPage
 import me.rerere.rikkahub.ui.pages.debug.DebugPage
 import me.rerere.rikkahub.ui.pages.history.HistoryPage
@@ -44,8 +51,11 @@ import me.rerere.rikkahub.ui.theme.RikkahubTheme
 import org.koin.android.ext.android.inject
 import kotlin.uuid.Uuid
 
+private const val TAG = "RouteActivity"
+
 class RouteActivity : ComponentActivity() {
     private val highlighter by inject<Highlighter>()
+    private var ttsService by mutableStateOf<TextToSpeech?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -66,6 +76,14 @@ class RouteActivity : ComponentActivity() {
                 AppRoutes()
             }
         }
+        ttsService = TextToSpeech(this) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                Log.i(TAG, "onCreate: TTS engine initialized successfully")
+            } else {
+                ttsService = null
+                Log.e(TAG, "onCreate: TTS engine initialization failed")
+            }
+        }
     }
 
     @Composable
@@ -75,7 +93,8 @@ class RouteActivity : ComponentActivity() {
             CompositionLocalProvider(
                 LocalNavController provides navController,
                 LocalSharedTransitionScope provides this,
-                LocalHighlighter provides highlighter
+                LocalHighlighter provides highlighter,
+                LocalTTSService provides ttsService
             ) {
                 NavHost(
                     navController = navController,
@@ -128,6 +147,13 @@ class RouteActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        ttsService?.stop()
+        ttsService?.shutdown()
+        ttsService = null
     }
 }
 

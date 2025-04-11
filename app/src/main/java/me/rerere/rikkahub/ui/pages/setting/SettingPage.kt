@@ -19,8 +19,10 @@ import androidx.navigation.NavController
 import com.composables.icons.lucide.BadgeInfo
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Code
+import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Search
 import me.rerere.rikkahub.ui.components.BackButton
 import me.rerere.rikkahub.ui.context.LocalNavController
 import org.koin.androidx.compose.koinViewModel
@@ -49,7 +51,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
         ) {
             stickyHeader {
                 Text(
-                    text = "模型设置",
+                    text = "模型与服务",
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary
@@ -57,13 +59,34 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
             }
 
             item {
-                DefaultModelSetting(navController)
+                SettingItem(
+                    navController = navController,
+                    title = { Text("默认模型") },
+                    description = { Text("设置各个功能的默认模型") },
+                    icon = { Icon(Lucide.Heart, "Default Model") },
+                    link = "setting/models"
+                )
             }
 
             item {
-                ProviderSetting(navController)
+                SettingItem(
+                    navController = navController,
+                    title = { Text("提供商") },
+                    description = { Text("配置AI提供商") },
+                    icon = { Icon(Lucide.Boxes, "Models") },
+                    link = "setting/provider"
+                )
             }
 
+            item {
+                SettingItem(
+                    navController = navController,
+                    title = { Text("搜索服务") },
+                    description = { Text("设置搜索服务") },
+                    icon = { Icon(Lucide.Earth, "Search") },
+                    link = "setting/search"
+                )
+            }
 
             stickyHeader {
                 Text(
@@ -75,70 +98,40 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
             }
 
             item {
-                About(navController)
+                SettingItem(
+                    navController = navController,
+                    title = { Text("关于") },
+                    description = { Text("关于本APP") },
+                    icon = { Icon(Lucide.BadgeInfo, "About") },
+                    link = "setting/about"
+                )
             }
         }
     }
 }
 
 @Composable
-private fun DefaultModelSetting(navController: NavController) {
+fun SettingItem(
+    navController: NavController,
+    title: @Composable () -> Unit,
+    description: @Composable () -> Unit,
+    icon: @Composable () -> Unit,
+    link: String,
+) {
     Surface(
         onClick = {
-            navController.navigate("setting/models")
+            navController.navigate(link)
         }
     ) {
         ListItem(
             headlineContent = {
-                Text("默认模型")
+                title()
             },
             supportingContent = {
-                Text("设置各个功能的默认模型")
+                description()
             },
             leadingContent = {
-                Icon(Lucide.Heart, "Default Model")
-            }
-        )
-    }
-}
-
-@Composable
-private fun ProviderSetting(navController: NavController) {
-    Surface(
-        onClick = {
-            navController.navigate("setting/provider")
-        }
-    ) {
-        ListItem(
-            headlineContent = {
-                Text("提供商")
-            },
-            supportingContent = {
-                Text("配置AI提供商")
-            },
-            leadingContent = {
-                Icon(Lucide.Boxes, "Models")
-            }
-        )
-    }
-}
-
-@Composable
-private fun About(navController: NavController) {
-    Surface(
-        onClick = {
-            navController.navigate("setting/about")
-        }
-    ) {
-        ListItem(
-            headlineContent = {
-                Text("关于")
-            },
-            supportingContent = {
-                Text("关于本APP")
-            },
-            leadingContent = {
-                Icon(Lucide.BadgeInfo, "About")
+                icon()
             }
         )
     }

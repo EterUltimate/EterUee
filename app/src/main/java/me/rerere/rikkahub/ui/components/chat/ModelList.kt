@@ -102,8 +102,20 @@ fun ModelList(
         contentPadding = PaddingValues(8.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .height(500.dp)
+            .height(500.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        if(providers.isEmpty()) {
+            item {
+                Text(
+                    text = "No providers available",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.extendColors.gray4,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+        }
+
         providers
             .fastFilter { it.enabled && it.models.isNotEmpty() }
             .fastForEach { providerSetting ->

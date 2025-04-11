@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 
 @Composable
@@ -15,4 +16,12 @@ operator fun PaddingValues.plus(other: PaddingValues): PaddingValues {
         end = this.calculateEndPadding(layoutDirection) + other.calculateEndPadding(layoutDirection),
         bottom = this.calculateBottomPadding() + other.calculateBottomPadding()
     )
+}
+
+fun Color.toCssHex(): String {
+    val alpha = (alpha * 255).toInt()
+    val red = (red * 255).toInt()
+    val green = (green * 255).toInt()
+    val blue = (blue * 255).toInt()
+    return "#${String.format("%02X%02X%02X%02X", alpha, red, green, blue)}"
 }

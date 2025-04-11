@@ -1,16 +1,18 @@
 package me.rerere.rikkahub.ui.components
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import kotlin.text.Regex
+import coil3.request.ImageRequest
+import coil3.svg.css
+import me.rerere.rikkahub.ui.utils.toCssHex
 
 @Composable
 fun AIIcon(
@@ -18,8 +20,22 @@ fun AIIcon(
     name: String,
     modifier: Modifier = Modifier,
 ) {
+    val contentColor = LocalContentColor.current
+    val context = LocalContext.current
+    val model = remember(path, contentColor, context) {
+        ImageRequest.Builder(context)
+            .data("file:///android_asset/icons/$path.svg")
+            .css(
+                """
+                svg {
+                  fill: ${contentColor.toCssHex()};
+                }
+            """.trimIndent()
+            )
+            .build()
+    }
     AsyncImage(
-        "file:///android_asset/icons/$path.svg",
+        model = model,
         contentDescription = name,
         modifier = modifier
             .clip(CircleShape)
@@ -60,6 +76,8 @@ private fun computeAIIconByName(name: String): String? {
         PATTERN_DOUBAO.containsMatchIn(lowerName) -> "doubao-color"
         PATTERN_OPENROUTER.containsMatchIn(lowerName) -> "openrouter"
         PATTERN_ZHIPU.containsMatchIn(lowerName) -> "zhipu-color"
+        PATTERN_MISTRAL.containsMatchIn(lowerName) -> "mistral-color"
+        PATTERN_META.containsMatchIn(lowerName) -> "meta-color"
         else -> null
     }
 
@@ -81,3 +99,5 @@ private val PATTERN_QWEN = Regex("qwen")
 private val PATTERN_DOUBAO = Regex("doubao")
 private val PATTERN_OPENROUTER = Regex("openrouter")
 private val PATTERN_ZHIPU = Regex("zhipu")
+private val PATTERN_MISTRAL = Regex("mistral")
+private val PATTERN_META = Regex("meta|(?<!o)llama")

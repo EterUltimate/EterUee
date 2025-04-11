@@ -36,7 +36,7 @@ import me.rerere.rikkahub.BuildConfig
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.BackButton
 import me.rerere.rikkahub.ui.context.LocalNavController
-import me.rerere.rikkahub.ui.utils.plus
+import me.rerere.rikkahub.utils.plus
 import me.rerere.rikkahub.utils.openUrl
 
 @Composable

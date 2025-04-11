@@ -1,4 +1,4 @@
-package me.rerere.rikkahub.ui.utils
+package me.rerere.rikkahub.utils
 
 import android.content.ClipData
 import android.content.ClipboardManager

@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.svg.css
-import me.rerere.rikkahub.ui.utils.toCssHex
+import me.rerere.rikkahub.utils.toCssHex
 
 @Composable
 fun AIIcon(

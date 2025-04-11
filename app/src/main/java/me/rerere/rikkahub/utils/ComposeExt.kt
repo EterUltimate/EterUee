@@ -1,4 +1,4 @@
-package me.rerere.rikkahub.ui.utils
+package me.rerere.rikkahub.utils
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding

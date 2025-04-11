@@ -33,8 +33,8 @@ import com.composables.icons.lucide.X
 import me.rerere.ai.ui.Conversation
 import me.rerere.rikkahub.ui.components.BackButton
 import me.rerere.rikkahub.ui.context.LocalNavController
-import me.rerere.rikkahub.ui.utils.navigateToChatPage
-import me.rerere.rikkahub.ui.utils.plus
+import me.rerere.rikkahub.utils.navigateToChatPage
+import me.rerere.rikkahub.utils.plus
 import me.rerere.rikkahub.utils.toLocalDateTime
 import org.koin.androidx.compose.koinViewModel
 

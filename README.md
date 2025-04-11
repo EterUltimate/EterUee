@@ -18,11 +18,8 @@
 
 ## 下载
 
-TODO
-
-## 贡献
-
-TODO
+https://github.com/re-ovo/rikkahub/releases
 
 ## 许可证
 
+[Apache License 2.0](LICENSE)

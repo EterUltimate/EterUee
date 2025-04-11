@@ -64,9 +64,7 @@ class RouteActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            window.isNavigationBarContrastEnforced = false
-        }
+        disableNavigationBarContrast()
         super.onCreate(savedInstanceState)
         setContent {
             RikkahubTheme {
@@ -81,6 +79,10 @@ class RouteActivity : ComponentActivity() {
                 AppRoutes()
             }
         }
+        initTTS()
+    }
+
+    private fun initTTS() {
         ttsService = TextToSpeech(this) { status ->
             if (status == TextToSpeech.SUCCESS) {
                 Log.i(TAG, "onCreate: TTS engine initialized successfully")
@@ -88,6 +90,12 @@ class RouteActivity : ComponentActivity() {
                 ttsService = null
                 Log.e(TAG, "onCreate: TTS engine initialization failed")
             }
+        }
+    }
+
+    private fun disableNavigationBarContrast() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
         }
     }
 
@@ -163,6 +171,10 @@ class RouteActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        destroyTTSService()
+    }
+
+    private fun destroyTTSService() {
         ttsService?.stop()
         ttsService?.shutdown()
         ttsService = null

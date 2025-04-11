@@ -1,5 +1,6 @@
 package me.rerere.ai.ui
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import me.rerere.ai.core.MessageRole
 import kotlin.uuid.Uuid
@@ -9,7 +10,8 @@ import kotlin.uuid.Uuid
 data class UIMessage(
     val id: Uuid = Uuid.random(),
     val role: MessageRole,
-    val parts: List<UIMessagePart>
+    val parts: List<UIMessagePart>,
+    val annotations: List<UIMessageAnnotation> = emptyList(),
 ) {
     private fun appendChunk(chunk: MessageChunk): UIMessage {
         val choice = chunk.choices[0]
@@ -46,7 +48,15 @@ data class UIMessage(
                     }
                 }
             }
-            copy(parts = newParts)
+            val newAnnotations = if(delta.annotations.isNotEmpty()) {
+                delta.annotations
+            } else {
+                annotations
+            }
+            copy(
+                parts = newParts,
+                annotations = newAnnotations
+            )
         } ?: this
     }
 
@@ -109,10 +119,20 @@ sealed class UIMessagePart {
 }
 
 @Serializable
+sealed class UIMessageAnnotation {
+    @Serializable
+    @SerialName("url_citation")
+    data class UrlCitation(
+        val title: String,
+        val url: String
+    ) : UIMessageAnnotation()
+}
+
+@Serializable
 data class MessageChunk(
     val id: String,
     val model: String,
-    val choices: List<UIMessageChoice>,
+    val choices: List<UIMessageChoice>
 )
 
 @Serializable

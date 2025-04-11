@@ -24,6 +24,7 @@ import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.ui.Conversation
 import me.rerere.ai.ui.MessageChunk
 import me.rerere.ai.ui.UIMessage
+import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessageChoice
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.util.encodeBase64
@@ -193,7 +194,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                                     index = 0,
                                     delta = parseMessage(message),
                                     message = null,
-                                    finishReason = finishReason
+                                    finishReason = finishReason,
                                 )
                             )
                         )
@@ -308,6 +309,22 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                 }
                 add(UIMessagePart.Text(content))
             },
+            annotations = parseAnnotations(jsonObject["annotations"]?.jsonArray ?: JsonArray(emptyList()))
         )
+    }
+
+    private fun parseAnnotations(jsonArray: JsonArray): List<UIMessageAnnotation> {
+        return jsonArray.map { element ->
+            val type = element.jsonObject["type"]?.jsonPrimitive?.content ?: error("type is null")
+            when(type) {
+                "url_citation" -> {
+                    UIMessageAnnotation.UrlCitation(
+                        title = element.jsonObject["url_citation"]?.jsonObject["title"]?.jsonPrimitive?.content ?: "",
+                        url = element.jsonObject["url_citation"]?.jsonObject["url"]?.jsonPrimitive?.content ?: "",
+                    )
+                }
+                else -> error("unknown annotation type: $type")
+            }
+        }
     }
 }

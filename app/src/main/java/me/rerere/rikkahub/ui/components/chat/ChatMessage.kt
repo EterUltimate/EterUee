@@ -28,6 +28,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -40,8 +41,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
+import androidx.compose.ui.util.fastForEachIndexed
 import coil3.compose.AsyncImage
 import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.ChevronUp
@@ -53,9 +58,11 @@ import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.Volume2
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.ui.UIMessage
+import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.rikkahub.ui.components.MarkdownBlock
 import me.rerere.rikkahub.ui.context.LocalTTSService
+import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.copyMessageToClipboard
 
 @Composable
@@ -70,7 +77,7 @@ fun ChatMessage(
         horizontalAlignment = if (message.role == MessageRole.USER) Alignment.End else Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        MessagePartsBlock(message.role, message.parts)
+        MessagePartsBlock(message.role, message.parts, message.annotations)
         Actions(
             message = message,
             onRegenerate = onRegenerate,
@@ -117,7 +124,7 @@ private fun Actions(
                 .size(16.dp)
         )
 
-        if(message.role == MessageRole.USER) {
+        if (message.role == MessageRole.USER) {
             Icon(
                 Lucide.Pencil, "Edit", modifier = Modifier
                     .clip(CircleShape)
@@ -132,9 +139,10 @@ private fun Actions(
                     .size(16.dp)
             )
         }
-        if(message.role == MessageRole.ASSISTANT) {
+        if (message.role == MessageRole.ASSISTANT) {
             val tts = LocalTTSService.current
-            Icon(Lucide.Volume2, "TTS", modifier = Modifier
+            Icon(
+                Lucide.Volume2, "TTS", modifier = Modifier
                     .clip(CircleShape)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
@@ -154,10 +162,12 @@ private fun Actions(
 fun MessagePartsBlock(
     role: MessageRole,
     parts: List<UIMessagePart>,
+    annotations: List<UIMessageAnnotation>
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
     var expandReasoning by remember { mutableStateOf(true) }
+    val context = LocalContext.current
 
     // Reasoning
     parts.filterIsInstance<UIMessagePart.Reasoning>().fastForEach {
@@ -207,7 +217,7 @@ fun MessagePartsBlock(
     }
 
     // Text
-    parts.filterIsInstance<UIMessagePart.Text>().fastForEach {
+    parts.filterIsInstance<UIMessagePart.Text>().fastForEach { part ->
         SelectionContainer {
             if (role == MessageRole.USER) {
                 Card(
@@ -216,11 +226,63 @@ fun MessagePartsBlock(
                     shape = RoundedCornerShape(8.dp),
                 ) {
                     Column(Modifier.padding(8.dp)) {
-                        MarkdownBlock(it.text)
+                        MarkdownBlock(part.text)
                     }
                 }
             } else {
-                MarkdownBlock(it.text)
+                MarkdownBlock(part.text)
+            }
+        }
+    }
+
+    // Annotations
+    if (annotations.isNotEmpty()) {
+        Column(
+            modifier = Modifier.animateContentSize(),
+        ) {
+            var expand by remember { mutableStateOf(false) }
+            if (expand) {
+                ProvideTextStyle(
+                    MaterialTheme.typography.labelMedium.copy(
+                        color = MaterialTheme.extendColors.gray8.copy(alpha = 0.65f)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .drawWithContent {
+                                drawContent()
+                                drawRoundRect(
+                                    color = contentColor.copy(alpha = 0.2f),
+                                    size = Size(width = 10f, height = size.height),
+                                )
+                            }
+                            .padding(start = 16.dp)
+                            .padding(4.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        annotations.fastForEachIndexed { index, annotation ->
+                            when (annotation) {
+                                is UIMessageAnnotation.UrlCitation -> {
+                                    Text(
+                                        text = buildAnnotatedString {
+                                            append("${index+1}. ")
+                                            withLink(LinkAnnotation.Url(annotation.url)) {
+                                                append(annotation.title)
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            TextButton(
+                onClick = {
+                    expand = !expand
+                }
+            ) {
+                Text("共 ${annotations.size} 个引用")
             }
         }
     }

@@ -45,6 +45,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
@@ -135,6 +136,7 @@ fun ChatInput(
 
     val context = LocalContext.current
     var expand by remember { mutableStateOf(false) }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     Surface {
         Column(
@@ -281,6 +283,7 @@ fun ChatInput(
 
                 IconButton(
                     onClick = {
+                        keyboardController?.hide()
                         if (state.loading) onCancelClick() else onSendClick()
                     },
                     colors = IconButtonDefaults.filledIconButtonColors(

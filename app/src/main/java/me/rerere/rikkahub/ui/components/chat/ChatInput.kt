@@ -24,6 +24,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -46,6 +48,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
@@ -137,6 +140,11 @@ fun ChatInput(
     val context = LocalContext.current
     var expand by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    fun sendMessage() {
+        keyboardController?.hide()
+        if (state.loading) onCancelClick() else onSendClick()
+    }
 
     Surface {
         Column(
@@ -233,6 +241,14 @@ fun ChatInput(
                             focusedIndicatorColor = Color.Transparent,
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent,
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onSend = {
+                                sendMessage()
+                            }
+                        ),
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Send
                         )
                     )
                 }
@@ -283,8 +299,7 @@ fun ChatInput(
 
                 IconButton(
                     onClick = {
-                        keyboardController?.hide()
-                        if (state.loading) onCancelClick() else onSendClick()
+                        sendMessage()
                     },
                     colors = IconButtonDefaults.filledIconButtonColors(
                         containerColor = if (state.loading) MaterialTheme.colorScheme.errorContainer else Color.Unspecified,

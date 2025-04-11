@@ -21,7 +21,7 @@ fun DebugPage(vm: DebugVM = koinViewModel()) {
         topBar = {
             TopAppBar(
                 title = {
-                    Text("模型设置")
+                    Text("Debug Mode")
                 },
                 navigationIcon = {
                     BackButton()

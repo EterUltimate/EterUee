@@ -11,12 +11,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.composables.icons.lucide.BadgeInfo
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Code
 import com.composables.icons.lucide.Heart
@@ -75,7 +75,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
             }
 
             item {
-                DebugSetting(navController)
+                About(navController)
             }
         }
     }
@@ -124,21 +124,21 @@ private fun ProviderSetting(navController: NavController) {
 }
 
 @Composable
-fun DebugSetting(navController: NavController) {
+private fun About(navController: NavController) {
     Surface(
         onClick = {
-            navController.navigate("debug")
+            navController.navigate("setting/about")
         }
     ) {
         ListItem(
             headlineContent = {
-                Text("Debug")
+                Text("关于")
             },
             supportingContent = {
-                Text("开发者选项")
+                Text("关于本APP")
             },
             leadingContent = {
-                Icon(Lucide.Code, "Developer Options")
+                Icon(Lucide.BadgeInfo, "About")
             }
         )
     }

@@ -22,6 +22,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MultiChoiceSegmentedButtonRow
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -48,6 +49,7 @@ import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Settings
 import kotlinx.coroutines.launch
+import me.rerere.ai.provider.Modality
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.ProviderSetting
@@ -323,6 +325,8 @@ private fun AddModelButton(onAdd: (Model) -> Unit) {
     var modelId by remember { mutableStateOf("") }
     var modelDisplayName by remember { mutableStateOf("") }
     var modelType by remember { mutableStateOf(ModelType.CHAT) }
+    var inputModalities by remember { mutableStateOf(listOf(Modality.TEXT)) }
+    var outputModalities by remember { mutableStateOf(listOf(Modality.TEXT)) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -358,10 +362,17 @@ private fun AddModelButton(onAdd: (Model) -> Unit) {
                             }
                         )
 
-                        Text("模型类型", style = MaterialTheme.typography.titleSmall)
+
                         ModelTypeSelector(
                             selectedType = modelType,
                             onTypeSelected = { modelType = it }
+                        )
+
+                        ModelModalitySelector(
+                            inputModalities = inputModalities,
+                            onUpdateInputModalities = { inputModalities = it },
+                            outputModalities = outputModalities,
+                            onUpdateOutputModalities = { outputModalities = it }
                         )
                     }
                 },
@@ -410,6 +421,7 @@ private fun ModelTypeSelector(
     selectedType: ModelType,
     onTypeSelected: (ModelType) -> Unit
 ) {
+    Text("模型类型", style = MaterialTheme.typography.titleSmall)
     SingleChoiceSegmentedButtonRow(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -427,6 +439,65 @@ private fun ModelTypeSelector(
                 selected = selectedType == type,
                 onClick = { onTypeSelected(type) }
             )
+        }
+    }
+}
+
+@Composable
+private fun ModelModalitySelector(
+    inputModalities: List<Modality>,
+    onUpdateInputModalities: (List<Modality>) -> Unit,
+    outputModalities: List<Modality>,
+    onUpdateOutputModalities: (List<Modality>) -> Unit
+) {
+    Text("输入模态", style = MaterialTheme.typography.titleSmall)
+    MultiChoiceSegmentedButtonRow(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Modality.entries.forEachIndexed { index, modality ->
+            SegmentedButton(
+                checked = modality in inputModalities,
+                shape = SegmentedButtonDefaults.itemShape(index, Modality.entries.size),
+                onCheckedChange = {
+                    if (it) {
+                        onUpdateInputModalities(inputModalities + modality)
+                    } else {
+                        onUpdateInputModalities(inputModalities - modality)
+                    }
+                }
+            ) {
+                Text(
+                    text = when (modality) {
+                        Modality.TEXT -> "文本"
+                        Modality.IMAGE -> "图片"
+                    }
+                )
+            }
+        }
+    }
+    Text("输出模态", style = MaterialTheme.typography.titleSmall)
+    MultiChoiceSegmentedButtonRow(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Modality.entries.forEachIndexed { index, modality ->
+            SegmentedButton(
+                checked = modality in outputModalities,
+                shape = SegmentedButtonDefaults.itemShape(index, Modality.entries.size),
+                onCheckedChange = {
+                    if (it) {
+                        onUpdateOutputModalities(outputModalities + modality)
+                    } else {
+                        onUpdateOutputModalities(outputModalities - modality)
+                    }
+                }
+            ) {
+                Text(
+                    text = when (modality) {
+                        Modality.TEXT -> "文本"
+                        Modality.IMAGE -> "图片"
+                    }
+                )
+            }
         }
     }
 }
@@ -525,14 +596,20 @@ private fun ModelCard(
                                         modifier = Modifier.fillMaxWidth()
                                     )
 
-                                    Text(
-                                        "模型类型",
-                                        style = MaterialTheme.typography.titleSmall
-                                    )
                                     ModelTypeSelector(
                                         selectedType = editingModel.type,
                                         onTypeSelected = {
                                             editingModel = editingModel.copy(type = it)
+                                        }
+                                    )
+                                    ModelModalitySelector(
+                                        inputModalities = editingModel.inputModalities,
+                                        onUpdateInputModalities = {
+                                            editingModel = editingModel.copy(inputModalities = it)
+                                        },
+                                        outputModalities = editingModel.outputModalities,
+                                        onUpdateOutputModalities = {
+                                            editingModel = editingModel.copy(outputModalities = it)
                                         }
                                     )
                                 }

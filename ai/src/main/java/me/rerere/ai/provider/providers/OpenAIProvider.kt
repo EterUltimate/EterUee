@@ -1,11 +1,9 @@
 package me.rerere.ai.provider.providers
 
-import android.net.http.HttpException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -19,6 +17,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import me.rerere.ai.core.MessageRole
+import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.Provider
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.TextGenerationParams
@@ -28,7 +27,6 @@ import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageChoice
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.util.encodeBase64
-import okhttp3.Dispatcher
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -58,6 +56,33 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             chain.proceed(request)
         }
         .build()
+
+    override suspend fun listModels(): List<Model> = withContext(Dispatchers.IO) {
+        val request = Request.Builder()
+            .url("https://api.openai.com/v1/models")
+            .addHeader("Authorization", "Bearer ${System.getenv("OPENAI_API_KEY") ?: ""}")
+            .get()
+            .build()
+
+        val response = client.newCall(request).execute()
+        if (!response.isSuccessful) {
+            throw Exception("Failed to get models: ${response.code} ${response.body?.string()}")
+        }
+
+        val bodyStr = response.body?.string() ?: ""
+        val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
+        val data = bodyJson["data"]?.jsonArray ?: return@withContext emptyList()
+
+        data.mapNotNull { modelJson ->
+            val modelObj = modelJson.jsonObject
+            val id = modelObj["id"]?.jsonPrimitive?.content ?: return@mapNotNull null
+
+            Model(
+                modelId = id,
+                displayName = id,
+            )
+        }
+    }
 
     override suspend fun generateText(
         providerSetting: ProviderSetting,

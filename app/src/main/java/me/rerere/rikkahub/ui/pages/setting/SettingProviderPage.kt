@@ -21,6 +21,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +47,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -584,7 +586,7 @@ private fun ModelCard(
         enableDismissFromStartToEnd = false,
         gesturesEnabled = true
     ) {
-        Card {
+        ElevatedCard {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -594,24 +596,39 @@ private fun ModelCard(
             ) {
                 AutoAIIcon(
                     name = model.modelId,
-                    modifier = Modifier.size(32.dp),
+                    modifier = Modifier.size(28.dp),
                 )
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(model.displayName, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        text = model.modelId,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                    Text(
+                        text = model.displayName,
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Tag {
-                            Text(
-                                text = model.modelId,
-                            )
-                        }
-                        Tag {
+                        Tag(type = TagType.INFO) {
                             Text(
                                 text = when (model.type) {
                                     ModelType.CHAT -> "聊天模型"
                                     ModelType.EMBEDDING -> "嵌入模型"
                                 }
+                            )
+                        }
+                        Tag(type = TagType.SUCCESS) {
+                            Text(
+                                text = buildString {
+                                    append(model.inputModalities.joinToString(",") { it.name.lowercase() })
+                                    append("->")
+                                    append(model.outputModalities.joinToString(",") { it.name.lowercase() })
+                                },
+                                maxLines = 1,
                             )
                         }
                     }

@@ -105,7 +105,7 @@ fun ModelList(
             .height(500.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if(providers.isEmpty()) {
+        if (providers.isEmpty()) {
             item {
                 Text(
                     text = "No providers available",
@@ -176,6 +176,17 @@ private fun ModelItem(
                                 ModelType.CHAT -> "Chat"
                                 ModelType.EMBEDDING -> "Embedding"
                             }
+                        )
+                    }
+
+                    Tag(type = TagType.SUCCESS) {
+                        Text(
+                            text = buildString {
+                                append(model.inputModalities.joinToString(",") { it.name.lowercase() })
+                                append("->")
+                                append(model.outputModalities.joinToString(",") { it.name.lowercase() })
+                            },
+                            maxLines = 1,
                         )
                     }
                 }

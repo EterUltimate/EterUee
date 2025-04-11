@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.ui.components.chat
 
+import android.speech.tts.TextToSpeech
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
@@ -38,6 +39,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathFillType
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
@@ -49,10 +57,12 @@ import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.RefreshCw
+import com.composables.icons.lucide.Volume2
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.rikkahub.ui.components.MarkdownBlock
+import me.rerere.rikkahub.ui.context.LocalTTSService
 import me.rerere.rikkahub.ui.utils.copyMessageToClipboard
 
 @Composable
@@ -123,6 +133,21 @@ private fun Actions(
                         indication = LocalIndication.current,
                         onClick = {
                             onEdit()
+                        }
+                    )
+                    .padding(8.dp)
+                    .size(16.dp)
+            )
+        }
+        if(message.role == MessageRole.ASSISTANT) {
+            val tts = LocalTTSService.current
+            Icon(Lucide.Volume2, "TTS", modifier = Modifier
+                    .clip(CircleShape)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = LocalIndication.current,
+                        onClick = {
+                            tts?.speak(message.text(), TextToSpeech.QUEUE_FLUSH, null, null)
                         }
                     )
                     .padding(8.dp)

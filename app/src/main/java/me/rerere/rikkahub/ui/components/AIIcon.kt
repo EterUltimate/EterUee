@@ -78,6 +78,9 @@ private fun computeAIIconByName(name: String): String? {
         PATTERN_ZHIPU.containsMatchIn(lowerName) -> "zhipu-color"
         PATTERN_MISTRAL.containsMatchIn(lowerName) -> "mistral-color"
         PATTERN_META.containsMatchIn(lowerName) -> "meta-color"
+        PATTERN_HUNYUAN.containsMatchIn(lowerName) -> "hunyuan-color"
+        PATTERN_GEMMA.containsMatchIn(lowerName) -> "gemma-color"
+        PATTERN_PERPLEXITY.containsMatchIn(lowerName) -> "perplexity-color"
         else -> null
     }
 
@@ -101,3 +104,6 @@ private val PATTERN_OPENROUTER = Regex("openrouter")
 private val PATTERN_ZHIPU = Regex("zhipu")
 private val PATTERN_MISTRAL = Regex("mistral")
 private val PATTERN_META = Regex("meta|(?<!o)llama")
+private val PATTERN_HUNYUAN = Regex("hunyuan")
+private val PATTERN_GEMMA = Regex("gemma")
+private val PATTERN_PERPLEXITY = Regex("perplexity")

@@ -67,7 +67,7 @@ fun ModelSelector(
             text = model?.displayName ?: "Select Model",
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodySmall
         )
     }
 

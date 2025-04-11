@@ -128,6 +128,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                             vm.setChatModel(it)
                         },
                         type = ModelType.CHAT,
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }

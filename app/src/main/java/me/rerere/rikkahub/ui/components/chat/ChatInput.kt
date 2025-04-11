@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -131,7 +132,7 @@ fun ChatInput(
     modifier: Modifier = Modifier,
     onCancelClick: () -> Unit,
     onSendClick: () -> Unit,
-    actions: @Composable () -> Unit = {},
+    actions: @Composable RowScope.() -> Unit = {},
 ) {
     val text =
         state.messageContent.filterIsInstance<UIMessagePart.Text>().firstOrNull()
@@ -241,14 +242,6 @@ fun ChatInput(
                             focusedIndicatorColor = Color.Transparent,
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent,
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onSend = {
-                                sendMessage()
-                            }
-                        ),
-                        keyboardOptions = KeyboardOptions(
-                            imeAction = ImeAction.Send
                         )
                     )
                 }
@@ -261,8 +254,6 @@ fun ChatInput(
                     .padding(horizontal = 8.dp)
             ) {
                 actions()
-
-                Spacer(Modifier.weight(1f))
 
                 IconButton(
                     onClick = {

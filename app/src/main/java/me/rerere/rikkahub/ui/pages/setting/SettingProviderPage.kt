@@ -19,6 +19,8 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,12 +40,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Lucide
@@ -52,12 +56,13 @@ import kotlinx.coroutines.launch
 import me.rerere.ai.provider.Modality
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelType
+import me.rerere.ai.provider.ProviderManager
 import me.rerere.ai.provider.ProviderSetting
+import me.rerere.ai.provider.guessModalityFromModelId
 import me.rerere.rikkahub.ui.components.AutoAIIcon
 import me.rerere.rikkahub.ui.components.BackButton
 import me.rerere.rikkahub.ui.components.Tag
 import me.rerere.rikkahub.ui.components.TagType
-import me.rerere.rikkahub.ui.components.TextAvatar
 import me.rerere.rikkahub.ui.components.ToastVariant
 import me.rerere.rikkahub.ui.components.rememberDialogState
 import me.rerere.rikkahub.ui.components.rememberToastState
@@ -266,6 +271,14 @@ private fun ProviderItem(
 
 @Composable
 private fun ModelList(providerSetting: ProviderSetting, onUpdate: (ProviderSetting) -> Unit) {
+    val toastState = rememberToastState()
+    val modelList by produceState(emptyList()) {
+        runCatching {
+            value = ProviderManager.getProviderByType(providerSetting).listModels(providerSetting)
+        }.onFailure {
+            toastState.show(it.message ?: "获取模型列表失败", ToastVariant.ERROR)
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -294,7 +307,7 @@ private fun ModelList(providerSetting: ProviderSetting, onUpdate: (ProviderSetti
                 )
             }
 
-            AddModelButton {
+            AddModelButton(modelList) {
                 onUpdate(providerSetting.addModel(it))
             }
         } else {
@@ -312,7 +325,7 @@ private fun ModelList(providerSetting: ProviderSetting, onUpdate: (ProviderSetti
                 }
             }
 
-            AddModelButton {
+            AddModelButton(modelList) {
                 onUpdate(providerSetting.addModel(it))
             }
         }
@@ -320,13 +333,25 @@ private fun ModelList(providerSetting: ProviderSetting, onUpdate: (ProviderSetti
 }
 
 @Composable
-private fun AddModelButton(onAdd: (Model) -> Unit) {
+private fun AddModelButton(
+    models: List<Model>,
+    onAddModel: (Model) -> Unit
+) {
     val dialogState = rememberDialogState()
     var modelId by remember { mutableStateOf("") }
     var modelDisplayName by remember { mutableStateOf("") }
     var modelType by remember { mutableStateOf(ModelType.CHAT) }
     var inputModalities by remember { mutableStateOf(listOf(Modality.TEXT)) }
     var outputModalities by remember { mutableStateOf(listOf(Modality.TEXT)) }
+
+    fun setModelId(id: String) {
+        modelId = id
+        modelDisplayName = id.uppercase()
+        guessModalityFromModelId(modelId).let { (input, output) ->
+            inputModalities = input
+            outputModalities = output
+        }
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -342,13 +367,38 @@ private fun AddModelButton(onAdd: (Model) -> Unit) {
                         OutlinedTextField(
                             value = modelId,
                             onValueChange = {
-                                modelId = it
-                                modelDisplayName = it.uppercase()
+                                setModelId(it)
                             },
                             label = { Text("模型ID") },
                             modifier = Modifier.fillMaxWidth(),
                             placeholder = {
                                 Text("例如：gpt-3.5-turbo")
+                            },
+                            trailingIcon = {
+                                var expandModelList by remember { mutableStateOf(false) }
+                                IconButton(
+                                    onClick = {
+                                        expandModelList = !expandModelList
+                                    }
+                                ) {
+                                    Icon(Lucide.Boxes, null)
+                                    DropdownMenu(
+                                        expanded = expandModelList,
+                                        onDismissRequest = {
+                                            expandModelList = false
+                                        },
+                                    ) {
+                                        models.fastForEach {
+                                            DropdownMenuItem(
+                                                text = { Text(it.modelId) },
+                                                onClick = {
+                                                    setModelId(it.modelId)
+                                                    expandModelList = false
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         )
 
@@ -384,7 +434,7 @@ private fun AddModelButton(onAdd: (Model) -> Unit) {
                 },
                 onConfirm = {
                     if (modelId.isNotBlank() && modelDisplayName.isNotBlank()) {
-                        onAdd(
+                        onAddModel(
                             Model(
                                 modelId = modelId,
                                 displayName = modelDisplayName,

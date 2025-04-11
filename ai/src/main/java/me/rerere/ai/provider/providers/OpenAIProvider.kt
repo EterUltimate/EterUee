@@ -57,10 +57,13 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         }
         .build()
 
-    override suspend fun listModels(): List<Model> = withContext(Dispatchers.IO) {
+    override suspend fun listModels(providerSetting: ProviderSetting): List<Model> = withContext(Dispatchers.IO) {
+        if (providerSetting !is ProviderSetting.OpenAI) {
+            throw IllegalArgumentException("ProviderSetting must be OpenAI")
+        }
         val request = Request.Builder()
-            .url("https://api.openai.com/v1/models")
-            .addHeader("Authorization", "Bearer ${System.getenv("OPENAI_API_KEY") ?: ""}")
+            .url("${providerSetting.baseUrl}/models")
+            .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
             .get()
             .build()
 

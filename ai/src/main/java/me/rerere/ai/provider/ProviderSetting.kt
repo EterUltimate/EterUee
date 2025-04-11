@@ -2,7 +2,6 @@ package me.rerere.ai.provider
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import kotlin.uuid.Uuid
 
 @Serializable
@@ -70,26 +69,4 @@ sealed class ProviderSetting {
             )
         }
     }
-}
-
-@Serializable
-data class Model(
-    val modelId: String,
-    val displayName: String,
-    val id: Uuid = Uuid.random(),
-    val type: ModelType = ModelType.CHAT,
-    val inputModalities: List<Modality> = listOf(Modality.TEXT),
-    val outputModalities: List<Modality> = listOf(Modality.TEXT),
-)
-
-@Serializable
-enum class ModelType {
-    CHAT,
-    EMBEDDING
-}
-
-@Serializable
-enum class Modality {
-    TEXT,
-    IMAGE,
 }

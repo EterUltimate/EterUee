@@ -247,7 +247,7 @@ private fun DrawerContent(
                 }
             },
             onRegenerateTitle = {
-                vm.generateTitle(true)
+                vm.generateTitle(it, true)
             },
             onDelete = {
                 vm.deleteConversation(it)

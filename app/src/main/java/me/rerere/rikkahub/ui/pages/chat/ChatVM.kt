@@ -153,7 +153,7 @@ class ChatVM(
                 errorFlow.emit(it)
             }.onSuccess {
                 saveConversation(conversation.value)
-                generateTitle()
+                generateTitle(conversation.value)
             }
         }
         this.conversationJob.value = job
@@ -162,8 +162,8 @@ class ChatVM(
         }
     }
 
-    fun generateTitle(force: Boolean = false) {
-        if(conversation.value.title.isNotBlank() && !force) return
+    fun generateTitle(conversation: Conversation, force: Boolean = false) {
+        if(conversation.title.isNotBlank() && !force) return
 
         val model = settings.value.providers.findModelById(settings.value.titleModelId) ?: let {
             // 如果没有标题模型，则使用聊天模型
@@ -184,7 +184,7 @@ class ChatVM(
                         4. 使用 ${Locale.getDefault().displayName} 语言总结
                         
                         <content>
-                        ${conversation.value.messages.joinToString("\n\n") { it.summaryAsText()}}
+                        ${conversation.messages.joinToString("\n\n") { it.summaryAsText()}}
                         </content>
                     """.trimIndent()),
                     params = TextGenerationParams(
@@ -192,9 +192,8 @@ class ChatVM(
                         temperature = 0.8f,
                     ),
                 )
-                val currConversation = conversation.value
                 saveConversation(
-                    currConversation.copy(
+                    conversation.copy(
                         title = result.choices[0].message?.text() ?: "",
                         updateAt = Instant.now()
                     )
@@ -231,6 +230,7 @@ class ChatVM(
     }
 
     fun updateConversation(conversation: Conversation) {
+        if(conversation.id != this._conversationId) return
         checkFilesDelete(conversation, this._conversation.value)
         this._conversation.value = conversation
     }

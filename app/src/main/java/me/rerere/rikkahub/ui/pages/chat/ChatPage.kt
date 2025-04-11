@@ -1,6 +1,7 @@
 package me.rerere.rikkahub.ui.pages.chat
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -121,15 +122,16 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                         inputState.clearInput()
                     }
                 ) {
-                    ModelSelector(
-                        modelId = setting.chatModelId,
-                        providers = setting.providers,
-                        onSelect = {
-                            vm.setChatModel(it)
-                        },
-                        type = ModelType.CHAT,
-                        modifier = Modifier.weight(1f)
-                    )
+                    Box(Modifier.weight(1f)) {
+                        ModelSelector(
+                            modelId = setting.chatModelId,
+                            providers = setting.providers,
+                            onSelect = {
+                                vm.setChatModel(it)
+                            },
+                            type = ModelType.CHAT
+                        )
+                    }
                 }
             }
         ) { innerPadding ->

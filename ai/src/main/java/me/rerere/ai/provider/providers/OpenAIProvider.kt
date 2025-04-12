@@ -308,7 +308,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         return UIMessage(
             role = role,
             parts = buildList {
-                if (reasoning != null) {
+                if (reasoning?.jsonPrimitive?.contentOrNull != null) {
                     add(
                         UIMessagePart.Reasoning(
                             reasoning = reasoning.jsonPrimitive.contentOrNull ?: ""

@@ -92,6 +92,8 @@ fun RowScope.TableCell(
             .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {
-        content()
+        Row {
+            content()
+        }
     }
 }

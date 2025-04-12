@@ -45,6 +45,7 @@ import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
 import coil3.compose.AsyncImage
@@ -60,10 +61,12 @@ import me.rerere.ai.core.MessageRole
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessagePart
+import me.rerere.rikkahub.ui.components.Favicon
 import me.rerere.rikkahub.ui.components.MarkdownBlock
 import me.rerere.rikkahub.ui.context.LocalTTSService
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.copyMessageToClipboard
+import me.rerere.rikkahub.utils.urlDecode
 
 @Composable
 fun ChatMessage(
@@ -185,7 +188,7 @@ fun MessagePartsBlock(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Lucide.Lightbulb, null)
+                Icon(Lucide.Lightbulb, null, modifier = Modifier.size(16.dp))
                 Text("深度思考")
                 Icon(
                     if (expandReasoning) Lucide.ChevronUp else Lucide.ChevronDown, null
@@ -258,19 +261,24 @@ fun MessagePartsBlock(
                             }
                             .padding(start = 16.dp)
                             .padding(4.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         annotations.fastForEachIndexed { index, annotation ->
                             when (annotation) {
                                 is UIMessageAnnotation.UrlCitation -> {
-                                    Text(
-                                        text = buildAnnotatedString {
-                                            append("${index+1}. ")
-                                            withLink(LinkAnnotation.Url(annotation.url)) {
-                                                append(annotation.title)
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Favicon(annotation.url, modifier = Modifier.size(20.dp))
+                                        Text(
+                                            text = buildAnnotatedString {
+                                                append("${index + 1}. ")
+                                                withLink(LinkAnnotation.Url(annotation.url)) {
+                                                    append(annotation.title.urlDecode())
+                                                }
                                             }
-                                        }
-                                    )
+                                        )
+                                    }
                                 }
                             }
                         }

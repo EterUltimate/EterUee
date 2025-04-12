@@ -9,10 +9,15 @@ import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.navigation.NavController
 import me.rerere.ai.ui.UIMessage
-import kotlin.collections.forEach
+import java.net.URLDecoder
+import java.net.URLEncoder
 import kotlin.uuid.Uuid
 
 private const val TAG = "ChatUtil"
+
+fun String.urlDecode(): String {
+    return URLDecoder.decode(this, "UTF-8")
+}
 
 fun navigateToChatPage(
     navController: NavController,

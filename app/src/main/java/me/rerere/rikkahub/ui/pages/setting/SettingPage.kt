@@ -12,19 +12,25 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.composables.icons.lucide.BadgeInfo
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Code
 import com.composables.icons.lucide.Earth
+import com.composables.icons.lucide.HardDrive
 import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Search
 import me.rerere.rikkahub.ui.components.BackButton
 import me.rerere.rikkahub.ui.context.LocalNavController
+import me.rerere.rikkahub.utils.countChatFiles
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -106,6 +112,27 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                     link = "setting/about"
                 )
             }
+
+            item {
+                val context = LocalContext.current
+                val storageState by produceState(-1 to 0L) {
+                    value = context.countChatFiles()
+                }
+                SettingItem(
+                    navController = navController,
+                    title = { Text("聊天记录存储") },
+                    description = {
+                        if(storageState.first == -1) {
+                            Text("计算中...")
+                        } else {
+                            Text("${storageState.first} 个文件，${"%.2f".format(storageState.second / 1024 / 1024.0)} MB")
+                        }
+                    },
+                    icon = {
+                        Icon(Lucide.HardDrive, "Storage")
+                    },
+                )
+            }
         }
     }
 }
@@ -116,11 +143,11 @@ fun SettingItem(
     title: @Composable () -> Unit,
     description: @Composable () -> Unit,
     icon: @Composable () -> Unit,
-    link: String,
+    link: String? = null,
 ) {
     Surface(
         onClick = {
-            navController.navigate(link)
+            if(link != null) navController.navigate(link)
         }
     ) {
         ListItem(

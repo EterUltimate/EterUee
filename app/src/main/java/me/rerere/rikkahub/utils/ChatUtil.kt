@@ -8,6 +8,8 @@ import android.util.Log
 import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.navigation.NavController
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import me.rerere.ai.ui.UIMessage
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -77,4 +79,15 @@ fun Context.deleteAllChatFiles() {
     if (dir.exists()) {
         dir.deleteRecursively()
     }
+}
+
+suspend fun Context.countChatFiles(): Pair<Int, Long> = withContext(Dispatchers.IO) {
+    val dir = filesDir.resolve("upload")
+    if (!dir.exists()) {
+        return@withContext Pair(0, 0)
+    }
+    val files = dir.listFiles() ?: return@withContext Pair(0, 0)
+    val count = files.size
+    val size = files.sumOf { it.length() }
+    Pair(count, size)
 }

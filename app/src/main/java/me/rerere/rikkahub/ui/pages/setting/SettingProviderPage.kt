@@ -186,6 +186,13 @@ private fun ProviderItem(
     // 因为data store是异步操作的，会导致UI编辑不同步
     var internalProvider by remember { mutableStateOf(provider) }
     var expand by remember { mutableStateOf(ProviderExpandState.None) }
+    fun setExpand(state: ProviderExpandState) {
+        expand = if (expand == state) {
+            ProviderExpandState.None
+        } else {
+            state
+        }
+    }
     OutlinedCard {
         Column(
             modifier = Modifier
@@ -212,14 +219,14 @@ private fun ProviderItem(
                 }
                 IconButton(
                     onClick = {
-                        expand = ProviderExpandState.Models
+                        setExpand(ProviderExpandState.Models)
                     }
                 ) {
                     Icon(Lucide.Boxes, "Models")
                 }
                 IconButton(
                     onClick = {
-                        expand = ProviderExpandState.Setting
+                        setExpand(ProviderExpandState.Setting)
                     }
                 ) {
                     Icon(Lucide.Settings, "Setting")

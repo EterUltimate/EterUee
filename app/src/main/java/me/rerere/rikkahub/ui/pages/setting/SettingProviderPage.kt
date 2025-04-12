@@ -50,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
+import androidx.compose.ui.window.Popup
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Lucide
@@ -65,6 +66,7 @@ import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
+import me.rerere.rikkahub.ui.components.ui.ToastState
 import me.rerere.rikkahub.ui.components.ui.ToastVariant
 import me.rerere.rikkahub.ui.components.ui.rememberDialogState
 import me.rerere.rikkahub.ui.components.ui.rememberToastState
@@ -234,7 +236,7 @@ private fun ProviderItem(
             }
 
             if (expand == ProviderExpandState.Models) {
-                ModelList(provider) {
+                ModelList(provider, toastState) {
                     onEdit(it)
                 }
             }
@@ -279,13 +281,14 @@ private fun ProviderItem(
 }
 
 @Composable
-private fun ModelList(providerSetting: ProviderSetting, onUpdate: (ProviderSetting) -> Unit) {
-    val toastState = rememberToastState()
+private fun ModelList(
+    providerSetting: ProviderSetting,
+    toastState: ToastState,
+    onUpdate: (ProviderSetting) -> Unit
+) {
     val modelList by produceState(emptyList()) {
         runCatching {
             value = ProviderManager.getProviderByType(providerSetting).listModels(providerSetting)
-        }.onFailure {
-            toastState.show(it.message ?: "获取模型列表失败", ToastVariant.ERROR)
         }
     }
     Column(

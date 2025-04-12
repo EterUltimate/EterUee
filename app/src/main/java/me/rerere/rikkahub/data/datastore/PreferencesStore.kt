@@ -48,6 +48,17 @@ class SettingsStore(context: Context) {
                     .decodeFromString<List<ProviderSetting>>(preferences[PROVIDERS] ?: "[]"),
             )
         }
+        .map {
+            val providers = it.providers.ifEmpty { DEFAULT_PROVIDERS }.toMutableList()
+            DEFAULT_PROVIDERS.forEach { defaultProvider ->
+                if (providers.none { it.id == defaultProvider.id }) {
+                    providers.add(defaultProvider)
+                }
+            }
+            it.copy(
+                providers = providers
+            )
+        }
 
     suspend fun update(settings: Settings) {
         dataStore.edit { preferences ->
@@ -85,3 +96,36 @@ fun Model.findProvider(providers: List<ProviderSetting>): ProviderSetting? {
     }
     return null
 }
+
+private val DEFAULT_PROVIDERS = listOf(
+    ProviderSetting.OpenAI(
+        id = Uuid.parse("1eeea727-9ee5-4cae-93e6-6fb01a4d051e"),
+        name = "OpenAI",
+        baseUrl = "https://api.openai.com/v1",
+        apiKey = "sk-"
+    ),
+    ProviderSetting.OpenAI(
+        id = Uuid.parse("f099ad5b-ef03-446d-8e78-7e36787f780b"),
+        name = "DeepSeek",
+        baseUrl = "https://api.deepseek.com/v1",
+        apiKey = "sk-"
+    ),
+    ProviderSetting.OpenAI(
+        id = Uuid.parse("d5734028-d39b-4d41-9841-fd648d65440e"),
+        name = "OpenRouter",
+        baseUrl = "https://openrouter.ai/api/v1",
+        apiKey = ""
+    ),
+    ProviderSetting.OpenAI(
+        id = Uuid.parse("f76cae46-069a-4334-ab8e-224e4979e58c"),
+        name = "阿里云百炼",
+        baseUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        apiKey = ""
+    ),
+    ProviderSetting.OpenAI(
+        id = Uuid.parse("3dfd6f9b-f9d9-417f-80c1-ff8d77184191"),
+        name = "火山引擎",
+        baseUrl = "https://ark.cn-beijing.volces.com/api/v3",
+        apiKey = ""
+    ),
+)

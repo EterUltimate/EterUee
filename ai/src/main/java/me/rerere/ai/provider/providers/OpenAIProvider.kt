@@ -11,7 +11,9 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
@@ -58,35 +60,36 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         }
         .build()
 
-    override suspend fun listModels(providerSetting: ProviderSetting): List<Model> = withContext(Dispatchers.IO) {
-        if (providerSetting !is ProviderSetting.OpenAI) {
-            throw IllegalArgumentException("ProviderSetting must be OpenAI")
+    override suspend fun listModels(providerSetting: ProviderSetting): List<Model> =
+        withContext(Dispatchers.IO) {
+            if (providerSetting !is ProviderSetting.OpenAI) {
+                throw IllegalArgumentException("ProviderSetting must be OpenAI")
+            }
+            val request = Request.Builder()
+                .url("${providerSetting.baseUrl}/models")
+                .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
+                .get()
+                .build()
+
+            val response = client.newCall(request).execute()
+            if (!response.isSuccessful) {
+                throw Exception("Failed to get models: ${response.code} ${response.body?.string()}")
+            }
+
+            val bodyStr = response.body?.string() ?: ""
+            val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
+            val data = bodyJson["data"]?.jsonArray ?: return@withContext emptyList()
+
+            data.mapNotNull { modelJson ->
+                val modelObj = modelJson.jsonObject
+                val id = modelObj["id"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
+
+                Model(
+                    modelId = id,
+                    displayName = id,
+                )
+            }
         }
-        val request = Request.Builder()
-            .url("${providerSetting.baseUrl}/models")
-            .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
-            .get()
-            .build()
-
-        val response = client.newCall(request).execute()
-        if (!response.isSuccessful) {
-            throw Exception("Failed to get models: ${response.code} ${response.body?.string()}")
-        }
-
-        val bodyStr = response.body?.string() ?: ""
-        val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
-        val data = bodyJson["data"]?.jsonArray ?: return@withContext emptyList()
-
-        data.mapNotNull { modelJson ->
-            val modelObj = modelJson.jsonObject
-            val id = modelObj["id"]?.jsonPrimitive?.content ?: return@mapNotNull null
-
-            Model(
-                modelId = id,
-                displayName = id,
-            )
-        }
-    }
 
     override suspend fun generateText(
         providerSetting: ProviderSetting,
@@ -115,8 +118,8 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
 
         // 从 JsonObject 中提取必要的信息
-        val id = bodyJson["id"]?.jsonPrimitive?.content ?: ""
-        val model = bodyJson["model"]?.jsonPrimitive?.content ?: ""
+        val id = bodyJson["id"]?.jsonPrimitive?.contentOrNull ?: ""
+        val model = bodyJson["model"]?.jsonPrimitive?.contentOrNull ?: ""
         val choice = bodyJson["choices"]?.jsonArray?.get(0)?.jsonObject ?: error("choices is null")
 
         val message = choice["message"]?.jsonObject ?: throw Exception("message is null")
@@ -166,6 +169,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                 data: String
             ) {
                 if (data == "[DONE]") {
+                    println("[onEvent] (done) 结束流: $data")
                     eventSource.cancel()
                     close()
                     return
@@ -177,15 +181,15 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                     .map { json.parseToJsonElement(it).jsonObject }
                     .forEach {
                         // println(it)
-                        val id = it["id"]?.jsonPrimitive?.content ?: ""
-                        val model = it["model"]?.jsonPrimitive?.content ?: ""
+                        val id = it["id"]?.jsonPrimitive?.contentOrNull ?: ""
+                        val model = it["model"]?.jsonPrimitive?.contentOrNull ?: ""
                         val choices = it["choices"]?.jsonArray ?: JsonArray(emptyList())
                         if (choices.isEmpty()) return@forEach
                         val choice = choices[0].jsonObject
                         val message = choice["delta"]?.jsonObject ?: choice["message"]?.jsonObject
                         ?: throw Exception("delta/message is null")
                         val finishReason =
-                            choice["finish_reason"]?.jsonPrimitive?.content ?: "unknown"
+                            choice["finish_reason"]?.jsonPrimitive?.contentOrNull ?: "unknown"
                         val messageChunk = MessageChunk(
                             id = id,
                             model = model,
@@ -296,33 +300,44 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         val role = MessageRole.valueOf(
             jsonObject["role"]?.jsonPrimitive?.content?.uppercase() ?: "ASSISTANT"
         )
-        val reasoning = jsonObject["reasoning_content"]?.jsonPrimitive?.content
+        val reasoning = jsonObject["reasoning_content"] ?: jsonObject["reasoning"]
 
         // 也许支持其他模态的输出content? 暂时只支持文本吧
-        val content = jsonObject["content"]?.jsonPrimitive?.content ?: ""
+        val content = jsonObject["content"]?.jsonPrimitive?.contentOrNull ?: ""
 
         return UIMessage(
             role = role,
             parts = buildList {
                 if (reasoning != null) {
-                    add(UIMessagePart.Reasoning(reasoning))
+                    add(
+                        UIMessagePart.Reasoning(
+                            reasoning = reasoning.jsonPrimitive.contentOrNull ?: ""
+                        )
+                    )
                 }
                 add(UIMessagePart.Text(content))
             },
-            annotations = parseAnnotations(jsonObject["annotations"]?.jsonArray ?: JsonArray(emptyList()))
+            annotations = parseAnnotations(
+                jsonObject["annotations"]?.jsonArray ?: JsonArray(
+                    emptyList()
+                )
+            )
         )
     }
 
     private fun parseAnnotations(jsonArray: JsonArray): List<UIMessageAnnotation> {
         return jsonArray.map { element ->
-            val type = element.jsonObject["type"]?.jsonPrimitive?.content ?: error("type is null")
-            when(type) {
+            val type = element.jsonObject["type"]?.jsonPrimitive?.contentOrNull ?: error("type is null")
+            when (type) {
                 "url_citation" -> {
                     UIMessageAnnotation.UrlCitation(
-                        title = element.jsonObject["url_citation"]?.jsonObject["title"]?.jsonPrimitive?.content ?: "",
-                        url = element.jsonObject["url_citation"]?.jsonObject["url"]?.jsonPrimitive?.content ?: "",
+                        title = element.jsonObject["url_citation"]?.jsonObject["title"]?.jsonPrimitive?.contentOrNull
+                            ?: "",
+                        url = element.jsonObject["url_citation"]?.jsonObject["url"]?.jsonPrimitive?.contentOrNull
+                            ?: "",
                     )
                 }
+
                 else -> error("unknown annotation type: $type")
             }
         }

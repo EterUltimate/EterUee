@@ -1,4 +1,4 @@
-package me.rerere.rikkahub.ui.components
+package me.rerere.rikkahub.ui.components.ui
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box

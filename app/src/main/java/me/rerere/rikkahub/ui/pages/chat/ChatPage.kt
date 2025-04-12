@@ -41,12 +41,12 @@ import kotlinx.coroutines.launch
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.ui.Conversation
 import me.rerere.ai.ui.UIMessage
-import me.rerere.rikkahub.ui.components.ToastVariant
+import me.rerere.rikkahub.ui.components.ui.ToastVariant
 import me.rerere.rikkahub.ui.components.chat.ChatInput
 import me.rerere.rikkahub.ui.components.chat.ChatMessage
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
 import me.rerere.rikkahub.ui.components.chat.rememberChatInputState
-import me.rerere.rikkahub.ui.components.rememberToastState
+import me.rerere.rikkahub.ui.components.ui.rememberToastState
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.utils.navigateToChatPage
 import me.rerere.rikkahub.utils.plus

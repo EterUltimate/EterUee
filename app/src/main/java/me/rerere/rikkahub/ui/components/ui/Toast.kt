@@ -1,5 +1,6 @@
-package me.rerere.rikkahub.ui.components
+package me.rerere.rikkahub.ui.components.ui
 
+import android.R
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -39,11 +40,11 @@ data class ToastConfig(
  * Toast 图标资源
  */
 private val toastIcons = mapOf(
-    ToastVariant.SUCCESS to android.R.drawable.ic_menu_upload,
-    ToastVariant.ERROR to android.R.drawable.ic_delete,
-    ToastVariant.WARNING to android.R.drawable.ic_dialog_alert,
-    ToastVariant.INFO to android.R.drawable.ic_dialog_info,
-    ToastVariant.DEFAULT to android.R.drawable.ic_dialog_email
+    ToastVariant.SUCCESS to R.drawable.ic_menu_upload,
+    ToastVariant.ERROR to R.drawable.ic_delete,
+    ToastVariant.WARNING to R.drawable.ic_dialog_alert,
+    ToastVariant.INFO to R.drawable.ic_dialog_info,
+    ToastVariant.DEFAULT to R.drawable.ic_dialog_email
 )
 
 /**
@@ -99,7 +100,7 @@ fun Toast(
                 ) {
                     Icon(
                         painter = painterResource(
-                            id = toastIcons[config.variant] ?: android.R.drawable.ic_dialog_email
+                            id = toastIcons[config.variant] ?: R.drawable.ic_dialog_email
                         ),
                         contentDescription = null,
                         tint = Color.White

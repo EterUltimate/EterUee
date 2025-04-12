@@ -1,4 +1,4 @@
-package me.rerere.rikkahub.ui.components
+package me.rerere.rikkahub.ui.components.richtext
 
 import android.content.Intent
 import androidx.compose.foundation.Canvas
@@ -23,7 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -50,6 +49,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.core.net.toUri
 import coil3.compose.AsyncImage
+import me.rerere.rikkahub.ui.components.ui.Table
+import me.rerere.rikkahub.ui.components.ui.TableCell
+import me.rerere.rikkahub.ui.components.ui.TableHeader
+import me.rerere.rikkahub.ui.components.ui.TableRow
 import org.intellij.markdown.IElementType
 import org.intellij.markdown.MarkdownElementTypes
 import org.intellij.markdown.MarkdownTokenTypes

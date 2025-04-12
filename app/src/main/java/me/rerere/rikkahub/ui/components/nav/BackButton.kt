@@ -1,4 +1,4 @@
-package me.rerere.rikkahub.ui.components
+package me.rerere.rikkahub.ui.components.nav
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack

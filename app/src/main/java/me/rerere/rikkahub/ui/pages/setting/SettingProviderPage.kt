@@ -61,13 +61,13 @@ import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.ProviderManager
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.guessModalityFromModelId
-import me.rerere.rikkahub.ui.components.AutoAIIcon
-import me.rerere.rikkahub.ui.components.BackButton
-import me.rerere.rikkahub.ui.components.Tag
-import me.rerere.rikkahub.ui.components.TagType
-import me.rerere.rikkahub.ui.components.ToastVariant
-import me.rerere.rikkahub.ui.components.rememberDialogState
-import me.rerere.rikkahub.ui.components.rememberToastState
+import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
+import me.rerere.rikkahub.ui.components.nav.BackButton
+import me.rerere.rikkahub.ui.components.ui.Tag
+import me.rerere.rikkahub.ui.components.ui.TagType
+import me.rerere.rikkahub.ui.components.ui.ToastVariant
+import me.rerere.rikkahub.ui.components.ui.rememberDialogState
+import me.rerere.rikkahub.ui.components.ui.rememberToastState
 import me.rerere.rikkahub.utils.plus
 import org.koin.androidx.compose.koinViewModel
 

@@ -1,4 +1,4 @@
-package me.rerere.rikkahub.ui.components
+package me.rerere.rikkahub.ui.components.richtext
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box

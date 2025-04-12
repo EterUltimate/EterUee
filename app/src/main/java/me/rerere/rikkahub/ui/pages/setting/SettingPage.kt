@@ -14,7 +14,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -22,13 +21,11 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.composables.icons.lucide.BadgeInfo
 import com.composables.icons.lucide.Boxes
-import com.composables.icons.lucide.Code
 import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.HardDrive
 import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Search
-import me.rerere.rikkahub.ui.components.BackButton
+import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.utils.countChatFiles
 import org.koin.androidx.compose.koinViewModel

@@ -45,7 +45,6 @@ import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
 import coil3.compose.AsyncImage
@@ -61,15 +60,13 @@ import me.rerere.ai.core.MessageRole
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessagePart
-import me.rerere.rikkahub.ui.components.Favicon
-import me.rerere.rikkahub.ui.components.MarkdownBlock
+import me.rerere.rikkahub.ui.components.ui.Favicon
+import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.context.LocalTTSService
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.copyMessageToClipboard
 import me.rerere.rikkahub.utils.urlDecode
-import android.content.Context
-import androidx.compose.ui.window.Dialog
-import me.rerere.rikkahub.ui.components.ImagePreviewDialog
+import me.rerere.rikkahub.ui.components.ui.ImagePreviewDialog
 
 @Composable
 fun ChatMessage(

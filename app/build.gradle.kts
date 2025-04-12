@@ -118,6 +118,9 @@ dependencies {
     // lucide icons
     implementation(libs.lucide.icons)
 
+    // image viewer
+    implementation(libs.image.viewer)
+
     // modules
     implementation(project(":ai"))
     implementation(project(":highlight"))

@@ -67,6 +67,9 @@ import me.rerere.rikkahub.ui.context.LocalTTSService
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.copyMessageToClipboard
 import me.rerere.rikkahub.utils.urlDecode
+import android.content.Context
+import androidx.compose.ui.window.Dialog
+import me.rerere.rikkahub.ui.components.ImagePreviewDialog
 
 @Composable
 fun ChatMessage(
@@ -171,6 +174,9 @@ fun MessagePartsBlock(
     val contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
     var expandReasoning by remember { mutableStateOf(true) }
     val context = LocalContext.current
+    
+    // 添加预览图片状态变量
+    var previewImageUrl by remember { mutableStateOf<String?>(null) }
 
     // Reasoning
     parts.filterIsInstance<UIMessagePart.Reasoning>().fastForEach {
@@ -299,14 +305,24 @@ fun MessagePartsBlock(
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        parts.filterIsInstance<UIMessagePart.Image>().fastForEach {
+        var showImageViewer by remember { mutableStateOf(false) }
+        val images = parts.filterIsInstance<UIMessagePart.Image>()
+        images.fastForEach {
             AsyncImage(
                 model = it.url,
                 contentDescription = null,
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
                     .width(72.dp)
+                    .clickable { 
+                        showImageViewer = true
+                    }
             )
+        }
+        if(showImageViewer) {
+            ImagePreviewDialog(images.map { it.url }) {
+                showImageViewer = false
+            }
         }
     }
 }

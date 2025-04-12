@@ -24,6 +24,7 @@ lucide-icons = "1.0.0"
 ucrop = "4.1.0-non-native"
 appcompat = "1.6.1"
 material = "1.10.0"
+image-viewer = "1.1.0-alpha.6"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -63,6 +64,7 @@ lucide-icons = { group = "com.composables", name = "icons-lucide", version.ref =
 ucrop = { group = "com.github.jens-muenker", name = "uCrop-n-Edit", version.ref = "ucrop" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+image-viewer = { group = "com.jvziyaoyao.scale", name = "image-viewer", version.ref = "image-viewer" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

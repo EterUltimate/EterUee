@@ -578,7 +578,7 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
                                     val height = coord.size.height
                                     with(density) {
                                         val widthInSp = width.toDp().toSp()
-                                        val heightInSp = height.toDp().toSp()
+                                        val heightInSp = (height.toDp() + 4.dp).toSp()
                                         val inlineContent = inlineContents[formula]
                                         if (inlineContent != null && inlineContent.placeholder.width != widthInSp) {
                                             inlineContents[formula] = InlineTextContent(
@@ -618,7 +618,7 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
                                     val height = coord.size.height
                                     with(density) {
                                         val widthInSp = maxWidth.toSp()
-                                        val heightInSp = height.toDp().toSp()
+                                        val heightInSp = (height.toDp() + 24.dp).toSp()
                                         val inlineContent = inlineContents[formula]
                                         if (inlineContent != null && inlineContent.placeholder.width != widthInSp) {
                                             inlineContents[formula] = InlineTextContent(

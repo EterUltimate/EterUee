@@ -6,8 +6,9 @@
 
 <div>
   <img src="docs/img/chat.png" alt="聊天界面" width="150" />
-  <img src="docs/img/provider.png" alt="供应商选择" width="150" />
+  <img src="docs/img/chat_img.png" alt="多模态聊天界面" width="150" />
   <img src="docs/img/setting.png" alt="设置界面" width="150" />
+  <img src="docs/img/provider.png" alt="供应商选择" width="150" />
 </div>
 
 ## 功能

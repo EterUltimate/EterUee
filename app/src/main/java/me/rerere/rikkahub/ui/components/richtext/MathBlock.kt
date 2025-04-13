@@ -21,8 +21,9 @@ fun MathInline(
     modifier: Modifier = Modifier,
     fontSize: TextUnit = TextUnit.Unspecified
 ) {
+    val proceededLatex = processLatex(latex)
     KaTeXMath(
-        latex = latex,
+        latex = proceededLatex,
         style = LocalTextStyle.current.merge(
             color = LocalContentColor.current,
             fontSize = fontSize.takeOrElse { LocalTextStyle.current.fontSize },
@@ -37,11 +38,12 @@ fun MathBlock(
     modifier: Modifier = Modifier,
     fontSize: TextUnit = TextUnit.Unspecified
 ) {
+    val proceededLatex = processLatex(latex)
     Box(
         modifier = modifier.padding(8.dp)
     ) {
         KaTeXMath(
-            latex = latex,
+            latex = proceededLatex,
             style = LocalTextStyle.current.merge(
                 color = LocalContentColor.current,
                 fontSize = fontSize.takeOrElse { MaterialTheme.typography.bodyLarge.fontSize },
@@ -52,5 +54,30 @@ fun MathBlock(
                     rememberScrollState()
                 ),
         )
+    }
+}
+
+
+private val inlineDollarRegex = Regex("""^\$(.*?)\$""", RegexOption.DOT_MATCHES_ALL)
+private val displayDollarRegex = Regex("""^\$\$(.*?)\$\$""", RegexOption.DOT_MATCHES_ALL)
+private val inlineParenRegex = Regex("""^\\\((.*?)\\\)""", RegexOption.DOT_MATCHES_ALL)
+private val displayBracketRegex = Regex("""^\\\[(.*?)\\\]""", RegexOption.DOT_MATCHES_ALL)
+
+private fun processLatex(latex: String): String {
+    val trimmed = latex.trim()
+    return when {
+        displayDollarRegex.matches(trimmed) ->
+            displayDollarRegex.find(trimmed)?.groupValues?.get(1)?.trim() ?: trimmed
+
+        inlineDollarRegex.matches(trimmed) ->
+            inlineDollarRegex.find(trimmed)?.groupValues?.get(1)?.trim() ?: trimmed
+
+        displayBracketRegex.matches(trimmed) ->
+            displayBracketRegex.find(trimmed)?.groupValues?.get(1)?.trim() ?: trimmed
+
+        inlineParenRegex.matches(trimmed) ->
+            inlineParenRegex.find(trimmed)?.groupValues?.get(1)?.trim() ?: trimmed
+
+        else -> trimmed
     }
 }

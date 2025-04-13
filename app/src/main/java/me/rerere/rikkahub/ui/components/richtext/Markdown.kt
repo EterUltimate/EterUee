@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -41,8 +42,10 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -270,9 +273,11 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 ProvideTextStyle(LocalTextStyle.current.copy(fontStyle = FontStyle.Italic)) {
-                    FlowRow(modifier = Modifier
-                        .weight(1f)
-                        .padding(8.dp)) {
+                    FlowRow(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(8.dp)
+                    ) {
                         node.children.forEach { child ->
                             MarkdownNode(child, content)
                         }
@@ -438,12 +443,12 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
 @Composable
 private fun Paragraph(node: ASTNode, content: String, modifier: Modifier) {
     // 如果段落中包含块级数学公式，则直接渲染所有子节点，不使用AnnotatedString
-    if (node.findChildOfType(GFMElementTypes.BLOCK_MATH) != null) {
-        node.children.forEach {
-            MarkdownNode(it, content, modifier)
-        }
-        return
-    }
+//    if (node.findChildOfType(GFMElementTypes.BLOCK_MATH) != null) {
+//        node.children.forEach {
+//            MarkdownNode(it, content, modifier)
+//        }
+//        return
+//    }
 
     // dumpAst(node, content)
 
@@ -451,28 +456,34 @@ private fun Paragraph(node: ASTNode, content: String, modifier: Modifier) {
     val inlineContents = remember {
         mutableStateMapOf<String, InlineTextContent>()
     }
-    val annotatedString = remember(content) {
-        buildAnnotatedString {
-            node.children.forEach { child ->
-                appendMarkdownNodeContent(child, content, inlineContents, colorScheme)
+
+    BoxWithConstraints {
+        val maxWidth = this.maxWidth
+        val annotatedString = remember(content) {
+            buildAnnotatedString {
+                node.children.forEach { child ->
+                    appendMarkdownNodeContent(child, content, inlineContents, colorScheme, maxWidth)
+                }
             }
         }
+        Text(
+            text = annotatedString,
+            modifier = modifier
+                .padding(start = 4.dp),
+            style = LocalTextStyle.current,
+            inlineContent = inlineContents,
+            softWrap = true,
+            overflow = TextOverflow.Visible
+        )
     }
-
-    Text(
-        text = annotatedString,
-        modifier = modifier
-            .padding(start = 4.dp),
-        style = LocalTextStyle.current,
-        inlineContent = inlineContents
-    )
 }
 
 private fun AnnotatedString.Builder.appendMarkdownNodeContent(
     node: ASTNode,
     content: String,
     inlineContents: MutableMap<String, InlineTextContent>,
-    colorScheme: ColorScheme
+    colorScheme: ColorScheme,
+    maxWidth: Dp
 ) {
     when (node.type) {
         MarkdownTokenTypes.TEXT,
@@ -483,9 +494,9 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
             append(node.getTextInNode(content))
         }
 
-        MarkdownTokenTypes.EMPH ->{
+        MarkdownTokenTypes.EMPH -> {
             val text = node.getTextInNode(content)
-            if(text != "*") append(text)
+            if (text != "*") append(text)
         }
 
         MarkdownElementTypes.EMPH -> {
@@ -495,7 +506,8 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
                         it,
                         content,
                         inlineContents,
-                        colorScheme
+                        colorScheme,
+                        maxWidth
                     )
                 }
             }
@@ -508,7 +520,8 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
                         it,
                         content,
                         inlineContents,
-                        colorScheme
+                        colorScheme,
+                        maxWidth
                     )
                 }
             }
@@ -547,7 +560,7 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
         GFMElementTypes.INLINE_MATH -> {
             // formula as id
             val formula = node.getTextInNode(content)
-            appendInlineContent(formula, node.getTextInNode(content))
+            appendInlineContent(formula, "[Latex]")
             inlineContents.putIfAbsent(
                 formula, InlineTextContent(
                     placeholder = Placeholder(
@@ -584,6 +597,46 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
                 ))
         }
 
+        GFMElementTypes.BLOCK_MATH -> {
+            // formula as id
+            val formula = node.getTextInNode(content)
+            appendInlineContent(formula, "[Latex]")
+            inlineContents.putIfAbsent(
+                formula, InlineTextContent(
+                    placeholder = Placeholder(
+                        width = 1.em,
+                        height = 1.em,
+                        placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter
+                    ),
+                    children = {
+                        val density = LocalDensity.current
+                        MathBlock(
+                            formula,
+                            modifier = Modifier
+                                .width(maxWidth)
+                                .onGloballyPositioned { coord ->
+                                    val height = coord.size.height
+                                    with(density) {
+                                        val widthInSp = maxWidth.toSp()
+                                        val heightInSp = height.toDp().toSp()
+                                        val inlineContent = inlineContents[formula]
+                                        if (inlineContent != null && inlineContent.placeholder.width != widthInSp) {
+                                            inlineContents[formula] = InlineTextContent(
+                                                placeholder = Placeholder(
+                                                    width = widthInSp,
+                                                    height = heightInSp,
+                                                    placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter
+                                                ),
+                                                children = inlineContent.children
+                                            )
+                                        }
+                                    }
+                                }
+                        )
+                    }
+                ))
+        }
+
         // 其他类型继续递归处理
         else -> {
             node.children.forEach {
@@ -591,7 +644,8 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
                     it,
                     content,
                     inlineContents,
-                    colorScheme
+                    colorScheme,
+                    maxWidth
                 )
             }
         }

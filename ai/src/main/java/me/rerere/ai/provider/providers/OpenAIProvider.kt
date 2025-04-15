@@ -13,7 +13,6 @@ import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
@@ -174,6 +173,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                     close()
                     return
                 }
+                println(data)
                 data
                     .trim()
                     .split("\n")
@@ -214,12 +214,21 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
 
                 try {
                     if (t == null && response != null) {
-                        val body = Json.parseToJsonElement(response.body?.string() ?: "").jsonObject
-                        println("body: $body")
-                        exception = Exception(
-                            body["error"]?.jsonObject?.get("message")?.jsonPrimitive?.content
-                                ?: "unknown",
-                        )
+                        val bodyElement = Json.parseToJsonElement(response.body?.string() ?: "{}")
+                        println(bodyElement)
+                        if (bodyElement is JsonObject) {
+                            exception = Exception(
+                                bodyElement["error"]?.jsonObject?.get("message")?.jsonPrimitive?.content
+                                    ?: "unknown",
+                            )
+                        } else if (bodyElement is JsonArray) {
+                            exception = Exception(
+                                bodyElement[0].jsonObject["error"]?.jsonObject?.get("message")?.jsonPrimitive?.content
+                                    ?: "unknown",
+                            )
+                        } else {
+                            exception = Exception("unknown error")
+                        }
                     }
                 } catch (e: Throwable) {
                     e.printStackTrace()

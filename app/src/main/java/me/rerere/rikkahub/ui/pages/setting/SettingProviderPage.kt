@@ -50,7 +50,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
-import androidx.compose.ui.window.Popup
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Lucide
@@ -62,8 +61,8 @@ import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.ProviderManager
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.guessModalityFromModelId
-import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.nav.BackButton
+import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
 import me.rerere.rikkahub.ui.components.ui.ToastState
@@ -288,7 +287,9 @@ private fun ModelList(
 ) {
     val modelList by produceState(emptyList()) {
         runCatching {
-            value = ProviderManager.getProviderByType(providerSetting).listModels(providerSetting)
+            value = ProviderManager.getProviderByType(providerSetting)
+                .listModels(providerSetting)
+                .sortedBy { it.modelId }
         }
     }
     Column(

@@ -48,6 +48,11 @@ class SettingsStore(context: Context) {
                     .decodeFromString<List<ProviderSetting>>(preferences[PROVIDERS] ?: "[]"),
             )
         }
+        .catch {
+            it.printStackTrace()
+            update(Settings())
+            emit(Settings())
+        }
         .map {
             val providers = it.providers.ifEmpty { DEFAULT_PROVIDERS }.toMutableList()
             DEFAULT_PROVIDERS.forEach { defaultProvider ->

@@ -45,6 +45,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
@@ -58,6 +59,7 @@ import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.X
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyMessage
+import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.ui.IconTextButton
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.createChatFiles
@@ -210,11 +212,11 @@ fun ChatInput(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "编辑中",
+                                    text = stringResource(R.string.editing),
                                 )
                                 Spacer(Modifier.weight(1f))
                                 Icon(
-                                    Lucide.X, "Cancel Edit",
+                                    Lucide.X, stringResource(R.string.cancel_edit),
                                     modifier = Modifier
                                         .clickable {
                                             state.clearInput()
@@ -229,7 +231,7 @@ fun ChatInput(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(32.dp),
                         placeholder = {
-                            Text("Type a message to chat with AI")
+                            Text(stringResource(R.string.chat_input_placeholder))
                         },
                         maxLines = 5,
                         colors = TextFieldDefaults.colors().copy(
@@ -255,7 +257,7 @@ fun ChatInput(
                         expand = !expand
                     }
                 ) {
-                    Icon(if (expand) Lucide.X else Lucide.Plus, "More options")
+                    Icon(if (expand) Lucide.X else Lucide.Plus, stringResource(R.string.more_options))
                 }
 
                 val badgeColor = MaterialTheme.extendColors.green6
@@ -278,7 +280,7 @@ fun ChatInput(
                         }
                     }
                 ) {
-                    Icon(Lucide.Earth, "Use Web Search")
+                    Icon(Lucide.Earth, stringResource(R.string.use_web_search))
                 }
 
                 Spacer(Modifier.width(4.dp))
@@ -294,9 +296,9 @@ fun ChatInput(
                     enabled = state.loading || !state.messageContent.isEmptyMessage()
                 ) {
                     if (state.loading) {
-                        Icon(Lucide.X, "Stop")
+                        Icon(Lucide.X, stringResource(R.string.stop))
                     } else {
-                        Icon(Lucide.ArrowUp, "Send")
+                        Icon(Lucide.ArrowUp, stringResource(R.string.send))
                     }
                 }
             }
@@ -345,7 +347,7 @@ private fun ImagePickButton(onAddImages: (List<Uri>) -> Unit = {}) {
             Icon(Lucide.Image, null)
         },
         text = {
-            Text("图片")
+            Text(stringResource(R.string.photo))
         }
     ) {
         pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -371,7 +373,7 @@ fun TakePicButton(onAddImages: (List<Uri>) -> Unit = {}) {
             Icon(Lucide.Camera, null)
         },
         text = {
-            Text("拍摄")
+            Text(stringResource(R.string.take_picture))
         }
     ) {
         file = context.cacheDir.resolve(Uuid.random().toString())

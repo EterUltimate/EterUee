@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">RikkaHub</string>
+    <string name="chat_input_placeholder">Type a message to chat with AI</string>
+    <string name="editing">Editing</string>
+    <string name="cancel_edit">Cancel Edit</string>
+    <string name="stop">Stop</string>
+    <string name="send">Send</string>
+    <string name="more_options">More options</string>
+    <string name="use_web_search">Use Web Search</string>
+    <string name="photo">Photo</string>
+    <string name="take_picture">Take Picture</string>
 </resources>

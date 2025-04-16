@@ -2,6 +2,7 @@ package me.rerere.rikkahub.ui.pages.setting
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Scaffold
@@ -10,13 +11,14 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.MessageCircle
 import com.composables.icons.lucide.NotebookTabs
 import me.rerere.ai.provider.ModelType
-import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
+import me.rerere.rikkahub.ui.components.nav.BackButton
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -39,7 +41,7 @@ fun SettingModelPage(vm: SettingVM = koinViewModel()) {
         ) {
             ListItem(
                 headlineContent = {
-                    Text("聊天模型")
+                    Text("聊天模型", maxLines = 1)
                 },
                 leadingContent = {
                     Icon(Lucide.MessageCircle, null)
@@ -54,12 +56,13 @@ fun SettingModelPage(vm: SettingVM = koinViewModel()) {
                             ))
                         },
                         providers = settings.providers,
+                        modifier = Modifier.widthIn(max = 200.dp)
                     )
                 }
             )
             ListItem(
                 headlineContent = {
-                    Text("标题总结模型")
+                    Text("标题总结模型", maxLines = 1)
                 },
                 leadingContent = {
                     Icon(Lucide.NotebookTabs, null)
@@ -74,6 +77,7 @@ fun SettingModelPage(vm: SettingVM = koinViewModel()) {
                             ))
                         },
                         providers = settings.providers,
+                        modifier = Modifier.widthIn(max = 200.dp)
                     )
                 }
             )

@@ -24,12 +24,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -39,8 +42,12 @@ import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.request.crossfade
 import coil3.svg.SvgDecoder
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import me.rerere.highlight.Highlighter
 import me.rerere.highlight.LocalHighlighter
+import me.rerere.rikkahub.data.datastore.Settings
+import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.ui.context.LocalAnimatedVisibilityScope
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSharedTransitionScope
@@ -63,12 +70,18 @@ class RouteActivity : ComponentActivity() {
     private val highlighter by inject<Highlighter>()
     private var ttsService by mutableStateOf<TextToSpeech?>(null)
 
+    private val settingStore by inject<SettingsStore>()
+    private val settings = settingStore.settingsFlow
+        .stateIn(lifecycleScope, SharingStarted.Eagerly, Settings())
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         disableNavigationBarContrast()
         super.onCreate(savedInstanceState)
         setContent {
-            RikkahubTheme {
+            val settingsState by settings.collectAsStateWithLifecycle()
+            val navController = rememberNavController()
+            RikkahubTheme(dynamicColor = settingsState.dynamicColor) {
                 setSingletonImageLoaderFactory { context ->
                     ImageLoader.Builder(context)
                         .crossfade(true)
@@ -77,7 +90,7 @@ class RouteActivity : ComponentActivity() {
                         }
                         .build()
                 }
-                AppRoutes()
+                AppRoutes(navController)
             }
         }
         initTTS()
@@ -101,8 +114,7 @@ class RouteActivity : ComponentActivity() {
     }
 
     @Composable
-    fun AppRoutes() {
-        val navController = rememberNavController()
+    fun AppRoutes(navController: NavHostController) {
         SharedTransitionLayout {
             CompositionLocalProvider(
                 LocalNavController provides navController,
@@ -115,7 +127,7 @@ class RouteActivity : ComponentActivity() {
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.background),
                     navController = navController,
-                    startDestination = "chat/${Uuid.random()}",
+                    startDestination = remember { "chat/${Uuid.random()}" },
                     enterTransition = {
                         scaleIn(initialScale = 0.35f) + fadeIn(animationSpec = tween(300))
                     },

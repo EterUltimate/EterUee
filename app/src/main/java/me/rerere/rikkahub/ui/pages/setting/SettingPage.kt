@@ -9,6 +9,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.composables.icons.lucide.BadgeInfo
 import com.composables.icons.lucide.Boxes
@@ -28,12 +30,14 @@ import com.composables.icons.lucide.Lucide
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.utils.countChatFiles
+import me.rerere.rikkahub.utils.navigateToChatPage
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SettingPage(vm: SettingVM = koinViewModel()) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val navController = LocalNavController.current
+    val settings by vm.settings.collectAsStateWithLifecycle()
     Scaffold(
         topBar = {
             LargeTopAppBar(
@@ -52,6 +56,35 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
             modifier = Modifier.fillMaxSize(),
             contentPadding = innerPadding
         ) {
+            stickyHeader {
+                Text(
+                    text = "界面设置",
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            item {
+                ListItem(
+                    headlineContent = {
+                        Text("动态颜色")
+                    },
+                    supportingContent = {
+                        Text("是否使用动态颜色")
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = settings.dynamicColor,
+                            onCheckedChange = {
+                                vm.updateSettings(settings.copy(dynamicColor = it))
+                                navigateToChatPage(navController)
+                            },
+                        )
+                    }
+                )
+            }
+
             stickyHeader {
                 Text(
                     text = "模型与服务",

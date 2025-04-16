@@ -41,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withLink
@@ -60,13 +61,14 @@ import me.rerere.ai.core.MessageRole
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessagePart
-import me.rerere.rikkahub.ui.components.ui.Favicon
+import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
+import me.rerere.rikkahub.ui.components.ui.Favicon
+import me.rerere.rikkahub.ui.components.ui.ImagePreviewDialog
 import me.rerere.rikkahub.ui.context.LocalTTSService
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.copyMessageToClipboard
 import me.rerere.rikkahub.utils.urlDecode
-import me.rerere.rikkahub.ui.components.ui.ImagePreviewDialog
 
 @Composable
 fun ChatMessage(
@@ -100,7 +102,7 @@ private fun Actions(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Icon(
-            Lucide.Copy, "Copy", modifier = Modifier
+            Lucide.Copy, stringResource(R.string.copy), modifier = Modifier
                 .clip(CircleShape)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -114,7 +116,7 @@ private fun Actions(
         )
 
         Icon(
-            Lucide.RefreshCw, "Regenerate", modifier = Modifier
+            Lucide.RefreshCw, stringResource(R.string.regenerate), modifier = Modifier
                 .clip(CircleShape)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -129,7 +131,7 @@ private fun Actions(
 
         if (message.role == MessageRole.USER) {
             Icon(
-                Lucide.Pencil, "Edit", modifier = Modifier
+                Lucide.Pencil, stringResource(R.string.edit), modifier = Modifier
                     .clip(CircleShape)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
@@ -145,7 +147,7 @@ private fun Actions(
         if (message.role == MessageRole.ASSISTANT) {
             val tts = LocalTTSService.current
             Icon(
-                Lucide.Volume2, "TTS", modifier = Modifier
+                Lucide.Volume2, stringResource(R.string.tts), modifier = Modifier
                     .clip(CircleShape)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
@@ -192,7 +194,7 @@ fun MessagePartsBlock(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(Lucide.Lightbulb, null, modifier = Modifier.size(16.dp))
-                Text("深度思考")
+                Text(stringResource(R.string.deep_thinking))
                 Icon(
                     if (expandReasoning) Lucide.ChevronUp else Lucide.ChevronDown, null
                 )
@@ -293,7 +295,7 @@ fun MessagePartsBlock(
                     expand = !expand
                 }
             ) {
-                Text("共 ${annotations.size} 个引用")
+                Text(stringResource(R.string.citations_count, annotations.size))
             }
         }
     }

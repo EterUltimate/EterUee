@@ -9,4 +9,11 @@
     <string name="use_web_search">使用网络搜索</string>
     <string name="photo">图片</string>
     <string name="take_picture">拍摄</string>
+    <string name="copy">复制</string>
+    <string name="regenerate">重新生成</string>
+    <string name="edit">编辑</string>
+    <string name="tts">语音</string>
+    <string name="deep_thinking">深度思考</string>
+    <string name="citations_count">共 %1$d 个引用</string>
+    <string name="back">返回</string>
 </resources> 

@@ -1,18 +1,36 @@
 package me.rerere.rikkahub.ui.components.ui
 
-import android.R
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import com.composables.icons.lucide.BadgeInfo
+import com.composables.icons.lucide.Check
+import com.composables.icons.lucide.CircleX
+import com.composables.icons.lucide.Info
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.ShieldAlert
 import kotlinx.coroutines.delay
 import me.rerere.rikkahub.ui.theme.extendColors
 
@@ -40,11 +58,11 @@ data class ToastConfig(
  * Toast 图标资源
  */
 private val toastIcons = mapOf(
-    ToastVariant.SUCCESS to R.drawable.ic_menu_upload,
-    ToastVariant.ERROR to R.drawable.ic_delete,
-    ToastVariant.WARNING to R.drawable.ic_dialog_alert,
-    ToastVariant.INFO to R.drawable.ic_dialog_info,
-    ToastVariant.DEFAULT to R.drawable.ic_dialog_email
+    ToastVariant.SUCCESS to Lucide.Check,
+    ToastVariant.ERROR to Lucide.CircleX,
+    ToastVariant.WARNING to Lucide.ShieldAlert,
+    ToastVariant.INFO to Lucide.BadgeInfo,
+    ToastVariant.DEFAULT to Lucide.Info
 )
 
 /**
@@ -99,9 +117,7 @@ fun Toast(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Icon(
-                        painter = painterResource(
-                            id = toastIcons[config.variant] ?: R.drawable.ic_dialog_email
-                        ),
+                        imageVector = toastIcons[config.variant] ?: Lucide.Info,
                         contentDescription = null,
                         tint = Color.White
                     )

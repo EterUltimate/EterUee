@@ -22,7 +22,6 @@ import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.Provider
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.TextGenerationParams
-import me.rerere.ai.ui.Conversation
 import me.rerere.ai.ui.MessageChunk
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
@@ -92,14 +91,14 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
 
     override suspend fun generateText(
         providerSetting: ProviderSetting,
-        conversation: Conversation,
+        messages: List<UIMessage>,
         params: TextGenerationParams
     ): MessageChunk = withContext(Dispatchers.IO) {
         if (providerSetting !is ProviderSetting.OpenAI) {
             throw IllegalArgumentException("ProviderSetting must be OpenAI")
         }
 
-        val requestBody = buildChatCompletionRequest(conversation, params)
+        val requestBody = buildChatCompletionRequest(messages, params)
         val request = Request.Builder()
             .url("${providerSetting.baseUrl}/chat/completions")
             .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
@@ -143,14 +142,14 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
 
     override suspend fun streamText(
         providerSetting: ProviderSetting,
-        conversation: Conversation,
+        messages: List<UIMessage>,
         params: TextGenerationParams
     ): Flow<MessageChunk> = callbackFlow {
         if (providerSetting !is ProviderSetting.OpenAI) {
             throw IllegalArgumentException("ProviderSetting must be OpenAI")
         }
 
-        val requestBody = buildChatCompletionRequest(conversation, params, stream = true)
+        val requestBody = buildChatCompletionRequest(messages, params, stream = true)
         val request = Request.Builder()
             .url("${providerSetting.baseUrl}/chat/completions")
             .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
@@ -251,13 +250,13 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
     }
 
     private fun buildChatCompletionRequest(
-        conversation: Conversation,
+        messages: List<UIMessage>,
         params: TextGenerationParams,
         stream: Boolean = false
     ): JsonObject {
         return buildJsonObject {
             put("model", params.model.modelId)
-            put("messages", buildMessages(conversation.messages))
+            put("messages", buildMessages(messages))
             put("temperature", params.temperature)
             put("top_p", params.topP)
             put("stream", stream)

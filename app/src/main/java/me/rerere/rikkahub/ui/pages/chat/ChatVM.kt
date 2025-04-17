@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.internal.ChannelFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -28,6 +27,7 @@ import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.findProvider
 import me.rerere.rikkahub.data.repository.ConversationRepository
+import me.rerere.rikkahub.ui.hooks.getCurrentAssistant
 import me.rerere.rikkahub.utils.deleteChatFiles
 import java.time.Instant
 import java.util.Locale
@@ -96,7 +96,7 @@ class ChatVM(
     }
 
     fun handleMessageSend(content: List<UIMessagePart>) {
-        if(content.isEmptyMessage()) return
+        if (content.isEmptyMessage()) return
         val newConversation = conversation.value.copy(
             messages = conversation.value.messages + UIMessage(
                 role = MessageRole.USER,
@@ -109,10 +109,10 @@ class ChatVM(
     }
 
     fun handleMessageEdit(parts: List<UIMessagePart>, uuid: Uuid?) {
-        if(parts.isEmptyMessage()) return
+        if (parts.isEmptyMessage()) return
         val newConversation = conversation.value.copy(
             messages = conversation.value.messages.map {
-                if(it.id == uuid) {
+                if (it.id == uuid) {
                     it.copy(
                         parts = parts,
                     )
@@ -130,15 +130,16 @@ class ChatVM(
     private fun handleMessageComplete() {
         val model = settings.value.providers.findModelById(settings.value.chatModelId)
         val provider = model?.findProvider(settings.value.providers) ?: return
+        val assistant = settings.value.getCurrentAssistant()
         val job = viewModelScope.launch {
             runCatching {
                 val providerHandler = ProviderManager.getProviderByType(provider)
                 providerHandler.streamText(
                     providerSetting = provider,
-                    conversation = conversation.value,
+                    messages = listOf(UIMessage.system(assistant.systemPrompt)) + conversation.value.messages,
                     params = TextGenerationParams(
                         model = model,
-                        temperature = 0.5f,
+                        temperature = assistant.temperature,
                     )
                 ).collect { chunk ->
                     val currConversation = conversation.value
@@ -163,7 +164,7 @@ class ChatVM(
     }
 
     fun generateTitle(conversation: Conversation, force: Boolean = false) {
-        if(conversation.title.isNotBlank() && !force) return
+        if (conversation.title.isNotBlank() && !force) return
 
         val model = settings.value.providers.findModelById(settings.value.titleModelId) ?: let {
             // 如果没有标题模型，则使用聊天模型
@@ -176,17 +177,21 @@ class ChatVM(
                 val providerHandler = ProviderManager.getProviderByType(provider)
                 val result = providerHandler.generateText(
                     providerSetting = provider,
-                    conversation = Conversation.ofUser("""
-                        你是一名擅长会话的助理，我会给你一些对话内容在content内，你需要将用户的会话总结为 10 个字以内的标题
-                        1. 标题语言与用户的首要语言一致
-                        2. 不要使用标点符号和其他特殊符号
-                        3. 直接回复标题即可
-                        4. 使用 ${Locale.getDefault().displayName} 语言总结
-                        
-                        <content>
-                        ${conversation.messages.joinToString("\n\n") { it.summaryAsText()}}
-                        </content>
-                    """.trimIndent()),
+                    messages = listOf(
+                        UIMessage.user(
+                            """
+                                你是一名擅长会话的助理，我会给你一些对话内容在content内，你需要将用户的会话总结为 10 个字以内的标题
+                                1. 标题语言与用户的首要语言一致
+                                2. 不要使用标点符号和其他特殊符号
+                                3. 直接回复标题即可
+                                4. 使用 ${Locale.getDefault().displayName} 语言总结
+                                
+                                <content>
+                                ${conversation.messages.joinToString("\n\n") { it.summaryAsText() }}
+                                </content>
+                                """.trimIndent()
+                        )
+                    ),
                     params = TextGenerationParams(
                         model = model,
                         temperature = 0.8f,
@@ -205,7 +210,7 @@ class ChatVM(
     }
 
     fun regenerateAtMessage(message: UIMessage) {
-        if(message.role == MessageRole.USER) {
+        if (message.role == MessageRole.USER) {
             // 如果是用户消息，则截止到当前消息
             val indexAt = conversation.value.messages.indexOf(message)
             val newConversation = conversation.value.copy(
@@ -230,7 +235,7 @@ class ChatVM(
     }
 
     fun updateConversation(conversation: Conversation) {
-        if(conversation.id != this._conversationId) return
+        if (conversation.id != this._conversationId) return
         checkFilesDelete(conversation, this._conversation.value)
         this._conversation.value = conversation
     }

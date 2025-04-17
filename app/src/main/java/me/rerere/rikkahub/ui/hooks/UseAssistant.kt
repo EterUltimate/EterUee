@@ -23,7 +23,7 @@ class AssistantState(
     private val onUpdateSettings: (Settings) -> Unit
 ) {
     private var _currentAssistant by mutableStateOf(
-        settings.assistants.find { it.id == settings.assistantId } ?: settings.assistants.first()
+        settings.getCurrentAssistant()
     )
     val currentAssistant get() = _currentAssistant
 
@@ -32,4 +32,8 @@ class AssistantState(
             assistantId = assistant.id
         ))
     }
+}
+
+fun Settings.getCurrentAssistant(): Assistant {
+    return this.assistants.find { it.id == assistantId } ?: this.assistants.first()
 }

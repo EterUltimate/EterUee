@@ -79,6 +79,18 @@ data class UIMessage(
     operator fun plus(chunk: MessageChunk): UIMessage {
         return this.appendChunk(chunk)
     }
+
+    companion object {
+        fun system(prompt: String) = UIMessage(
+            role = MessageRole.SYSTEM,
+            parts = listOf(UIMessagePart.Text(prompt))
+        )
+
+        fun user(prompt: String) = UIMessage(
+            role = MessageRole.USER,
+            parts = listOf(UIMessagePart.Text(prompt))
+        )
+    }
 }
 
 fun List<UIMessage>.handleMessageChunk(chunk: MessageChunk): List<UIMessage> {

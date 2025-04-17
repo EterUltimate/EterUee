@@ -24,7 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -52,6 +52,7 @@ import me.rerere.rikkahub.ui.context.LocalAnimatedVisibilityScope
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSharedTransitionScope
 import me.rerere.rikkahub.ui.context.LocalTTSService
+import me.rerere.rikkahub.ui.pages.assistant.AssistantPage
 import me.rerere.rikkahub.ui.pages.chat.ChatPage
 import me.rerere.rikkahub.ui.pages.debug.DebugPage
 import me.rerere.rikkahub.ui.pages.history.HistoryPage
@@ -127,7 +128,7 @@ class RouteActivity : ComponentActivity() {
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.background),
                     navController = navController,
-                    startDestination = remember { "chat/${Uuid.random()}" },
+                    startDestination = rememberSaveable { "chat/${Uuid.random()}" },
                     enterTransition = {
                         scaleIn(initialScale = 0.35f) + fadeIn(animationSpec = tween(300))
                     },
@@ -156,6 +157,10 @@ class RouteActivity : ComponentActivity() {
 
                     composableHelper("history") {
                         HistoryPage()
+                    }
+
+                    composableHelper("assistant") {
+                        AssistantPage()
                     }
 
                     composableHelper("setting") {

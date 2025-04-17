@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ProviderSetting
+import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.utils.JsonInstant
 import kotlin.uuid.Uuid
 
@@ -30,6 +31,9 @@ class SettingsStore(context: Context) {
         val SELECT_MODEL = stringPreferencesKey("chat_model")
         val TITLE_MODEL = stringPreferencesKey("title_model")
         val PROVIDERS = stringPreferencesKey("providers")
+
+        val SELECT_ASSISTANT = stringPreferencesKey("select_assistant")
+        val ASSISTANTS = stringPreferencesKey("assistants")
     }
 
     private val dataStore = context.settingsStore
@@ -46,9 +50,10 @@ class SettingsStore(context: Context) {
             Settings(
                 chatModelId = preferences[SELECT_MODEL]?.let { Uuid.parse(it) } ?: Uuid.random(),
                 titleModelId = preferences[TITLE_MODEL]?.let { Uuid.parse(it) } ?: Uuid.random(),
-                providers = JsonInstant
-                    .decodeFromString<List<ProviderSetting>>(preferences[PROVIDERS] ?: "[]"),
-                dynamicColor = preferences[DYNAMIC_COLOR] != false
+                assistantId = preferences[SELECT_ASSISTANT]?.let { Uuid.parse(it) } ?: DEFAULT_ASSISTANT_ID,
+                providers = JsonInstant.decodeFromString(preferences[PROVIDERS] ?: "[]"),
+                assistants = JsonInstant.decodeFromString(preferences[ASSISTANTS] ?: "[]"),
+                dynamicColor = preferences[DYNAMIC_COLOR] != false,
             )
         }
         .catch {
@@ -63,17 +68,28 @@ class SettingsStore(context: Context) {
                     providers.add(defaultProvider)
                 }
             }
+            val assistants = it.assistants.ifEmpty { DEFAULT_ASSISTANTS }.toMutableList()
+            DEFAULT_ASSISTANTS.forEach { defaultAssistant ->
+                if(assistants.none { it.id == defaultAssistant.id }) {
+                    assistants.add(defaultAssistant)
+                }
+            }
             it.copy(
-                providers = providers
+                providers = providers,
+                assistants = assistants
             )
         }
 
     suspend fun update(settings: Settings) {
         dataStore.edit { preferences ->
             preferences[DYNAMIC_COLOR] = settings.dynamicColor
+
             preferences[SELECT_MODEL] = settings.chatModelId.toString()
             preferences[TITLE_MODEL] = settings.titleModelId.toString()
             preferences[PROVIDERS] = JsonInstant.encodeToString(settings.providers)
+
+            preferences[ASSISTANTS] = JsonInstant.encodeToString(settings.assistants)
+            preferences[SELECT_ASSISTANT] = settings.assistantId.toString()
         }
     }
 }
@@ -82,7 +98,9 @@ data class Settings(
     val dynamicColor: Boolean = true,
     val chatModelId: Uuid = Uuid.random(),
     val titleModelId: Uuid = Uuid.random(),
-    val providers: List<ProviderSetting> = emptyList(),
+    val assistantId: Uuid = DEFAULT_ASSISTANT_ID,
+    val providers: List<ProviderSetting> = DEFAULT_PROVIDERS,
+    val assistants: List<Assistant> = DEFAULT_ASSISTANTS,
 )
 
 fun List<ProviderSetting>.findModelById(uuid: Uuid): Model? {
@@ -138,4 +156,14 @@ private val DEFAULT_PROVIDERS = listOf(
         baseUrl = "https://ark.cn-beijing.volces.com/api/v3",
         apiKey = ""
     ),
+)
+
+private val DEFAULT_ASSISTANT_ID = Uuid.parse("0950e2dc-9bd5-4801-afa3-aa887aa36b4e")
+private val DEFAULT_ASSISTANTS = listOf(
+    Assistant(
+        id = DEFAULT_ASSISTANT_ID,
+        name = "",
+        temperature = 0.6f,
+        systemPrompt = ""
+    )
 )

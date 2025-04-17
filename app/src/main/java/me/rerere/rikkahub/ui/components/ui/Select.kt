@@ -1,9 +1,7 @@
 package me.rerere.rikkahub.ui.components.ui
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +13,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,10 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.composables.icons.lucide.ArrowDown
-import com.composables.icons.lucide.ArrowDown01
-import com.composables.icons.lucide.ArrowUp
-import com.composables.icons.lucide.ArrowUp01
+import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.ChevronUp
 import com.composables.icons.lucide.Lucide
@@ -39,44 +35,37 @@ fun <T> Select(
     selectedOption: T,
     onOptionSelected: (T) -> Unit,
     modifier: Modifier = Modifier,
-    label: String = "",
-    optionToString: (T) -> String = { it.toString() }
+    optionToString: (T) -> String = { it.toString() },
+    leading: @Composable () -> Unit = {},
+    trailing: @Composable () -> Unit = {}
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     Column(modifier = modifier) {
-        if (label.isNotEmpty()) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(bottom = 4.dp)
-            )
-        }
-
         BoxWithConstraints {
             // 选择框
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-                        shape = RoundedCornerShape(4.dp)
+            Surface(tonalElevation = 4.dp, shape = RoundedCornerShape(50)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(4.dp))
+                        .clickable { expanded = true }
+                        .padding(vertical = 8.dp, horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    leading()
+                    Text(
+                        text = optionToString(selectedOption),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f)
                     )
-                    .clip(RoundedCornerShape(4.dp))
-                    .clickable { expanded = true }
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = optionToString(selectedOption),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Icon(
-                    imageVector = if (expanded) Lucide.ChevronUp else Lucide.ChevronDown,
-                    contentDescription = "expand"
-                )
+                    trailing()
+                    Icon(
+                        imageVector = if (expanded) Lucide.ChevronUp else Lucide.ChevronDown,
+                        contentDescription = "expand"
+                    )
+                }
             }
             // 下拉菜单
             DropdownMenu(
@@ -92,6 +81,11 @@ fun <T> Select(
                         },
                         text = {
                             Text(text = optionToString(option))
+                        },
+                        leadingIcon = {
+                            if(option == selectedOption) {
+                                Icon(Lucide.Check, null)
+                            }
                         }
                     )
                 }

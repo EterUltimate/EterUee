@@ -3,26 +3,25 @@ package me.rerere.rikkahub.ui.pages.chat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,11 +40,13 @@ import kotlinx.coroutines.launch
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.ui.Conversation
 import me.rerere.ai.ui.UIMessage
-import me.rerere.rikkahub.ui.components.ui.ToastVariant
+import me.rerere.rikkahub.data.datastore.Settings
+import me.rerere.rikkahub.ui.components.chat.AssistantPicker
 import me.rerere.rikkahub.ui.components.chat.ChatInput
 import me.rerere.rikkahub.ui.components.chat.ChatMessage
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
 import me.rerere.rikkahub.ui.components.chat.rememberChatInputState
+import me.rerere.rikkahub.ui.components.ui.ToastVariant
 import me.rerere.rikkahub.ui.components.ui.rememberToastState
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.utils.navigateToChatPage
@@ -80,7 +81,8 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                 current = conversation,
                 conversations = conversations,
                 loading = loadingJob != null,
-                vm = vm
+                vm = vm,
+                settings = setting
             )
         }
     ) {
@@ -109,7 +111,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                             toastState.show("请先选择模型", ToastVariant.ERROR)
                             return@ChatInput
                         }
-                        if(inputState.isEditing()) {
+                        if (inputState.isEditing()) {
                             vm.handleMessageEdit(
                                 inputState.messageContent,
                                 inputState.editingMessage
@@ -223,6 +225,7 @@ private fun TopBar(
 private fun DrawerContent(
     navController: NavController,
     vm: ChatVM,
+    settings: Settings,
     current: Conversation,
     conversations: List<Conversation>,
     loading: Boolean,
@@ -256,33 +259,36 @@ private fun DrawerContent(
                 }
             }
         )
-        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
-        NavigationDrawerItem(
-            label = {
-                Text("聊天历史")
-            },
-            icon = {
+        AssistantPicker(
+            settings = settings,
+            onUpdateSettings = { vm.updateSettings(it) },
+            modifier = Modifier.fillMaxWidth().padding(8.dp),
+            onClickSetting = {
+                navController.navigate("assistant")
+            }
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            TextButton(
+                onClick = {
+                    navController.navigate("history")
+                },
+                modifier = Modifier.weight(1f)
+            ) {
                 Icon(Lucide.History, "Chat History")
-            },
-            onClick = {
-                navController.navigate("history")
-            },
-            selected = false,
-            modifier = Modifier.wrapContentWidth()
-        )
-        NavigationDrawerItem(
-            label = {
-                Text("设置")
-            },
-            icon = {
-                Icon(Lucide.Settings, "Setting")
-            },
-            onClick = {
-                navController.navigate("setting")
-            },
-            selected = false,
-            modifier = Modifier.wrapContentWidth()
-        )
+                Text("聊天历史", modifier = Modifier.padding(start = 4.dp))
+            }
+            TextButton(
+                onClick = {
+                    navController.navigate("setting")
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(Lucide.Settings, "Settings")
+                Text("设置", modifier = Modifier.padding(start = 4.dp))
+            }
+        }
     }
 }
 

@@ -1,6 +1,6 @@
 package me.rerere.rikkahub.ui.components.ui
 
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -25,7 +25,7 @@ fun Favicon(url: String, modifier: Modifier = Modifier) {
     }
     AsyncImage(
         model = faviconUrl,
-        modifier = modifier.clip(CircleShape),
+        modifier = modifier.clip(RoundedCornerShape(25)),
         contentDescription = null
     )
 }

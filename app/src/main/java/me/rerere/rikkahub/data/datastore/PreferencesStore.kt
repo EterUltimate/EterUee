@@ -65,13 +65,13 @@ class SettingsStore(context: Context) {
             val providers = it.providers.ifEmpty { DEFAULT_PROVIDERS }.toMutableList()
             DEFAULT_PROVIDERS.forEach { defaultProvider ->
                 if (providers.none { it.id == defaultProvider.id }) {
-                    providers.add(defaultProvider)
+                    providers.add(0, defaultProvider)
                 }
             }
             val assistants = it.assistants.ifEmpty { DEFAULT_ASSISTANTS }.toMutableList()
             DEFAULT_ASSISTANTS.forEach { defaultAssistant ->
                 if(assistants.none { it.id == defaultAssistant.id }) {
-                    assistants.add(defaultAssistant)
+                    assistants.add(0, defaultAssistant)
                 }
             }
             it.copy(

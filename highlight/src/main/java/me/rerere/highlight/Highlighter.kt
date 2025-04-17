@@ -6,8 +6,6 @@ import com.whl.quickjs.wrapper.QuickJSArray
 import com.whl.quickjs.wrapper.QuickJSContext
 import com.whl.quickjs.wrapper.QuickJSObject
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Polymorphic
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
@@ -16,15 +14,11 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonDecoder
-import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.polymorphic
-import kotlinx.serialization.modules.subclass
 import me.rerere.highlight.HighlightToken.Token.StringContent
 
 class Highlighter(ctx: Context) {
@@ -111,6 +105,13 @@ sealed class HighlightToken {
             val type: String,
             val length: Int,
         ) : Token()
+
+        @Serializable
+        data class Nested(
+            val content: List<Token>,
+            val type: String,
+            val length: Int,
+        ) : Token()
     }
 }
 
@@ -136,9 +137,24 @@ object HighlightTokenSerializer : KSerializer<HighlightToken.Token> {
 
         return when (content) {
             is JsonArray -> {
-                val listContent = content.map { it.jsonPrimitive.content }
-                HighlightToken.Token.StringListContent(
-                    content = listContent,
+                val nestedContent = arrayListOf<HighlightToken.Token>()
+
+                content.forEach { part ->
+                    if(part is JsonPrimitive) {
+                        nestedContent += StringContent(
+                            content = part.content,
+                            type = type,
+                            length = length,
+                        )
+                    } else if(part is JsonObject) {
+                        nestedContent += format.decodeFromJsonElement(HighlightTokenSerializer, part)
+                    } else {
+                        error("unknown content part type: $content / $part")
+                    }
+                }
+
+                HighlightToken.Token.Nested(
+                    content = nestedContent,
                     type = type,
                     length = length,
                 )

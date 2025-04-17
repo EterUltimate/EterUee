@@ -45,31 +45,14 @@ fun HighlightText(
     var annotatedString by remember { mutableStateOf(AnnotatedString(code)) }
 
     LaunchedEffect(code, language) {
-        tokens =
-            highlighter.highlight(code, language).getOrNull() ?: listOf(
-                HighlightToken.Plain(
-                    code
-                )
+        tokens = highlighter.highlight(code, language).getOrNull() ?: listOf(
+            HighlightToken.Plain(
+                code
             )
+        )
         annotatedString = buildAnnotatedString {
             tokens.fastForEach { token ->
-                when (token) {
-                    is HighlightToken.Plain -> {
-                        append(token.content)
-                    }
-
-                    is HighlightToken.Token.StringContent -> {
-                        withStyle(getStyleForTokenType(token.type, colors)) {
-                            append(token.content)
-                        }
-                    }
-
-                    is HighlightToken.Token.StringListContent -> {
-                        withStyle(getStyleForTokenType(token.type, colors)) {
-                            token.content.fastForEach { append(it) }
-                        }
-                    }
-                }
+                buildHighlightText(token, colors)
             }
         }
     }
@@ -87,6 +70,35 @@ fun HighlightText(
         maxLines = maxLines,
         minLines = minLines
     )
+}
+
+private fun AnnotatedString.Builder.buildHighlightText(
+    token: HighlightToken,
+    colors: HighlightTextColorPalette
+) {
+    when (token) {
+        is HighlightToken.Plain -> {
+            append(token.content)
+        }
+
+        is HighlightToken.Token.StringContent -> {
+            withStyle(getStyleForTokenType(token.type, colors)) {
+                append(token.content)
+            }
+        }
+
+        is HighlightToken.Token.StringListContent -> {
+            withStyle(getStyleForTokenType(token.type, colors)) {
+                token.content.fastForEach { append(it) }
+            }
+        }
+
+        is HighlightToken.Token.Nested -> {
+            token.content.forEach {
+                buildHighlightText(it, colors)
+            }
+        }
+    }
 }
 
 data class HighlightTextColorPalette(
@@ -134,15 +146,18 @@ private fun getStyleForTokenType(type: String, colors: HighlightTextColorPalette
         "string" -> SpanStyle(color = colors.string) // 绿色
         "number" -> SpanStyle(color = colors.number) // 蓝色
         "comment" -> SpanStyle(color = colors.comment, fontStyle = FontStyle.Italic) // 灰色斜体
-        "function" -> SpanStyle(color = colors.function) // 黄色
+        "function", "method" -> SpanStyle(color = colors.function) // 黄色
         "operator" -> SpanStyle(color = colors.operator) // 橙色
         "punctuation" -> SpanStyle(color = colors.punctuation) // 橙色
         "class-name", "property" -> SpanStyle(color = colors.className) // 棕色
-        "boolean" -> SpanStyle(color = colors.boolean) // 蓝色
-        "variable" -> SpanStyle(color = colors.variable)
+        "boolean", "constant" -> SpanStyle(color = colors.boolean) // 蓝色
+        "regex", "important", "variable" -> SpanStyle(color = colors.variable)
         "tag" -> SpanStyle(color = colors.tag) // 黄色
         "attr-name" -> SpanStyle(color = colors.attrName) // 浅灰色
         "attr-value" -> SpanStyle(color = colors.attrValue) // 绿色
-        else -> SpanStyle(color = colors.fallback)
+        else -> {
+            println("unknown type $type")
+            SpanStyle(color = colors.fallback)
+        }
     }
 }

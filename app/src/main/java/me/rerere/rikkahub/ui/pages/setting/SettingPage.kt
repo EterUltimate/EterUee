@@ -27,6 +27,7 @@ import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.HardDrive
 import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Palette
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.utils.countChatFiles
@@ -81,6 +82,9 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                                 navigateToChatPage(navController)
                             },
                         )
+                    },
+                    leadingContent = {
+                        Icon(Lucide.Palette, null)
                     }
                 )
             }

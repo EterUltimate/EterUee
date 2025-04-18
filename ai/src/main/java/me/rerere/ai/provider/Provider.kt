@@ -8,16 +8,16 @@ import me.rerere.ai.ui.UIMessage
 // 提供商实现
 // 采用无状态设计，使用时除了需要传入需要的参数外，还需要传入provider setting作为参数
 interface Provider<T : ProviderSetting> {
-    suspend fun listModels(providerSetting: ProviderSetting) : List<Model>
+    suspend fun listModels(providerSetting: T) : List<Model>
 
     suspend fun generateText(
-        providerSetting: ProviderSetting,
+        providerSetting: T,
         messages: List<UIMessage>,
         params: TextGenerationParams
     ): MessageChunk
 
     suspend fun streamText(
-        providerSetting: ProviderSetting,
+        providerSetting: T,
         messages: List<UIMessage>,
         params: TextGenerationParams
     ): Flow<MessageChunk>

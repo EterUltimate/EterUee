@@ -58,11 +58,8 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         }
         .build()
 
-    override suspend fun listModels(providerSetting: ProviderSetting): List<Model> =
+    override suspend fun listModels(providerSetting: ProviderSetting.OpenAI): List<Model> =
         withContext(Dispatchers.IO) {
-            if (providerSetting !is ProviderSetting.OpenAI) {
-                throw IllegalArgumentException("ProviderSetting must be OpenAI")
-            }
             val request = Request.Builder()
                 .url("${providerSetting.baseUrl}/models")
                 .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
@@ -90,14 +87,10 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         }
 
     override suspend fun generateText(
-        providerSetting: ProviderSetting,
+        providerSetting: ProviderSetting.OpenAI,
         messages: List<UIMessage>,
         params: TextGenerationParams
     ): MessageChunk = withContext(Dispatchers.IO) {
-        if (providerSetting !is ProviderSetting.OpenAI) {
-            throw IllegalArgumentException("ProviderSetting must be OpenAI")
-        }
-
         val requestBody = buildChatCompletionRequest(messages, params)
         val request = Request.Builder()
             .url("${providerSetting.baseUrl}/chat/completions")
@@ -141,14 +134,10 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
     }
 
     override suspend fun streamText(
-        providerSetting: ProviderSetting,
+        providerSetting: ProviderSetting.OpenAI,
         messages: List<UIMessage>,
         params: TextGenerationParams
     ): Flow<MessageChunk> = callbackFlow {
-        if (providerSetting !is ProviderSetting.OpenAI) {
-            throw IllegalArgumentException("ProviderSetting must be OpenAI")
-        }
-
         val requestBody = buildChatCompletionRequest(messages, params, stream = true)
         val request = Request.Builder()
             .url("${providerSetting.baseUrl}/chat/completions")

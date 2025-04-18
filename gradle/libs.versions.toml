@@ -25,6 +25,7 @@ ucrop = "4.1.0-non-native"
 appcompat = "1.6.1"
 material = "1.10.0"
 image-viewer = "1.1.0-alpha.6"
+vertexai = "16.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -62,9 +63,8 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlin-coroutines-core" }
 lucide-icons = { group = "com.composables", name = "icons-lucide", version.ref = "lucide-icons" }
 ucrop = { group = "com.github.jens-muenker", name = "uCrop-n-Edit", version.ref = "ucrop" }
-androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 image-viewer = { group = "com.jvziyaoyao.scale", name = "image-viewer", version.ref = "image-viewer" }
+firebase-vertexai = { module = "com.google.firebase:firebase-vertexai", version.ref = "vertexai"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

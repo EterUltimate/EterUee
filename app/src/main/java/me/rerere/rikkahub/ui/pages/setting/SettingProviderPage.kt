@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,14 +18,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.MultiChoiceSegmentedButtonRow
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
@@ -36,6 +38,7 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -49,7 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastForEach
+import androidx.compose.ui.util.fastFilter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Lucide
@@ -69,6 +72,7 @@ import me.rerere.rikkahub.ui.components.ui.ToastState
 import me.rerere.rikkahub.ui.components.ui.ToastVariant
 import me.rerere.rikkahub.ui.components.ui.rememberDialogState
 import me.rerere.rikkahub.ui.components.ui.rememberToastState
+import me.rerere.rikkahub.ui.hooks.useEditState
 import me.rerere.rikkahub.utils.plus
 import org.koin.androidx.compose.koinViewModel
 
@@ -388,31 +392,96 @@ private fun AddModelButton(
                                 Text("例如：gpt-3.5-turbo")
                             },
                             trailingIcon = {
-                                var expandModelList by remember { mutableStateOf(false) }
-                                IconButton(
-                                    onClick = {
-                                        expandModelList = !expandModelList
+                                val modelListState = useEditState<Model?> { model ->
+                                    model?.let {
+                                        setModelId(it.modelId)
                                     }
-                                ) {
-                                    Icon(Lucide.Boxes, null)
-                                    DropdownMenu(
-                                        expanded = expandModelList,
-                                        onDismissRequest = {
-                                            expandModelList = false
-                                        },
+                                }
+                                if (modelListState.isEditing) {
+                                    ModalBottomSheet(
+                                        onDismissRequest = { modelListState.dismiss() },
+                                        sheetState = rememberModalBottomSheetState(
+                                            skipPartiallyExpanded = true
+                                        )
                                     ) {
-                                        models.fastForEach {
-                                            DropdownMenuItem(
-                                                text = { Text(it.modelId) },
-                                                onClick = {
-                                                    setModelId(it.modelId)
-                                                    expandModelList = false
-                                                },
-                                                leadingIcon = {
-                                                    AutoAIIcon(it.modelId)
+                                        var filterText by remember { mutableStateOf("") }
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(400.dp)
+                                                .padding(8.dp)
+                                                .imePadding(),
+                                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            LazyColumn(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .weight(1f),
+                                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                                            ) {
+                                                items(models.fastFilter { it.modelId.contains(filterText) }) {
+                                                    Card(
+                                                        onClick = {
+                                                            modelListState.currentState = it.copy()
+                                                            modelListState.confirm()
+                                                        }
+                                                    ) {
+                                                        Row(
+                                                            verticalAlignment = Alignment.CenterVertically,
+                                                            horizontalArrangement = Arrangement.spacedBy(
+                                                                8.dp
+                                                            ),
+                                                            modifier = Modifier
+                                                                .fillMaxWidth()
+                                                                .padding(8.dp),
+                                                        ) {
+                                                            AutoAIIcon(
+                                                                it.modelId,
+                                                                Modifier.size(32.dp)
+                                                            )
+                                                            Column(
+                                                                verticalArrangement = Arrangement.spacedBy(
+                                                                    4.dp
+                                                                ),
+                                                            ) {
+                                                                Text(
+                                                                    text = it.modelId,
+                                                                    style = MaterialTheme.typography.titleSmall,
+                                                                )
+                                                            }
+                                                        }
+                                                    }
                                                 }
+                                            }
+                                            OutlinedTextField(
+                                                value = filterText,
+                                                onValueChange = {
+                                                    filterText = it
+                                                },
+                                                label = { Text("模型名称") },
+                                                modifier = Modifier.fillMaxWidth(),
+                                                placeholder = {
+                                                    Text("例如：GPT-3.5")
+                                                },
                                             )
                                         }
+                                    }
+                                }
+                                BadgedBox(
+                                    badge = {
+                                        if (models.isNotEmpty()) {
+                                            Badge {
+                                                Text(models.size.toString())
+                                            }
+                                        }
+                                    }
+                                ) {
+                                    IconButton(
+                                        onClick = {
+                                            modelListState.open(null)
+                                        }
+                                    ) {
+                                        Icon(Lucide.Boxes, null)
                                     }
                                 }
                             }

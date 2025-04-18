@@ -27,7 +27,7 @@ enum class Modality {
 
 fun guessModalityFromModelId(modelId: String): Pair<List<Modality>, List<Modality>> {
     return when {
-        GPT4O.containsMatchIn(modelId) -> {
+        GPT4O.containsMatchIn(modelId) || GPT_4_1.containsMatchIn(modelId) -> {
             listOf(Modality.TEXT, Modality.IMAGE) to listOf(Modality.TEXT)
         }
 
@@ -46,5 +46,6 @@ fun guessModalityFromModelId(modelId: String): Pair<List<Modality>, List<Modalit
 }
 
 private val GPT4O = Regex("gpt-4o")
+private val GPT_4_1 = Regex("gpt-4\\.1")
 private val GEMINI_20_FLASH = Regex("gemini-2.0-flash")
 private val CLAUDE_SONNET_3 = Regex("claude-3.+sonnet")

@@ -1,5 +1,6 @@
 package me.rerere.ai.ui.transformers
 
+import me.rerere.ai.core.MessageRole
 import me.rerere.ai.ui.MessageTransformer
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
@@ -7,20 +8,26 @@ import me.rerere.ai.ui.searchTextContent
 
 object SearchTextTransformer : MessageTransformer {
     override fun transform(messages: List<UIMessage>): List<UIMessage> {
-        return messages.mapIndexed { index, message ->
-            if(index < messages.lastIndex) {
-                val nextMessage = messages[index + 1]
-                val nextMessageSearchParts = nextMessage.parts.filterIsInstance<UIMessagePart.Search>()
-                if(nextMessageSearchParts.isNotEmpty()) {
-                    message.copy(
-                        parts = message.parts.map { part ->
-                            if(part is UIMessagePart.Text) {
-                                part.copy(
-                                    text = buildString {
-                                        append("""
+        // 找到最后一个带搜索结果的消息
+        val lastSearchMessage =
+            messages.last { it.hasPart<UIMessagePart.Search>() }
+        val lastMessageIndex = messages.indexOf(lastSearchMessage)
+
+        if (lastMessageIndex > 0) {
+            val prevMessageIndex = lastMessageIndex - 1 // 上一个消息的索引
+            if (messages[prevMessageIndex].role == MessageRole.USER) { // 如果上一个消息是用户的话
+                return messages.mapIndexed { index, message ->
+                    if (index == prevMessageIndex) { // 把上一个消息的parts附加搜索结果
+                        message.copy(
+                            parts = message.parts.map { part ->
+                                if (part is UIMessagePart.Text) {
+                                    part.copy(
+                                        text = buildString {
+                                            append(
+                                                """
                                             # 以下是基于用户发送的消息的搜索结果
                                             <search_results>
-                                            ${nextMessage.parts.searchTextContent()}
+                                            ${lastSearchMessage.parts.searchTextContent()}
                                             </search_results>
                                             在我给你的搜索结果中，每个结果都以类xml格式编码，index代表搜索结果序号，title代表搜索结果的标题，content代表搜索结果的内容，url代表搜索结果的链接。
                                             请在适当的情况下在句子末尾引用上下文。请按照引用编号[citation:X]的格式在答案中对应部分引用上下文。如果一句话源自多个上下文，请列出所有相关的引用编号，例如[citation:3][citation:5]，切记不要将引用集中在最后返回引用编号，而是在答案对应部分列出。
@@ -34,24 +41,25 @@ object SearchTextTransformer : MessageTransformer {
                                             - 你需要根据用户要求和回答内容选择合适、美观的回答格式，确保可读性强。
                                             - 除非用户要求，否则你回答的语言需要和用户提问的语言保持一致。
                                             - 你的回答应该综合多个相关网页来回答，不能重复引用一个网页。
-                                            
-                                        """.trimIndent())
+                                        """.trimIndent().trim()
+                                            )
 
-                                        append("\n# 用户消息为: \n")
-                                        append(part.text)
-                                    }
-                                )
-                            } else {
-                                part
+                                            append("\n\n# 用户消息为: \n")
+                                            append(part.text)
+                                        }
+                                    )
+                                } else {
+                                    part
+                                }
                             }
-                        }
-                    )
-                } else {
-                    message
+                        )
+                    } else {
+                        message
+                    }
                 }
-            } else {
-                message
             }
         }
+
+        return messages
     }
 }

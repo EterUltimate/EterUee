@@ -95,6 +95,12 @@ data class UIMessage(
         it !is UIMessagePart.Search && it !is UIMessagePart.Reasoning
     }
 
+    inline fun <reified P: UIMessagePart> hasPart(): Boolean {
+        return parts.any {
+            it is P
+        }
+    }
+
     operator fun plus(chunk: MessageChunk): UIMessage {
         return this.appendChunk(chunk)
     }

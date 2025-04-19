@@ -115,7 +115,7 @@ fun MarkdownBlock(
 // for debug
 private fun dumpAst(node: ASTNode, text: String, indent: String = "") {
     println("$indent${node.type} ${if (node.children.isEmpty()) node.getTextInNode(text) else ""}")
-    node.children.forEach {
+    node.children.fastForEach {
         dumpAst(it, text, "$indent  ")
     }
 }
@@ -123,9 +123,9 @@ private fun dumpAst(node: ASTNode, text: String, indent: String = "") {
 @Composable
 private fun MarkdownAst(astNode: ASTNode, content: String, modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier
+        modifier = modifier,
     ) {
-        astNode.children.forEach { child ->
+        astNode.children.fastForEach { child ->
             MarkdownNode(child, content)
         }
     }
@@ -175,7 +175,7 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
     when (node.type) {
         // 文件根节点
         MarkdownElementTypes.MARKDOWN_FILE -> {
-            node.children.forEach { child ->
+            node.children.fastForEach { child ->
                 MarkdownNode(child, content, modifier)
             }
         }
@@ -216,16 +216,18 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
 
         // 列表
         MarkdownElementTypes.UNORDERED_LIST -> {
-            Column(modifier = modifier) {
-                node.children.forEach { child ->
+            Column(
+                modifier = modifier.padding(start = 4.dp)
+            ) {
+                node.children.fastForEach { child ->
                     if (child.type == MarkdownElementTypes.LIST_ITEM) {
                         Row {
                             Text(
                                 text = "• ",
                                 modifier = Modifier.alignByBaseline()
                             )
-                            Column(modifier = Modifier.weight(1f)) {
-                                child.children.forEach { listItemChild ->
+                            FlowRow {
+                                child.children.fastForEach { listItemChild ->
                                     MarkdownNode(listItemChild, content)
                                 }
                             }
@@ -236,18 +238,23 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
         }
 
         MarkdownElementTypes.ORDERED_LIST -> {
-            Column(modifier = modifier) {
+            Column(
+                modifier = modifier.padding(start = 4.dp)
+            ) {
                 var index = 1
-                node.children.forEach { child ->
+                node.children.fastForEach { child ->
                     if (child.type == MarkdownElementTypes.LIST_ITEM) {
                         Row {
                             Text(
-                                text = "$index. ",
-                                modifier = Modifier.alignByBaseline()
+                                text = child.findChildOfType(MarkdownTokenTypes.LIST_NUMBER)
+                                    ?.getTextInNode(content) ?: "-"
                             )
-                            Column(modifier = Modifier.weight(1f)) {
-                                child.children.forEach { listItemChild ->
-                                    MarkdownNode(listItemChild, content)
+                            FlowRow {
+                                child.children.fastForEach { listItemChild ->
+                                    MarkdownNode(
+                                        listItemChild,
+                                        content
+                                    )
                                 }
                             }
                         }
@@ -283,7 +290,7 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
                             .weight(1f)
                             .padding(8.dp)
                     ) {
-                        node.children.forEach { child ->
+                        node.children.fastForEach { child ->
                             MarkdownNode(child, content)
                         }
                     }
@@ -313,7 +320,7 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
         // 加粗和斜体
         MarkdownElementTypes.EMPH -> {
             ProvideTextStyle(TextStyle(fontStyle = FontStyle.Italic)) {
-                node.children.forEach { child ->
+                node.children.fastForEach { child ->
                     MarkdownNode(child, content, modifier)
                 }
             }
@@ -321,7 +328,7 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
 
         MarkdownElementTypes.STRONG -> {
             ProvideTextStyle(TextStyle(fontWeight = FontWeight.Bold)) {
-                node.children.forEach { child ->
+                node.children.fastForEach { child ->
                     MarkdownNode(child, content, modifier)
                 }
             }
@@ -338,7 +345,7 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
 
         GFMElementTypes.TABLE -> {
             Table(modifier = modifier) {
-                node.children.forEach {
+                node.children.fastForEach {
                     MarkdownNode(it, content)
                 }
             }
@@ -346,7 +353,7 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
 
         GFMElementTypes.HEADER -> {
             TableHeader(modifier = modifier) {
-                node.children.forEach {
+                node.children.fastForEach {
                     if (it.type == GFMTokenTypes.CELL) {
                         TableCell {
                             MarkdownNode(it, content)
@@ -358,7 +365,7 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
 
         GFMElementTypes.ROW -> {
             TableRow(modifier = modifier) {
-                node.children.forEach {
+                node.children.fastForEach {
                     if (it.type == GFMTokenTypes.CELL) {
                         TableCell {
                             MarkdownNode(it, content)
@@ -438,7 +445,7 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
         // 其他类型的节点，递归处理子节点
         else -> {
             // 递归处理其他节点的子节点
-            node.children.forEach { child ->
+            node.children.fastForEach { child ->
                 MarkdownNode(child, content, modifier)
             }
         }
@@ -466,7 +473,7 @@ private fun Paragraph(node: ASTNode, content: String, modifier: Modifier) {
         val maxWidth = this.maxWidth
         val annotatedString = remember(content) {
             buildAnnotatedString {
-                node.children.forEach { child ->
+                node.children.fastForEach { child ->
                     appendMarkdownNodeContent(child, content, inlineContents, colorScheme, maxWidth)
                 }
             }
@@ -506,9 +513,9 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
 
         MarkdownTokenTypes.HTML_TAG -> {
             val text = node.getTextInNode(content)
-            if(text == "<citation>") {
+            if (text == "<citation>") {
                 val id = node.nextSibling()?.getTextInNode(content)
-                if(id != null) {
+                if (id != null) {
                     pushStyle(
                         SpanStyle(
                             background = colorScheme.secondaryContainer,
@@ -517,7 +524,7 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
                     )
                     append(" ")
                 }
-            } else if(text == "</citation>") {
+            } else if (text == "</citation>") {
                 append(" ")
                 pop()
                 append(" ")
@@ -528,7 +535,7 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
 
         MarkdownElementTypes.EMPH -> {
             withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
-                node.children.forEach {
+                node.children.fastForEach {
                     appendMarkdownNodeContent(
                         it,
                         content,
@@ -542,7 +549,7 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
 
         MarkdownElementTypes.STRONG -> {
             withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                node.children.forEach {
+                node.children.fastForEach {
                     appendMarkdownNodeContent(
                         it,
                         content,
@@ -666,7 +673,7 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
 
         // 其他类型继续递归处理
         else -> {
-            node.children.forEach {
+            node.children.fastForEach {
                 appendMarkdownNodeContent(
                     it,
                     content,
@@ -724,7 +731,7 @@ private fun ASTNode.findChildOfType(vararg types: IElementType): ASTNode? {
 private fun ASTNode.traverseChildren(
     action: (ASTNode) -> Unit
 ) {
-    children.forEach { child ->
+    children.fastForEach { child ->
         action(child)
         child.traverseChildren(action)
     }

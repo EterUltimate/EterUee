@@ -104,9 +104,9 @@ fun MarkdownBlock(
     val preprocessed = remember(content) { preProcess(content) }
     val astTree = remember(preprocessed) {
         parser.buildMarkdownTreeFromString(preprocessed)
-            .also {
-                dumpAst(it, preprocessed) // for debugging ast tree
-            }
+//            .also {
+//                dumpAst(it, preprocessed) // for debugging ast tree
+//            }
     }
 
     MarkdownAst(astTree, preprocessed, modifier)

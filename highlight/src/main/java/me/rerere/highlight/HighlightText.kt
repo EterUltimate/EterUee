@@ -45,11 +45,12 @@ fun HighlightText(
     var annotatedString by remember { mutableStateOf(AnnotatedString(code)) }
 
     LaunchedEffect(code, language) {
-        tokens = highlighter.highlight(code, language).getOrNull() ?: listOf(
-            HighlightToken.Plain(
-                code
-            )
-        )
+        runCatching {
+            tokens = highlighter.highlight(code, language)
+        }.onFailure {
+            it.printStackTrace()
+            tokens = listOf(HighlightToken.Plain(code))
+        }
         annotatedString = buildAnnotatedString {
             tokens.fastForEach { token ->
                 buildHighlightText(token, colors)

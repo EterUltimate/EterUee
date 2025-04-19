@@ -14,7 +14,11 @@ import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.utils.JsonInstant
+import me.rerere.search.SearchCommonOptions
+import me.rerere.search.SearchServiceOptions
 import kotlin.uuid.Uuid
+
+private const val TAG = "PreferencesStore"
 
 private val Context.settingsStore by preferencesDataStore(
     name = "settings",
@@ -34,6 +38,9 @@ class SettingsStore(context: Context) {
 
         val SELECT_ASSISTANT = stringPreferencesKey("select_assistant")
         val ASSISTANTS = stringPreferencesKey("assistants")
+
+        val SEARCH_SERVICE = stringPreferencesKey("search_service")
+        val SEARCH_COMMON = stringPreferencesKey("search_common")
     }
 
     private val dataStore = context.settingsStore
@@ -50,10 +57,17 @@ class SettingsStore(context: Context) {
             Settings(
                 chatModelId = preferences[SELECT_MODEL]?.let { Uuid.parse(it) } ?: Uuid.random(),
                 titleModelId = preferences[TITLE_MODEL]?.let { Uuid.parse(it) } ?: Uuid.random(),
-                assistantId = preferences[SELECT_ASSISTANT]?.let { Uuid.parse(it) } ?: DEFAULT_ASSISTANT_ID,
+                assistantId = preferences[SELECT_ASSISTANT]?.let { Uuid.parse(it) }
+                    ?: DEFAULT_ASSISTANT_ID,
                 providers = JsonInstant.decodeFromString(preferences[PROVIDERS] ?: "[]"),
                 assistants = JsonInstant.decodeFromString(preferences[ASSISTANTS] ?: "[]"),
                 dynamicColor = preferences[DYNAMIC_COLOR] != false,
+                searchServiceOptions = preferences[SEARCH_SERVICE]?.let {
+                    JsonInstant.decodeFromString(it)
+                } ?: SearchServiceOptions.DEFAULT,
+                searchCommonOptions = preferences[SEARCH_COMMON]?.let {
+                    JsonInstant.decodeFromString(it)
+                } ?: SearchCommonOptions()
             )
         }
         .catch {
@@ -70,7 +84,7 @@ class SettingsStore(context: Context) {
             }
             val assistants = it.assistants.ifEmpty { DEFAULT_ASSISTANTS }.toMutableList()
             DEFAULT_ASSISTANTS.forEach { defaultAssistant ->
-                if(assistants.none { it.id == defaultAssistant.id }) {
+                if (assistants.none { it.id == defaultAssistant.id }) {
                     assistants.add(0, defaultAssistant)
                 }
             }
@@ -90,6 +104,9 @@ class SettingsStore(context: Context) {
 
             preferences[ASSISTANTS] = JsonInstant.encodeToString(settings.assistants)
             preferences[SELECT_ASSISTANT] = settings.assistantId.toString()
+
+            preferences[SEARCH_SERVICE] = JsonInstant.encodeToString(settings.searchServiceOptions)
+            preferences[SEARCH_COMMON] = JsonInstant.encodeToString(settings.searchCommonOptions)
         }
     }
 }
@@ -101,6 +118,8 @@ data class Settings(
     val assistantId: Uuid = DEFAULT_ASSISTANT_ID,
     val providers: List<ProviderSetting> = DEFAULT_PROVIDERS,
     val assistants: List<Assistant> = DEFAULT_ASSISTANTS,
+    val searchServiceOptions: SearchServiceOptions = SearchServiceOptions.DEFAULT,
+    val searchCommonOptions: SearchCommonOptions = SearchCommonOptions()
 )
 
 fun List<ProviderSetting>.findModelById(uuid: Uuid): Model? {

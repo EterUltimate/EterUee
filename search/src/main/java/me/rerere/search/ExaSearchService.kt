@@ -1,12 +1,12 @@
 package me.rerere.search
 
-object TavilySearchService : SearchService<SearchServiceOptions.TavilyOptions> {
-    override val name: String = "Tavily"
+object ExaSearchService : SearchService<SearchServiceOptions.ExaOptions> {
+    override val name: String = "Exa"
 
     override suspend fun search(
         query: String,
         commonOptions: SearchCommonOptions,
-        serviceOptions: SearchServiceOptions.TavilyOptions
+        serviceOptions: SearchServiceOptions.ExaOptions
     ): SearchResult {
         TODO("Not yet implemented")
     }

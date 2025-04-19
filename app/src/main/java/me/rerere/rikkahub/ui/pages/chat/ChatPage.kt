@@ -36,7 +36,6 @@ import com.composables.icons.lucide.ListTree
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.MessageCirclePlus
 import com.composables.icons.lucide.Settings
-import com.google.firebase.analytics.logEvent
 import kotlinx.coroutines.launch
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.ui.Conversation
@@ -49,8 +48,6 @@ import me.rerere.rikkahub.ui.components.chat.ModelSelector
 import me.rerere.rikkahub.ui.components.chat.rememberChatInputState
 import me.rerere.rikkahub.ui.components.ui.ToastVariant
 import me.rerere.rikkahub.ui.components.ui.rememberToastState
-import me.rerere.rikkahub.ui.context.AnalyticsEvents
-import me.rerere.rikkahub.ui.context.LocalFirebaseAnalytics
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.utils.navigateToChatPage
 import me.rerere.rikkahub.utils.plus
@@ -61,7 +58,6 @@ import kotlin.uuid.Uuid
 fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
     val navController = LocalNavController.current
     val toastState = rememberToastState()
-    val firebaseAnalytics = LocalFirebaseAnalytics.current
 
     // Handle Error
     LaunchedEffect(Unit) {
@@ -124,16 +120,8 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                                 inputState.messageContent,
                                 inputState.editingMessage
                             )
-                            firebaseAnalytics.logEvent(AnalyticsEvents.CHAT_EDIT) {
-                                param("search", vm.useWebSearch.toString())
-                                param("model", currentChatModel?.modelId ?: "unknown")
-                            }
                         } else {
                             vm.handleMessageSend(inputState.messageContent)
-                            firebaseAnalytics.logEvent(AnalyticsEvents.CHAT_SEND) {
-                                param("search", vm.useWebSearch.toString())
-                                param("model", currentChatModel?.modelId ?: "unknown")
-                            }
                         }
                         inputState.clearInput()
                     }
@@ -157,11 +145,6 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                 loading = loadingJob != null,
                 onRegenerate = {
                     vm.regenerateAtMessage(it)
-
-                    firebaseAnalytics.logEvent(AnalyticsEvents.REGENERATE) {
-                        param("search", vm.useWebSearch.toString())
-                        param("model", currentChatModel?.modelId ?: "unknown")
-                    }
                 },
                 onEdit = {
                     inputState.editingMessage = it.id

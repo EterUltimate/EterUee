@@ -92,7 +92,10 @@ fun HistoryPage(vm: HistoryVM = koinViewModel()) {
                     onClick = {
                         navigateToChatPage(navController, it.id)
                     },
-                    onDelete = { vm.deleteConversation(it) }
+                    onDelete = { vm.deleteConversation(it) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateItem()
                 )
             }
         }
@@ -139,13 +142,15 @@ private fun SearchInput(
 @Composable
 private fun ConversationItem(
     conversation: Conversation,
+    modifier: Modifier = Modifier,
     onDelete: () -> Unit = {},
     onClick: () -> Unit = {},
 ) {
     Surface(
         onClick = onClick,
         tonalElevation = 2.dp,
-        shape = RoundedCornerShape(25)
+        shape = RoundedCornerShape(25),
+        modifier = modifier
     ) {
         ListItem(
             headlineContent = {

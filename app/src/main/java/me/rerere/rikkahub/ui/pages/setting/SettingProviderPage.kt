@@ -22,7 +22,7 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,7 +35,6 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -55,8 +54,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFilter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Boxes
+import com.composables.icons.lucide.Delete
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Settings
+import com.composables.icons.lucide.X
 import kotlinx.coroutines.launch
 import me.rerere.ai.provider.Modality
 import me.rerere.ai.provider.Model
@@ -104,11 +105,12 @@ fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
             modifier = Modifier
                 .fillMaxSize()
                 .imePadding(),
-            contentPadding = innerPadding + PaddingValues(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            contentPadding = innerPadding + PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(settings.providers) { provider ->
                 ProviderItem(
+                    modifier = Modifier.animateItem(),
                     provider = provider,
                     onDelete = {
                         val newSettings = settings.copy(
@@ -183,6 +185,7 @@ private enum class ProviderExpandState {
 @Composable
 private fun ProviderItem(
     provider: ProviderSetting,
+    modifier: Modifier = Modifier,
     onEdit: (provider: ProviderSetting) -> Unit,
     onDelete: () -> Unit
 ) {
@@ -198,10 +201,12 @@ private fun ProviderItem(
             state
         }
     }
-    OutlinedCard {
+    Card(
+        modifier = modifier
+    ) {
         Column(
             modifier = Modifier
-                .padding(8.dp)
+                .padding(vertical = 8.dp, horizontal = 12.dp)
                 .animateContentSize()
         ) {
             Row(
@@ -301,7 +306,7 @@ private fun ModelList(
             .fillMaxWidth()
             .padding(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // 模型列表
         if (providerSetting.models.isEmpty()) {
@@ -337,7 +342,7 @@ private fun ModelList(
                         },
                         onEdit = { editedModel ->
                             onUpdate(providerSetting.editModel(editedModel))
-                        }
+                        },
                     )
                 }
             }
@@ -640,6 +645,7 @@ private fun ModelModalitySelector(
 @Composable
 private fun ModelCard(
     model: Model,
+    modifier: Modifier = Modifier,
     onDelete: () -> Unit,
     onEdit: (Model) -> Unit
 ) {
@@ -651,25 +657,36 @@ private fun ModelCard(
         state = swipeToDismissBoxState,
         backgroundContent = {
             Row(
-                modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End)
+                modifier = Modifier.fillMaxSize().padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
                     onClick = {
                         scope.launch {
-                            onDelete()
-                            swipeToDismissBoxState.dismiss(SwipeToDismissBoxValue.EndToStart)
+                            swipeToDismissBoxState.reset()
                         }
                     }
                 ) {
-                    Icon(Icons.Outlined.Delete, contentDescription = "删除")
+                    Icon(Lucide.X, null)
+                }
+                FilledIconButton(
+                    onClick = {
+                        scope.launch {
+                            onDelete()
+                            swipeToDismissBoxState.reset()
+                        }
+                    }
+                ) {
+                    Icon(Lucide.Delete, contentDescription = "删除")
                 }
             }
         },
         enableDismissFromStartToEnd = false,
-        gesturesEnabled = true
+        gesturesEnabled = true,
+        modifier = modifier
     ) {
-        ElevatedCard {
+        OutlinedCard {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

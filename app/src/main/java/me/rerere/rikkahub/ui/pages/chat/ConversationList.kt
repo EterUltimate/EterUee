@@ -3,12 +3,10 @@ package me.rerere.rikkahub.ui.pages.chat
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,15 +39,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Delete
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Recycle
 import com.composables.icons.lucide.RefreshCw
 import me.rerere.ai.ui.Conversation
-import me.rerere.rikkahub.ui.hooks.heroAnimation
 import me.rerere.rikkahub.ui.theme.extendColors
-import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.temporal.ChronoUnit
 import kotlin.uuid.Uuid
 
 @Composable
@@ -104,7 +98,8 @@ fun ConversationList(
                     loading = conversation.id in loadings,
                     onClick = onClick,
                     onDelete = onDelete,
-                    onRegenerateTitle = onRegenerateTitle
+                    onRegenerateTitle = onRegenerateTitle,
+                    modifier = Modifier.animateItem()
                 )
             }
         }

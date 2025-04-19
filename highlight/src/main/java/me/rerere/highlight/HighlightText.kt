@@ -157,7 +157,7 @@ private fun getStyleForTokenType(type: String, colors: HighlightTextColorPalette
         "attr-name" -> SpanStyle(color = colors.attrName) // 浅灰色
         "attr-value" -> SpanStyle(color = colors.attrValue) // 绿色
         else -> {
-            println("unknown type $type")
+            // println("unknown type $type")
             SpanStyle(color = colors.fallback)
         }
     }

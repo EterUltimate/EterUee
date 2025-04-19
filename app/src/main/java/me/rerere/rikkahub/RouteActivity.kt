@@ -42,6 +42,9 @@ import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.request.crossfade
 import coil3.svg.SvgDecoder
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import me.rerere.highlight.Highlighter
@@ -49,6 +52,7 @@ import me.rerere.highlight.LocalHighlighter
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.ui.context.LocalAnimatedVisibilityScope
+import me.rerere.rikkahub.ui.context.LocalFirebaseAnalytics
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSharedTransitionScope
 import me.rerere.rikkahub.ui.context.LocalTTSService
@@ -68,6 +72,8 @@ import kotlin.uuid.Uuid
 private const val TAG = "RouteActivity"
 
 class RouteActivity : ComponentActivity() {
+    private lateinit var firebaseAnalytics: FirebaseAnalytics
+
     private val highlighter by inject<Highlighter>()
     private var ttsService by mutableStateOf<TextToSpeech?>(null)
 
@@ -95,6 +101,7 @@ class RouteActivity : ComponentActivity() {
             }
         }
         initTTS()
+        firebaseAnalytics = Firebase.analytics
     }
 
     private fun initTTS() {
@@ -121,7 +128,8 @@ class RouteActivity : ComponentActivity() {
                 LocalNavController provides navController,
                 LocalSharedTransitionScope provides this,
                 LocalHighlighter provides highlighter,
-                LocalTTSService provides ttsService
+                LocalTTSService provides ttsService,
+                LocalFirebaseAnalytics provides firebaseAnalytics
             ) {
                 NavHost(
                     modifier = Modifier

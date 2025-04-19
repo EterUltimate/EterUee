@@ -2,6 +2,8 @@ package me.rerere.search
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import okhttp3.OkHttpClient
 
 interface SearchService<T : SearchServiceOptions> {
     val name: String
@@ -10,13 +12,25 @@ interface SearchService<T : SearchServiceOptions> {
         query: String,
         commonOptions: SearchCommonOptions,
         serviceOptions: T
-    ): SearchResult
+    ): Result<SearchResult>
 
     companion object {
-        fun <T : SearchServiceOptions> getService(options: T): SearchService<out SearchServiceOptions> {
+        @Suppress("UNCHECKED_CAST")
+        fun <T : SearchServiceOptions> getService(options: T): SearchService<T> {
             return when (options) {
                 is SearchServiceOptions.TavilyOptions -> TavilySearchService
                 is SearchServiceOptions.ExaOptions -> ExaSearchService
+            } as SearchService<T>
+        }
+
+        internal val httpClient by lazy {
+            OkHttpClient.Builder()
+                .build()
+        }
+
+        internal val json by lazy {
+            Json {
+                ignoreUnknownKeys = true
             }
         }
     }
@@ -24,7 +38,7 @@ interface SearchService<T : SearchServiceOptions> {
 
 @Serializable
 data class SearchCommonOptions(
-    val resultSize: Int = 5
+    val resultSize: Int = 7
 )
 
 @Serializable

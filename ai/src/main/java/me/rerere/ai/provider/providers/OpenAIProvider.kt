@@ -23,6 +23,7 @@ import me.rerere.ai.provider.Provider
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.ui.MessageChunk
+import me.rerere.ai.ui.MessageTransformer
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessageChoice
@@ -89,9 +90,11 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
     override suspend fun generateText(
         providerSetting: ProviderSetting.OpenAI,
         messages: List<UIMessage>,
-        params: TextGenerationParams
+        params: TextGenerationParams,
+        messageTransformers: List<MessageTransformer>
     ): MessageChunk = withContext(Dispatchers.IO) {
-        val requestBody = buildChatCompletionRequest(messages, params)
+        val requestBody =
+            buildChatCompletionRequest(messages, params, messageTransformers = messageTransformers)
         val request = Request.Builder()
             .url("${providerSetting.baseUrl}/chat/completions")
             .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
@@ -136,9 +139,15 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
     override suspend fun streamText(
         providerSetting: ProviderSetting.OpenAI,
         messages: List<UIMessage>,
-        params: TextGenerationParams
+        params: TextGenerationParams,
+        messageTransformers: List<MessageTransformer>
     ): Flow<MessageChunk> = callbackFlow {
-        val requestBody = buildChatCompletionRequest(messages, params, stream = true)
+        val requestBody = buildChatCompletionRequest(
+            messages,
+            params,
+            stream = true,
+            messageTransformers = messageTransformers
+        )
         val request = Request.Builder()
             .url("${providerSetting.baseUrl}/chat/completions")
             .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
@@ -241,11 +250,12 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
     private fun buildChatCompletionRequest(
         messages: List<UIMessage>,
         params: TextGenerationParams,
-        stream: Boolean = false
+        stream: Boolean = false,
+        messageTransformers: List<MessageTransformer> = emptyList()
     ): JsonObject {
         return buildJsonObject {
             put("model", params.model.modelId)
-            put("messages", buildMessages(messages))
+            put("messages", buildMessages(MessageTransformer.transform(messages, messageTransformers)))
             put("temperature", params.temperature)
             put("top_p", params.topP)
             put("stream", stream)
@@ -253,44 +263,48 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
     }
 
     private fun buildMessages(messages: List<UIMessage>) = buildJsonArray {
-        messages.forEach { message ->
-            add(buildJsonObject {
-                put("role", JsonPrimitive(message.role.name.lowercase()))
-                putJsonArray("content") {
-                    message.parts.forEach { part ->
-                        val partJson = buildJsonObject {
-                            when (part) {
-                                is UIMessagePart.Text -> {
-                                    put("type", "text")
-                                    put("text", part.text)
-                                }
-
-                                is UIMessagePart.Image -> {
-                                    part.encodeBase64().onSuccess {
-                                        put("type", "image_url")
-                                        put("image_url", buildJsonObject {
-                                            put("url", it)
-                                        })
-                                    }.onFailure {
-                                        it.printStackTrace()
-                                        println("encode image failed: ${part.url}")
-
+        messages
+            .filter {
+                it.isValidToUpload()
+            }
+            .forEachIndexed { index, message ->
+                add(buildJsonObject {
+                    put("role", JsonPrimitive(message.role.name.lowercase()))
+                    putJsonArray("content") {
+                        message.parts.forEach { part ->
+                            val partJson = buildJsonObject {
+                                when (part) {
+                                    is UIMessagePart.Text -> {
                                         put("type", "text")
-                                        put("text", "")
+                                        put("text", part.text)
+                                    }
+
+                                    is UIMessagePart.Image -> {
+                                        part.encodeBase64().onSuccess {
+                                            put("type", "image_url")
+                                            put("image_url", buildJsonObject {
+                                                put("url", it)
+                                            })
+                                        }.onFailure {
+                                            it.printStackTrace()
+                                            println("encode image failed: ${part.url}")
+
+                                            put("type", "text")
+                                            put("text", "")
+                                        }
+                                    }
+
+                                    else -> {
+                                        println("message part not supported: $part")
+                                        // DO NOTHING
                                     }
                                 }
-
-                                else -> {
-                                    println("message part not supported: $part")
-                                    // DO NOTHING
-                                }
                             }
+                            add(partJson)
                         }
-                        add(partJson)
                     }
-                }
-            })
-        }
+                })
+            }
     }
 
     private fun parseMessage(jsonObject: JsonObject): UIMessage {
@@ -324,7 +338,8 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
 
     private fun parseAnnotations(jsonArray: JsonArray): List<UIMessageAnnotation> {
         return jsonArray.map { element ->
-            val type = element.jsonObject["type"]?.jsonPrimitive?.contentOrNull ?: error("type is null")
+            val type =
+                element.jsonObject["type"]?.jsonPrimitive?.contentOrNull ?: error("type is null")
             when (type) {
                 "url_citation" -> {
                     UIMessageAnnotation.UrlCitation(

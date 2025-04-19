@@ -18,7 +18,7 @@ fun <T : Number> NumberInput(
     modifier: Modifier = Modifier,
     label: String = "",
 ) {
-    var textFieldValue by remember { mutableStateOf(value.toString()) }
+    var textFieldValue by remember(value) { mutableStateOf(value.toString()) }
     var hasError by remember { mutableStateOf(false) }
     val errorText = remember { mutableStateOf("") }
     OutlinedTextField(

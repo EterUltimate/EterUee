@@ -3,6 +3,7 @@ package me.rerere.ai.ui
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import me.rerere.ai.core.MessageRole
+import me.rerere.search.SearchResult
 import kotlin.uuid.Uuid
 
 // 公共消息抽象, 具体的Provider实现会转换为API接口需要的DTO
@@ -42,6 +43,20 @@ data class UIMessage(
                             acc + UIMessagePart.Reasoning(deltaPart.reasoning)
                         }
                     }
+                    is UIMessagePart.Search -> {
+                        val existingSearchPart = acc.find { it is UIMessagePart.Search } as? UIMessagePart.Search
+                        if (existingSearchPart != null) {
+                            acc.map { part ->
+                                if (part is UIMessagePart.Search) {
+                                    UIMessagePart.Search(existingSearchPart.search.copy(
+                                        items = existingSearchPart.search.items + deltaPart.search.items
+                                    ))
+                                } else part
+                            }
+                        } else {
+                            acc + UIMessagePart.Search(deltaPart.search)
+                       }
+                    }
                     else -> {
                         println("delta part append not supported: $deltaPart")
                         acc
@@ -74,6 +89,10 @@ data class UIMessage(
             is UIMessagePart.Text -> part.text
             else -> ""
         }
+    }
+
+    fun isValidToUpload() = parts.any {
+        it !is UIMessagePart.Search && it !is UIMessagePart.Reasoning
     }
 
     operator fun plus(chunk: MessageChunk): UIMessage {
@@ -118,6 +137,26 @@ fun List<UIMessagePart>.isEmptyMessage() : Boolean {
     }
 }
 
+fun List<UIMessagePart>.searchTextContent() : String {
+    return buildString {
+        for(part in this@searchTextContent) {
+            when(part) {
+                is UIMessagePart.Search -> {
+                    part.search.items.forEachIndexed { index, item ->
+                        append("<search_item>\n")
+                        append("<index>${index+1}</index>\n")
+                        append("<title>${item.title}</title>\n")
+                        append("<content>${item.text}</content>\n")
+                        append("<url>${item.url}</url>\n")
+                        append("</search_item>\n")
+                    }
+                }
+                else -> {}
+            }
+        }
+    }
+}
+
 @Serializable
 sealed class UIMessagePart {
     @Serializable
@@ -128,6 +167,9 @@ sealed class UIMessagePart {
 
     @Serializable
     data class Reasoning(val reasoning: String) : UIMessagePart()
+
+    @Serializable
+    data class Search(val search: SearchResult): UIMessagePart()
 }
 
 @Serializable

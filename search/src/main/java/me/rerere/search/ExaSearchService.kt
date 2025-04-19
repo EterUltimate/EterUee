@@ -7,7 +7,7 @@ object ExaSearchService : SearchService<SearchServiceOptions.ExaOptions> {
         query: String,
         commonOptions: SearchCommonOptions,
         serviceOptions: SearchServiceOptions.ExaOptions
-    ): SearchResult {
+    ): Result<SearchResult> {
         TODO("Not yet implemented")
     }
 }

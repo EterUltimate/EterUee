@@ -106,6 +106,10 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                     onCancelClick = {
                         loadingJob?.cancel()
                     },
+                    enableSearch = vm.useWebSearch,
+                    onToggleSearch = {
+                        vm.useWebSearch = it
+                    },
                     onSendClick = {
                         if (currentChatModel == null) {
                             toastState.show("请先选择模型", ToastVariant.ERROR)

@@ -3,6 +3,7 @@ package me.rerere.ai.provider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 import me.rerere.ai.ui.MessageChunk
+import me.rerere.ai.ui.MessageTransformer
 import me.rerere.ai.ui.UIMessage
 
 // 提供商实现
@@ -13,13 +14,15 @@ interface Provider<T : ProviderSetting> {
     suspend fun generateText(
         providerSetting: T,
         messages: List<UIMessage>,
-        params: TextGenerationParams
+        params: TextGenerationParams,
+        messageTransformers: List<MessageTransformer> = emptyList()
     ): MessageChunk
 
     suspend fun streamText(
         providerSetting: T,
         messages: List<UIMessage>,
-        params: TextGenerationParams
+        params: TextGenerationParams,
+        messageTransformers: List<MessageTransformer> = emptyList()
     ): Flow<MessageChunk>
 }
 

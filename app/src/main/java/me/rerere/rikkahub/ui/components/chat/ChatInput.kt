@@ -70,7 +70,6 @@ import kotlin.uuid.Uuid
 class ChatInputState {
     var messageContent by mutableStateOf(listOf<UIMessagePart>())
     var editingMessage by mutableStateOf<Uuid?>(null)
-    var useWebSearch by mutableStateOf(false)
     var loading by mutableStateOf(false)
 
     fun clearInput() {
@@ -111,13 +110,11 @@ class ChatInputState {
 @Composable
 fun rememberChatInputState(
     message: List<UIMessagePart> = emptyList(),
-    useWebSearch: Boolean = false,
     loading: Boolean = false,
 ): ChatInputState {
-    return remember(message, useWebSearch, loading) {
+    return remember(message, loading) {
         ChatInputState().apply {
             this.messageContent = message
-            this.useWebSearch = useWebSearch
             this.loading = loading
         }
     }
@@ -126,6 +123,8 @@ fun rememberChatInputState(
 @Composable
 fun ChatInput(
     state: ChatInputState,
+    enableSearch: Boolean,
+    onToggleSearch: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     onCancelClick: () -> Unit,
     onSendClick: () -> Unit,
@@ -257,18 +256,21 @@ fun ChatInput(
                         expand = !expand
                     }
                 ) {
-                    Icon(if (expand) Lucide.X else Lucide.Plus, stringResource(R.string.more_options))
+                    Icon(
+                        if (expand) Lucide.X else Lucide.Plus,
+                        stringResource(R.string.more_options)
+                    )
                 }
 
                 val badgeColor = MaterialTheme.extendColors.green6
                 IconToggleButton(
-                    checked = state.useWebSearch,
+                    checked = enableSearch,
                     onCheckedChange = {
-                        state.useWebSearch = it
+                        onToggleSearch(it)
                     },
                     modifier = Modifier.drawWithContent {
                         drawContent()
-                        if (state.useWebSearch) {
+                        if (enableSearch) {
                             drawCircle(
                                 color = badgeColor,
                                 radius = 4.dp.toPx(),

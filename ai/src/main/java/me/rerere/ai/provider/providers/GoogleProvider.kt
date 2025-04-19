@@ -24,6 +24,7 @@ import me.rerere.ai.provider.Provider
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.ui.MessageChunk
+import me.rerere.ai.ui.MessageTransformer
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageChoice
 import me.rerere.ai.ui.UIMessagePart
@@ -99,7 +100,8 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
     override suspend fun generateText(
         providerSetting: ProviderSetting.Google,
         messages: List<UIMessage>,
-        params: TextGenerationParams
+        params: TextGenerationParams,
+        messageTransformers: List<MessageTransformer>
     ): MessageChunk = withContext(Dispatchers.IO) {
         val requestBody = buildJsonObject {
             // System message if available
@@ -124,7 +126,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
             })
 
             // Contents (user messages)
-            put("contents", buildContents(messages))
+            put("contents", buildContents(MessageTransformer.transform(messages, messageTransformers)))
         }
 
         val url = "$API_URL/$API_VERSION/models/${params.model.modelId}:generateContent".toHttpUrl()
@@ -168,7 +170,8 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
     override suspend fun streamText(
         providerSetting: ProviderSetting.Google,
         messages: List<UIMessage>,
-        params: TextGenerationParams
+        params: TextGenerationParams,
+        messageTransformers: List<MessageTransformer>
     ): Flow<MessageChunk> = callbackFlow {
         val requestBody = buildJsonObject {
             // System message if available
@@ -193,7 +196,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
             })
 
             // Contents (user messages)
-            put("contents", buildContents(messages))
+            put("contents", buildContents(MessageTransformer.transform(messages, messageTransformers)))
         }
 
         val url =
@@ -359,37 +362,39 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
 
     private fun buildContents(messages: List<UIMessage>): JsonArray {
         return buildJsonArray {
-            messages.filter { it.role != MessageRole.SYSTEM }.forEach { message ->
-                add(buildJsonObject {
-                    put("role", commonRoleToGoogleRole(message.role))
-                    putJsonArray("parts") {
-                        for (part in message.parts) {
-                            when (part) {
-                                is UIMessagePart.Text -> {
-                                    add(buildJsonObject {
-                                        put("text", part.text)
-                                    })
-                                }
-
-                                is UIMessagePart.Image -> {
-                                    part.encodeBase64(false).onSuccess { base64Data ->
+            messages
+                .filter { it.role != MessageRole.SYSTEM && it.isValidToUpload() }
+                .forEachIndexed { index, message ->
+                    add(buildJsonObject {
+                        put("role", commonRoleToGoogleRole(message.role))
+                        putJsonArray("parts") {
+                            for (part in message.parts) {
+                                when (part) {
+                                    is UIMessagePart.Text -> {
                                         add(buildJsonObject {
-                                            put("inline_data", buildJsonObject {
-                                                put("mime_type", "image/png")
-                                                put("data", base64Data)
-                                            })
+                                            put("text", part.text)
                                         })
                                     }
-                                }
 
-                                else -> {
-                                    // Unsupported part type
+                                    is UIMessagePart.Image -> {
+                                        part.encodeBase64(false).onSuccess { base64Data ->
+                                            add(buildJsonObject {
+                                                put("inline_data", buildJsonObject {
+                                                    put("mime_type", "image/png")
+                                                    put("data", base64Data)
+                                                })
+                                            })
+                                        }
+                                    }
+
+                                    else -> {
+                                        // Unsupported part type
+                                    }
                                 }
                             }
                         }
-                    }
-                })
-            }
+                    })
+                }
         }
     }
 }

@@ -26,6 +26,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -174,8 +175,25 @@ fun MessagePartsBlock(
     var expandReasoning by remember { mutableStateOf(true) }
     val context = LocalContext.current
     
-    // 添加预览图片状态变量
-    var previewImageUrl by remember { mutableStateOf<String?>(null) }
+    // Search
+    parts.filterIsInstance<UIMessagePart.Search>().fastForEach { search ->
+        ProvideTextStyle(MaterialTheme.typography.labelSmall) {
+            OutlinedCard {
+                Column(
+                    modifier = Modifier.padding(4.dp)
+                ) {
+                    search.search.items.fastForEach {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Favicon(it.url, Modifier.size(24.dp))
+                            Text(it.title)
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // Reasoning
     parts.filterIsInstance<UIMessagePart.Reasoning>().fastForEach {

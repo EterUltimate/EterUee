@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -16,10 +18,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.FormItem
@@ -27,6 +31,7 @@ import me.rerere.rikkahub.ui.components.ui.NumberInput
 import me.rerere.rikkahub.ui.components.ui.Select
 import me.rerere.rikkahub.utils.plus
 import me.rerere.search.SearchCommonOptions
+import me.rerere.search.SearchService
 import me.rerere.search.SearchServiceOptions
 import org.koin.androidx.compose.koinViewModel
 import kotlin.reflect.full.primaryConstructor
@@ -48,7 +53,7 @@ fun SettingSearchPage(vm: SettingVM = koinViewModel()) {
         }
     ) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().imePadding(),
             contentPadding = it + PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -108,7 +113,7 @@ private fun ProviderOptions(
                     onOptionSelected = {
                         options = it.primaryConstructor!!.callBy(mapOf())
                         onUpdateOptions(options)
-                    }
+                    },
                 )
             }
 
@@ -116,14 +121,37 @@ private fun ProviderOptions(
                 is SearchServiceOptions.TavilyOptions -> {
                     TavilyOptions(options as SearchServiceOptions.TavilyOptions) {
                         options = it
+                        onUpdateOptions(options)
                     }
                 }
 
                 is SearchServiceOptions.ExaOptions -> {
                     ExaOptions(options as SearchServiceOptions.ExaOptions) {
                         options = it
+                        onUpdateOptions(options)
                     }
                 }
+            }
+
+            val scope = rememberCoroutineScope()
+            Button(
+                onClick = {
+                    scope.launch {
+                        val service = SearchService.getService(settings.searchServiceOptions)
+                        val result = service.search(
+                            query = "kotlin",
+                            commonOptions = settings.searchCommonOptions,
+                            serviceOptions = settings.searchServiceOptions
+                        )
+                        result.onSuccess {
+                            println(it)
+                        }.onFailure {
+                            it.printStackTrace()
+                        }
+                    }
+                }
+            ) {
+                Text("测试")
             }
         }
     }
@@ -200,6 +228,9 @@ private fun CommonOptions(
                 NumberInput(
                     value = commonOptions.resultSize,
                     onValueChange = {
+                        commonOptions = commonOptions.copy(
+                            resultSize = it
+                        )
                         onUpdate(commonOptions)
                     },
                 )

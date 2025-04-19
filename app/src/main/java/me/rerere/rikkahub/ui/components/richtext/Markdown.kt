@@ -88,6 +88,11 @@ private fun preProcess(content: String): String {
             "$$" + matchResult.groupValues[1] + "$$"
         }
 
+    // 替换引用 [citation:xx] 为 <citation>xx</citation>
+    result = result.replace(Regex("\\[citation:(\\w+)\\]")) { matchResult ->
+        "<citation>${matchResult.groupValues[1]}</citation>"
+    }
+
     return result
 }
 
@@ -99,9 +104,9 @@ fun MarkdownBlock(
     val preprocessed = remember(content) { preProcess(content) }
     val astTree = remember(preprocessed) {
         parser.buildMarkdownTreeFromString(preprocessed)
-//            .also {
-//                dumpAst(it, preprocessed) // for debugging ast tree
-//            }
+            .also {
+                dumpAst(it, preprocessed) // for debugging ast tree
+            }
     }
 
     MarkdownAst(astTree, preprocessed, modifier)
@@ -499,6 +504,28 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
             if (text != "*") append(text)
         }
 
+        MarkdownTokenTypes.HTML_TAG -> {
+            val text = node.getTextInNode(content)
+            if(text == "<citation>") {
+                val id = node.nextSibling()?.getTextInNode(content)
+                if(id != null) {
+                    pushStyle(
+                        SpanStyle(
+                            background = colorScheme.secondaryContainer,
+                            fontSize = 0.85.em
+                        )
+                    )
+                    append(" ")
+                }
+            } else if(text == "</citation>") {
+                append(" ")
+                pop()
+                append(" ")
+            } else {
+                append(text)
+            }
+        }
+
         MarkdownElementTypes.EMPH -> {
             withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
                 node.children.forEach {
@@ -671,6 +698,18 @@ private fun ASTNode.getTextInNode(text: String, type: IElementType): String {
         return ""
     }
     return text.substring(startOffset, endOffset)
+}
+
+private fun ASTNode.nextSibling(): ASTNode? {
+    val brother = this.parent?.children ?: return null
+    for (i in brother.indices) {
+        if (brother[i] == this) {
+            if (i + 1 < brother.size) {
+                return brother[i + 1]
+            }
+        }
+    }
+    return null
 }
 
 private fun ASTNode.findChildOfType(vararg types: IElementType): ASTNode? {

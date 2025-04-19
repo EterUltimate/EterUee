@@ -2,6 +2,9 @@ package me.rerere.rikkahub.ui.pages.chat
 
 import android.app.Application
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,6 +25,8 @@ import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.handleMessageChunk
 import me.rerere.ai.ui.isEmptyMessage
+import me.rerere.ai.ui.transformers.PlaceholderTransformer
+import me.rerere.ai.ui.transformers.SearchTextTransformer
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.findModelById
@@ -29,11 +34,19 @@ import me.rerere.rikkahub.data.datastore.findProvider
 import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.ui.hooks.getCurrentAssistant
 import me.rerere.rikkahub.utils.deleteChatFiles
+import me.rerere.search.SearchService
 import java.time.Instant
 import java.util.Locale
 import kotlin.uuid.Uuid
 
 private const val TAG = "ChatVM"
+
+private val messageTransformers by lazy {
+    listOf(
+        SearchTextTransformer,
+        PlaceholderTransformer,
+    )
+}
 
 class ChatVM(
     savedStateHandle: SavedStateHandle,
@@ -45,6 +58,7 @@ class ChatVM(
     private val _conversation = MutableStateFlow(Conversation.ofId(_conversationId))
     val conversation: StateFlow<Conversation>
         get() = _conversation
+    var useWebSearch by mutableStateOf(false)
 
     // 异步任务
     val conversationJob = MutableStateFlow<Job?>(null)
@@ -97,15 +111,53 @@ class ChatVM(
 
     fun handleMessageSend(content: List<UIMessagePart>) {
         if (content.isEmptyMessage()) return
-        val newConversation = conversation.value.copy(
-            messages = conversation.value.messages + UIMessage(
-                role = MessageRole.USER,
-                parts = content,
-            ),
-            updateAt = Instant.now()
+
+        val job = viewModelScope.launch {
+            // 添加消息到列表
+            val newConversation = conversation.value.copy(
+                messages = conversation.value.messages + UIMessage(
+                    role = MessageRole.USER,
+                    parts = content,
+                ),
+                updateAt = Instant.now()
+            )
+            saveConversation(newConversation)
+
+            // 处理网络搜索
+            handleWebSearch()
+
+            // 开始补全
+            handleMessageComplete()
+        }
+        this.conversationJob.value = job
+        job.invokeOnCompletion {
+            this.conversationJob.value = null
+        }
+    }
+
+    suspend fun handleWebSearch() {
+        if(!useWebSearch) return
+        val service = SearchService.getService(settings.value.searchServiceOptions)
+        val result = service.search(
+            query = conversation.value.messages.last().text(),
+            commonOptions = settings.value.searchCommonOptions,
+            serviceOptions = settings.value.searchServiceOptions,
         )
-        this.saveConversation(newConversation)
-        this.handleMessageComplete()
+        result.onSuccess {
+            updateConversation(
+                conversation.value.copy(
+                    messages = conversation.value.messages + UIMessage(
+                        role = MessageRole.ASSISTANT,
+                        parts = listOf(
+                            UIMessagePart.Search(it)
+                        )
+                    )
+                )
+            )
+        }.onFailure {
+            Log.e(TAG, "handleMessageSend: ", it)
+            errorFlow.emit(it)
+        }
     }
 
     fun handleMessageEdit(parts: List<UIMessagePart>, uuid: Uuid?) {
@@ -127,39 +179,34 @@ class ChatVM(
         this.regenerateAtMessage(message)
     }
 
-    private fun handleMessageComplete() {
+    private suspend fun handleMessageComplete() {
         val model = settings.value.providers.findModelById(settings.value.chatModelId)
         val provider = model?.findProvider(settings.value.providers) ?: return
         val assistant = settings.value.getCurrentAssistant()
-        val job = viewModelScope.launch {
-            runCatching {
-                val providerHandler = ProviderManager.getProviderByType(provider)
-                providerHandler.streamText(
-                    providerSetting = provider,
-                    messages = listOf(UIMessage.system(assistant.systemPrompt)) + conversation.value.messages,
-                    params = TextGenerationParams(
-                        model = model,
-                        temperature = assistant.temperature,
+        runCatching {
+            val providerHandler = ProviderManager.getProviderByType(provider)
+            providerHandler.streamText(
+                providerSetting = provider,
+                messages = listOf(UIMessage.system(assistant.systemPrompt)) + conversation.value.messages,
+                params = TextGenerationParams(
+                    model = model,
+                    temperature = assistant.temperature,
+                ),
+                messageTransformers = messageTransformers
+            ).collect { chunk ->
+                val currConversation = conversation.value
+                updateConversation(
+                    currConversation.copy(
+                        messages = currConversation.messages.handleMessageChunk(chunk)
                     )
-                ).collect { chunk ->
-                    val currConversation = conversation.value
-                    updateConversation(
-                        currConversation.copy(
-                            messages = currConversation.messages.handleMessageChunk(chunk)
-                        )
-                    )
-                }
-            }.onFailure {
-                it.printStackTrace()
-                errorFlow.emit(it)
-            }.onSuccess {
-                saveConversation(conversation.value)
-                generateTitle(conversation.value)
+                )
             }
-        }
-        this.conversationJob.value = job
-        job.invokeOnCompletion {
-            this.conversationJob.value = null
+        }.onFailure {
+            it.printStackTrace()
+            errorFlow.emit(it)
+        }.onSuccess {
+            saveConversation(conversation.value)
+            generateTitle(conversation.value)
         }
     }
 
@@ -196,6 +243,7 @@ class ChatVM(
                         model = model,
                         temperature = 0.8f,
                     ),
+                    messageTransformers = messageTransformers
                 )
                 saveConversation(
                     conversation.copy(
@@ -231,7 +279,14 @@ class ChatVM(
             )
             this.saveConversation(newConversation)
         }
-        this.handleMessageComplete()
+        val job = viewModelScope.launch {
+            handleWebSearch()
+            handleMessageComplete()
+        }
+        conversationJob.value = job
+        conversationJob.value?.invokeOnCompletion {
+            conversationJob.value = null
+        }
     }
 
     fun updateConversation(conversation: Conversation) {

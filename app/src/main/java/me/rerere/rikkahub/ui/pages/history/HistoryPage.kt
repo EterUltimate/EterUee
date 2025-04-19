@@ -84,7 +84,7 @@ fun HistoryPage(vm: HistoryVM = koinViewModel()) {
     ) { contentPadding ->
         LazyColumn(
             contentPadding = contentPadding + PaddingValues(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(showConversations, key = { it.id }) {
                 ConversationItem(
@@ -145,7 +145,7 @@ private fun ConversationItem(
     Surface(
         onClick = onClick,
         tonalElevation = 2.dp,
-        shape = RoundedCornerShape(50)
+        shape = RoundedCornerShape(25)
     ) {
         ListItem(
             headlineContent = {

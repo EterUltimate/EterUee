@@ -31,6 +31,7 @@ interface SearchService<T : SearchServiceOptions> {
         internal val json by lazy {
             Json {
                 ignoreUnknownKeys = true
+                explicitNulls = false
             }
         }
     }

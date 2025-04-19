@@ -87,9 +87,9 @@ object ExaSearchService : SearchService<SearchServiceOptions.ExaOptions> {
         @SerialName("url")
         val url: String,
         @SerialName("publishedDate")
-        val publishedDate: String,
+        val publishedDate: String?,
         @SerialName("author")
-        val author: String,
+        val author: String?,
         @SerialName("text")
         val text: String,
     )

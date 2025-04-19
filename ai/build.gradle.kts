@@ -42,7 +42,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.okhttp)
     implementation(libs.okhttp.sse)
-    implementation(libs.firebase.vertexai)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.core)
 }

@@ -46,7 +46,6 @@ sealed class ProviderSetting {
         override var name: String = "Google",
         override var models: List<Model> = emptyList(),
         var apiKey: String = "",
-        var baseUrl: String = "https://generativelanguage.googleapis.com"
     ): ProviderSetting() {
         override fun addModel(model: Model): ProviderSetting {
             return copy(models = models + model)

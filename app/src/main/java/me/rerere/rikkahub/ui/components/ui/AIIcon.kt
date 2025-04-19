@@ -68,6 +68,7 @@ private fun computeAIIconByName(name: String): String? {
     val result = when {
         PATTERN_OPENAI.containsMatchIn(lowerName) -> "openai"
         PATTERN_GEMINI.containsMatchIn(lowerName) -> "gemini-color"
+        PATTERN_GOOGLE.containsMatchIn(lowerName) -> "google-color"
         PATTERN_ANTHROPIC.containsMatchIn(lowerName) -> "anthropic"
         PATTERN_CLAUDE.containsMatchIn(lowerName) -> "claude-color"
         PATTERN_DEEPSEEK.containsMatchIn(lowerName) -> "deepseek-color"
@@ -95,7 +96,8 @@ private fun computeAIIconByName(name: String): String? {
 // 静态缓存和正则模式
 private val ICON_CACHE = mutableMapOf<String, String>()
 private val PATTERN_OPENAI = Regex("(gpt|openai)")
-private val PATTERN_GEMINI = Regex("(gemini|google)")
+private val PATTERN_GEMINI = Regex("(gemini)")
+private val PATTERN_GOOGLE = Regex("google")
 private val PATTERN_ANTHROPIC = Regex("anthropic")
 private val PATTERN_CLAUDE = Regex("claude")
 private val PATTERN_DEEPSEEK = Regex("deepseek")

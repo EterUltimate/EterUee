@@ -15,7 +15,7 @@ private val supportedTypes = setOf(
     "image/webp",
 )
 
-fun UIMessagePart.Image.encodeBase64(): Result<String> = runCatching {
+fun UIMessagePart.Image.encodeBase64(withPrefix: Boolean = true): Result<String> = runCatching {
     if (this.url.startsWith("file://")) {
         val filePath =
             this.url.toUri().path ?: throw IllegalArgumentException("Invalid file URI: ${this.url}")
@@ -27,7 +27,7 @@ fun UIMessagePart.Image.encodeBase64(): Result<String> = runCatching {
             }
             val bytes = file.readBytes()
             val encoded = Base64.encodeToString(bytes, Base64.NO_WRAP)
-            "data:image/*;base64,$encoded"
+            if(withPrefix) "data:image/*;base64,$encoded" else encoded
         } else {
             throw IllegalArgumentException("File does not exist: ${this.url}")
         }

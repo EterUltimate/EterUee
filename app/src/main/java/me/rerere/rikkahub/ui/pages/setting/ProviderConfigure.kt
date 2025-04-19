@@ -10,7 +10,6 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,7 +58,9 @@ fun ProviderConfigure(
                 ProviderConfigureOpenAI(provider, onEdit)
             }
 
-            is ProviderSetting.Google -> {}
+            is ProviderSetting.Google -> {
+                ProviderConfigureGoogle(provider, onEdit)
+            }
         }
     }
 }
@@ -110,6 +111,46 @@ private fun ProviderConfigureOpenAI(
         },
         label = {
             Text("API Base Url")
+        },
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+private fun ProviderConfigureGoogle(
+    provider: ProviderSetting.Google,
+    onEdit: (provider: ProviderSetting.Google) -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text("是否启用", modifier = Modifier.weight(1f))
+        Checkbox(
+            checked = provider.enabled,
+            onCheckedChange = {
+                onEdit(provider.copy(enabled = it))
+            }
+        )
+    }
+
+    OutlinedTextField(
+        value = provider.name,
+        onValueChange = {
+            onEdit(provider.copy(name = it))
+        },
+        label = {
+            Text("名称")
+        },
+        modifier = Modifier.fillMaxWidth()
+    )
+
+    OutlinedTextField(
+        value = provider.apiKey,
+        onValueChange = {
+            onEdit(provider.copy(apiKey = it))
+        },
+        label = {
+            Text("API Key")
         },
         modifier = Modifier.fillMaxWidth()
     )

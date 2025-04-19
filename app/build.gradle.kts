@@ -57,6 +57,9 @@ android {
         compose = true
         buildConfig = true
     }
+    androidResources {
+        generateLocaleConfig = true
+    }
     tasks.withType<KotlinCompile>().configureEach {
         compilerOptions.optIn.add("androidx.compose.material3.ExperimentalMaterial3Api")
         compilerOptions.optIn.add("androidx.compose.animation.ExperimentalAnimationApi")
@@ -128,6 +131,7 @@ dependencies {
     // modules
     implementation(project(":ai"))
     implementation(project(":highlight"))
+    implementation(project(":search"))
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
     implementation(kotlin("reflect"))
 

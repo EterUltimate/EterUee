@@ -62,6 +62,16 @@ android {
     androidResources {
         generateLocaleConfig = true
     }
+    applicationVariants.all {
+        outputs.all {
+            this as com.android.build.gradle.internal.api.ApkVariantOutputImpl
+
+            val variantName = name
+            val apkName = "rikkahub_" + defaultConfig.versionName  + "_" + variantName + ".apk"
+
+            outputFileName = apkName
+        }
+    }
     tasks.withType<KotlinCompile>().configureEach {
         compilerOptions.optIn.add("androidx.compose.material3.ExperimentalMaterial3Api")
         compilerOptions.optIn.add("androidx.compose.animation.ExperimentalAnimationApi")

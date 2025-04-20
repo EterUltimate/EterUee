@@ -1,7 +1,7 @@
 # RikkaHub 🌟
 
 <p align="center">
-  <img src="doc/icon.png" alt="App 图标" width="100" />
+  <img src="docs/icon.png" alt="App 图标" width="100" />
 </p>
 
 点击链接加入群聊 👉 [【RikkaHub】](https://qm.qq.com/q/I8MSU0FkOu)

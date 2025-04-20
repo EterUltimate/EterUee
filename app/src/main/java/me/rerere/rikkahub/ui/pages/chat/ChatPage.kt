@@ -1,16 +1,21 @@
 package me.rerere.rikkahub.ui.pages.chat
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -24,6 +29,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
@@ -42,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.History
 import com.composables.icons.lucide.ListTree
 import com.composables.icons.lucide.Lucide
@@ -68,7 +75,6 @@ import me.rerere.rikkahub.utils.Version
 import me.rerere.rikkahub.utils.navigateToChatPage
 import me.rerere.rikkahub.utils.onError
 import me.rerere.rikkahub.utils.onSuccess
-import me.rerere.rikkahub.utils.plus
 import me.rerere.rikkahub.utils.toLocalDateTime
 import org.koin.androidx.compose.koinViewModel
 import kotlin.time.ExperimentalTime
@@ -177,6 +183,9 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
     }
 }
 
+private const val LoadingIndicatorKey = "LoadingIndicator"
+private const val ScrollBottomKey = "ScrollBottomKey"
+
 @Composable
 private fun ChatList(
     innerPadding: PaddingValues,
@@ -185,28 +194,74 @@ private fun ChatList(
     onRegenerate: (UIMessage) -> Unit = {},
     onEdit: (UIMessage) -> Unit = {},
 ) {
-    LazyColumn(
-        contentPadding = innerPadding + PaddingValues(12.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+    val state = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val scrollToBottom = {
+        state.requestScrollToItem(0)
+    }
+    Box(
+        modifier = Modifier.padding(innerPadding),
     ) {
-        items(conversation.messages, key = { it.id }) {
-            ChatMessage(
-                message = it,
-                onRegenerate = {
-                    onRegenerate(it)
-                },
-                onEdit = {
-                    onEdit(it)
-                },
-            )
+        LazyColumn(
+            state = state,
+            contentPadding = PaddingValues(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            reverseLayout = true
+        ) {
+            // 为了能正确滚动到这
+            item(ScrollBottomKey) {
+                Spacer(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(5.dp)
+                )
+            }
+
+            if (loading) {
+                item(LoadingIndicatorKey) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp
+                    )
+                }
+            }
+
+            items(conversation.messages.reversed(), key = { it.id }) {
+                ChatMessage(
+                    message = it,
+                    onRegenerate = {
+                        onRegenerate(it)
+                    },
+                    onEdit = {
+                        onEdit(it)
+                    },
+                )
+            }
         }
 
-        if (loading) {
-            item {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    strokeWidth = 2.dp
-                )
+        AnimatedVisibility(
+            state.canScrollBackward,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ) {
+            Surface(
+                shape = RoundedCornerShape(50),
+                modifier = Modifier.padding(8.dp),
+                onClick = {
+                    scrollToBottom()
+                }
+            ) {
+                Row(
+                    modifier = Modifier.padding(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Lucide.ChevronDown,
+                        contentDescription = "Scroll to bottom",
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text("滚动到底部", style = MaterialTheme.typography.bodySmall)
+                }
             }
         }
     }

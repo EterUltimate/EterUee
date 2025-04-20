@@ -158,6 +158,12 @@ private val DEFAULT_PROVIDERS = listOf(
         apiKey = "sk-"
     ),
     ProviderSetting.OpenAI(
+        id = Uuid.parse("56a94d29-c88b-41c5-8e09-38a7612d6cf8"),
+        name = "硅基流动",
+        baseUrl = "https://api.siliconflow.cn/v1",
+        apiKey = "sk-"
+    ),
+    ProviderSetting.OpenAI(
         id = Uuid.parse("d5734028-d39b-4d41-9841-fd648d65440e"),
         name = "OpenRouter",
         baseUrl = "https://openrouter.ai/api/v1",

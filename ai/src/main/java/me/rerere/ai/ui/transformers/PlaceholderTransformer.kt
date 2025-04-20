@@ -1,5 +1,6 @@
 package me.rerere.ai.ui.transformers
 
+import android.os.Build
 import me.rerere.ai.provider.Model
 import me.rerere.ai.ui.MessageTransformer
 import me.rerere.ai.ui.UIMessage
@@ -11,14 +12,16 @@ import java.util.Locale
 import java.util.TimeZone
 
 object PlaceholderTransformer : MessageTransformer {
-    val Placeholders = listOf(
-        "{cur_date}",
-        "{cur_time}",
-        "{cur_datetime}",
-        "{model_id}",
-        "{model_name}",
-        "{locale}",
-        "{timezone}"
+    val Placeholders = mapOf(
+        "{cur_date}" to "日期",
+        "{cur_time}" to "时间",
+        "{cur_datetime}" to "日期和时间",
+        "{model_id}" to "模型ID",
+        "{model_name}" to "模型名称",
+        "{locale}" to "语言环境",
+        "{timezone}" to "时区",
+        "{system_version}" to "系统版本",
+        "{device_info}" to "设备信息",
     )
 
     override fun transform(messages: List<UIMessage>, model: Model): List<UIMessage> {
@@ -35,6 +38,11 @@ object PlaceholderTransformer : MessageTransformer {
                                 .replace("{model_name}", model.displayName)
                                 .replace("{locale}", Locale.getDefault().displayName)
                                 .replace("{timezone}", TimeZone.getDefault().displayName)
+                                .replace(
+                                    "{system_version}",
+                                    "Android SDK ${Build.VERSION.SDK_INT} (${Build.VERSION.RELEASE}"
+                                )
+                                .replace("{device_info}", "${Build.BRAND} ${Build.MODEL}")
                         )
                     } else {
                         part

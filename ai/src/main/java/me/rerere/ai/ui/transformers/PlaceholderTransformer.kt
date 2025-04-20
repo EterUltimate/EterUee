@@ -4,7 +4,9 @@ import me.rerere.ai.provider.Model
 import me.rerere.ai.ui.MessageTransformer
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.util.Locale
 import java.util.TimeZone
 
@@ -12,6 +14,7 @@ object PlaceholderTransformer : MessageTransformer {
     val Placeholders = listOf(
         "{cur_date}",
         "{cur_time}",
+        "{cur_datetime}",
         "{model_id}",
         "{model_name}",
         "{locale}",
@@ -25,8 +28,9 @@ object PlaceholderTransformer : MessageTransformer {
                     if (part is UIMessagePart.Text) {
                         part.copy(
                             text = part.text
-                                .replace("{cur_date}", LocalDateTime.now().toString())
-                                .replace("{cur_time}", LocalDateTime.now().toString())
+                                .replace("{cur_date}", LocalDate.now().toString())
+                                .replace("{cur_time}", LocalTime.now().toString())
+                                .replace("{cur_datetime}", LocalDateTime.now().toString())
                                 .replace("{model_id}", model.modelId)
                                 .replace("{model_name}", model.displayName)
                                 .replace("{locale}", Locale.getDefault().displayName)

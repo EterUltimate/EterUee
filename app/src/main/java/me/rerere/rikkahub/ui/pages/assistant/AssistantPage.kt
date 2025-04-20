@@ -77,7 +77,7 @@ fun AssistantPage(vm: AssistantVM = koinViewModel()) {
             contentPadding = it + PaddingValues(8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            items(settings.assistants) { assistant ->
+            items(settings.assistants, key = { it.id }) { assistant ->
                 AssistantItem(
                     assistant = assistant,
                     onEdit = {

@@ -192,7 +192,7 @@ private fun ProviderItem(
     val toastState = rememberToastState()
     // 临时复制一份用于编辑
     // 因为data store是异步操作的，会导致UI编辑不同步
-    var internalProvider by remember { mutableStateOf(provider) }
+    var internalProvider by remember(provider) { mutableStateOf(provider) }
     var expand by remember { mutableStateOf(ProviderExpandState.None) }
     fun setExpand(state: ProviderExpandState) {
         expand = if (expand == state) {

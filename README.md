@@ -28,13 +28,38 @@
 - 🔍 搜索支持（Exa、Tavily）
 - 🧩 Prompt 变量（模型名称、时间等）
 
-## 开发计划
+## ☑️ 开发计划
 
 - 🌐 完善多语言支持
 - 🔍 支持调整更多模型参数 (例如思考budget)
 - 🔊 完善TTS功能
 - 📝 内置翻译页面
 - 🤳 二维码导出和导入提供商
+
+## ✨ 贡献
+
+本项目使用[Android Studio](https://developer.android.com/studio)开发，欢迎提交PR
+
+技术栈文档:
+
+- [Kotlin](https://kotlinlang.org/) (开发语言)
+- [Jetpack Compose](https://developer.android.com/jetpack/compose) (UI 框架)
+- [DataStore](https://developer.android.com/topic/libraries/architecture/datastore?hl=zh-cn#preferences-datastore) (偏好数据存储)
+- [Room](https://developer.android.com/training/data-storage/room) (数据库)
+- [Coil](https://coil-kt.github.io/coil/) (图片加载)
+- [Material You](https://m3.material.io/) (UI 设计)
+- [Navigation Compose](https://developer.android.com/develop/ui/compose/navigation) (导航)
+- [Okhttp](https://square.github.io/okhttp/) (HTTP 客户端)
+- [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization) (Json序列化)
+- [compose-icons/lucide](https://composeicons.com/icon-libraries/lucide) (图标库)
+
+## 💖 捐赠
+
+如果你喜欢这个项目，可以请我喝杯咖啡 ☕
+
+<div>
+  <img src="docs/donate.png" alt="捐赠" width="200" />
+</div>
 
 ## 📄 许可证
 

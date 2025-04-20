@@ -149,6 +149,7 @@ dependencies {
     implementation(project(":ai"))
     implementation(project(":highlight"))
     implementation(project(":search"))
+    implementation(project(":rag"))
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
     implementation(kotlin("reflect"))
 

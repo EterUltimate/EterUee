@@ -1,6 +1,7 @@
 package me.rerere.rikkahub.di
 
 import androidx.room.Room
+import me.rerere.rag.db.SQLiteVectorDatabase
 import me.rerere.rikkahub.data.db.AppDatabase
 import org.koin.dsl.module
 
@@ -13,5 +14,10 @@ val dbModule = module {
 
     single {
         get<AppDatabase>().conversationDao()
+    }
+
+    single {
+        println("create vector db")
+        SQLiteVectorDatabase(get(), "rikka_hub_vector")
     }
 }

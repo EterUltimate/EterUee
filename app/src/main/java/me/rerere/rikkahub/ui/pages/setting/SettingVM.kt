@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import me.rerere.rikkahub.data.datastore.Settings
@@ -11,11 +12,16 @@ import me.rerere.rikkahub.data.datastore.SettingsStore
 
 class SettingVM(private val settingsStore: SettingsStore) : ViewModel() {
     val settings: StateFlow<Settings> = settingsStore.settingsFlow
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, Settings())
 
     fun updateSettings(settings: Settings) {
         viewModelScope.launch {
             settingsStore.update(settings)
         }
+    }
+
+    init {
+        updateSettings(settings.value)
     }
 }

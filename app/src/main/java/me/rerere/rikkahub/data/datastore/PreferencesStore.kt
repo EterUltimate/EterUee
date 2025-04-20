@@ -79,13 +79,13 @@ class SettingsStore(context: Context) {
             val providers = it.providers.ifEmpty { DEFAULT_PROVIDERS }.toMutableList()
             DEFAULT_PROVIDERS.forEach { defaultProvider ->
                 if (providers.none { it.id == defaultProvider.id }) {
-                    providers.add(0, defaultProvider)
+                    providers.add(defaultProvider.copy())
                 }
             }
             val assistants = it.assistants.ifEmpty { DEFAULT_ASSISTANTS }.toMutableList()
             DEFAULT_ASSISTANTS.forEach { defaultAssistant ->
                 if (assistants.none { it.id == defaultAssistant.id }) {
-                    assistants.add(0, defaultAssistant)
+                    assistants.add(defaultAssistant.copy())
                 }
             }
             it.copy(
@@ -181,6 +181,12 @@ private val DEFAULT_PROVIDERS = listOf(
         baseUrl = "https://ark.cn-beijing.volces.com/api/v3",
         apiKey = ""
     ),
+    ProviderSetting.OpenAI(
+        id = Uuid.parse("3bc40dc1-b11a-46fa-863b-6306971223be"),
+        name = "智谱AI开放平台",
+        baseUrl = "https://open.bigmodel.cn/api/paas/v4",
+        apiKey = ""
+    )
 )
 
 private val DEFAULT_ASSISTANT_ID = Uuid.parse("0950e2dc-9bd5-4801-afa3-aa887aa36b4e")

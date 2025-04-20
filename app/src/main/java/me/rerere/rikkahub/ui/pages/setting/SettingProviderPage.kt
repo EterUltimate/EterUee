@@ -108,7 +108,7 @@ fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
             contentPadding = innerPadding + PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            items(settings.providers) { provider ->
+            items(settings.providers, key = { it.id }) { provider ->
                 ProviderItem(
                     modifier = Modifier.animateItem(),
                     provider = provider,
@@ -424,7 +424,11 @@ private fun AddModelButton(
                                                     .weight(1f),
                                                 verticalArrangement = Arrangement.spacedBy(4.dp),
                                             ) {
-                                                items(models.fastFilter { it.modelId.contains(filterText) }) {
+                                                items(models.fastFilter {
+                                                    it.modelId.contains(
+                                                        filterText
+                                                    )
+                                                }) {
                                                     Card(
                                                         onClick = {
                                                             modelListState.currentState = it.copy()
@@ -657,7 +661,9 @@ private fun ModelCard(
         state = swipeToDismissBoxState,
         backgroundContent = {
             Row(
-                modifier = Modifier.fillMaxSize().padding(8.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
                 verticalAlignment = Alignment.CenterVertically
             ) {

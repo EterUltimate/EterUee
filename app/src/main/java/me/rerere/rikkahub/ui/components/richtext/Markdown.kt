@@ -73,23 +73,27 @@ private val parser by lazy {
     MarkdownParser(flavour)
 }
 
+private val INLINE_LATEX_REGEX = Regex("\\\\\\((.+?)\\\\\\)")
+private val BLOCK_LATEX_REGEX = Regex("\\\\\\[(.+?)\\\\\\]", RegexOption.DOT_MATCHES_ALL)
+private val CITATION_REGEX = Regex("\\[citation:(\\w+)\\]")
+
 // 预处理markdown内容，将行内公式和块级公式转换为LaTeX格式
 // 替换行内公式 \( ... \) 到 $ ... $
 // 替换块级公式 \[ ... \] 到 $$ ... $$
 private fun preProcess(content: String): String {
     // 替换行内公式 \( ... \) 到 $ ... $
-    var result = content.replace(Regex("\\\\\\((.+?)\\\\\\)")) { matchResult ->
+    var result = content.replace(INLINE_LATEX_REGEX) { matchResult ->
         "$" + matchResult.groupValues[1] + "$"
     }
 
     // 替换块级公式 \[ ... \] 到 $$ ... $$
     result =
-        result.replace(Regex("\\\\\\[(.+?)\\\\\\]", RegexOption.DOT_MATCHES_ALL)) { matchResult ->
+        result.replace(BLOCK_LATEX_REGEX) { matchResult ->
             "$$" + matchResult.groupValues[1] + "$$"
         }
 
     // 替换引用 [citation:xx] 为 <citation>xx</citation>
-    result = result.replace(Regex("\\[citation:(\\w+)\\]")) { matchResult ->
+    result = result.replace(CITATION_REGEX) { matchResult ->
         "<citation>${matchResult.groupValues[1]}</citation>"
     }
 

@@ -194,7 +194,12 @@ class ChatVM(
             val providerHandler = ProviderManager.getProviderByType(provider)
             providerHandler.streamText(
                 providerSetting = provider,
-                messages = listOf(UIMessage.system(assistant.systemPrompt)) + conversation.value.messages,
+                messages = buildList {
+                    if(assistant.systemPrompt.isNotBlank()) {
+                        add(UIMessage.system(assistant.systemPrompt))
+                    }
+                    addAll(conversation.value.messages)
+                },
                 params = TextGenerationParams(
                     model = model,
                     temperature = assistant.temperature,

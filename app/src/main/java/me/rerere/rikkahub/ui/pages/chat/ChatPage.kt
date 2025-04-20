@@ -2,6 +2,7 @@ package me.rerere.rikkahub.ui.pages.chat
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,25 +11,35 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.composables.icons.lucide.History
@@ -40,18 +51,29 @@ import kotlinx.coroutines.launch
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.ui.Conversation
 import me.rerere.ai.ui.UIMessage
+import me.rerere.rikkahub.BuildConfig
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.ui.components.chat.AssistantPicker
 import me.rerere.rikkahub.ui.components.chat.ChatInput
 import me.rerere.rikkahub.ui.components.chat.ChatMessage
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
 import me.rerere.rikkahub.ui.components.chat.rememberChatInputState
+import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.components.ui.ToastVariant
 import me.rerere.rikkahub.ui.components.ui.rememberToastState
 import me.rerere.rikkahub.ui.context.LocalNavController
+import me.rerere.rikkahub.ui.hooks.useThrottle
+import me.rerere.rikkahub.utils.UpdateDownload
+import me.rerere.rikkahub.utils.Version
 import me.rerere.rikkahub.utils.navigateToChatPage
+import me.rerere.rikkahub.utils.onError
+import me.rerere.rikkahub.utils.onSuccess
 import me.rerere.rikkahub.utils.plus
+import me.rerere.rikkahub.utils.toLocalDateTime
 import org.koin.androidx.compose.koinViewModel
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 import kotlin.uuid.Uuid
 
 @Composable
@@ -239,64 +261,180 @@ private fun DrawerContent(
     ModalDrawerSheet(
         modifier = Modifier.width(270.dp)
     ) {
-        ConversationList(
-            current = current,
-            conversations = conversations,
-            loadings = if (loading) listOf(current.id) else emptyList(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(8.dp),
-            onClick = {
-                navController.navigate("chat/${it.id}") {
-                    popUpTo("chat/${current.id}") {
-                        inclusive = true
-                    }
-                    launchSingleTop = true
-                }
-            },
-            onRegenerateTitle = {
-                vm.generateTitle(it, true)
-            },
-            onDelete = {
-                vm.deleteConversation(it)
-                if (it.id == current.id) {
-                    navigateToChatPage(navController)
-                }
-            }
-        )
-        AssistantPicker(
-            settings = settings,
-            onUpdateSettings = { vm.updateSettings(it) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            onClickSetting = {
-                navController.navigate("assistant")
-            }
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier.padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            TextButton(
+            UpdateCard(vm)
+            ConversationList(
+                current = current,
+                conversations = conversations,
+                loadings = if (loading) listOf(current.id) else emptyList(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
                 onClick = {
-                    navController.navigate("history")
+                    navController.navigate("chat/${it.id}") {
+                        popUpTo("chat/${current.id}") {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
                 },
-                modifier = Modifier.weight(1f)
-            ) {
-                Icon(Lucide.History, "Chat History")
-                Text("聊天历史", modifier = Modifier.padding(start = 4.dp))
-            }
-            TextButton(
-                onClick = {
-                    navController.navigate("setting")
+                onRegenerateTitle = {
+                    vm.generateTitle(it, true)
                 },
-                modifier = Modifier.weight(1f)
+                onDelete = {
+                    vm.deleteConversation(it)
+                    if (it.id == current.id) {
+                        navigateToChatPage(navController)
+                    }
+                }
+            )
+            AssistantPicker(
+                settings = settings,
+                onUpdateSettings = { vm.updateSettings(it) },
+                modifier = Modifier.fillMaxWidth(),
+                onClickSetting = {
+                    navController.navigate("assistant")
+                }
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(Lucide.Settings, "Settings")
-                Text("设置", modifier = Modifier.padding(start = 4.dp))
+                TextButton(
+                    onClick = {
+                        navController.navigate("history")
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Lucide.History, "Chat History")
+                    Text("聊天历史", modifier = Modifier.padding(start = 4.dp))
+                }
+                TextButton(
+                    onClick = {
+                        navController.navigate("setting")
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Lucide.Settings, "Settings")
+                    Text("设置", modifier = Modifier.padding(start = 4.dp))
+                }
             }
         }
     }
 }
 
+@OptIn(ExperimentalTime::class)
+@Composable
+private fun UpdateCard(vm: ChatVM) {
+    val state by vm.updateState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val toastState = rememberToastState()
+    state.onError {
+        Card {
+            Column(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "检查更新失败",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
+                Text(
+                    text = it.message ?: "未知错误",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+    }
+    state.onSuccess { info ->
+        var showDetail by remember { mutableStateOf(false) }
+        val current = remember { Version(BuildConfig.VERSION_NAME) }
+        val latest = remember(info) { Version(info.version) }
+        if (latest > current) {
+            Card(
+                onClick = {
+                    showDetail = true
+                }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "发现新版本 ${info.version}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    MarkdownBlock(
+                        content = info.changelog,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+        }
+        if (showDetail) {
+            val downloadHandler = useThrottle<UpdateDownload>(500) { item ->
+                vm.updateChecker.downloadUpdate(context, item)
+                showDetail = false
+                toastState.show("已在下载，请在状态栏查看下载进度", ToastVariant.INFO)
+            }
+            ModalBottomSheet(
+                onDismissRequest = { showDetail = false },
+                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 32.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = info.version,
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = Instant.parse(info.publishedAt).toJavaInstant().toLocalDateTime()
+                            .toString(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    MarkdownBlock(
+                        content = info.changelog,
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    info.downloads.fastForEach { downloadItem ->
+                        Card(
+                            onClick = {
+                                downloadHandler(downloadItem)
+                            }
+                        ) {
+                            ListItem(
+                                headlineContent = {
+                                    Text(
+                                        text = downloadItem.name,
+                                    )
+                                },
+                                supportingContent = {
+                                    Text(
+                                        text = downloadItem.size
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

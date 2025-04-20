@@ -100,6 +100,7 @@ private fun preProcess(content: String): String {
 fun MarkdownBlock(
     content: String,
     modifier: Modifier = Modifier,
+    style: TextStyle = LocalTextStyle.current,
 ) {
     val preprocessed = remember(content) { preProcess(content) }
     val astTree = remember(preprocessed) {
@@ -109,7 +110,9 @@ fun MarkdownBlock(
 //            }
     }
 
-    MarkdownAst(astTree, preprocessed, modifier)
+    ProvideTextStyle(style) {
+        MarkdownAst(astTree, preprocessed, modifier)
+    }
 }
 
 // for debug

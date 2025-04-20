@@ -33,6 +33,8 @@ import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.findProvider
 import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.ui.hooks.getCurrentAssistant
+import me.rerere.rikkahub.utils.UiState
+import me.rerere.rikkahub.utils.UpdateChecker
 import me.rerere.rikkahub.utils.deleteChatFiles
 import me.rerere.search.SearchService
 import java.time.Instant
@@ -53,6 +55,7 @@ class ChatVM(
     private val context: Application,
     private val settingsStore: SettingsStore,
     private val conversationRepo: ConversationRepository,
+    val updateChecker: UpdateChecker,
 ) : ViewModel() {
     private val _conversationId: Uuid = Uuid.parse(checkNotNull(savedStateHandle["id"]))
     private val _conversation = MutableStateFlow(Conversation.ofId(_conversationId))
@@ -108,6 +111,10 @@ class ChatVM(
             )
         }
     }
+
+    // Update checker
+    val updateState = updateChecker.checkUpdate()
+        .stateIn(viewModelScope, SharingStarted.Lazily, UiState.Loading)
 
     fun handleMessageSend(content: List<UIMessagePart>) {
         if (content.isEmptyMessage()) return

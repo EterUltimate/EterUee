@@ -1,5 +1,9 @@
 # RikkaHub 🌟
 
+<p align="center">
+  <img src="doc/icon.png" alt="App 图标" width="100" />
+</p>
+
 点击链接加入群聊 👉 [【RikkaHub】](https://qm.qq.com/q/I8MSU0FkOu)
 
 一个原生开发的安卓 LLM 聊天客户端，支持切换不同的供应商进行聊天 🤖💬

@@ -138,7 +138,7 @@ private fun AssistantDialog(state: EditState<Assistant>) {
                 )
 
                 Text(
-                    text = "可用变量: " + PlaceholderTransformer.Placeholders.joinToString(", "),
+                    text = "可用变量: " + PlaceholderTransformer.Placeholders.entries.joinToString(", ") { "${it.key}: ${it.value}" },
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.secondary,
                 )

@@ -255,7 +255,10 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
     ): JsonObject {
         return buildJsonObject {
             put("model", params.model.modelId)
-            put("messages", buildMessages(MessageTransformer.transform(messages, messageTransformers)))
+            put(
+                "messages",
+                buildMessages(MessageTransformer.transform(messages, messageTransformers))
+            )
             put("temperature", params.temperature)
             put("top_p", params.topP)
             put("stream", stream)
@@ -270,37 +273,43 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             .forEachIndexed { index, message ->
                 add(buildJsonObject {
                     put("role", JsonPrimitive(message.role.name.lowercase()))
-                    putJsonArray("content") {
-                        message.parts.forEach { part ->
-                            val partJson = buildJsonObject {
-                                when (part) {
-                                    is UIMessagePart.Text -> {
-                                        put("type", "text")
-                                        put("text", part.text)
-                                    }
-
-                                    is UIMessagePart.Image -> {
-                                        part.encodeBase64().onSuccess {
-                                            put("type", "image_url")
-                                            put("image_url", buildJsonObject {
-                                                put("url", it)
-                                            })
-                                        }.onFailure {
-                                            it.printStackTrace()
-                                            println("encode image failed: ${part.url}")
-
+                    if (message.parts.size == 1 && message.parts[0] is UIMessagePart.Text) {
+                        // 如果只是纯文本，直接赋值给content
+                        put("content", (message.parts[0] as UIMessagePart.Text).text)
+                    } else {
+                        // 否则，使用parts构建
+                        putJsonArray("content") {
+                            message.parts.forEach { part ->
+                                val partJson = buildJsonObject {
+                                    when (part) {
+                                        is UIMessagePart.Text -> {
                                             put("type", "text")
-                                            put("text", "")
+                                            put("text", part.text)
+                                        }
+
+                                        is UIMessagePart.Image -> {
+                                            part.encodeBase64().onSuccess {
+                                                put("type", "image_url")
+                                                put("image_url", buildJsonObject {
+                                                    put("url", it)
+                                                })
+                                            }.onFailure {
+                                                it.printStackTrace()
+                                                println("encode image failed: ${part.url}")
+
+                                                put("type", "text")
+                                                put("text", "")
+                                            }
+                                        }
+
+                                        else -> {
+                                            println("message part not supported: $part")
+                                            // DO NOTHING
                                         }
                                     }
-
-                                    else -> {
-                                        println("message part not supported: $part")
-                                        // DO NOTHING
-                                    }
                                 }
+                                add(partJson)
                             }
-                            add(partJson)
                         }
                     }
                 })

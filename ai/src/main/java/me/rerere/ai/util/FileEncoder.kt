@@ -27,7 +27,7 @@ fun UIMessagePart.Image.encodeBase64(withPrefix: Boolean = true): Result<String>
             }
             val bytes = file.readBytes()
             val encoded = Base64.encodeToString(bytes, Base64.NO_WRAP)
-            if(withPrefix) "data:image/*;base64,$encoded" else encoded
+            if(withPrefix) "data:${file.guessMimeType().getOrThrow()};base64,$encoded" else encoded
         } else {
             throw IllegalArgumentException("File does not exist: ${this.url}")
         }

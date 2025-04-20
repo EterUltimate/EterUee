@@ -59,7 +59,7 @@ data class SearchResult(
 @Serializable
 sealed class SearchServiceOptions {
     companion object {
-        val DEFAULT = ZhipuOptions("")
+        val DEFAULT = BingLocalOptions()
 
         val TYPES = mapOf(
             BingLocalOptions::class to "Bing",

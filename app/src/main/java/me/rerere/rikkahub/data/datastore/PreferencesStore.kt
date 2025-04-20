@@ -88,9 +88,6 @@ class SettingsStore(context: Context) {
                     assistants.add(defaultAssistant.copy())
                 }
             }
-            providers.forEach {
-                println(it)
-            }
             it.copy(
                 providers = providers,
                 assistants = assistants

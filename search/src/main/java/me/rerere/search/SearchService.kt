@@ -20,6 +20,7 @@ interface SearchService<T : SearchServiceOptions> {
             return when (options) {
                 is SearchServiceOptions.TavilyOptions -> TavilySearchService
                 is SearchServiceOptions.ExaOptions -> ExaSearchService
+                is SearchServiceOptions.ZhipuOptions -> ZhipuSearchService
             } as SearchService<T>
         }
 
@@ -57,13 +58,20 @@ data class SearchResult(
 @Serializable
 sealed class SearchServiceOptions {
     companion object {
-        val DEFAULT = TavilyOptions("")
+        val DEFAULT = ZhipuOptions("")
 
         val TYPES = mapOf(
+            ZhipuOptions::class to "智谱",
             TavilyOptions::class to "Tavily",
             ExaOptions::class to "Exa"
         )
     }
+
+    @Serializable
+    @SerialName("zhipu")
+    data class ZhipuOptions(
+        val apiKey: String = ""
+    ) : SearchServiceOptions()
 
     @Serializable
     @SerialName("tavily")

@@ -67,7 +67,7 @@ android {
             this as com.android.build.gradle.internal.api.ApkVariantOutputImpl
 
             val variantName = name
-            val apkName = "rikkahub_" + defaultConfig.versionName  + "_" + variantName + ".apk"
+            val apkName = "app_" + defaultConfig.versionName  + "_" + variantName + ".apk"
 
             outputFileName = apkName
         }

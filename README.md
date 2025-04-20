@@ -11,13 +11,11 @@
   <img src="docs/img/provider.png" alt="供应商选择" width="150" />
 </div>
 
----
 
 ## 🚀 下载
 
 🔗 [点击前往下载页面](https://github.com/re-ovo/rikkahub/releases)
 
----
 
 ## ✨ 功能特色
 
@@ -30,7 +28,6 @@
 - 🧩 Prompt 变量（模型名称、时间等）
 - 🌐 多语言支持 (Working In Progress)
 
----
 
 ## 📄 许可证
 

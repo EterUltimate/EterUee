@@ -126,7 +126,16 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
             })
 
             // Contents (user messages)
-            put("contents", buildContents(MessageTransformer.transform(messages, messageTransformers)))
+            put(
+                "contents",
+                buildContents(
+                    MessageTransformer.transform(
+                        messages,
+                        params.model,
+                        messageTransformers
+                    )
+                )
+            )
         }
 
         val url = "$API_URL/$API_VERSION/models/${params.model.modelId}:generateContent".toHttpUrl()
@@ -196,7 +205,16 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
             })
 
             // Contents (user messages)
-            put("contents", buildContents(MessageTransformer.transform(messages, messageTransformers)))
+            put(
+                "contents",
+                buildContents(
+                    MessageTransformer.transform(
+                        messages,
+                        params.model,
+                        messageTransformers
+                    )
+                )
+            )
         }
 
         val url =

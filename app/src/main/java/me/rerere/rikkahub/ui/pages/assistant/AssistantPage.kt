@@ -30,6 +30,7 @@ import com.composables.icons.lucide.Delete
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.Plus
+import me.rerere.ai.ui.transformers.PlaceholderTransformer
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.ui.components.nav.BackButton
@@ -134,6 +135,12 @@ private fun AssistantDialog(state: EditState<Assistant>) {
                     minLines = 3,
                     maxLines = 5,
                     modifier = Modifier.fillMaxWidth()
+                )
+
+                Text(
+                    text = "可用变量: " + PlaceholderTransformer.Placeholders.joinToString(", "),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.secondary,
                 )
 
                 NumberInput(

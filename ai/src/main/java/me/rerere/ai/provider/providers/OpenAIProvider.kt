@@ -257,7 +257,13 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             put("model", params.model.modelId)
             put(
                 "messages",
-                buildMessages(MessageTransformer.transform(messages, messageTransformers))
+                buildMessages(
+                    MessageTransformer.transform(
+                        messages,
+                        params.model,
+                        messageTransformers
+                    )
+                )
             )
             put("temperature", params.temperature)
             put("top_p", params.topP)

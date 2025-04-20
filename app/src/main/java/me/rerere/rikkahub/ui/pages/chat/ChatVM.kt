@@ -254,7 +254,7 @@ class ChatVM(
                     ),
                     params = TextGenerationParams(
                         model = model,
-                        temperature = 0.8f,
+                        temperature = 0.3f,
                     ),
                     messageTransformers = messageTransformers
                 )

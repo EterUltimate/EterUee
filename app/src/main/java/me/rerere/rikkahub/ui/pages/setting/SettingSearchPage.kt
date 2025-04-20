@@ -136,28 +136,9 @@ private fun ProviderOptions(
                         onUpdateOptions(options)
                     }
                 }
-            }
 
-//            val scope = rememberCoroutineScope()
-//            Button(
-//                onClick = {
-//                    scope.launch {
-//                        val service = SearchService.getService(settings.searchServiceOptions)
-//                        val result = service.search(
-//                            query = "kotlin",
-//                            commonOptions = settings.searchCommonOptions,
-//                            serviceOptions = settings.searchServiceOptions
-//                        )
-//                        result.onSuccess {
-//                            println(it)
-//                        }.onFailure {
-//                            it.printStackTrace()
-//                        }
-//                    }
-//                }
-//            ) {
-//                Text("测试")
-//            }
+                is SearchServiceOptions.BingLocalOptions -> {}
+            }
         }
     }
 }

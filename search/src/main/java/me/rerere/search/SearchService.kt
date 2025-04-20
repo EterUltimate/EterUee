@@ -21,6 +21,7 @@ interface SearchService<T : SearchServiceOptions> {
                 is SearchServiceOptions.TavilyOptions -> TavilySearchService
                 is SearchServiceOptions.ExaOptions -> ExaSearchService
                 is SearchServiceOptions.ZhipuOptions -> ZhipuSearchService
+                is SearchServiceOptions.BingLocalOptions -> BingSearchService
             } as SearchService<T>
         }
 
@@ -61,11 +62,16 @@ sealed class SearchServiceOptions {
         val DEFAULT = ZhipuOptions("")
 
         val TYPES = mapOf(
+            BingLocalOptions::class to "Bing",
             ZhipuOptions::class to "智谱",
             TavilyOptions::class to "Tavily",
             ExaOptions::class to "Exa"
         )
     }
+
+    @Serializable
+    @SerialName("bing_local")
+    class BingLocalOptions : SearchServiceOptions()
 
     @Serializable
     @SerialName("zhipu")

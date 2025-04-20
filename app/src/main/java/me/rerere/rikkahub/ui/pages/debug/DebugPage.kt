@@ -9,10 +9,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 import me.rerere.rikkahub.ui.components.nav.BackButton
+import me.rerere.search.SearchService
 import org.koin.androidx.compose.koinViewModel
 import kotlin.random.Random
 import kotlin.random.nextInt
@@ -34,7 +37,9 @@ fun DebugPage(vm: DebugVM = koinViewModel()) {
         }
     ) { contentPadding ->
         Column(
-            modifier = Modifier.padding(contentPadding),
+            modifier = Modifier
+                .padding(contentPadding)
+                .padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Button(
@@ -55,6 +60,27 @@ fun DebugPage(vm: DebugVM = koinViewModel()) {
                 }
             ) {
                 Text("崩溃")
+            }
+
+            val scope = rememberCoroutineScope()
+            Button(
+                onClick = {
+                    scope.launch {
+                        val service = SearchService.getService(settings.searchServiceOptions)
+                        val result = service.search(
+                            query = "mc 1.21.5更新内容",
+                            commonOptions = settings.searchCommonOptions,
+                            serviceOptions = settings.searchServiceOptions
+                        )
+                        result.onSuccess {
+                            println(it)
+                        }.onFailure {
+                            it.printStackTrace()
+                        }
+                    }
+                }
+            ) {
+                Text("测试搜索")
             }
         }
     }

@@ -26,6 +26,7 @@ image-viewer = "1.1.0-alpha.7"
 google-services = "4.4.2"
 firebase-bom = "33.12.0"
 firebase-crashlytics = "3.0.3"
+jsoup = "1.19.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -67,6 +68,7 @@ image-viewer = { group = "com.jvziyaoyao.scale", name = "image-viewer", version.
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase-bom" }
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics" }
+jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

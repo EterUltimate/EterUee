@@ -170,7 +170,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                     close()
                     return
                 }
-                println(data)
+                // println(data)
                 data
                     .trim()
                     .split("\n")

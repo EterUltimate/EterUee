@@ -1,5 +1,5 @@
 <div align="center">
-# RikkaHub 🌟
+<h1>RikkaHub</h1>   
 <img src="docs/icon.png" alt="App 图标" width="100" />
 </div>
 

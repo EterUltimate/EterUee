@@ -119,6 +119,7 @@ class ChatVM(
     fun handleMessageSend(content: List<UIMessagePart>) {
         if (content.isEmptyMessage()) return
 
+        this.conversationJob.value?.cancel()
         val job = viewModelScope.launch {
             // 添加消息到列表
             val newConversation = conversation.value.copy(
@@ -291,12 +292,13 @@ class ChatVM(
             )
             this.saveConversation(newConversation)
         }
+        conversationJob.value?.cancel()
         val job = viewModelScope.launch {
             handleWebSearch()
             handleMessageComplete()
         }
         conversationJob.value = job
-        conversationJob.value?.invokeOnCompletion {
+        job.invokeOnCompletion {
             conversationJob.value = null
         }
     }

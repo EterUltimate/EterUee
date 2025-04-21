@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.composables.icons.lucide.Code
+import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.Github
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Phone
@@ -36,8 +37,8 @@ import me.rerere.rikkahub.BuildConfig
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.context.LocalNavController
-import me.rerere.rikkahub.utils.plus
 import me.rerere.rikkahub.utils.openUrl
+import me.rerere.rikkahub.utils.plus
 
 @Composable
 fun SettingAboutPage() {
@@ -121,6 +122,25 @@ fun SettingAboutPage() {
                     },
                     leadingContent = {
                         Icon(Lucide.Phone, null)
+                    }
+                )
+            }
+
+            item {
+                ListItem(
+                    headlineContent = {
+                        Text("官网")
+                    },
+                    supportingContent = {
+                        Text(
+                            text = "https://rikka-ai.com"
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        context.openUrl("https://rikka-ai.com/")
+                    },
+                    leadingContent = {
+                        Icon(Lucide.Earth, null)
                     }
                 )
             }

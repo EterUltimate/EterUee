@@ -1,13 +1,13 @@
 <div align="center">
   <img src="docs/icon.png" alt="App 图标" width="100" />
   <h1>RikkaHub</h1>
-</div>
 
 > 点击链接加入群聊 👉 [【RikkaHub】](https://qm.qq.com/q/I8MSU0FkOu)
 
 一个原生Android LLM 聊天客户端，支持切换不同的供应商进行聊天 🤖💬
+</div>
 
-<div>
+<div align="center">
   <img src="docs/img/chat.png" alt="聊天界面" width="150" />
   <img src="docs/img/chat_img.png" alt="多模态聊天界面" width="150" />
   <img src="docs/img/setting.png" alt="设置界面" width="150" />

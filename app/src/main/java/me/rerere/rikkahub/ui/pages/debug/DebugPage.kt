@@ -82,14 +82,6 @@ fun DebugPage(vm: DebugVM = koinViewModel()) {
             ) {
                 Text("测试搜索")
             }
-
-            Button(
-                onClick = {
-                    vm.vectorDatabase.test()
-                }
-            ) {
-                Text("vector db test")
-            }
         }
     }
 }

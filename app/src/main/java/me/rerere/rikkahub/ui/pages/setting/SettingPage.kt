@@ -1,5 +1,8 @@
 package me.rerere.rikkahub.ui.pages.setting
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,6 +31,7 @@ import com.composables.icons.lucide.HardDrive
 import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Palette
+import com.composables.icons.lucide.Share2
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.utils.countChatFiles
@@ -167,6 +171,34 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                     },
                 )
             }
+
+            item {
+                val context = LocalContext.current
+                SettingItem(
+                    navController = navController,
+                    title = { Text("分享") },
+                    description = {
+                        Text("分享本APP给朋友")
+                    },
+                    icon = {
+                        Icon(Lucide.Share2, "Share")
+                    },
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_SEND)
+                        intent.type = "text/plain"
+                        intent.putExtra(Intent.EXTRA_TEXT, """
+                            RikkaHub - 开源安卓AI助手
+                            
+                            官网: https://rikka-ai.com/
+                        """.trimIndent())
+                        try {
+                            context.startActivity(Intent.createChooser(intent, "分享到"))
+                        } catch (e: ActivityNotFoundException) {
+                            Toast.makeText(context, "找不到分享应用", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                )
+            }
         }
     }
 }
@@ -178,10 +210,12 @@ fun SettingItem(
     description: @Composable () -> Unit,
     icon: @Composable () -> Unit,
     link: String? = null,
+    onClick: () -> Unit = {}
 ) {
     Surface(
         onClick = {
             if(link != null) navController.navigate(link)
+            onClick()
         }
     ) {
         ListItem(

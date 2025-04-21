@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastForEach
 import me.rerere.ai.provider.Model
@@ -81,7 +82,13 @@ fun ModelSelector(
                 modifier = Modifier.padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                ModelList(providers = providers, modelType = type) {
+                val filteredModels = providers.fastFilter {
+                    it.enabled && it.models.fastAny { model -> model.type == type }
+                }
+                ModelList(
+                    providers = filteredModels,
+                    modelType = type
+                ) {
                     popup = false
                     onSelect(it)
                 }
@@ -107,16 +114,15 @@ fun ModelList(
         if (providers.isEmpty()) {
             item {
                 Text(
-                    text = "No providers available",
+                    text = "没有可用AI提供商, 请在设置添加",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.extendColors.gray4,
+                    color = MaterialTheme.extendColors.gray6,
                     modifier = Modifier.padding(8.dp)
                 )
             }
         }
 
         providers
-            .fastFilter { it.enabled && it.models.isNotEmpty() }
             .fastForEach { providerSetting ->
                 stickyHeader {
                     Text(

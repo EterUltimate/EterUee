@@ -31,14 +31,22 @@ private val Context.settingsStore by preferencesDataStore(
 
 class SettingsStore(context: Context) {
     companion object {
+        // UI设置
         val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
+
+        // 模型选择
         val SELECT_MODEL = stringPreferencesKey("chat_model")
         val TITLE_MODEL = stringPreferencesKey("title_model")
+        val TRANSLATE_MODEL = stringPreferencesKey("translate_model")
+
+        // 提供商
         val PROVIDERS = stringPreferencesKey("providers")
 
+        // 助手
         val SELECT_ASSISTANT = stringPreferencesKey("select_assistant")
         val ASSISTANTS = stringPreferencesKey("assistants")
 
+        // 搜索
         val SEARCH_SERVICE = stringPreferencesKey("search_service")
         val SEARCH_COMMON = stringPreferencesKey("search_common")
     }
@@ -57,6 +65,8 @@ class SettingsStore(context: Context) {
             Settings(
                 chatModelId = preferences[SELECT_MODEL]?.let { Uuid.parse(it) } ?: Uuid.random(),
                 titleModelId = preferences[TITLE_MODEL]?.let { Uuid.parse(it) } ?: Uuid.random(),
+                translateModeId = preferences[TRANSLATE_MODEL]?.let { Uuid.parse(it) }
+                    ?: Uuid.random(),
                 assistantId = preferences[SELECT_ASSISTANT]?.let { Uuid.parse(it) }
                     ?: DEFAULT_ASSISTANT_ID,
                 providers = JsonInstant.decodeFromString(preferences[PROVIDERS] ?: "[]"),
@@ -115,6 +125,7 @@ data class Settings(
     val dynamicColor: Boolean = true,
     val chatModelId: Uuid = Uuid.random(),
     val titleModelId: Uuid = Uuid.random(),
+    val translateModeId: Uuid = Uuid.random(),
     val assistantId: Uuid = DEFAULT_ASSISTANT_ID,
     val providers: List<ProviderSetting> = DEFAULT_PROVIDERS,
     val assistants: List<Assistant> = DEFAULT_ASSISTANTS,

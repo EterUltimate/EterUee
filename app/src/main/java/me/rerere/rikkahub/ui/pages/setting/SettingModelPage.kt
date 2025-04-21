@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.MessageCircle
 import com.composables.icons.lucide.NotebookTabs
@@ -74,6 +75,27 @@ fun SettingModelPage(vm: SettingVM = koinViewModel()) {
                         onSelect = {
                             vm.updateSettings(settings.copy(
                                 titleModelId = it.id
+                            ))
+                        },
+                        providers = settings.providers,
+                        modifier = Modifier.widthIn(max = 200.dp)
+                    )
+                }
+            )
+            ListItem(
+                headlineContent = {
+                    Text("翻译模型", maxLines = 1)
+                },
+                leadingContent = {
+                    Icon(Lucide.Earth, null)
+                },
+                trailingContent = {
+                    ModelSelector(
+                        modelId = settings.translateModeId,
+                        type = ModelType.CHAT,
+                        onSelect = {
+                            vm.updateSettings(settings.copy(
+                                translateModeId = it.id
                             ))
                         },
                         providers = settings.providers,

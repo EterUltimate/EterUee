@@ -96,7 +96,7 @@ private fun computeAIIconByName(name: String): String? {
 
 // 静态缓存和正则模式
 private val ICON_CACHE = mutableMapOf<String, String>()
-private val PATTERN_OPENAI = Regex("(gpt|openai)")
+private val PATTERN_OPENAI = Regex("(gpt|openai|o\\d)")
 private val PATTERN_GEMINI = Regex("(gemini)")
 private val PATTERN_GOOGLE = Regex("google")
 private val PATTERN_ANTHROPIC = Regex("anthropic")

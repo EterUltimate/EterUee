@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.ui.pages.setting
 
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -58,10 +59,13 @@ import androidx.compose.ui.util.fastFilter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Delete
+import com.composables.icons.lucide.Import
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Settings
 import com.composables.icons.lucide.Share
 import com.composables.icons.lucide.X
+import io.github.g00fy2.quickie.QRResult
+import io.github.g00fy2.quickie.ScanQRCode
 import kotlinx.coroutines.launch
 import me.rerere.ai.provider.Modality
 import me.rerere.ai.provider.Model
@@ -71,11 +75,14 @@ import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.guessModalityFromModelId
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
+import me.rerere.rikkahub.ui.components.ui.ShareSheet
 import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
 import me.rerere.rikkahub.ui.components.ui.ToastState
 import me.rerere.rikkahub.ui.components.ui.ToastVariant
+import me.rerere.rikkahub.ui.components.ui.decodeProviderSetting
 import me.rerere.rikkahub.ui.components.ui.rememberDialogState
+import me.rerere.rikkahub.ui.components.ui.rememberShareSheetState
 import me.rerere.rikkahub.ui.components.ui.rememberToastState
 import me.rerere.rikkahub.ui.hooks.useEditState
 import me.rerere.rikkahub.utils.plus
@@ -94,6 +101,13 @@ fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
                     BackButton()
                 },
                 actions = {
+                    ImportProviderButton {
+                        vm.updateSettings(
+                            settings.copy(
+                                providers = settings.providers + it
+                            )
+                        )
+                    }
                     AddButton {
                         vm.updateSettings(
                             settings.copy(
@@ -137,6 +151,42 @@ fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun ImportProviderButton(
+    onAdd: (ProviderSetting) -> Unit
+) {
+    val toastState = rememberToastState()
+    val scanQrCodeLauncher = rememberLauncherForActivityResult(ScanQRCode()) { result ->
+        // handle QRResult
+        runCatching {
+            when (result) {
+                is QRResult.QRError -> {
+                    toastState.show("错误: $result", ToastVariant.ERROR)
+                }
+
+                QRResult.QRMissingPermission -> {
+                    toastState.show("没有权限", ToastVariant.ERROR)
+                }
+
+                is QRResult.QRSuccess -> {
+                    val setting = decodeProviderSetting(result.content.rawValue ?: "")
+                    onAdd(setting)
+                    toastState.show("导入成功", ToastVariant.SUCCESS)
+                }
+
+                QRResult.QRUserCanceled -> {}
+            }
+        }
+    }
+    IconButton(
+        onClick = {
+            scanQrCodeLauncher.launch(null)
+        }
+    ) {
+        Icon(Lucide.Import, null)
     }
 }
 
@@ -252,9 +302,11 @@ private fun ProviderItem(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround,
             ) {
+                val shareSheetState = rememberShareSheetState()
+                ShareSheet(shareSheetState)
                 TextButton(
                     onClick = {
-
+                        shareSheetState.show(provider)
                     },
                 ) {
                     Icon(

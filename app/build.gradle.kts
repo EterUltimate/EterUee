@@ -126,6 +126,12 @@ dependencies {
     // serialization
     implementation(libs.kotlinx.serialization.json)
 
+    // zxing
+    implementation(libs.zxing.core)
+
+    // quickie (qrcode scanner)
+    implementation(libs.quickie.bundled)
+
     // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

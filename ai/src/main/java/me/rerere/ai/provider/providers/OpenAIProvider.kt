@@ -68,7 +68,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
 
             val response = client.newCall(request).execute()
             if (!response.isSuccessful) {
-                throw Exception("Failed to get models: ${response.code} ${response.body?.string()}")
+                error("Failed to get models: ${response.code} ${response.body?.string()}")
             }
 
             val bodyStr = response.body?.string() ?: ""

@@ -172,31 +172,34 @@ private val DEFAULT_PROVIDERS = listOf(
         id = Uuid.parse("56a94d29-c88b-41c5-8e09-38a7612d6cf8"),
         name = "硅基流动",
         baseUrl = "https://api.siliconflow.cn/v1",
-        apiKey = "sk-"
+        apiKey = "sk-",
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("d5734028-d39b-4d41-9841-fd648d65440e"),
         name = "OpenRouter",
         baseUrl = "https://openrouter.ai/api/v1",
-        apiKey = ""
+        apiKey = "",
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("f76cae46-069a-4334-ab8e-224e4979e58c"),
         name = "阿里云百炼",
         baseUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1",
-        apiKey = ""
+        apiKey = "",
+        enabled = false
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("3dfd6f9b-f9d9-417f-80c1-ff8d77184191"),
         name = "火山引擎",
         baseUrl = "https://ark.cn-beijing.volces.com/api/v3",
-        apiKey = ""
+        apiKey = "",
+        enabled = false
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("3bc40dc1-b11a-46fa-863b-6306971223be"),
         name = "智谱AI开放平台",
         baseUrl = "https://open.bigmodel.cn/api/paas/v4",
-        apiKey = ""
+        apiKey = "",
+        enabled = false
     )
 )
 

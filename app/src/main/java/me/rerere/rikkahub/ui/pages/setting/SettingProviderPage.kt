@@ -22,6 +22,7 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,9 +37,11 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -57,6 +60,7 @@ import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Delete
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Settings
+import com.composables.icons.lucide.Share
 import com.composables.icons.lucide.X
 import kotlinx.coroutines.launch
 import me.rerere.ai.provider.Modality
@@ -106,7 +110,7 @@ fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
                 .fillMaxSize()
                 .imePadding(),
             contentPadding = innerPadding + PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             items(settings.providers, key = { it.id }) { provider ->
                 ProviderItem(
@@ -202,23 +206,38 @@ private fun ProviderItem(
         }
     }
     Card(
-        modifier = modifier
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = if (provider.enabled) {
+                MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
+            } else MaterialTheme.colorScheme.errorContainer,
+        ),
     ) {
         Column(
             modifier = Modifier
-                .padding(vertical = 8.dp, horizontal = 12.dp)
-                .animateContentSize()
+                .padding(16.dp)
+                .animateContentSize(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
             ) {
-                AutoAIIcon(provider.name, modifier = Modifier.size(32.dp))
+                AutoAIIcon(
+                    name = provider.name,
+                    modifier = Modifier.size(32.dp)
+                )
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(provider.name, style = MaterialTheme.typography.titleMedium)
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = provider.name,
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
                         Tag(type = if (provider.enabled) TagType.SUCCESS else TagType.WARNING) {
                             Text(if (provider.enabled) "启用" else "禁用")
                         }
@@ -227,19 +246,53 @@ private fun ProviderItem(
                         }
                     }
                 }
-                IconButton(
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround,
+            ) {
+                TextButton(
+                    onClick = {
+
+                    },
+                ) {
+                    Icon(
+                        imageVector = Lucide.Share,
+                        contentDescription = "Share",
+                        modifier = Modifier
+                            .padding(end = 8.dp)
+                            .size(16.dp)
+                    )
+                    Text("分享")
+                }
+                TextButton(
                     onClick = {
                         setExpand(ProviderExpandState.Models)
-                    }
+                    },
                 ) {
-                    Icon(Lucide.Boxes, "Models")
+                    Icon(
+                        imageVector = Lucide.Boxes,
+                        contentDescription = "Models",
+                        modifier = Modifier
+                            .padding(end = 8.dp)
+                            .size(16.dp)
+                    )
+                    Text("模型")
                 }
-                IconButton(
+                TextButton(
                     onClick = {
                         setExpand(ProviderExpandState.Setting)
                     }
                 ) {
-                    Icon(Lucide.Settings, "Setting")
+                    Icon(
+                        imageVector = Lucide.Settings,
+                        contentDescription = "Settings",
+                        modifier = Modifier
+                            .padding(end = 8.dp)
+                            .size(16.dp)
+                    )
+                    Text("配置")
                 }
             }
 
@@ -294,11 +347,13 @@ private fun ModelList(
     toastState: ToastState,
     onUpdate: (ProviderSetting) -> Unit
 ) {
-    val modelList by produceState(emptyList()) {
+    val modelList by produceState(emptyList(), providerSetting) {
         runCatching {
             value = ProviderManager.getProviderByType(providerSetting)
                 .listModels(providerSetting)
                 .sortedBy { it.modelId }
+        }.onFailure {
+            it.printStackTrace()
         }
     }
     Column(

@@ -34,4 +34,5 @@ android {
 
 dependencies {
     api(libs.requery.sqlite.android)
+    implementation(libs.jsoup)
 }

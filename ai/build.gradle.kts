@@ -40,7 +40,6 @@ android {
 
 dependencies {
     implementation(project(":search"))
-    implementation(libs.androidx.core.ktx)
     implementation(libs.okhttp)
     implementation(libs.okhttp.sse)
     implementation(libs.kotlinx.serialization.json)

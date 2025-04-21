@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -250,7 +251,7 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
                         Row {
                             Text(
                                 text = child.findChildOfType(MarkdownTokenTypes.LIST_NUMBER)
-                                    ?.getTextInNode(content) ?: "-"
+                                    ?.getTextInNode(content) ?: "-",
                             )
                             FlowRow {
                                 child.children.fastForEach { listItemChild ->
@@ -436,6 +437,10 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
                 text = text,
                 modifier = modifier
             )
+        }
+
+        MarkdownTokenTypes.EOL -> {
+            Spacer(Modifier.fillMaxWidth())
         }
 
         // 其他类型的节点，递归处理子节点

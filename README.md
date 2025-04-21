@@ -30,11 +30,11 @@
 
 ## ☑️ 开发计划
 
-- 🌐 完善多语言支持
-- 🔍 支持调整更多模型参数 (例如思考budget)
-- 🔊 完善TTS功能
-- 📝 内置翻译页面
-- 🤳 二维码导出和导入提供商
+- [ ] 🌐 完善多语言支持
+- [ ] 🔍 支持调整更多模型参数 (例如思考budget)
+- [ ] 🔊 完善TTS功能
+- [ ] 📝 翻译页面
+- [ ] 🤳 二维码导出和导入提供商
 
 ## ✨ 贡献
 
@@ -60,6 +60,12 @@
 <div>
   <img src="docs/donate.png" alt="捐赠" width="200" />
 </div>
+
+## Star History
+
+如果喜欢这个项目，可以给个Star ⭐
+
+[![Star History Chart](https://api.star-history.com/svg?repos=re-ovo/rikkahub&type=Date)](https://star-history.com/#re-ovo/rikkahub&Date)
 
 ## 📄 许可证
 

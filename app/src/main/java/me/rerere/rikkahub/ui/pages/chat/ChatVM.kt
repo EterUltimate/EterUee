@@ -213,6 +213,7 @@ class ChatVM(
                         messages = currConversation.messages.handleMessageChunk(chunk)
                     )
                 )
+                saveConversation(conversation.value)
             }
         }.onFailure {
             it.printStackTrace()

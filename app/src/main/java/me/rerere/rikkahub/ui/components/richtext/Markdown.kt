@@ -1,19 +1,13 @@
 package me.rerere.rikkahub.ui.components.richtext
 
 import android.content.Intent
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.InlineTextContent
@@ -28,6 +22,8 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -273,33 +269,26 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
 
         // 引用块
         MarkdownElementTypes.BLOCK_QUOTE -> {
-            Row(
-                modifier = modifier
-                    .height(IntrinsicSize.Min)
-                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)),
-            ) {
-                val color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
-                Canvas(
+            ProvideTextStyle(LocalTextStyle.current.copy(fontStyle = FontStyle.Italic)) {
+                val borderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                val bgColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+                FlowRow(
                     modifier = Modifier
-                        .width(4.dp)
-                        .fillMaxHeight(),
-                    onDraw = {
-                        drawRect(
-                            color = color,
-                            size = size
-                        )
-                    }
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                ProvideTextStyle(LocalTextStyle.current.copy(fontStyle = FontStyle.Italic)) {
-                    FlowRow(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(8.dp)
-                    ) {
-                        node.children.fastForEach { child ->
-                            MarkdownNode(child, content)
+                        .drawWithContent {
+                            drawContent()
+                            drawRect(
+                                color = bgColor,
+                                size = size
+                            )
+                            drawRect(
+                                color = borderColor,
+                                size = Size(10f, size.height)
+                            )
                         }
+                        .padding(8.dp)
+                ) {
+                    node.children.fastForEach { child ->
+                        MarkdownNode(child, content)
                     }
                 }
             }

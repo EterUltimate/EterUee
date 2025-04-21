@@ -8,6 +8,9 @@ import me.rerere.ai.ui.UIMessagePart
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.time.temporal.Temporal
 import java.util.Locale
 import java.util.TimeZone
 
@@ -31,9 +34,9 @@ object PlaceholderTransformer : MessageTransformer {
                     if (part is UIMessagePart.Text) {
                         part.copy(
                             text = part.text
-                                .replace("{cur_date}", LocalDate.now().toString())
-                                .replace("{cur_time}", LocalTime.now().toString())
-                                .replace("{cur_datetime}", LocalDateTime.now().toString())
+                                .replace("{cur_date}", LocalDate.now().toDateString())
+                                .replace("{cur_time}", LocalTime.now().toTimeString())
+                                .replace("{cur_datetime}", LocalDateTime.now().toDateTimeString())
                                 .replace("{model_id}", model.modelId)
                                 .replace("{model_name}", model.displayName)
                                 .replace("{locale}", Locale.getDefault().displayName)
@@ -51,4 +54,19 @@ object PlaceholderTransformer : MessageTransformer {
             )
         }
     }
+
+    private fun Temporal.toDateString() = DateTimeFormatter
+        .ofLocalizedDate(FormatStyle.MEDIUM)
+        .withLocale(Locale.getDefault())
+        .format(this)
+
+    private fun Temporal.toTimeString() = DateTimeFormatter
+        .ofLocalizedTime(FormatStyle.MEDIUM)
+        .withLocale(Locale.getDefault())
+        .format(this)
+
+    private fun Temporal.toDateTimeString() = DateTimeFormatter
+        .ofLocalizedDateTime(FormatStyle.MEDIUM)
+        .withLocale(Locale.getDefault())
+        .format(this)
 }

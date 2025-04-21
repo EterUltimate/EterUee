@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.ui.pages.setting
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -95,6 +96,7 @@ private fun ProviderOptions(
     Card {
         Column(
             modifier = Modifier
+                .animateContentSize()
                 .fillMaxWidth()
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -210,7 +212,8 @@ fun ZhipuOptions(
                         apiKey = it
                     )
                 )
-            }
+            },
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }

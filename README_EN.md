@@ -2,11 +2,11 @@
   <img src="docs/icon.png" alt="App Icon" width="100" />
   <h1>RikkaHub</h1>
 
-> Click to join our group 👉 [【RikkaHub】](https://qm.qq.com/q/I8MSU0FkOu)
-
 A native Android LLM chat client that supports switching between different providers for conversations 🤖💬
 
-English | [中文](README.md)
+Click to join our Discord server 👉 [【RikkaHub】](https://discord.gg/9weBqxe5c4)
+
+[中文](README.md) | English
 </div>
 
 <div align="center">
@@ -63,4 +63,4 @@ If you like this project, please give it a star ⭐
 
 ## 📄 License
 
-[License](LICENSE) 
+[License](LICENSE)

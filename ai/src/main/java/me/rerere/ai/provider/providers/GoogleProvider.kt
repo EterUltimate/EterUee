@@ -24,7 +24,6 @@ import me.rerere.ai.provider.Provider
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.ui.MessageChunk
-import me.rerere.ai.ui.MessageTransformer
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageChoice
 import me.rerere.ai.ui.UIMessagePart
@@ -101,7 +100,6 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
         providerSetting: ProviderSetting.Google,
         messages: List<UIMessage>,
         params: TextGenerationParams,
-        messageTransformers: List<MessageTransformer>
     ): MessageChunk = withContext(Dispatchers.IO) {
         val requestBody = buildJsonObject {
             // System message if available
@@ -126,16 +124,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
             })
 
             // Contents (user messages)
-            put(
-                "contents",
-                buildContents(
-                    MessageTransformer.transform(
-                        messages,
-                        params.model,
-                        messageTransformers
-                    )
-                )
-            )
+            put("contents", buildContents(messages))
         }
 
         val url = "$API_URL/$API_VERSION/models/${params.model.modelId}:generateContent".toHttpUrl()
@@ -180,7 +169,6 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
         providerSetting: ProviderSetting.Google,
         messages: List<UIMessage>,
         params: TextGenerationParams,
-        messageTransformers: List<MessageTransformer>
     ): Flow<MessageChunk> = callbackFlow {
         val requestBody = buildJsonObject {
             // System message if available
@@ -207,13 +195,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
             // Contents (user messages)
             put(
                 "contents",
-                buildContents(
-                    MessageTransformer.transform(
-                        messages,
-                        params.model,
-                        messageTransformers
-                    )
-                )
+                buildContents(messages)
             )
         }
 

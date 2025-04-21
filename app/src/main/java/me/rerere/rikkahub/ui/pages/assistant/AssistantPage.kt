@@ -24,6 +24,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Delete
@@ -39,6 +44,7 @@ import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
 import me.rerere.rikkahub.ui.hooks.EditState
 import me.rerere.rikkahub.ui.hooks.useEditState
+import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.plus
 import me.rerere.rikkahub.utils.toFixed
 import org.koin.androidx.compose.koinViewModel
@@ -192,7 +198,7 @@ private fun AssistantItem(
         ) {
             // Left
             Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.weight(1f),
             ) {
                 Text(
@@ -200,9 +206,40 @@ private fun AssistantItem(
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
-                    text = assistant.systemPrompt.ifBlank { "无系统提示词" },
+                    text = buildAnnotatedString {
+                        if (assistant.systemPrompt.isNotBlank()) {
+                            // 变量替换为蓝色
+                            // 正则匹配 {xxx}
+                            val regex = "\\{[^}]+\\}".toRegex()
+                            var lastIndex = 0
+                            val input = assistant.systemPrompt
+                            regex.findAll(input).forEach { matchResult ->
+                                val start = matchResult.range.first
+                                val end = matchResult.range.last + 1
+                                // 普通文本
+                                if (lastIndex < start) {
+                                    append(input.substring(lastIndex, start))
+                                }
+                                // 蓝色变量
+                                withStyle(SpanStyle(color = MaterialTheme.extendColors.blue6)) { // 你可以自定义颜色
+                                    append(input.substring(start, end))
+                                }
+                                lastIndex = end
+                            }
+                            // 末尾剩余文本
+                            if (lastIndex < input.length) {
+                                append(input.substring(lastIndex))
+                            }
+                        } else {
+                            withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
+                                append("无系统提示词")
+                            }
+                        }
+                    },
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    maxLines = 5,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Tag(type = TagType.INFO) {
                     Text("温度: ${assistant.temperature.toFixed(1)}")

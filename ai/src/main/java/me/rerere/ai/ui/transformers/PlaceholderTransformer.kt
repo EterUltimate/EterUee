@@ -1,5 +1,6 @@
 package me.rerere.ai.ui.transformers
 
+import android.content.Context
 import android.os.Build
 import me.rerere.ai.provider.Model
 import me.rerere.ai.ui.MessageTransformer
@@ -25,9 +26,10 @@ object PlaceholderTransformer : MessageTransformer {
         "{timezone}" to "时区",
         "{system_version}" to "系统版本",
         "{device_info}" to "设备信息",
+        "{battery_level}" to "电池电量"
     )
 
-    override fun transform(messages: List<UIMessage>, model: Model): List<UIMessage> {
+    override fun transform(context: Context, messages: List<UIMessage>, model: Model): List<UIMessage> {
         return messages.map {
             it.copy(
                 parts = it.parts.map { part ->
@@ -43,9 +45,10 @@ object PlaceholderTransformer : MessageTransformer {
                                 .replace("{timezone}", TimeZone.getDefault().displayName)
                                 .replace(
                                     "{system_version}",
-                                    "Android SDK ${Build.VERSION.SDK_INT} (${Build.VERSION.RELEASE}"
+                                    "Android SDK v${Build.VERSION.SDK_INT} (${Build.VERSION.RELEASE}"
                                 )
                                 .replace("{device_info}", "${Build.BRAND} ${Build.MODEL}")
+                                .replace("{battery_level}", context.batteryLevel().toString())
                         )
                     } else {
                         part
@@ -69,4 +72,9 @@ object PlaceholderTransformer : MessageTransformer {
         .ofLocalizedDateTime(FormatStyle.MEDIUM)
         .withLocale(Locale.getDefault())
         .format(this)
+
+    private fun Context.batteryLevel(): Int {
+        val batteryManager = getSystemService(Context.BATTERY_SERVICE) as android.os.BatteryManager
+        return batteryManager.getIntProperty(android.os.BatteryManager.BATTERY_PROPERTY_CAPACITY)
+    }
 }

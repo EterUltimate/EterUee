@@ -27,6 +27,7 @@ import me.rerere.ai.ui.handleMessageChunk
 import me.rerere.ai.ui.isEmptyMessage
 import me.rerere.ai.ui.transformers.PlaceholderTransformer
 import me.rerere.ai.ui.transformers.SearchTextTransformer
+import me.rerere.ai.ui.transforms
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.findModelById
@@ -200,12 +201,11 @@ class ChatVM(
                         add(UIMessage.system(assistant.systemPrompt))
                     }
                     addAll(conversation.value.messages)
-                },
+                }.transforms(messageTransformers, context, model),
                 params = TextGenerationParams(
                     model = model,
                     temperature = assistant.temperature,
                 ),
-                messageTransformers = messageTransformers
             ).collect { chunk ->
                 val currConversation = conversation.value
                 updateConversation(
@@ -256,7 +256,6 @@ class ChatVM(
                         model = model,
                         temperature = 0.3f,
                     ),
-                    messageTransformers = messageTransformers
                 )
                 saveConversation(
                     conversation.copy(

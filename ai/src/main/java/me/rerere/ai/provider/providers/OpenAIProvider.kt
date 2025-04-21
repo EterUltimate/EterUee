@@ -23,7 +23,6 @@ import me.rerere.ai.provider.Provider
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.ui.MessageChunk
-import me.rerere.ai.ui.MessageTransformer
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessageChoice
@@ -91,10 +90,9 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         providerSetting: ProviderSetting.OpenAI,
         messages: List<UIMessage>,
         params: TextGenerationParams,
-        messageTransformers: List<MessageTransformer>
     ): MessageChunk = withContext(Dispatchers.IO) {
         val requestBody =
-            buildChatCompletionRequest(messages, params, messageTransformers = messageTransformers)
+            buildChatCompletionRequest(messages, params)
         val request = Request.Builder()
             .url("${providerSetting.baseUrl}/chat/completions")
             .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
@@ -140,13 +138,11 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         providerSetting: ProviderSetting.OpenAI,
         messages: List<UIMessage>,
         params: TextGenerationParams,
-        messageTransformers: List<MessageTransformer>
     ): Flow<MessageChunk> = callbackFlow {
         val requestBody = buildChatCompletionRequest(
             messages,
             params,
             stream = true,
-            messageTransformers = messageTransformers
         )
         val request = Request.Builder()
             .url("${providerSetting.baseUrl}/chat/completions")
@@ -251,19 +247,12 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         messages: List<UIMessage>,
         params: TextGenerationParams,
         stream: Boolean = false,
-        messageTransformers: List<MessageTransformer> = emptyList()
     ): JsonObject {
         return buildJsonObject {
             put("model", params.model.modelId)
             put(
                 "messages",
-                buildMessages(
-                    MessageTransformer.transform(
-                        messages,
-                        params.model,
-                        messageTransformers
-                    )
-                )
+                buildMessages(messages)
             )
             put("temperature", params.temperature)
             put("top_p", params.topP)

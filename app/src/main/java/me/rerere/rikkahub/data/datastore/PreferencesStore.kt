@@ -196,5 +196,11 @@ private val DEFAULT_ASSISTANTS = listOf(
         name = "",
         temperature = 0.6f,
         systemPrompt = ""
-    )
+    ),
+    Assistant(
+        id = Uuid.parse("3d47790c-c415-4b90-9388-751128adb0a0"),
+        name = "示例助手",
+        temperature = 0.6f,
+        systemPrompt = "你是{model_name}, 一个人工智能助手，乐意为用户提供准确，有益的帮助。现在时间是{cur_datetime}，用户设备语言为\"{locale}\"，时区为{timezone}，用户正在使用{device_info}，版本{system_version}。如果用户没有明确说明，请使用用户设备语言和用户对话。"
+    ),
 )

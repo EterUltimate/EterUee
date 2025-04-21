@@ -1,5 +1,6 @@
 package me.rerere.ai.ui.transformers
 
+import android.content.Context
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.provider.Model
 import me.rerere.ai.ui.MessageTransformer
@@ -8,7 +9,7 @@ import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.searchTextContent
 
 object SearchTextTransformer : MessageTransformer {
-    override fun transform(messages: List<UIMessage>, model: Model): List<UIMessage> {
+    override fun transform(context: Context, messages: List<UIMessage>, model: Model): List<UIMessage> {
         // 找到最后一个带搜索结果的消息
         val lastSearchMessage =
             messages.lastOrNull { it.hasPart<UIMessagePart.Search>() } ?: return messages

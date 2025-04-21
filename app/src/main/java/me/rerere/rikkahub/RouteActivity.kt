@@ -65,6 +65,7 @@ import me.rerere.rikkahub.ui.pages.setting.SettingModelPage
 import me.rerere.rikkahub.ui.pages.setting.SettingPage
 import me.rerere.rikkahub.ui.pages.setting.SettingProviderPage
 import me.rerere.rikkahub.ui.pages.setting.SettingSearchPage
+import me.rerere.rikkahub.ui.pages.translator.TranslatorPage
 import me.rerere.rikkahub.ui.theme.RikkahubTheme
 import org.koin.android.ext.android.inject
 import kotlin.uuid.Uuid
@@ -169,6 +170,10 @@ class RouteActivity : ComponentActivity() {
 
                     composableHelper("assistant") {
                         AssistantPage()
+                    }
+
+                    composableHelper("translator") {
+                        TranslatorPage()
                     }
 
                     composableHelper("setting") {

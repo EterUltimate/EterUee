@@ -58,11 +58,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFilter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Boxes
-import com.composables.icons.lucide.Delete
 import com.composables.icons.lucide.Import
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Settings
 import com.composables.icons.lucide.Share
+import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.X
 import io.github.g00fy2.quickie.QRResult
 import io.github.g00fy2.quickie.ScanQRCode
@@ -84,6 +84,7 @@ import me.rerere.rikkahub.ui.components.ui.decodeProviderSetting
 import me.rerere.rikkahub.ui.components.ui.rememberDialogState
 import me.rerere.rikkahub.ui.components.ui.rememberShareSheetState
 import me.rerere.rikkahub.ui.components.ui.rememberToastState
+import me.rerere.rikkahub.ui.hooks.EditState
 import me.rerere.rikkahub.ui.hooks.useEditState
 import me.rerere.rikkahub.utils.plus
 import org.koin.androidx.compose.koinViewModel
@@ -482,6 +483,12 @@ private fun AddModelButton(
         }
     }
 
+    val modelListState = useEditState<Model?> { model ->
+        model?.let {
+            setModelId(it.modelId)
+        }
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         onClick = {
@@ -504,102 +511,7 @@ private fun AddModelButton(
                                 Text("例如：gpt-3.5-turbo")
                             },
                             trailingIcon = {
-                                val modelListState = useEditState<Model?> { model ->
-                                    model?.let {
-                                        setModelId(it.modelId)
-                                    }
-                                }
-                                if (modelListState.isEditing) {
-                                    ModalBottomSheet(
-                                        onDismissRequest = { modelListState.dismiss() },
-                                        sheetState = rememberModalBottomSheetState(
-                                            skipPartiallyExpanded = true
-                                        )
-                                    ) {
-                                        var filterText by remember { mutableStateOf("") }
-                                        Column(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(400.dp)
-                                                .padding(8.dp)
-                                                .imePadding(),
-                                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                                        ) {
-                                            LazyColumn(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .weight(1f),
-                                                verticalArrangement = Arrangement.spacedBy(4.dp),
-                                            ) {
-                                                items(models.fastFilter {
-                                                    it.modelId.contains(
-                                                        filterText
-                                                    )
-                                                }) {
-                                                    Card(
-                                                        onClick = {
-                                                            modelListState.currentState = it.copy()
-                                                            modelListState.confirm()
-                                                        }
-                                                    ) {
-                                                        Row(
-                                                            verticalAlignment = Alignment.CenterVertically,
-                                                            horizontalArrangement = Arrangement.spacedBy(
-                                                                8.dp
-                                                            ),
-                                                            modifier = Modifier
-                                                                .fillMaxWidth()
-                                                                .padding(8.dp),
-                                                        ) {
-                                                            AutoAIIcon(
-                                                                it.modelId,
-                                                                Modifier.size(32.dp)
-                                                            )
-                                                            Column(
-                                                                verticalArrangement = Arrangement.spacedBy(
-                                                                    4.dp
-                                                                ),
-                                                            ) {
-                                                                Text(
-                                                                    text = it.modelId,
-                                                                    style = MaterialTheme.typography.titleSmall,
-                                                                )
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            OutlinedTextField(
-                                                value = filterText,
-                                                onValueChange = {
-                                                    filterText = it
-                                                },
-                                                label = { Text("模型名称") },
-                                                modifier = Modifier.fillMaxWidth(),
-                                                placeholder = {
-                                                    Text("例如：GPT-3.5")
-                                                },
-                                            )
-                                        }
-                                    }
-                                }
-                                BadgedBox(
-                                    badge = {
-                                        if (models.isNotEmpty()) {
-                                            Badge {
-                                                Text(models.size.toString())
-                                            }
-                                        }
-                                    }
-                                ) {
-                                    IconButton(
-                                        onClick = {
-                                            modelListState.open(null)
-                                        }
-                                    ) {
-                                        Icon(Lucide.Boxes, null)
-                                    }
-                                }
+                                ModelPicker(modelListState, models)
                             }
                         )
 
@@ -663,6 +575,111 @@ private fun AddModelButton(
             Icon(Icons.Outlined.Add, contentDescription = "添加模型")
             Spacer(modifier = Modifier.size(8.dp))
             Text("添加新模型", style = MaterialTheme.typography.bodyLarge)
+        }
+    }
+}
+
+@Composable
+private fun ModelPicker(
+    modelListState: EditState<Model?>,
+    models: List<Model>
+) {
+    if (modelListState.isEditing) {
+        ModalBottomSheet(
+            onDismissRequest = { modelListState.dismiss() },
+            sheetState = rememberModalBottomSheetState(
+                skipPartiallyExpanded = true
+            )
+        ) {
+            var filterText by remember { mutableStateOf("") }
+            val filterKeywords = filterText.split(" ").filter { it.isNotBlank() }
+            val filteredModels = models.fastFilter {
+                if (filterKeywords.isEmpty()) {
+                    true
+                } else {
+                    filterKeywords.all { keyword ->
+                        it.modelId.contains(keyword, ignoreCase = true) ||
+                                it.displayName.contains(keyword, ignoreCase = true)
+                    }
+                }
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(500.dp)
+                    .padding(8.dp)
+                    .imePadding(),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    items(filteredModels) {
+                        Card(
+                            onClick = {
+                                modelListState.currentState = it.copy()
+                                modelListState.confirm()
+                            }
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(
+                                    8.dp
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp),
+                            ) {
+                                AutoAIIcon(
+                                    it.modelId,
+                                    Modifier.size(32.dp)
+                                )
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(
+                                        4.dp
+                                    ),
+                                ) {
+                                    Text(
+                                        text = it.modelId,
+                                        style = MaterialTheme.typography.titleSmall,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                OutlinedTextField(
+                    value = filterText,
+                    onValueChange = {
+                        filterText = it
+                    },
+                    label = { Text("输入模型名称筛选") },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = {
+                        Text("例如：GPT-3.5")
+                    },
+                )
+            }
+        }
+    }
+    BadgedBox(
+        badge = {
+            if (models.isNotEmpty()) {
+                Badge {
+                    Text(models.size.toString())
+                }
+            }
+        }
+    ) {
+        IconButton(
+            onClick = {
+                modelListState.open(null)
+            }
+        ) {
+            Icon(Lucide.Boxes, null)
         }
     }
 }
@@ -791,7 +808,7 @@ private fun ModelCard(
                         }
                     }
                 ) {
-                    Icon(Lucide.Delete, contentDescription = "删除")
+                    Icon(Lucide.Trash2, contentDescription = "删除")
                 }
             }
         },

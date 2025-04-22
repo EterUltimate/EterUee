@@ -37,9 +37,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.composables.icons.lucide.Delete
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.RefreshCw
+import com.composables.icons.lucide.Trash2
 import me.rerere.ai.ui.Conversation
 import me.rerere.rikkahub.ui.theme.extendColors
 import java.time.LocalDate
@@ -215,7 +215,7 @@ private fun ConversationItem(
                         showDropdownMenu = false
                     },
                     leadingIcon = {
-                        Icon(Lucide.Delete, null)
+                        Icon(Lucide.Trash2, null)
                     }
                 )
             }

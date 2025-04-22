@@ -4,12 +4,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,10 +34,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.composables.icons.lucide.Delete
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.Plus
+import com.composables.icons.lucide.Trash2
 import me.rerere.ai.ui.transformers.PlaceholderTransformer
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.model.Assistant
@@ -189,76 +192,104 @@ private fun AssistantItem(
     Card(
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+        // Left
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            // Left
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.weight(1f),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
                     text = assistant.name.ifBlank { "默认助手" },
                     style = MaterialTheme.typography.titleMedium
                 )
-                Text(
-                    text = buildAnnotatedString {
-                        if (assistant.systemPrompt.isNotBlank()) {
-                            // 变量替换为蓝色
-                            // 正则匹配 {xxx}
-                            val regex = "\\{[^}]+\\}".toRegex()
-                            var lastIndex = 0
-                            val input = assistant.systemPrompt
-                            regex.findAll(input).forEach { matchResult ->
-                                val start = matchResult.range.first
-                                val end = matchResult.range.last + 1
-                                // 普通文本
-                                if (lastIndex < start) {
-                                    append(input.substring(lastIndex, start))
-                                }
-                                // 蓝色变量
-                                withStyle(SpanStyle(color = MaterialTheme.extendColors.blue6)) { // 你可以自定义颜色
-                                    append(input.substring(start, end))
-                                }
-                                lastIndex = end
-                            }
-                            // 末尾剩余文本
-                            if (lastIndex < input.length) {
-                                append(input.substring(lastIndex))
-                            }
-                        } else {
-                            withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
-                                append("无系统提示词")
-                            }
-                        }
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    maxLines = 5,
-                    overflow = TextOverflow.Ellipsis,
-                )
+
+                Spacer(Modifier.weight(1f))
+
                 Tag(type = TagType.INFO) {
                     Text("温度: ${assistant.temperature.toFixed(1)}")
                 }
             }
-            // Right
-            IconButton(
-                onClick = {
-                    onEdit()
-                }
-            ) {
-                Icon(Lucide.Pencil, stringResource(R.string.edit))
-            }
-            IconButton(
-                onClick = {
-                    onDelete()
+
+            Text(
+                text = buildAnnotatedString {
+                    if (assistant.systemPrompt.isNotBlank()) {
+                        // 变量替换为蓝色
+                        // 正则匹配 {xxx}
+                        val regex = "\\{[^}]+\\}".toRegex()
+                        var lastIndex = 0
+                        val input = assistant.systemPrompt
+                        regex.findAll(input).forEach { matchResult ->
+                            val start = matchResult.range.first
+                            val end = matchResult.range.last + 1
+                            // 普通文本
+                            if (lastIndex < start) {
+                                append(input.substring(lastIndex, start))
+                            }
+                            // 蓝色变量
+                            withStyle(SpanStyle(color = MaterialTheme.extendColors.blue6)) { // 你可以自定义颜色
+                                append(input.substring(start, end))
+                            }
+                            lastIndex = end
+                        }
+                        // 末尾剩余文本
+                        if (lastIndex < input.length) {
+                            append(input.substring(lastIndex))
+                        }
+                    } else {
+                        withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
+                            append("无系统提示词")
+                        }
+                    }
                 },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                maxLines = 5,
+                overflow = TextOverflow.Ellipsis,
+            )
+
+
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(Lucide.Delete, "delete")
+                Spacer(Modifier.weight(1f))
+
+                // Right
+                TextButton(
+                    onClick = {
+                        onDelete()
+                    },
+                ) {
+                    Icon(
+                        Lucide.Trash2,
+                        "delete",
+                        modifier = Modifier
+                            .padding(end = 4.dp)
+                            .size(18.dp)
+                    )
+                    Text("删除")
+                }
+
+                Button(
+                    onClick = {
+                        onEdit()
+                    }
+                ) {
+                    Icon(
+                        Lucide.Pencil,
+                        stringResource(R.string.edit),
+                        modifier = Modifier
+                            .padding(end = 4.dp)
+                            .size(18.dp)
+                    )
+                    Text("编辑")
+                }
             }
         }
     }

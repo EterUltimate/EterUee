@@ -19,8 +19,7 @@ import okhttp3.Request
 private const val API_URL = "https://rikkahub-updates.rerere.me"
 // private const val REPO_URL = "https://github.com/re-ovo/rikkahub"
 
-class UpdateChecker {
-    private val client = OkHttpClient()
+class UpdateChecker(private val client: OkHttpClient) {
     private val json = Json { ignoreUnknownKeys = true }
 
     fun checkUpdate(): Flow<UiState<UpdateInfo>> = flow {
@@ -133,6 +132,7 @@ value class Version(val value: String) : Comparable<Version> {
         }
     }
 }
+
 // 扩展操作符函数，使比较更直观
 operator fun String.compareTo(other: Version): Int = Version(this).compareTo(other)
 operator fun Version.compareTo(other: String): Int = this.compareTo(Version(other))

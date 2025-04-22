@@ -2,8 +2,7 @@ package me.rerere.rikkahub
 
 import android.app.Application
 import me.rerere.rikkahub.di.appModule
-import me.rerere.rikkahub.di.dataStoreModule
-import me.rerere.rikkahub.di.dbModule
+import me.rerere.rikkahub.di.dataSourceModule
 import me.rerere.rikkahub.di.repositoryModule
 import me.rerere.rikkahub.di.viewModelModule
 import org.koin.android.ext.koin.androidContext
@@ -16,7 +15,7 @@ class RikkaHubApp : Application() {
         startKoin {
             androidLogger()
             androidContext(this@RikkaHubApp)
-            modules(appModule, viewModelModule, dataStoreModule, dbModule, repositoryModule)
+            modules(appModule, viewModelModule, dataSourceModule, repositoryModule)
         }
     }
 }

@@ -11,6 +11,7 @@ composeBom = "2025.04.00"
 navigationCompose = "2.8.9"
 markdown = "0.7.3"
 okhttp = "4.12.0"
+retrofit = "2.11.0"
 coil = "3.1.0"
 quickjs = "2.4.4"
 room = "2.7.0"
@@ -57,6 +58,8 @@ androidx-datastore-preferences = { group = "androidx.datastore", name = "datasto
 jetbrains-markdown = { group = "org.jetbrains", name = "markdown", version.ref = "markdown" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 okhttp-sse = { group = "com.squareup.okhttp3", name = "okhttp-sse", version.ref = "okhttp" }
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-serialization-json = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "retrofit" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil"}
 coil-svg = { group = "io.coil-kt.coil3", name = "coil-svg", version.ref = "coil" }

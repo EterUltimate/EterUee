@@ -117,6 +117,8 @@ dependencies {
     // okhttp
     implementation(libs.okhttp)
     implementation(libs.okhttp.sse)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.serialization.json)
 
     // coil
     implementation(libs.coil.compose)

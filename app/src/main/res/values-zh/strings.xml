@@ -44,4 +44,14 @@
     <string name="setting_model_page_chat_model">聊天模型</string>
     <string name="setting_model_page_title_model">标题总结模型</string>
     <string name="setting_model_page_translate_model">翻译模型</string>
+    
+    <!-- Translator Page -->
+    <string name="translator_page_title">翻译</string>
+    <string name="translator_page_input_text">输入文本</string>
+    <string name="translator_page_input_placeholder">请输入要翻译的文本...</string>
+    <string name="translator_page_result">翻译结果</string>
+    <string name="translator_page_result_placeholder">翻译结果将显示在这里</string>
+    <string name="translator_page_target_language">目标语言:</string>
+    <string name="translator_page_translate">翻译</string>
+    <string name="translator_page_cancel">取消</string>
 </resources> 

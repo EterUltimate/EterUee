@@ -98,7 +98,7 @@ fun WavyLinearProgressIndicator(
 }
 
 /**
- * 不确定进度的波浪线性进度条
+ * 不确定进度的波浪线性进度条，2/3是波浪，1/3是背景
  */
 @Composable
 fun WavyLinearProgressIndicator(
@@ -115,24 +115,34 @@ fun WavyLinearProgressIndicator(
     val waveLengthPx = with(density) { waveLength.toPx() }
 
     val infiniteTransition = rememberInfiniteTransition(label = "WavyTransition")
-    val waveOffset by infiniteTransition.animateFloat(
+
+    // Animate phase from 0 to cover the full scroll distance (canvasWidth + waveSegmentWidth)
+    // IMPORTANT: Call animateFloat outside the Canvas drawScope
+    val phase by infiniteTransition.animateFloat(
         initialValue = 0f,
-        targetValue = waveLengthPx,
+        targetValue = 1f, // Animate a normalized value (0 to 1)
         animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = LinearEasing),
+            // Adjust duration for desired speed
+            animation = tween(2000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
-        label = "WaveOffset"
+        label = "PhaseAnimation"
     )
 
     Canvas(
         modifier = modifier
             .progressSemantics()
-            .height(strokeWidth * 3)
+            .height(strokeWidth * 3) // Adjust height to accommodate amplitude
     ) {
         val canvasWidth = size.width
         val canvasHeight = size.height
         val centerY = canvasHeight / 2
+        val waveSegmentWidth = canvasWidth * (2f / 3f)
+
+        // Calculate the actual distance the phase needs to cover
+        val scrollDistance = canvasWidth + waveSegmentWidth
+        // Map the normalized phase (0 to 1) to the actual scroll distance
+        val currentScrollPosition = phase * scrollDistance
 
         // Draw background track
         drawLine(
@@ -143,23 +153,42 @@ fun WavyLinearProgressIndicator(
             cap = StrokeCap.Round
         )
 
-        // Draw wavy progress line
+        // Draw the moving wave segment
         val path = Path()
-        var x = 0f
-        path.moveTo(0f, centerY)
+        var firstVisiblePointSet = false
 
-        while (x <= canvasWidth) {
-            val waveY =
-                centerY + amplitudePx * sin((x + waveOffset) * (2f * PI / waveLengthPx)).toFloat()
-            path.lineTo(x, waveY)
-            x += 1f
+        // Iterate through the x-coordinates covered by the wave segment
+        // Use a step for performance, can be adjusted
+        val step = 1f
+        var currentX = currentScrollPosition - waveSegmentWidth
+        while(currentX < currentScrollPosition) {
+            // Only draw points within the canvas bounds
+            if (currentX >= 0f && currentX <= canvasWidth) {
+                val waveY = centerY + amplitudePx * sin((currentX * (2f * PI / waveLengthPx)).toFloat())
+                if (!firstVisiblePointSet) {
+                    path.moveTo(currentX, waveY)
+                    firstVisiblePointSet = true
+                } else {
+                    path.lineTo(currentX, waveY)
+                }
+            }
+            currentX += step
+        }
+        // Ensure the last point connects smoothly if it's visible
+        if(currentScrollPosition > 0 && currentScrollPosition <= canvasWidth && firstVisiblePointSet) {
+             val waveY = centerY + amplitudePx * sin((currentScrollPosition * (2f * PI / waveLengthPx)).toFloat())
+             path.lineTo(currentScrollPosition, waveY)
         }
 
-        drawPath(
-            path = path,
-            color = color,
-            style = Stroke(width = strokeWidthPx, cap = StrokeCap.Round)
-        )
+
+        // Draw the wave path if any part was visible
+        if (firstVisiblePointSet) {
+            drawPath(
+                path = path,
+                color = color,
+                style = Stroke(width = strokeWidthPx, cap = StrokeCap.Round)
+            )
+        }
     }
 }
 

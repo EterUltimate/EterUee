@@ -110,6 +110,8 @@ class SettingsStore(context: Context) {
 
             preferences[SELECT_MODEL] = settings.chatModelId.toString()
             preferences[TITLE_MODEL] = settings.titleModelId.toString()
+            preferences[TRANSLATE_MODEL] = settings.translateModeId.toString()
+
             preferences[PROVIDERS] = JsonInstant.encodeToString(settings.providers)
 
             preferences[ASSISTANTS] = JsonInstant.encodeToString(settings.assistants)

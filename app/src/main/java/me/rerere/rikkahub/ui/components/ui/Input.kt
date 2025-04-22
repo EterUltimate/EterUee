@@ -2,7 +2,11 @@ package me.rerere.rikkahub.ui.components.ui
 
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,35 +16,76 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 
 @Composable
-fun <T : Number> NumberInput(
+fun <T : Number> OutlinedNumberInput(
     value: T,
     onValueChange: (T) -> Unit,
     modifier: Modifier = Modifier,
     label: String = "",
+    colors: TextFieldColors = OutlinedTextFieldDefaults.colors()
 ) {
     var textFieldValue by remember(value) { mutableStateOf(value.toString()) }
-    var hasError by remember { mutableStateOf(false) }
-    val errorText = remember { mutableStateOf("") }
     OutlinedTextField(
         modifier = modifier,
         value = textFieldValue,
         onValueChange = { newValue ->
             textFieldValue = newValue
-            try {
-                @Suppress("UNCHECKED_CAST")
-                when (value) {
-                    is Int -> onValueChange((newValue.toIntOrNull() ?: 0) as T)
-                    is Float -> onValueChange((newValue.toFloatOrNull() ?: 0f) as T)
-                    is Double -> onValueChange((newValue.toDoubleOrNull() ?: 0.0) as T)
+            if(textFieldValue.isValidNumberInput()) {
+                try {
+                    @Suppress("UNCHECKED_CAST")
+                    val newVal = when (value) {
+                        is Int -> newValue.toInt() as T
+                        is Float -> newValue.toFloat() as T
+                        is Double -> newValue.toDouble() as T
+                        else -> throw IllegalArgumentException("Unsupported number type")
+                    }
+                    onValueChange(newVal)
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-                hasError = false
-            } catch (e: Exception) {
-                hasError = true
-                errorText.value = "Invalid number format"
             }
         },
         label = { Text(label) },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        isError = textFieldValue.toDoubleOrNull() == null,
+        isError = !textFieldValue.isValidNumberInput(),
+        colors = colors
     )
 }
+
+@Composable
+fun <T : Number> NumberInput(
+    value: T,
+    onValueChange: (T) -> Unit,
+    modifier: Modifier = Modifier,
+    label: String = "",
+    colors: TextFieldColors = TextFieldDefaults.colors()
+) {
+    var textFieldValue by remember(value) { mutableStateOf(value.toString()) }
+    TextField(
+        modifier = modifier,
+        value = textFieldValue,
+        onValueChange = { newValue ->
+            textFieldValue = newValue
+            if(textFieldValue.isValidNumberInput()) {
+                try {
+                    @Suppress("UNCHECKED_CAST")
+                    val newVal = when (value) {
+                        is Int -> newValue.toInt() as T
+                        is Float -> newValue.toFloat() as T
+                        is Double -> newValue.toDouble() as T
+                        else -> throw IllegalArgumentException("Unsupported number type")
+                    }
+                    onValueChange(newVal)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        },
+        label = { Text(label) },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        isError = !textFieldValue.isValidNumberInput(),
+        colors = colors
+    )
+}
+
+private val NumberRegex = Regex("^[+-]?\\d+(\\.\\d+)?$")
+private fun String.isValidNumberInput() = this.isNotEmpty() && NumberRegex.matches(this)

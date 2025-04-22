@@ -25,7 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.FormItem
-import me.rerere.rikkahub.ui.components.ui.NumberInput
+import me.rerere.rikkahub.ui.components.ui.OutlinedNumberInput
 import me.rerere.rikkahub.ui.components.ui.Select
 import me.rerere.rikkahub.utils.plus
 import me.rerere.search.SearchCommonOptions
@@ -238,7 +238,7 @@ private fun CommonOptions(
                     Text("结果数量")
                 }
             ) {
-                NumberInput(
+                OutlinedNumberInput(
                     value = commonOptions.resultSize,
                     onValueChange = {
                         commonOptions = commonOptions.copy(

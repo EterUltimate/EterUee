@@ -19,6 +19,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -42,7 +43,7 @@ import me.rerere.ai.ui.transformers.PlaceholderTransformer
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.ui.components.nav.BackButton
-import me.rerere.rikkahub.ui.components.ui.NumberInput
+import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
 import me.rerere.rikkahub.ui.hooks.EditState
@@ -118,48 +119,102 @@ private fun AssistantDialog(state: EditState<Assistant>) {
             Text("新增助手")
         },
         text = {
-            Column {
-                OutlinedTextField(
-                    value = state.currentState?.name ?: "",
-                    onValueChange = {
-                        state.currentState = state.currentState?.copy(
-                            name = it
-                        )
-                    },
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FormItem(
                     label = {
                         Text("助手名称")
-                    }
-                )
-
-                OutlinedTextField(
-                    value = state.currentState?.systemPrompt ?: "",
-                    onValueChange = {
-                        state.currentState = state.currentState?.copy(
-                            systemPrompt = it
-                        )
                     },
+                ) {
+                    OutlinedTextField(
+                        value = state.currentState?.name ?: "",
+                        onValueChange = {
+                            state.currentState = state.currentState?.copy(
+                                name = it
+                            )
+                        },
+                    )
+                }
+
+                FormItem(
                     label = {
                         Text("系统提示词")
                     },
-                    minLines = 3,
-                    maxLines = 5,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                ) {
+                    OutlinedTextField(
+                        value = state.currentState?.systemPrompt ?: "",
+                        onValueChange = {
+                            state.currentState = state.currentState?.copy(
+                                systemPrompt = it
+                            )
+                        },
+                        minLines = 3,
+                        maxLines = 5,
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-                Text(
-                    text = "可用变量: " + PlaceholderTransformer.Placeholders.entries.joinToString(", ") { "${it.key}: ${it.value}" },
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.secondary,
-                )
+                    Text(
+                        text = "可用变量: " + PlaceholderTransformer.Placeholders.entries.joinToString(
+                            ", "
+                        ) { "${it.key}: ${it.value}" },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.secondary,
+                    )
+                }
 
-                NumberInput(
-                    value = state.currentState?.temperature ?: 0.6f,
-                    onValueChange = {
-                        state.currentState = state.currentState?.copy(
-                            temperature = it
-                        )
+                FormItem(
+                    label = {
+                        Text("温度")
+                    },
+                ) {
+                    Slider(
+                        value = state.currentState?.temperature ?: 0.6f,
+                        onValueChange = {
+                            state.currentState = state.currentState?.copy(
+                                temperature = it.toFixed(2).toFloatOrNull() ?: 0.6f
+                            )
+                        },
+                        valueRange = 0f..2f,
+                        steps = 19,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        val currentTemperature = state.currentState?.temperature ?: 0.6f
+                        val tagType = when (currentTemperature) {
+                            in 0.0f..0.3f -> TagType.INFO
+                            in 0.3f..1.0f -> TagType.SUCCESS
+                            in 1.0f..1.5f -> TagType.WARNING
+                            in 1.5f..2.0f -> TagType.ERROR
+                            else -> TagType.ERROR
+                        }
+                        Tag(
+                            type = TagType.INFO
+                        ) {
+                            Text(
+                                text = "$currentTemperature"
+                            )
+                        }
+
+                        Tag(
+                            type = tagType
+                        ) {
+                            Text(
+                                text = when (currentTemperature) {
+                                    in 0.0f..0.3f -> "严谨"
+                                    in 0.3f..1.0f -> "平衡"
+                                    in 1.0f..1.5f -> "创造"
+                                    in 1.5f..2.0f -> "混乱 (危险)"
+                                    else -> "?"
+                                }
+                            )
+                        }
                     }
-                )
+                }
             }
         },
         confirmButton = {

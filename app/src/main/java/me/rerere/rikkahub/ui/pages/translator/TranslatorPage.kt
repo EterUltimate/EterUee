@@ -45,7 +45,6 @@ import com.composables.icons.lucide.Languages
 import com.composables.icons.lucide.Lucide
 import me.rerere.ai.provider.ModelType
 import me.rerere.rikkahub.R
-import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.ToastVariant
@@ -79,15 +78,21 @@ fun TranslatorPage(vm: TranslatorVM = koinViewModel()) {
                 },
                 navigationIcon = {
                     BackButton()
+                },
+                actions = {
+                    ModelSelector(
+                        modelId = settings.translateModeId,
+                        onSelect = {
+                            vm.updateSettings(settings.copy(translateModeId = it.id))
+                        },
+                        providers = settings.providers,
+                        type = ModelType.CHAT
+                    )
                 }
             )
         },
         bottomBar = {
             BottomBar(
-                settings = settings,
-                onUpdateSettings = {
-                    vm.updateSettings(it)
-                },
                 translating = translating,
                 onTranslate = {
                     vm.translate()
@@ -190,7 +195,7 @@ private fun LanguageSelector(
             onExpandedChange = { expanded = it }
         ) {
             OutlinedTextField(
-                value = targetLanguage.displayLanguage,
+                value = targetLanguage.displayName,
                 onValueChange = {},
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
@@ -210,7 +215,7 @@ private fun LanguageSelector(
             ) {
                 Locales.forEach { language ->
                     DropdownMenuItem(
-                        text = { Text(language.displayLanguage) },
+                        text = { Text(language.displayName) },
                         onClick = {
                             onLanguageSelected(language)
                             expanded = false
@@ -224,8 +229,6 @@ private fun LanguageSelector(
 
 @Composable
 private fun BottomBar(
-    settings: Settings,
-    onUpdateSettings: (Settings) -> Unit,
     targetLanguage: Locale,
     onLanguageSelected: (Locale) -> Unit,
     translating: Boolean,
@@ -234,15 +237,6 @@ private fun BottomBar(
 ) {
     BottomAppBar(
         actions = {
-            ModelSelector(
-                modelId = settings.translateModeId,
-                onSelect = {
-                    onUpdateSettings(settings.copy(translateModeId = it.id))
-                },
-                providers = settings.providers,
-                type = ModelType.CHAT
-            )
-
             // 目标语言选择
             LanguageSelector(
                 targetLanguage = targetLanguage,

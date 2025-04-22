@@ -207,8 +207,8 @@ private fun ChatList(
     ) {
         LazyColumn(
             state = state,
-            contentPadding = PaddingValues(12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
             reverseLayout = true
         ) {
             // 为了能正确滚动到这
@@ -224,9 +224,10 @@ private fun ChatList(
                 item(LoadingIndicatorKey) {
                     WavyCircularProgressIndicator(
                         modifier = Modifier
-                            .size(24.dp)
-                            .animateItem(),
+                            .padding(start = 4.dp)
+                            .size(24.dp),
                         strokeWidth = 2.dp,
+                        waveCount = 8
                     )
                 }
             }

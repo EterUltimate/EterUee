@@ -21,6 +21,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -32,6 +33,7 @@ import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Palette
 import com.composables.icons.lucide.Share2
+import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.utils.countChatFiles
@@ -47,7 +49,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
         topBar = {
             LargeTopAppBar(
                 title = {
-                    Text(text = "设置")
+                    Text(text = stringResource(R.string.settings))
                 },
                 navigationIcon = {
                     BackButton()
@@ -63,7 +65,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
         ) {
             stickyHeader {
                 Text(
-                    text = "界面设置",
+                    text = stringResource(R.string.interface_settings),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary
@@ -73,10 +75,10 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
             item {
                 ListItem(
                     headlineContent = {
-                        Text("动态颜色")
+                        Text(stringResource(R.string.dynamic_color))
                     },
                     supportingContent = {
-                        Text("是否使用动态颜色")
+                        Text(stringResource(R.string.dynamic_color_desc))
                     },
                     trailingContent = {
                         Switch(
@@ -95,7 +97,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
 
             stickyHeader {
                 Text(
-                    text = "模型与服务",
+                    text = stringResource(R.string.model_and_services),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary
@@ -105,8 +107,8 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
             item {
                 SettingItem(
                     navController = navController,
-                    title = { Text("默认模型") },
-                    description = { Text("设置各个功能的默认模型") },
+                    title = { Text(stringResource(R.string.default_model)) },
+                    description = { Text(stringResource(R.string.default_model_desc)) },
                     icon = { Icon(Lucide.Heart, "Default Model") },
                     link = "setting/models"
                 )
@@ -115,8 +117,8 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
             item {
                 SettingItem(
                     navController = navController,
-                    title = { Text("提供商") },
-                    description = { Text("配置AI提供商") },
+                    title = { Text(stringResource(R.string.providers)) },
+                    description = { Text(stringResource(R.string.providers_desc)) },
                     icon = { Icon(Lucide.Boxes, "Models") },
                     link = "setting/provider"
                 )
@@ -125,8 +127,8 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
             item {
                 SettingItem(
                     navController = navController,
-                    title = { Text("搜索服务") },
-                    description = { Text("设置搜索服务") },
+                    title = { Text(stringResource(R.string.search_service)) },
+                    description = { Text(stringResource(R.string.search_service_desc)) },
                     icon = { Icon(Lucide.Earth, "Search") },
                     link = "setting/search"
                 )
@@ -134,7 +136,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
 
             stickyHeader {
                 Text(
-                    text = "关于",
+                    text = stringResource(R.string.about),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary
@@ -144,8 +146,8 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
             item {
                 SettingItem(
                     navController = navController,
-                    title = { Text("关于") },
-                    description = { Text("关于本APP") },
+                    title = { Text(stringResource(R.string.about)) },
+                    description = { Text(stringResource(R.string.about_desc)) },
                     icon = { Icon(Lucide.BadgeInfo, "About") },
                     link = "setting/about"
                 )
@@ -158,12 +160,18 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                 }
                 SettingItem(
                     navController = navController,
-                    title = { Text("聊天记录存储") },
+                    title = { Text(stringResource(R.string.chat_storage)) },
                     description = {
-                        if(storageState.first == -1) {
-                            Text("计算中...")
+                        if (storageState.first == -1) {
+                            Text(stringResource(R.string.calculating))
                         } else {
-                            Text("${storageState.first} 个文件，${"%.2f".format(storageState.second / 1024 / 1024.0)} MB")
+                            Text(
+                                stringResource(
+                                    R.string.chat_storage_desc,
+                                    storageState.first,
+                                    storageState.second / 1024 / 1024.0
+                                )
+                            )
                         }
                     },
                     icon = {
@@ -174,11 +182,14 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
 
             item {
                 val context = LocalContext.current
+                val shareText = stringResource(R.string.share_text)
+                val share = stringResource(R.string.share)
+                val noShareApp = stringResource(R.string.no_share_app)
                 SettingItem(
                     navController = navController,
-                    title = { Text("分享") },
+                    title = { Text(stringResource(R.string.share)) },
                     description = {
-                        Text("分享本APP给朋友")
+                        Text(stringResource(R.string.share_desc))
                     },
                     icon = {
                         Icon(Lucide.Share2, "Share")
@@ -186,15 +197,11 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                     onClick = {
                         val intent = Intent(Intent.ACTION_SEND)
                         intent.type = "text/plain"
-                        intent.putExtra(Intent.EXTRA_TEXT, """
-                            RikkaHub - 开源安卓AI助手
-                            
-                            官网: https://rikka-ai.com/
-                        """.trimIndent())
+                        intent.putExtra(Intent.EXTRA_TEXT, shareText)
                         try {
-                            context.startActivity(Intent.createChooser(intent, "分享到"))
+                            context.startActivity(Intent.createChooser(intent, share))
                         } catch (e: ActivityNotFoundException) {
-                            Toast.makeText(context, "找不到分享应用", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, noShareApp, Toast.LENGTH_SHORT).show()
                         }
                     }
                 )
@@ -214,7 +221,7 @@ fun SettingItem(
 ) {
     Surface(
         onClick = {
-            if(link != null) navController.navigate(link)
+            if (link != null) navController.navigate(link)
             onClick()
         }
     ) {

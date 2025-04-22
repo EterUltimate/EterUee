@@ -36,4 +36,10 @@
     <string name="share_desc">Share this APP with friends</string>
     <string name="share_text">RikkaHub - Open Source Android AI Assistant\n\nWebsite: https://rikka-ai.com/</string>
     <string name="no_share_app">No sharing app found</string>
+    
+    <!-- Setting Model Page -->
+    <string name="setting_model_page_title">Model Settings</string>
+    <string name="setting_model_page_chat_model">Chat Model</string>
+    <string name="setting_model_page_title_model">Title Summary Model</string>
+    <string name="setting_model_page_translate_model">Translation Model</string>
 </resources>

@@ -11,6 +11,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Earth
@@ -18,6 +19,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.MessageCircle
 import com.composables.icons.lucide.NotebookTabs
 import me.rerere.ai.provider.ModelType
+import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import org.koin.androidx.compose.koinViewModel
@@ -29,7 +31,7 @@ fun SettingModelPage(vm: SettingVM = koinViewModel()) {
         topBar = {
             TopAppBar(
                 title = {
-                    Text("模型设置")
+                    Text(stringResource(R.string.setting_model_page_title))
                 },
                 navigationIcon = {
                     BackButton()
@@ -42,7 +44,7 @@ fun SettingModelPage(vm: SettingVM = koinViewModel()) {
         ) {
             ListItem(
                 headlineContent = {
-                    Text("聊天模型", maxLines = 1)
+                    Text(stringResource(R.string.setting_model_page_chat_model), maxLines = 1)
                 },
                 leadingContent = {
                     Icon(Lucide.MessageCircle, null)
@@ -63,7 +65,7 @@ fun SettingModelPage(vm: SettingVM = koinViewModel()) {
             )
             ListItem(
                 headlineContent = {
-                    Text("标题总结模型", maxLines = 1)
+                    Text(stringResource(R.string.setting_model_page_title_model), maxLines = 1)
                 },
                 leadingContent = {
                     Icon(Lucide.NotebookTabs, null)
@@ -84,7 +86,7 @@ fun SettingModelPage(vm: SettingVM = koinViewModel()) {
             )
             ListItem(
                 headlineContent = {
-                    Text("翻译模型", maxLines = 1)
+                    Text(stringResource(R.string.setting_model_page_translate_model), maxLines = 1)
                 },
                 leadingContent = {
                     Icon(Lucide.Earth, null)

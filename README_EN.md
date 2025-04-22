@@ -6,7 +6,7 @@ A native Android LLM chat client that supports switching between different provi
 
 Click to join our Discord server 👉 [【RikkaHub】](https://discord.gg/9weBqxe5c4)
 
-[中文](README.md) | English
+[简体中文](README.md) | [繁體中文](README_ZH_TW.md) | English
 </div>
 
 <div align="center">
@@ -55,7 +55,11 @@ Technology stack documentation:
 - [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization) (JSON serialization)
 - [compose-icons/lucide](https://composeicons.com/icon-libraries/lucide) (Icon library)
 
-## Star History
+## 💰 Donate
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/X8X71DVU91)
+
+## ⭐ Star History
 
 If you like this project, please give it a star ⭐
 

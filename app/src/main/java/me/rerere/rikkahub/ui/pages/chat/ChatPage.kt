@@ -223,7 +223,9 @@ private fun ChatList(
             if (loading) {
                 item(LoadingIndicatorKey) {
                     WavyCircularProgressIndicator(
-                        modifier = Modifier.size(24.dp).animateItem(),
+                        modifier = Modifier
+                            .size(24.dp)
+                            .animateItem(),
                         strokeWidth = 2.dp,
                     )
                 }

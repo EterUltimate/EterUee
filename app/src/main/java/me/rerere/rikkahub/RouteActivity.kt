@@ -60,6 +60,7 @@ import me.rerere.rikkahub.ui.pages.assistant.AssistantPage
 import me.rerere.rikkahub.ui.pages.chat.ChatPage
 import me.rerere.rikkahub.ui.pages.debug.DebugPage
 import me.rerere.rikkahub.ui.pages.history.HistoryPage
+import me.rerere.rikkahub.ui.pages.menu.MenuPage
 import me.rerere.rikkahub.ui.pages.setting.SettingAboutPage
 import me.rerere.rikkahub.ui.pages.setting.SettingModelPage
 import me.rerere.rikkahub.ui.pages.setting.SettingPage
@@ -170,6 +171,10 @@ class RouteActivity : ComponentActivity() {
 
                     composableHelper("assistant") {
                         AssistantPage()
+                    }
+
+                    composableHelper("menu") {
+                        MenuPage()
                     }
 
                     composableHelper("translator") {

@@ -1,6 +1,7 @@
 package me.rerere.rikkahub.ui.pages.chat
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -51,6 +53,7 @@ import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.History
 import com.composables.icons.lucide.ListTree
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Menu
 import com.composables.icons.lucide.MessageCirclePlus
 import com.composables.icons.lucide.Settings
 import kotlinx.coroutines.launch
@@ -126,6 +129,9 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                     drawerState = drawerState,
                     onNewChat = {
                         navigateToChatPage(navController)
+                    },
+                    onClickMenu = {
+                        navController.navigate("menu")
                     }
                 )
             },
@@ -254,10 +260,14 @@ private fun ChatList(
                 modifier = Modifier.padding(8.dp),
                 onClick = {
                     scrollToBottom()
-                }
+                },
+                border = BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
             ) {
                 Row(
-                    modifier = Modifier.padding(4.dp),
+                    modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -277,6 +287,7 @@ private fun ChatList(
 private fun TopBar(
     conversation: Conversation,
     drawerState: DrawerState,
+    onClickMenu: () -> Unit,
     onNewChat: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -295,10 +306,19 @@ private fun TopBar(
             Text(
                 text = conversation.title.ifBlank { "新聊天" },
                 maxLines = 1,
-                fontSize = MaterialTheme.typography.bodyMedium.fontSize
+                fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                overflow = TextOverflow.Ellipsis
             )
         },
         actions = {
+            IconButton(
+                onClick = {
+                    onClickMenu()
+                }
+            ) {
+                Icon(Lucide.Menu, "Menu")
+            }
+
             IconButton(
                 onClick = {
                     onNewChat()

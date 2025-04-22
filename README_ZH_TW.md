@@ -46,6 +46,7 @@
 技術棧文檔:
 
 - [Kotlin](https://kotlinlang.org/) (開發語言)
+- [Koin](https://insert-koin.io/) (依賴注入)
 - [Jetpack Compose](https://developer.android.com/jetpack/compose) (UI 框架)
 - [DataStore](https://developer.android.com/topic/libraries/architecture/datastore?hl=zh-cn#preferences-datastore) (偏好數據存儲)
 - [Room](https://developer.android.com/training/data-storage/room) (數據庫)

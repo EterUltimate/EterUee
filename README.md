@@ -46,6 +46,7 @@
 技术栈文档:
 
 - [Kotlin](https://kotlinlang.org/) (开发语言)
+- [Koin](https://insert-koin.io/) (依赖注入)
 - [Jetpack Compose](https://developer.android.com/jetpack/compose) (UI 框架)
 - [DataStore](https://developer.android.com/topic/libraries/architecture/datastore?hl=zh-cn#preferences-datastore) (偏好数据存储)
 - [Room](https://developer.android.com/training/data-storage/room) (数据库)

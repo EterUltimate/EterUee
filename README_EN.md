@@ -45,6 +45,7 @@ This project is developed using [Android Studio](https://developer.android.com/s
 Technology stack documentation:
 
 - [Kotlin](https://kotlinlang.org/) (Development language)
+- [Koin](https://insert-koin.io/) (Dependency Injection)
 - [Jetpack Compose](https://developer.android.com/jetpack/compose) (UI framework)
 - [DataStore](https://developer.android.com/topic/libraries/architecture/datastore) (Preference data storage)
 - [Room](https://developer.android.com/training/data-storage/room) (Database)

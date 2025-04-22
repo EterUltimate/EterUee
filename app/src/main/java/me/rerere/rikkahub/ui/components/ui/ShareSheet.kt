@@ -27,12 +27,8 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Share2
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.putJsonArray
-import me.rerere.ai.provider.Model
-import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.rikkahub.utils.JsonInstant
 import kotlin.io.encoding.Base64
@@ -115,7 +111,7 @@ private fun ProviderSetting.encode(): String {
             put("name", JsonPrimitive(name))
 
             // provider settings
-            when(this@encode) {
+            when (this@encode) {
                 is ProviderSetting.OpenAI -> {
                     put("apiKey", JsonPrimitive(apiKey))
                     put("baseUrl", JsonPrimitive(baseUrl))
@@ -123,24 +119,6 @@ private fun ProviderSetting.encode(): String {
 
                 is ProviderSetting.Google -> {
                     put("apiKey", JsonPrimitive(apiKey))
-                }
-            }
-
-            // models
-            putJsonArray("models") {
-                for (model in models) {
-                    add(buildJsonObject {
-                        put("id", JsonPrimitive(model.modelId))
-                        put("name", JsonPrimitive(model.displayName))
-                        put(
-                            "type", JsonPrimitive(
-                                when (model.type) {
-                                    ModelType.CHAT -> "chat"
-                                    ModelType.EMBEDDING -> "embedding"
-                                }
-                            )
-                        )
-                    })
                 }
             }
         })
@@ -162,36 +140,21 @@ fun decodeProviderSetting(value: String): ProviderSetting {
 
     val type = jsonObj["type"]?.jsonPrimitive?.content ?: error("Missing type")
     val name = jsonObj["name"]?.jsonPrimitive?.content ?: error("Missing name")
-    val modelsJson = jsonObj["models"]?.jsonArray ?: error("Missing models")
-    val models = modelsJson.map { modelElem ->
-        val modelObj = modelElem.jsonObject
-        val modelId = modelObj["id"]?.jsonPrimitive?.content ?: error("Missing model id")
-        val displayName = modelObj["name"]?.jsonPrimitive?.content ?: error("Missing model name")
-        val typeStr = modelObj["type"]?.jsonPrimitive?.content ?: error("Missing model type")
-        val modelType = when(typeStr) {
-            "chat" -> ModelType.CHAT
-            "embedding" -> ModelType.EMBEDDING
-            else -> error("Unknown model type: $typeStr")
-        }
-        Model(
-            modelId = modelId,
-            displayName = displayName,
-            type = modelType
-        )
-    }
 
-    return when(type) {
+    return when (type) {
         "openai-compat" -> ProviderSetting.OpenAI(
             name = name,
             apiKey = jsonObj["apiKey"]?.jsonPrimitive?.content ?: error("Missing apiKey"),
             baseUrl = jsonObj["baseUrl"]?.jsonPrimitive?.content ?: error("Missing baseUrl"),
-            models = models
+            models = emptyList()
         )
+
         "google" -> ProviderSetting.Google(
             name = name,
             apiKey = jsonObj["apiKey"]?.jsonPrimitive?.content ?: error("Missing apiKey"),
-            models = models
+            models = emptyList()
         )
+
         else -> error("Unknown provider type: $type")
     }
 }

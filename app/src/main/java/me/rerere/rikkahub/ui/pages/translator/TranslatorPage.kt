@@ -52,6 +52,7 @@ import me.rerere.rikkahub.ui.components.ui.ToastVariant
 import me.rerere.rikkahub.ui.components.ui.WavyLinearProgressIndicator
 import me.rerere.rikkahub.ui.components.ui.rememberToastState
 import org.koin.androidx.compose.koinViewModel
+import java.util.Locale
 
 @Composable
 fun TranslatorPage(vm: TranslatorVM = koinViewModel()) {
@@ -161,13 +162,25 @@ fun TranslatorPage(vm: TranslatorVM = koinViewModel()) {
     }
 }
 
+private val Locales by lazy {
+    listOf(
+        Locale.SIMPLIFIED_CHINESE,
+        Locale.ENGLISH,
+        Locale.TRADITIONAL_CHINESE,
+        Locale.JAPANESE,
+        Locale.KOREAN,
+        Locale.FRENCH,
+        Locale.GERMAN,
+        Locale.ITALIAN,
+    )
+}
+
 @Composable
 private fun LanguageSelector(
-    targetLanguage: String,
-    onLanguageSelected: (String) -> Unit
+    targetLanguage: Locale,
+    onLanguageSelected: (Locale) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val languages = listOf("中文", "英文", "日文", "韩文", "法文", "德文", "西班牙文", "俄文")
 
     Box(
         modifier = Modifier.padding(horizontal = 4.dp)
@@ -177,7 +190,7 @@ private fun LanguageSelector(
             onExpandedChange = { expanded = it }
         ) {
             OutlinedTextField(
-                value = targetLanguage,
+                value = targetLanguage.displayLanguage,
                 onValueChange = {},
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
@@ -195,9 +208,9 @@ private fun LanguageSelector(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
-                languages.forEach { language ->
+                Locales.forEach { language ->
                     DropdownMenuItem(
-                        text = { Text(language) },
+                        text = { Text(language.displayLanguage) },
                         onClick = {
                             onLanguageSelected(language)
                             expanded = false
@@ -213,8 +226,8 @@ private fun LanguageSelector(
 private fun BottomBar(
     settings: Settings,
     onUpdateSettings: (Settings) -> Unit,
-    targetLanguage: String,
-    onLanguageSelected: (String) -> Unit,
+    targetLanguage: Locale,
+    onLanguageSelected: (Locale) -> Unit,
     translating: Boolean,
     onTranslate: () -> Unit,
     onCancelTranslation: () -> Unit

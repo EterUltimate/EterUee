@@ -19,6 +19,7 @@ import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.findProvider
 import me.rerere.rikkahub.ui.hooks.getCurrentAssistant
+import java.util.Locale
 
 private const val TAG = "TranslatorVM"
 
@@ -41,8 +42,8 @@ class TranslatorVM(
     val translatedText: StateFlow<String> = _translatedText
     
     // 翻译目标语言
-    private val _targetLanguage = MutableStateFlow("中文")
-    val targetLanguage: StateFlow<String> = _targetLanguage
+    private val _targetLanguage = MutableStateFlow(Locale.SIMPLIFIED_CHINESE)
+    val targetLanguage: StateFlow<Locale> = _targetLanguage
     
     // 错误流
     val errorFlow = MutableSharedFlow<Throwable>()
@@ -60,7 +61,7 @@ class TranslatorVM(
         _inputText.value = text
     }
     
-    fun updateTargetLanguage(language: String) {
+    fun updateTargetLanguage(language: Locale) {
         _targetLanguage.value = language
     }
     

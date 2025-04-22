@@ -44,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
@@ -62,6 +63,7 @@ import me.rerere.ai.provider.ModelType
 import me.rerere.ai.ui.Conversation
 import me.rerere.ai.ui.UIMessage
 import me.rerere.rikkahub.BuildConfig
+import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.ui.components.chat.AssistantPicker
 import me.rerere.rikkahub.ui.components.chat.ChatInput
@@ -398,8 +400,8 @@ private fun DrawerContent(
                     },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Icon(Lucide.Settings, "Settings")
-                    Text("设置", modifier = Modifier.padding(start = 4.dp))
+                    Icon(Lucide.Settings, stringResource(R.string.settings))
+                    Text(stringResource(R.string.settings), modifier = Modifier.padding(start = 4.dp))
                 }
             }
         }

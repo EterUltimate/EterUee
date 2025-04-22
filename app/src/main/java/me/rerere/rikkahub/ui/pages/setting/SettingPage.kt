@@ -65,7 +65,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
         ) {
             stickyHeader {
                 Text(
-                    text = stringResource(R.string.interface_settings),
+                    text = stringResource(R.string.setting_page_interface_settings),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary
@@ -75,10 +75,10 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
             item {
                 ListItem(
                     headlineContent = {
-                        Text(stringResource(R.string.dynamic_color))
+                        Text(stringResource(R.string.setting_page_dynamic_color))
                     },
                     supportingContent = {
-                        Text(stringResource(R.string.dynamic_color_desc))
+                        Text(stringResource(R.string.setting_page_dynamic_color_desc))
                     },
                     trailingContent = {
                         Switch(
@@ -97,7 +97,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
 
             stickyHeader {
                 Text(
-                    text = stringResource(R.string.model_and_services),
+                    text = stringResource(R.string.setting_page_model_and_services),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary
@@ -107,8 +107,8 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
             item {
                 SettingItem(
                     navController = navController,
-                    title = { Text(stringResource(R.string.default_model)) },
-                    description = { Text(stringResource(R.string.default_model_desc)) },
+                    title = { Text(stringResource(R.string.setting_page_default_model)) },
+                    description = { Text(stringResource(R.string.setting_page_default_model_desc)) },
                     icon = { Icon(Lucide.Heart, "Default Model") },
                     link = "setting/models"
                 )
@@ -117,8 +117,8 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
             item {
                 SettingItem(
                     navController = navController,
-                    title = { Text(stringResource(R.string.providers)) },
-                    description = { Text(stringResource(R.string.providers_desc)) },
+                    title = { Text(stringResource(R.string.setting_page_providers)) },
+                    description = { Text(stringResource(R.string.setting_page_providers_desc)) },
                     icon = { Icon(Lucide.Boxes, "Models") },
                     link = "setting/provider"
                 )
@@ -127,8 +127,8 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
             item {
                 SettingItem(
                     navController = navController,
-                    title = { Text(stringResource(R.string.search_service)) },
-                    description = { Text(stringResource(R.string.search_service_desc)) },
+                    title = { Text(stringResource(R.string.setting_page_search_service)) },
+                    description = { Text(stringResource(R.string.setting_page_search_service_desc)) },
                     icon = { Icon(Lucide.Earth, "Search") },
                     link = "setting/search"
                 )
@@ -136,7 +136,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
 
             stickyHeader {
                 Text(
-                    text = stringResource(R.string.about),
+                    text = stringResource(R.string.setting_page_about),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary
@@ -146,8 +146,8 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
             item {
                 SettingItem(
                     navController = navController,
-                    title = { Text(stringResource(R.string.about)) },
-                    description = { Text(stringResource(R.string.about_desc)) },
+                    title = { Text(stringResource(R.string.setting_page_about)) },
+                    description = { Text(stringResource(R.string.setting_page_about_desc)) },
                     icon = { Icon(Lucide.BadgeInfo, "About") },
                     link = "setting/about"
                 )
@@ -160,14 +160,14 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                 }
                 SettingItem(
                     navController = navController,
-                    title = { Text(stringResource(R.string.chat_storage)) },
+                    title = { Text(stringResource(R.string.setting_page_chat_storage)) },
                     description = {
                         if (storageState.first == -1) {
                             Text(stringResource(R.string.calculating))
                         } else {
                             Text(
                                 stringResource(
-                                    R.string.chat_storage_desc,
+                                    R.string.setting_page_chat_storage_desc,
                                     storageState.first,
                                     storageState.second / 1024 / 1024.0
                                 )
@@ -182,14 +182,14 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
 
             item {
                 val context = LocalContext.current
-                val shareText = stringResource(R.string.share_text)
-                val share = stringResource(R.string.share)
-                val noShareApp = stringResource(R.string.no_share_app)
+                val shareText = stringResource(R.string.setting_page_share_text)
+                val share = stringResource(R.string.setting_page_share)
+                val noShareApp = stringResource(R.string.setting_page_no_share_app)
                 SettingItem(
                     navController = navController,
-                    title = { Text(stringResource(R.string.share)) },
+                    title = { Text(stringResource(R.string.setting_page_share)) },
                     description = {
-                        Text(stringResource(R.string.share_desc))
+                        Text(stringResource(R.string.setting_page_share_desc))
                     },
                     icon = {
                         Icon(Lucide.Share2, "Share")

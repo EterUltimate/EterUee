@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
@@ -55,6 +54,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.MessageCirclePlus
 import com.composables.icons.lucide.Settings
 import kotlinx.coroutines.launch
+import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.ui.Conversation
 import me.rerere.ai.ui.UIMessage
@@ -67,6 +67,7 @@ import me.rerere.rikkahub.ui.components.chat.ModelSelector
 import me.rerere.rikkahub.ui.components.chat.rememberChatInputState
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.components.ui.ToastVariant
+import me.rerere.rikkahub.ui.components.ui.WavyCircularProgressIndicator
 import me.rerere.rikkahub.ui.components.ui.rememberToastState
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.hooks.useThrottle
@@ -171,6 +172,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                 innerPadding = innerPadding,
                 conversation = conversation,
                 loading = loadingJob != null,
+                model = currentChatModel ?: Model.Empty,
                 onRegenerate = {
                     vm.regenerateAtMessage(it)
                 },
@@ -191,6 +193,7 @@ private fun ChatList(
     innerPadding: PaddingValues,
     conversation: Conversation,
     loading: Boolean,
+    model: Model,
     onRegenerate: (UIMessage) -> Unit = {},
     onEdit: (UIMessage) -> Unit = {},
 ) {
@@ -219,9 +222,9 @@ private fun ChatList(
 
             if (loading) {
                 item(LoadingIndicatorKey) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        strokeWidth = 2.dp
+                    WavyCircularProgressIndicator(
+                        modifier = Modifier.size(24.dp).animateItem(),
+                        strokeWidth = 2.dp,
                     )
                 }
             }

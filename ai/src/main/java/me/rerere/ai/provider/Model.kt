@@ -11,7 +11,18 @@ data class Model(
     val type: ModelType = ModelType.CHAT,
     val inputModalities: List<Modality> = listOf(Modality.TEXT),
     val outputModalities: List<Modality> = listOf(Modality.TEXT),
-)
+) {
+    companion object {
+        val Empty = Model(
+            modelId = "",
+            displayName = "",
+            id = Uuid.random(),
+            type = ModelType.CHAT,
+            inputModalities = listOf(Modality.TEXT),
+            outputModalities = listOf(Modality.TEXT)
+        )
+    }
+}
 
 @Serializable
 enum class ModelType {

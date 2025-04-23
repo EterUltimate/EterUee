@@ -18,23 +18,21 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import me.rerere.ai.core.MessageRole
-import me.rerere.ai.core.SchemaBuilder
-import me.rerere.ai.core.Tool
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ProviderManager
 import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.ui.Conversation
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
-import me.rerere.ai.ui.handleMessageChunk
 import me.rerere.ai.ui.isEmptyMessage
 import me.rerere.ai.ui.transformers.PlaceholderTransformer
 import me.rerere.ai.ui.transformers.SearchTextTransformer
-import me.rerere.ai.ui.transforms
+import me.rerere.rikkahub.data.ai.GenerationHandler
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.findProvider
+import me.rerere.rikkahub.data.model.AssistantMemory
 import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.ui.hooks.getCurrentAssistant
 import me.rerere.rikkahub.utils.UiState
@@ -59,6 +57,7 @@ class ChatVM(
     private val context: Application,
     private val settingsStore: SettingsStore,
     private val conversationRepo: ConversationRepository,
+    private val generationHandler: GenerationHandler,
     val updateChecker: UpdateChecker,
 ) : ViewModel() {
     private val _conversationId: Uuid = Uuid.parse(checkNotNull(savedStateHandle["id"]))
@@ -197,47 +196,33 @@ class ChatVM(
     }
 
     private suspend fun handleMessageComplete() {
-        val model = settings.value.providers.findModelById(settings.value.chatModelId)
-        val provider = model?.findProvider(settings.value.providers) ?: return
-        val assistant = settings.value.getCurrentAssistant()
+        val model = settings.value.providers.findModelById(settings.value.chatModelId) ?: return
         runCatching {
-            val providerHandler = ProviderManager.getProviderByType(provider)
-            providerHandler.streamText(
-                providerSetting = provider,
-                messages = buildList {
-                    if (assistant.systemPrompt.isNotBlank()) {
-                        add(UIMessage.system(assistant.systemPrompt))
-                    }
-                    addAll(conversation.value.messages)
-                }.transforms(messageTransformers, context, model),
-                params = TextGenerationParams(
-                    model = model,
-                    temperature = assistant.temperature,
-                    tools = listOf(
-                        Tool.Function(
-                            name = "update_memory",
-                            description = "更新记忆，用于记住用户偏好。id为记忆的uuid，如果没有，代表新增记忆，否则为更新记忆",
-                            parameters = SchemaBuilder.obj(
-                                "id" to SchemaBuilder.str(),
-                                "content" to SchemaBuilder.str(),
-                                required = listOf("content")
-                            ),
-                        ),
-                        Tool.Function(
-                            name = "get_news",
-                            description = "获取新闻",
-                            parameters = SchemaBuilder.obj(),
-                        )
+            generationHandler.streamText(
+                settings = settings.value,
+                model = model,
+                messages = conversation.value.messages,
+                assistant = { settings.value.getCurrentAssistant() },
+                transformers = messageTransformers,
+                onUpdateMemory = { id, content ->
+                    println("update mem: $id $content")
+                    AssistantMemory(
+                        id = id,
+                        content = content
                     )
-                ),
-            ).collect { chunk ->
-                val currConversation = conversation.value
-                updateConversation(
-                    currConversation.copy(
-                        messages = currConversation.messages.handleMessageChunk(chunk)
+                },
+                onCreationMemory = { content ->
+                    println("create mem: $content")
+                    AssistantMemory(
+                        id = Uuid.random(),
+                        content = content
                     )
-                )
-                saveConversation(conversation.value)
+                },
+                onDeleteMemory = { id ->
+                    println("delete mem: $id")
+                }
+            ).collect {
+                updateConversation(conversation.value.copy(messages = it))
             }
         }.onFailure {
             it.printStackTrace()
@@ -283,12 +268,15 @@ class ChatVM(
                     ),
                 )
                 Log.i(TAG, "generateTitle: ${result.choices[0]}")
-                saveConversation(
-                    conversation.copy(
-                        title = result.choices[0].message?.text()?.trim() ?: "",
-                        updateAt = Instant.now()
+                // 生成完，conversation可能不是最新了，因此需要重新获取
+                conversationRepo.getConversationById(conversation.id)?.let {
+                    saveConversation(
+                        it.copy(
+                            title = result.choices[0].message?.text()?.trim() ?: "",
+                            updateAt = Instant.now()
+                        )
                     )
-                )
+                }
             }.onFailure {
                 it.printStackTrace()
             }

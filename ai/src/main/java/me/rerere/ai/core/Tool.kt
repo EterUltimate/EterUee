@@ -18,7 +18,8 @@ sealed class Tool {
     data class Function(
         val name: String,
         val description: String,
-        val parameters: Schema
+        val parameters: Schema,
+        val execute: suspend (JsonElement) -> JsonElement
     ) : Tool()
 }
 

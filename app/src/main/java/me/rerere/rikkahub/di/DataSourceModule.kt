@@ -2,6 +2,7 @@ package me.rerere.rikkahub.di
 
 import androidx.room.Room
 import kotlinx.serialization.json.Json
+import me.rerere.rikkahub.data.ai.GenerationHandler
 import me.rerere.rikkahub.data.api.RikkaHubAPI
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.db.AppDatabase
@@ -25,6 +26,8 @@ val dataSourceModule = module {
     single {
         get<AppDatabase>().conversationDao()
     }
+
+    single { GenerationHandler(get(), get()) }
 
     single<OkHttpClient> {
         OkHttpClient.Builder()

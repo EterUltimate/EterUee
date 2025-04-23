@@ -13,7 +13,6 @@ data class UIMessage(
     val role: MessageRole,
     val parts: List<UIMessagePart>,
     val annotations: List<UIMessageAnnotation> = emptyList(),
-    val toolCalls: List<ToolCall> = emptyList(),
 ) {
     private fun appendChunk(chunk: MessageChunk): UIMessage {
         val choice = chunk.choices[0]
@@ -22,7 +21,8 @@ data class UIMessage(
             val newParts = delta.parts.fold(parts) { acc, deltaPart ->
                 when (deltaPart) {
                     is UIMessagePart.Text -> {
-                        val existingTextPart = acc.find { it is UIMessagePart.Text } as? UIMessagePart.Text
+                        val existingTextPart =
+                            acc.find { it is UIMessagePart.Text } as? UIMessagePart.Text
                         if (existingTextPart != null) {
                             acc.map { part ->
                                 if (part is UIMessagePart.Text) {
@@ -33,8 +33,10 @@ data class UIMessage(
                             acc + UIMessagePart.Text(deltaPart.text)
                         }
                     }
+
                     is UIMessagePart.Reasoning -> {
-                        val existingReasoningPart = acc.find { it is UIMessagePart.Reasoning } as? UIMessagePart.Reasoning
+                        val existingReasoningPart =
+                            acc.find { it is UIMessagePart.Reasoning } as? UIMessagePart.Reasoning
                         if (existingReasoningPart != null) {
                             acc.map { part ->
                                 if (part is UIMessagePart.Reasoning) {
@@ -45,20 +47,64 @@ data class UIMessage(
                             acc + UIMessagePart.Reasoning(deltaPart.reasoning)
                         }
                     }
+
                     is UIMessagePart.Search -> {
-                        val existingSearchPart = acc.find { it is UIMessagePart.Search } as? UIMessagePart.Search
+                        val existingSearchPart =
+                            acc.find { it is UIMessagePart.Search } as? UIMessagePart.Search
                         if (existingSearchPart != null) {
                             acc.map { part ->
                                 if (part is UIMessagePart.Search) {
-                                    UIMessagePart.Search(existingSearchPart.search.copy(
-                                        items = existingSearchPart.search.items + deltaPart.search.items
-                                    ))
+                                    UIMessagePart.Search(
+                                        existingSearchPart.search.copy(
+                                            items = existingSearchPart.search.items + deltaPart.search.items
+                                        )
+                                    )
                                 } else part
                             }
                         } else {
                             acc + UIMessagePart.Search(deltaPart.search)
-                       }
+                        }
                     }
+
+                    is UIMessagePart.ToolCall -> {
+                        if(deltaPart.toolCallId.isBlank()) {
+                            val lastToolCall = acc.lastOrNull { it is UIMessagePart.ToolCall } as? UIMessagePart.ToolCall
+                            if(lastToolCall == null || lastToolCall.toolCallId.isBlank()) {
+                                acc + UIMessagePart.ToolCall(
+                                    toolCallId = deltaPart.toolCallId,
+                                    toolName = deltaPart.toolName,
+                                    arguments = deltaPart.arguments
+                                )
+                            } else {
+                                acc.map { part ->
+                                    if (part == lastToolCall && part is UIMessagePart.ToolCall) {
+                                        part.merge(deltaPart)
+                                    } else part
+                                }
+                            }
+                        } else {
+                            // insert or update
+                            val existsPart = acc.find {
+                                it is UIMessagePart.ToolCall && it.toolCallId == deltaPart.toolCallId
+                            } as? UIMessagePart.ToolCall
+                            if (existsPart == null) {
+                                // insert
+                                acc + UIMessagePart.ToolCall(
+                                    toolCallId = deltaPart.toolCallId,
+                                    toolName = deltaPart.toolName,
+                                    arguments = deltaPart.arguments
+                                )
+                            } else {
+                                // update
+                                acc.map { part ->
+                                    if (part is UIMessagePart.ToolCall && part.toolCallId == deltaPart.toolCallId) {
+                                        part.merge(deltaPart)
+                                    } else part
+                                }
+                            }
+                        }
+                    }
+
                     else -> {
                         println("delta part append not supported: $deltaPart")
                         acc
@@ -69,31 +115,9 @@ data class UIMessage(
             val newAnnotations = delta.annotations.ifEmpty {
                 annotations
             }
-            // Handle ToolCalls
-            val newToolCalls = toolCalls.toMutableList()
-            delta.toolCalls.forEach { deltaToolCall ->
-                if(deltaToolCall.id.isNotBlank()) {
-                    // 有id，添加新tool_call
-                    newToolCalls.add(deltaToolCall)
-                } else {
-                    // 更新最后一个tool_call
-                    require(newToolCalls.isNotEmpty()) {
-                        "update tool_call in a empty list"
-                    }
-                    val lastOne = newToolCalls.last()
-                    newToolCalls[newToolCalls.lastIndex] = lastOne.copy(
-                        function = lastOne.function.copy(
-                            name = lastOne.function.name + deltaToolCall.function.name,
-                            arguments = lastOne.function.arguments + deltaToolCall.function.arguments
-                        )
-                    )
-                }
-            }
-            println(newToolCalls)
             copy(
                 parts = newParts,
                 annotations = newAnnotations,
-                toolCalls = newToolCalls
             )
         } ?: this
     }
@@ -118,7 +142,7 @@ data class UIMessage(
         it !is UIMessagePart.Search && it !is UIMessagePart.Reasoning
     }
 
-    inline fun <reified P: UIMessagePart> hasPart(): Boolean {
+    inline fun <reified P : UIMessagePart> hasPart(): Boolean {
         return parts.any {
             it is P
         }
@@ -147,7 +171,7 @@ fun List<UIMessage>.handleMessageChunk(chunk: MessageChunk): List<UIMessage> {
     }
     val choice = chunk.choices[0]
     val message = choice.delta ?: choice.message ?: throw Exception("delta/message is null")
-    if(this.last().role != message.role) {
+    if (this.last().role != message.role) {
         return this + message
     } else {
         val last = this.last() + chunk
@@ -155,8 +179,8 @@ fun List<UIMessage>.handleMessageChunk(chunk: MessageChunk): List<UIMessage> {
     }
 }
 
-fun List<UIMessagePart>.isEmptyMessage() : Boolean {
-    if(this.isEmpty()) return true
+fun List<UIMessagePart>.isEmptyMessage(): Boolean {
+    if (this.isEmpty()) return true
     return this.all { message ->
         when (message) {
             is UIMessagePart.Text -> message.text.isBlank()
@@ -166,20 +190,21 @@ fun List<UIMessagePart>.isEmptyMessage() : Boolean {
     }
 }
 
-fun List<UIMessagePart>.searchTextContent() : String {
+fun List<UIMessagePart>.searchTextContent(): String {
     return buildString {
-        for(part in this@searchTextContent) {
-            when(part) {
+        for (part in this@searchTextContent) {
+            when (part) {
                 is UIMessagePart.Search -> {
                     part.search.items.forEachIndexed { index, item ->
                         append("<search_item>\n")
-                        append("<index>${index+1}</index>\n")
+                        append("<index>${index + 1}</index>\n")
                         append("<title>${item.title}</title>\n")
                         append("<content>${item.text}</content>\n")
                         append("<url>${item.url}</url>\n")
                         append("</search_item>\n")
                     }
                 }
+
                 else -> {}
             }
         }
@@ -198,19 +223,22 @@ sealed class UIMessagePart {
     data class Reasoning(val reasoning: String) : UIMessagePart()
 
     @Serializable
-    data class Search(val search: SearchResult): UIMessagePart()
-}
+    data class Search(val search: SearchResult) : UIMessagePart()
 
-@Serializable
-data class ToolCall(
-    val id: String,
-    val function: Function,
-) {
     @Serializable
-    data class Function(
-        val name: String = "",
-        val arguments: String = "",
-    )
+    data class ToolCall(
+        val toolCallId: String,
+        val toolName: String,
+        val arguments: String,
+    ) : UIMessagePart() {
+        fun merge(other: ToolCall): ToolCall {
+            return ToolCall(
+                toolCallId = toolCallId + other.toolCallId,
+                toolName = toolName + other.toolName,
+                arguments = arguments + other.arguments
+            )
+        }
+    }
 }
 
 @Serializable

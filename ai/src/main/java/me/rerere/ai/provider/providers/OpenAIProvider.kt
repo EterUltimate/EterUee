@@ -26,7 +26,6 @@ import me.rerere.ai.provider.Provider
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.ui.MessageChunk
-import me.rerere.ai.ui.ToolCall
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessageChoice
@@ -359,6 +358,22 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                         )
                     )
                 }
+                toolCalls?.forEach { toolCalls ->
+                    val type = toolCalls.jsonObject["type"]?.jsonPrimitive?.contentOrNull
+                    if (type != null && type != "function") error("tool call type not supported: $type")
+                    val toolCallId = toolCalls.jsonObject["id"]?.jsonPrimitive?.contentOrNull
+                    val toolName =
+                        toolCalls.jsonObject["function"]?.jsonObject?.get("name")?.jsonPrimitive?.contentOrNull
+                    val arguments =
+                        toolCalls.jsonObject["function"]?.jsonObject?.get("arguments")?.jsonPrimitive?.contentOrNull
+                    add(
+                        UIMessagePart.ToolCall(
+                            toolCallId = toolCallId ?: "",
+                            toolName = toolName ?: "",
+                            arguments = arguments ?: ""
+                        )
+                    )
+                }
                 add(UIMessagePart.Text(content))
             },
             annotations = parseAnnotations(
@@ -366,7 +381,6 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                     emptyList()
                 )
             ),
-            toolCalls = if (toolCalls != null) parseToolCalls(toolCalls) else emptyList()
         )
     }
 
@@ -387,25 +401,5 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                 else -> error("unknown annotation type: $type")
             }
         }
-    }
-
-    private fun parseToolCalls(jsonArray: JsonArray): List<ToolCall> = jsonArray.map { el ->
-        val type = el.jsonObject["type"]?.jsonPrimitive?.contentOrNull
-        if (type != null && type != "function") error("unknown tool_call type: $type")
-
-        val id = el.jsonObject["id"]?.jsonPrimitive?.content
-        val function = el.jsonObject["function"]?.jsonObject
-
-        if (function != null) {
-            return@map ToolCall(
-                id = id ?: "",
-                function = ToolCall.Function(
-                    name = function["name"]?.jsonPrimitive?.content ?: "",
-                    arguments = function["arguments"]?.jsonPrimitive?.content ?: "",
-                )
-            )
-        }
-
-        error("empty tool_call body")
     }
 }

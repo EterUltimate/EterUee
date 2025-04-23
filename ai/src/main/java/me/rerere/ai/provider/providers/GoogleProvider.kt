@@ -368,7 +368,11 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
             }
 
             jsonObject.containsKey("functionCall") -> {
-                error("not support function_call yet: $jsonObject")
+                UIMessagePart.ToolCall(
+                    toolCallId = "",
+                    toolName = jsonObject["functionCall"]!!.jsonObject["name"]!!.jsonPrimitive.content,
+                    arguments = json.encodeToString(jsonObject["functionCall"]!!.jsonObject["args"])
+                )
             }
 
             else -> error("unknown message part type: $jsonObject")

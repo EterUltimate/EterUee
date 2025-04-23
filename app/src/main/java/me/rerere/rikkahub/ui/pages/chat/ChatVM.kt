@@ -258,9 +258,10 @@ class ChatVM(
                         temperature = 0.3f,
                     ),
                 )
+                Log.i(TAG, "generateTitle: ${result.choices[0]}")
                 saveConversation(
                     conversation.copy(
-                        title = result.choices[0].message?.text() ?: "",
+                        title = result.choices[0].message?.text()?.trim() ?: "",
                         updateAt = Instant.now()
                     )
                 )

@@ -58,7 +58,8 @@ class GenerationHandler(private val context: Context, private val json: Json) {
             onCreationMemory,
             onUpdateMemory,
             onDeleteMemory,
-            tools
+            tools,
+            stream = true
         )
     }.flowOn(Dispatchers.IO)
 
@@ -73,7 +74,8 @@ class GenerationHandler(private val context: Context, private val json: Json) {
         onCreationMemory: ((String) -> AssistantMemory)?,
         onUpdateMemory: ((Uuid, String) -> AssistantMemory)?,
         onDeleteMemory: ((Uuid) -> Unit)?,
-        tools: List<Tool>
+        tools: List<Tool>,
+        stream: Boolean
     ) {
         val assistantRef = assistant?.invoke()
         val internalMessages = buildList {
@@ -95,28 +97,53 @@ class GenerationHandler(private val context: Context, private val json: Json) {
         }.transforms(transformers, context, model)
 
         var messages: List<UIMessage> = messages
-        providerImpl.streamText(
-            providerSetting = provider,
-            messages = internalMessages,
-            params = TextGenerationParams(
-                model = model,
-                temperature = assistantRef?.temperature,
-                tools = buildList {
-                    if (assistantRef?.enableMemory == true) {
-                        checkNotNull(onCreationMemory)
-                        checkNotNull(onUpdateMemory)
-                        checkNotNull(onDeleteMemory)
-                        buildMemoryTools(
-                            onCreation = onCreationMemory,
-                            onUpdate = onUpdateMemory,
-                            onDelete = onDeleteMemory
-                        )
+        if (stream) {
+            providerImpl.streamText(
+                providerSetting = provider,
+                messages = internalMessages,
+                params = TextGenerationParams(
+                    model = model,
+                    temperature = assistantRef?.temperature,
+                    tools = buildList {
+                        if (assistantRef?.enableMemory == true) {
+                            checkNotNull(onCreationMemory)
+                            checkNotNull(onUpdateMemory)
+                            checkNotNull(onDeleteMemory)
+                            buildMemoryTools(
+                                onCreation = onCreationMemory,
+                                onUpdate = onUpdateMemory,
+                                onDelete = onDeleteMemory
+                            )
+                        }
+                        addAll(tools)
                     }
-                    addAll(tools)
-                }
-            )
-        ).collect {
-            messages = messages.handleMessageChunk(it)
+                )
+            ).collect {
+                messages = messages.handleMessageChunk(it)
+                onUpdateMessages(messages)
+            }
+        } else {
+            messages = messages.handleMessageChunk(providerImpl.generateText(
+                providerSetting = provider,
+                messages = internalMessages,
+                params = TextGenerationParams(
+                    model = model,
+                    temperature = assistantRef?.temperature,
+                    tools = buildList {
+                        if (assistantRef?.enableMemory == true) {
+                            checkNotNull(onCreationMemory)
+                            checkNotNull(onUpdateMemory)
+                            checkNotNull(onDeleteMemory)
+                            buildMemoryTools(
+                                onCreation = onCreationMemory,
+                                onUpdate = onUpdateMemory,
+                                onDelete = onDeleteMemory
+                            )
+                        }
+                        addAll(tools)
+                    }
+                )
+            ))
             onUpdateMessages(messages)
         }
     }

@@ -7,9 +7,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import me.rerere.ai.core.MessageRole
@@ -29,7 +31,6 @@ import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.findProvider
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
-import kotlin.uuid.Uuid
 
 private const val TAG = "GenerationHandler"
 
@@ -40,10 +41,11 @@ class GenerationHandler(private val context: Context, private val json: Json) {
         messages: List<UIMessage>,
         transformers: List<MessageTransformer> = emptyList(),
         assistant: (() -> Assistant)? = null,
+        memories: (suspend () -> List<AssistantMemory>)? = null,
         tools: List<Tool> = emptyList(),
-        onCreationMemory: ((String) -> AssistantMemory)? = null,
-        onUpdateMemory: ((Uuid, String) -> AssistantMemory)? = null,
-        onDeleteMemory: ((Uuid) -> Unit)? = null,
+        onCreationMemory: (suspend (String) -> AssistantMemory)? = null,
+        onUpdateMemory: (suspend (Int, String) -> AssistantMemory)? = null,
+        onDeleteMemory: (suspend (Int) -> Unit)? = null,
         maxSteps: Int = 5,
     ): Flow<List<UIMessage>> = flow {
         val provider = model.findProvider(settings.providers) ?: error("Provider not found")
@@ -82,6 +84,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                 providerImpl,
                 provider,
                 toolsInternal,
+                memories?.invoke() ?: emptyList(),
                 stream = true
             )
             val toolCalls = messages.last().getToolCalls()
@@ -101,7 +104,8 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                     results += UIMessagePart.ToolResult(
                         toolName = toolCall.toolName,
                         toolCallId = toolCall.toolCallId,
-                        content = result
+                        content = result,
+                        arguments = args
                     )
                 }.onFailure {
                     it.printStackTrace()
@@ -116,7 +120,10 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                                     append("\n${it.stackTraceToString()}")
                                 })
                             )
-                        }
+                        },
+                        arguments = runCatching {
+                            json.parseToJsonElement(toolCall.arguments)
+                        }.getOrElse { JsonObject(emptyMap()) }
                     )
                 }
             }
@@ -124,6 +131,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                 role = MessageRole.TOOL,
                 parts = results
             )
+            emit(messages)
         }
 
     }.flowOn(Dispatchers.IO)
@@ -137,6 +145,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
         providerImpl: Provider<ProviderSetting>,
         provider: ProviderSetting,
         tools: List<Tool>,
+        memories: List<AssistantMemory>,
         stream: Boolean
     ) {
         val internalMessages = buildList {
@@ -150,7 +159,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
 
                     // 记忆
                     if (assistant.enableMemory) {
-                        append(buildMemoryPrompt(assistant))
+                        append(buildMemoryPrompt(memories))
                     }
                 }))
             }
@@ -185,64 +194,90 @@ class GenerationHandler(private val context: Context, private val json: Json) {
     }
 
     private fun buildMemoryTools(
-        onCreation: (String) -> AssistantMemory,
-        onUpdate: (Uuid, String) -> AssistantMemory,
-        onDelete: (Uuid) -> Unit
+        onCreation: suspend (String) -> AssistantMemory,
+        onUpdate: suspend (Int, String) -> AssistantMemory,
+        onDelete: suspend (Int) -> Unit
     ) = listOf(
         Tool(
-            name = "edit_memory",
-            description = "create or update memory item, if the id is empty, create a new memory item, otherwise update the memory item",
+            name = "create_memory",
+            description = "create a memory record",
             parameters = SchemaBuilder.obj(
-                "id" to SchemaBuilder.str(),
                 "content" to SchemaBuilder.str(),
                 required = listOf("content")
             ),
             execute = {
                 val params = it.jsonObject
-                val id = params["id"]?.jsonPrimitive?.contentOrNull?.let { Uuid.parse(it) }
+                val content =
+                    params["content"]?.jsonPrimitive?.contentOrNull ?: error("content is required")
+                json.encodeToJsonElement(AssistantMemory.serializer(), onCreation(content))
+            }
+        ),
+        Tool(
+            name = "edit_memory",
+            description = "update a memory record",
+            parameters = SchemaBuilder.obj(
+                "id" to SchemaBuilder.int(),
+                "content" to SchemaBuilder.str(),
+                required = listOf("id", "content")
+            ),
+            execute = {
+                val params = it.jsonObject
+                val id = params["id"]?.jsonPrimitive?.intOrNull ?: error("id is required")
                 val content =
                     params["content"]?.jsonPrimitive?.contentOrNull ?: error("content is required")
                 json.encodeToJsonElement(
-                    AssistantMemory.serializer(), if (id == null) {
-                        onCreation(content)
-                    } else {
-                        onUpdate(id, content)
-                    }
+                    AssistantMemory.serializer(), onUpdate(id, content)
                 )
             }
         ),
         Tool(
             name = "delete_memory",
-            description = "delete memory item",
+            description = "delete a memory record",
             parameters = SchemaBuilder.obj(
-                "id" to SchemaBuilder.str(),
+                "id" to SchemaBuilder.int(),
                 required = listOf("id")
             ),
             execute = {
                 val params = it.jsonObject
-                val id = params["id"]?.jsonPrimitive?.contentOrNull?.let { Uuid.parse(it) }
-                    ?: error("id is required")
+                val id = params["id"]?.jsonPrimitive?.intOrNull ?: error("id is required")
                 onDelete(id)
                 JsonPrimitive(true)
             }
         )
     )
 
-    private fun buildMemoryPrompt(assistant: Assistant) = buildString {
-        append(
-            """
-            ## Memories
-            The following content within <memories> contains some memories related to the user, which you can use to better
-            understand user preferences. At the same time, you can also actively call tools to create or update memories.
-        """.trimIndent()
-        )
-        append("<memories>\n")
-        assistant.memories.forEach { memory ->
-            append("<item>\n")
-            append("<id>${memory.id}</id>")
-            append("<content>${memory.content}</content>")
-            append("</item>\n")
+    private fun buildMemoryPrompt(memories: List<AssistantMemory>) =
+        buildString {
+            append(
+                """
+                ## 记忆功能
+                记忆工具允许你(助手)存储多条信息(record)以便在跨对话聊天中记住信息。
+                你可以使用`create_memory`, `edit_memory`和`delete_memory`工具创建，更新或删除记忆。
+                这些记忆会自动包含在未来的对话上下文中，在<memories>标签内。
+                请勿在记忆中存储敏感信息，敏感信息包括：用户的种族、民族、宗教信仰、性取向、政治观点及党派归属、性生活、犯罪记录、医疗诊断和处方、工会会员资格等。
+                在与用户聊天过程中，你可以像一个私人秘书一样**主动的**记录任何用户相关的信息到记忆里，包括但不限于：
+                - 用户昵称
+                - 年龄
+                - 性别
+                - 兴趣爱好
+                - 计划事项等
+                - 聊天风格偏好
+                - 工作相关
+                - 首次聊天时间
+                - ...等等
+                对于记忆中的日期相关信息，请使用绝对时间格式，并且当前时间是 {cur_datetime}。
+                无需告知用户你已更改记忆记录，也不要在对话中直接显示记忆内容，除非用户主动要求。
+                相似或相关的记忆应合并为一条记录，而不要重复记录，过时记录应删除。
+                你可以在和用户闲聊的时候暗示用户你能记住东西。
+            """.trimIndent()
+            )
+            append("\n<memories>\n")
+            memories.forEach { memory ->
+                append("<record>\n")
+                append("<id>${memory.id}</id>")
+                append("<content>${memory.content}</content>")
+                append("</record>\n")
+            }
+            append("</memories>\n")
         }
-        append("</memories>\n")
-    }
 }

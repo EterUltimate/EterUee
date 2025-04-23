@@ -27,6 +27,10 @@ val dataSourceModule = module {
         get<AppDatabase>().conversationDao()
     }
 
+    single {
+        get<AppDatabase>().memoryDao()
+    }
+
     single { GenerationHandler(get(), get()) }
 
     single<OkHttpClient> {

@@ -47,6 +47,7 @@ import com.composables.icons.lucide.Trash2
 import me.rerere.ai.ui.transformers.PlaceholderTransformer
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.model.Assistant
+import me.rerere.rikkahub.data.model.AssistantMemory
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.Tag
@@ -98,29 +99,37 @@ fun AssistantPage(vm: AssistantVM = koinViewModel()) {
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             items(settings.assistants, key = { it.id }) { assistant ->
+                val memories by vm.getMemories(assistant).collectAsStateWithLifecycle(
+                    initialValue = emptyList(),
+                )
                 AssistantItem(
                     assistant = assistant,
+                    memories = memories,
                     onEdit = {
                         editState.open(assistant)
                     },
                     onDelete = {
                         vm.removeAssistant(assistant)
-                    }
+                    },
                 )
             }
         }
     }
-    AssistantEditSheet(createState, memoryState)
-    AssistantEditSheet(editState, memoryState)
-    MemorySheet(memoryState)
+    AssistantEditSheet(vm, createState, memoryState)
+    AssistantEditSheet(vm, editState, memoryState)
+    MemorySheet(vm, memoryState)
 }
 
 @Composable
 private fun AssistantEditSheet(
+    vm: AssistantVM,
     state: EditState<Assistant>,
     memoryState: EditState<Assistant>
 ) {
     state.EditStateContent { assistant, update ->
+        val memories by vm.getMemories(assistant).collectAsStateWithLifecycle(
+            initialValue = emptyList(),
+        )
         ModalBottomSheet(
             onDismissRequest = {
                 state.dismiss()
@@ -253,7 +262,7 @@ private fun AssistantEditSheet(
                                 memoryState.open(assistant)
                             }
                         ) {
-                            Text("管理记忆 (${assistant.memories.size}条)")
+                            Text("管理记忆 (${memories.size}条)")
                         }
 
                         Spacer(Modifier.weight(1f))
@@ -296,8 +305,11 @@ private fun AssistantEditSheet(
 }
 
 @Composable
-private fun MemorySheet(memoryState: EditState<Assistant>) {
+private fun MemorySheet(vm: AssistantVM, memoryState: EditState<Assistant>) {
     memoryState.EditStateContent { assistant, update ->
+        val memories by vm.getMemories(assistant).collectAsStateWithLifecycle(
+            initialValue = emptyList(),
+        )
         ModalBottomSheet(
             onDismissRequest = {
                 memoryState.dismiss()
@@ -324,7 +336,7 @@ private fun MemorySheet(memoryState: EditState<Assistant>) {
                         .height(500.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    items(assistant.memories, key = { it.id }) { memory ->
+                    items(memories, key = { it.id }) { memory ->
                         Card {
                             Row(
                                 modifier = Modifier
@@ -340,13 +352,7 @@ private fun MemorySheet(memoryState: EditState<Assistant>) {
 
                                 IconButton(
                                     onClick = {
-                                        val newMemories = assistant.memories.toMutableList()
-                                        newMemories.remove(memory)
-                                        update(
-                                            assistant.copy(
-                                                memories = newMemories
-                                            )
-                                        )
+                                        vm.deleteMemory(memory)
                                     }
                                 ) {
                                     Icon(Lucide.Trash2, "Delete")
@@ -363,6 +369,7 @@ private fun MemorySheet(memoryState: EditState<Assistant>) {
 @Composable
 private fun AssistantItem(
     assistant: Assistant,
+    memories: List<AssistantMemory>,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -396,7 +403,7 @@ private fun AssistantItem(
                     Tag(
                         type = TagType.SUCCESS
                     ) {
-                        Text("记忆: ${assistant.memories.size}")
+                        Text("记忆: ${memories.size}")
                     }
                 }
             }

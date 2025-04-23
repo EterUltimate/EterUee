@@ -185,9 +185,6 @@ sealed class Schema {
     data class IntegerSchema(
         val minimum: Long? = null,
         val maximum: Long? = null,
-        val exclusiveMinimum: Boolean = false,
-        val exclusiveMaximum: Boolean = false,
-        val multipleOf: Long? = null
     ) : Schema() {
         override fun validate(json: JsonElement): ValidationResult {
             if (json !is JsonPrimitive || !json.isString && json.booleanOrNull != null) {
@@ -200,24 +197,14 @@ sealed class Schema {
                 ?: return ValidationResult.failure("Value $doubleValue is not an integer")
 
             minimum?.let {
-                if (exclusiveMinimum && value <= it) {
+                if (value <= it) {
                     return ValidationResult.failure("Value $value must be greater than $it")
-                } else if (!exclusiveMinimum && value < it) {
-                    return ValidationResult.failure("Value $value must be greater than or equal to $it")
                 }
             }
 
             maximum?.let {
-                if (exclusiveMaximum && value >= it) {
+                if (value >= it) {
                     return ValidationResult.failure("Value $value must be less than $it")
-                } else if (!exclusiveMaximum && value > it) {
-                    return ValidationResult.failure("Value $value must be less than or equal to $it")
-                }
-            }
-
-            multipleOf?.let {
-                if (value % it != 0L) {
-                    return ValidationResult.failure("Value $value is not a multiple of $it")
                 }
             }
 
@@ -359,11 +346,7 @@ object SchemaBuilder {
     fun int(
         min: Long? = null,
         max: Long? = null,
-        exclusiveMin: Boolean = false,
-        exclusiveMax: Boolean = false,
-        multipleOf: Long? = null
-    ) =
-        Schema.IntegerSchema(min, max, exclusiveMin, exclusiveMax, multipleOf)
+    ) = Schema.IntegerSchema(min, max)
 
     val boolean = Schema.BooleanSchema
 

@@ -22,16 +22,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -49,6 +53,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
 import coil3.compose.AsyncImage
+import com.composables.icons.lucide.BookDashed
+import com.composables.icons.lucide.BookHeart
 import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.ChevronUp
 import com.composables.icons.lucide.Copy
@@ -57,6 +63,10 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.Volume2
+import com.composables.icons.lucide.Wrench
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
@@ -67,6 +77,7 @@ import me.rerere.rikkahub.ui.components.ui.Favicon
 import me.rerere.rikkahub.ui.components.ui.ImagePreviewDialog
 import me.rerere.rikkahub.ui.context.LocalTTSService
 import me.rerere.rikkahub.ui.theme.extendColors
+import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.copyMessageToClipboard
 import me.rerere.rikkahub.utils.urlDecode
 
@@ -87,11 +98,13 @@ fun ChatMessage(
             message.parts,
             message.annotations,
         )
-        Actions(
-            message = message,
-            onRegenerate = onRegenerate,
-            onEdit = onEdit
-        )
+        if (message.isValidToShowActions()) {
+            Actions(
+                message = message,
+                onRegenerate = onRegenerate,
+                onEdit = onEdit
+            )
+        }
     }
 }
 
@@ -250,19 +263,84 @@ fun MessagePartsBlock(
     }
 
     // Tool Calls
-    parts.filterIsInstance<UIMessagePart.ToolCall>().fastForEach { toolCall ->
-        Text(
-            "[调用函数] ${toolCall.toolName} / ${toolCall.arguments}",
-            style = MaterialTheme.typography.labelSmall
-        )
-    }
-
-    // Tool Results
-    parts.filterIsInstance<UIMessagePart.ToolResult>().fastForEach { toolResult ->
-        Text(
-            "[调用结果] ${toolResult.toolName} / ${toolResult.content}",
-            style = MaterialTheme.typography.labelSmall
-        )
+    parts.filterIsInstance<UIMessagePart.ToolResult>().fastForEachIndexed { index, toolCall ->
+        key(index) {
+            var showResult by remember { mutableStateOf(false) }
+            Surface(
+                shape = RoundedCornerShape(25),
+                tonalElevation = 4.dp,
+                onClick = {
+                    showResult = true
+                }
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = when (toolCall.toolName) {
+                            "create_memory", "edit_memory" -> Lucide.BookHeart
+                            "delete_memory" -> Lucide.BookDashed
+                            else -> Lucide.Wrench
+                        },
+                        contentDescription = null,
+                    )
+                    Column {
+                        Text(
+                            text = when (toolCall.toolName) {
+                                "create_memory" -> "创建了记忆"
+                                "edit_memory" -> "更新了记忆"
+                                "delete_memory" -> "删除了记忆"
+                                else -> "调用工具 ${toolCall.toolName}"
+                            },
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                        val content =
+                            toolCall.arguments.jsonObject["content"]?.jsonPrimitive?.contentOrNull
+                        if (content != null) {
+                            Text(
+                                text = toolCall.arguments.jsonObject["content"]?.jsonPrimitive?.contentOrNull
+                                    ?: "",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = LocalContentColor.current.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                }
+            }
+            if (showResult) {
+                AlertDialog(
+                    onDismissRequest = {
+                        showResult = false
+                    },
+                    title = {
+                        Text("工具调用 ${toolCall.toolName}")
+                    },
+                    text = {
+                        Column {
+                            Text(
+                                text = JsonInstant.encodeToString(toolCall.arguments),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                            Text(
+                                text = JsonInstant.encodeToString(toolCall.content),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                showResult = false
+                            }
+                        ) {
+                            Text("确定")
+                        }
+                    }
+                )
+            }
+        }
     }
 
     // Annotations

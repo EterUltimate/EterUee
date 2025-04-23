@@ -9,8 +9,13 @@ import kotlinx.coroutines.launch
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.model.Assistant
+import me.rerere.rikkahub.data.model.AssistantMemory
+import me.rerere.rikkahub.data.repository.MemoryRepository
 
-class AssistantVM(private val settingsStore: SettingsStore) : ViewModel() {
+class AssistantVM(
+    private val settingsStore: SettingsStore,
+    val memoryRepository: MemoryRepository
+) : ViewModel() {
     val settings: StateFlow<Settings> = settingsStore.settingsFlow
         .stateIn(viewModelScope, SharingStarted.Lazily, Settings())
 
@@ -50,6 +55,16 @@ class AssistantVM(private val settingsStore: SettingsStore) : ViewModel() {
                     assistants = settings.assistants.filter { it.id != assistant.id }
                 )
             )
+            memoryRepository.deleteMemoriesOfAssistant(assistant.id.toString())
+        }
+    }
+
+    fun getMemories(assistant: Assistant) =
+        memoryRepository.getMemoriesOfAssistantFlow(assistant.id.toString())
+
+    fun deleteMemory(memory: AssistantMemory) {
+        viewModelScope.launch {
+            memoryRepository.deleteMemory(memory.id)
         }
     }
 }

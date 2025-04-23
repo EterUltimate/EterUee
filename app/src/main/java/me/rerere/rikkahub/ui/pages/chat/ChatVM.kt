@@ -34,6 +34,7 @@ import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.findProvider
 import me.rerere.rikkahub.data.model.AssistantMemory
 import me.rerere.rikkahub.data.repository.ConversationRepository
+import me.rerere.rikkahub.data.repository.MemoryRepository
 import me.rerere.rikkahub.ui.hooks.getCurrentAssistant
 import me.rerere.rikkahub.utils.UiState
 import me.rerere.rikkahub.utils.UpdateChecker
@@ -57,6 +58,7 @@ class ChatVM(
     private val context: Application,
     private val settingsStore: SettingsStore,
     private val conversationRepo: ConversationRepository,
+    private val memoryRepository: MemoryRepository,
     private val generationHandler: GenerationHandler,
     val updateChecker: UpdateChecker,
 ) : ViewModel() {
@@ -203,23 +205,16 @@ class ChatVM(
                 model = model,
                 messages = conversation.value.messages,
                 assistant = { settings.value.getCurrentAssistant() },
+                memories = { memoryRepository.getMemoriesOfAssistant(settings.value.assistantId.toString()) },
                 transformers = messageTransformers,
                 onUpdateMemory = { id, content ->
-                    println("update mem: $id $content")
-                    AssistantMemory(
-                        id = id,
-                        content = content
-                    )
+                    updateMemory(id, content)
                 },
                 onCreationMemory = { content ->
-                    println("create mem: $content")
-                    AssistantMemory(
-                        id = Uuid.random(),
-                        content = content
-                    )
+                    addMemory(content)
                 },
                 onDeleteMemory = { id ->
-                    println("delete mem: $id")
+                    deleteMemory(id)
                 }
             ).collect {
                 updateConversation(conversation.value.copy(messages = it))
@@ -354,5 +349,20 @@ class ChatVM(
         viewModelScope.launch {
             conversationRepo.deleteConversation(conversation)
         }
+    }
+
+    suspend fun addMemory(content: String): AssistantMemory {
+        return memoryRepository.addMemory(
+            assistantId = settings.value.assistantId.toString(),
+            content = content,
+        )
+    }
+
+    suspend fun updateMemory(id: Int, content: String): AssistantMemory {
+        return memoryRepository.updateContent(id, content)
+    }
+
+    suspend fun deleteMemory(id: Int) {
+        memoryRepository.deleteMemory(id)
     }
 }

@@ -68,9 +68,10 @@ data class UIMessage(
                     }
 
                     is UIMessagePart.ToolCall -> {
-                        if(deltaPart.toolCallId.isBlank()) {
-                            val lastToolCall = acc.lastOrNull { it is UIMessagePart.ToolCall } as? UIMessagePart.ToolCall
-                            if(lastToolCall == null || lastToolCall.toolCallId.isBlank()) {
+                        if (deltaPart.toolCallId.isBlank()) {
+                            val lastToolCall =
+                                acc.lastOrNull { it is UIMessagePart.ToolCall } as? UIMessagePart.ToolCall
+                            if (lastToolCall == null || lastToolCall.toolCallId.isBlank()) {
                                 acc + UIMessagePart.ToolCall(
                                     toolCallId = deltaPart.toolCallId,
                                     toolName = deltaPart.toolName,
@@ -144,6 +145,10 @@ data class UIMessage(
 
     fun isValidToUpload() = parts.any {
         it !is UIMessagePart.Search && it !is UIMessagePart.Reasoning
+    }
+
+    fun isValidToShowActions() = parts.any {
+        (it is UIMessagePart.Text && it.text.isNotEmpty()) || it is UIMessagePart.Image
     }
 
     inline fun <reified P : UIMessagePart> hasPart(): Boolean {
@@ -249,7 +254,8 @@ sealed class UIMessagePart {
         val toolCallId: String,
         val toolName: String,
         val content: JsonElement,
-    ): UIMessagePart()
+        val arguments: JsonElement,
+    ) : UIMessagePart()
 }
 
 @Serializable

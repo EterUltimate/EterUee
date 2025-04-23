@@ -2,6 +2,7 @@ package me.rerere.ai.provider
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
+import me.rerere.ai.core.Tool
 import me.rerere.ai.ui.MessageChunk
 import me.rerere.ai.ui.UIMessage
 
@@ -28,4 +29,5 @@ data class TextGenerationParams(
     val model: Model,
     val temperature: Float = 0.6f,
     val topP: Float = 1f,
+    val tools: List<Tool> = emptyList(),
 )

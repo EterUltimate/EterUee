@@ -44,9 +44,13 @@ fun HistoryPage(vm: HistoryVM = koinViewModel()) {
 
     var searchText by remember { mutableStateOf("") }
     val allConversations by vm.conversations.collectAsStateWithLifecycle()
-    val searchConversations by produceState<List<Conversation>>(emptyList(), searchText) {
-        vm.searchConversations(searchText).collect {
-            value = it
+    val searchConversations by produceState(emptyList(), searchText) {
+        runCatching {
+            vm.searchConversations(searchText).collect {
+                value = it
+            }
+        }.onFailure {
+            it.printStackTrace()
         }
     }
     val showConversations = if (searchText.isEmpty()) {

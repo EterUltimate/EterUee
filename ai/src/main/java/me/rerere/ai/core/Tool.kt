@@ -13,13 +13,13 @@ import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.longOrNull
 
 @Serializable
-sealed class Tools {
+sealed class Tool {
     @Serializable
     data class Function(
         val name: String,
         val description: String,
         val parameters: Schema
-    ) : Tools()
+    ) : Tool()
 }
 
 @Serializable
@@ -39,7 +39,6 @@ sealed class Schema {
     data class ObjectSchema(
         val properties: Map<String, Schema>,
         val required: List<String> = emptyList(),
-        val additionalProperties: Boolean = true
     ) : Schema() {
         override fun validate(json: JsonElement): ValidationResult {
             if (json !is JsonObject) {
@@ -49,13 +48,6 @@ sealed class Schema {
             for (requiredProp in required) {
                 if (!json.containsKey(requiredProp)) {
                     return ValidationResult.failure("Missing required property: $requiredProp")
-                }
-            }
-            // 验证额外属性
-            if (!additionalProperties) {
-                val extraProps = json.keys.filter { it !in properties.keys }
-                if (extraProps.isNotEmpty()) {
-                    return ValidationResult.failure("Additional properties not allowed: $extraProps")
                 }
             }
             // 验证每个属性
@@ -348,9 +340,8 @@ object SchemaBuilder {
     fun obj(
         vararg properties: Pair<String, Schema>,
         required: List<String> = emptyList(),
-        additionalProps: Boolean = true
     ) =
-        Schema.ObjectSchema(properties.toMap(), required, additionalProps)
+        Schema.ObjectSchema(properties.toMap(), required)
 
     fun arr(items: Schema, minItems: Int = 0, maxItems: Int? = null, unique: Boolean = false) =
         Schema.ArraySchema(items, minItems, maxItems, unique)

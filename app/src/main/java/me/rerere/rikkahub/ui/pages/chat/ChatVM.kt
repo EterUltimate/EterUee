@@ -13,10 +13,13 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import me.rerere.ai.core.MessageRole
+import me.rerere.ai.core.SchemaBuilder
+import me.rerere.ai.core.Tool
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ProviderManager
 import me.rerere.ai.provider.TextGenerationParams
@@ -83,6 +86,11 @@ class ChatVM(
 
     // 聊天列表
     val conversations = conversationRepo.getAllConversations()
+        .catch {
+            Log.e(TAG, "conversationRepo.getAllConversations: ", it)
+            errorFlow.emit(it)
+            emit(emptyList())
+        }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     // 当前模型
@@ -145,7 +153,7 @@ class ChatVM(
     }
 
     suspend fun handleWebSearch() {
-        if(!useWebSearch) return
+        if (!useWebSearch) return
         val service = SearchService.getService(settings.value.searchServiceOptions)
         val result = service.search(
             query = conversation.value.messages.last().text(),
@@ -197,7 +205,7 @@ class ChatVM(
             providerHandler.streamText(
                 providerSetting = provider,
                 messages = buildList {
-                    if(assistant.systemPrompt.isNotBlank()) {
+                    if (assistant.systemPrompt.isNotBlank()) {
                         add(UIMessage.system(assistant.systemPrompt))
                     }
                     addAll(conversation.value.messages)
@@ -205,6 +213,22 @@ class ChatVM(
                 params = TextGenerationParams(
                     model = model,
                     temperature = assistant.temperature,
+                    tools = listOf(
+                        Tool.Function(
+                            name = "update_memory",
+                            description = "更新记忆，用于记住用户偏好。id为记忆的uuid，如果没有，代表新增记忆，否则为更新记忆",
+                            parameters = SchemaBuilder.obj(
+                                "id" to SchemaBuilder.str(),
+                                "content" to SchemaBuilder.str(),
+                                required = listOf("content")
+                            ),
+                        ),
+                        Tool.Function(
+                            name = "get_news",
+                            description = "获取新闻",
+                            parameters = SchemaBuilder.obj(),
+                        )
+                    )
                 ),
             ).collect { chunk ->
                 val currConversation = conversation.value

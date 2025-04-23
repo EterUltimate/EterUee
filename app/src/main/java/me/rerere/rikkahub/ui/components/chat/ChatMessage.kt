@@ -58,6 +58,7 @@ import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.Volume2
 import me.rerere.ai.core.MessageRole
+import me.rerere.ai.ui.ToolCall
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessagePart
@@ -82,7 +83,12 @@ fun ChatMessage(
         horizontalAlignment = if (message.role == MessageRole.USER) Alignment.End else Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        MessagePartsBlock(message.role, message.parts, message.annotations)
+        MessagePartsBlock(
+            message.role,
+            message.parts,
+            message.annotations,
+            message.toolCalls
+        )
         Actions(
             message = message,
             onRegenerate = onRegenerate,
@@ -167,13 +173,22 @@ private fun Actions(
 fun MessagePartsBlock(
     role: MessageRole,
     parts: List<UIMessagePart>,
-    annotations: List<UIMessageAnnotation>
+    annotations: List<UIMessageAnnotation>,
+    toolCalls: List<ToolCall>
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
     var expandReasoning by remember { mutableStateOf(true) }
     val context = LocalContext.current
-    
+
+    // Tool Call
+    toolCalls.fastForEach {
+        Text(
+            "[调用函数] ${it.function.name} / ${it.function.arguments}",
+            style = MaterialTheme.typography.labelSmall
+        )
+    }
+
     // Search
     parts.filterIsInstance<UIMessagePart.Search>().fastForEach { search ->
         SearchResultList(search.search)
@@ -315,12 +330,12 @@ fun MessagePartsBlock(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
                     .width(72.dp)
-                    .clickable { 
+                    .clickable {
                         showImageViewer = true
                     }
             )
         }
-        if(showImageViewer) {
+        if (showImageViewer) {
             ImagePreviewDialog(images.map { it.url }) {
                 showImageViewer = false
             }

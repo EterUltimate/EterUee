@@ -13,10 +13,12 @@ data class UIMessage(
     val role: MessageRole,
     val parts: List<UIMessagePart>,
     val annotations: List<UIMessageAnnotation> = emptyList(),
+    val toolCalls: List<ToolCall> = emptyList(),
 ) {
     private fun appendChunk(chunk: MessageChunk): UIMessage {
         val choice = chunk.choices[0]
         return choice.delta?.let { delta ->
+            // Handle Parts
             val newParts = delta.parts.fold(parts) { acc, deltaPart ->
                 when (deltaPart) {
                     is UIMessagePart.Text -> {
@@ -63,14 +65,35 @@ data class UIMessage(
                     }
                 }
             }
-            val newAnnotations = if(delta.annotations.isNotEmpty()) {
-                delta.annotations
-            } else {
+            // Handle annotations
+            val newAnnotations = delta.annotations.ifEmpty {
                 annotations
             }
+            // Handle ToolCalls
+            val newToolCalls = toolCalls.toMutableList()
+            delta.toolCalls.forEach { deltaToolCall ->
+                if(deltaToolCall.id.isNotBlank()) {
+                    // 有id，添加新tool_call
+                    newToolCalls.add(deltaToolCall)
+                } else {
+                    // 更新最后一个tool_call
+                    require(newToolCalls.isNotEmpty()) {
+                        "update tool_call in a empty list"
+                    }
+                    val lastOne = newToolCalls.last()
+                    newToolCalls[newToolCalls.lastIndex] = lastOne.copy(
+                        function = lastOne.function.copy(
+                            name = lastOne.function.name + deltaToolCall.function.name,
+                            arguments = lastOne.function.arguments + deltaToolCall.function.arguments
+                        )
+                    )
+                }
+            }
+            println(newToolCalls)
             copy(
                 parts = newParts,
-                annotations = newAnnotations
+                annotations = newAnnotations,
+                toolCalls = newToolCalls
             )
         } ?: this
     }
@@ -176,6 +199,18 @@ sealed class UIMessagePart {
 
     @Serializable
     data class Search(val search: SearchResult): UIMessagePart()
+}
+
+@Serializable
+data class ToolCall(
+    val id: String,
+    val function: Function,
+) {
+    @Serializable
+    data class Function(
+        val name: String = "",
+        val arguments: String = "",
+    )
 }
 
 @Serializable

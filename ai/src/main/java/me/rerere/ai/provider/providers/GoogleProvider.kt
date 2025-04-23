@@ -18,7 +18,10 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import me.rerere.ai.core.MessageRole
+import me.rerere.ai.core.Schema
+import me.rerere.ai.core.Tool
 import me.rerere.ai.provider.Model
+import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.Provider
 import me.rerere.ai.provider.ProviderSetting
@@ -101,31 +104,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
         messages: List<UIMessage>,
         params: TextGenerationParams,
     ): MessageChunk = withContext(Dispatchers.IO) {
-        val requestBody = buildJsonObject {
-            // System message if available
-            val systemMessage = messages.firstOrNull { it.role == MessageRole.SYSTEM }
-            if (systemMessage != null) {
-                put("system_instruction", buildJsonObject {
-                    putJsonArray("parts") {
-                        add(buildJsonObject {
-                            put(
-                                "text",
-                                systemMessage.parts.filterIsInstance<UIMessagePart.Text>()
-                                    .joinToString { it.text })
-                        })
-                    }
-                })
-            }
-
-            // Generation config
-            put("generationConfig", buildJsonObject {
-                put("temperature", params.temperature)
-                put("topP", params.topP)
-            })
-
-            // Contents (user messages)
-            put("contents", buildContents(messages))
-        }
+        val requestBody = buildCompletionRequestBody(messages, params)
 
         val url = "$API_URL/$API_VERSION/models/${params.model.modelId}:generateContent".toHttpUrl()
             .newBuilder()
@@ -170,34 +149,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
         messages: List<UIMessage>,
         params: TextGenerationParams,
     ): Flow<MessageChunk> = callbackFlow {
-        val requestBody = buildJsonObject {
-            // System message if available
-            val systemMessage = messages.firstOrNull { it.role == MessageRole.SYSTEM }
-            if (systemMessage != null) {
-                put("system_instruction", buildJsonObject {
-                    putJsonArray("parts") {
-                        add(buildJsonObject {
-                            put(
-                                "text",
-                                systemMessage.parts.filterIsInstance<UIMessagePart.Text>()
-                                    .joinToString { it.text })
-                        })
-                    }
-                })
-            }
-
-            // Generation config
-            put("generationConfig", buildJsonObject {
-                put("temperature", params.temperature)
-                put("topP", params.topP)
-            })
-
-            // Contents (user messages)
-            put(
-                "contents",
-                buildContents(messages)
-            )
-        }
+        val requestBody = buildCompletionRequestBody(messages, params)
 
         val url =
             "$API_URL/$API_VERSION/models/${params.model.modelId}:streamGenerateContent".toHttpUrl()
@@ -317,6 +269,65 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
         }
     }
 
+    private fun buildCompletionRequestBody(
+        messages: List<UIMessage>,
+        params: TextGenerationParams
+    ): JsonObject = buildJsonObject {
+        // System message if available
+        val systemMessage = messages.firstOrNull { it.role == MessageRole.SYSTEM }
+        if (systemMessage != null) {
+            put("system_instruction", buildJsonObject {
+                putJsonArray("parts") {
+                    add(buildJsonObject {
+                        put(
+                            "text",
+                            systemMessage.parts.filterIsInstance<UIMessagePart.Text>()
+                                .joinToString { it.text })
+                    })
+                }
+            })
+        }
+
+        // Generation config
+        put("generationConfig", buildJsonObject {
+            put("temperature", params.temperature)
+            put("topP", params.topP)
+        })
+
+        // Contents (user messages)
+        put(
+            "contents",
+            buildContents(messages)
+        )
+
+        // Tools
+        if (params.tools.isNotEmpty() && params.model.abilities.contains(ModelAbility.TOOL)) {
+            put("tools", buildJsonArray {
+                add(buildJsonObject {
+                    put("functionDeclarations", buildJsonArray {
+                        params.tools.forEach { tool ->
+                            add(buildJsonObject {
+                                when (tool) {
+                                    is Tool.Function -> {
+                                        put("name", JsonPrimitive(tool.name))
+                                        put("description", JsonPrimitive(tool.description))
+                                        put(
+                                            "parameters",
+                                            json.encodeToJsonElement(
+                                                Schema.serializer(),
+                                                tool.parameters
+                                            )
+                                        )
+                                    }
+                                }
+                            })
+                        }
+                    })
+                })
+            })
+        }
+    }
+
     private fun commonRoleToGoogleRole(role: MessageRole): String {
         return when (role) {
             MessageRole.USER -> "user"
@@ -356,7 +367,11 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
                 UIMessagePart.Text(jsonObject["text"]!!.jsonPrimitive.content)
             }
 
-            else -> error("unknown message part type")
+            jsonObject.containsKey("functionCall") -> {
+                error("not support function_call yet: $jsonObject")
+            }
+
+            else -> error("unknown message part type: $jsonObject")
         }
     }
 

@@ -18,11 +18,15 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import me.rerere.ai.core.MessageRole
+import me.rerere.ai.core.Schema
+import me.rerere.ai.core.Tool
 import me.rerere.ai.provider.Model
+import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.Provider
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.ui.MessageChunk
+import me.rerere.ai.ui.ToolCall
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessageChoice
@@ -41,7 +45,7 @@ import java.util.concurrent.TimeUnit
 object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
     private val json = Json {
         ignoreUnknownKeys = true
-        encodeDefaults = true
+        encodeDefaults = false
     }
 
     private val client = OkHttpClient.Builder()
@@ -166,7 +170,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                     close()
                     return
                 }
-                // println(data)
+                println(data)
                 data
                     .trim()
                     .split("\n")
@@ -257,6 +261,30 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             put("temperature", params.temperature)
             put("top_p", params.topP)
             put("stream", stream)
+            if (params.model.abilities.contains(ModelAbility.TOOL) && params.tools.isNotEmpty()) {
+                putJsonArray("tools") {
+                    params.tools.forEach { tool ->
+                        when (tool) {
+                            is Tool.Function -> {
+                                add(buildJsonObject {
+                                    put("type", "function")
+                                    put("function", buildJsonObject {
+                                        put("name", tool.name)
+                                        put("description", tool.description)
+                                        put(
+                                            "parameters",
+                                            json.encodeToJsonElement(
+                                                Schema.serializer(),
+                                                tool.parameters
+                                            )
+                                        )
+                                    })
+                                })
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -315,10 +343,11 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         val role = MessageRole.valueOf(
             jsonObject["role"]?.jsonPrimitive?.content?.uppercase() ?: "ASSISTANT"
         )
-        val reasoning = jsonObject["reasoning_content"] ?: jsonObject["reasoning"]
 
         // 也许支持其他模态的输出content? 暂时只支持文本吧
         val content = jsonObject["content"]?.jsonPrimitive?.contentOrNull ?: ""
+        val reasoning = jsonObject["reasoning_content"] ?: jsonObject["reasoning"]
+        val toolCalls = jsonObject["tool_calls"]?.jsonArray
 
         return UIMessage(
             role = role,
@@ -336,7 +365,8 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                 jsonObject["annotations"]?.jsonArray ?: JsonArray(
                     emptyList()
                 )
-            )
+            ),
+            toolCalls = if (toolCalls != null) parseToolCalls(toolCalls) else emptyList()
         )
     }
 
@@ -357,5 +387,25 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                 else -> error("unknown annotation type: $type")
             }
         }
+    }
+
+    private fun parseToolCalls(jsonArray: JsonArray): List<ToolCall> = jsonArray.map { el ->
+        val type = el.jsonObject["type"]?.jsonPrimitive?.contentOrNull
+        if (type != null && type != "function") error("unknown tool_call type: $type")
+
+        val id = el.jsonObject["id"]?.jsonPrimitive?.content
+        val function = el.jsonObject["function"]?.jsonObject
+
+        if (function != null) {
+            return@map ToolCall(
+                id = id ?: "",
+                function = ToolCall.Function(
+                    name = function["name"]?.jsonPrimitive?.content ?: "",
+                    arguments = function["arguments"]?.jsonPrimitive?.content ?: "",
+                )
+            )
+        }
+
+        error("empty tool_call body")
     }
 }

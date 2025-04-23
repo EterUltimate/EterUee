@@ -7,22 +7,27 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -47,6 +52,7 @@ import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
 import me.rerere.rikkahub.ui.hooks.EditState
+import me.rerere.rikkahub.ui.hooks.EditStateContent
 import me.rerere.rikkahub.ui.hooks.useEditState
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.plus
@@ -60,6 +66,9 @@ fun AssistantPage(vm: AssistantVM = koinViewModel()) {
         vm.addAssistant(it)
     }
     val editState = useEditState<Assistant> {
+        vm.updateAssistant(it)
+    }
+    val memoryState = useEditState<Assistant> {
         vm.updateAssistant(it)
     }
     Scaffold(
@@ -101,26 +110,31 @@ fun AssistantPage(vm: AssistantVM = koinViewModel()) {
             }
         }
     }
-    if (createState.isEditing) {
-        AssistantDialog(createState)
-    }
-    if (editState.isEditing) {
-        AssistantDialog(editState)
-    }
+    AssistantEditSheet(createState, memoryState)
+    AssistantEditSheet(editState, memoryState)
+    MemorySheet(memoryState)
 }
 
 @Composable
-private fun AssistantDialog(state: EditState<Assistant>) {
-    AlertDialog(
-        onDismissRequest = {
-            state.dismiss()
-        },
-        title = {
-            Text("新增助手")
-        },
-        text = {
+private fun AssistantEditSheet(
+    state: EditState<Assistant>,
+    memoryState: EditState<Assistant>
+) {
+    state.EditStateContent { assistant, update ->
+        ModalBottomSheet(
+            onDismissRequest = {
+                state.dismiss()
+            },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
             Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(600.dp)
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 FormItem(
                     label = {
@@ -128,12 +142,15 @@ private fun AssistantDialog(state: EditState<Assistant>) {
                     },
                 ) {
                     OutlinedTextField(
-                        value = state.currentState?.name ?: "",
+                        value = assistant.name,
                         onValueChange = {
-                            state.currentState = state.currentState?.copy(
-                                name = it
+                            update(
+                                assistant.copy(
+                                    name = it
+                                )
                             )
                         },
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
 
@@ -143,10 +160,12 @@ private fun AssistantDialog(state: EditState<Assistant>) {
                     },
                 ) {
                     OutlinedTextField(
-                        value = state.currentState?.systemPrompt ?: "",
+                        value = assistant.systemPrompt,
                         onValueChange = {
-                            state.currentState = state.currentState?.copy(
-                                systemPrompt = it
+                            update(
+                                assistant.copy(
+                                    systemPrompt = it
+                                )
                             )
                         },
                         minLines = 3,
@@ -159,7 +178,7 @@ private fun AssistantDialog(state: EditState<Assistant>) {
                             ", "
                         ) { "${it.key}: ${it.value}" },
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.secondary,
+                        color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
                     )
                 }
 
@@ -169,10 +188,12 @@ private fun AssistantDialog(state: EditState<Assistant>) {
                     },
                 ) {
                     Slider(
-                        value = state.currentState?.temperature ?: 0.6f,
+                        value = assistant.temperature,
                         onValueChange = {
-                            state.currentState = state.currentState?.copy(
-                                temperature = it.toFixed(2).toFloatOrNull() ?: 0.6f
+                            update(
+                                assistant.copy(
+                                    temperature = it.toFixed(2).toFloatOrNull() ?: 0.6f
+                                )
                             )
                         },
                         valueRange = 0f..2f,
@@ -215,27 +236,128 @@ private fun AssistantDialog(state: EditState<Assistant>) {
                         }
                     }
                 }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    state.confirm()
+
+                FormItem(
+                    label = {
+                        Text("记忆")
+                    }
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextButton(
+                            onClick = {
+                                state.dismiss()
+                                memoryState.open(assistant)
+                            }
+                        ) {
+                            Text("管理记忆 (${assistant.memories.size}条)")
+                        }
+
+                        Spacer(Modifier.weight(1f))
+
+                        Switch(
+                            checked = assistant.enableMemory,
+                            onCheckedChange = {
+                                update(
+                                    assistant.copy(
+                                        enableMemory = it
+                                    )
+                                )
+                            }
+                        )
+                    }
                 }
-            ) {
-                Text("确定")
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = {
-                    state.dismiss()
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
+                ) {
+                    TextButton(
+                        onClick = {
+                            state.dismiss()
+                        }
+                    ) {
+                        Text("取消")
+                    }
+                    TextButton(
+                        onClick = {
+                            state.confirm()
+                        }
+                    ) {
+                        Text("保存")
+                    }
                 }
-            ) {
-                Text("取消")
             }
         }
-    )
+    }
+}
+
+@Composable
+private fun MemorySheet(memoryState: EditState<Assistant>) {
+    memoryState.EditStateContent { assistant, update ->
+        ModalBottomSheet(
+            onDismissRequest = {
+                memoryState.dismiss()
+            },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(600.dp)
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "管理记忆",
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(500.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    items(assistant.memories, key = { it.id }) { memory ->
+                        Card {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = memory.content,
+                                    modifier = Modifier.weight(1f)
+                                )
+
+                                IconButton(
+                                    onClick = {
+                                        val newMemories = assistant.memories.toMutableList()
+                                        newMemories.remove(memory)
+                                        update(
+                                            assistant.copy(
+                                                memories = newMemories
+                                            )
+                                        )
+                                    }
+                                ) {
+                                    Icon(Lucide.Trash2, "Delete")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -264,8 +386,18 @@ private fun AssistantItem(
 
                 Spacer(Modifier.weight(1f))
 
-                Tag(type = TagType.INFO) {
+                Tag(
+                    type = TagType.INFO
+                ) {
                     Text("温度: ${assistant.temperature.toFixed(1)}")
+                }
+
+                if (assistant.enableMemory) {
+                    Tag(
+                        type = TagType.SUCCESS
+                    ) {
+                        Text("记忆: ${assistant.memories.size}")
+                    }
                 }
             }
 
@@ -305,8 +437,6 @@ private fun AssistantItem(
                 maxLines = 5,
                 overflow = TextOverflow.Ellipsis,
             )
-
-
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

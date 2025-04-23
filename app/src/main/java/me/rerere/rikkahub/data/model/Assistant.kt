@@ -9,4 +9,12 @@ data class Assistant(
     val name: String = "",
     val systemPrompt: String = "",
     val temperature: Float = 0.6f,
+    val enableMemory: Boolean = true,
+    val memories: List<AssistantMemory> = emptyList(),
+)
+
+@Serializable
+data class AssistantMemory(
+    val id: Uuid = Uuid.random(),
+    val content: String = "",
 )

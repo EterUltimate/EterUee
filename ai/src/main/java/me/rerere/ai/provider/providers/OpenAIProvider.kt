@@ -19,7 +19,6 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.core.Schema
-import me.rerere.ai.core.Tool
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.Provider
@@ -263,24 +262,20 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             if (params.model.abilities.contains(ModelAbility.TOOL) && params.tools.isNotEmpty()) {
                 putJsonArray("tools") {
                     params.tools.forEach { tool ->
-                        when (tool) {
-                            is Tool.Function -> {
-                                add(buildJsonObject {
-                                    put("type", "function")
-                                    put("function", buildJsonObject {
-                                        put("name", tool.name)
-                                        put("description", tool.description)
-                                        put(
-                                            "parameters",
-                                            json.encodeToJsonElement(
-                                                Schema.serializer(),
-                                                tool.parameters
-                                            )
-                                        )
-                                    })
-                                })
-                            }
-                        }
+                        add(buildJsonObject {
+                            put("type", "function")
+                            put("function", buildJsonObject {
+                                put("name", tool.name)
+                                put("description", tool.description)
+                                put(
+                                    "parameters",
+                                    json.encodeToJsonElement(
+                                        Schema.serializer(),
+                                        tool.parameters
+                                    )
+                                )
+                            })
+                        })
                     }
                 }
             }
@@ -293,8 +288,22 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                 it.isValidToUpload()
             }
             .forEachIndexed { index, message ->
+                if (message.role == MessageRole.TOOL) {
+                    message.getToolResults().forEach { result ->
+                        add(buildJsonObject {
+                            put("role", "tool")
+                            put("content", json.encodeToString(result.content))
+                            put("tool_call_id", result.toolCallId)
+                            put("name", result.toolName)
+                        })
+                    }
+                    return@forEachIndexed
+                }
                 add(buildJsonObject {
+                    // role
                     put("role", JsonPrimitive(message.role.name.lowercase()))
+
+                    // content
                     if (message.parts.size == 1 && message.parts[0] is UIMessagePart.Text) {
                         // 如果只是纯文本，直接赋值给content
                         put("content", (message.parts[0] as UIMessagePart.Text).text)
@@ -302,14 +311,15 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                         // 否则，使用parts构建
                         putJsonArray("content") {
                             message.parts.forEach { part ->
-                                val partJson = buildJsonObject {
-                                    when (part) {
-                                        is UIMessagePart.Text -> {
+                                when (part) {
+                                    is UIMessagePart.Text -> {
+                                        add(buildJsonObject {
                                             put("type", "text")
                                             put("text", part.text)
-                                        }
-
-                                        is UIMessagePart.Image -> {
+                                        })
+                                    }
+                                    is UIMessagePart.Image -> {
+                                        add(buildJsonObject {
                                             part.encodeBase64().onSuccess {
                                                 put("type", "image_url")
                                                 put("image_url", buildJsonObject {
@@ -322,18 +332,34 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                                                 put("type", "text")
                                                 put("text", "")
                                             }
-                                        }
-
-                                        else -> {
-                                            println("message part not supported: $part")
-                                            // DO NOTHING
-                                        }
+                                        })
+                                    }
+                                    else -> {
+                                        println("message part not supported: $part")
+                                        // DO NOTHING
                                     }
                                 }
-                                add(partJson)
                             }
                         }
                     }
+
+                    // tool_calls
+                    message.getToolCalls()
+                        .takeIf { it.isNotEmpty() }
+                        ?.let { toolCalls ->
+                            put("tool_calls", buildJsonArray {
+                                toolCalls.forEach { toolCall ->
+                                    add(buildJsonObject {
+                                        put("id", toolCall.toolCallId)
+                                        put("function", buildJsonObject {
+                                            put("name", toolCall.toolName)
+                                            put("arguments", toolCall.arguments)
+                                        })
+                                        put("type", "function")
+                                    })
+                                }
+                            })
+                        }
                 })
             }
     }

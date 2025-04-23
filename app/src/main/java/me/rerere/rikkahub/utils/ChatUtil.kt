@@ -12,7 +12,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.rerere.ai.ui.UIMessage
 import java.net.URLDecoder
-import java.net.URLEncoder
 import kotlin.uuid.Uuid
 
 private const val TAG = "ChatUtil"
@@ -38,10 +37,10 @@ fun Context.copyMessageToClipboard(message: UIMessage) {
     val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     val clip = ClipData.newPlainText(
         "Chat Message",
-        message.text()
+        message.toText()
     )
     clipboard.setPrimaryClip(clip)
-    Log.i(TAG, "copyMessageToClipboard: Copied message to clipboard: ${message.text()}")
+    Log.i(TAG, "copyMessageToClipboard: Copied message to clipboard: ${message.toText()}")
 }
 
 fun Context.createChatFiles(uris: List<Uri>): List<Uri> {

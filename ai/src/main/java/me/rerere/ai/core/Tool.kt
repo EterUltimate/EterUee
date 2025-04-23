@@ -13,15 +13,12 @@ import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.longOrNull
 
 @Serializable
-sealed class Tool {
-    @Serializable
-    data class Function(
-        val name: String,
-        val description: String,
-        val parameters: Schema,
-        val execute: suspend (JsonElement) -> JsonElement
-    ) : Tool()
-}
+data class Tool(
+    val name: String,
+    val description: String,
+    val parameters: Schema,
+    val execute: suspend (JsonElement) -> JsonElement
+)
 
 @Serializable
 sealed class Schema {

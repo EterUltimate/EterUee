@@ -107,7 +107,7 @@ class TranslatorVM(
                     conversation = conversation.copy(
                         messages = conversation.messages.handleMessageChunk(chunk)
                     )
-                    _translatedText.value = conversation.messages.lastOrNull()?.text() ?: ""
+                    _translatedText.value = conversation.messages.lastOrNull()?.toText() ?: ""
                 }
             }.onFailure {
                 it.printStackTrace()

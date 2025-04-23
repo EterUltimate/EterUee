@@ -155,7 +155,7 @@ class ChatVM(
         if (!useWebSearch) return
         val service = SearchService.getService(settings.value.searchServiceOptions)
         val result = service.search(
-            query = conversation.value.messages.last().text(),
+            query = conversation.value.messages.last().toText(),
             commonOptions = settings.value.searchCommonOptions,
             serviceOptions = settings.value.searchServiceOptions,
         )
@@ -272,7 +272,7 @@ class ChatVM(
                 conversationRepo.getConversationById(conversation.id)?.let {
                     saveConversation(
                         it.copy(
-                            title = result.choices[0].message?.text()?.trim() ?: "",
+                            title = result.choices[0].message?.toText()?.trim() ?: "",
                             updateAt = Instant.now()
                         )
                     )

@@ -2,6 +2,7 @@ package me.rerere.ai.ui
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 import me.rerere.ai.core.MessageRole
 import me.rerere.search.SearchResult
 import kotlin.uuid.Uuid
@@ -131,12 +132,15 @@ data class UIMessage(
         }
     }
 
-    fun text() = parts.joinToString(separator = "\n") { part ->
+    fun toText() = parts.joinToString(separator = "\n") { part ->
         when (part) {
             is UIMessagePart.Text -> part.text
             else -> ""
         }
     }
+
+    fun getToolCalls() = parts.filterIsInstance<UIMessagePart.ToolCall>()
+    fun getToolResults() = parts.filterIsInstance<UIMessagePart.ToolResult>()
 
     fun isValidToUpload() = parts.any {
         it !is UIMessagePart.Search && it !is UIMessagePart.Reasoning
@@ -239,6 +243,13 @@ sealed class UIMessagePart {
             )
         }
     }
+
+    @Serializable
+    data class ToolResult(
+        val toolCallId: String,
+        val toolName: String,
+        val content: JsonElement,
+    ): UIMessagePart()
 }
 
 @Serializable

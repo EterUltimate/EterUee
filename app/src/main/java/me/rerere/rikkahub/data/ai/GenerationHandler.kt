@@ -8,9 +8,11 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import me.rerere.ai.core.MessageRole
 import me.rerere.ai.core.SchemaBuilder
 import me.rerere.ai.core.Tool
 import me.rerere.ai.provider.Model
@@ -20,6 +22,7 @@ import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.ui.MessageTransformer
 import me.rerere.ai.ui.UIMessage
+import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.handleMessageChunk
 import me.rerere.ai.ui.transforms
 import me.rerere.rikkahub.data.datastore.Settings
@@ -41,69 +44,18 @@ class GenerationHandler(private val context: Context, private val json: Json) {
         onCreationMemory: ((String) -> AssistantMemory)? = null,
         onUpdateMemory: ((Uuid, String) -> AssistantMemory)? = null,
         onDeleteMemory: ((Uuid) -> Unit)? = null,
+        maxSteps: Int = 5,
     ): Flow<List<UIMessage>> = flow {
         val provider = model.findProvider(settings.providers) ?: error("Provider not found")
         val providerImpl = ProviderManager.getProviderByType(provider)
 
         var messages: List<UIMessage> = messages
 
-        generateInternal(
-            assistant,
-            messages,
-            {
-                messages = it
-                emit(messages)
-            },
-            transformers,
-            model,
-            providerImpl,
-            provider,
-            onCreationMemory,
-            onUpdateMemory,
-            onDeleteMemory,
-            tools,
-            stream = true
-        )
-    }.flowOn(Dispatchers.IO)
+        for (stepIndex in 0 until maxSteps) {
+            Log.i(TAG, "streamText: start step #$stepIndex (${model.id})")
 
-    private suspend fun generateInternal(
-        assistant: (() -> Assistant)?,
-        messages: List<UIMessage>,
-        onUpdateMessages: suspend (List<UIMessage>) -> Unit,
-        transformers: List<MessageTransformer>,
-        model: Model,
-        providerImpl: Provider<ProviderSetting>,
-        provider: ProviderSetting,
-        onCreationMemory: ((String) -> AssistantMemory)?,
-        onUpdateMemory: ((Uuid, String) -> AssistantMemory)?,
-        onDeleteMemory: ((Uuid) -> Unit)?,
-        tools: List<Tool>,
-        stream: Boolean
-    ) {
-        val assistantRef = assistant?.invoke()
-        val internalMessages = buildList {
-            if (assistantRef != null) {
-                // 如果存在助手，构造系统消息
-                add(UIMessage.system(buildString {
-                    // 如果助手有系统提示，则添加到消息中
-                    if (assistantRef.systemPrompt.isNotBlank()) {
-                        append(assistantRef.systemPrompt)
-                    }
-
-                    // 记忆
-                    if (assistantRef.enableMemory) {
-                        append(buildMemoryPrompt(assistantRef))
-                    }
-                }))
-            }
-            addAll(messages)
-        }.transforms(transformers, context, model)
-
-        var messages: List<UIMessage> = messages
-        val params = TextGenerationParams(
-            model = model,
-            temperature = assistantRef?.temperature,
-            tools = buildList {
+            val assistantRef = assistant?.invoke()
+            val toolsInternal = buildList {
                 Log.i(TAG, "generateInternal: build tools($assistantRef)")
                 if (assistantRef?.enableMemory == true) {
                     checkNotNull(onCreationMemory)
@@ -117,6 +69,99 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                 }
                 addAll(tools)
             }
+
+            generateInternal(
+                assistantRef,
+                messages,
+                {
+                    messages = it
+                    emit(messages)
+                },
+                transformers,
+                model,
+                providerImpl,
+                provider,
+                toolsInternal,
+                stream = true
+            )
+            val toolCalls = messages.last().getToolCalls()
+            if (toolCalls.isEmpty()) {
+                // no tool calls, break
+                break
+            }
+            // handle tool calls
+            val results = arrayListOf<UIMessagePart.ToolResult>()
+            toolCalls.forEach { toolCall ->
+                runCatching {
+                    val tool = toolsInternal.find { tool -> tool.name == toolCall.toolName }
+                        ?: error("Tool ${toolCall.toolName} not found")
+                    val args = json.parseToJsonElement(toolCall.arguments.ifBlank { "{}" })
+                    tool.parameters.validate(args)
+                    val result = tool.execute(args)
+                    results += UIMessagePart.ToolResult(
+                        toolName = toolCall.toolName,
+                        toolCallId = toolCall.toolCallId,
+                        content = result
+                    )
+                }.onFailure {
+                    it.printStackTrace()
+                    results += UIMessagePart.ToolResult(
+                        toolName = toolCall.toolName,
+                        toolCallId = toolCall.toolCallId,
+                        content = buildJsonObject {
+                            put(
+                                "error",
+                                JsonPrimitive(buildString {
+                                    append("[${it.javaClass.name}] ${it.message}")
+                                    append("\n${it.stackTraceToString()}")
+                                })
+                            )
+                        }
+                    )
+                }
+            }
+            messages = messages + UIMessage(
+                role = MessageRole.TOOL,
+                parts = results
+            )
+        }
+
+    }.flowOn(Dispatchers.IO)
+
+    private suspend fun generateInternal(
+        assistant: Assistant?,
+        messages: List<UIMessage>,
+        onUpdateMessages: suspend (List<UIMessage>) -> Unit,
+        transformers: List<MessageTransformer>,
+        model: Model,
+        providerImpl: Provider<ProviderSetting>,
+        provider: ProviderSetting,
+        tools: List<Tool>,
+        stream: Boolean
+    ) {
+        val internalMessages = buildList {
+            if (assistant != null) {
+                // 如果存在助手，构造系统消息
+                add(UIMessage.system(buildString {
+                    // 如果助手有系统提示，则添加到消息中
+                    if (assistant.systemPrompt.isNotBlank()) {
+                        append(assistant.systemPrompt)
+                    }
+
+                    // 记忆
+                    if (assistant.enableMemory) {
+                        append(buildMemoryPrompt(assistant))
+                    }
+                }))
+            }
+            addAll(messages)
+        }.transforms(transformers, context, model)
+
+        var messages: List<UIMessage> = messages
+        val params = TextGenerationParams(
+            model = model,
+            temperature = assistant?.temperature,
+            tools = tools
         )
         if (stream) {
             providerImpl.streamText(
@@ -144,7 +189,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
         onUpdate: (Uuid, String) -> AssistantMemory,
         onDelete: (Uuid) -> Unit
     ) = listOf(
-        Tool.Function(
+        Tool(
             name = "edit_memory",
             description = "create or update memory item, if the id is empty, create a new memory item, otherwise update the memory item",
             parameters = SchemaBuilder.obj(
@@ -166,7 +211,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                 )
             }
         ),
-        Tool.Function(
+        Tool(
             name = "delete_memory",
             description = "delete memory item",
             parameters = SchemaBuilder.obj(

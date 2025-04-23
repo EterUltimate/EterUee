@@ -157,7 +157,7 @@ private fun Actions(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = LocalIndication.current,
                         onClick = {
-                            tts?.speak(message.text(), TextToSpeech.QUEUE_FLUSH, null, null)
+                            tts?.speak(message.toText(), TextToSpeech.QUEUE_FLUSH, null, null)
                         }
                     )
                     .padding(8.dp)
@@ -249,10 +249,18 @@ fun MessagePartsBlock(
         }
     }
 
-    // Tool Call
+    // Tool Calls
     parts.filterIsInstance<UIMessagePart.ToolCall>().fastForEach { toolCall ->
         Text(
             "[调用函数] ${toolCall.toolName} / ${toolCall.arguments}",
+            style = MaterialTheme.typography.labelSmall
+        )
+    }
+
+    // Tool Results
+    parts.filterIsInstance<UIMessagePart.ToolResult>().fastForEach { toolResult ->
+        Text(
+            "[调用结果] ${toolResult.toolName} / ${toolResult.content}",
             style = MaterialTheme.typography.labelSmall
         )
     }

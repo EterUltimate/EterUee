@@ -19,7 +19,6 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.core.Schema
-import me.rerere.ai.core.Tool
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ModelType
@@ -307,19 +306,15 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
                     put("functionDeclarations", buildJsonArray {
                         params.tools.forEach { tool ->
                             add(buildJsonObject {
-                                when (tool) {
-                                    is Tool.Function -> {
-                                        put("name", JsonPrimitive(tool.name))
-                                        put("description", JsonPrimitive(tool.description))
-                                        put(
-                                            "parameters",
-                                            json.encodeToJsonElement(
-                                                Schema.serializer(),
-                                                tool.parameters
-                                            )
-                                        )
-                                    }
-                                }
+                                put("name", JsonPrimitive(tool.name))
+                                put("description", JsonPrimitive(tool.description))
+                                put(
+                                    "parameters",
+                                    json.encodeToJsonElement(
+                                        Schema.serializer(),
+                                        tool.parameters
+                                    )
+                                )
                             })
                         }
                     })
@@ -333,7 +328,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
             MessageRole.USER -> "user"
             MessageRole.SYSTEM -> "system"
             MessageRole.ASSISTANT -> "model"
-            MessageRole.TOOL -> error("Tool role not supported")
+            MessageRole.TOOL -> "user" // google api中, tool结果是用户role发送的
         }
     }
 
@@ -404,6 +399,26 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
                                                 })
                                             })
                                         }
+                                    }
+
+                                    is UIMessagePart.ToolCall -> {
+                                        add(buildJsonObject {
+                                            put("functionCall", buildJsonObject {
+                                                put("name", part.toolName)
+                                                put("args", json.parseToJsonElement(part.arguments))
+                                            })
+                                        })
+                                    }
+
+                                    is UIMessagePart.ToolResult -> {
+                                        add(buildJsonObject {
+                                            put("functionResponse", buildJsonObject {
+                                                put("name", part.toolName)
+                                                put("response", buildJsonObject {
+                                                    put("result", part.content)
+                                                })
+                                            })
+                                        })
                                     }
 
                                     else -> {

@@ -46,3 +46,16 @@ class EditStateImpl<T>(private val onUpdate: (T) -> Unit) : EditState<T> {
         isEditing = false
     }
 }
+
+@Composable
+fun <T> EditState<T>.EditStateContent(
+    content: @Composable (T, (T) -> Unit) -> Unit
+) {
+    if (this.isEditing) {
+        this.currentState?.let {
+            content(it) { newState ->
+                this.currentState = newState
+            }
+        }
+    }
+}

@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
@@ -81,10 +82,10 @@ import me.rerere.rikkahub.ui.components.ui.TagType
 import me.rerere.rikkahub.ui.components.ui.ToastState
 import me.rerere.rikkahub.ui.components.ui.ToastVariant
 import me.rerere.rikkahub.ui.components.ui.decodeProviderSetting
-import me.rerere.rikkahub.ui.components.ui.rememberDialogState
 import me.rerere.rikkahub.ui.components.ui.rememberShareSheetState
 import me.rerere.rikkahub.ui.components.ui.rememberToastState
 import me.rerere.rikkahub.ui.hooks.EditState
+import me.rerere.rikkahub.ui.hooks.EditStateContent
 import me.rerere.rikkahub.ui.hooks.useEditState
 import me.rerere.rikkahub.utils.plus
 import org.koin.androidx.compose.koinViewModel
@@ -193,40 +194,52 @@ private fun ImportProviderButton(
 
 @Composable
 private fun AddButton(onAdd: (ProviderSetting) -> Unit) {
-    val dialogState = rememberDialogState()
-
-    var providerSetting: ProviderSetting by remember {
-        mutableStateOf(ProviderSetting.OpenAI())
+    val dialogState = useEditState<ProviderSetting> {
+        onAdd(it)
     }
 
     IconButton(
         onClick = {
-            dialogState.openAlertDialog(
-                title = {
-                    Text("添加提供商")
-                },
-                text = {
-                    ProviderConfigure(providerSetting) {
-                        providerSetting = it
-                    }
-                },
-                confirmText = {
-                    Text("添加")
-                },
-                dismissText = {
-                    Text("取消")
-                },
-                onConfirm = {
-                    onAdd(providerSetting)
-                    providerSetting = ProviderSetting.OpenAI()
-                },
-                onDismiss = {
-                    dialogState.close()
-                }
-            )
+            dialogState.open(ProviderSetting.OpenAI())
         }
     ) {
         Icon(Icons.Outlined.Add, "Add")
+    }
+
+    if (dialogState.isEditing) {
+        AlertDialog(
+            onDismissRequest = {
+                dialogState.dismiss()
+            },
+            title = {
+                Text("添加提供商")
+            },
+            text = {
+                dialogState.currentState?.let {
+                    ProviderConfigure(it) { newState ->
+                        dialogState.currentState = newState
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        dialogState.confirm()
+                    }
+                ) {
+                    Text("添加")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        dialogState.dismiss()
+                    }
+                ) {
+                    Text("取消")
+                }
+            },
+        )
     }
 }
 
@@ -402,9 +415,12 @@ private fun ModelList(
 ) {
     val modelList by produceState(emptyList(), providerSetting) {
         runCatching {
+            println("loading models...")
             value = ProviderManager.getProviderByType(providerSetting)
                 .listModels(providerSetting)
                 .sortedBy { it.modelId }
+                .toList()
+            println(value)
         }.onFailure {
             it.printStackTrace()
         }
@@ -467,23 +483,19 @@ private fun AddModelButton(
     models: List<Model>,
     onAddModel: (Model) -> Unit
 ) {
-    val dialogState = rememberDialogState()
-    var modelId by remember { mutableStateOf("") }
-    var modelDisplayName by remember { mutableStateOf("") }
-    var modelType by remember { mutableStateOf(ModelType.CHAT) }
-    var inputModalities by remember { mutableStateOf(listOf(Modality.TEXT)) }
-    var outputModalities by remember { mutableStateOf(listOf(Modality.TEXT)) }
+    val dialogState = useEditState<Model> { onAddModel(it) }
 
     fun setModelId(id: String) {
-        modelId = id
-        modelDisplayName = id.uppercase()
-        guessModalityFromModelId(modelId).let { (input, output) ->
-            inputModalities = input
-            outputModalities = output
-        }
+        val modality = guessModalityFromModelId(id)
+        dialogState.currentState = dialogState.currentState?.copy(
+            modelId = id,
+            displayName = id.uppercase(),
+            inputModalities = modality.first,
+            outputModalities = modality.second
+        )
     }
 
-    val modelListState = useEditState<Model?> { model ->
+    val modelPickerState = useEditState<Model?> { model ->
         model?.let {
             setModelId(it.modelId)
         }
@@ -492,77 +504,7 @@ private fun AddModelButton(
     Card(
         modifier = Modifier.fillMaxWidth(),
         onClick = {
-            dialogState.openAlertDialog(
-                title = {
-                    Text("添加模型")
-                },
-                text = {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        OutlinedTextField(
-                            value = modelId,
-                            onValueChange = {
-                                setModelId(it)
-                            },
-                            label = { Text("模型ID") },
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = {
-                                Text("例如：gpt-3.5-turbo")
-                            },
-                            trailingIcon = {
-                                ModelPicker(modelListState, models)
-                            }
-                        )
-
-                        OutlinedTextField(
-                            value = modelDisplayName,
-                            onValueChange = { modelDisplayName = it },
-                            label = { Text("模型显示名称") },
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = {
-                                Text("例如：GPT-3.5, 用于UI显示")
-                            }
-                        )
-
-
-                        ModelTypeSelector(
-                            selectedType = modelType,
-                            onTypeSelected = { modelType = it }
-                        )
-
-                        ModelModalitySelector(
-                            inputModalities = inputModalities,
-                            onUpdateInputModalities = { inputModalities = it },
-                            outputModalities = outputModalities,
-                            onUpdateOutputModalities = { outputModalities = it }
-                        )
-                    }
-                },
-                confirmText = {
-                    Text("添加")
-                },
-                dismissText = {
-                    Text("取消")
-                },
-                onConfirm = {
-                    if (modelId.isNotBlank() && modelDisplayName.isNotBlank()) {
-                        onAddModel(
-                            Model(
-                                modelId = modelId,
-                                displayName = modelDisplayName,
-                                type = modelType
-                            )
-                        )
-                        modelId = ""
-                        modelDisplayName = ""
-                        modelType = ModelType.CHAT
-                    }
-                },
-                onDismiss = {
-                    dialogState.close()
-                }
-            )
+            dialogState.open(Model.Empty)
         }
     ) {
         Row(
@@ -575,6 +517,98 @@ private fun AddModelButton(
             Icon(Icons.Outlined.Add, contentDescription = "添加模型")
             Spacer(modifier = Modifier.size(8.dp))
             Text("添加新模型", style = MaterialTheme.typography.bodyLarge)
+        }
+    }
+
+    if (dialogState.isEditing) {
+        dialogState.currentState?.let { modelState ->
+            AlertDialog(
+                onDismissRequest = {
+                    dialogState.dismiss()
+                },
+                title = {
+                    Text("添加模型")
+                },
+                text = {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = modelState.modelId,
+                            onValueChange = {
+                                setModelId(it)
+                            },
+                            label = { Text("模型ID") },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = {
+                                Text("例如：gpt-3.5-turbo")
+                            },
+                            trailingIcon = {
+                                ModelPicker(modelPickerState, models)
+                            }
+                        )
+
+                        OutlinedTextField(
+                            value = modelState.displayName,
+                            onValueChange = {
+                                dialogState.currentState = dialogState.currentState?.copy(
+                                    displayName = it
+                                )
+                            },
+                            label = { Text("模型显示名称") },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = {
+                                Text("例如：GPT-3.5, 用于UI显示")
+                            }
+                        )
+
+
+                        ModelTypeSelector(
+                            selectedType = modelState.type,
+                            onTypeSelected = {
+                                dialogState.currentState = dialogState.currentState?.copy(
+                                    type = it
+                                )
+                            }
+                        )
+
+                        ModelModalitySelector(
+                            inputModalities = modelState.inputModalities,
+                            onUpdateInputModalities = {
+                                dialogState.currentState = dialogState.currentState?.copy(
+                                    inputModalities = it
+                                )
+                            },
+                            outputModalities = modelState.outputModalities,
+                            onUpdateOutputModalities = {
+                                dialogState.currentState = dialogState.currentState?.copy(
+                                    outputModalities = it
+                                )
+                            }
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            if (modelState.modelId.isNotBlank() && modelState.displayName.isNotBlank()) {
+                                dialogState.confirm()
+                            }
+                        },
+                    ) {
+                        Text("添加")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            dialogState.dismiss()
+                        },
+                    ) {
+                        Text("取消")
+                    }
+                }
+            )
         }
     }
 }
@@ -777,10 +811,81 @@ private fun ModelCard(
     onDelete: () -> Unit,
     onEdit: (Model) -> Unit
 ) {
-    val dialogState = rememberDialogState()
-    var editingModel by remember { mutableStateOf(model) }
+    val dialogState = useEditState<Model> {
+        onEdit(it)
+    }
     val swipeToDismissBoxState = rememberSwipeToDismissBoxState()
     val scope = rememberCoroutineScope()
+
+
+    dialogState.EditStateContent { editingModel, updateEditingModel ->
+        AlertDialog(
+            onDismissRequest = { dialogState.dismiss() },
+            title = {
+                Text("编辑模型")
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = editingModel.modelId,
+                        onValueChange = {},
+                        label = { Text("模型ID") },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = false
+                    )
+
+                    OutlinedTextField(
+                        value = editingModel.displayName,
+                        onValueChange = {
+                            updateEditingModel(editingModel.copy(displayName = it))
+                        },
+                        label = { Text("模型名称") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    ModelTypeSelector(
+                        selectedType = editingModel.type,
+                        onTypeSelected = {
+                            updateEditingModel(editingModel.copy(type = it))
+                        }
+                    )
+                    ModelModalitySelector(
+                        inputModalities = editingModel.inputModalities,
+                        onUpdateInputModalities = {
+                            updateEditingModel(editingModel.copy(inputModalities = it))
+                        },
+                        outputModalities = editingModel.outputModalities,
+                        onUpdateOutputModalities = {
+                            updateEditingModel(editingModel.copy(outputModalities = it))
+                        }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (editingModel.displayName.isNotBlank()) {
+                            dialogState.confirm()
+                        }
+                    }
+                ) {
+                    Text("确定")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        dialogState.dismiss()
+                    }
+                ) {
+                    Text("取消")
+                }
+            }
+        )
+    }
+
     SwipeToDismissBox(
         state = swipeToDismissBoxState,
         backgroundContent = {
@@ -867,65 +972,7 @@ private fun ModelCard(
                 // Edit button
                 IconButton(
                     onClick = {
-                        editingModel = model
-                        dialogState.openAlertDialog(
-                            title = {
-                                Text("编辑模型")
-                            },
-                            text = {
-                                Column(
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    OutlinedTextField(
-                                        value = editingModel.modelId,
-                                        onValueChange = {},
-                                        label = { Text("模型ID") },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        enabled = false
-                                    )
-
-                                    OutlinedTextField(
-                                        value = editingModel.displayName,
-                                        onValueChange = {
-                                            editingModel = editingModel.copy(displayName = it)
-                                        },
-                                        label = { Text("模型名称") },
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-
-                                    ModelTypeSelector(
-                                        selectedType = editingModel.type,
-                                        onTypeSelected = {
-                                            editingModel = editingModel.copy(type = it)
-                                        }
-                                    )
-                                    ModelModalitySelector(
-                                        inputModalities = editingModel.inputModalities,
-                                        onUpdateInputModalities = {
-                                            editingModel = editingModel.copy(inputModalities = it)
-                                        },
-                                        outputModalities = editingModel.outputModalities,
-                                        onUpdateOutputModalities = {
-                                            editingModel = editingModel.copy(outputModalities = it)
-                                        }
-                                    )
-                                }
-                            },
-                            confirmText = {
-                                Text("保存")
-                            },
-                            dismissText = {
-                                Text("取消")
-                            },
-                            onConfirm = {
-                                if (editingModel.displayName.isNotBlank()) {
-                                    onEdit(editingModel)
-                                }
-                            },
-                            onDismiss = {
-                                dialogState.close()
-                            }
-                        )
+                        dialogState.open(model.copy())
                     }
                 ) {
                     Icon(Icons.Outlined.Edit, "Edit")

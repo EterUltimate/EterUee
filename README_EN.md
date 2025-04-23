@@ -29,14 +29,16 @@ Click to join our Discord server 👉 [【RikkaHub】](https://discord.gg/9weBqx
 - 📝 Markdown rendering (supports code highlighting, math formulas, tables, etc.)
 - 🔍 Search capabilities (Exa, Tavily)
 - 🧩 Prompt variables (model name, time, etc.)
+- 🤳 QR code export and import for providers
+- 🤖 Agent customization
+- 🧠 ChatGPT-like memory function
+- 📝 Translation page
 
 ## ☑️ Development Plans
 
 - [ ] 🌐 Improve multilingual support
 - [ ] 🔍 Support for adjusting more model parameters (e.g., thinking budget)
 - [ ] 🔊 Enhance TTS functionality
-- [ ] 📝 Translation page
-- [ ] 🤳 QR code export and import for providers
 
 ## ✨ Contributing
 

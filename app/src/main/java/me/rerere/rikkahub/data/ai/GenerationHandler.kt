@@ -38,7 +38,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
         onCreationMemory: ((String) -> AssistantMemory)? = null,
         onUpdateMemory: ((Uuid, String) -> AssistantMemory)? = null,
         onDeleteMemory: ((Uuid) -> Unit)? = null,
-    ): Flow<List<UIMessage>> = flow<List<UIMessage>> {
+    ): Flow<List<UIMessage>> = flow {
         val provider = model.findProvider(settings.providers) ?: error("Provider not found")
         val providerImpl = ProviderManager.getProviderByType(provider)
 

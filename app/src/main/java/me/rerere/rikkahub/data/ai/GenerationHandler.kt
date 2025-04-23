@@ -1,6 +1,7 @@
 package me.rerere.rikkahub.data.ai
 
 import android.content.Context
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -26,6 +27,8 @@ import me.rerere.rikkahub.data.datastore.findProvider
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
 import kotlin.uuid.Uuid
+
+private const val TAG = "GenerationHandler"
 
 class GenerationHandler(private val context: Context, private val json: Json) {
     fun streamText(
@@ -97,53 +100,41 @@ class GenerationHandler(private val context: Context, private val json: Json) {
         }.transforms(transformers, context, model)
 
         var messages: List<UIMessage> = messages
+        val params = TextGenerationParams(
+            model = model,
+            temperature = assistantRef?.temperature,
+            tools = buildList {
+                Log.i(TAG, "generateInternal: build tools($assistantRef)")
+                if (assistantRef?.enableMemory == true) {
+                    checkNotNull(onCreationMemory)
+                    checkNotNull(onUpdateMemory)
+                    checkNotNull(onDeleteMemory)
+                    buildMemoryTools(
+                        onCreation = onCreationMemory,
+                        onUpdate = onUpdateMemory,
+                        onDelete = onDeleteMemory
+                    ).let(this::addAll)
+                }
+                addAll(tools)
+            }
+        )
         if (stream) {
             providerImpl.streamText(
                 providerSetting = provider,
                 messages = internalMessages,
-                params = TextGenerationParams(
-                    model = model,
-                    temperature = assistantRef?.temperature,
-                    tools = buildList {
-                        if (assistantRef?.enableMemory == true) {
-                            checkNotNull(onCreationMemory)
-                            checkNotNull(onUpdateMemory)
-                            checkNotNull(onDeleteMemory)
-                            buildMemoryTools(
-                                onCreation = onCreationMemory,
-                                onUpdate = onUpdateMemory,
-                                onDelete = onDeleteMemory
-                            )
-                        }
-                        addAll(tools)
-                    }
-                )
+                params = params
             ).collect {
                 messages = messages.handleMessageChunk(it)
                 onUpdateMessages(messages)
             }
         } else {
-            messages = messages.handleMessageChunk(providerImpl.generateText(
-                providerSetting = provider,
-                messages = internalMessages,
-                params = TextGenerationParams(
-                    model = model,
-                    temperature = assistantRef?.temperature,
-                    tools = buildList {
-                        if (assistantRef?.enableMemory == true) {
-                            checkNotNull(onCreationMemory)
-                            checkNotNull(onUpdateMemory)
-                            checkNotNull(onDeleteMemory)
-                            buildMemoryTools(
-                                onCreation = onCreationMemory,
-                                onUpdate = onUpdateMemory,
-                                onDelete = onDeleteMemory
-                            )
-                        }
-                        addAll(tools)
-                    }
+            messages = messages.handleMessageChunk(
+                providerImpl.generateText(
+                    providerSetting = provider,
+                    messages = internalMessages,
+                    params = params,
                 )
-            ))
+            )
             onUpdateMessages(messages)
         }
     }

@@ -1,5 +1,6 @@
 package me.rerere.ai.provider.providers
 
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -45,6 +46,7 @@ import kotlin.uuid.Uuid
 
 private const val API_VERSION = "v1beta"
 private const val API_URL = "https://generativelanguage.googleapis.com"
+private const val TAG = "GoogleProvider"
 
 object GoogleProvider : Provider<ProviderSetting.Google> {
     private val json = Json {
@@ -76,8 +78,6 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
             val models = bodyObject["models"]!!.jsonArray
             models.mapNotNull {
                 val modelObject = it.jsonObject
-
-                println(modelObject)
 
                 // 忽略非chat/embedding模型
                 val supportedGenerationMethods =
@@ -138,8 +138,6 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
             }
         )
 
-        println(messageChunk)
-
         messageChunk
     }
 
@@ -164,7 +162,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
             )
             .build()
 
-        println(json.encodeToString(requestBody))
+        Log.i(TAG, "streamText: ${json.encodeToString(requestBody)}")
 
         val listener = object : EventSourceListener() {
             override fun onEvent(

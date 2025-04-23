@@ -1,5 +1,6 @@
 package me.rerere.ai.provider.providers
 
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -39,6 +40,8 @@ import okhttp3.sse.EventSource
 import okhttp3.sse.EventSourceListener
 import okhttp3.sse.EventSources
 import java.util.concurrent.TimeUnit
+
+private const val TAG = "OpenAIProvider"
 
 object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
     private val json = Json {
@@ -101,7 +104,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             .post(json.encodeToString(requestBody).toRequestBody("application/json".toMediaType()))
             .build()
 
-        println(json.encodeToString(requestBody))
+        Log.i(TAG, "generateText: ${json.encodeToString(requestBody)}")
 
         val response = client.newCall(request).execute()
         if (!response.isSuccessful) {
@@ -153,7 +156,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             .post(json.encodeToString(requestBody).toRequestBody("application/json".toMediaType()))
             .build()
 
-        println(requestBody)
+        Log.i(TAG, "streamText: ${json.encodeToString(requestBody)}")
 
         val listener = object : EventSourceListener() {
             override fun onEvent(
@@ -335,7 +338,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                                         })
                                     }
                                     else -> {
-                                        println("message part not supported: $part")
+                                        Log.w(TAG, "buildMessages: message part not supported: $part")
                                         // DO NOTHING
                                     }
                                 }

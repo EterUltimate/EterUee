@@ -11,6 +11,7 @@ data class Model(
     val type: ModelType = ModelType.CHAT,
     val inputModalities: List<Modality> = listOf(Modality.TEXT),
     val outputModalities: List<Modality> = listOf(Modality.TEXT),
+    val abilities: List<ModelAbility> = emptyList()
 ) {
     companion object {
         val Empty = Model(
@@ -36,6 +37,11 @@ enum class Modality {
     IMAGE,
 }
 
+@Serializable
+enum class ModelAbility {
+    TOOL,
+}
+
 fun guessModalityFromModelId(modelId: String): Pair<List<Modality>, List<Modality>> {
     return when {
         GPT4O.containsMatchIn(modelId) || GPT_4_1.containsMatchIn(modelId) -> {
@@ -56,7 +62,32 @@ fun guessModalityFromModelId(modelId: String): Pair<List<Modality>, List<Modalit
     }
 }
 
+fun guessModelAbilityFromModelId(modelId: String): List<ModelAbility> {
+    return when {
+        GPT4O.containsMatchIn(modelId) || GPT_4_1.containsMatchIn(modelId) -> {
+            listOf(ModelAbility.TOOL)
+        }
+
+        GEMINI_20_FLASH.containsMatchIn(modelId) -> {
+            listOf(ModelAbility.TOOL)
+        }
+
+        GEMINI_2_5_FLASH.containsMatchIn(modelId) -> {
+            listOf(ModelAbility.TOOL)
+        }
+
+        CLAUDE_SONNET_3.containsMatchIn(modelId) -> {
+            listOf(ModelAbility.TOOL)
+        }
+
+        else -> {
+            emptyList()
+        }
+    }
+}
+
 private val GPT4O = Regex("gpt-4o")
 private val GPT_4_1 = Regex("gpt-4\\.1")
 private val GEMINI_20_FLASH = Regex("gemini-2.0-flash")
+private val GEMINI_2_5_FLASH = Regex("gemini-2.5-flash")
 private val CLAUDE_SONNET_3 = Regex("claude-3.+sonnet")

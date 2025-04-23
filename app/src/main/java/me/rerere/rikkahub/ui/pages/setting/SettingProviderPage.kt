@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFilter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Boxes
+import com.composables.icons.lucide.Hammer
 import com.composables.icons.lucide.Import
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Settings
@@ -70,10 +71,12 @@ import io.github.g00fy2.quickie.ScanQRCode
 import kotlinx.coroutines.launch
 import me.rerere.ai.provider.Modality
 import me.rerere.ai.provider.Model
+import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.ProviderManager
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.guessModalityFromModelId
+import me.rerere.ai.provider.guessModelAbilityFromModelId
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.ShareSheet
@@ -487,11 +490,13 @@ private fun AddModelButton(
 
     fun setModelId(id: String) {
         val modality = guessModalityFromModelId(id)
+        val abilities = guessModelAbilityFromModelId(id)
         dialogState.currentState = dialogState.currentState?.copy(
             modelId = id,
             displayName = id.uppercase(),
             inputModalities = modality.first,
-            outputModalities = modality.second
+            outputModalities = modality.second,
+            abilities = abilities
         )
     }
 
@@ -583,6 +588,15 @@ private fun AddModelButton(
                             onUpdateOutputModalities = {
                                 dialogState.currentState = dialogState.currentState?.copy(
                                     outputModalities = it
+                                )
+                            }
+                        )
+
+                        ModalAbilitySelector(
+                            abilities = modelState.abilities,
+                            onUpdateAbilities = {
+                                dialogState.currentState = dialogState.currentState?.copy(
+                                    abilities = it
                                 )
                             }
                         )
@@ -805,6 +819,38 @@ private fun ModelModalitySelector(
 }
 
 @Composable
+fun ModalAbilitySelector(
+    abilities: List<ModelAbility>,
+    onUpdateAbilities: (List<ModelAbility>) -> Unit
+) {
+    Text("能力", style = MaterialTheme.typography.titleSmall)
+    MultiChoiceSegmentedButtonRow(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        ModelAbility.entries.forEachIndexed { index, ability ->
+            SegmentedButton(
+                checked = ability in abilities,
+                shape = SegmentedButtonDefaults.itemShape(index, ModelAbility.entries.size),
+                onCheckedChange = {
+                    if (it) {
+                        onUpdateAbilities(abilities + ability)
+                    } else {
+                        onUpdateAbilities(abilities - ability)
+                    }
+                },
+                label = {
+                    Text(
+                        text = when (ability) {
+                            ModelAbility.TOOL -> "工具"
+                        }
+                    )
+                }
+            )
+        }
+    }
+}
+
+@Composable
 private fun ModelCard(
     model: Model,
     modifier: Modifier = Modifier,
@@ -859,6 +905,12 @@ private fun ModelCard(
                         outputModalities = editingModel.outputModalities,
                         onUpdateOutputModalities = {
                             updateEditingModel(editingModel.copy(outputModalities = it))
+                        }
+                    )
+                    ModalAbilitySelector(
+                        abilities = editingModel.abilities,
+                        onUpdateAbilities = {
+                            updateEditingModel(editingModel.copy(abilities = it))
                         }
                     )
                 }
@@ -946,9 +998,11 @@ private fun ModelCard(
                         overflow = TextOverflow.Ellipsis
                     )
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        Tag(type = TagType.INFO) {
+                        Tag(
+                            type = TagType.INFO
+                        ) {
                             Text(
                                 text = when (model.type) {
                                     ModelType.CHAT -> "聊天模型"
@@ -956,7 +1010,9 @@ private fun ModelCard(
                                 }
                             )
                         }
-                        Tag(type = TagType.SUCCESS) {
+                        Tag(
+                            type = TagType.SUCCESS
+                        ) {
                             Text(
                                 text = buildString {
                                     append(model.inputModalities.joinToString(",") { it.name.lowercase() })
@@ -965,6 +1021,13 @@ private fun ModelCard(
                                 },
                                 maxLines = 1,
                             )
+                        }
+                        if(model.abilities.contains(ModelAbility.TOOL)) {
+                            Tag(
+                                type = TagType.WARNING
+                            ) {
+                                Icon(Lucide.Hammer, null, modifier = Modifier.size(14.dp))
+                            }
                         }
                     }
                 }

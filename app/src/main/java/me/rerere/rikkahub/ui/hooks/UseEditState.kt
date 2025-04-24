@@ -10,12 +10,43 @@ import androidx.compose.runtime.setValue
 fun <T> useEditState(
     onUpdate: (T) -> Unit
 ): EditState<T> {
-    return remember {
-        EditStateImpl(onUpdate)
+    var isEditing by remember { mutableStateOf(false) }
+    var currentState by remember { mutableStateOf<T?>(null) }
+
+    return object : EditState<T> {
+        override var isEditing: Boolean
+            get() = isEditing
+            set(value) {
+                isEditing = value
+            }
+
+        override var currentState: T?
+            get() = currentState
+            set(value) {
+                currentState = value
+            }
+
+        override fun open(initialState: T) {
+            isEditing = true
+            currentState = initialState
+        }
+
+        override fun confirm() {
+            if (currentState != null) {
+                onUpdate(currentState!!)
+                isEditing = false
+                currentState = null
+            }
+        }
+
+        override fun dismiss() {
+            isEditing = false
+            currentState = null
+        }
     }
 }
 
-sealed interface EditState<T> {
+interface EditState<T> {
     var isEditing: Boolean
     var currentState: T?
 
@@ -26,30 +57,8 @@ sealed interface EditState<T> {
     fun dismiss()
 }
 
-class EditStateImpl<T>(private val onUpdate: (T) -> Unit) : EditState<T> {
-    override var isEditing: Boolean by mutableStateOf(false)
-    override var currentState: T? by mutableStateOf(null)
-
-    override fun open(initialState: T) {
-        this.isEditing = true
-        this.currentState = initialState
-    }
-
-    override fun confirm() {
-        if (currentState != null) {
-            onUpdate(currentState!!)
-            isEditing = false
-            currentState = null
-        }
-    }
-
-    override fun dismiss() {
-        isEditing = false
-    }
-}
-
 @Composable
-inline fun <T> EditState<T>.EditStateContent(
+fun <T> EditState<T>.EditStateContent(
     content: @Composable (value: T, updateValue: (T) -> Unit) -> Unit
 ) {
     if (this.isEditing) {

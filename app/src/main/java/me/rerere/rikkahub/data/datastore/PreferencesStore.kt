@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.Serializable
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.rikkahub.data.model.Assistant
@@ -140,6 +141,7 @@ class SettingsStore(context: Context) {
     }
 }
 
+@Serializable
 data class Settings(
     val dynamicColor: Boolean = true,
     val chatModelId: Uuid = Uuid.random(),

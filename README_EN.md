@@ -31,8 +31,8 @@ Click to join our Discord server 👉 [【RikkaHub】](https://discord.gg/9weBqx
 - 🧩 Prompt variables (model name, time, etc.)
 - 🤳 QR code export and import for providers
 - 🤖 Agent customization
-- 🧠 ChatGPT-like memory function
-- 📝 Translation page
+- 🧠 ChatGPT-like memory feature
+- 📝 AI Translation
 
 ## ☑️ Development Plans
 

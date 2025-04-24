@@ -17,7 +17,7 @@ fun <T> useEditState(
 
 sealed interface EditState<T> {
     var isEditing: Boolean
-    var currentState : T?
+    var currentState: T?
 
     fun open(initialState: T)
 
@@ -39,6 +39,7 @@ class EditStateImpl<T>(private val onUpdate: (T) -> Unit) : EditState<T> {
         if (currentState != null) {
             onUpdate(currentState!!)
             isEditing = false
+            currentState = null
         }
     }
 
@@ -48,8 +49,8 @@ class EditStateImpl<T>(private val onUpdate: (T) -> Unit) : EditState<T> {
 }
 
 @Composable
-fun <T> EditState<T>.EditStateContent(
-    content: @Composable (T, (T) -> Unit) -> Unit
+inline fun <T> EditState<T>.EditStateContent(
+    content: @Composable (value: T, updateValue: (T) -> Unit) -> Unit
 ) {
     if (this.isEditing) {
         this.currentState?.let {

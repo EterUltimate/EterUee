@@ -9,7 +9,7 @@ data class Assistant(
     val name: String = "",
     val systemPrompt: String = "",
     val temperature: Float = 0.6f,
-    val enableMemory: Boolean = true,
+    val enableMemory: Boolean = false,
 )
 
 @Serializable

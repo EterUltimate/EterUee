@@ -82,7 +82,6 @@ import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.ShareSheet
 import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
-import me.rerere.rikkahub.ui.components.ui.ToastState
 import me.rerere.rikkahub.ui.components.ui.ToastVariant
 import me.rerere.rikkahub.ui.components.ui.decodeProviderSetting
 import me.rerere.rikkahub.ui.components.ui.rememberShareSheetState
@@ -366,7 +365,7 @@ private fun ProviderItem(
             }
 
             if (expand == ProviderExpandState.Models) {
-                ModelList(provider, toastState) {
+                ModelList(provider) {
                     onEdit(it)
                 }
             }
@@ -413,8 +412,7 @@ private fun ProviderItem(
 @Composable
 private fun ModelList(
     providerSetting: ProviderSetting,
-    toastState: ToastState,
-    onUpdate: (ProviderSetting) -> Unit
+    onUpdateProvider: (ProviderSetting) -> Unit
 ) {
     val modelList by produceState(emptyList(), providerSetting) {
         runCatching {
@@ -455,28 +453,23 @@ private fun ModelList(
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
             }
-
-            AddModelButton(modelList) {
-                onUpdate(providerSetting.addModel(it))
-            }
         } else {
             providerSetting.models.forEach { model ->
                 key(model.id) {
                     ModelCard(
                         model = model,
                         onDelete = {
-                            onUpdate(providerSetting.delModel(model))
+                            onUpdateProvider(providerSetting.delModel(model))
                         },
                         onEdit = { editedModel ->
-                            onUpdate(providerSetting.editModel(editedModel))
+                            onUpdateProvider(providerSetting.editModel(editedModel))
                         },
                     )
                 }
             }
-
-            AddModelButton(modelList) {
-                onUpdate(providerSetting.addModel(it))
-            }
+        }
+        AddModelButton(modelList) {
+            onUpdateProvider(providerSetting.addModel(it))
         }
     }
 }

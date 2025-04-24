@@ -5,25 +5,14 @@ import kotlin.uuid.Uuid
 
 @Serializable
 data class Model(
-    val modelId: String,
-    val displayName: String,
+    val modelId: String = "",
+    val displayName: String = "",
     val id: Uuid = Uuid.random(),
     val type: ModelType = ModelType.CHAT,
     val inputModalities: List<Modality> = listOf(Modality.TEXT),
     val outputModalities: List<Modality> = listOf(Modality.TEXT),
     val abilities: List<ModelAbility> = emptyList()
-) {
-    companion object {
-        val Empty = Model(
-            modelId = "",
-            displayName = "",
-            id = Uuid.random(),
-            type = ModelType.CHAT,
-            inputModalities = listOf(Modality.TEXT),
-            outputModalities = listOf(Modality.TEXT)
-        )
-    }
-}
+)
 
 @Serializable
 enum class ModelType {

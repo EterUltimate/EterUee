@@ -80,18 +80,6 @@ class SettingsStore(context: Context) {
                 } ?: SearchCommonOptions()
             )
         }
-        .map { settings ->
-            // 去重
-            settings.copy(
-                providers = settings.providers.distinctBy { it.id }.map { provider ->
-                    when(provider) {
-                        is ProviderSetting.OpenAI -> provider.copy(models = provider.models.distinctBy { it.id })
-                        is ProviderSetting.Google -> provider.copy(models = provider.models.distinctBy { it.id })
-                    }
-                },
-                assistants = settings.assistants.distinctBy { it.id },
-            )
-        }
         .catch {
             it.printStackTrace()
             update(Settings())
@@ -113,6 +101,23 @@ class SettingsStore(context: Context) {
             it.copy(
                 providers = providers,
                 assistants = assistants
+            )
+        }
+        .map { settings ->
+            // 去重
+            settings.copy(
+                providers = settings.providers.distinctBy { it.id }.map { provider ->
+                    when (provider) {
+                        is ProviderSetting.OpenAI -> provider.copy(
+                            models = provider.models.distinctBy { model -> model.id }
+                        )
+
+                        is ProviderSetting.Google -> provider.copy(
+                            models = provider.models.distinctBy { model -> model.id }
+                        )
+                    }
+                },
+                assistants = settings.assistants.distinctBy { it.id },
             )
         }
 

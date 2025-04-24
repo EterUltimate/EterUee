@@ -509,7 +509,7 @@ private fun AddModelButton(
     Card(
         modifier = Modifier.fillMaxWidth(),
         onClick = {
-            dialogState.open(Model.Empty)
+            dialogState.open(Model())
         }
     ) {
         Row(
@@ -1022,7 +1022,7 @@ private fun ModelCard(
                                 maxLines = 1,
                             )
                         }
-                        if(model.abilities.contains(ModelAbility.TOOL)) {
+                        if (model.abilities.contains(ModelAbility.TOOL)) {
                             Tag(
                                 type = TagType.WARNING
                             ) {

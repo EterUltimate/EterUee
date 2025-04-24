@@ -180,7 +180,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                 innerPadding = innerPadding,
                 conversation = conversation,
                 loading = loadingJob != null,
-                model = currentChatModel ?: Model.Empty,
+                model = currentChatModel ?: Model(),
                 onRegenerate = {
                     vm.regenerateAtMessage(it)
                 },

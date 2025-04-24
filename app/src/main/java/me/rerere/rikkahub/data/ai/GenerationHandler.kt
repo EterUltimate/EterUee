@@ -151,7 +151,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
         val internalMessages = buildList {
             if (assistant != null) {
                 // 如果存在助手，构造系统消息
-                add(UIMessage.system(buildString {
+                val system = buildString {
                     // 如果助手有系统提示，则添加到消息中
                     if (assistant.systemPrompt.isNotBlank()) {
                         append(assistant.systemPrompt)
@@ -161,7 +161,8 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                     if (assistant.enableMemory) {
                         append(buildMemoryPrompt(memories))
                     }
-                }))
+                }
+                if(system.isNotBlank()) add(UIMessage.system(system))
             }
             addAll(messages)
         }.transforms(transformers, context, model)

@@ -6,10 +6,10 @@ import kotlin.uuid.Uuid
 
 @Serializable
 sealed class ProviderSetting {
-    abstract var id: Uuid
-    abstract var enabled: Boolean
-    abstract var name: String
-    abstract var models: List<Model>
+    abstract val id: Uuid
+    abstract val enabled: Boolean
+    abstract val name: String
+    abstract val models: List<Model>
 
     abstract fun addModel(model: Model): ProviderSetting
     abstract fun editModel(model: Model): ProviderSetting
@@ -30,7 +30,7 @@ sealed class ProviderSetting {
         }
 
         override fun editModel(model: Model): ProviderSetting {
-            return copy(models = models.map { if (it.id == model.id) model else it })
+            return copy(models = models.map { if (it.id == model.id) model.copy() else it })
         }
 
         override fun delModel(model: Model): ProviderSetting {

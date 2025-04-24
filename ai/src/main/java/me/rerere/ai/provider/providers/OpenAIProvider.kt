@@ -31,6 +31,7 @@ import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessageChoice
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.util.encodeBase64
+import me.rerere.ai.util.parseErrorDetail
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -214,19 +215,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                     if (t == null && response != null) {
                         val bodyElement = Json.parseToJsonElement(response.body?.string() ?: "{}")
                         println(bodyElement)
-                        if (bodyElement is JsonObject) {
-                            exception = Exception(
-                                bodyElement["error"]?.jsonObject?.get("message")?.jsonPrimitive?.content
-                                    ?: "unknown",
-                            )
-                        } else if (bodyElement is JsonArray) {
-                            exception = Exception(
-                                bodyElement[0].jsonObject["error"]?.jsonObject?.get("message")?.jsonPrimitive?.content
-                                    ?: "unknown",
-                            )
-                        } else {
-                            exception = Exception("unknown error")
-                        }
+                        exception = bodyElement.parseErrorDetail()
                     }
                 } catch (e: Throwable) {
                     e.printStackTrace()
@@ -321,6 +310,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                                             put("text", part.text)
                                         })
                                     }
+
                                     is UIMessagePart.Image -> {
                                         add(buildJsonObject {
                                             part.encodeBase64().onSuccess {
@@ -337,8 +327,12 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                                             }
                                         })
                                     }
+
                                     else -> {
-                                        Log.w(TAG, "buildMessages: message part not supported: $part")
+                                        Log.w(
+                                            TAG,
+                                            "buildMessages: message part not supported: $part"
+                                        )
                                         // DO NOTHING
                                     }
                                 }
@@ -369,13 +363,13 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
 
     private fun parseMessage(jsonObject: JsonObject): UIMessage {
         val role = MessageRole.valueOf(
-            jsonObject["role"]?.jsonPrimitive?.content?.uppercase() ?: "ASSISTANT"
+            jsonObject["role"]?.jsonPrimitive?.contentOrNull?.uppercase() ?: "ASSISTANT"
         )
 
         // 也许支持其他模态的输出content? 暂时只支持文本吧
         val content = jsonObject["content"]?.jsonPrimitive?.contentOrNull ?: ""
         val reasoning = jsonObject["reasoning_content"] ?: jsonObject["reasoning"]
-        val toolCalls = jsonObject["tool_calls"]?.jsonArray
+        val toolCalls = jsonObject["tool_calls"] as? JsonArray ?: JsonArray(emptyList())
 
         return UIMessage(
             role = role,
@@ -387,7 +381,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                         )
                     )
                 }
-                toolCalls?.forEach { toolCalls ->
+                toolCalls.forEach { toolCalls ->
                     val type = toolCalls.jsonObject["type"]?.jsonPrimitive?.contentOrNull
                     if (type != null && type != "function") error("tool call type not supported: $type")
                     val toolCallId = toolCalls.jsonObject["id"]?.jsonPrimitive?.contentOrNull

@@ -172,14 +172,17 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                     close()
                     return
                 }
-                println(data)
+                Log.d(TAG, "onEvent: $data")
                 data
                     .trim()
                     .split("\n")
                     .filter { it.isNotBlank() }
                     .map { json.parseToJsonElement(it).jsonObject }
                     .forEach {
-                        // println(it)
+                        if(it["error"] != null) {
+                            val error = it["error"]!!.parseErrorDetail()
+                            throw error
+                        }
                         val id = it["id"]?.jsonPrimitive?.contentOrNull ?: ""
                         val model = it["model"]?.jsonPrimitive?.contentOrNull ?: ""
                         val choices = it["choices"]?.jsonArray ?: JsonArray(emptyList())
@@ -216,6 +219,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                         val bodyElement = Json.parseToJsonElement(response.body?.string() ?: "{}")
                         println(bodyElement)
                         exception = bodyElement.parseErrorDetail()
+                        Log.i(TAG, "onFailure: $exception")
                     }
                 } catch (e: Throwable) {
                     e.printStackTrace()
@@ -284,9 +288,9 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                     message.getToolResults().forEach { result ->
                         add(buildJsonObject {
                             put("role", "tool")
-                            put("content", json.encodeToString(result.content))
-                            put("tool_call_id", result.toolCallId)
                             put("name", result.toolName)
+                            put("tool_call_id", result.toolCallId)
+                            put("content", json.encodeToString(result.content))
                         })
                     }
                     return@forEachIndexed
@@ -348,11 +352,11 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                                 toolCalls.forEach { toolCall ->
                                     add(buildJsonObject {
                                         put("id", toolCall.toolCallId)
+                                        put("type", "function")
                                         put("function", buildJsonObject {
                                             put("name", toolCall.toolName)
                                             put("arguments", toolCall.arguments)
                                         })
-                                        put("type", "function")
                                     })
                                 }
                             })

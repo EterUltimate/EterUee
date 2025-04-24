@@ -314,7 +314,7 @@ fun MessagePartsBlock(
                         showResult = false
                     },
                     title = {
-                        Text("工具调用 ${toolCall.toolName}")
+                        Text("工具调用")
                     },
                     text = {
                         Column(
@@ -325,7 +325,7 @@ fun MessagePartsBlock(
                         ) {
                             FormItem(
                                 label ={
-                                    Text("调用工具")
+                                    Text("调用工具 ${toolCall.toolName}")
                                 }
                             ) {
                                 HighlightText(

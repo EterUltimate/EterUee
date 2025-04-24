@@ -215,10 +215,10 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                 var exception = t
 
                 t?.printStackTrace()
-                println("[onFailure] 发生错误: ${t?.message}")
+                println("[onFailure] 发生错误: ${t?.message} / $response")
 
                 try {
-                    if (t == null && response != null) {
+                    if (response != null) {
                         val bodyElement = Json.parseToJsonElement(response.body?.string() ?: "{}")
                         println(bodyElement)
                         exception = bodyElement.parseErrorDetail()

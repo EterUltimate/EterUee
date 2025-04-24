@@ -14,14 +14,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -50,6 +56,7 @@ import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
 import coil3.compose.AsyncImage
@@ -64,20 +71,19 @@ import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.Volume2
 import com.composables.icons.lucide.Wrench
-import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessagePart
+import me.rerere.highlight.HighlightText
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.components.ui.Favicon
+import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.ImagePreviewDialog
 import me.rerere.rikkahub.ui.context.LocalTTSService
 import me.rerere.rikkahub.ui.theme.extendColors
-import me.rerere.rikkahub.utils.JsonInstant
+import me.rerere.rikkahub.utils.JsonInstantPretty
 import me.rerere.rikkahub.utils.copyMessageToClipboard
 import me.rerere.rikkahub.utils.urlDecode
 
@@ -276,7 +282,9 @@ fun MessagePartsBlock(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
+                    modifier = Modifier
+                        .padding(vertical = 4.dp, horizontal = 8.dp)
+                        .height(IntrinsicSize.Min)
                 ) {
                     Icon(
                         imageVector = when (toolCall.toolName) {
@@ -285,6 +293,7 @@ fun MessagePartsBlock(
                             else -> Lucide.Wrench
                         },
                         contentDescription = null,
+                        modifier = Modifier.fillMaxHeight()
                     )
                     Column {
                         Text(
@@ -294,18 +303,8 @@ fun MessagePartsBlock(
                                 "delete_memory" -> "删除了记忆"
                                 else -> "调用工具 ${toolCall.toolName}"
                             },
-                            style = MaterialTheme.typography.labelMedium
+                            style = MaterialTheme.typography.labelMedium,
                         )
-                        val content =
-                            toolCall.arguments.jsonObject["content"]?.jsonPrimitive?.contentOrNull
-                        if (content != null) {
-                            Text(
-                                text = toolCall.arguments.jsonObject["content"]?.jsonPrimitive?.contentOrNull
-                                    ?: "",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = LocalContentColor.current.copy(alpha = 0.7f)
-                            )
-                        }
                     }
                 }
             }
@@ -318,15 +317,34 @@ fun MessagePartsBlock(
                         Text("工具调用 ${toolCall.toolName}")
                     },
                     text = {
-                        Column {
-                            Text(
-                                text = JsonInstant.encodeToString(toolCall.arguments),
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                            Text(
-                                text = JsonInstant.encodeToString(toolCall.content),
-                                style = MaterialTheme.typography.bodySmall
-                            )
+                        Column(
+                            modifier = Modifier
+                                .heightIn(max = 400.dp)
+                                .verticalScroll(rememberScrollState()),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            FormItem(
+                                label ={
+                                    Text("调用工具")
+                                }
+                            ) {
+                                HighlightText(
+                                    code = JsonInstantPretty.encodeToString(toolCall.arguments),
+                                    language = "json",
+                                    fontSize = 12.sp
+                                )
+                            }
+                            FormItem(
+                                label ={
+                                    Text("调用结果")
+                                }
+                            ) {
+                                HighlightText(
+                                    code = JsonInstantPretty.encodeToString(toolCall.content),
+                                    language = "json",
+                                    fontSize = 12.sp
+                                )
+                            }
                         }
                     },
                     confirmButton = {

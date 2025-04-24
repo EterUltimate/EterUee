@@ -159,6 +159,9 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
 
         Log.i(TAG, "streamText: ${json.encodeToString(requestBody)}")
 
+        // just for debugging response body
+        // println(client.newCall(request).await().body?.string())
+
         val listener = object : EventSourceListener() {
             override fun onEvent(
                 eventSource: EventSource,

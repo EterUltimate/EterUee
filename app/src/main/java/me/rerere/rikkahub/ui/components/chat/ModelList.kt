@@ -134,8 +134,9 @@ fun ModelList(
                 }
 
                 items(
-                    providerSetting.models.fastFilter { it.type == modelType },
-                    key = { it.id }) { model ->
+                    items = providerSetting.models.fastFilter { it.type == modelType },
+                    key = { it.id }
+                ) { model ->
                     ModelItem(onSelect, model)
                 }
             }

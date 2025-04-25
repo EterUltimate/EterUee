@@ -536,7 +536,7 @@ private fun AddModelButton(
                         OutlinedTextField(
                             value = modelState.modelId,
                             onValueChange = {
-                                setModelId(it)
+                                setModelId(it.trim())
                             },
                             label = { Text("模型ID") },
                             modifier = Modifier.fillMaxWidth(),
@@ -552,7 +552,7 @@ private fun AddModelButton(
                             value = modelState.displayName,
                             onValueChange = {
                                 dialogState.currentState = dialogState.currentState?.copy(
-                                    displayName = it
+                                    displayName = it.trim()
                                 )
                             },
                             label = { Text("模型显示名称") },
@@ -880,7 +880,7 @@ private fun ModelCard(
                     OutlinedTextField(
                         value = editingModel.displayName,
                         onValueChange = {
-                            updateEditingModel(editingModel.copy(displayName = it))
+                            updateEditingModel(editingModel.copy(displayName = it.trim()))
                         },
                         label = { Text("模型名称") },
                         modifier = Modifier.fillMaxWidth()

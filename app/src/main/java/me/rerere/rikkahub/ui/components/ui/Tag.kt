@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -28,7 +29,7 @@ enum class TagType {
 fun Tag(
     modifier: Modifier = Modifier,
     type: TagType = TagType.DEFAULT,
-    children: @Composable () -> Unit
+    children: @Composable RowScope.() -> Unit
 ) {
     val background = when (type) {
         TagType.SUCCESS -> MaterialTheme.extendColors.green2

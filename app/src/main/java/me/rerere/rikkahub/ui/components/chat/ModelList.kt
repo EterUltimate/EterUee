@@ -2,14 +2,19 @@ package me.rerere.rikkahub.ui.components.chat
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
@@ -23,12 +28,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastForEach
+import com.composables.icons.lucide.Hammer
+import com.composables.icons.lucide.Lucide
 import me.rerere.ai.provider.Model
+import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.rikkahub.data.datastore.findModelById
@@ -169,11 +178,13 @@ private fun ModelItem(
                 )
                 Text(
                     text = model.displayName,
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.labelMedium,
                 )
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Min),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Tag(type = TagType.INFO) {
@@ -194,6 +205,28 @@ private fun ModelItem(
                             },
                             maxLines = 1,
                         )
+                    }
+
+                    val iconHeight = with(LocalDensity.current) {
+                        LocalTextStyle.current.fontSize.toDp() * 0.9f
+                    }
+                    model.abilities.fastForEach { ability ->
+                        when (ability) {
+                            ModelAbility.TOOL -> {
+                                Tag(
+                                    type = TagType.WARNING,
+                                    modifier = Modifier.fillMaxHeight()
+                                ) {
+                                    Icon(
+                                        imageVector = Lucide.Hammer,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .height(iconHeight)
+                                            .aspectRatio(1f)
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }

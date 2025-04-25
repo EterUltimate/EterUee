@@ -47,9 +47,9 @@ import me.rerere.ai.provider.ModelType
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
 import me.rerere.rikkahub.ui.components.nav.BackButton
-import me.rerere.rikkahub.ui.components.ui.ToastVariant
+import me.rerere.rikkahub.ui.components.ui.ToastType
 import me.rerere.rikkahub.ui.components.ui.WavyLinearProgressIndicator
-import me.rerere.rikkahub.ui.components.ui.rememberToastState
+import me.rerere.rikkahub.ui.components.ui.toaster
 import org.koin.androidx.compose.koinViewModel
 import java.util.Locale
 
@@ -60,13 +60,12 @@ fun TranslatorPage(vm: TranslatorVM = koinViewModel()) {
     val translatedText by vm.translatedText.collectAsStateWithLifecycle()
     val targetLanguage by vm.targetLanguage.collectAsStateWithLifecycle()
     val translating by vm.translating.collectAsStateWithLifecycle()
-    val toastState = rememberToastState()
     val clipboard = LocalClipboardManager.current
 
     // 处理错误
     LaunchedEffect(Unit) {
         vm.errorFlow.collect { error ->
-            toastState.show(error.message ?: "错误", ToastVariant.ERROR)
+            toaster.show(error.message ?: "错误", ToastType.ERROR)
         }
     }
 

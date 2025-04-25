@@ -82,10 +82,10 @@ import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.ShareSheet
 import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
-import me.rerere.rikkahub.ui.components.ui.ToastVariant
+import me.rerere.rikkahub.ui.components.ui.ToastType
 import me.rerere.rikkahub.ui.components.ui.decodeProviderSetting
 import me.rerere.rikkahub.ui.components.ui.rememberShareSheetState
-import me.rerere.rikkahub.ui.components.ui.rememberToastState
+import me.rerere.rikkahub.ui.components.ui.toaster
 import me.rerere.rikkahub.ui.hooks.EditState
 import me.rerere.rikkahub.ui.hooks.EditStateContent
 import me.rerere.rikkahub.ui.hooks.useEditState
@@ -164,23 +164,22 @@ fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
 private fun ImportProviderButton(
     onAdd: (ProviderSetting) -> Unit
 ) {
-    val toastState = rememberToastState()
     val scanQrCodeLauncher = rememberLauncherForActivityResult(ScanQRCode()) { result ->
         // handle QRResult
         runCatching {
             when (result) {
                 is QRResult.QRError -> {
-                    toastState.show("错误: $result", ToastVariant.ERROR)
+                    toaster.show("错误: $result", ToastType.ERROR)
                 }
 
                 QRResult.QRMissingPermission -> {
-                    toastState.show("没有权限", ToastVariant.ERROR)
+                    toaster.show("没有权限", ToastType.ERROR)
                 }
 
                 is QRResult.QRSuccess -> {
                     val setting = decodeProviderSetting(result.content.rawValue ?: "")
                     onAdd(setting)
-                    toastState.show("导入成功", ToastVariant.SUCCESS)
+                    toaster.show("导入成功", ToastType.SUCCESS)
                 }
 
                 QRResult.QRUserCanceled -> {}
@@ -261,7 +260,6 @@ private fun ProviderItem(
     onEdit: (provider: ProviderSetting) -> Unit,
     onDelete: () -> Unit
 ) {
-    val toastState = rememberToastState()
     // 临时复制一份用于编辑
     // 因为data store是异步操作的，会导致UI编辑不同步
     var internalProvider by remember(provider) { mutableStateOf(provider) }
@@ -398,7 +396,7 @@ private fun ProviderItem(
                     Button(
                         onClick = {
                             onEdit(internalProvider)
-                            toastState.show("保存成功", ToastVariant.SUCCESS)
+                            toaster.show("保存成功", ToastType.SUCCESS)
                             expand = ProviderExpandState.None
                         }
                     ) {

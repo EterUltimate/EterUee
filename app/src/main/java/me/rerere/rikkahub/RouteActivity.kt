@@ -51,6 +51,7 @@ import me.rerere.highlight.Highlighter
 import me.rerere.highlight.LocalHighlighter
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
+import me.rerere.rikkahub.ui.components.ui.Toaster
 import me.rerere.rikkahub.ui.context.LocalAnimatedVisibilityScope
 import me.rerere.rikkahub.ui.context.LocalFirebaseAnalytics
 import me.rerere.rikkahub.ui.context.LocalNavController
@@ -99,6 +100,7 @@ class RouteActivity : ComponentActivity() {
                         }
                         .build()
                 }
+                Toaster()
                 AppRoutes(navController)
             }
         }

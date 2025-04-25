@@ -9,12 +9,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import me.rerere.rikkahub.ui.components.nav.BackButton
+import me.rerere.rikkahub.ui.components.ui.Toast
+import me.rerere.rikkahub.ui.components.ui.ToastType
+import me.rerere.rikkahub.ui.components.ui.toaster
 import me.rerere.search.SearchService
 import org.koin.androidx.compose.koinViewModel
 import kotlin.random.Random
@@ -42,6 +48,22 @@ fun DebugPage(vm: DebugVM = koinViewModel()) {
                 .padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
+            var counter by remember {
+                mutableIntStateOf(0)
+            }
+            Button(
+                onClick = {
+                    toaster.show("测试 ${counter++}")
+                    toaster.show("测试 ${counter++}", ToastType.INFO, action = Toast.Action(
+                        label = "测试",
+                        onClick = {
+                            toaster.show("你点了啊哈哈")
+                        }
+                    ))
+                }
+            ) {
+                Text("toast")
+            }
             Button(
                 onClick = {
                     vm.updateSettings(

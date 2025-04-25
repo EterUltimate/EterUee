@@ -79,6 +79,7 @@ android {
         compilerOptions.optIn.add("androidx.compose.foundation.ExperimentalFoundationApi")
         compilerOptions.optIn.add("androidx.compose.foundation.layout.ExperimentalLayoutApi")
         compilerOptions.optIn.add("kotlin.uuid.ExperimentalUuidApi")
+        compilerOptions.optIn.add("kotlin.time.ExperimentalTime")
     }
 }
 

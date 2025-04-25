@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -131,34 +132,39 @@ fun ModelList(
             }
         }
 
-        providers
-            .fastForEach { providerSetting ->
-                stickyHeader {
-                    Text(
-                        text = providerSetting.name,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
-                    )
-                }
-
-                items(
-                    items = providerSetting.models.fastFilter { it.type == modelType },
-                    key = { it.id }
-                ) { model ->
-                    ModelItem(onSelect, model)
-                }
+        providers.fastForEach { providerSetting ->
+            stickyHeader {
+                Text(
+                    text = providerSetting.name,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
+                )
             }
+
+            items(
+                items = providerSetting.models.fastFilter { it.type == modelType },
+                key = { it.id }
+            ) { model ->
+                ModelItem(
+                    model = model,
+                    onSelect = onSelect,
+                )
+            }
+        }
     }
 }
 
 @Composable
-private fun ModelItem(
+fun ModelItem(
+    model: Model,
     onSelect: (Model) -> Unit,
-    model: Model
+    modifier: Modifier = Modifier,
+    tail: @Composable RowScope.() -> Unit = {}
 ) {
     OutlinedCard(
-        onClick = { onSelect(model) }
+        onClick = { onSelect(model) },
+        modifier = modifier,
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -230,6 +236,7 @@ private fun ModelItem(
                     }
                 }
             }
+            tail()
         }
     }
 }

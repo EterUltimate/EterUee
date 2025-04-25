@@ -130,7 +130,9 @@ fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
             contentPadding = innerPadding + PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            items(settings.providers, key = { it.id }) { provider ->
+            val providersSorted = settings.providers
+                .sortedByDescending { it.enabled }
+            items(providersSorted, key = { it.id }) { provider ->
                 ProviderItem(
                     modifier = Modifier.animateItem(),
                     provider = provider,

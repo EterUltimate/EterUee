@@ -145,6 +145,9 @@ dependencies {
     implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.compose)
 
+    // Permissions
+    implementation(libs.xxpermissions)
+
     // Compose Cropper
     implementation(libs.ucrop)
 

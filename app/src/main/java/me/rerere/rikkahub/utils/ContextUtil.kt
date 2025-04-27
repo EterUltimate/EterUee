@@ -3,8 +3,11 @@ package me.rerere.rikkahub.utils
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.core.net.toUri
+
+private const val TAG = "ContextUtil"
 
 /**
  * Read clipboard data as text
@@ -22,12 +25,14 @@ fun Context.readClipboardText(): String {
 fun Context.writeClipboardText(text: String) {
     val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
     clipboardManager.setPrimaryClip(android.content.ClipData.newPlainText("text", text))
+    Log.i(TAG, "writeClipboardText: $text")
 }
 
 /**
  * Open a url
  */
 fun Context.openUrl(url: String) {
+    Log.i(TAG, "openUrl: $url")
     val intent = android.content.Intent(android.content.Intent.ACTION_VIEW)
     intent.data = url.toUri()
     startActivity(intent)

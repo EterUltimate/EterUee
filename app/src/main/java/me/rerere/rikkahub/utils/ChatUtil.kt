@@ -1,7 +1,5 @@
 package me.rerere.rikkahub.utils
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.net.Uri
 import android.util.Log
@@ -34,13 +32,7 @@ fun navigateToChatPage(
 }
 
 fun Context.copyMessageToClipboard(message: UIMessage) {
-    val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    val clip = ClipData.newPlainText(
-        "Chat Message",
-        message.toText()
-    )
-    clipboard.setPrimaryClip(clip)
-    Log.i(TAG, "copyMessageToClipboard: Copied message to clipboard: ${message.toText()}")
+    this.writeClipboardText(message.toText())
 }
 
 fun Context.createChatFiles(uris: List<Uri>): List<Uri> {

@@ -76,7 +76,7 @@ fun TranslatorPage(vm: TranslatorVM = koinViewModel()) {
     // 处理错误
     LaunchedEffect(Unit) {
         vm.errorFlow.collect { error ->
-            toaster.show(error.message ?: "错误", ToastType.Error)
+            toaster.show(error.message ?: "错误", type = ToastType.Error)
         }
     }
 

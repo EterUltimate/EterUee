@@ -170,17 +170,17 @@ private fun ImportProviderButton(
         runCatching {
             when (result) {
                 is QRResult.QRError -> {
-                    toaster.show("错误: $result", ToastType.Error)
+                    toaster.show("错误: $result", type = ToastType.Error)
                 }
 
                 QRResult.QRMissingPermission -> {
-                    toaster.show("没有权限", ToastType.Error)
+                    toaster.show("没有权限", type = ToastType.Error)
                 }
 
                 is QRResult.QRSuccess -> {
                     val setting = decodeProviderSetting(result.content.rawValue ?: "")
                     onAdd(setting)
-                    toaster.show("导入成功", ToastType.Error)
+                    toaster.show("导入成功", type = ToastType.Error)
                 }
 
                 QRResult.QRUserCanceled -> {}
@@ -400,7 +400,7 @@ private fun ProviderItem(
                     Button(
                         onClick = {
                             onEdit(internalProvider)
-                            toaster.show("保存成功", ToastType.Success)
+                            toaster.show("保存成功", type = ToastType.Success)
                             expand = ProviderExpandState.None
                         }
                     ) {

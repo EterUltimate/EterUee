@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
@@ -27,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -75,6 +77,8 @@ import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.components.ui.WavyCircularProgressIndicator
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalToaster
+import me.rerere.rikkahub.ui.hooks.EditStateContent
+import me.rerere.rikkahub.ui.hooks.useEditState
 import me.rerere.rikkahub.ui.hooks.useThrottle
 import me.rerere.rikkahub.utils.UpdateDownload
 import me.rerere.rikkahub.utils.Version
@@ -134,6 +138,9 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                     },
                     onClickMenu = {
                         navController.navigate("menu")
+                    },
+                    onUpdateTitle = {
+                        vm.saveConversation(conversation.copy(title = it))
                     }
                 )
             },
@@ -149,7 +156,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                     },
                     onSendClick = {
                         if (currentChatModel == null) {
-                            toaster.show("请先选择模型", ToastType.Error)
+                            toaster.show("请先选择模型", type = ToastType.Error)
                             return@ChatInput
                         }
                         if (inputState.isEditing()) {
@@ -291,8 +298,13 @@ private fun TopBar(
     drawerState: DrawerState,
     onClickMenu: () -> Unit,
     onNewChat: () -> Unit,
+    onUpdateTitle: (String) -> Unit
 ) {
     val scope = rememberCoroutineScope()
+    val toaster = LocalToaster.current
+    val titleState = useEditState<String> {
+        onUpdateTitle(it)
+    }
 
     TopAppBar(
         navigationIcon = {
@@ -305,12 +317,23 @@ private fun TopBar(
             }
         },
         title = {
-            Text(
-                text = conversation.title.ifBlank { "新聊天" },
-                maxLines = 1,
-                fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                overflow = TextOverflow.Ellipsis
-            )
+            Surface(
+                onClick = {
+                    if (conversation.messages.isNotEmpty()) {
+                        titleState.open(conversation.title)
+                    } else {
+                        toaster.show("请先聊天再编辑标题吧", type = ToastType.Warning)
+                    }
+                }
+            ) {
+                Text(
+                    text = conversation.title.ifBlank { "新聊天" },
+                    maxLines = 1,
+                    fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+            }
         },
         actions = {
             IconButton(
@@ -330,6 +353,42 @@ private fun TopBar(
             }
         },
     )
+    titleState.EditStateContent { title, onUpdate ->
+        AlertDialog(
+            onDismissRequest = {
+                titleState.dismiss()
+            },
+            title = {
+                Text("编辑标题")
+            },
+            text = {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = onUpdate,
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        titleState.confirm()
+                    }
+                ) {
+                    Text("保存")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        titleState.dismiss()
+                    }
+                ) {
+                    Text("取消")
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -401,7 +460,10 @@ private fun DrawerContent(
                     modifier = Modifier.weight(1f)
                 ) {
                     Icon(Lucide.Settings, stringResource(R.string.settings))
-                    Text(stringResource(R.string.settings), modifier = Modifier.padding(start = 4.dp))
+                    Text(
+                        stringResource(R.string.settings),
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
                 }
             }
         }
@@ -467,7 +529,7 @@ private fun UpdateCard(vm: ChatVM) {
             val downloadHandler = useThrottle<UpdateDownload>(500) { item ->
                 vm.updateChecker.downloadUpdate(context, item)
                 showDetail = false
-                toaster.show("已在下载，请在状态栏查看下载进度", ToastType.Info)
+                toaster.show("已在下载，请在状态栏查看下载进度", type = ToastType.Info)
             }
             ModalBottomSheet(
                 onDismissRequest = { showDetail = false },

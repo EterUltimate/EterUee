@@ -1,12 +1,10 @@
 package me.rerere.rikkahub.ui.components.chat
 
-import android.Manifest
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -63,8 +61,6 @@ import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyMessage
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.ui.IconTextButton
-import me.rerere.rikkahub.ui.hooks.PermissionStatus
-import me.rerere.rikkahub.ui.hooks.rememberPermissionRequestState
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.createChatFiles
 import me.rerere.rikkahub.utils.deleteChatFiles
@@ -363,8 +359,6 @@ private fun ImagePickButton(onAddImages: (List<Uri>) -> Unit = {}) {
 @Composable
 fun TakePicButton(onAddImages: (List<Uri>) -> Unit = {}) {
     val context = LocalContext.current
-    val permissionState = rememberPermissionRequestState(Manifest.permission.CAMERA)
-
     var providerUri by remember { mutableStateOf<Uri?>(null) }
     var file by remember { mutableStateOf<File?>(null) }
     val pickMedia =
@@ -384,29 +378,12 @@ fun TakePicButton(onAddImages: (List<Uri>) -> Unit = {}) {
             Text(stringResource(R.string.take_picture))
         }
     ) {
-        when (permissionState.status) {
-            PermissionStatus.Granted -> {
-                file = context.cacheDir.resolve(Uuid.random().toString())
-                providerUri = FileProvider.getUriForFile(
-                    context,
-                    "${context.packageName}.fileprovider",
-                    file!!
-                )
-                pickMedia.launch(providerUri!!)
-            }
-
-            PermissionStatus.ShowRationale -> {
-                println("show rationale")
-                AlertDialog.Builder(context)
-                    .setTitle("请求权限")
-            }
-
-            PermissionStatus.Denied -> {
-                println("denied")
-                permissionState.launchRequest()
-            }
-
-            else -> {}
-        }
+        file = context.cacheDir.resolve(Uuid.random().toString())
+        providerUri = FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            file!!
+        )
+        pickMedia.launch(providerUri!!)
     }
 }

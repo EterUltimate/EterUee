@@ -66,6 +66,7 @@ import com.composables.icons.lucide.Settings
 import com.composables.icons.lucide.Share
 import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.X
+import com.dokar.sonner.ToastType
 import io.github.g00fy2.quickie.QRResult
 import io.github.g00fy2.quickie.ScanQRCode
 import kotlinx.coroutines.launch
@@ -82,10 +83,9 @@ import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.ShareSheet
 import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
-import me.rerere.rikkahub.ui.components.ui.ToastType
 import me.rerere.rikkahub.ui.components.ui.decodeProviderSetting
 import me.rerere.rikkahub.ui.components.ui.rememberShareSheetState
-import me.rerere.rikkahub.ui.components.ui.toaster
+import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.ui.hooks.EditState
 import me.rerere.rikkahub.ui.hooks.EditStateContent
 import me.rerere.rikkahub.ui.hooks.useEditState
@@ -164,22 +164,23 @@ fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
 private fun ImportProviderButton(
     onAdd: (ProviderSetting) -> Unit
 ) {
+    val toaster = LocalToaster.current
     val scanQrCodeLauncher = rememberLauncherForActivityResult(ScanQRCode()) { result ->
         // handle QRResult
         runCatching {
             when (result) {
                 is QRResult.QRError -> {
-                    toaster.show("错误: $result", ToastType.ERROR)
+                    toaster.show("错误: $result", ToastType.Error)
                 }
 
                 QRResult.QRMissingPermission -> {
-                    toaster.show("没有权限", ToastType.ERROR)
+                    toaster.show("没有权限", ToastType.Error)
                 }
 
                 is QRResult.QRSuccess -> {
                     val setting = decodeProviderSetting(result.content.rawValue ?: "")
                     onAdd(setting)
-                    toaster.show("导入成功", ToastType.SUCCESS)
+                    toaster.show("导入成功", ToastType.Error)
                 }
 
                 QRResult.QRUserCanceled -> {}
@@ -260,9 +261,11 @@ private fun ProviderItem(
     onEdit: (provider: ProviderSetting) -> Unit,
     onDelete: () -> Unit
 ) {
-    // 临时复制一份用于编辑
-    // 因为data store是异步操作的，会导致UI编辑不同步
+    val toaster = LocalToaster.current
+
+    // 临时复制一份用于编辑, 因为data store是异步操作的，会导致UI编辑不同步
     var internalProvider by remember(provider) { mutableStateOf(provider) }
+
     var expand by remember { mutableStateOf(ProviderExpandState.None) }
     fun setExpand(state: ProviderExpandState) {
         expand = if (expand == state) {
@@ -271,6 +274,7 @@ private fun ProviderItem(
             state
         }
     }
+
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
@@ -396,7 +400,7 @@ private fun ProviderItem(
                     Button(
                         onClick = {
                             onEdit(internalProvider)
-                            toaster.show("保存成功", ToastType.SUCCESS)
+                            toaster.show("保存成功", ToastType.Success)
                             expand = ProviderExpandState.None
                         }
                     ) {

@@ -1,5 +1,8 @@
 package me.rerere.rikkahub.ui.pages.translator
 
+import android.content.ClipData
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +22,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
@@ -32,24 +36,29 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.composables.icons.lucide.ClipboardCopy
 import com.composables.icons.lucide.ClipboardPaste
 import com.composables.icons.lucide.Languages
 import com.composables.icons.lucide.Lucide
+import com.dokar.sonner.ToastType
+import kotlinx.coroutines.launch
 import me.rerere.ai.provider.ModelType
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
 import me.rerere.rikkahub.ui.components.nav.BackButton
-import me.rerere.rikkahub.ui.components.ui.ToastType
 import me.rerere.rikkahub.ui.components.ui.WavyLinearProgressIndicator
-import me.rerere.rikkahub.ui.components.ui.toaster
+import me.rerere.rikkahub.ui.context.LocalToaster
+import me.rerere.rikkahub.utils.getText
 import org.koin.androidx.compose.koinViewModel
 import java.util.Locale
 
@@ -60,12 +69,14 @@ fun TranslatorPage(vm: TranslatorVM = koinViewModel()) {
     val translatedText by vm.translatedText.collectAsStateWithLifecycle()
     val targetLanguage by vm.targetLanguage.collectAsStateWithLifecycle()
     val translating by vm.translating.collectAsStateWithLifecycle()
-    val clipboard = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
+    val toaster = LocalToaster.current
+    val scope = rememberCoroutineScope()
 
     // 处理错误
     LaunchedEffect(Unit) {
         vm.errorFlow.collect { error ->
-            toaster.show(error.message ?: "错误", ToastType.ERROR)
+            toaster.show(error.message ?: "错误", ToastType.Error)
         }
     }
 
@@ -126,13 +137,16 @@ fun TranslatorPage(vm: TranslatorVM = koinViewModel()) {
                         unfocusedBorderColor = Color.Transparent,
                         disabledBorderColor = Color.Transparent
                     ),
-                    maxLines = 10
+                    maxLines = 10,
+                    textStyle = MaterialTheme.typography.headlineSmall,
                 )
 
                 FilledTonalButton(
                     onClick = {
-                        clipboard.getText()?.text?.let {
-                            vm.updateInputText(it)
+                        scope.launch {
+                            clipboard.getClipEntry()?.clipData?.getText()?.let {
+                                vm.updateInputText(it)
+                            }
                         }
                     }
                 ) {
@@ -142,12 +156,16 @@ fun TranslatorPage(vm: TranslatorVM = koinViewModel()) {
             }
 
             // 翻译进度条
-            if (translating) {
-                WavyLinearProgressIndicator(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .fillMaxWidth()
-                )
+            Crossfade(translating) { isTranslating ->
+                if (isTranslating) {
+                    WavyLinearProgressIndicator(
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .fillMaxWidth()
+                    )
+                } else {
+                    HorizontalDivider()
+                }
             }
 
             // 翻译结果
@@ -161,6 +179,25 @@ fun TranslatorPage(vm: TranslatorVM = koinViewModel()) {
                         .fillMaxWidth()
                         .padding(8.dp)
                 )
+            }
+
+            AnimatedVisibility(translatedText.isNotBlank()) {
+                FilledTonalButton(
+                    onClick = {
+                        scope.launch {
+                            clipboard.setClipEntry(
+                                ClipEntry(
+                                    ClipData.newPlainText(
+                                        null, translatedText
+                                    )
+                                )
+                            )
+                        }
+                    }
+                ) {
+                    Icon(Lucide.ClipboardCopy, null)
+                    Text("复制翻译结果", modifier = Modifier.padding(start = 4.dp))
+                }
             }
         }
     }

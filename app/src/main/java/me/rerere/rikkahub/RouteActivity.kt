@@ -42,6 +42,8 @@ import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.request.crossfade
 import coil3.svg.SvgDecoder
+import com.dokar.sonner.Toaster
+import com.dokar.sonner.rememberToasterState
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
@@ -51,12 +53,12 @@ import me.rerere.highlight.Highlighter
 import me.rerere.highlight.LocalHighlighter
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
-import me.rerere.rikkahub.ui.components.ui.Toaster
 import me.rerere.rikkahub.ui.context.LocalAnimatedVisibilityScope
 import me.rerere.rikkahub.ui.context.LocalFirebaseAnalytics
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSharedTransitionScope
 import me.rerere.rikkahub.ui.context.LocalTTSService
+import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.ui.pages.assistant.AssistantPage
 import me.rerere.rikkahub.ui.pages.chat.ChatPage
 import me.rerere.rikkahub.ui.pages.debug.DebugPage
@@ -68,6 +70,7 @@ import me.rerere.rikkahub.ui.pages.setting.SettingPage
 import me.rerere.rikkahub.ui.pages.setting.SettingProviderPage
 import me.rerere.rikkahub.ui.pages.setting.SettingSearchPage
 import me.rerere.rikkahub.ui.pages.translator.TranslatorPage
+import me.rerere.rikkahub.ui.theme.LocalDarkMode
 import me.rerere.rikkahub.ui.theme.RikkahubTheme
 import org.koin.android.ext.android.inject
 import kotlin.uuid.Uuid
@@ -100,7 +103,6 @@ class RouteActivity : ComponentActivity() {
                         }
                         .build()
                 }
-                Toaster()
                 AppRoutes(navController)
             }
         }
@@ -127,14 +129,21 @@ class RouteActivity : ComponentActivity() {
 
     @Composable
     fun AppRoutes(navController: NavHostController) {
+        val toastState = rememberToasterState()
         SharedTransitionLayout {
             CompositionLocalProvider(
                 LocalNavController provides navController,
                 LocalSharedTransitionScope provides this,
                 LocalHighlighter provides highlighter,
                 LocalTTSService provides ttsService,
-                LocalFirebaseAnalytics provides firebaseAnalytics
+                LocalFirebaseAnalytics provides firebaseAnalytics,
+                LocalToaster provides toastState,
             ) {
+                Toaster(
+                    state = toastState,
+                    darkTheme = LocalDarkMode.current,
+                    richColors = true,
+                )
                 NavHost(
                     modifier = Modifier
                         .fillMaxSize()

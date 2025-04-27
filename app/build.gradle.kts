@@ -148,6 +148,9 @@ dependencies {
     // Compose Cropper
     implementation(libs.ucrop)
 
+    // Toast (Sonner)
+    implementation(libs.sonner)
+
     // lucide icons
     implementation(libs.lucide.icons)
 

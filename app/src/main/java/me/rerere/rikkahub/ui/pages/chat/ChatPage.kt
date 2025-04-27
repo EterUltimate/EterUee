@@ -57,6 +57,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Menu
 import com.composables.icons.lucide.MessageCirclePlus
 import com.composables.icons.lucide.Settings
+import com.dokar.sonner.ToastType
 import kotlinx.coroutines.launch
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelType
@@ -71,10 +72,9 @@ import me.rerere.rikkahub.ui.components.chat.ChatMessage
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
 import me.rerere.rikkahub.ui.components.chat.rememberChatInputState
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
-import me.rerere.rikkahub.ui.components.ui.ToastType
 import me.rerere.rikkahub.ui.components.ui.WavyCircularProgressIndicator
-import me.rerere.rikkahub.ui.components.ui.toaster
 import me.rerere.rikkahub.ui.context.LocalNavController
+import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.ui.hooks.useThrottle
 import me.rerere.rikkahub.utils.UpdateDownload
 import me.rerere.rikkahub.utils.Version
@@ -91,11 +91,12 @@ import kotlin.uuid.Uuid
 @Composable
 fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
     val navController = LocalNavController.current
+    val toaster = LocalToaster.current
 
     // Handle Error
     LaunchedEffect(Unit) {
         vm.errorFlow.collect { error ->
-            toaster.show(error.message ?: "Error", type = ToastType.ERROR)
+            toaster.show(error.message ?: "Error", type = ToastType.Error)
         }
     }
 
@@ -148,7 +149,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                     },
                     onSendClick = {
                         if (currentChatModel == null) {
-                            toaster.show("请先选择模型", ToastType.ERROR)
+                            toaster.show("请先选择模型", ToastType.Error)
                             return@ChatInput
                         }
                         if (inputState.isEditing()) {
@@ -412,6 +413,7 @@ private fun DrawerContent(
 private fun UpdateCard(vm: ChatVM) {
     val state by vm.updateState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val toaster = LocalToaster.current
     state.onError {
         Card {
             Column(
@@ -465,7 +467,7 @@ private fun UpdateCard(vm: ChatVM) {
             val downloadHandler = useThrottle<UpdateDownload>(500) { item ->
                 vm.updateChecker.downloadUpdate(context, item)
                 showDetail = false
-                toaster.show("已在下载，请在状态栏查看下载进度", ToastType.INFO)
+                toaster.show("已在下载，请在状态栏查看下载进度", ToastType.Info)
             }
             ModalBottomSheet(
                 onDismissRequest = { showDetail = false },

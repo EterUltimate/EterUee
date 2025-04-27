@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.ui.components.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -197,7 +198,7 @@ fun Toaster(modifier: Modifier = Modifier, toastState: ToastState = toaster) {
         }
     }
 
-    if (toasts.isNotEmpty()) {
+    AnimatedVisibility(toasts.isNotEmpty()) {
         Popup(
             popupPositionProvider = object : PopupPositionProvider {
                 override fun calculatePosition(
@@ -223,7 +224,7 @@ fun Toaster(modifier: Modifier = Modifier, toastState: ToastState = toaster) {
                     .fillMaxWidth()
                     .padding(vertical = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 toasts.forEachIndexed { index, toast ->
                     key(toast.id) {
@@ -270,13 +271,12 @@ private fun ToastItem(
         color = bgColor,
         border = BorderStroke(1.dp, borderColor),
         shape = RoundedCornerShape(8.dp),
-        shadowElevation = 8.dp
     ) {
         CompositionLocalProvider(LocalContentColor provides contentColor) {
             Row(
                 modifier = Modifier
-                    .fillMaxWidth(0.75f)
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                    .fillMaxWidth(0.85f)
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {

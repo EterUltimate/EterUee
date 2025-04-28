@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.ui.components.chat
 
+import android.Manifest
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -57,6 +58,8 @@ import com.composables.icons.lucide.Image
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.X
+import com.meticha.permissions_compose.AppPermission
+import com.meticha.permissions_compose.rememberAppPermissionState
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyMessage
 import me.rerere.rikkahub.R
@@ -358,6 +361,15 @@ private fun ImagePickButton(onAddImages: (List<Uri>) -> Unit = {}) {
 
 @Composable
 fun TakePicButton(onAddImages: (List<Uri>) -> Unit = {}) {
+    val permissionState = rememberAppPermissionState(
+        permissions = listOf(
+            AppPermission(
+                permission = Manifest.permission.CAMERA,
+                description = "需要权限才能使用相机功能",
+                isRequired = true
+            )
+        )
+    )
     val context = LocalContext.current
     var providerUri by remember { mutableStateOf<Uri?>(null) }
     var file by remember { mutableStateOf<File?>(null) }
@@ -378,12 +390,15 @@ fun TakePicButton(onAddImages: (List<Uri>) -> Unit = {}) {
             Text(stringResource(R.string.take_picture))
         }
     ) {
-        file = context.cacheDir.resolve(Uuid.random().toString())
-        providerUri = FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            file!!
-        )
-        pickMedia.launch(providerUri!!)
+        permissionState.requestPermission()
+        if(permissionState.allRequiredGranted()) {
+            file = context.cacheDir.resolve(Uuid.random().toString())
+            providerUri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                file!!
+            )
+            pickMedia.launch(providerUri!!)
+        }
     }
 }

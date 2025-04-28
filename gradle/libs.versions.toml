@@ -32,6 +32,7 @@ requery-sqlite = "3.45.0"
 zxing = "3.5.3"
 quickie-bundled = "1.10.0"
 sonner = "0.3.10"
+permissionsCompose = "0.0.1+4"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -80,6 +81,7 @@ requery-sqlite-android = { group = "com.github.requery", name = "sqlite-android"
 zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
 quickie-bundled = { group = "io.github.g00fy2.quickie", name = "quickie-bundled", version.ref = "quickie-bundled" }
 sonner = { module = "io.github.brdominguez:compose-sonner", version.ref = "sonner" }
+permissions-compose = { group = "com.meticha", name = "permissions_compose", version.ref = "permissionsCompose" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -151,6 +151,9 @@ dependencies {
     // Toast (Sonner)
     implementation(libs.sonner)
 
+    // Permission
+    implementation(libs.permissions.compose)
+
     // lucide icons
     implementation(libs.lucide.icons)
 

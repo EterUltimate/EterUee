@@ -69,6 +69,10 @@ fun guessModelAbilityFromModelId(modelId: String): List<ModelAbility> {
             listOf(ModelAbility.TOOL)
         }
 
+        QWEN_3.containsMatchIn(modelId) -> {
+            listOf(ModelAbility.TOOL)
+        }
+
         else -> {
             emptyList()
         }
@@ -80,3 +84,4 @@ private val GPT_4_1 = Regex("gpt-4\\.1")
 private val GEMINI_20_FLASH = Regex("gemini-2.0-flash")
 private val GEMINI_2_5_FLASH = Regex("gemini-2.5-flash")
 private val CLAUDE_SONNET_3 = Regex("claude-3.+sonnet")
+private val QWEN_3 = Regex("qwen?-3")

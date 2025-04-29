@@ -194,7 +194,7 @@ class ChatVM(
         )
         this.updateConversation(newConversation)
         val message = newConversation.messages.find { it.id == uuid } ?: return
-        this.regenerateAtMessage(message)
+        this.regenerateAtMessage(message, false)
     }
 
     private suspend fun handleMessageComplete() {
@@ -278,7 +278,10 @@ class ChatVM(
         }
     }
 
-    fun regenerateAtMessage(message: UIMessage) {
+    fun regenerateAtMessage(
+        message: UIMessage,
+        regenerateAssistantMsg: Boolean = true
+    ) {
         if (message.role == MessageRole.USER) {
             // 如果是用户消息，则截止到当前消息
             val indexAt = conversation.value.messages.indexOf(message)
@@ -287,6 +290,11 @@ class ChatVM(
             )
             this.saveConversation(newConversation)
         } else {
+            if(!regenerateAssistantMsg) {
+                // 如果不需要重新生成助手消息，则直接返回
+                this.saveConversation(conversation.value)
+                return
+            }
             // 如果是助手消息，则需要向上查找第一个用户消息
             var indexAt = conversation.value.messages.indexOf(message)
             for (i in indexAt downTo 0) {

@@ -152,7 +152,7 @@ private fun Actions(
                 .size(16.dp)
         )
 
-        if (message.role == MessageRole.USER) {
+        if (message.role == MessageRole.USER || message.role == MessageRole.ASSISTANT) {
             Icon(
                 Lucide.Pencil, stringResource(R.string.edit), modifier = Modifier
                     .clip(CircleShape)

@@ -9,6 +9,8 @@ data class Assistant(
     val name: String = "",
     val systemPrompt: String = "",
     val temperature: Float = 0.6f,
+    val topP: Float = 1.0f,
+    val contextMessageSize: Int = 32,
     val enableMemory: Boolean = false,
 )
 

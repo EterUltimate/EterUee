@@ -255,7 +255,8 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                 "messages",
                 buildMessages(messages)
             )
-            put("temperature", params.temperature)
+            if(params.temperature != null) put("temperature", params.temperature)
+            if(params.topP != null) put("top_p", params.topP)
             put("top_p", params.topP)
             put("stream", stream)
             if (params.model.abilities.contains(ModelAbility.TOOL) && params.tools.isNotEmpty()) {
@@ -421,9 +422,9 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             when (type) {
                 "url_citation" -> {
                     UIMessageAnnotation.UrlCitation(
-                        title = element.jsonObject["url_citation"]?.jsonObject["title"]?.jsonPrimitive?.contentOrNull
+                        title = element.jsonObject["url_citation"]?.jsonObject?.get("title")?.jsonPrimitive?.contentOrNull
                             ?: "",
-                        url = element.jsonObject["url_citation"]?.jsonObject["url"]?.jsonPrimitive?.contentOrNull
+                        url = element.jsonObject["url_citation"]?.jsonObject?.get("url")?.jsonPrimitive?.contentOrNull
                             ?: "",
                     )
                 }

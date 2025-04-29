@@ -3,7 +3,9 @@ package me.rerere.rikkahub.ui.components.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ProvideTextStyle
@@ -17,6 +19,7 @@ import androidx.compose.ui.unit.dp
 fun FormItem(
     modifier: Modifier = Modifier,
     label: @Composable () -> Unit,
+    description: @Composable (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Column(
@@ -31,6 +34,15 @@ fun FormItem(
             label()
         }
         content()
+        ProvideTextStyle(
+            MaterialTheme.typography.labelSmall.copy(
+                color = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+        ) {
+            Row {
+                description?.invoke()
+            }
+        }
     }
 }
 
@@ -44,6 +56,9 @@ private fun FormItemPreview() {
                 value = "",
                 onValueChange = {}
             )
+        },
+        description = {
+            Text("Description")
         }
     )
 }

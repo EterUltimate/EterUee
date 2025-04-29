@@ -28,6 +28,6 @@ interface Provider<T : ProviderSetting> {
 data class TextGenerationParams(
     val model: Model,
     val temperature: Float? = 0.6f,
-    val topP: Float = 1f,
+    val topP: Float? = 1f,
     val tools: List<Tool> = emptyList(),
 )

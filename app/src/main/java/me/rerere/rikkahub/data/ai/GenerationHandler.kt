@@ -164,13 +164,14 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                 }
                 if(system.isNotBlank()) add(UIMessage.system(system))
             }
-            addAll(messages)
+            addAll(messages.takeLast(assistant?.contextMessageSize ?: 32))
         }.transforms(transformers, context, model)
 
         var messages: List<UIMessage> = messages
         val params = TextGenerationParams(
             model = model,
             temperature = assistant?.temperature,
+            topP = assistant?.topP,
             tools = tools
         )
         if (stream) {

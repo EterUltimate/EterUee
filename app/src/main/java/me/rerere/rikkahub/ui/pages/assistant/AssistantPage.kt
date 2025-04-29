@@ -16,6 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -59,6 +60,7 @@ import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.plus
 import me.rerere.rikkahub.utils.toFixed
 import org.koin.androidx.compose.koinViewModel
+import kotlin.math.roundToInt
 
 @Composable
 fun AssistantPage(vm: AssistantVM = koinViewModel()) {
@@ -139,146 +141,236 @@ private fun AssistantEditSheet(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(600.dp)
-                    .padding(16.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                FormItem(
-                    label = {
-                        Text("助手名称")
-                    },
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(600.dp)
+                        .verticalScroll(
+                            state = rememberScrollState(),
+                        ),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    OutlinedTextField(
-                        value = assistant.name,
-                        onValueChange = {
-                            update(
-                                assistant.copy(
-                                    name = it
-                                )
-                            )
+                    FormItem(
+                        label = {
+                            Text("助手名称")
                         },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                FormItem(
-                    label = {
-                        Text("系统提示词")
-                    },
-                ) {
-                    OutlinedTextField(
-                        value = assistant.systemPrompt,
-                        onValueChange = {
-                            update(
-                                assistant.copy(
-                                    systemPrompt = it
-                                )
-                            )
-                        },
-                        minLines = 3,
-                        maxLines = 5,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Text(
-                        text = "可用变量: " + PlaceholderTransformer.Placeholders.entries.joinToString(
-                            ", "
-                        ) { "${it.key}: ${it.value}" },
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
-                    )
-                }
-
-                FormItem(
-                    label = {
-                        Text("温度")
-                    },
-                ) {
-                    Slider(
-                        value = assistant.temperature,
-                        onValueChange = {
-                            update(
-                                assistant.copy(
-                                    temperature = it.toFixed(2).toFloatOrNull() ?: 0.6f
-                                )
-                            )
-                        },
-                        valueRange = 0f..2f,
-                        steps = 19,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        val currentTemperature = state.currentState?.temperature ?: 0.6f
-                        val tagType = when (currentTemperature) {
-                            in 0.0f..0.3f -> TagType.INFO
-                            in 0.3f..1.0f -> TagType.SUCCESS
-                            in 1.0f..1.5f -> TagType.WARNING
-                            in 1.5f..2.0f -> TagType.ERROR
-                            else -> TagType.ERROR
-                        }
-                        Tag(
-                            type = TagType.INFO
+                        OutlinedTextField(
+                            value = assistant.name,
+                            onValueChange = {
+                                update(
+                                    assistant.copy(
+                                        name = it
+                                    )
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    HorizontalDivider()
+
+                    FormItem(
+                        label = {
+                            Text("系统提示词")
+                        },
+                    ) {
+                        OutlinedTextField(
+                            value = assistant.systemPrompt,
+                            onValueChange = {
+                                update(
+                                    assistant.copy(
+                                        systemPrompt = it
+                                    )
+                                )
+                            },
+                            minLines = 3,
+                            maxLines = 5,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Text(
+                            text = "可用变量: " + PlaceholderTransformer.Placeholders.entries.joinToString(
+                                ", "
+                            ) { "${it.key}: ${it.value}" },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
+                        )
+                    }
+
+                    HorizontalDivider()
+
+                    FormItem(
+                        label = {
+                            Text("温度")
+                        },
+                    ) {
+                        Slider(
+                            value = assistant.temperature,
+                            onValueChange = {
+                                update(
+                                    assistant.copy(
+                                        temperature = it.toFixed(2).toFloatOrNull() ?: 0.6f
+                                    )
+                                )
+                            },
+                            valueRange = 0f..2f,
+                            steps = 19,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
+                            val currentTemperature = state.currentState?.temperature ?: 0.6f
+                            val tagType = when (currentTemperature) {
+                                in 0.0f..0.3f -> TagType.INFO
+                                in 0.3f..1.0f -> TagType.SUCCESS
+                                in 1.0f..1.5f -> TagType.WARNING
+                                in 1.5f..2.0f -> TagType.ERROR
+                                else -> TagType.ERROR
+                            }
+                            Tag(
+                                type = TagType.INFO
+                            ) {
+                                Text(
+                                    text = "$currentTemperature"
+                                )
+                            }
+
+                            Tag(
+                                type = tagType
+                            ) {
+                                Text(
+                                    text = when (currentTemperature) {
+                                        in 0.0f..0.3f -> "严谨"
+                                        in 0.3f..1.0f -> "平衡"
+                                        in 1.0f..1.5f -> "创造"
+                                        in 1.5f..2.0f -> "混乱 (危险)"
+                                        else -> "?"
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    HorizontalDivider()
+
+                    FormItem(
+                        label = {
+                            Text("Top P")
+                        },
+                        description = {
                             Text(
-                                text = "$currentTemperature"
+                                text = buildAnnotatedString {
+                                    append("Top P控制选择概率累加超过topP值的词汇作为候选词汇, 取值范围为0到1, 默认值为1")
+                                    withStyle(SpanStyle(color = MaterialTheme.extendColors.red5)) {
+                                        append("请不要修改此值, 除非你知道自己在做什么")
+                                    }
+                                }
                             )
                         }
+                    ) {
+                        Slider(
+                            value = assistant.topP,
+                            onValueChange = {
+                                update(
+                                    assistant.copy(
+                                        topP = it.toFixed(2).toFloatOrNull() ?: 1.0f
+                                    )
+                                )
+                            },
+                            valueRange = 0f..1f,
+                            steps = 0,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Text(
+                            text = "Top P: ${assistant.topP}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
+                        )
+                    }
 
-                        Tag(
-                            type = tagType
-                        ) {
+                    HorizontalDivider()
+
+                    FormItem(
+                        label = {
+                            Text("上下文消息数量")
+                        },
+                        description = {
                             Text(
-                                text = when (currentTemperature) {
-                                    in 0.0f..0.3f -> "严谨"
-                                    in 0.3f..1.0f -> "平衡"
-                                    in 1.0f..1.5f -> "创造"
-                                    in 1.5f..2.0f -> "混乱 (危险)"
-                                    else -> "?"
+                                text = "控制多少条历史消息会被作为上下文发送给模型, 超过此数量的消息会被忽略，只有最近的N条消息会被保留，可以节省token",
+                            )
+                        }
+                    ) {
+                        Slider(
+                            value = assistant.contextMessageSize.toFloat(),
+                            onValueChange = {
+                                update(
+                                    assistant.copy(
+                                        contextMessageSize = it.roundToInt()
+                                    )
+                                )
+                            },
+                            valueRange = 4f..64f,
+                            steps = 0,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Text(
+                            text = "上下文消息数量: ${assistant.contextMessageSize}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
+                        )
+                    }
+
+                    HorizontalDivider()
+
+                    FormItem(
+                        label = {
+                            Text("记忆")
+                        },
+                        description = {
+                            Text(
+                                text = "启用记忆后，模型在与你对话时尝试主动记录你的信息，并在后续其他对话中使用，此功能需要模型支持工具调用才能正常工作",
+                            )
+                        }
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            TextButton(
+                                onClick = {
+                                    state.dismiss()
+                                    memoryState.open(assistant)
+                                }
+                            ) {
+                                Text("管理记忆 (${memories.size}条)")
+                            }
+
+                            Spacer(Modifier.weight(1f))
+
+                            Switch(
+                                checked = assistant.enableMemory,
+                                onCheckedChange = {
+                                    update(
+                                        assistant.copy(
+                                            enableMemory = it
+                                        )
+                                    )
                                 }
                             )
                         }
                     }
                 }
 
-                FormItem(
-                    label = {
-                        Text("记忆")
-                    }
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        TextButton(
-                            onClick = {
-                                state.dismiss()
-                                memoryState.open(assistant)
-                            }
-                        ) {
-                            Text("管理记忆 (${memories.size}条)")
-                        }
-
-                        Spacer(Modifier.weight(1f))
-
-                        Switch(
-                            checked = assistant.enableMemory,
-                            onCheckedChange = {
-                                update(
-                                    assistant.copy(
-                                        enableMemory = it
-                                    )
-                                )
-                            }
-                        )
-                    }
-                }
+                HorizontalDivider()
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),

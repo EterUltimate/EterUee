@@ -287,8 +287,8 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
 
         // Generation config
         put("generationConfig", buildJsonObject {
-            put("temperature", params.temperature)
-            put("topP", params.topP)
+            if(params.temperature != null) put("temperature", params.temperature)
+            if(params.topP != null) put("topP", params.topP)
         })
 
         // Contents (user messages)

@@ -40,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -75,6 +76,7 @@ import me.rerere.ai.core.MessageRole
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessagePart
+import me.rerere.ai.ui.isEmptyMessage
 import me.rerere.highlight.HighlightText
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
@@ -196,6 +198,13 @@ fun MessagePartsBlock(
     val contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
     var expandReasoning by remember { mutableStateOf(true) }
     val context = LocalContext.current
+
+    // parts updated
+    LaunchedEffect(parts) {
+        if(!parts.isEmptyMessage() && expandReasoning) {
+            expandReasoning = false
+        }
+    }
 
     // Search
     parts.filterIsInstance<UIMessagePart.Search>().fastForEach { search ->

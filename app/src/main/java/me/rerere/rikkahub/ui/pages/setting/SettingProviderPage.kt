@@ -425,7 +425,7 @@ private fun ModelList(
                 .listModels(providerSetting)
                 .sortedBy { it.modelId }
                 .toList()
-            println(value)
+            // println(value)
         }.onFailure {
             it.printStackTrace()
         }
@@ -486,8 +486,8 @@ private fun AddModelButton(
     val dialogState = useEditState<Model> { onAddModel(it) }
 
     fun setModelId(id: String) {
-        val modality = guessModalityFromModelId(id)
-        val abilities = guessModelAbilityFromModelId(id)
+        val modality = guessModalityFromModelId(id.lowercase())
+        val abilities = guessModelAbilityFromModelId(id.lowercase())
         dialogState.currentState = dialogState.currentState?.copy(
             modelId = id,
             displayName = id.uppercase(),

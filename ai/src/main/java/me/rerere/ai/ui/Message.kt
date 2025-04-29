@@ -194,7 +194,7 @@ fun List<UIMessagePart>.isEmptyMessage(): Boolean {
         when (message) {
             is UIMessagePart.Text -> message.text.isBlank()
             is UIMessagePart.Image -> message.url.isBlank()
-            else -> false
+            else -> true
         }
     }
 }

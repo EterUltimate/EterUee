@@ -19,7 +19,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.launch
 import me.rerere.rikkahub.ui.components.nav.BackButton
-import me.rerere.rikkahub.ui.components.table.DefaultPreview
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.search.SearchService
 import org.koin.androidx.compose.koinViewModel
@@ -48,8 +47,6 @@ fun DebugPage(vm: DebugVM = koinViewModel()) {
                 .padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            DefaultPreview()
-
             var counter by remember {
                 mutableIntStateOf(0)
             }

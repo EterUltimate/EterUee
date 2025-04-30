@@ -9,11 +9,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -22,6 +20,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -38,6 +37,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachIndexed
+import me.rerere.rikkahub.ui.theme.RikkahubTheme
 import kotlin.math.max
 
 private const val DEFAULT_SAMPLE_SIZE = 8 // Number of rows to measure for adaptive width
@@ -49,10 +49,7 @@ fun <T> DataTable(
     data: List<T>,
     modifier: Modifier = Modifier,
     cellPadding: PaddingValues = PaddingValues(DEFAULT_CELL_PADDING),
-    border: BorderStroke = BorderStroke(
-        1.dp,
-        MaterialTheme.colorScheme.outlineVariant.copy(0.5f)
-    ),
+    border: BorderStroke = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(0.5f)),
     adaptiveWidthSampleSize: Int = DEFAULT_SAMPLE_SIZE // Number of rows to sample for adaptive width calculation
 ) {
     var calculatedColumnWidths by remember(
@@ -84,39 +81,35 @@ fun <T> DataTable(
     if (calculatedColumnWidths != null) {
         Column(
             modifier = modifier
+                .wrapContentSize()
                 .clip(MaterialTheme.shapes.small)
                 .border(border, MaterialTheme.shapes.small)
         ) {
             // Use HorizontalScroll for tables wider than the screen
-            Box(
+            Column(
                 modifier = Modifier.horizontalScroll(horizontalScrollState)
             ) {
-                Column {
-                    // --- Header Row ---
-                    TableHeaderRow(
-                        columns = columns,
-                        columnWidths = calculatedColumnWidths!!, // Not null here
-                        cellPadding = cellPadding,
-                        border = border
-                    )
+                // --- Header Row ---
+                TableHeaderRow(
+                    columns = columns,
+                    columnWidths = calculatedColumnWidths!!, // Not null here
+                    cellPadding = cellPadding,
+                    border = border
+                )
 
-                    // --- Data Rows ---
-                    LazyColumn(
-                        modifier = Modifier.weight(1f) // Allow LazyColumn to take available vertical space
-                    ) {
-                        itemsIndexed(data) { rowIndex, rowData ->
-                            TableRow(
-                                rowData = rowData,
-                                columns = columns,
-                                columnWidths = calculatedColumnWidths!!,
-                                cellPadding = cellPadding,
-                                border = border,
-                                rowIndex = rowIndex // Pass rowIndex if needed for alternating backgrounds etc.
-                            )
-                        }
+                // --- Data Rows ---
+                data.fastForEachIndexed { rowIndex, rowData ->
+                    key(rowIndex) {
+                        TableRow(
+                            rowData = rowData,
+                            columns = columns,
+                            columnWidths = calculatedColumnWidths!!,
+                            cellPadding = cellPadding,
+                            border = border,
+                        )
                     }
-                } // End Inner Column
-            } // End Box with HorizontalScroll
+                }
+            } // End Inner Column
         } // End Outer Column
     }
 }
@@ -136,10 +129,10 @@ private fun <T> SubcomposeColumnWidthCalculator(
     onWidthsCalculated: (List<Int>) -> Unit
 ) {
     SubcomposeLayout { constraints ->
-        val measuredWidths = IntArray(columns.size) { 0 }
+        val measuredWidths = IntArray(columns.size)
         val sampleData = data.take(adaptiveWidthSampleSize.coerceAtLeast(0)) // Take a sample
 
-        columns.forEachIndexed { colIndex, column ->
+        columns.fastForEachIndexed { colIndex, column ->
             when (val widthDef = column.width) {
                 is ColumnWidth.Fixed -> {
                     // Use fixed width directly
@@ -193,12 +186,11 @@ private fun <T> TableHeaderRow(
     columns: List<ColumnDefinition<T>>,
     columnWidths: List<Dp>,
     cellPadding: PaddingValues,
-    border: BorderStroke?
+    border: BorderStroke
 ) {
     Row(
         modifier = Modifier
-            .fillMaxWidth() // Fill available width horizontally
-            .let { if (border != null) it.border(border) else it }
+            .border(border)
             .background(MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -223,44 +215,33 @@ private fun <T> TableRow(
     columns: List<ColumnDefinition<T>>,
     columnWidths: List<Dp>,
     cellPadding: PaddingValues,
-    border: BorderStroke?,
-    rowIndex: Int // Available if needed for styling (e.g., alternating backgrounds)
+    border: BorderStroke,
 ) {
     Row(
         modifier = Modifier
-            .fillMaxWidth() // Fill available width horizontally
-            .let { if (border != null) it.border(border) else it },
+            .border(border),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        columns.forEachIndexed { index, column ->
-            Box(
-                modifier = Modifier
-                    .width(columnWidths[index])
-                    .padding(cellPadding)
-            ) {
-                column.cell(rowData)
+        columns.fastForEachIndexed { index, column ->
+            key(index) {
+                Box(
+                    modifier = Modifier
+                        .width(columnWidths[index])
+                        .padding(cellPadding)
+                ) {
+                    column.cell(rowData)
+                }
             }
         }
     }
 }
 
-// Helper to get color from BorderStroke, assuming solid color for simplicity
-private fun BorderStroke?.getColor(density: Density): androidx.compose.ui.graphics.Color {
-    // A more robust implementation would handle different Brush types
-    return if (this?.brush is androidx.compose.ui.graphics.SolidColor) {
-        (this.brush as androidx.compose.ui.graphics.SolidColor).value
-    } else {
-        // Default fallback
-        androidx.compose.ui.graphics.Color.LightGray // Or LocalContentColor.current
-    }
-}
-
 
 // Sample Data Class
-data class User(val id: Int, val name: String, val email: String, val status: String)
+private data class User(val id: Int, val name: String, val email: String, val status: String)
 
 // Sample Data
-val sampleUsers = List(50) { index ->
+private val sampleUsers = List(50) { index ->
     User(
         id = index + 1,
         name = "User Name ${index + 1}".let { if (index % 5 == 0) it.repeat(3) else it }, // Make some names long
@@ -276,7 +257,7 @@ private fun MyDataTableScreen() {
             header = { Text("ID", fontWeight = FontWeight.Bold) },
             cell = { user -> Text(user.id.toString()) },
             // Fixed width for ID column
-            width = ColumnWidth.Fixed(50.dp)
+            width = ColumnWidth.Fixed(80.dp)
         ),
         ColumnDefinition(
             header = { Text("Name", fontWeight = FontWeight.Bold) },
@@ -311,22 +292,24 @@ private fun MyDataTableScreen() {
         data = sampleUsers,
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(16.dp),
     )
 }
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun DefaultPreview() {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Data Table Example") },
-            )
-        }
-    ) {
-        Box(Modifier.padding(it)) {
-            MyDataTableScreen()
+    RikkahubTheme {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Data Table Example") },
+                )
+            }
+        ) {
+            Box(Modifier.padding(it)) {
+                MyDataTableScreen()
+            }
         }
     }
 }

@@ -50,6 +50,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.core.net.toUri
 import coil3.compose.AsyncImage
+import me.rerere.rikkahub.ui.components.table.ColumnDefinition
+import me.rerere.rikkahub.ui.components.table.ColumnWidth
+import me.rerere.rikkahub.ui.components.table.DataTable
 import org.intellij.markdown.IElementType
 import org.intellij.markdown.MarkdownElementTypes
 import org.intellij.markdown.MarkdownTokenTypes
@@ -105,6 +108,10 @@ private fun MarkdownPreview() {
         MarkdownBlock(
             content = """
                 # Hello World
+                
+                | A | B |
+                | - | - |
+                | 1 | 2 |
                 
                 | Name | Age | Address | Email | Job | Homepage |
                 | ---- | --- | ------- | ----- | --- | -------- |
@@ -494,7 +501,48 @@ private fun TableNode(node: ASTNode, content: String, modifier: Modifier = Modif
     // 检查是否有足够的列来显示表格
     if (columnCount == 0) return
 
+    // 提取表头单元格文本
+    val headerCells = headerNode?.children
+        ?.filter { it.type == GFMTokenTypes.CELL }
+        ?.map { it.getTextInNode(content).trim() }
+        ?: emptyList()
 
+    // 提取所有行的数据
+    val rows = rowNodes.map { rowNode ->
+        rowNode.children
+            .filter { it.type == GFMTokenTypes.CELL }
+            .map { it.getTextInNode(content).trim() }
+    }
+
+    // 创建列定义
+    val columns = List(columnCount) { columnIndex ->
+        ColumnDefinition<List<String>>(
+            header = { 
+                Text(
+                    text = if (columnIndex < headerCells.size) headerCells[columnIndex] else "",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            cell = { rowData ->
+                Text(
+                    text = if (columnIndex < rowData.size) rowData[columnIndex] else "",
+                    softWrap = true,
+                    overflow = TextOverflow.Ellipsis
+                )
+            },
+            width = ColumnWidth.Adaptive(min = 80.dp)
+        )
+    }
+
+    // 渲染表格
+    DataTable(
+        columns = columns,
+        data = rows,
+        modifier = modifier
+            .padding(vertical = 8.dp)
+            .fillMaxWidth()
+
+    )
 }
 
 private fun AnnotatedString.Builder.appendMarkdownNodeContent(

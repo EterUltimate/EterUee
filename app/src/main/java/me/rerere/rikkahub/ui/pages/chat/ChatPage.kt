@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,6 +39,7 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -215,23 +217,43 @@ private fun ChatList(
     val state = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val scrollToBottom = {
-        state.requestScrollToItem(0)
+        state.requestScrollToItem(conversation.messages.lastIndex + 2)
     }
+    val viewPortSize by remember {  derivedStateOf { state.layoutInfo.viewportSize } }
     Box(
         modifier = Modifier.padding(innerPadding),
     ) {
+        fun List<LazyListItemInfo>.isAtBottom(): Boolean {
+            val lastItem = lastOrNull() ?: return false
+            if(lastItem.key == LoadingIndicatorKey || lastItem.key == ScrollBottomKey) {
+                return true
+            }
+            return (lastItem.offset + lastItem.size >= state.layoutInfo.viewportEndOffset - 32) && lastItem.key == conversation.messages.lastOrNull()?.id
+        }
+
+        // 自动滚动到底部
+        LaunchedEffect(loading, conversation.messages, viewPortSize) {
+            if(!state.isScrollInProgress && state.canScrollForward) {
+                if(state.layoutInfo.visibleItemsInfo.isAtBottom()) {
+                    state.requestScrollToItem(conversation.messages.lastIndex + 2)
+                }
+            }
+        }
+
         LazyColumn(
             state = state,
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            reverseLayout = true
         ) {
-            // 为了能正确滚动到这
-            item(ScrollBottomKey) {
-                Spacer(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(5.dp)
+            items(conversation.messages, key = { it.id }) {
+                ChatMessage(
+                    message = it,
+                    onRegenerate = {
+                        onRegenerate(it)
+                    },
+                    onEdit = {
+                        onEdit(it)
+                    },
                 )
             }
 
@@ -247,21 +269,18 @@ private fun ChatList(
                 }
             }
 
-            items(conversation.messages.reversed(), key = { it.id }) {
-                ChatMessage(
-                    message = it,
-                    onRegenerate = {
-                        onRegenerate(it)
-                    },
-                    onEdit = {
-                        onEdit(it)
-                    },
+            // 为了能正确滚动到这
+            item(ScrollBottomKey) {
+                Spacer(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(5.dp)
                 )
             }
         }
 
         AnimatedVisibility(
-            state.canScrollBackward,
+            state.canScrollForward,
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
             Surface(

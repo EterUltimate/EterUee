@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -49,10 +50,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.core.net.toUri
 import coil3.compose.AsyncImage
-import me.rerere.rikkahub.ui.components.ui.Table
-import me.rerere.rikkahub.ui.components.ui.TableCell
-import me.rerere.rikkahub.ui.components.ui.TableHeader
-import me.rerere.rikkahub.ui.components.ui.TableRow
 import org.intellij.markdown.IElementType
 import org.intellij.markdown.MarkdownElementTypes
 import org.intellij.markdown.MarkdownTokenTypes
@@ -95,6 +92,28 @@ private fun preProcess(content: String): String {
     }
 
     return result
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MarkdownPreview() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        MarkdownBlock(
+            content = """
+                # Hello World
+                
+                | Name | Age | Address | Email | Job | Homepage |
+                | ---- | --- | ------- | ----- | --- | -------- |
+                | John | 25  | New York | john@example.com | Software Engineer | john.com |
+                | Jane | 26  | London   | jane@example.com | Data Scientist | jane.com |
+                
+            """.trimIndent()
+        )
+    }
 }
 
 @Composable
@@ -341,35 +360,7 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
         }
 
         GFMElementTypes.TABLE -> {
-            Table(modifier = modifier) {
-                node.children.fastForEach {
-                    MarkdownNode(it, content)
-                }
-            }
-        }
-
-        GFMElementTypes.HEADER -> {
-            TableHeader(modifier = modifier) {
-                node.children.fastForEach {
-                    if (it.type == GFMTokenTypes.CELL) {
-                        TableCell {
-                            MarkdownNode(it, content)
-                        }
-                    }
-                }
-            }
-        }
-
-        GFMElementTypes.ROW -> {
-            TableRow(modifier = modifier) {
-                node.children.fastForEach {
-                    if (it.type == GFMTokenTypes.CELL) {
-                        TableCell {
-                            MarkdownNode(it, content)
-                        }
-                    }
-                }
-            }
+            TableNode(node, content, modifier)
         }
 
         // 图片
@@ -489,6 +480,21 @@ private fun Paragraph(node: ASTNode, content: String, modifier: Modifier) {
             overflow = TextOverflow.Visible
         )
     }
+}
+
+@Composable
+private fun TableNode(node: ASTNode, content: String, modifier: Modifier = Modifier) {
+    // 提取表格的标题行和数据行
+    val headerNode = node.children.find { it.type == GFMElementTypes.HEADER }
+    val rowNodes = node.children.filter { it.type == GFMElementTypes.ROW }
+
+    // 计算列数（从标题行获取）
+    val columnCount = headerNode?.children?.count { it.type == GFMTokenTypes.CELL } ?: 0
+
+    // 检查是否有足够的列来显示表格
+    if (columnCount == 0) return
+
+
 }
 
 private fun AnnotatedString.Builder.appendMarkdownNodeContent(

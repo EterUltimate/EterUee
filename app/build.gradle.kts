@@ -168,6 +168,9 @@ dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
     implementation(kotlin("reflect"))
 
+    // Leak Canary
+    debugImplementation(libs.leakcanary.android)
+
     // tests
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

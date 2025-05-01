@@ -47,6 +47,8 @@ fun DebugPage(vm: DebugVM = koinViewModel()) {
                 .padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
+            DebugTtsDemoComponent()
+
             var counter by remember {
                 mutableIntStateOf(0)
             }

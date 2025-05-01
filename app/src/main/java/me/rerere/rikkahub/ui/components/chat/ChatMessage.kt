@@ -35,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -64,6 +65,7 @@ import com.composables.icons.lucide.BookDashed
 import com.composables.icons.lucide.BookHeart
 import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.ChevronUp
+import com.composables.icons.lucide.CircleStop
 import com.composables.icons.lucide.Copy
 import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.Lucide
@@ -82,7 +84,7 @@ import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.components.ui.Favicon
 import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.ImagePreviewDialog
-import me.rerere.rikkahub.ui.context.LocalTTSService
+import me.rerere.rikkahub.ui.hooks.tts.rememberTtsState
 import me.rerere.rikkahub.ui.modifier.shimmer
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.JsonInstantPretty
@@ -170,15 +172,22 @@ private fun Actions(
             )
         }
         if (message.role == MessageRole.ASSISTANT) {
-            val tts = LocalTTSService.current
+            val tts = rememberTtsState()
+            val isSpeaking by tts.isSpeaking.collectAsState()
             Icon(
-                Lucide.Volume2, stringResource(R.string.tts), modifier = Modifier
+                imageVector = if(isSpeaking) Lucide.CircleStop else Lucide.Volume2,
+                contentDescription = stringResource(R.string.tts),
+                modifier = Modifier
                     .clip(CircleShape)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = LocalIndication.current,
                         onClick = {
-                            tts?.speak(message.toText(), TextToSpeech.QUEUE_FLUSH, null, null)
+                            if(!isSpeaking) {
+                                tts.speak(message.toText(), TextToSpeech.QUEUE_FLUSH)
+                            } else {
+                                tts.stop()
+                            }
                         }
                     )
                     .padding(8.dp)
@@ -415,11 +424,11 @@ fun ReasoningCard(
     val scrollState = rememberScrollState()
 
     LaunchedEffect(reasoning, loading) {
-        if(loading) {
-            if(!expanded) expanded = true
+        if (loading) {
+            if (!expanded) expanded = true
             scrollState.animateScrollTo(scrollState.maxValue.toInt())
         } else {
-            if(expanded) expanded = false
+            if (expanded) expanded = false
         }
     }
 

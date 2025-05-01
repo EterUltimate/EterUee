@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.data.db
 
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
@@ -14,6 +15,9 @@ import me.rerere.rikkahub.utils.JsonInstant
 @Database(
     entities = [ConversationEntity::class, MemoryEntity::class],
     version = 4,
+    autoMigrations = [
+        AutoMigration(from = 3, to = 4)
+    ]
 )
 @TypeConverters(TokenUsageConverter::class)
 abstract class AppDatabase : RoomDatabase() {

@@ -19,7 +19,6 @@ val dataSourceModule = module {
 
     single {
         Room.databaseBuilder(get(), AppDatabase::class.java, "rikka_hub")
-            .fallbackToDestructiveMigration(true)
             .build()
     }
 

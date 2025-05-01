@@ -2,8 +2,6 @@ package me.rerere.rikkahub
 
 import android.os.Build
 import android.os.Bundle
-import android.speech.tts.TextToSpeech
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -23,9 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -57,7 +53,6 @@ import me.rerere.rikkahub.ui.context.LocalAnimatedVisibilityScope
 import me.rerere.rikkahub.ui.context.LocalFirebaseAnalytics
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSharedTransitionScope
-import me.rerere.rikkahub.ui.context.LocalTTSService
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.ui.pages.assistant.AssistantPage
 import me.rerere.rikkahub.ui.pages.chat.ChatPage
@@ -81,7 +76,6 @@ class RouteActivity : ComponentActivity() {
     private lateinit var firebaseAnalytics: FirebaseAnalytics
 
     private val highlighter by inject<Highlighter>()
-    private var ttsService by mutableStateOf<TextToSpeech?>(null)
 
     private val settingStore by inject<SettingsStore>()
     private val settings = settingStore.settingsFlow
@@ -106,19 +100,7 @@ class RouteActivity : ComponentActivity() {
                 AppRoutes(navController)
             }
         }
-        initTTS()
         firebaseAnalytics = Firebase.analytics
-    }
-
-    private fun initTTS() {
-        ttsService = TextToSpeech(this) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                Log.i(TAG, "onCreate: TTS engine initialized successfully")
-            } else {
-                ttsService = null
-                Log.e(TAG, "onCreate: TTS engine initialization failed")
-            }
-        }
     }
 
     private fun disableNavigationBarContrast() {
@@ -135,7 +117,6 @@ class RouteActivity : ComponentActivity() {
                 LocalNavController provides navController,
                 LocalSharedTransitionScope provides this,
                 LocalHighlighter provides highlighter,
-                LocalTTSService provides ttsService,
                 LocalFirebaseAnalytics provides firebaseAnalytics,
                 LocalToaster provides toastState,
             ) {
@@ -218,17 +199,6 @@ class RouteActivity : ComponentActivity() {
                 }
             }
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        destroyTTSService()
-    }
-
-    private fun destroyTTSService() {
-        ttsService?.stop()
-        ttsService?.shutdown()
-        ttsService = null
     }
 }
 

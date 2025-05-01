@@ -19,7 +19,8 @@
     <string name="back">返回</string>
     <string name="settings">设置</string>
 
-    <string name="setting_page_interface_settings">界面设置</string>
+    <string name="setting_page_display_setting">显示设置</string>
+    <string name="setting_page_display_setting_desc">管理显示设置</string>
     <string name="setting_page_dynamic_color">动态颜色</string>
     <string name="setting_page_dynamic_color_desc">是否使用动态颜色</string>
     <string name="setting_page_model_and_services">模型与服务</string>

@@ -34,6 +34,7 @@ class SettingsStore(context: Context) {
     companion object {
         // UI设置
         val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
+        val DISPLAY_SETTING = stringPreferencesKey("display_setting")
 
         // 模型选择
         val SELECT_MODEL = stringPreferencesKey("chat_model")
@@ -73,6 +74,7 @@ class SettingsStore(context: Context) {
                 providers = JsonInstant.decodeFromString(preferences[PROVIDERS] ?: "[]"),
                 assistants = JsonInstant.decodeFromString(preferences[ASSISTANTS] ?: "[]"),
                 dynamicColor = preferences[DYNAMIC_COLOR] != false,
+                displaySetting = JsonInstant.decodeFromString(preferences[DISPLAY_SETTING] ?: "{}"),
                 searchServiceOptions = preferences[SEARCH_SERVICE]?.let {
                     JsonInstant.decodeFromString(it)
                 } ?: SearchServiceOptions.DEFAULT,
@@ -125,6 +127,7 @@ class SettingsStore(context: Context) {
     suspend fun update(settings: Settings) {
         dataStore.edit { preferences ->
             preferences[DYNAMIC_COLOR] = settings.dynamicColor
+            preferences[DISPLAY_SETTING] = JsonInstant.encodeToString(settings.displaySetting)
 
             preferences[SELECT_MODEL] = settings.chatModelId.toString()
             preferences[TITLE_MODEL] = settings.titleModelId.toString()
@@ -144,6 +147,7 @@ class SettingsStore(context: Context) {
 @Serializable
 data class Settings(
     val dynamicColor: Boolean = true,
+    val displaySetting: DisplaySetting  = DisplaySetting(),
     val chatModelId: Uuid = Uuid.random(),
     val titleModelId: Uuid = Uuid.random(),
     val translateModeId: Uuid = Uuid.random(),
@@ -152,6 +156,12 @@ data class Settings(
     val assistants: List<Assistant> = DEFAULT_ASSISTANTS,
     val searchServiceOptions: SearchServiceOptions = SearchServiceOptions.DEFAULT,
     val searchCommonOptions: SearchCommonOptions = SearchCommonOptions()
+)
+
+@Serializable
+data class DisplaySetting(
+    val showModelIcon: Boolean = true,
+    val showTokenUsage: Boolean = false,
 )
 
 fun List<ProviderSetting>.findModelById(uuid: Uuid): Model? {

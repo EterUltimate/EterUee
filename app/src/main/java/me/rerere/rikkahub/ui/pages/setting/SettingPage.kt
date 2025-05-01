@@ -31,6 +31,7 @@ import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.HardDrive
 import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Monitor
 import com.composables.icons.lucide.Palette
 import com.composables.icons.lucide.Share2
 import me.rerere.rikkahub.R
@@ -65,10 +66,20 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
         ) {
             stickyHeader {
                 Text(
-                    text = stringResource(R.string.setting_page_interface_settings),
+                    text = "通用设置",
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            item {
+                SettingItem(
+                    navController = navController,
+                    title = { Text(stringResource(R.string.setting_page_display_setting)) },
+                    description = { Text(stringResource(R.string.setting_page_display_setting_desc)) },
+                    icon = { Icon(Lucide.Monitor, "Display Setting") },
+                    link = "setting/display"
                 )
             }
 

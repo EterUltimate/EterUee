@@ -18,7 +18,8 @@
     <string name="back">Back</string>
     <string name="settings">Settings</string>
 
-    <string name="setting_page_interface_settings">Interface Settings</string>
+    <string name="setting_page_display_setting">Display Settings</string>
+    <string name="setting_page_display_setting_desc">Manage display settings</string>
     <string name="setting_page_dynamic_color">Dynamic Color</string>
     <string name="setting_page_dynamic_color_desc">Use dynamic color</string>
     <string name="setting_page_model_and_services">Models &amp; Services</string>

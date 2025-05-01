@@ -60,6 +60,7 @@ import me.rerere.rikkahub.ui.pages.debug.DebugPage
 import me.rerere.rikkahub.ui.pages.history.HistoryPage
 import me.rerere.rikkahub.ui.pages.menu.MenuPage
 import me.rerere.rikkahub.ui.pages.setting.SettingAboutPage
+import me.rerere.rikkahub.ui.pages.setting.SettingDisplayPage
 import me.rerere.rikkahub.ui.pages.setting.SettingModelPage
 import me.rerere.rikkahub.ui.pages.setting.SettingPage
 import me.rerere.rikkahub.ui.pages.setting.SettingProviderPage
@@ -175,6 +176,10 @@ class RouteActivity : ComponentActivity() {
 
                     composableHelper("setting") {
                         SettingPage()
+                    }
+
+                    composableHelper("setting/display") {
+                        SettingDisplayPage()
                     }
 
                     composableHelper("setting/provider") {

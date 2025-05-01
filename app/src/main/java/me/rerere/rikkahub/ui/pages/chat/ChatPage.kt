@@ -190,6 +190,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                 conversation = conversation,
                 loading = loadingJob != null,
                 model = currentChatModel ?: Model(),
+                settings = setting,
                 onRegenerate = {
                     vm.regenerateAtMessage(it)
                 },
@@ -212,6 +213,7 @@ private fun ChatList(
     conversation: Conversation,
     loading: Boolean,
     model: Model,
+    settings: Settings,
     onRegenerate: (UIMessage) -> Unit = {},
     onEdit: (UIMessage) -> Unit = {},
 ) {
@@ -270,20 +272,22 @@ private fun ChatList(
                 }
             }
 
-            conversation.tokenUsage?.let { usage ->
-                item(TokenUsageItemKey) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Text(
-                            text = "Tokens: ${usage.totalTokens}  (${usage.promptTokens} -> ${usage.completionTokens})",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                        )
+            if(settings.displaySetting.showTokenUsage) {
+                conversation.tokenUsage?.let { usage ->
+                    item(TokenUsageItemKey) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Text(
+                                text = "Tokens: ${usage.totalTokens}  (${usage.promptTokens} -> ${usage.completionTokens})",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                            )
+                        }
                     }
                 }
             }

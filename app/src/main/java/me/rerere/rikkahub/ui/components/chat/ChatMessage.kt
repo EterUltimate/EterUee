@@ -83,6 +83,7 @@ import me.rerere.rikkahub.ui.components.ui.Favicon
 import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.ImagePreviewDialog
 import me.rerere.rikkahub.ui.context.LocalTTSService
+import me.rerere.rikkahub.ui.modifier.shimmer
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.JsonInstantPretty
 import me.rerere.rikkahub.utils.copyMessageToClipboard
@@ -449,7 +450,10 @@ fun ReasoningCard(
                 Text(
                     text = stringResource(R.string.deep_thinking),
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.secondary
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.shimmer(
+                        isLoading = loading
+                    )
                 )
                 Spacer(Modifier.weight(1f))
                 Icon(

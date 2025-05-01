@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.core.TokenUsage
+import me.rerere.ai.provider.Model
 import me.rerere.search.SearchResult
 import kotlin.uuid.Uuid
 
@@ -15,6 +16,7 @@ data class UIMessage(
     val role: MessageRole,
     val parts: List<UIMessagePart>,
     val annotations: List<UIMessageAnnotation> = emptyList(),
+    val modelId: Uuid? = null,
 ) {
     private fun appendChunk(chunk: MessageChunk): UIMessage {
         val choice = chunk.choices.getOrNull(0)
@@ -175,21 +177,33 @@ data class UIMessage(
     }
 }
 
-fun List<UIMessage>.handleMessageChunk(chunk: MessageChunk): List<UIMessage> {
+/**
+ * 处理MessageChunk合并
+ *
+ * @receiver 已有消息列表
+ * @param chunk 消息chunk
+ * @param model 模型, 可以不传，如果传了，会把模型id写入到消息，标记是哪个模型输出的消息
+ * @return 新消息列表
+ */
+fun List<UIMessage>.handleMessageChunk(chunk: MessageChunk, model: Model? = null): List<UIMessage> {
     require(this.isNotEmpty()) {
         "messages must not be empty"
     }
     val choice = chunk.choices.getOrNull(0) ?: return this
     val message = choice.delta ?: choice.message ?: throw Exception("delta/message is null")
     if (this.last().role != message.role) {
-        return this + message
+        return this + message.copy(modelId = model?.id)
     } else {
         val last = this.last() + chunk
         return this.dropLast(1) + last
     }
 }
 
-fun List<UIMessagePart>.isEmptyMessage(): Boolean {
+/**
+ * 判断这个消息是否有有任何可编辑的内容
+ * 例如，文本，图片...
+ */
+fun List<UIMessagePart>.isEmptyInputMessage(): Boolean {
     if (this.isEmpty()) return true
     return this.all { message ->
         when (message) {
@@ -200,6 +214,26 @@ fun List<UIMessagePart>.isEmptyMessage(): Boolean {
     }
 }
 
+/**
+ * 判断这个消息在UI上是否显示任何内容
+ */
+fun List<UIMessagePart>.isEmptyUIMessage(): Boolean {
+    if (this.isEmpty()) return true
+    return this.all { message ->
+        when (message) {
+            is UIMessagePart.Text -> message.text.isBlank()
+            is UIMessagePart.Image -> message.url.isBlank()
+            is UIMessagePart.Reasoning -> message.reasoning.isBlank()
+            else -> true
+        }
+    }
+}
+
+/**
+ * 将消息内的Search part转为文本prompt
+ *
+ * @return 搜索结果文本
+ */
 fun List<UIMessagePart>.searchTextContent(): String {
     return buildString {
         for (part in this@searchTextContent) {

@@ -70,6 +70,7 @@ import me.rerere.ai.ui.UIMessage
 import me.rerere.rikkahub.BuildConfig
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.Settings
+import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.ui.components.chat.AssistantPicker
 import me.rerere.rikkahub.ui.components.chat.ChatInput
 import me.rerere.rikkahub.ui.components.chat.ChatMessage
@@ -248,14 +249,16 @@ private fun ChatList(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            items(conversation.messages, key = { it.id }) {
+            items(conversation.messages, key = { it.id }) { message ->
                 ChatMessage(
-                    message = it,
+                    message = message,
+                    showIcon = settings.displaySetting.showModelIcon,
+                    model = message.modelId?.let {  settings.providers.findModelById(it) },
                     onRegenerate = {
-                        onRegenerate(it)
+                        onRegenerate(message)
                     },
                     onEdit = {
-                        onEdit(it)
+                        onEdit(message)
                     },
                 )
             }

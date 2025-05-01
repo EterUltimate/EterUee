@@ -24,7 +24,7 @@ import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.ui.Conversation
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
-import me.rerere.ai.ui.isEmptyMessage
+import me.rerere.ai.ui.isEmptyInputMessage
 import me.rerere.ai.ui.transformers.PlaceholderTransformer
 import me.rerere.ai.ui.transformers.SearchTextTransformer
 import me.rerere.rikkahub.data.ai.GenerationChunk
@@ -128,7 +128,7 @@ class ChatVM(
         .stateIn(viewModelScope, SharingStarted.Lazily, UiState.Loading)
 
     fun handleMessageSend(content: List<UIMessagePart>) {
-        if (content.isEmptyMessage()) return
+        if (content.isEmptyInputMessage()) return
 
         this.conversationJob.value?.cancel()
         val job = viewModelScope.launch {
@@ -180,7 +180,7 @@ class ChatVM(
     }
 
     fun handleMessageEdit(parts: List<UIMessagePart>, uuid: Uuid?) {
-        if (parts.isEmptyMessage()) return
+        if (parts.isEmptyInputMessage()) return
         val newConversation = conversation.value.copy(
             messages = conversation.value.messages.map {
                 if (it.id == uuid) {

@@ -198,7 +198,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                 params = params
             ).collect {
                 it.usage?.let { onUpdateTokenUsage(it) }
-                messages = messages.handleMessageChunk(it)
+                messages = messages.handleMessageChunk(it, model)
                 onUpdateMessages(messages)
             }
         } else {
@@ -207,7 +207,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                 messages = internalMessages,
                 params = params,
             )
-            messages = messages.handleMessageChunk(chunk)
+            messages = messages.handleMessageChunk(chunk, model)
             onUpdateMessages(messages)
             chunk.usage?.let { onUpdateTokenUsage(it) }
         }

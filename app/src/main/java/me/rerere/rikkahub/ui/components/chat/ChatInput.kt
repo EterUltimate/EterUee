@@ -61,7 +61,7 @@ import com.composables.icons.lucide.X
 import com.meticha.permissions_compose.AppPermission
 import com.meticha.permissions_compose.rememberAppPermissionState
 import me.rerere.ai.ui.UIMessagePart
-import me.rerere.ai.ui.isEmptyMessage
+import me.rerere.ai.ui.isEmptyInputMessage
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.ui.IconTextButton
 import me.rerere.rikkahub.ui.theme.extendColors
@@ -298,7 +298,7 @@ fun ChatInput(
                         containerColor = if (state.loading) MaterialTheme.colorScheme.errorContainer else Color.Unspecified,
                         contentColor = if (state.loading) MaterialTheme.colorScheme.onErrorContainer else Color.Unspecified,
                     ),
-                    enabled = state.loading || !state.messageContent.isEmptyMessage()
+                    enabled = state.loading || !state.messageContent.isEmptyInputMessage()
                 ) {
                     if (state.loading) {
                         Icon(Lucide.X, stringResource(R.string.stop))

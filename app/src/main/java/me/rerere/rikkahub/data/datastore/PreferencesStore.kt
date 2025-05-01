@@ -161,7 +161,7 @@ data class Settings(
 @Serializable
 data class DisplaySetting(
     val showModelIcon: Boolean = true,
-    val showTokenUsage: Boolean = false,
+    val showTokenUsage: Boolean = true,
 )
 
 fun List<ProviderSetting>.findModelById(uuid: Uuid): Model? {

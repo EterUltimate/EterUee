@@ -74,13 +74,16 @@ import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.Volume2
 import com.composables.icons.lucide.Wrench
 import me.rerere.ai.core.MessageRole
+import me.rerere.ai.provider.Model
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessagePart
-import me.rerere.ai.ui.isEmptyMessage
+import me.rerere.ai.ui.isEmptyInputMessage
+import me.rerere.ai.ui.isEmptyUIMessage
 import me.rerere.highlight.HighlightText
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
+import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.Favicon
 import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.ImagePreviewDialog
@@ -95,26 +98,48 @@ import me.rerere.rikkahub.utils.urlDecode
 fun ChatMessage(
     message: UIMessage,
     modifier: Modifier = Modifier,
+    showIcon: Boolean = true,
+    model: Model? = null,
     onRegenerate: () -> Unit,
     onEdit: () -> Unit,
 ) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = if (message.role == MessageRole.USER) Alignment.End else Alignment.Start,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        MessagePartsBlock(
-            message.role,
-            message.parts,
-            message.annotations,
-        )
-        if (message.isValidToShowActions()) {
-            Actions(
-                message = message,
-                onRegenerate = onRegenerate,
-                onEdit = onEdit
+        ModelIcon(showIcon, message, model)
+
+        Column(
+            modifier = modifier.weight(1f),
+            horizontalAlignment = if (message.role == MessageRole.USER) Alignment.End else Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            MessagePartsBlock(
+                message.role,
+                message.parts,
+                message.annotations,
             )
+            if (message.isValidToShowActions()) {
+                Actions(
+                    message = message,
+                    onRegenerate = onRegenerate,
+                    onEdit = onEdit
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun ModelIcon(
+    showIcon: Boolean,
+    message: UIMessage,
+    model: Model?
+) {
+    if (showIcon && message.role == MessageRole.ASSISTANT && !message.parts.isEmptyUIMessage() && model != null) {
+        AutoAIIcon(
+            model.modelId,
+            modifier = Modifier.padding(top = 12.dp)
+        )
     }
 }
 
@@ -175,7 +200,7 @@ private fun Actions(
             val tts = rememberTtsState()
             val isSpeaking by tts.isSpeaking.collectAsState()
             Icon(
-                imageVector = if(isSpeaking) Lucide.CircleStop else Lucide.Volume2,
+                imageVector = if (isSpeaking) Lucide.CircleStop else Lucide.Volume2,
                 contentDescription = stringResource(R.string.tts),
                 modifier = Modifier
                     .clip(CircleShape)
@@ -183,7 +208,7 @@ private fun Actions(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = LocalIndication.current,
                         onClick = {
-                            if(!isSpeaking) {
+                            if (!isSpeaking) {
                                 tts.speak(message.toText(), TextToSpeech.QUEUE_FLUSH)
                             } else {
                                 tts.stop()
@@ -214,7 +239,7 @@ fun MessagePartsBlock(
     parts.filterIsInstance<UIMessagePart.Reasoning>().fastForEach { reasoning ->
         ReasoningCard(
             reasoning = reasoning,
-            loading = parts.isEmptyMessage()
+            loading = parts.isEmptyInputMessage()
         )
     }
 

@@ -321,9 +321,9 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                     put("role", JsonPrimitive(message.role.name.lowercase()))
 
                     // content
-                    if (message.parts.size == 1 && message.parts[0] is UIMessagePart.Text) {
+                    if (message.parts.isOnlyTextPart()) {
                         // 如果只是纯文本，直接赋值给content
-                        put("content", (message.parts[0] as UIMessagePart.Text).text)
+                        put("content", message.parts.filterIsInstance<UIMessagePart.Text>().first().text)
                     } else {
                         // 否则，使用parts构建
                         putJsonArray("content") {
@@ -458,5 +458,11 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             completionTokens = jsonObject["completion_tokens"]?.jsonPrimitive?.intOrNull ?: 0,
             totalTokens = jsonObject["total_tokens"]?.jsonPrimitive?.intOrNull ?: 0,
         )
+    }
+
+    private fun List<UIMessagePart>.isOnlyTextPart(): Boolean {
+        val gonnaSend = filter { it is UIMessagePart.Text || it is UIMessagePart.Image }.size
+        val texts = filter { it is UIMessagePart.Text }.size
+        return gonnaSend == texts && texts == 1
     }
 }

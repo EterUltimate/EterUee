@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -34,6 +35,13 @@ import me.rerere.rikkahub.data.model.AssistantMemory
 
 private const val TAG = "GenerationHandler"
 
+@Serializable
+sealed interface GenerationChunk {
+    data class Messages(
+        val messages: List<UIMessage>
+    ) : GenerationChunk
+}
+
 class GenerationHandler(private val context: Context, private val json: Json) {
     fun streamText(
         settings: Settings,
@@ -47,7 +55,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
         onUpdateMemory: (suspend (Int, String) -> AssistantMemory)? = null,
         onDeleteMemory: (suspend (Int) -> Unit)? = null,
         maxSteps: Int = 5,
-    ): Flow<List<UIMessage>> = flow {
+    ): Flow<GenerationChunk> = flow {
         val provider = model.findProvider(settings.providers) ?: error("Provider not found")
         val providerImpl = ProviderManager.getProviderByType(provider)
 
@@ -77,7 +85,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                 messages,
                 {
                     messages = it
-                    emit(messages)
+                    emit(GenerationChunk.Messages(messages))
                 },
                 transformers,
                 model,
@@ -131,7 +139,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                 role = MessageRole.TOOL,
                 parts = results
             )
-            emit(messages)
+            emit(GenerationChunk.Messages(messages))
         }
 
     }.flowOn(Dispatchers.IO)
@@ -162,7 +170,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                         append(buildMemoryPrompt(memories))
                     }
                 }
-                if(system.isNotBlank()) add(UIMessage.system(system))
+                if (system.isNotBlank()) add(UIMessage.system(system))
             }
             addAll(messages.takeLast(assistant?.contextMessageSize ?: 32))
         }.transforms(transformers, context, model)

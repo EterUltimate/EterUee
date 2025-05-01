@@ -4,6 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import me.rerere.ai.core.MessageRole
+import me.rerere.ai.core.TokenUsage
 import me.rerere.search.SearchResult
 import kotlin.uuid.Uuid
 
@@ -272,7 +273,8 @@ sealed class UIMessageAnnotation {
 data class MessageChunk(
     val id: String,
     val model: String,
-    val choices: List<UIMessageChoice>
+    val choices: List<UIMessageChoice>,
+    val usage: TokenUsage? = null,
 )
 
 @Serializable

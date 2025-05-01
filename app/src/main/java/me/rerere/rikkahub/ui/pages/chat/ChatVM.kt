@@ -27,6 +27,7 @@ import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyMessage
 import me.rerere.ai.ui.transformers.PlaceholderTransformer
 import me.rerere.ai.ui.transformers.SearchTextTransformer
+import me.rerere.rikkahub.data.ai.GenerationChunk
 import me.rerere.rikkahub.data.ai.GenerationHandler
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
@@ -216,8 +217,12 @@ class ChatVM(
                 onDeleteMemory = { id ->
                     deleteMemory(id)
                 }
-            ).collect {
-                updateConversation(conversation.value.copy(messages = it))
+            ).collect { chunk ->
+                when(chunk) {
+                    is GenerationChunk.Messages -> {
+                        updateConversation(conversation.value.copy(messages = chunk.messages))
+                    }
+                }
             }
         }.onFailure {
             it.printStackTrace()

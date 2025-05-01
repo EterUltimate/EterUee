@@ -17,6 +17,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.core.SchemaBuilder
+import me.rerere.ai.core.TokenUsage
 import me.rerere.ai.core.Tool
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.Provider
@@ -40,6 +41,10 @@ sealed interface GenerationChunk {
     data class Messages(
         val messages: List<UIMessage>
     ) : GenerationChunk
+
+    data class TokenUsage(
+        val usage: me.rerere.ai.core.TokenUsage,
+    ): GenerationChunk
 }
 
 class GenerationHandler(private val context: Context, private val json: Json) {
@@ -86,6 +91,9 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                 {
                     messages = it
                     emit(GenerationChunk.Messages(messages))
+                },
+                {
+                    emit(GenerationChunk.TokenUsage(it))
                 },
                 transformers,
                 model,
@@ -148,6 +156,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
         assistant: Assistant?,
         messages: List<UIMessage>,
         onUpdateMessages: suspend (List<UIMessage>) -> Unit,
+        onUpdateTokenUsage: suspend (TokenUsage) -> Unit,
         transformers: List<MessageTransformer>,
         model: Model,
         providerImpl: Provider<ProviderSetting>,
@@ -188,18 +197,19 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                 messages = internalMessages,
                 params = params
             ).collect {
+                it.usage?.let { onUpdateTokenUsage(it) }
                 messages = messages.handleMessageChunk(it)
                 onUpdateMessages(messages)
             }
         } else {
-            messages = messages.handleMessageChunk(
-                providerImpl.generateText(
-                    providerSetting = provider,
-                    messages = internalMessages,
-                    params = params,
-                )
+            val chunk = providerImpl.generateText(
+                providerSetting = provider,
+                messages = internalMessages,
+                params = params,
             )
+            messages = messages.handleMessageChunk(chunk)
             onUpdateMessages(messages)
+            chunk.usage?.let { onUpdateTokenUsage(it) }
         }
     }
 

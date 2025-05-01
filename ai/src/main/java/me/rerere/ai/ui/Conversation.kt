@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.core.net.toUri
 import kotlinx.serialization.Serializable
 import me.rerere.ai.core.MessageRole
+import me.rerere.ai.core.TokenUsage
 import me.rerere.ai.util.InstantSerializer
 import java.time.Instant
 import kotlin.uuid.Uuid
@@ -13,6 +14,7 @@ data class Conversation(
     val id: Uuid = Uuid.random(),
     val title: String = "",
     val messages: List<UIMessage>,
+    val tokenUsage: TokenUsage? = null,
     @Serializable(with = InstantSerializer::class)
     val createAt: Instant = Instant.now(),
     @Serializable(with = InstantSerializer::class)

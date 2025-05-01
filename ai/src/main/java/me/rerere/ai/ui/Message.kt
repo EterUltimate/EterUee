@@ -17,8 +17,8 @@ data class UIMessage(
     val annotations: List<UIMessageAnnotation> = emptyList(),
 ) {
     private fun appendChunk(chunk: MessageChunk): UIMessage {
-        val choice = chunk.choices[0]
-        return choice.delta?.let { delta ->
+        val choice = chunk.choices.getOrNull(0)
+        return choice?.delta?.let { delta ->
             // Handle Parts
             val newParts = delta.parts.fold(parts) { acc, deltaPart ->
                 when (deltaPart) {
@@ -179,7 +179,7 @@ fun List<UIMessage>.handleMessageChunk(chunk: MessageChunk): List<UIMessage> {
     require(this.isNotEmpty()) {
         "messages must not be empty"
     }
-    val choice = chunk.choices[0]
+    val choice = chunk.choices.getOrNull(0) ?: return this
     val message = choice.delta ?: choice.message ?: throw Exception("delta/message is null")
     if (this.last().role != message.role) {
         return this + message

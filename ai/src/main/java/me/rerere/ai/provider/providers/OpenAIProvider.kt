@@ -13,6 +13,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -20,6 +21,7 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.core.Schema
+import me.rerere.ai.core.TokenUsage
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.Provider
@@ -125,6 +127,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             ?.jsonPrimitive
             ?.content
             ?: "unknown"
+        val usage = parseTokenUsage(bodyJson["usage"] as? JsonObject)
 
         MessageChunk(
             id = id,
@@ -136,7 +139,8 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                     message = parseMessage(message),
                     finishReason = finishReason
                 )
-            )
+            ),
+            usage = usage
         )
     }
 
@@ -182,30 +186,36 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                     .filter { it.isNotBlank() }
                     .map { json.parseToJsonElement(it).jsonObject }
                     .forEach {
-                        if(it["error"] != null) {
+                        if (it["error"] != null) {
                             val error = it["error"]!!.parseErrorDetail()
                             throw error
                         }
                         val id = it["id"]?.jsonPrimitive?.contentOrNull ?: ""
                         val model = it["model"]?.jsonPrimitive?.contentOrNull ?: ""
+
                         val choices = it["choices"]?.jsonArray ?: JsonArray(emptyList())
-                        if (choices.isEmpty()) return@forEach
-                        val choice = choices[0].jsonObject
-                        val message = choice["delta"]?.jsonObject ?: choice["message"]?.jsonObject
-                        ?: throw Exception("delta/message is null")
-                        val finishReason =
-                            choice["finish_reason"]?.jsonPrimitive?.contentOrNull ?: "unknown"
-                        val messageChunk = MessageChunk(
-                            id = id,
-                            model = model,
-                            choices = listOf(
-                                UIMessageChoice(
+                        val choiceList = buildList {
+                            if(choices.isNotEmpty()) {
+                                val choice = choices[0].jsonObject
+                                val message = choice["delta"]?.jsonObject ?: choice["message"]?.jsonObject
+                                ?: throw Exception("delta/message is null")
+                                val finishReason =
+                                    choice["finish_reason"]?.jsonPrimitive?.contentOrNull ?: "unknown"
+                                add( UIMessageChoice(
                                     index = 0,
                                     delta = parseMessage(message),
                                     message = null,
                                     finishReason = finishReason,
-                                )
-                            )
+                                ))
+                            }
+                        }
+                        val usage = parseTokenUsage(it["usage"] as? JsonObject)
+
+                        val messageChunk = MessageChunk(
+                            id = id,
+                            model = model,
+                            choices = choiceList,
+                            usage = usage
                         )
                         trySend(messageChunk)
                     }
@@ -255,10 +265,15 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                 "messages",
                 buildMessages(messages)
             )
-            if(params.temperature != null) put("temperature", params.temperature)
-            if(params.topP != null) put("top_p", params.topP)
+            if (params.temperature != null) put("temperature", params.temperature)
+            if (params.topP != null) put("top_p", params.topP)
             put("top_p", params.topP)
             put("stream", stream)
+            if(stream) {
+                put("stream_options", buildJsonObject {
+                    put("include_usage", true)
+                })
+            }
             if (params.model.abilities.contains(ModelAbility.TOOL) && params.tools.isNotEmpty()) {
                 putJsonArray("tools") {
                     params.tools.forEach { tool ->
@@ -432,5 +447,14 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                 else -> error("unknown annotation type: $type")
             }
         }
+    }
+
+    private fun parseTokenUsage(jsonObject: JsonObject?): TokenUsage? {
+        if (jsonObject == null) return null
+        return TokenUsage(
+            promptTokens = jsonObject["prompt_tokens"]?.jsonPrimitive?.intOrNull ?: 0,
+            completionTokens = jsonObject["completion_tokens"]?.jsonPrimitive?.intOrNull ?: 0,
+            totalTokens = jsonObject["total_tokens"]?.jsonPrimitive?.intOrNull ?: 0,
+        )
     }
 }

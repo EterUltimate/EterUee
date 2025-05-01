@@ -222,6 +222,11 @@ class ChatVM(
                     is GenerationChunk.Messages -> {
                         updateConversation(conversation.value.copy(messages = chunk.messages))
                     }
+
+                    is GenerationChunk.TokenUsage -> {
+                        saveConversation(conversation.value.copy(tokenUsage = chunk.usage))
+                        Log.i(TAG, "handleMessageComplete: usage = ${chunk.usage}")
+                    }
                 }
             }
         }.onFailure {
@@ -287,40 +292,42 @@ class ChatVM(
         message: UIMessage,
         regenerateAssistantMsg: Boolean = true
     ) {
-        if (message.role == MessageRole.USER) {
-            // 如果是用户消息，则截止到当前消息
-            val indexAt = conversation.value.messages.indexOf(message)
-            val newConversation = conversation.value.copy(
-                messages = conversation.value.messages.subList(0, indexAt + 1)
-            )
-            this.saveConversation(newConversation)
-        } else {
-            if(!regenerateAssistantMsg) {
-                // 如果不需要重新生成助手消息，则直接返回
-                this.saveConversation(conversation.value)
-                return
-            }
-            // 如果是助手消息，则需要向上查找第一个用户消息
-            var indexAt = conversation.value.messages.indexOf(message)
-            for (i in indexAt downTo 0) {
-                if (conversation.value.messages[i].role == MessageRole.USER) {
-                    indexAt = i
-                    break
+        viewModelScope.launch {
+            if (message.role == MessageRole.USER) {
+                // 如果是用户消息，则截止到当前消息
+                val indexAt = conversation.value.messages.indexOf(message)
+                val newConversation = conversation.value.copy(
+                    messages = conversation.value.messages.subList(0, indexAt + 1)
+                )
+                saveConversation(newConversation)
+            } else {
+                if (!regenerateAssistantMsg) {
+                    // 如果不需要重新生成助手消息，则直接返回
+                    saveConversation(conversation.value)
+                    return@launch
                 }
+                // 如果是助手消息，则需要向上查找第一个用户消息
+                var indexAt = conversation.value.messages.indexOf(message)
+                for (i in indexAt downTo 0) {
+                    if (conversation.value.messages[i].role == MessageRole.USER) {
+                        indexAt = i
+                        break
+                    }
+                }
+                val newConversation = conversation.value.copy(
+                    messages = conversation.value.messages.subList(0, indexAt + 1)
+                )
+                saveConversation(newConversation)
             }
-            val newConversation = conversation.value.copy(
-                messages = conversation.value.messages.subList(0, indexAt + 1)
-            )
-            this.saveConversation(newConversation)
-        }
-        conversationJob.value?.cancel()
-        val job = viewModelScope.launch {
-            handleWebSearch()
-            handleMessageComplete()
-        }
-        conversationJob.value = job
-        job.invokeOnCompletion {
-            conversationJob.value = null
+            conversationJob.value?.cancel()
+            val job = viewModelScope.launch {
+                handleWebSearch()
+                handleMessageComplete()
+            }
+            conversationJob.value = job
+            job.invokeOnCompletion {
+                conversationJob.value = null
+            }
         }
     }
 
@@ -343,18 +350,27 @@ class ChatVM(
         }
     }
 
-    fun saveConversation(conversation: Conversation) {
+    suspend fun saveConversation(conversation: Conversation) {
         this.updateConversation(conversation)
-        viewModelScope.launch {
-            try {
-                if (conversationRepo.getConversationById(conversation.id) == null) {
-                    conversationRepo.insertConversation(conversation)
-                } else {
-                    conversationRepo.updateConversation(conversation)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
+        try {
+            if (conversationRepo.getConversationById(conversation.id) == null) {
+                conversationRepo.insertConversation(conversation)
+            } else {
+                conversationRepo.updateConversation(conversation)
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun updateTitle(title: String) {
+        viewModelScope.launch {
+            saveConversation(
+                conversation.value.copy(
+                    title = title,
+                    updateAt = Instant.now()
+                )
+            )
         }
     }
 

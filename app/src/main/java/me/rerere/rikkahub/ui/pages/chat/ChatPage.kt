@@ -142,7 +142,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                         navController.navigate("menu")
                     },
                     onUpdateTitle = {
-                        vm.saveConversation(conversation.copy(title = it))
+                        vm.updateTitle(it)
                     }
                 )
             },
@@ -204,6 +204,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
 
 private const val LoadingIndicatorKey = "LoadingIndicator"
 private const val ScrollBottomKey = "ScrollBottomKey"
+private const val TokenUsageItemKey = "TokenUsageItemKey"
 
 @Composable
 private fun ChatList(
@@ -219,23 +220,23 @@ private fun ChatList(
     val scrollToBottom = {
         state.requestScrollToItem(conversation.messages.lastIndex + 2)
     }
-    val viewPortSize by remember {  derivedStateOf { state.layoutInfo.viewportSize } }
+    val viewPortSize by remember { derivedStateOf { state.layoutInfo.viewportSize } }
     Box(
         modifier = Modifier.padding(innerPadding),
     ) {
         fun List<LazyListItemInfo>.isAtBottom(): Boolean {
             val lastItem = lastOrNull() ?: return false
-            if(lastItem.key == LoadingIndicatorKey || lastItem.key == ScrollBottomKey) {
+            if (lastItem.key == LoadingIndicatorKey || lastItem.key == ScrollBottomKey || lastItem.key == TokenUsageItemKey) {
                 return true
             }
-            return (lastItem.offset + lastItem.size >= state.layoutInfo.viewportEndOffset - 32) && lastItem.key == conversation.messages.lastOrNull()?.id
+            return (lastItem.offset + lastItem.size >= state.layoutInfo.viewportEndOffset - 4) && lastItem.key == conversation.messages.lastOrNull()?.id
         }
 
         // 自动滚动到底部
         LaunchedEffect(loading, conversation.messages, viewPortSize) {
-            if(!state.isScrollInProgress && state.canScrollForward) {
-                if(state.layoutInfo.visibleItemsInfo.isAtBottom()) {
-                    state.requestScrollToItem(conversation.messages.lastIndex + 2)
+            if (!state.isScrollInProgress && state.canScrollForward) {
+                if (state.layoutInfo.visibleItemsInfo.isAtBottom()) {
+                    state.requestScrollToItem(conversation.messages.lastIndex + 10)
                 }
             }
         }
@@ -266,6 +267,23 @@ private fun ChatList(
                         strokeWidth = 2.dp,
                         waveCount = 8
                     )
+                }
+            }
+
+            conversation.tokenUsage?.let { usage ->
+                item(TokenUsageItemKey) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = "Tokens: ${usage.totalTokens}  (${usage.promptTokens} ->  ${usage.completionTokens})",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                        )
+                    }
                 }
             }
 

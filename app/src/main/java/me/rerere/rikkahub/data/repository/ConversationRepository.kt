@@ -25,6 +25,7 @@ class ConversationRepository(
                     id = Uuid.parse(entity.id),
                     title = entity.title,
                     messages = JsonInstant.decodeFromString<List<UIMessage>>(entity.messages),
+                    tokenUsage = entity.tokenUsage,
                     createAt = Instant.ofEpochMilli(entity.createAt),
                     updateAt = Instant.ofEpochMilli(entity.updateAt),
                 )
@@ -40,6 +41,7 @@ class ConversationRepository(
                         id = Uuid.parse(entity.id),
                         title = entity.title,
                         messages = JsonInstant.decodeFromString<List<UIMessage>>(entity.messages),
+                        tokenUsage = entity.tokenUsage,
                         createAt = Instant.ofEpochMilli(entity.createAt),
                         updateAt = Instant.ofEpochMilli(entity.updateAt),
                     )
@@ -54,6 +56,7 @@ class ConversationRepository(
                 id = Uuid.parse(entity.id),
                 title = entity.title,
                 messages = JsonInstant.decodeFromString<List<UIMessage>>(entity.messages),
+                tokenUsage = entity.tokenUsage,
                 createAt = Instant.ofEpochMilli(entity.createAt),
                 updateAt = Instant.ofEpochMilli(entity.updateAt),
             ) else Conversation.ofId(uuid)
@@ -66,6 +69,7 @@ class ConversationRepository(
                 id = Uuid.parse(entity.id),
                 title = entity.title,
                 messages = JsonInstant.decodeFromString<List<UIMessage>>(entity.messages),
+                tokenUsage = entity.tokenUsage,
                 createAt = Instant.ofEpochMilli(entity.createAt),
                 updateAt = Instant.ofEpochMilli(entity.updateAt),
             )
@@ -80,6 +84,7 @@ class ConversationRepository(
                 messages = JsonInstant.encodeToString(conversation.messages),
                 createAt = conversation.createAt.toEpochMilli(),
                 updateAt = conversation.updateAt.toEpochMilli(),
+                tokenUsage = conversation.tokenUsage
             )
         )
     }
@@ -92,6 +97,7 @@ class ConversationRepository(
                 messages = JsonInstant.encodeToString(conversation.messages),
                 createAt = conversation.createAt.toEpochMilli(),
                 updateAt = conversation.updateAt.toEpochMilli(),
+                tokenUsage = conversation.tokenUsage
             )
         )
     }
@@ -104,6 +110,7 @@ class ConversationRepository(
                 messages = JsonInstant.encodeToString(conversation.messages),
                 createAt = conversation.createAt.toEpochMilli(),
                 updateAt = conversation.updateAt.toEpochMilli(),
+                tokenUsage = conversation.tokenUsage
             )
         )
         context.deleteChatFiles(conversation.files)

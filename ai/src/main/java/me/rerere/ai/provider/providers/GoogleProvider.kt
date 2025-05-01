@@ -13,6 +13,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -20,6 +21,7 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.core.Schema
+import me.rerere.ai.core.TokenUsage
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ModelType
@@ -124,6 +126,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
         val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
 
         val candidates = bodyJson["candidates"]!!.jsonArray
+        val usage = bodyJson["usageMetadata"]!!.jsonObject
 
         val messageChunk = MessageChunk(
             id = Uuid.random().toString(),
@@ -135,7 +138,8 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
                     finishReason = null,
                     delta = null
                 )
-            }
+            },
+            usage = parseUsageMeta(usage)
         )
 
         messageChunk
@@ -183,7 +187,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
                     val jsonData = json.parseToJsonElement(data).jsonObject
                     val candidates = jsonData["candidates"]?.jsonArray ?: return
                     if (candidates.isEmpty()) return
-
+                    val usage = parseUsageMeta(jsonData["usageMetadata"] as? JsonObject)
                     val messageChunk = MessageChunk(
                         id = Uuid.random().toString(),
                         model = params.model.modelId,
@@ -209,7 +213,8 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
                                 message = null,
                                 finishReason = finishReason
                             )
-                        }
+                        },
+                        usage = usage
                     )
 
                     trySend(messageChunk)
@@ -428,5 +433,16 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
                     })
                 }
         }
+    }
+
+    private fun parseUsageMeta(jsonObject: JsonObject?): TokenUsage? {
+        if (jsonObject == null) {
+            return null
+        }
+        return TokenUsage(
+            promptTokens = jsonObject["promptTokenCount"]?.jsonPrimitive?.intOrNull ?: 0,
+            completionTokens = jsonObject["candidatesTokenCount"]?.jsonPrimitive?.intOrNull ?: 0,
+            totalTokens = jsonObject["totalTokenCount"]?.jsonPrimitive?.intOrNull ?: 0
+        )
     }
 }

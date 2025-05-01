@@ -218,7 +218,7 @@ private fun ChatList(
     val state = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val scrollToBottom = {
-        state.requestScrollToItem(conversation.messages.lastIndex + 2)
+        state.requestScrollToItem(conversation.messages.lastIndex + 5)
     }
     val viewPortSize by remember { derivedStateOf { state.layoutInfo.viewportSize } }
     Box(

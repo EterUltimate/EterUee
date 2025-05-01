@@ -272,14 +272,15 @@ private fun ChatList(
 
             conversation.tokenUsage?.let { usage ->
                 item(TokenUsageItemKey) {
-                    Box(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp),
-                        contentAlignment = Alignment.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Text(
-                            text = "Tokens: ${usage.totalTokens}  (${usage.promptTokens} ->  ${usage.completionTokens})",
+                            text = "Tokens: ${usage.totalTokens}  (${usage.promptTokens} -> ${usage.completionTokens})",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.outlineVariant,
                         )

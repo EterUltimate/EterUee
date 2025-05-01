@@ -6,7 +6,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,8 +37,8 @@ import androidx.compose.ui.unit.IntSize
 @Composable
 fun Modifier.shimmer(
     isLoading: Boolean,
-    shimmerColor: Color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f), // 较亮的闪光颜色
-    backgroundColor: Color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), // 较暗的背景/基础颜色
+    shimmerColor: Color = LocalContentColor.current.copy(alpha = 0.3f), // 较亮的闪光颜色
+    backgroundColor: Color = LocalContentColor.current.copy(alpha = 0.9f), // 较暗的背景/基础颜色
     durationMillis: Int = 1200,
     angle: Float = 20f, // 稍微倾斜的角度
     gradientWidthRatio: Float = 0.5f // 闪光宽度为组件宽度的一半

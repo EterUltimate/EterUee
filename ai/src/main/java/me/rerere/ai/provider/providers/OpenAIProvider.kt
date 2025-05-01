@@ -225,16 +225,18 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                 var exception = t
 
                 t?.printStackTrace()
-                println("[onFailure] 发生错误: ${t?.message} / $response")
+                println("[onFailure] 发生错误: ${t?.javaClass?.name} ${t?.message} / $response")
 
+                val bodyRaw = response?.body?.string()
                 try {
-                    if (response != null) {
-                        val bodyElement = Json.parseToJsonElement(response.body?.string() ?: "{}")
+                    if (!bodyRaw.isNullOrBlank()) {
+                        val bodyElement = Json.parseToJsonElement(bodyRaw)
                         println(bodyElement)
                         exception = bodyElement.parseErrorDetail()
                         Log.i(TAG, "onFailure: $exception")
                     }
                 } catch (e: Throwable) {
+                    Log.w(TAG, "onFailure: failed to parse from $bodyRaw")
                     e.printStackTrace()
                 } finally {
                     close(exception)

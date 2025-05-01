@@ -73,10 +73,8 @@ private val parser by lazy {
 private val INLINE_LATEX_REGEX = Regex("\\\\\\((.+?)\\\\\\)")
 private val BLOCK_LATEX_REGEX = Regex("\\\\\\[(.+?)\\\\\\]", RegexOption.DOT_MATCHES_ALL)
 private val CITATION_REGEX = Regex("\\[citation:(\\w+)\\]")
-
-// 预处理markdown内容，将行内公式和块级公式转换为LaTeX格式
-// 替换行内公式 \( ... \) 到 $ ... $
-// 替换块级公式 \[ ... \] 到 $$ ... $$
+val THINKING_REGEX = Regex("<think>([\\s\\S]*?)(?:</think>|$)", RegexOption.DOT_MATCHES_ALL)
+// 预处理markdown内容
 private fun preProcess(content: String): String {
     // 替换行内公式 \( ... \) 到 $ ... $
     var result = content.replace(INLINE_LATEX_REGEX) { matchResult ->
@@ -92,6 +90,11 @@ private fun preProcess(content: String): String {
     // 替换引用 [citation:xx] 为 <citation>xx</citation>
     result = result.replace(CITATION_REGEX) { matchResult ->
         "<citation>${matchResult.groupValues[1]}</citation>"
+    }
+
+    // 替换思考
+    result = result.replace(THINKING_REGEX) { matchResult ->
+        matchResult.groupValues[1].lines().filter { it.isNotBlank() }.joinToString("\n") { ">$it" }
     }
 
     return result

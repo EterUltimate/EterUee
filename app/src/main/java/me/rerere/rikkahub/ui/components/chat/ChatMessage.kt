@@ -1,21 +1,16 @@
 package me.rerere.rikkahub.ui.components.chat
 
 import android.speech.tts.TextToSpeech
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,14 +27,13 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -49,13 +43,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withLink
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
@@ -194,17 +193,7 @@ fun MessagePartsBlock(
     parts: List<UIMessagePart>,
     annotations: List<UIMessageAnnotation>,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
     val contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
-    var expandReasoning by remember { mutableStateOf(true) }
-    val context = LocalContext.current
-
-    // parts updated
-    LaunchedEffect(parts) {
-        if(!parts.isEmptyMessage() && expandReasoning) {
-            expandReasoning = false
-        }
-    }
 
     // Search
     parts.filterIsInstance<UIMessagePart.Search>().fastForEach { search ->
@@ -212,50 +201,11 @@ fun MessagePartsBlock(
     }
 
     // Reasoning
-    parts.filterIsInstance<UIMessagePart.Reasoning>().fastForEach {
-        CompositionLocalProvider(LocalContentColor provides contentColor) {
-            Row(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable(
-                        indication = LocalIndication.current,
-                        interactionSource = interactionSource
-                    ) {
-                        expandReasoning = !expandReasoning
-                    }
-                    .padding(4.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(Lucide.Lightbulb, null, modifier = Modifier.size(16.dp))
-                Text(stringResource(R.string.deep_thinking))
-                Icon(
-                    if (expandReasoning) Lucide.ChevronUp else Lucide.ChevronDown, null
-                )
-            }
-        }
-        AnimatedVisibility(
-            expandReasoning,
-            enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically()
-        ) {
-            Box(
-                modifier = Modifier
-                    .drawWithContent {
-                        drawContent()
-                        drawRoundRect(
-                            color = contentColor.copy(alpha = 0.2f),
-                            size = Size(width = 10f, height = size.height),
-                        )
-                    }
-                    .padding(start = 4.dp)
-                    .padding(4.dp)
-            ) {
-                ProvideTextStyle(MaterialTheme.typography.bodySmall) {
-                    MarkdownBlock(it.reasoning)
-                }
-            }
-        }
+    parts.filterIsInstance<UIMessagePart.Reasoning>().fastForEach { reasoning ->
+        ReasoningCard(
+            reasoning = reasoning,
+            loading = parts.isEmptyMessage()
+        )
     }
 
     // Text
@@ -333,7 +283,7 @@ fun MessagePartsBlock(
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             FormItem(
-                                label ={
+                                label = {
                                     Text("调用工具 ${toolCall.toolName}")
                                 }
                             ) {
@@ -344,7 +294,7 @@ fun MessagePartsBlock(
                                 )
                             }
                             FormItem(
-                                label ={
+                                label = {
                                     Text("调用结果")
                                 }
                             ) {
@@ -450,5 +400,158 @@ fun MessagePartsBlock(
                 showImageViewer = false
             }
         }
+    }
+}
+
+@Composable
+fun ReasoningCard(
+    reasoning: UIMessagePart.Reasoning,
+    loading: Boolean,
+    modifier: Modifier = Modifier,
+    fadeHeight: Float = 64f,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
+
+    LaunchedEffect(reasoning, loading) {
+        if(loading) {
+            if(!expanded) expanded = true
+            scrollState.animateScrollTo(scrollState.maxValue.toInt())
+        } else {
+            if(expanded) expanded = false
+        }
+    }
+
+    OutlinedCard(
+        modifier = modifier.fillMaxWidth(),
+        onClick = {
+            expanded = !expanded
+        }
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth()
+                .animateContentSize(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = Lucide.Lightbulb,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.secondary
+                )
+                Text(
+                    text = stringResource(R.string.deep_thinking),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                Spacer(Modifier.weight(1f))
+                Icon(
+                    imageVector = if (expanded) Lucide.ChevronUp else Lucide.ChevronDown,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .clickable {
+                            expanded = !expanded
+                        }
+                        .size(14.dp),
+                    tint = MaterialTheme.colorScheme.secondary
+                )
+            }
+            if (expanded) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .let {
+                            if (loading) {
+                                it
+                                    .graphicsLayer { alpha = 0.99f } // 触发离屏渲染，保证蒙版生效
+                                    .drawWithCache {
+                                        // 创建顶部和底部的渐变蒙版
+                                        val brush = Brush.verticalGradient(
+                                            startY = 0f,
+                                            endY = size.height,
+                                            colorStops = arrayOf(
+                                                0.0f to Color.Transparent,
+                                                (fadeHeight / size.height) to Color.Black,
+                                                (1 - fadeHeight / size.height) to Color.Black,
+                                                1.0f to Color.Transparent
+                                            )
+                                        )
+                                        onDrawWithContent {
+                                            drawContent()
+                                            drawRect(
+                                                brush = brush,
+                                                size = Size(size.width, size.height),
+                                                blendMode = androidx.compose.ui.graphics.BlendMode.DstIn // 用蒙版做透明渐变
+                                            )
+                                        }
+                                    }
+                                    .heightIn(max = 100.dp)
+                                    .verticalScroll(scrollState)
+                            } else {
+                                it
+                            }
+                        }
+
+                ) {
+                    SelectionContainer {
+                        Text(
+                            text = reasoning.reasoning,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ReasoningCardPreview() {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        ReasoningCard(
+            reasoning = UIMessagePart.Reasoning(
+                """
+            Ok, I'll use the following information to answer your question:
+
+            - The current weather in New York City is sunny with a temperature of 75 degrees Fahrenheit.
+            - The current weather in Los Angeles is partly cloudy with a temperature of 68 degrees Fahrenheit.
+            - The current weather in Tokyo is rainy with a temperature of 60 degrees Fahrenheit.
+            - The current weather in Sydney is sunny with a temperature of 82 degrees Fahrenheit.
+            - The current weather in Mumbai is partly cloudy with a temperature of 70 degrees Fahrenheit.
+        """.trimIndent()
+            ),
+            modifier = Modifier.padding(8.dp),
+            loading = false
+        )
+
+        ReasoningCard(
+            reasoning = UIMessagePart.Reasoning(
+                """
+            Ok, I'll use the following information to answer your question:
+
+            - The current weather in New York City is sunny with a temperature of 75 degrees Fahrenheit.
+            - The current weather in Los Angeles is partly cloudy with a temperature of 68 degrees Fahrenheit.
+            - The current weather in Tokyo is rainy with a temperature of 60 degrees Fahrenheit.
+            - The current weather in Sydney is sunny with a temperature of 82 degrees Fahrenheit.
+            - The current weather in Mumbai is partly cloudy with a temperature of 70 degrees Fahrenheit.
+        """.trimIndent()
+            ),
+            modifier = Modifier.padding(8.dp),
+            loading = true
+        )
     }
 }

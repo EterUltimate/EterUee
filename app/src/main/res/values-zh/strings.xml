@@ -58,4 +58,33 @@
     <string name="translator_page_target_language">目标语言:</string>
     <string name="translator_page_translate">翻译</string>
     <string name="translator_page_cancel">取消</string>
+    
+    <!-- Assistant Page -->
+    <string name="assistant_page_title">助手设置</string>
+    <string name="assistant_page_add">添加</string>
+    <string name="assistant_page_name">助手名称</string>
+    <string name="assistant_page_system_prompt">系统提示词</string>
+    <string name="assistant_page_available_variables">可用变量: %s</string>
+    <string name="assistant_page_temperature">温度</string>
+    <string name="assistant_page_strict">严谨</string>
+    <string name="assistant_page_balanced">平衡</string>
+    <string name="assistant_page_creative">创造</string>
+    <string name="assistant_page_chaotic">混乱 (危险)</string>
+    <string name="assistant_page_top_p">Top P</string>
+    <string name="assistant_page_top_p_warning">请不要修改此值, 除非你知道自己在做什么</string>
+    <string name="assistant_page_context_message_size">上下文消息数量</string>
+    <string name="assistant_page_context_message_desc">控制多少条历史消息会被作为上下文发送给模型, 超过此数量的消息会被忽略，只有最近的N条消息会被保留，可以节省token</string>
+    <string name="assistant_page_context_message_count">上下文消息数量: %d</string>
+    <string name="assistant_page_memory">记忆</string>
+    <string name="assistant_page_memory_desc">启用记忆后，模型在与你对话时尝试主动记录你的信息，并在后续其他对话中使用，此功能需要模型支持工具调用才能正常工作</string>
+    <string name="assistant_page_manage_memory">管理记忆 (%d条)</string>
+    <string name="assistant_page_cancel">取消</string>
+    <string name="assistant_page_save">保存</string>
+    <string name="assistant_page_manage_memory_title">管理记忆</string>
+    <string name="assistant_page_delete">删除</string>
+    <string name="assistant_page_default_assistant">默认助手</string>
+    <string name="assistant_page_temperature_value">温度: %s</string>
+    <string name="assistant_page_memory_count">记忆: %d</string>
+    <string name="assistant_page_no_system_prompt">无系统提示词</string>
+    <string name="assistant_page_top_p_value">Top P: %s</string>
 </resources> 

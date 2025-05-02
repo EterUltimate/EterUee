@@ -3,6 +3,7 @@ package me.rerere.rikkahub.ui.pages.setting
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.widget.Toast
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -40,6 +41,7 @@ import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.utils.countChatFiles
 import me.rerere.rikkahub.utils.navigateToChatPage
+import me.rerere.rikkahub.utils.plus
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -63,7 +65,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = innerPadding
+            contentPadding = innerPadding + PaddingValues(8.dp),
         ) {
             stickyHeader {
                 Text(

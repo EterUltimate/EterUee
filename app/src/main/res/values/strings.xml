@@ -57,4 +57,33 @@
     <string name="translator_page_target_language">Target Language:</string>
     <string name="translator_page_translate">Translate</string>
     <string name="translator_page_cancel">Cancel</string>
+    
+    <!-- Assistant Page -->
+    <string name="assistant_page_title">Assistant Settings</string>
+    <string name="assistant_page_add">Add</string>
+    <string name="assistant_page_name">Assistant Name</string>
+    <string name="assistant_page_system_prompt">System Prompt</string>
+    <string name="assistant_page_available_variables">Available variables: %s</string>
+    <string name="assistant_page_temperature">Temperature</string>
+    <string name="assistant_page_strict">Strict</string>
+    <string name="assistant_page_balanced">Balanced</string>
+    <string name="assistant_page_creative">Creative</string>
+    <string name="assistant_page_chaotic">Chaotic (Dangerous)</string>
+    <string name="assistant_page_top_p">Top P</string>
+    <string name="assistant_page_top_p_warning">Please don\'t modify this value unless you know what you\'re doing</string>
+    <string name="assistant_page_context_message_size">Context Message Size</string>
+    <string name="assistant_page_context_message_desc">Controls how many historical messages will be sent to the model as context. Messages exceeding this number will be ignored, only the most recent N messages will be retained, which can save tokens</string>
+    <string name="assistant_page_context_message_count">Context Message Size: %d</string>
+    <string name="assistant_page_memory">Memory</string>
+    <string name="assistant_page_memory_desc">When memory is enabled, the model will try to actively record your information during conversations and use it in subsequent conversations. This feature requires the model to support tool calls to work properly</string>
+    <string name="assistant_page_manage_memory">Manage Memory (%d items)</string>
+    <string name="assistant_page_cancel">Cancel</string>
+    <string name="assistant_page_save">Save</string>
+    <string name="assistant_page_manage_memory_title">Manage Memory</string>
+    <string name="assistant_page_delete">Delete</string>
+    <string name="assistant_page_default_assistant">Default Assistant</string>
+    <string name="assistant_page_temperature_value">Temperature: %s</string>
+    <string name="assistant_page_memory_count">Memory: %d</string>
+    <string name="assistant_page_no_system_prompt">No system prompt</string>
+    <string name="assistant_page_top_p_value">Top P: %s</string>
 </resources>

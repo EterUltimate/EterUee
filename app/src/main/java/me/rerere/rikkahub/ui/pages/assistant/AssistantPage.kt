@@ -78,7 +78,7 @@ fun AssistantPage(vm: AssistantVM = koinViewModel()) {
         topBar = {
             TopAppBar(
                 title = {
-                    Text("助手设置")
+                    Text(stringResource(R.string.assistant_page_title))
                 },
                 navigationIcon = {
                     BackButton()
@@ -89,7 +89,7 @@ fun AssistantPage(vm: AssistantVM = koinViewModel()) {
                             createState.open(Assistant())
                         }
                     ) {
-                        Icon(Lucide.Plus, null)
+                        Icon(Lucide.Plus, stringResource(R.string.assistant_page_add))
                     }
                 }
             )
@@ -156,7 +156,7 @@ private fun AssistantEditSheet(
                 ) {
                     FormItem(
                         label = {
-                            Text("助手名称")
+                            Text(stringResource(R.string.assistant_page_name))
                         },
                     ) {
                         OutlinedTextField(
@@ -176,7 +176,7 @@ private fun AssistantEditSheet(
 
                     FormItem(
                         label = {
-                            Text("系统提示词")
+                            Text(stringResource(R.string.assistant_page_system_prompt))
                         },
                     ) {
                         OutlinedTextField(
@@ -194,9 +194,10 @@ private fun AssistantEditSheet(
                         )
 
                         Text(
-                            text = "可用变量: " + PlaceholderTransformer.Placeholders.entries.joinToString(
-                                ", "
-                            ) { "${it.key}: ${it.value}" },
+                            text = stringResource(
+                                R.string.assistant_page_available_variables, 
+                                PlaceholderTransformer.Placeholders.entries.joinToString(", ") { "${it.key}: ${it.value}" }
+                            ),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
                         )
@@ -206,7 +207,7 @@ private fun AssistantEditSheet(
 
                     FormItem(
                         label = {
-                            Text("温度")
+                            Text(stringResource(R.string.assistant_page_temperature))
                         },
                     ) {
                         Slider(
@@ -248,10 +249,10 @@ private fun AssistantEditSheet(
                             ) {
                                 Text(
                                     text = when (currentTemperature) {
-                                        in 0.0f..0.3f -> "严谨"
-                                        in 0.3f..1.0f -> "平衡"
-                                        in 1.0f..1.5f -> "创造"
-                                        in 1.5f..2.0f -> "混乱 (危险)"
+                                        in 0.0f..0.3f -> stringResource(R.string.assistant_page_strict)
+                                        in 0.3f..1.0f -> stringResource(R.string.assistant_page_balanced)
+                                        in 1.0f..1.5f -> stringResource(R.string.assistant_page_creative)
+                                        in 1.5f..2.0f -> stringResource(R.string.assistant_page_chaotic)
                                         else -> "?"
                                     }
                                 )
@@ -263,15 +264,12 @@ private fun AssistantEditSheet(
 
                     FormItem(
                         label = {
-                            Text("Top P")
+                            Text(stringResource(R.string.assistant_page_top_p))
                         },
                         description = {
                             Text(
                                 text = buildAnnotatedString {
-                                    append("Top P控制选择概率累加超过topP值的词汇作为候选词汇, 取值范围为0到1, 默认值为1")
-                                    withStyle(SpanStyle(color = MaterialTheme.extendColors.red5)) {
-                                        append("请不要修改此值, 除非你知道自己在做什么")
-                                    }
+                                    append(stringResource(R.string.assistant_page_top_p_warning))
                                 }
                             )
                         }
@@ -290,7 +288,7 @@ private fun AssistantEditSheet(
                             modifier = Modifier.fillMaxWidth()
                         )
                         Text(
-                            text = "Top P: ${assistant.topP}",
+                            text = stringResource(R.string.assistant_page_top_p_value, assistant.topP.toString()),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
                         )
@@ -300,11 +298,11 @@ private fun AssistantEditSheet(
 
                     FormItem(
                         label = {
-                            Text("上下文消息数量")
+                            Text(stringResource(R.string.assistant_page_context_message_size))
                         },
                         description = {
                             Text(
-                                text = "控制多少条历史消息会被作为上下文发送给模型, 超过此数量的消息会被忽略，只有最近的N条消息会被保留，可以节省token",
+                                text = stringResource(R.string.assistant_page_context_message_desc),
                             )
                         }
                     ) {
@@ -322,7 +320,7 @@ private fun AssistantEditSheet(
                             modifier = Modifier.fillMaxWidth()
                         )
                         Text(
-                            text = "上下文消息数量: ${assistant.contextMessageSize}",
+                            text = stringResource(R.string.assistant_page_context_message_count, assistant.contextMessageSize),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
                         )
@@ -332,11 +330,11 @@ private fun AssistantEditSheet(
 
                     FormItem(
                         label = {
-                            Text("记忆")
+                            Text(stringResource(R.string.assistant_page_memory))
                         },
                         description = {
                             Text(
-                                text = "启用记忆后，模型在与你对话时尝试主动记录你的信息，并在后续其他对话中使用，此功能需要模型支持工具调用才能正常工作",
+                                text = stringResource(R.string.assistant_page_memory_desc),
                             )
                         }
                     ) {
@@ -351,7 +349,7 @@ private fun AssistantEditSheet(
                                     memoryState.open(assistant)
                                 }
                             ) {
-                                Text("管理记忆 (${memories.size}条)")
+                                Text(stringResource(R.string.assistant_page_manage_memory, memories.size))
                             }
 
                             Spacer(Modifier.weight(1f))
@@ -381,14 +379,14 @@ private fun AssistantEditSheet(
                             state.dismiss()
                         }
                     ) {
-                        Text("取消")
+                        Text(stringResource(R.string.assistant_page_cancel))
                     }
                     TextButton(
                         onClick = {
                             state.confirm()
                         }
                     ) {
-                        Text("保存")
+                        Text(stringResource(R.string.assistant_page_save))
                     }
                 }
             }
@@ -418,7 +416,7 @@ private fun MemorySheet(vm: AssistantVM, memoryState: EditState<Assistant>) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "管理记忆",
+                    text = stringResource(R.string.assistant_page_manage_memory_title),
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
@@ -447,7 +445,7 @@ private fun MemorySheet(vm: AssistantVM, memoryState: EditState<Assistant>) {
                                         vm.deleteMemory(memory)
                                     }
                                 ) {
-                                    Icon(Lucide.Trash2, "Delete")
+                                    Icon(Lucide.Trash2, stringResource(R.string.assistant_page_delete))
                                 }
                             }
                         }
@@ -479,7 +477,7 @@ private fun AssistantItem(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = assistant.name.ifBlank { "默认助手" },
+                    text = assistant.name.ifBlank { stringResource(R.string.assistant_page_default_assistant) },
                     style = MaterialTheme.typography.titleMedium
                 )
 
@@ -488,14 +486,14 @@ private fun AssistantItem(
                 Tag(
                     type = TagType.INFO
                 ) {
-                    Text("温度: ${assistant.temperature.toFixed(1)}")
+                    Text(stringResource(R.string.assistant_page_temperature_value, assistant.temperature.toFixed(1)))
                 }
 
                 if (assistant.enableMemory) {
                     Tag(
                         type = TagType.SUCCESS
                     ) {
-                        Text("记忆: ${memories.size}")
+                        Text(stringResource(R.string.assistant_page_memory_count, memories.size))
                     }
                 }
             }
@@ -527,7 +525,7 @@ private fun AssistantItem(
                         }
                     } else {
                         withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
-                            append("无系统提示词")
+                            append(stringResource(R.string.assistant_page_no_system_prompt))
                         }
                     }
                 },
@@ -552,12 +550,12 @@ private fun AssistantItem(
                 ) {
                     Icon(
                         Lucide.Trash2,
-                        "delete",
+                        stringResource(R.string.assistant_page_delete),
                         modifier = Modifier
                             .padding(end = 4.dp)
                             .size(18.dp)
                     )
-                    Text("删除")
+                    Text(stringResource(R.string.assistant_page_delete))
                 }
 
                 Button(
@@ -572,7 +570,7 @@ private fun AssistantItem(
                             .padding(end = 4.dp)
                             .size(18.dp)
                     )
-                    Text("编辑")
+                    Text(stringResource(R.string.edit))
                 }
             }
         }

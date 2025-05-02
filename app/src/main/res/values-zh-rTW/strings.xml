@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">RikkaHub</string>
+    <string name="chat_input_placeholder">輸入訊息與AI聊天</string>
+    <string name="editing">編輯中</string>
+    <string name="cancel_edit">取消編輯</string>
+    <string name="stop">停止</string>
+    <string name="send">發送</string>
+    <string name="more_options">更多選項</string>
+    <string name="use_web_search">使用網路搜尋</string>
+    <string name="photo">照片</string>
+    <string name="take_picture">拍照</string>
+    <string name="copy">複製</string>
+    <string name="regenerate">重新生成</string>
+    <string name="edit">編輯</string>
+    <string name="tts">語音</string>
+    <string name="deep_thinking">深度思考</string>
+    <string name="citations_count">%1$d 條引用</string>
+    <string name="back">返回</string>
+    <string name="settings">設定</string>
+
+    <!-- Chat Page -->
+    <string name="chat_page_no_conversations">沒有對話記錄</string>
+    <string name="chat_page_new_message">新訊息</string>
+    <string name="chat_page_today">今天</string>
+    <string name="chat_page_yesterday">昨天</string>
+    <string name="chat_page_date_format_same_year">%1$d月%2$d日</string>
+    <string name="chat_page_date_format_different_year">%1$d年%2$d月%3$d日</string>
+    <string name="chat_page_regenerate_title">重新生成標題</string>
+    <string name="chat_page_delete">刪除</string>
+    <string name="chat_page_history">聊天歷史</string>
+    <string name="chat_page_scroll_to_bottom">滾動到底部</string>
+    <string name="chat_page_edit_title">編輯標題</string>
+    <string name="chat_page_save">保存</string>
+    <string name="chat_page_cancel">取消</string>
+    <string name="chat_page_new_chat">新聊天</string>
+    <string name="chat_page_edit_title_warning">請先聊天再編輯標題吧</string>
+
+    <string name="setting_page_display_setting">顯示設定</string>
+    <string name="setting_page_display_setting_desc">管理顯示設定</string>
+    <string name="setting_page_dynamic_color">動態顏色</string>
+    <string name="setting_page_dynamic_color_desc">是否使用動態顏色</string>
+    <string name="setting_page_general_settings">通用設定</string>
+    <string name="setting_page_model_and_services">模型與服務</string>
+    <string name="setting_page_default_model">預設模型</string>
+    <string name="setting_page_default_model_desc">設定各個功能的預設模型</string>
+    <string name="setting_page_providers">提供商</string>
+    <string name="setting_page_providers_desc">配置AI提供商</string>
+    <string name="setting_page_search_service">搜尋服務</string>
+    <string name="setting_page_search_service_desc">設定搜尋服務</string>
+    <string name="setting_page_assistant">助手</string>
+    <string name="setting_page_assistant_desc">設定個性化助手 (智能體)</string>
+    <string name="setting_page_about">關於</string>
+    <string name="setting_page_about_desc">關於本APP</string>
+    <string name="setting_page_chat_storage">聊天記錄儲存</string>
+    <string name="setting_page_chat_storage_desc">%1$d 個檔案，%2$.2f MB</string>
+    <string name="calculating">計算中...</string>
+    <string name="setting_page_share">分享</string>
+    <string name="setting_page_share_desc">分享本APP給朋友</string>
+    <string name="setting_page_share_text">RikkaHub - 開源安卓AI助手\n\n官網: https://rikka-ai.com/</string>
+    <string name="setting_page_no_share_app">找不到分享應用</string>
+    
+    <!-- Setting Model Page -->
+    <string name="setting_model_page_title">模型設定</string>
+    <string name="setting_model_page_chat_model">聊天模型</string>
+    <string name="setting_model_page_title_model">標題摘要模型</string>
+    <string name="setting_model_page_translate_model">翻譯模型</string>
+    
+    <!-- Translator Page -->
+    <string name="translator_page_title">翻譯</string>
+    <string name="translator_page_input_text">輸入文字</string>
+    <string name="translator_page_input_placeholder">請輸入要翻譯的文字...</string>
+    <string name="translator_page_result">翻譯結果</string>
+    <string name="translator_page_result_placeholder">翻譯結果將顯示在這裡</string>
+    <string name="translator_page_target_language">目標語言:</string>
+    <string name="translator_page_translate">翻譯</string>
+    <string name="translator_page_cancel">取消</string>
+    
+    <!-- Assistant Page -->
+    <string name="assistant_page_title">助手設定</string>
+    <string name="assistant_page_add">添加</string>
+    <string name="assistant_page_name">助手名稱</string>
+    <string name="assistant_page_system_prompt">系統提示詞</string>
+    <string name="assistant_page_available_variables">可用變數: %s</string>
+    <string name="assistant_page_temperature">溫度</string>
+    <string name="assistant_page_strict">嚴謹</string>
+    <string name="assistant_page_balanced">平衡</string>
+    <string name="assistant_page_creative">創造</string>
+    <string name="assistant_page_chaotic">混亂 (危險)</string>
+    <string name="assistant_page_top_p">Top P</string>
+    <string name="assistant_page_top_p_warning">請不要修改此值, 除非你知道自己在做什麼</string>
+    <string name="assistant_page_context_message_size">上下文訊息數量</string>
+    <string name="assistant_page_context_message_desc">控制多少條歷史訊息會被作為上下文發送給模型, 超過此數量的訊息會被忽略，只有最近的N條訊息會被保留，可以節省token</string>
+    <string name="assistant_page_context_message_count">上下文訊息數量: %d</string>
+    <string name="assistant_page_memory">記憶</string>
+    <string name="assistant_page_memory_desc">啟用記憶後，模型在與你對話時嘗試主動記錄你的資訊，並在後續其他對話中使用，此功能需要模型支援工具調用才能正常工作</string>
+    <string name="assistant_page_manage_memory">管理記憶 (%d條)</string>
+    <string name="assistant_page_cancel">取消</string>
+    <string name="assistant_page_save">保存</string>
+    <string name="assistant_page_manage_memory_title">管理記憶</string>
+    <string name="assistant_page_delete">刪除</string>
+    <string name="assistant_page_default_assistant">預設助手</string>
+    <string name="assistant_page_temperature_value">溫度: %s</string>
+    <string name="assistant_page_memory_count">記憶: %d</string>
+    <string name="assistant_page_no_system_prompt">無系統提示詞</string>
+    <string name="assistant_page_top_p_value">Top P: %s</string>
+    
+    <!-- Notification -->
+    <string name="notification_channel_chat_completed">聊天完成</string>
+</resources> 

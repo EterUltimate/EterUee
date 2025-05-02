@@ -23,6 +23,7 @@
     <string name="setting_page_display_setting_desc">管理显示设置</string>
     <string name="setting_page_dynamic_color">动态颜色</string>
     <string name="setting_page_dynamic_color_desc">是否使用动态颜色</string>
+    <string name="setting_page_general_settings">通用设置</string>
     <string name="setting_page_model_and_services">模型与服务</string>
     <string name="setting_page_default_model">默认模型</string>
     <string name="setting_page_default_model_desc">设置各个功能的默认模型</string>
@@ -30,6 +31,8 @@
     <string name="setting_page_providers_desc">配置AI提供商</string>
     <string name="setting_page_search_service">搜索服务</string>
     <string name="setting_page_search_service_desc">设置搜索服务</string>
+    <string name="setting_page_assistant">助手</string>
+    <string name="setting_page_assistant_desc">设置个性化助手 (智能体)</string>
     <string name="setting_page_about">关于</string>
     <string name="setting_page_about_desc">关于本APP</string>
     <string name="setting_page_chat_storage">聊天记录存储</string>

@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.composables.icons.lucide.BadgeInfo
+import com.composables.icons.lucide.Bot
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.HardDrive
@@ -66,7 +67,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
         ) {
             stickyHeader {
                 Text(
-                    text = "通用设置",
+                    text = stringResource(R.string.setting_page_general_settings),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary
@@ -80,6 +81,16 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                     description = { Text(stringResource(R.string.setting_page_display_setting_desc)) },
                     icon = { Icon(Lucide.Monitor, "Display Setting") },
                     link = "setting/display"
+                )
+            }
+
+            item {
+                SettingItem(
+                    navController = navController,
+                    title = { Text(stringResource(R.string.setting_page_assistant)) },
+                    description = { Text(stringResource(R.string.setting_page_assistant_desc)) },
+                    icon = { Icon(Lucide.Bot, "Assistant") },
+                    link = "assistant"
                 )
             }
 

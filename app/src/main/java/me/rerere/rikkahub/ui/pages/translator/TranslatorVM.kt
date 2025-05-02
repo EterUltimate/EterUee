@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import me.rerere.ai.provider.ProviderManager
 import me.rerere.ai.provider.TextGenerationParams
-import me.rerere.ai.ui.Conversation
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.handleMessageChunk
 import me.rerere.rikkahub.data.datastore.Settings
@@ -85,7 +84,7 @@ class TranslatorVM(
                 val providerHandler = ProviderManager.getProviderByType(provider)
                 val prompt = """
                     你是一个翻译专家，擅长翻译各国语言，并且保持翻译准确和信达雅。
-                    我会给你发送文本，请将其翻译为 ${targetLanguage.value}，直接返回翻译结果，不要添加任何解释和其他内容。
+                    接下来我会给你发送文本，请将其翻译为 ${targetLanguage.value}，直接返回翻译结果，不要添加任何解释和其他内容。
                     
                     请翻译<source_text>部分:
                     
@@ -94,7 +93,9 @@ class TranslatorVM(
                     </source_text>
                 """.trimIndent()
 
-                var conversation = Conversation.ofUser(prompt)
+                var messages = listOf(
+                    UIMessage.user(prompt)
+                )
 
                 providerHandler.streamText(
                     providerSetting = provider,
@@ -104,10 +105,8 @@ class TranslatorVM(
                         temperature = assistant.temperature,
                     ),
                 ).collect { chunk ->
-                    conversation = conversation.copy(
-                        messages = conversation.messages.handleMessageChunk(chunk)
-                    )
-                    _translatedText.value = conversation.messages.lastOrNull()?.toText() ?: ""
+                    messages = messages.handleMessageChunk(chunk)
+                    _translatedText.value = messages.lastOrNull()?.toText() ?: ""
                 }
             }.onFailure {
                 it.printStackTrace()

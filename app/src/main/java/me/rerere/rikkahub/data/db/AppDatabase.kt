@@ -14,9 +14,10 @@ import me.rerere.rikkahub.utils.JsonInstant
 
 @Database(
     entities = [ConversationEntity::class, MemoryEntity::class],
-    version = 4,
+    version = 5,
     autoMigrations = [
-        AutoMigration(from = 3, to = 4)
+        AutoMigration(from = 3, to = 4),
+        AutoMigration(from = 4, to = 5)
     ]
 )
 @TypeConverters(TokenUsageConverter::class)

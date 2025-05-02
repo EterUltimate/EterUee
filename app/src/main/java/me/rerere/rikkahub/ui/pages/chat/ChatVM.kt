@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -21,7 +23,6 @@ import me.rerere.ai.core.MessageRole
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ProviderManager
 import me.rerere.ai.provider.TextGenerationParams
-import me.rerere.ai.ui.Conversation
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyInputMessage
@@ -34,6 +35,7 @@ import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.findProvider
 import me.rerere.rikkahub.data.model.AssistantMemory
+import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.data.repository.MemoryRepository
 import me.rerere.rikkahub.ui.hooks.getCurrentAssistant
@@ -87,11 +89,16 @@ class ChatVM(
         .stateIn(viewModelScope, SharingStarted.Lazily, Settings())
 
     // 聊天列表
-    val conversations = conversationRepo.getAllConversations()
-        .catch {
-            Log.e(TAG, "conversationRepo.getAllConversations: ", it)
-            errorFlow.emit(it)
-            emit(emptyList())
+    val conversations = settings
+        .map { it.assistantId }
+        .distinctUntilChanged()
+        .flatMapLatest { assistantId ->
+            conversationRepo.getConversationsOfAssistant(assistantId)
+                .catch {
+                    Log.e(TAG, "conversationRepo.getAllConversations: ", it)
+                    errorFlow.emit(it)
+                    emit(emptyList())
+                }
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -138,7 +145,6 @@ class ChatVM(
                     role = MessageRole.USER,
                     parts = content,
                 ),
-                updateAt = Instant.now()
             )
             saveConversation(newConversation)
 
@@ -191,7 +197,6 @@ class ChatVM(
                     it
                 }
             },
-            updateAt = Instant.now()
         )
         this.updateConversation(newConversation)
         val message = newConversation.messages.find { it.id == uuid } ?: return
@@ -218,7 +223,7 @@ class ChatVM(
                     deleteMemory(id)
                 }
             ).collect { chunk ->
-                when(chunk) {
+                when (chunk) {
                     is GenerationChunk.Messages -> {
                         updateConversation(conversation.value.copy(messages = chunk.messages))
                     }
@@ -278,7 +283,6 @@ class ChatVM(
                     saveConversation(
                         it.copy(
                             title = result.choices[0].message?.toText()?.trim() ?: "",
-                            updateAt = Instant.now()
                         )
                     )
                 }
@@ -351,6 +355,10 @@ class ChatVM(
     }
 
     suspend fun saveConversation(conversation: Conversation) {
+        val conversation = conversation.copy(
+            assistantId = settings.value.assistantId,
+            updateAt = Instant.now()
+        )
         this.updateConversation(conversation)
         try {
             if (conversationRepo.getConversationById(conversation.id) == null) {
@@ -365,12 +373,7 @@ class ChatVM(
 
     fun updateTitle(title: String) {
         viewModelScope.launch {
-            saveConversation(
-                conversation.value.copy(
-                    title = title,
-                    updateAt = Instant.now()
-                )
-            )
+            saveConversation(conversation.value.copy(title = title))
         }
     }
 

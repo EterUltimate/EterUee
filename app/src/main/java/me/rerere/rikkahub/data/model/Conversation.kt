@@ -1,17 +1,20 @@
-package me.rerere.ai.ui
+package me.rerere.rikkahub.data.model
 
 import android.net.Uri
 import androidx.core.net.toUri
 import kotlinx.serialization.Serializable
-import me.rerere.ai.core.MessageRole
 import me.rerere.ai.core.TokenUsage
+import me.rerere.ai.ui.UIMessage
+import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.util.InstantSerializer
+import me.rerere.rikkahub.data.datastore.DEFAULT_ASSISTANT_ID
 import java.time.Instant
 import kotlin.uuid.Uuid
 
 @Serializable
 data class Conversation(
-    val id: Uuid = Uuid.random(),
+    val id: Uuid = Uuid.Companion.random(),
+    val assistantId: Uuid,
     val title: String = "",
     val messages: List<UIMessage>,
     val tokenUsage: TokenUsage? = null,
@@ -27,20 +30,10 @@ data class Conversation(
             .map { it.url.toUri() }
 
     companion object {
-        fun empty() = Conversation(messages = emptyList())
-
-        fun ofId(id: Uuid) = Conversation(
+        fun ofId(id: Uuid, assistantId: Uuid = DEFAULT_ASSISTANT_ID) = Conversation(
             id = id,
             messages = emptyList(),
-        )
-
-        fun ofUser(prompt: String) = Conversation(
-            messages = listOf(
-                UIMessage(
-                    role = MessageRole.USER,
-                    parts = listOf(UIMessagePart.Text(prompt)),
-                ),
-            ),
+            assistantId = assistantId
         )
     }
 }

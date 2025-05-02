@@ -10,10 +10,13 @@ import me.rerere.rikkahub.data.db.entity.ConversationEntity
 
 @Dao
 interface ConversationDAO {
-    @Query("SELECT * FROM conversationentity ORDER BY create_at DESC")
+    @Query("SELECT * FROM conversationentity ORDER BY update_at DESC")
     fun getAll(): Flow<List<ConversationEntity>>
 
-    @Query("SELECT * FROM conversationentity WHERE title LIKE '%' || :searchText || '%' ORDER BY create_at DESC")
+    @Query("SELECT * FROM conversationentity WHERE assistant_id = :assistantId ORDER BY update_at DESC")
+    fun getConversationsOfAssistant(assistantId: String): Flow<List<ConversationEntity>>
+
+    @Query("SELECT * FROM conversationentity WHERE title LIKE '%' || :searchText || '%' ORDER BY update_at DESC")
     fun searchConversations(searchText: String): Flow<List<ConversationEntity>>
 
     @Query("SELECT * FROM conversationentity WHERE id = :id")

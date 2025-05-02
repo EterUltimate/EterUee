@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.Trash2
-import me.rerere.ai.ui.Conversation
+import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.ui.theme.extendColors
 import java.time.LocalDate
 import java.time.ZoneId
@@ -58,7 +58,7 @@ fun ConversationList(
 ) {
     // 按日期分组对话
     val groupedConversations = conversations.groupBy { conversation ->
-        val instant = conversation.createAt
+        val instant = conversation.updateAt
         instant.atZone(ZoneId.systemDefault()).toLocalDate()
     }.toSortedMap(compareByDescending { it })
 

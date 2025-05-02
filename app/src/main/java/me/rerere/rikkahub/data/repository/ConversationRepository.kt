@@ -2,6 +2,7 @@ package me.rerere.rikkahub.data.repository
 
 import android.content.Context
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import me.rerere.ai.ui.UIMessage
 import me.rerere.rikkahub.data.db.dao.ConversationDAO
@@ -125,6 +126,12 @@ class ConversationRepository(
             )
         )
         context.deleteChatFiles(conversation.files)
+    }
+
+    suspend fun deleteConversationOfAssistant(assistantId: Uuid) {
+        getConversationsOfAssistant(assistantId).first().forEach { conversation ->
+            deleteConversation(conversation)
+        }
     }
 
     suspend fun deleteAllConversations() {

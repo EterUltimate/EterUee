@@ -142,6 +142,12 @@ class SettingsStore(context: Context) {
             preferences[SEARCH_COMMON] = JsonInstant.encodeToString(settings.searchCommonOptions)
         }
     }
+
+    suspend fun updateAssistant(assistantId: Uuid) {
+        dataStore.edit { preferences ->
+            preferences[SELECT_ASSISTANT] = assistantId.toString()
+        }
+    }
 }
 
 @Serializable

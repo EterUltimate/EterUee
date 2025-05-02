@@ -80,13 +80,17 @@ class ChatVM(
             val conversation = conversationRepo.getConversationById(_conversationId)
             if (conversation != null) {
                 this@ChatVM._conversation.value = conversation
+
+                // 更新当前助手到 conversation 所属的 assistant
+                // 这里不能用 updateSettings，因为 settings 可能还没加载
+                settingsStore.updateAssistant(conversation.assistantId)
             }
         }
     }
 
     // 用户设置
     val settings: StateFlow<Settings> = settingsStore.settingsFlow
-        .stateIn(viewModelScope, SharingStarted.Lazily, Settings())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, Settings())
 
     // 聊天列表
     val conversations = settings

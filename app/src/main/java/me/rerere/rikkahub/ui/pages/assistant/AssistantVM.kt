@@ -10,11 +10,13 @@ import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
+import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.data.repository.MemoryRepository
 
 class AssistantVM(
     private val settingsStore: SettingsStore,
-    val memoryRepository: MemoryRepository
+    private val memoryRepository: MemoryRepository,
+    private val conversationRepo: ConversationRepository
 ) : ViewModel() {
     val settings: StateFlow<Settings> = settingsStore.settingsFlow
         .stateIn(viewModelScope, SharingStarted.Lazily, Settings())
@@ -56,6 +58,7 @@ class AssistantVM(
                 )
             )
             memoryRepository.deleteMemoriesOfAssistant(assistant.id.toString())
+            conversationRepo.deleteConversationOfAssistant(assistant.id)
         }
     }
 

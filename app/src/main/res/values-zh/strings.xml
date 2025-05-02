@@ -19,6 +19,16 @@
     <string name="back">返回</string>
     <string name="settings">设置</string>
 
+    <!-- Chat Page -->
+    <string name="chat_page_no_conversations">没有对话记录</string>
+    <string name="chat_page_new_message">新消息</string>
+    <string name="chat_page_today">今天</string>
+    <string name="chat_page_yesterday">昨天</string>
+    <string name="chat_page_date_format_same_year">%1$d月%2$d日</string>
+    <string name="chat_page_date_format_different_year">%1$d年%2$d月%3$d日</string>
+    <string name="chat_page_regenerate_title">重新生成标题</string>
+    <string name="chat_page_delete">删除</string>
+
     <string name="setting_page_display_setting">显示设置</string>
     <string name="setting_page_display_setting_desc">管理显示设置</string>
     <string name="setting_page_dynamic_color">动态颜色</string>

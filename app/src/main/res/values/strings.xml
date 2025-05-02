@@ -18,6 +18,16 @@
     <string name="back">Back</string>
     <string name="settings">Settings</string>
 
+    <!-- Chat Page -->
+    <string name="chat_page_no_conversations">No conversations</string>
+    <string name="chat_page_new_message">New message</string>
+    <string name="chat_page_today">Today</string>
+    <string name="chat_page_yesterday">Yesterday</string>
+    <string name="chat_page_date_format_same_year">%1$d/%2$d</string>
+    <string name="chat_page_date_format_different_year">%1$d/%2$d/%3$d</string>
+    <string name="chat_page_regenerate_title">Regenerate title</string>
+    <string name="chat_page_delete">Delete</string>
+
     <string name="setting_page_display_setting">Display Settings</string>
     <string name="setting_page_display_setting_desc">Manage display settings</string>
     <string name="setting_page_dynamic_color">Dynamic Color</string>

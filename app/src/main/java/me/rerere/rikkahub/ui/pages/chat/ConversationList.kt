@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -40,8 +41,10 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.Trash2
+import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.ui.theme.extendColors
+import me.rerere.rikkahub.utils.toLocalString
 import java.time.LocalDate
 import java.time.ZoneId
 import kotlin.uuid.Uuid
@@ -76,7 +79,7 @@ fun ConversationList(
                     color = MaterialTheme.colorScheme.surfaceContainerLow
                 ) {
                     Text(
-                        text = "没有对话记录",
+                        text = stringResource(id = R.string.chat_page_no_conversations),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -112,10 +115,19 @@ private fun DateHeader(date: LocalDate) {
     val yesterday = today.minusDays(1)
 
     val displayText = when {
-        date.isEqual(today) -> "今天"
-        date.isEqual(yesterday) -> "昨天"
-        date.year == today.year -> "${date.monthValue}月${date.dayOfMonth}日"
-        else -> "${date.year}年${date.monthValue}月${date.dayOfMonth}日"
+        date.isEqual(today) -> stringResource(id = R.string.chat_page_today)
+        date.isEqual(yesterday) -> stringResource(id = R.string.chat_page_yesterday)
+        else -> {
+            // 使用Android本地化日期格式
+            val formatStyle = if (date.year == today.year) {
+                // 同一年仅显示月日
+                date.toLocalString(false)
+            } else {
+                // 不同年显示完整日期
+                date.toLocalString(true)
+            }
+            formatStyle
+        }
     }
 
     Row(
@@ -173,7 +185,7 @@ private fun ConversationItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = conversation.title.ifBlank { "新消息" },
+                text = conversation.title.ifBlank { stringResource(id = R.string.chat_page_new_message) },
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -195,7 +207,7 @@ private fun ConversationItem(
             ) {
                 DropdownMenuItem(
                     text = {
-                        Text("重新生成标题")
+                        Text(stringResource(id = R.string.chat_page_regenerate_title))
                     },
                     onClick = {
                         onRegenerateTitle(conversation)
@@ -208,7 +220,7 @@ private fun ConversationItem(
 
                 DropdownMenuItem(
                     text = {
-                        Text("删除")
+                        Text(stringResource(id = R.string.chat_page_delete))
                     },
                     onClick = {
                         onDelete(conversation)

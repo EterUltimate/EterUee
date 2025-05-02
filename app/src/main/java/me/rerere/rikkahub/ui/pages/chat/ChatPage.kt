@@ -248,12 +248,13 @@ private fun ChatList(
             state = state,
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             items(conversation.messages, key = { it.id }) { message ->
                 ChatMessage(
                     message = message,
                     showIcon = settings.displaySetting.showModelIcon,
-                    model = message.modelId?.let {  settings.providers.findModelById(it) },
+                    model = message.modelId?.let { settings.providers.findModelById(it) },
                     onRegenerate = {
                         onRegenerate(message)
                     },
@@ -267,7 +268,7 @@ private fun ChatList(
                 item(LoadingIndicatorKey) {
                     WavyCircularProgressIndicator(
                         modifier = Modifier
-                            .padding(start = 4.dp)
+                            .padding(vertical = 4.dp)
                             .size(24.dp),
                         strokeWidth = 2.dp,
                         waveCount = 8
@@ -275,7 +276,7 @@ private fun ChatList(
                 }
             }
 
-            if(settings.displaySetting.showTokenUsage) {
+            if (settings.displaySetting.showTokenUsage) {
                 conversation.tokenUsage?.let { usage ->
                     item(TokenUsageItemKey) {
                         Row(
@@ -283,7 +284,10 @@ private fun ChatList(
                                 .fillMaxWidth()
                                 .padding(horizontal = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(
+                                8.dp,
+                                Alignment.CenterHorizontally
+                            ),
                         ) {
                             Text(
                                 text = "Tokens: ${usage.totalTokens}  (${usage.promptTokens} -> ${usage.completionTokens})",

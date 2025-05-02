@@ -104,4 +104,7 @@
     <string name="assistant_page_memory_count">记忆: %d</string>
     <string name="assistant_page_no_system_prompt">无系统提示词</string>
     <string name="assistant_page_top_p_value">Top P: %s</string>
+    
+    <!-- Notification -->
+    <string name="notification_channel_chat_completed">聊天完成</string>
 </resources> 

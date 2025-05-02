@@ -391,7 +391,7 @@ fun TakePicButton(onAddImages: (List<Uri>) -> Unit = {}) {
         }
     ) {
         permissionState.requestPermission()
-        if(permissionState.allRequiredGranted()) {
+        if (permissionState.allRequiredGranted()) {
             file = context.cacheDir.resolve(Uuid.random().toString())
             providerUri = FileProvider.getUriForFile(
                 context,

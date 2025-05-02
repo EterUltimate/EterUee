@@ -103,4 +103,7 @@
     <string name="assistant_page_memory_count">Memory: %d</string>
     <string name="assistant_page_no_system_prompt">No system prompt</string>
     <string name="assistant_page_top_p_value">Top P: %s</string>
+    
+    <!-- Notification -->
+    <string name="notification_channel_chat_completed">Chat Completed</string>
 </resources>

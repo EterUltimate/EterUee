@@ -116,6 +116,9 @@ class ChatVM(
     // 错误流
     val errorFlow = MutableSharedFlow<Throwable>()
 
+    // 生成完成
+    val generationDoneFlow = MutableSharedFlow<Uuid>()
+
     // 更新设置
     fun updateSettings(settings: Settings) {
         viewModelScope.launch {
@@ -157,6 +160,8 @@ class ChatVM(
 
             // 开始补全
             handleMessageComplete()
+
+            generationDoneFlow.emit(Uuid.random())
         }
         this.conversationJob.value = job
         job.invokeOnCompletion {
@@ -331,6 +336,7 @@ class ChatVM(
             val job = viewModelScope.launch {
                 handleWebSearch()
                 handleMessageComplete()
+                generationDoneFlow.emit(Uuid.random())
             }
             conversationJob.value = job
             job.invokeOnCompletion {

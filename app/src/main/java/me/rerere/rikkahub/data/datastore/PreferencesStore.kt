@@ -170,6 +170,8 @@ data class DisplaySetting(
     val showTokenUsage: Boolean = true,
 )
 
+fun Settings.isNotConfigured() = providers.all { it.models.isEmpty() }
+
 fun List<ProviderSetting>.findModelById(uuid: Uuid): Model? {
     this.forEach { setting ->
         setting.models.forEach { model ->

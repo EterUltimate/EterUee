@@ -3,23 +3,31 @@ package me.rerere.rikkahub.ui.pages.setting
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.widget.Toast
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -33,10 +41,12 @@ import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.HardDrive
 import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.MessageCircleWarning
 import com.composables.icons.lucide.Monitor
 import com.composables.icons.lucide.Palette
 import com.composables.icons.lucide.Share2
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.data.datastore.isNotConfigured
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.utils.countChatFiles
@@ -67,6 +77,12 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
             modifier = Modifier.fillMaxSize(),
             contentPadding = innerPadding + PaddingValues(8.dp),
         ) {
+            if (settings.isNotConfigured()) {
+                item {
+                    ProviderConfigWarningCard(navController)
+                }
+            }
+
             stickyHeader {
                 Text(
                     text = stringResource(R.string.setting_page_general_settings),
@@ -229,6 +245,46 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                         }
                     }
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProviderConfigWarningCard(navController: NavController) {
+    Card(
+        modifier = Modifier.padding(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            horizontalAlignment = Alignment.End
+        ) {
+            ListItem(
+                headlineContent = {
+                    Text(stringResource(R.string.setting_page_config_api_title))
+                },
+                supportingContent = {
+                    Text(stringResource(R.string.setting_page_config_api_desc))
+                },
+                leadingContent = {
+                    Icon(Lucide.MessageCircleWarning, null)
+                },
+                colors = ListItemDefaults.colors(
+                    containerColor = Color.Transparent
+                )
+            )
+
+            TextButton(
+                onClick = {
+                    navController.navigate("setting/provider")
+                }
+            ) {
+                Text(stringResource(R.string.setting_page_config))
             }
         }
     }

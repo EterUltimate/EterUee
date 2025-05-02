@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -55,6 +56,7 @@ import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.composables.icons.lucide.ChevronDown
+import com.composables.icons.lucide.Download
 import com.composables.icons.lucide.History
 import com.composables.icons.lucide.ListTree
 import com.composables.icons.lucide.Lucide
@@ -334,7 +336,10 @@ private fun ChatList(
                         contentDescription = "Scroll to bottom",
                         modifier = Modifier.size(16.dp)
                     )
-                    Text("滚动到底部", style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        stringResource(R.string.chat_page_scroll_to_bottom),
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
             }
         }
@@ -366,17 +371,18 @@ private fun TopBar(
             }
         },
         title = {
+            val editTitleWarning = stringResource(R.string.chat_page_edit_title_warning)
             Surface(
                 onClick = {
                     if (conversation.messages.isNotEmpty()) {
                         titleState.open(conversation.title)
                     } else {
-                        toaster.show("请先聊天再编辑标题吧", type = ToastType.Warning)
+                        toaster.show(editTitleWarning, type = ToastType.Warning)
                     }
                 }
             ) {
                 Text(
-                    text = conversation.title.ifBlank { "新聊天" },
+                    text = conversation.title.ifBlank { stringResource(R.string.chat_page_new_chat) },
                     maxLines = 1,
                     fontSize = MaterialTheme.typography.bodyMedium.fontSize,
                     overflow = TextOverflow.Ellipsis,
@@ -408,7 +414,7 @@ private fun TopBar(
                 titleState.dismiss()
             },
             title = {
-                Text("编辑标题")
+                Text(stringResource(R.string.chat_page_edit_title))
             },
             text = {
                 OutlinedTextField(
@@ -424,7 +430,7 @@ private fun TopBar(
                         titleState.confirm()
                     }
                 ) {
-                    Text("保存")
+                    Text(stringResource(R.string.chat_page_save))
                 }
             },
             dismissButton = {
@@ -433,7 +439,7 @@ private fun TopBar(
                         titleState.dismiss()
                     }
                 ) {
-                    Text("取消")
+                    Text(stringResource(R.string.chat_page_cancel))
                 }
             }
         )
@@ -450,7 +456,7 @@ private fun DrawerContent(
     loading: Boolean,
 ) {
     ModalDrawerSheet(
-        modifier = Modifier.width(270.dp)
+        modifier = Modifier.width(300.dp)
     ) {
         Column(
             modifier = Modifier.padding(8.dp),
@@ -500,7 +506,10 @@ private fun DrawerContent(
                     modifier = Modifier.weight(1f)
                 ) {
                     Icon(Lucide.History, "Chat History")
-                    Text("聊天历史", modifier = Modifier.padding(start = 4.dp))
+                    Text(
+                        stringResource(R.string.chat_page_history),
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
                 }
                 TextButton(
                     onClick = {
@@ -608,10 +617,10 @@ private fun UpdateCard(vm: ChatVM) {
                         style = MaterialTheme.typography.bodyMedium
                     )
                     info.downloads.fastForEach { downloadItem ->
-                        Card(
+                        OutlinedCard(
                             onClick = {
                                 downloadHandler(downloadItem)
-                            }
+                            },
                         ) {
                             ListItem(
                                 headlineContent = {
@@ -622,6 +631,12 @@ private fun UpdateCard(vm: ChatVM) {
                                 supportingContent = {
                                     Text(
                                         text = downloadItem.size
+                                    )
+                                },
+                                leadingContent = {
+                                    Icon(
+                                        Lucide.Download,
+                                        contentDescription = null
                                     )
                                 }
                             )

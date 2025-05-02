@@ -27,6 +27,13 @@
     <string name="chat_page_date_format_different_year">%1$d/%2$d/%3$d</string>
     <string name="chat_page_regenerate_title">Regenerate title</string>
     <string name="chat_page_delete">Delete</string>
+    <string name="chat_page_history">Chat History</string>
+    <string name="chat_page_scroll_to_bottom">Scroll to bottom</string>
+    <string name="chat_page_edit_title">Edit title</string>
+    <string name="chat_page_save">Save</string>
+    <string name="chat_page_cancel">Cancel</string>
+    <string name="chat_page_new_chat">New Chat</string>
+    <string name="chat_page_edit_title_warning">Please chat first before editing the title</string>
 
     <string name="setting_page_display_setting">Display Settings</string>
     <string name="setting_page_display_setting_desc">Manage display settings</string>

@@ -28,6 +28,13 @@
     <string name="chat_page_date_format_different_year">%1$d年%2$d月%3$d日</string>
     <string name="chat_page_regenerate_title">重新生成标题</string>
     <string name="chat_page_delete">删除</string>
+    <string name="chat_page_history">聊天历史</string>
+    <string name="chat_page_scroll_to_bottom">滚动到底部</string>
+    <string name="chat_page_edit_title">编辑标题</string>
+    <string name="chat_page_save">保存</string>
+    <string name="chat_page_cancel">取消</string>
+    <string name="chat_page_new_chat">新聊天</string>
+    <string name="chat_page_edit_title_warning">请先聊天再编辑标题吧</string>
 
     <string name="setting_page_display_setting">显示设置</string>
     <string name="setting_page_display_setting_desc">管理显示设置</string>

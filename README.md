@@ -35,12 +35,6 @@
 - 🧠 类ChatGPT记忆功能
 - 📝 翻译页面
 
-## ☑️ 开发计划
-
-- [ ] 🌐 完善多语言支持
-- [ ] 🔍 支持调整更多模型参数 (例如思考budget)
-- [ ] 🔊 完善TTS功能
-
 ## ✨ 贡献
 
 本项目使用[Android Studio](https://developer.android.com/studio)开发，欢迎提交PR

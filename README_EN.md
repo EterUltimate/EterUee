@@ -34,12 +34,6 @@ Click to join our Discord server 👉 [【RikkaHub】](https://discord.gg/9weBqx
 - 🧠 ChatGPT-like memory feature
 - 📝 AI Translation
 
-## ☑️ Development Plans
-
-- [ ] 🌐 Improve multilingual support
-- [ ] 🔍 Support for adjusting more model parameters (e.g., thinking budget)
-- [ ] 🔊 Enhance TTS functionality
-
 ## ✨ Contributing
 
 This project is developed using [Android Studio](https://developer.android.com/studio). PRs are welcome!

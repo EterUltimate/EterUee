@@ -35,12 +35,6 @@
 - 🧠 類ChatGPT記憶功能
 - 📝 AI翻譯
 
-## ☑️ 開發計劃
-
-- [ ] 🌐 完善多語言支持
-- [ ] 🔍 支持調整更多模型參數 (例如思考budget)
-- [ ] 🔊 完善TTS功能
-
 ## ✨ 貢獻
 
 本項目使用[Android Studio](https://developer.android.com/studio)開發，歡迎提交PR

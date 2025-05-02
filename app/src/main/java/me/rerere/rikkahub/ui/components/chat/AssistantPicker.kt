@@ -1,11 +1,11 @@
 package me.rerere.rikkahub.ui.components.chat
 
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.composables.icons.lucide.Bot
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Settings
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.ui.components.ui.Select
 import me.rerere.rikkahub.ui.hooks.rememberAssistantState
@@ -29,10 +29,10 @@ fun AssistantPicker(
         },
         modifier = modifier,
         leading = {
-            IconButton(
+            FilledTonalIconButton(
                 onClick = onClickSetting,
             ) {
-                Icon(Lucide.Settings, null)
+                Icon(Lucide.Bot, null)
             }
         }
     )

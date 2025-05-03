@@ -93,26 +93,6 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
             }
 
             item {
-                SettingItem(
-                    navController = navController,
-                    title = { Text(stringResource(R.string.setting_page_display_setting)) },
-                    description = { Text(stringResource(R.string.setting_page_display_setting_desc)) },
-                    icon = { Icon(Lucide.Monitor, "Display Setting") },
-                    link = "setting/display"
-                )
-            }
-
-            item {
-                SettingItem(
-                    navController = navController,
-                    title = { Text(stringResource(R.string.setting_page_assistant)) },
-                    description = { Text(stringResource(R.string.setting_page_assistant_desc)) },
-                    icon = { Icon(Lucide.Bot, "Assistant") },
-                    link = "assistant"
-                )
-            }
-
-            item {
                 ListItem(
                     headlineContent = {
                         Text(stringResource(R.string.setting_page_dynamic_color))
@@ -148,6 +128,26 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                         }
                     )
                 }
+            }
+
+            item {
+                SettingItem(
+                    navController = navController,
+                    title = { Text(stringResource(R.string.setting_page_display_setting)) },
+                    description = { Text(stringResource(R.string.setting_page_display_setting_desc)) },
+                    icon = { Icon(Lucide.Monitor, "Display Setting") },
+                    link = "setting/display"
+                )
+            }
+
+            item {
+                SettingItem(
+                    navController = navController,
+                    title = { Text(stringResource(R.string.setting_page_assistant)) },
+                    description = { Text(stringResource(R.string.setting_page_assistant_desc)) },
+                    icon = { Icon(Lucide.Bot, "Assistant") },
+                    link = "assistant"
+                )
             }
 
             stickyHeader {

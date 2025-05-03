@@ -458,7 +458,7 @@ fun ReasoningCard(
     }
 
     OutlinedCard(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier,
         onClick = {
             expanded = !expanded
         }
@@ -466,12 +466,11 @@ fun ReasoningCard(
         Column(
             modifier = Modifier
                 .padding(8.dp)
-                .fillMaxWidth()
                 .animateContentSize(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.let { if(expanded) it.fillMaxWidth() else it.width(150.dp) },
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {

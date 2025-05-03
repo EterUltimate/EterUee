@@ -44,7 +44,7 @@ sealed interface GenerationChunk {
 
     data class TokenUsage(
         val usage: me.rerere.ai.core.TokenUsage,
-    ): GenerationChunk
+    ) : GenerationChunk
 }
 
 class GenerationHandler(private val context: Context, private val json: Json) {
@@ -52,7 +52,8 @@ class GenerationHandler(private val context: Context, private val json: Json) {
         settings: Settings,
         model: Model,
         messages: List<UIMessage>,
-        transformers: List<MessageTransformer> = emptyList(),
+        inputTransformers: List<MessageTransformer> = emptyList(),
+        outputTransformers: List<MessageTransformer> = emptyList(),
         assistant: (() -> Assistant)? = null,
         memories: (suspend () -> List<AssistantMemory>)? = null,
         tools: List<Tool> = emptyList(),
@@ -90,12 +91,20 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                 messages,
                 {
                     messages = it
-                    emit(GenerationChunk.Messages(messages))
+                    emit(
+                        GenerationChunk.Messages(
+                            messages.transforms(
+                                outputTransformers,
+                                context,
+                                model
+                            )
+                        )
+                    )
                 },
                 {
                     emit(GenerationChunk.TokenUsage(it))
                 },
-                transformers,
+                inputTransformers,
                 model,
                 providerImpl,
                 provider,
@@ -147,7 +156,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                 role = MessageRole.TOOL,
                 parts = results
             )
-            emit(GenerationChunk.Messages(messages))
+            emit(GenerationChunk.Messages(messages.transforms(outputTransformers, context, model)))
         }
 
     }.flowOn(Dispatchers.IO)

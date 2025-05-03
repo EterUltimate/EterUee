@@ -28,6 +28,7 @@ import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyInputMessage
 import me.rerere.ai.ui.transformers.PlaceholderTransformer
 import me.rerere.ai.ui.transformers.SearchTextTransformer
+import me.rerere.ai.ui.transformers.ThinkTagTransformer
 import me.rerere.rikkahub.data.ai.GenerationChunk
 import me.rerere.rikkahub.data.ai.GenerationHandler
 import me.rerere.rikkahub.data.datastore.Settings
@@ -49,10 +50,16 @@ import kotlin.uuid.Uuid
 
 private const val TAG = "ChatVM"
 
-private val messageTransformers by lazy {
+private val inputTransformers by lazy {
     listOf(
         SearchTextTransformer,
         PlaceholderTransformer,
+    )
+}
+
+private val outputTransformers by lazy {
+    listOf(
+        ThinkTagTransformer,
     )
 }
 
@@ -221,7 +228,8 @@ class ChatVM(
                 messages = conversation.value.messages,
                 assistant = { settings.value.getCurrentAssistant() },
                 memories = { memoryRepository.getMemoriesOfAssistant(settings.value.assistantId.toString()) },
-                transformers = messageTransformers,
+                inputTransformers = inputTransformers,
+                outputTransformers = outputTransformers,
                 onUpdateMemory = { id, content ->
                     updateMemory(id, content)
                 },

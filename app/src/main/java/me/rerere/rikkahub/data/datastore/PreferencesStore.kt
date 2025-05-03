@@ -178,7 +178,7 @@ data class Settings(
 
 @Serializable
 data class DisplaySetting(
-    val showModelIcon: Boolean = true,
+    val showModelIcon: Boolean = false,
     val showTokenUsage: Boolean = true,
 )
 

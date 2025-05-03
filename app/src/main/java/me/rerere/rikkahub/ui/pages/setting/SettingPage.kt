@@ -49,8 +49,8 @@ import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.isNotConfigured
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.context.LocalNavController
+import me.rerere.rikkahub.ui.pages.setting.components.PresetThemeButtonGroup
 import me.rerere.rikkahub.utils.countChatFiles
-import me.rerere.rikkahub.utils.navigateToChatPage
 import me.rerere.rikkahub.utils.plus
 import org.koin.androidx.compose.koinViewModel
 
@@ -125,7 +125,6 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                             checked = settings.dynamicColor,
                             onCheckedChange = {
                                 vm.updateSettings(settings.copy(dynamicColor = it))
-                                navigateToChatPage(navController)
                             },
                         )
                     },
@@ -133,6 +132,22 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                         Icon(Lucide.Palette, null)
                     }
                 )
+            }
+
+            if(!settings.dynamicColor) {
+                item {
+                    PresetThemeButtonGroup(
+                        themeId = settings.themeId,
+                        type = settings.themeType,
+                        modifier = Modifier.fillMaxWidth(),
+                        onChangeType = {
+                            vm.updateSettings(settings.copy(themeType = it))
+                        },
+                        onChangeTheme = {
+                            vm.updateSettings(settings.copy(themeId = it))
+                        }
+                    )
+                }
             }
 
             stickyHeader {

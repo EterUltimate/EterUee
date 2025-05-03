@@ -14,6 +14,8 @@ import kotlinx.serialization.Serializable
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.rikkahub.data.model.Assistant
+import me.rerere.rikkahub.ui.theme.PresetThemeType
+import me.rerere.rikkahub.ui.theme.PresetThemes
 import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.search.SearchCommonOptions
 import me.rerere.search.SearchServiceOptions
@@ -34,6 +36,8 @@ class SettingsStore(context: Context) {
     companion object {
         // UI设置
         val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
+        val THEME_ID = stringPreferencesKey("theme_id")
+        val THEME_TYPE = stringPreferencesKey("theme_type")
         val DISPLAY_SETTING = stringPreferencesKey("display_setting")
 
         // 模型选择
@@ -74,6 +78,10 @@ class SettingsStore(context: Context) {
                 providers = JsonInstant.decodeFromString(preferences[PROVIDERS] ?: "[]"),
                 assistants = JsonInstant.decodeFromString(preferences[ASSISTANTS] ?: "[]"),
                 dynamicColor = preferences[DYNAMIC_COLOR] != false,
+                themeId = preferences[THEME_ID] ?: PresetThemes[0].id,
+                themeType = preferences[THEME_TYPE]?.let {
+                    JsonInstant.decodeFromString(it)
+                } ?: PresetThemeType.STANDARD,
                 displaySetting = JsonInstant.decodeFromString(preferences[DISPLAY_SETTING] ?: "{}"),
                 searchServiceOptions = preferences[SEARCH_SERVICE]?.let {
                     JsonInstant.decodeFromString(it)
@@ -127,6 +135,8 @@ class SettingsStore(context: Context) {
     suspend fun update(settings: Settings) {
         dataStore.edit { preferences ->
             preferences[DYNAMIC_COLOR] = settings.dynamicColor
+            preferences[THEME_ID] = settings.themeId
+            preferences[THEME_TYPE] = JsonInstant.encodeToString(settings.themeType)
             preferences[DISPLAY_SETTING] = JsonInstant.encodeToString(settings.displaySetting)
 
             preferences[SELECT_MODEL] = settings.chatModelId.toString()
@@ -153,6 +163,8 @@ class SettingsStore(context: Context) {
 @Serializable
 data class Settings(
     val dynamicColor: Boolean = true,
+    val themeId: String = PresetThemes[0].id,
+    val themeType: PresetThemeType = PresetThemeType.STANDARD,
     val displaySetting: DisplaySetting  = DisplaySetting(),
     val chatModelId: Uuid = Uuid.random(),
     val titleModelId: Uuid = Uuid.random(),

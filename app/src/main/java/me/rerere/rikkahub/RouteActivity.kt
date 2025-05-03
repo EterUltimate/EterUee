@@ -20,11 +20,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
@@ -43,12 +40,8 @@ import com.dokar.sonner.rememberToasterState
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.stateIn
 import me.rerere.highlight.Highlighter
 import me.rerere.highlight.LocalHighlighter
-import me.rerere.rikkahub.data.datastore.Settings
-import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.ui.context.LocalAnimatedVisibilityScope
 import me.rerere.rikkahub.ui.context.LocalFirebaseAnalytics
 import me.rerere.rikkahub.ui.context.LocalNavController
@@ -75,21 +68,15 @@ private const val TAG = "RouteActivity"
 
 class RouteActivity : ComponentActivity() {
     private lateinit var firebaseAnalytics: FirebaseAnalytics
-
     private val highlighter by inject<Highlighter>()
-
-    private val settingStore by inject<SettingsStore>()
-    private val settings = settingStore.settingsFlow
-        .stateIn(lifecycleScope, SharingStarted.Eagerly, Settings())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         disableNavigationBarContrast()
         super.onCreate(savedInstanceState)
         setContent {
-            val settingsState by settings.collectAsStateWithLifecycle()
             val navController = rememberNavController()
-            RikkahubTheme(dynamicColor = settingsState.dynamicColor) {
+            RikkahubTheme {
                 setSingletonImageLoaderFactory { context ->
                     ImageLoader.Builder(context)
                         .crossfade(true)

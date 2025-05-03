@@ -4,10 +4,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
-import me.rerere.rikkahub.ui.theme.PresetScheme
+import me.rerere.rikkahub.ui.theme.PresetTheme
 
 val SpringThemePreset by lazy {
-    PresetScheme(
+    PresetTheme(
         id = "spring",
         name = {
             Text("原野绿")

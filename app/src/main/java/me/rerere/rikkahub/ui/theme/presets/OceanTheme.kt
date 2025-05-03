@@ -1,13 +1,13 @@
 package me.rerere.rikkahub.ui.theme.presets
 
+import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
-import me.rerere.ai.ui.UIMessagePart.Text
-import me.rerere.rikkahub.ui.theme.PresetScheme
+import me.rerere.rikkahub.ui.theme.PresetTheme
 
 val OceanThemePreset by lazy {
-    PresetScheme(
+    PresetTheme(
         id = "ocean",
         name = {
             Text("海湾蓝")

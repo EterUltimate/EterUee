@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -23,8 +24,10 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -32,6 +35,7 @@ import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -43,17 +47,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import com.composables.icons.lucide.ArrowUp
 import com.composables.icons.lucide.Camera
 import com.composables.icons.lucide.Earth
+import com.composables.icons.lucide.Fullscreen
 import com.composables.icons.lucide.Image
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
@@ -227,10 +234,16 @@ fun ChatInput(
                             }
                         }
                     }
+                    var isFocused by remember { mutableStateOf(false) }
+                    var isFullScreen by remember { mutableStateOf(false) }
                     TextField(
                         value = text.text,
                         onValueChange = { state.setMessageText(it) },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onFocusChanged {
+                                isFocused = it.isFocused
+                            },
                         shape = RoundedCornerShape(32.dp),
                         placeholder = {
                             Text(stringResource(R.string.chat_input_placeholder))
@@ -241,8 +254,24 @@ fun ChatInput(
                             focusedIndicatorColor = Color.Transparent,
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent,
-                        )
+                        ),
+                        trailingIcon = {
+                            if (isFocused) {
+                                IconButton(
+                                    onClick = {
+                                        isFullScreen = !isFullScreen
+                                    }
+                                ) {
+                                    Icon(Lucide.Fullscreen, null)
+                                }
+                            }
+                        }
                     )
+                    if (isFullScreen) {
+                        FullScreenEditor(text, state) {
+                            isFullScreen = false
+                        }
+                    }
                 }
             }
 
@@ -329,6 +358,70 @@ fun ChatInput(
                             expand = false
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FullScreenEditor(
+    text: UIMessagePart.Text,
+    state: ChatInputState,
+    onDone: () -> Unit
+) {
+    BasicAlertDialog(
+        onDismissRequest = {
+            onDone()
+        },
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false
+        ),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Surface(
+                modifier = Modifier
+                    .widthIn(max = 800.dp)
+                    .fillMaxHeight(0.9f),
+                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .fillMaxSize(),
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Row {
+                        TextButton(
+                            onClick = {
+                                onDone()
+                            }
+                        ) {
+                            Text(stringResource(R.string.chat_page_save))
+                        }
+                    }
+                    TextField(
+                        value = text.text,
+                        onValueChange = { state.setMessageText(it) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(),
+                        shape = RoundedCornerShape(32.dp),
+                        placeholder = {
+                            Text(stringResource(R.string.chat_input_placeholder))
+                        },
+                        colors = TextFieldDefaults.colors().copy(
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                        ),
+                    )
                 }
             }
         }

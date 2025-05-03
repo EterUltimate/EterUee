@@ -109,4 +109,15 @@
     
     <!-- Notification -->
     <string name="notification_channel_chat_completed">Chat Completed</string>
+    
+    <!-- Theme Types -->
+    <string name="setting_page_theme_type_standard">Standard</string>
+    <string name="setting_page_theme_type_medium_contrast">Medium Contrast</string>
+    <string name="setting_page_theme_type_high_contrast">High Contrast</string>
+    
+    <!-- Theme Names -->
+    <string name="theme_name_black">Neutral Black</string>
+    <string name="theme_name_sakura">Sakura Pink</string>
+    <string name="theme_name_ocean">Ocean Blue</string>
+    <string name="theme_name_spring">Meadow Green</string>
 </resources>

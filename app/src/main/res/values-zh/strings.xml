@@ -110,4 +110,15 @@
     
     <!-- Notification -->
     <string name="notification_channel_chat_completed">聊天完成</string>
+    
+    <!-- Theme Types -->
+    <string name="setting_page_theme_type_standard">标准</string>
+    <string name="setting_page_theme_type_medium_contrast">中对比</string>
+    <string name="setting_page_theme_type_high_contrast">高对比</string>
+    
+    <!-- Theme Names -->
+    <string name="theme_name_black">中性黑</string>
+    <string name="theme_name_sakura">樱花粉</string>
+    <string name="theme_name_ocean">海湾蓝</string>
+    <string name="theme_name_spring">原野绿</string>
 </resources> 

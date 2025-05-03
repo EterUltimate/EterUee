@@ -107,4 +107,15 @@
     
     <!-- Notification -->
     <string name="notification_channel_chat_completed">チャット完了</string>
+    
+    <!-- Theme Types -->
+    <string name="setting_page_theme_type_standard">標準</string>
+    <string name="setting_page_theme_type_medium_contrast">中コントラスト</string>
+    <string name="setting_page_theme_type_high_contrast">高コントラスト</string>
+
+    <!-- Theme Names -->
+    <string name="theme_name_black">ニュートラルブラック</string>
+    <string name="theme_name_sakura">サクラピンク</string>
+    <string name="theme_name_ocean">オーシャンブルー</string>
+    <string name="theme_name_spring">メドウグリーン</string>
 </resources> 

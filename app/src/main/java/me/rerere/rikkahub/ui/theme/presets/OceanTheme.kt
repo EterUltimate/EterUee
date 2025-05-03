@@ -4,13 +4,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.theme.PresetTheme
 
 val OceanThemePreset by lazy {
     PresetTheme(
         id = "ocean",
         name = {
-            Text("海湾蓝")
+            Text(stringResource(id = R.string.theme_name_ocean))
         },
         standardLight = lightScheme,
         standardDark = darkScheme,

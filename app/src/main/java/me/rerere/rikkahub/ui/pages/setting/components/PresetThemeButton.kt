@@ -16,7 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -32,12 +32,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
 import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.Lucide
+import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.theme.LocalDarkMode
 import me.rerere.rikkahub.ui.theme.PresetTheme
 import me.rerere.rikkahub.ui.theme.PresetThemeType
@@ -114,7 +116,7 @@ fun PresetThemeButton(
             }
         }
         ProvideTextStyle(
-            LocalTextStyle.current.copy(color = scheme.primary)
+            MaterialTheme.typography.labelMedium.copy(color = scheme.primary)
         ) {
             theme.name()
         }
@@ -164,11 +166,15 @@ fun PresetThemeButtonGroup(
                         count = PresetThemeType.entries.size
                     ),
                 ) {
-                    when (themeType) {
-                        PresetThemeType.STANDARD -> Text("标准")
-                        PresetThemeType.MEDIUM_CONTRAST -> Text("中对比")
-                        PresetThemeType.HIGH_CONTRAST -> Text("高对比")
+                    val text = when (themeType) {
+                        PresetThemeType.STANDARD -> stringResource(R.string.setting_page_theme_type_standard)
+                        PresetThemeType.MEDIUM_CONTRAST -> stringResource(R.string.setting_page_theme_type_medium_contrast)
+                        PresetThemeType.HIGH_CONTRAST -> stringResource(R.string.setting_page_theme_type_high_contrast)
                     }
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.labelMedium
+                    )
                 }
             }
         }

@@ -315,7 +315,7 @@ private fun AssistantEditSheet(
                                     )
                                 )
                             },
-                            valueRange = 4f..64f,
+                            valueRange = 4f..512f,
                             steps = 0,
                             modifier = Modifier.fillMaxWidth()
                         )

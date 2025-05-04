@@ -1,5 +1,6 @@
 package me.rerere.search
 
+import androidx.compose.runtime.Composable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -7,6 +8,9 @@ import okhttp3.OkHttpClient
 
 interface SearchService<T : SearchServiceOptions> {
     val name: String
+
+    @Composable
+    fun Description()
 
     suspend fun search(
         query: String,

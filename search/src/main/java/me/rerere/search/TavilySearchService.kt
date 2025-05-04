@@ -1,5 +1,9 @@
 package me.rerere.search
 
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalUriHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
@@ -13,6 +17,18 @@ import okhttp3.RequestBody.Companion.toRequestBody
 
 object TavilySearchService : SearchService<SearchServiceOptions.TavilyOptions> {
     override val name: String = "Tavily"
+
+    @Composable
+    override fun Description() {
+        val urlHandler = LocalUriHandler.current
+        TextButton(
+            onClick = {
+                urlHandler.openUri("https://app.tavily.com/home")
+            }
+        ) {
+            Text("点击获取API Key")
+        }
+    }
 
     override suspend fun search(
         query: String,
@@ -59,6 +75,7 @@ object TavilySearchService : SearchService<SearchServiceOptions.TavilyOptions> {
         val images: List<String> = emptyList(),
         val results: List<ResultItem>,
     )
+
     @Serializable
     data class ResultItem(
         val title: String,

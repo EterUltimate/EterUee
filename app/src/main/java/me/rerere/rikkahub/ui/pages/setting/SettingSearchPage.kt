@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -29,6 +31,7 @@ import me.rerere.rikkahub.ui.components.ui.OutlinedNumberInput
 import me.rerere.rikkahub.ui.components.ui.Select
 import me.rerere.rikkahub.utils.plus
 import me.rerere.search.SearchCommonOptions
+import me.rerere.search.SearchService
 import me.rerere.search.SearchServiceOptions
 import org.koin.androidx.compose.koinViewModel
 import kotlin.reflect.full.primaryConstructor
@@ -98,8 +101,8 @@ private fun ProviderOptions(
             modifier = Modifier
                 .animateContentSize()
                 .fillMaxWidth()
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             FormItem(
                 label = {
@@ -114,6 +117,7 @@ private fun ProviderOptions(
                         options = it.primaryConstructor!!.callBy(mapOf())
                         onUpdateOptions(options)
                     },
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
@@ -140,6 +144,9 @@ private fun ProviderOptions(
                 }
 
                 is SearchServiceOptions.BingLocalOptions -> {}
+            }
+            ProvideTextStyle(MaterialTheme.typography.labelMedium) {
+                SearchService.getService(options).Description()
             }
         }
     }
@@ -230,8 +237,8 @@ private fun CommonOptions(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             FormItem(
                 label = {

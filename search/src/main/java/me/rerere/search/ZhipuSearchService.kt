@@ -1,5 +1,9 @@
 package me.rerere.search
 
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalUriHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
@@ -15,6 +19,18 @@ import okhttp3.RequestBody.Companion.toRequestBody
 
 object ZhipuSearchService : SearchService<SearchServiceOptions.ZhipuOptions> {
     override val name: String = "Zhipu"
+
+    @Composable
+    override fun Description() {
+        val urlHandler = LocalUriHandler.current
+        TextButton(
+            onClick = {
+                urlHandler.openUri("https://bigmodel.cn/usercenter/proj-mgmt/apikeys")
+            }
+        ) {
+            Text("点击获取API Key")
+        }
+    }
 
     override suspend fun search(
         query: String,

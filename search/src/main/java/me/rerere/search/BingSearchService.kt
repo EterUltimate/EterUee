@@ -1,5 +1,8 @@
 package me.rerere.search
 
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.rerere.search.SearchResult.SearchResultItem
@@ -8,6 +11,11 @@ import java.net.URLEncoder
 
 object BingSearchService : SearchService<SearchServiceOptions.BingLocalOptions> {
     override val name: String = "Bing"
+
+    @Composable
+    override fun Description() {
+        Text(stringResource(R.string.bing_desc))
+    }
 
     override suspend fun search(
         query: String,

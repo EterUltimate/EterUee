@@ -458,7 +458,7 @@ private fun FullScreenEditor(
                         .padding(8.dp)
                         .fillMaxSize(),
                     horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Row {
                         TextButton(
@@ -473,8 +473,8 @@ private fun FullScreenEditor(
                         value = text.text,
                         onValueChange = { state.setMessageText(it) },
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(),
+                            .imePadding()
+                            .fillMaxSize(),
                         shape = RoundedCornerShape(32.dp),
                         placeholder = {
                             Text(stringResource(R.string.chat_input_placeholder))

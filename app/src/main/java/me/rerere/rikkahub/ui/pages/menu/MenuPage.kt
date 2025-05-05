@@ -127,7 +127,7 @@ private fun FeaturesSection() {
     Column {
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item {
                 FeatureCard(
@@ -213,7 +213,7 @@ private fun LeaderBoard() {
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             LeaderBoardItem(
                 url = "https://beta.lmarena.ai/leaderboard",

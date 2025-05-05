@@ -25,6 +25,7 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalDrawerSheet
@@ -52,6 +53,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -134,6 +136,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
         Scaffold(
             topBar = {
                 TopBar(
+                    settings = setting,
                     conversation = conversation,
                     drawerState = drawerState,
                     onNewChat = {
@@ -339,6 +342,7 @@ private fun ChatList(
 
 @Composable
 private fun TopBar(
+    settings: Settings,
     conversation: Conversation,
     drawerState: DrawerState,
     onClickMenu: () -> Unit,
@@ -372,13 +376,26 @@ private fun TopBar(
                     }
                 }
             ) {
-                Text(
-                    text = conversation.title.ifBlank { stringResource(R.string.chat_page_new_chat) },
-                    maxLines = 1,
-                    fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(horizontal = 4.dp)
-                )
+                Column {
+                    val model = settings.providers.findModelById(settings.chatModelId)
+                    Text(
+                        text = conversation.title.ifBlank { stringResource(R.string.chat_page_new_chat) },
+                        maxLines = 1,
+                        style = MaterialTheme.typography.bodyMedium,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if(model != null) {
+                        Text(
+                            text = model.displayName,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1,
+                            color = LocalContentColor.current.copy(0.65f),
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontSize = 8.sp,
+                            )
+                        )
+                    }
+                }
             }
         },
         actions = {

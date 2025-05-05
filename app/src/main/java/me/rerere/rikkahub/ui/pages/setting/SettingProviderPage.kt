@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
@@ -54,11 +55,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFilter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Boxes
+import com.composables.icons.lucide.GripHorizontal
 import com.composables.icons.lucide.Hammer
 import com.composables.icons.lucide.Import
 import com.composables.icons.lucide.Lucide
@@ -92,6 +97,9 @@ import me.rerere.rikkahub.ui.hooks.useEditState
 import me.rerere.rikkahub.ui.pages.setting.components.ProviderConfigure
 import me.rerere.rikkahub.utils.plus
 import org.koin.androidx.compose.koinViewModel
+import sh.calvin.reorderable.ReorderableColumn
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @Composable
 fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
@@ -124,38 +132,70 @@ fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
             )
         },
     ) { innerPadding ->
+        val lazyListState = rememberLazyListState()
+        val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
+            val newProviders = settings.providers.toMutableList().apply {
+                add(to.index, removeAt(from.index))
+            }
+            vm.updateSettings(settings.copy(providers = newProviders))
+        }
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .imePadding(),
             contentPadding = innerPadding + PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
+            state = lazyListState
         ) {
-            val providersSorted = settings.providers
-                .sortedByDescending { it.enabled }
-            items(providersSorted, key = { it.id }) { provider ->
-                ProviderItem(
-                    modifier = Modifier.animateItem(),
-                    provider = provider,
-                    onDelete = {
-                        val newSettings = settings.copy(
-                            providers = settings.providers - provider
-                        )
-                        vm.updateSettings(newSettings)
-                    },
-                    onEdit = { newProvider ->
-                        val newSettings = settings.copy(
-                            providers = settings.providers.map {
-                                if (newProvider.id == it.id) {
-                                    newProvider
-                                } else {
-                                    it
+            items(settings.providers, key = { it.id }) { provider ->
+                ReorderableItem(
+                    state = reorderableState,
+                    key = provider.id
+                ) { isDragging ->
+                    ProviderItem(
+                        modifier = Modifier
+                            .scale(if (isDragging) 0.95f else 1f),
+                        provider = provider,
+                        onDelete = {
+                            val newSettings = settings.copy(
+                                providers = settings.providers - provider
+                            )
+                            vm.updateSettings(newSettings)
+                        },
+                        onEdit = { newProvider ->
+                            val newSettings = settings.copy(
+                                providers = settings.providers.map {
+                                    if (newProvider.id == it.id) {
+                                        newProvider
+                                    } else {
+                                        it
+                                    }
                                 }
+                            )
+                            vm.updateSettings(newSettings)
+                        },
+                        dragHandle = {
+                            val haptic = LocalHapticFeedback.current
+                            IconButton(
+                                onClick = {},
+                                modifier = Modifier
+                                    .longPressDraggableHandle(
+                                        onDragStarted = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
+                                        },
+                                        onDragStopped = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                                        }
+                                    )
+                            ) {
+                                Icon(
+                                    imageVector = Lucide.GripHorizontal,
+                                    contentDescription = null
+                                )
                             }
-                        )
-                        vm.updateSettings(newSettings)
-                    }
-                )
+                        }
+                    )
+                }
             }
         }
     }
@@ -259,6 +299,7 @@ private enum class ProviderExpandState {
 private fun ProviderItem(
     provider: ProviderSetting,
     modifier: Modifier = Modifier,
+    dragHandle: @Composable () -> Unit,
     onEdit: (provider: ProviderSetting) -> Unit,
     onDelete: () -> Unit
 ) {
@@ -317,6 +358,7 @@ private fun ProviderItem(
                         }
                     }
                 }
+                dragHandle()
             }
 
             Row(
@@ -459,16 +501,25 @@ private fun ModelList(
                 )
             }
         } else {
-            providerSetting.models.forEach { model ->
-                key(model.id) {
+            ReorderableColumn(
+                list = providerSetting.models,
+                onSettle = { fromIndex, toIndex ->
+                    onUpdateProvider(providerSetting.moveMove(fromIndex, toIndex))
+                },
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) { index, item, isDragging ->
+                key(item.id) {
                     ModelCard(
-                        model = model,
+                        model = item,
                         onDelete = {
-                            onUpdateProvider(providerSetting.delModel(model))
+                            onUpdateProvider(providerSetting.delModel(item))
                         },
                         onEdit = { editedModel ->
                             onUpdateProvider(providerSetting.editModel(editedModel))
                         },
+                        modifier = Modifier
+                            .longPressDraggableHandle()
+                            .scale(if (isDragging) 0.95f else 1f)
                     )
                 }
             }

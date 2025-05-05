@@ -14,6 +14,7 @@ sealed class ProviderSetting {
     abstract fun addModel(model: Model): ProviderSetting
     abstract fun editModel(model: Model): ProviderSetting
     abstract fun delModel(model: Model): ProviderSetting
+    abstract fun moveMove(from: Int, to: Int): ProviderSetting
 
     @Serializable
     @SerialName("openai")
@@ -36,6 +37,16 @@ sealed class ProviderSetting {
         override fun delModel(model: Model): ProviderSetting {
             return copy(models = models.filter { it.id != model.id })
         }
+
+        override fun moveMove(
+            from: Int,
+            to: Int
+        ): ProviderSetting {
+            return copy(models = models.toMutableList().apply {
+                val model = removeAt(from)
+                add(to, model)
+            })
+        }
     }
 
     @Serializable
@@ -57,6 +68,16 @@ sealed class ProviderSetting {
 
         override fun delModel(model: Model): ProviderSetting {
             return copy(models = models.filter { it.id != model.id })
+        }
+
+        override fun moveMove(
+            from: Int,
+            to: Int
+        ): ProviderSetting {
+            return copy(models = models.toMutableList().apply {
+                val model = removeAt(from)
+                add(to, model)
+            })
         }
     }
 

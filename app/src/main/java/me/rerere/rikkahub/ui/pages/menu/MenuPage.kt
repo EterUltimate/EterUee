@@ -26,8 +26,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.Favicon
 import me.rerere.rikkahub.ui.context.LocalNavController
@@ -69,19 +71,20 @@ fun MenuPage() {
 
 @Composable
 private fun Greeting() {
+    @Composable
     fun getGreetingMessage(): String {
         val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
         return when (hour) {
-            in 5..11 -> "早上好"
-            in 12..17 -> "下午好"
-            in 18..22 -> "晚上好"
-            else -> "夜深了，注意休息"
+            in 5..11 -> stringResource(id = R.string.menu_page_morning_greeting)
+            in 12..17 -> stringResource(id = R.string.menu_page_afternoon_greeting)
+            in 18..22 -> stringResource(id = R.string.menu_page_evening_greeting)
+            else -> stringResource(id = R.string.menu_page_night_greeting)
         }
     }
 
     Column {
         Text(
-            text = getGreetingMessage() + "\uD83D\uDC4B",
+            text = getGreetingMessage(),
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(vertical = 24.dp)
         )
@@ -132,7 +135,7 @@ private fun FeaturesSection() {
             item {
                 FeatureCard(
                     title = {
-                        Text("AI翻译")
+                        Text(stringResource(id = R.string.menu_page_ai_translator))
                     },
                     image = {
                         AsyncImage(
@@ -150,7 +153,7 @@ private fun FeaturesSection() {
             item {
                 FeatureCard(
                     title = {
-                        Text("知识库 (施工中)")
+                        Text(stringResource(id = R.string.menu_page_knowledge_base))
                     },
                     image = {
                         AsyncImage(
@@ -205,7 +208,7 @@ private fun LeaderBoard() {
 
     Column {
         Text(
-            text = "LLM排行榜",
+            text = stringResource(id = R.string.menu_page_llm_leaderboard),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(vertical = 16.dp)

@@ -120,4 +120,13 @@
     <string name="theme_name_sakura">Sakura Pink</string>
     <string name="theme_name_ocean">Ocean Blue</string>
     <string name="theme_name_spring">Meadow Green</string>
+    
+    <!-- Menu Page -->
+    <string name="menu_page_morning_greeting">Good morning\uD83D\uDC4B</string>
+    <string name="menu_page_afternoon_greeting">Good afternoon\uD83D\uDC4B</string>
+    <string name="menu_page_evening_greeting">Good evening\uD83D\uDC4B</string>
+    <string name="menu_page_night_greeting">It\'s late, take care\uD83D\uDC4B</string>
+    <string name="menu_page_ai_translator">AI Translator</string>
+    <string name="menu_page_knowledge_base">Knowledge Base (WIP)</string>
+    <string name="menu_page_llm_leaderboard">LLM Leaderboard</string>
 </resources>

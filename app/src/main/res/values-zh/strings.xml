@@ -121,4 +121,13 @@
     <string name="theme_name_sakura">樱花粉</string>
     <string name="theme_name_ocean">海湾蓝</string>
     <string name="theme_name_spring">原野绿</string>
+    
+    <!-- Menu Page -->
+    <string name="menu_page_morning_greeting">早上好\uD83D\uDC4B</string>
+    <string name="menu_page_afternoon_greeting">下午好\uD83D\uDC4B</string>
+    <string name="menu_page_evening_greeting">晚上好\uD83D\uDC4B</string>
+    <string name="menu_page_night_greeting">夜深了，注意休息\uD83D\uDC4B</string>
+    <string name="menu_page_ai_translator">AI翻译</string>
+    <string name="menu_page_knowledge_base">知识库 (施工中)</string>
+    <string name="menu_page_llm_leaderboard">LLM排行榜</string>
 </resources> 

@@ -59,7 +59,11 @@
     <string name="setting_page_share_desc">このアプリを友達と共有</string>
     <string name="setting_page_share_text">RikkaHub - オープンソースAndroid AIアシスタント\n\nウェブサイト: https://rikka-ai.com/</string>
     <string name="setting_page_no_share_app">共有アプリが見つかりません</string>
+    <string name="setting_page_config_api_title">APIとモデルを設定してください</string>
+    <string name="setting_page_config_api_desc">APIとモデルを設定してください</string>
+    <string name="setting_page_config">設定</string>
     
+
     <!-- Setting Model Page -->
     <string name="setting_model_page_title">モデル設定</string>
     <string name="setting_model_page_chat_model">チャットモデル</string>
@@ -118,4 +122,13 @@
     <string name="theme_name_sakura">サクラピンク</string>
     <string name="theme_name_ocean">オーシャンブルー</string>
     <string name="theme_name_spring">メドウグリーン</string>
+
+    <!-- Menu Page -->
+    <string name="menu_page_morning_greeting">おはようございます\uD83D\uDC4B</string>
+    <string name="menu_page_afternoon_greeting">こんにちは\uD83D\uDC4B</string>
+    <string name="menu_page_evening_greeting">こんばんは\uD83D\uDC4B</string>
+    <string name="menu_page_night_greeting">夜更かしですね、お気をつけて\uD83D\uDC4B</string>
+    <string name="menu_page_ai_translator">AI翻訳</string>
+    <string name="menu_page_knowledge_base">知識ベース (開発中)</string>
+    <string name="menu_page_llm_leaderboard">LLMランキング</string>
 </resources> 

@@ -59,6 +59,9 @@
     <string name="setting_page_share_desc">分享本APP給朋友</string>
     <string name="setting_page_share_text">RikkaHub - 開源安卓AI助手\n\n官網: https://rikka-ai.com/</string>
     <string name="setting_page_no_share_app">找不到分享應用</string>
+    <string name="setting_page_config_api_title">請配置API和模型</string>
+    <string name="setting_page_config_api_desc">你還沒有配置API和模型，請先配置</string>
+    <string name="setting_page_config">配置</string>
     
     <!-- Setting Model Page -->
     <string name="setting_model_page_title">模型設定</string>
@@ -118,4 +121,13 @@
     <string name="theme_name_sakura">櫻花粉</string>
     <string name="theme_name_ocean">海灣藍</string>
     <string name="theme_name_spring">原野綠</string>
+
+    <!-- Menu Page -->
+    <string name="menu_page_morning_greeting">早上好\uD83D\uDC4B</string>
+    <string name="menu_page_afternoon_greeting">下午好\uD83D\uDC4B</string>
+    <string name="menu_page_evening_greeting">晚上好\uD83D\uDC4B</string>
+    <string name="menu_page_night_greeting">夜深了，注意休息\uD83D\uDC4B</string>
+    <string name="menu_page_ai_translator">AI翻譯</string>
+    <string name="menu_page_knowledge_base">知識庫 (建設中)</string>
+    <string name="menu_page_llm_leaderboard">LLM排行榜</string>
 </resources> 

@@ -11,7 +11,7 @@ import me.rerere.rikkahub.data.datastore.SettingsStore
 
 class SettingVM(private val settingsStore: SettingsStore) : ViewModel() {
     val settings: StateFlow<Settings> = settingsStore.settingsFlow
-        .stateIn(viewModelScope, SharingStarted.Lazily, Settings())
+        .stateIn(viewModelScope, SharingStarted.Lazily, Settings(providers = emptyList()))
 
     fun updateSettings(settings: Settings) {
         viewModelScope.launch {

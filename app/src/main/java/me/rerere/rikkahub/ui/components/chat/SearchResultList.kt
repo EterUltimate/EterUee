@@ -28,13 +28,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.Lucide
 import me.rerere.rikkahub.ui.components.ui.Favicon
-import me.rerere.rikkahub.utils.openUrl
+import me.rerere.rikkahub.ui.context.LocalNavController
+import me.rerere.rikkahub.utils.urlDecode
 import me.rerere.search.SearchResult
 
 @Composable
@@ -43,7 +43,7 @@ fun SearchResultList(
     modifier: Modifier = Modifier
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
-    val context = LocalContext.current
+    val navController = LocalNavController.current
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(25))
@@ -88,7 +88,7 @@ fun SearchResultList(
                 items(result.items) { item ->
                     Card(
                         onClick = {
-                            context.openUrl(item.url)
+                            navController.navigate("webview?url=${item.url.urlDecode()}")
                         }
                     ) {
                         ListItem(

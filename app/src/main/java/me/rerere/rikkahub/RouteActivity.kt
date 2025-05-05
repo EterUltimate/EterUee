@@ -33,6 +33,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
+import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.crossfade
 import coil3.svg.SvgDecoder
 import com.dokar.sonner.Toaster
@@ -62,6 +63,7 @@ import me.rerere.rikkahub.ui.pages.translator.TranslatorPage
 import me.rerere.rikkahub.ui.pages.webview.WebViewPage
 import me.rerere.rikkahub.ui.theme.LocalDarkMode
 import me.rerere.rikkahub.ui.theme.RikkahubTheme
+import okhttp3.OkHttpClient
 import org.koin.android.ext.android.inject
 import kotlin.uuid.Uuid
 
@@ -70,6 +72,7 @@ private const val TAG = "RouteActivity"
 class RouteActivity : ComponentActivity() {
     private lateinit var firebaseAnalytics: FirebaseAnalytics
     private val highlighter by inject<Highlighter>()
+    private val okHttpClient by inject<OkHttpClient>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -82,6 +85,7 @@ class RouteActivity : ComponentActivity() {
                     ImageLoader.Builder(context)
                         .crossfade(true)
                         .components {
+                            add(OkHttpNetworkFetcherFactory(callFactory = { okHttpClient }))
                             add(SvgDecoder.Factory(scaleToDensity = true))
                         }
                         .build()

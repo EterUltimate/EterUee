@@ -68,7 +68,7 @@ fun MenuPage() {
 }
 
 @Composable
-private fun Greeting(modifier: Modifier = Modifier) {
+private fun Greeting() {
     fun getGreetingMessage(): String {
         val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
         return when (hour) {
@@ -83,7 +83,7 @@ private fun Greeting(modifier: Modifier = Modifier) {
         Text(
             text = getGreetingMessage() + "\uD83D\uDC4B",
             style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(vertical = 16.dp)
+            modifier = Modifier.padding(vertical = 24.dp)
         )
     }
 }

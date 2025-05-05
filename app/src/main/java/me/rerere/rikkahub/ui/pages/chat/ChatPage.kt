@@ -66,7 +66,6 @@ import com.composables.icons.lucide.Settings
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.launch
 import me.rerere.ai.provider.Model
-import me.rerere.ai.provider.ModelType
 import me.rerere.ai.ui.UIMessage
 import me.rerere.rikkahub.BuildConfig
 import me.rerere.rikkahub.R
@@ -76,7 +75,6 @@ import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.ui.components.chat.AssistantPicker
 import me.rerere.rikkahub.ui.components.chat.ChatInput
 import me.rerere.rikkahub.ui.components.chat.ChatMessage
-import me.rerere.rikkahub.ui.components.chat.ModelSelector
 import me.rerere.rikkahub.ui.components.chat.rememberChatInputState
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.components.ui.WavyCircularProgressIndicator
@@ -152,6 +150,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
             bottomBar = {
                 ChatInput(
                     state = inputState,
+                    settings = setting,
                     onCancelClick = {
                         loadingJob?.cancel()
                     },
@@ -173,19 +172,11 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                             vm.handleMessageSend(inputState.messageContent)
                         }
                         inputState.clearInput()
+                    },
+                    onUpdateChatModel = {
+                        vm.setChatModel(it)
                     }
-                ) {
-                    Box(Modifier.weight(1f)) {
-                        ModelSelector(
-                            modelId = setting.chatModelId,
-                            providers = setting.providers,
-                            onSelect = {
-                                vm.setChatModel(it)
-                            },
-                            type = ModelType.CHAT
-                        )
-                    }
-                }
+                )
             }
         ) { innerPadding ->
             ChatList(

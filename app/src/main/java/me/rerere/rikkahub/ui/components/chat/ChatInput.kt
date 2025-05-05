@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -66,6 +65,7 @@ import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import com.composables.icons.lucide.ArrowUp
+import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Camera
 import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.Fullscreen
@@ -75,9 +75,14 @@ import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.X
 import com.meticha.permissions_compose.AppPermission
 import com.meticha.permissions_compose.rememberAppPermissionState
+import me.rerere.ai.provider.Model
+import me.rerere.ai.provider.ModelType
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyInputMessage
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.data.datastore.Settings
+import me.rerere.rikkahub.data.datastore.findModelById
+import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.createChatFiles
 import me.rerere.rikkahub.utils.deleteChatFiles
@@ -137,27 +142,47 @@ fun rememberChatInputState(
     }
 }
 
+enum class ExpandState {
+    Collapsed,
+    Model,
+    Files
+}
+
 @Composable
 fun ChatInput(
     state: ChatInputState,
+    settings: Settings,
     enableSearch: Boolean,
     onToggleSearch: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    onUpdateChatModel: (Model) -> Unit,
     onCancelClick: () -> Unit,
     onSendClick: () -> Unit,
-    actions: @Composable RowScope.() -> Unit = {},
 ) {
     val text =
         state.messageContent.filterIsInstance<UIMessagePart.Text>().firstOrNull()
             ?: UIMessagePart.Text("")
 
     val context = LocalContext.current
-    var expand by remember { mutableStateOf(false) }
+
     val keyboardController = LocalSoftwareKeyboardController.current
 
     fun sendMessage() {
         keyboardController?.hide()
         if (state.loading) onCancelClick() else onSendClick()
+    }
+
+    var expand by remember { mutableStateOf(ExpandState.Collapsed) }
+    fun dismissExpand() {
+        expand = ExpandState.Collapsed
+    }
+
+    fun expandToggle(type: ExpandState) {
+        if (expand == type) {
+            dismissExpand()
+        } else {
+            expand = type
+        }
     }
 
     Surface {
@@ -288,17 +313,23 @@ fun ChatInput(
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp)
             ) {
-                actions()
-
                 IconButton(
                     onClick = {
-                        expand = !expand
+                        expandToggle(ExpandState.Model)
                     }
                 ) {
-                    Icon(
-                        if (expand) Lucide.X else Lucide.Plus,
-                        stringResource(R.string.more_options)
-                    )
+                    val model = settings.providers.findModelById(settings.chatModelId)
+                    if (model != null) {
+                        AutoAIIcon(
+                            modifier = Modifier.size(24.dp),
+                            name = model.modelId
+                        )
+                    } else {
+                        Icon(
+                            if (expand == ExpandState.Model) Lucide.X else Lucide.Boxes,
+                            stringResource(R.string.setting_model_page_chat_model)
+                        )
+                    }
                 }
 
                 val badgeColor = MaterialTheme.extendColors.green6
@@ -324,6 +355,19 @@ fun ChatInput(
                     Icon(Lucide.Earth, stringResource(R.string.use_web_search))
                 }
 
+                Spacer(Modifier.weight(1f))
+
+                IconButton(
+                    onClick = {
+                        expandToggle(ExpandState.Files)
+                    }
+                ) {
+                    Icon(
+                        if (expand == ExpandState.Files) Lucide.X else Lucide.Plus,
+                        stringResource(R.string.more_options)
+                    )
+                }
+
                 Spacer(Modifier.width(4.dp))
 
                 IconButton(
@@ -345,26 +389,54 @@ fun ChatInput(
             }
 
             // Files
-            AnimatedVisibility(expand) {
+            AnimatedVisibility(expand != ExpandState.Collapsed) {
                 Surface {
-                    FlowRow(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        TakePicButton {
-                            state.addImages(it)
-                            expand = false
+                    when (expand) {
+                        ExpandState.Files -> {
+                            FilesPicker(state) {
+                                dismissExpand()
+                            }
                         }
 
-                        ImagePickButton {
-                            state.addImages(it)
-                            expand = false
+                        ExpandState.Model -> {
+                            ModelSelector(
+                                modelId = settings.titleModelId,
+                                providers = settings.providers,
+                                onSelect = {
+                                    onUpdateChatModel(it)
+                                    dismissExpand()
+                                },
+                                type = ModelType.CHAT,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp)
+                            )
                         }
+
+                        else -> {}
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun FilesPicker(state: ChatInputState, onDismiss: () -> Unit) {
+    FlowRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        TakePicButton {
+            state.addImages(it)
+            onDismiss()
+        }
+
+        ImagePickButton {
+            state.addImages(it)
+            onDismiss()
         }
     }
 }

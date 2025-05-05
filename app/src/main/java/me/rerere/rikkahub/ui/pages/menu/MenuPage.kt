@@ -4,16 +4,21 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -24,8 +29,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import me.rerere.rikkahub.ui.components.nav.BackButton
+import me.rerere.rikkahub.ui.components.ui.Favicon
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.utils.plus
+import me.rerere.rikkahub.utils.urlDecode
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import java.util.Calendar
 
 @Composable
@@ -83,10 +91,43 @@ private fun Greeting(modifier: Modifier = Modifier) {
 @Composable
 private fun FeaturesSection() {
     val navController = LocalNavController.current
+
+    @Composable
+    fun FeatureCard(
+        title: @Composable () -> Unit,
+        image: @Composable () -> Unit,
+        modifier: Modifier = Modifier,
+        onClick: () -> Unit,
+    ) {
+        OutlinedCard(
+            modifier = modifier,
+            onClick = onClick
+        ) {
+            Column {
+                Box(
+                    modifier = Modifier
+                        .clip(CardDefaults.shape)
+                        .width(150.dp)
+                        .aspectRatio(1f)
+                ) {
+                    image()
+                }
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    ProvideTextStyle(MaterialTheme.typography.titleSmall) {
+                        title()
+                    }
+                }
+            }
+        }
+    }
+
     Column {
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item {
                 FeatureCard(
@@ -101,7 +142,6 @@ private fun FeaturesSection() {
                             contentScale = ContentScale.Crop
                         )
                     },
-                    modifier = Modifier.width(160.dp)
                 ) {
                     navController.navigate("translator")
                 }
@@ -120,7 +160,6 @@ private fun FeaturesSection() {
                             contentScale = ContentScale.Crop
                         )
                     },
-                    modifier = Modifier.width(160.dp)
                 ) {
                     // navController.navigate("library")
                 }
@@ -130,36 +169,61 @@ private fun FeaturesSection() {
 }
 
 @Composable
-private fun FeatureCard(
-    title: @Composable () -> Unit,
-    image: @Composable () -> Unit,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-) {
-    OutlinedCard(
-        modifier = modifier,
-        onClick = onClick
+private fun LeaderBoard() {
+    val navController = LocalNavController.current
+
+    @Composable
+    fun LeaderBoardItem(
+        url: String,
+        name: String,
     ) {
-        Column {
-            Box(
-                modifier = Modifier
-                    .clip(CardDefaults.shape)
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-            ) {
-                image()
-            }
+        Card(
+            onClick = {
+                navController.navigate("webview?url=${url.urlDecode()}")
+            },
+            modifier = Modifier.widthIn(min = 150.dp)
+        ) {
             Column(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                title()
+                Favicon(
+                    url = url,
+                )
+                Text(
+                    text = name,
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Text(
+                    text = url.toHttpUrl().host,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = LocalContentColor.current.copy(alpha = 0.75f)
+                )
             }
         }
     }
-}
 
-@Composable
-private fun LeaderBoard() {
+    Column {
+        Text(
+            text = "LLM排行榜",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(vertical = 16.dp)
+        )
 
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            LeaderBoardItem(
+                url = "https://beta.lmarena.ai/leaderboard",
+                name = "LMArena"
+            )
+
+            LeaderBoardItem(
+                url = "https://livebench.ai/#/",
+                name = "LiveBench"
+            )
+        }
+    }
 }

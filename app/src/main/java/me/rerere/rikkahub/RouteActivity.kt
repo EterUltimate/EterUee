@@ -59,6 +59,7 @@ import me.rerere.rikkahub.ui.pages.setting.SettingPage
 import me.rerere.rikkahub.ui.pages.setting.SettingProviderPage
 import me.rerere.rikkahub.ui.pages.setting.SettingSearchPage
 import me.rerere.rikkahub.ui.pages.translator.TranslatorPage
+import me.rerere.rikkahub.ui.pages.webview.WebViewPage
 import me.rerere.rikkahub.ui.theme.LocalDarkMode
 import me.rerere.rikkahub.ui.theme.RikkahubTheme
 import org.koin.android.ext.android.inject
@@ -163,6 +164,18 @@ class RouteActivity : ComponentActivity() {
 
                     composableHelper("setting") {
                         SettingPage()
+                    }
+
+                    composableHelper(
+                        route = "webview?url={url}",
+                        args = listOf(
+                            navArgument("url") {
+                                type = NavType.StringType
+                            }
+                        ),
+                    ) {
+                        val url = it.arguments?.getString("url") ?: ""
+                        WebViewPage(url)
                     }
 
                     composableHelper("setting/display") {

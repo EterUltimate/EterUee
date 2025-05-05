@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,7 +34,6 @@ import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
@@ -49,7 +49,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -67,7 +66,7 @@ import coil3.compose.AsyncImage
 import com.composables.icons.lucide.ArrowUp
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Camera
-import com.composables.icons.lucide.Earth
+import com.composables.icons.lucide.Compass
 import com.composables.icons.lucide.Fullscreen
 import com.composables.icons.lucide.Image
 import com.composables.icons.lucide.Lucide
@@ -83,7 +82,6 @@ import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
-import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.createChatFiles
 import me.rerere.rikkahub.utils.deleteChatFiles
 import java.io.File
@@ -311,7 +309,8 @@ fun ChatInput(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
+                    .padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 IconButton(
                     onClick = {
@@ -321,38 +320,45 @@ fun ChatInput(
                     val model = settings.providers.findModelById(settings.chatModelId)
                     if (model != null) {
                         AutoAIIcon(
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier.size(20.dp),
                             name = model.modelId
                         )
                     } else {
                         Icon(
                             if (expand == ExpandState.Model) Lucide.X else Lucide.Boxes,
-                            stringResource(R.string.setting_model_page_chat_model)
+                            contentDescription = stringResource(R.string.setting_model_page_chat_model),
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
 
-                val badgeColor = MaterialTheme.extendColors.green6
-                IconToggleButton(
-                    checked = enableSearch,
-                    onCheckedChange = {
-                        onToggleSearch(it)
+                Surface(
+                    onClick = {
+                        onToggleSearch(!enableSearch)
                     },
-                    modifier = Modifier.drawWithContent {
-                        drawContent()
+                    tonalElevation = if (enableSearch) 4.dp else 0.dp,
+                    shape = RoundedCornerShape(50)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .animateContentSize()
+                            .padding(vertical = 4.dp, horizontal = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            Lucide.Compass,
+                            contentDescription = stringResource(R.string.use_web_search),
+                            modifier = Modifier.size(20.dp)
+                        )
                         if (enableSearch) {
-                            drawCircle(
-                                color = badgeColor,
-                                radius = 4.dp.toPx(),
-                                center = center.copy(
-                                    x = size.width - 8.dp.toPx(),
-                                    y = 8.dp.toPx()
-                                )
+                            Text(
+                                text = stringResource(R.string.use_web_search),
+                                modifier = Modifier.padding(start = 4.dp),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
-                ) {
-                    Icon(Lucide.Earth, stringResource(R.string.use_web_search))
                 }
 
                 Spacer(Modifier.weight(1f))
@@ -389,7 +395,9 @@ fun ChatInput(
             }
 
             // Files
-            AnimatedVisibility(expand != ExpandState.Collapsed) {
+            AnimatedVisibility(
+                expand != ExpandState.Collapsed
+            ) {
                 Surface {
                     when (expand) {
                         ExpandState.Files -> {
@@ -400,7 +408,7 @@ fun ChatInput(
 
                         ExpandState.Model -> {
                             ModelSelector(
-                                modelId = settings.titleModelId,
+                                modelId = settings.chatModelId,
                                 providers = settings.providers,
                                 onSelect = {
                                     onUpdateChatModel(it)

@@ -37,7 +37,7 @@ import androidx.navigation.NavController
 import com.composables.icons.lucide.BadgeInfo
 import com.composables.icons.lucide.Bot
 import com.composables.icons.lucide.Boxes
-import com.composables.icons.lucide.Earth
+import com.composables.icons.lucide.Compass
 import com.composables.icons.lucide.HardDrive
 import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.Lucide
@@ -184,7 +184,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                     navController = navController,
                     title = { Text(stringResource(R.string.setting_page_search_service)) },
                     description = { Text(stringResource(R.string.setting_page_search_service_desc)) },
-                    icon = { Icon(Lucide.Earth, "Search") },
+                    icon = { Icon(Lucide.Compass, "Search") },
                     link = "setting/search"
                 )
             }

@@ -54,8 +54,15 @@ fun SettingModelPage(vm: SettingVM = koinViewModel()) {
                         modelId = settings.chatModelId,
                         type = ModelType.CHAT,
                         onSelect = {
+                            vm.updateSettings(
+                                settings.copy(
+                                    chatModelId = it.id
+                                )
+                            )
+                        },
+                        onUpdate = {
                             vm.updateSettings(settings.copy(
-                                chatModelId = it.id
+                                providers = it
                             ))
                         },
                         providers = settings.providers,
@@ -75,8 +82,15 @@ fun SettingModelPage(vm: SettingVM = koinViewModel()) {
                         modelId = settings.titleModelId,
                         type = ModelType.CHAT,
                         onSelect = {
+                            vm.updateSettings(
+                                settings.copy(
+                                    titleModelId = it.id
+                                )
+                            )
+                        },
+                        onUpdate = {
                             vm.updateSettings(settings.copy(
-                                titleModelId = it.id
+                                providers = it
                             ))
                         },
                         providers = settings.providers,
@@ -96,8 +110,15 @@ fun SettingModelPage(vm: SettingVM = koinViewModel()) {
                         modelId = settings.translateModeId,
                         type = ModelType.CHAT,
                         onSelect = {
+                            vm.updateSettings(
+                                settings.copy(
+                                    translateModeId = it.id
+                                )
+                            )
+                        },
+                        onUpdate = {
                             vm.updateSettings(settings.copy(
-                                translateModeId = it.id
+                                providers = it
                             ))
                         },
                         providers = settings.providers,

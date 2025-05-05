@@ -178,6 +178,11 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                     },
                     onUpdateChatModel = {
                         vm.setChatModel(it)
+                    },
+                    onUpdateProviders = {
+                        vm.updateSettings(setting.copy(
+                            providers = it
+                        ))
                     }
                 )
             }

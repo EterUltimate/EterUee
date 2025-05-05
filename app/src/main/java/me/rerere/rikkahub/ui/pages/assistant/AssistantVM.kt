@@ -65,6 +65,18 @@ class AssistantVM(
     fun getMemories(assistant: Assistant) =
         memoryRepository.getMemoriesOfAssistantFlow(assistant.id.toString())
 
+    fun addMemory(assistant: Assistant, memory: AssistantMemory) {
+        viewModelScope.launch {
+            memoryRepository.addMemory(assistant.id.toString() , memory.content)
+        }
+    }
+
+    fun updateMemory(memory: AssistantMemory) {
+        viewModelScope.launch {
+            memoryRepository.updateContent(memory.id, memory.content)
+        }
+    }
+
     fun deleteMemory(memory: AssistantMemory) {
         viewModelScope.launch {
             memoryRepository.deleteMemory(memory.id)

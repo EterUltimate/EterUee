@@ -9,9 +9,10 @@ data class Model(
     val displayName: String = "",
     val id: Uuid = Uuid.random(),
     val type: ModelType = ModelType.CHAT,
+    val favorite: Boolean = false,
     val inputModalities: List<Modality> = listOf(Modality.TEXT),
     val outputModalities: List<Modality> = listOf(Modality.TEXT),
-    val abilities: List<ModelAbility> = emptyList()
+    val abilities: List<ModelAbility> = emptyList(),
 )
 
 @Serializable

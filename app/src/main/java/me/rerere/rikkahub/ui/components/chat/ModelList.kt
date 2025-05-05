@@ -39,6 +39,8 @@ import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastForEach
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Hammer
+import com.composables.icons.lucide.Heart
+import com.composables.icons.lucide.HeartOff
 import com.composables.icons.lucide.Lucide
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
@@ -57,8 +59,9 @@ fun ModelSelector(
     modelId: Uuid,
     providers: List<ProviderSetting>,
     type: ModelType,
-    onlyIcon: Boolean = false,
     modifier: Modifier = Modifier,
+    onlyIcon: Boolean = false,
+    onUpdate: (List<ProviderSetting>) -> Unit = {},
     onSelect: (Model) -> Unit = {}
 ) {
     var popup by remember {
@@ -66,7 +69,7 @@ fun ModelSelector(
     }
     val model = providers.findModelById(modelId)
 
-    if(!onlyIcon) {
+    if (!onlyIcon) {
         TextButton(
             onClick = {
                 popup = true
@@ -119,16 +122,30 @@ fun ModelSelector(
                 modifier = Modifier.padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                val filteredModels = providers.fastFilter {
+                val filteredProviderSettings = providers.fastFilter {
                     it.enabled && it.models.fastAny { model -> model.type == type }
                 }
                 ModelList(
-                    providers = filteredModels,
-                    modelType = type
-                ) {
-                    popup = false
-                    onSelect(it)
-                }
+                    providers = filteredProviderSettings,
+                    modelType = type,
+                    onSelect = {
+                        popup = false
+                        onSelect(it)
+                    },
+                    onUpdate = { newModel ->
+                        onUpdate(providers.map { provider ->
+                            provider.copyProvider(
+                                models = provider.models.map {
+                                    if (it.id == newModel.id) {
+                                        newModel
+                                    } else {
+                                        it
+                                    }
+                                }
+                            )
+                        })
+                    }
+                )
             }
         }
     }
@@ -138,8 +155,14 @@ fun ModelSelector(
 fun ModelList(
     providers: List<ProviderSetting>,
     modelType: ModelType,
-    onSelect: (Model) -> Unit
+    onUpdate: (Model) -> Unit,
+    onSelect: (Model) -> Unit,
 ) {
+    val favoriteModels = providers
+        .flatMap { it.models }
+        .fastFilter {
+            it.favorite && it.type == modelType
+        }
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         contentPadding = PaddingValues(8.dp),
@@ -156,6 +179,53 @@ fun ModelList(
                     color = MaterialTheme.extendColors.gray6,
                     modifier = Modifier.padding(8.dp)
                 )
+            }
+        }
+
+        if (favoriteModels.isNotEmpty()) {
+            stickyHeader {
+                Text(
+                    text = "收藏",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
+                )
+            }
+
+            items(
+                items = favoriteModels,
+                key = { "favorite:" + it.id.toString() }
+            ) { model ->
+                ModelItem(
+                    model = model,
+                    onSelect = onSelect,
+                    modifier = Modifier.animateItem()
+                ) {
+                    IconButton(
+                        onClick = {
+                            onUpdate(
+                                model.copy(
+                                    favorite = !model.favorite
+                                )
+                            )
+                        }
+                    ) {
+                        if (model.favorite) {
+                            Icon(
+                                Lucide.Heart,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp),
+                                tint = MaterialTheme.extendColors.red6
+                            )
+                        } else {
+                            Icon(
+                                Lucide.HeartOff,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
             }
         }
 
@@ -176,7 +246,33 @@ fun ModelList(
                 ModelItem(
                     model = model,
                     onSelect = onSelect,
-                )
+                    modifier = Modifier.animateItem()
+                ) {
+                    IconButton(
+                        onClick = {
+                            onUpdate(
+                                model.copy(
+                                    favorite = !model.favorite
+                                )
+                            )
+                        }
+                    ) {
+                        if (model.favorite) {
+                            Icon(
+                                Lucide.Heart,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp),
+                                tint = MaterialTheme.extendColors.red6
+                            )
+                        } else {
+                            Icon(
+                                Lucide.Heart,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
             }
         }
     }

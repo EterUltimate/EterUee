@@ -75,6 +75,7 @@ import com.meticha.permissions_compose.AppPermission
 import com.meticha.permissions_compose.rememberAppPermissionState
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelType
+import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyInputMessage
 import me.rerere.rikkahub.R
@@ -150,6 +151,7 @@ fun ChatInput(
     onToggleSearch: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     onUpdateChatModel: (Model) -> Unit,
+    onUpdateProviders: (List<ProviderSetting>) -> Unit,
     onCancelClick: () -> Unit,
     onSendClick: () -> Unit,
 ) {
@@ -315,11 +317,14 @@ fun ChatInput(
                         onUpdateChatModel(it)
                         dismissExpand()
                     },
+                    onUpdate = {
+                        onUpdateProviders(it)
+                    },
                     type = ModelType.CHAT,
                     onlyIcon = true,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(8.dp)
+                        .padding(8.dp),
                 )
 
                 Surface(

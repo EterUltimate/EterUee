@@ -1,6 +1,7 @@
 package me.rerere.rikkahub.ui.pages.assistant
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -14,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
@@ -27,6 +29,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -195,7 +198,7 @@ private fun AssistantEditSheet(
 
                         Text(
                             text = stringResource(
-                                R.string.assistant_page_available_variables, 
+                                R.string.assistant_page_available_variables,
                                 PlaceholderTransformer.Placeholders.entries.joinToString(", ") { "${it.key}: ${it.value}" }
                             ),
                             style = MaterialTheme.typography.labelSmall,
@@ -288,7 +291,10 @@ private fun AssistantEditSheet(
                             modifier = Modifier.fillMaxWidth()
                         )
                         Text(
-                            text = stringResource(R.string.assistant_page_top_p_value, assistant.topP.toString()),
+                            text = stringResource(
+                                R.string.assistant_page_top_p_value,
+                                assistant.topP.toString()
+                            ),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
                         )
@@ -320,7 +326,10 @@ private fun AssistantEditSheet(
                             modifier = Modifier.fillMaxWidth()
                         )
                         Text(
-                            text = stringResource(R.string.assistant_page_context_message_count, assistant.contextMessageSize),
+                            text = stringResource(
+                                R.string.assistant_page_context_message_count,
+                                assistant.contextMessageSize
+                            ),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
                         )
@@ -349,7 +358,12 @@ private fun AssistantEditSheet(
                                     memoryState.open(assistant)
                                 }
                             ) {
-                                Text(stringResource(R.string.assistant_page_manage_memory, memories.size))
+                                Text(
+                                    stringResource(
+                                        R.string.assistant_page_manage_memory,
+                                        memories.size
+                                    )
+                                )
                             }
 
                             Spacer(Modifier.weight(1f))
@@ -396,6 +410,13 @@ private fun AssistantEditSheet(
 
 @Composable
 private fun MemorySheet(vm: AssistantVM, memoryState: EditState<Assistant>) {
+    val memoryItemDialogState = useEditState<AssistantMemory> {
+        if (it.id == 0) {
+            vm.addMemory(memoryState.currentState!!, it)
+        } else {
+            vm.updateMemory(it)
+        }
+    }
     memoryState.EditStateContent { assistant, update ->
         val memories by vm.getMemories(assistant).collectAsStateWithLifecycle(
             initialValue = emptyList(),
@@ -415,11 +436,29 @@ private fun MemorySheet(vm: AssistantVM, memoryState: EditState<Assistant>) {
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = stringResource(R.string.assistant_page_manage_memory_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = stringResource(R.string.assistant_page_manage_memory_title),
+                        style = MaterialTheme.typography.headlineMedium,
+                        modifier = Modifier
+                            .padding(bottom = 16.dp)
+                            .align(Alignment.Center)
+                    )
+
+                    IconButton(
+                        onClick = {
+                            memoryItemDialogState.open(AssistantMemory(0, ""))
+                        },
+                        modifier = Modifier.align(Alignment.CenterEnd)
+                    ) {
+                        Icon(
+                            imageVector = Lucide.Plus,
+                            contentDescription = null
+                        )
+                    }
+                }
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -427,7 +466,9 @@ private fun MemorySheet(vm: AssistantVM, memoryState: EditState<Assistant>) {
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     items(memories, key = { it.id }) { memory ->
-                        Card {
+                        Card(
+                            modifier = Modifier.animateItem()
+                        ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -439,13 +480,22 @@ private fun MemorySheet(vm: AssistantVM, memoryState: EditState<Assistant>) {
                                     text = memory.content,
                                     modifier = Modifier.weight(1f)
                                 )
-
+                                IconButton(
+                                    onClick = {
+                                        memoryItemDialogState.open(memory)
+                                    }
+                                ) {
+                                    Icon(Lucide.Pencil, "编辑")
+                                }
                                 IconButton(
                                     onClick = {
                                         vm.deleteMemory(memory)
                                     }
                                 ) {
-                                    Icon(Lucide.Trash2, stringResource(R.string.assistant_page_delete))
+                                    Icon(
+                                        Lucide.Trash2,
+                                        stringResource(R.string.assistant_page_delete)
+                                    )
                                 }
                             }
                         }
@@ -453,6 +503,47 @@ private fun MemorySheet(vm: AssistantVM, memoryState: EditState<Assistant>) {
                 }
             }
         }
+    }
+    memoryItemDialogState.EditStateContent { memory, update ->
+        AlertDialog(
+            onDismissRequest = {
+                memoryItemDialogState.dismiss()
+            },
+            title = {
+                Text(stringResource(R.string.assistant_page_manage_memory_title))
+            },
+            text = {
+                TextField(
+                    value = memory.content,
+                    onValueChange = {
+                        update(memory.copy(content = it))
+                    },
+                    label = {
+                        Text(stringResource(R.string.assistant_page_manage_memory_title))
+                    },
+                    minLines = 1,
+                    maxLines = 8
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        memoryItemDialogState.confirm()
+                    }
+                ) {
+                    Text(stringResource(R.string.assistant_page_save))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        memoryItemDialogState.dismiss()
+                    }
+                ) {
+                    Text(stringResource(R.string.assistant_page_cancel))
+                }
+            }
+        )
     }
 }
 
@@ -486,7 +577,12 @@ private fun AssistantItem(
                 Tag(
                     type = TagType.INFO
                 ) {
-                    Text(stringResource(R.string.assistant_page_temperature_value, assistant.temperature.toFixed(1)))
+                    Text(
+                        stringResource(
+                            R.string.assistant_page_temperature_value,
+                            assistant.temperature.toFixed(1)
+                        )
+                    )
                 }
 
                 if (assistant.enableMemory) {

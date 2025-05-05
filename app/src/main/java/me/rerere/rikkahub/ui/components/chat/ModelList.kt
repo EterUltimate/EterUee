@@ -84,7 +84,7 @@ fun ModelSelector(
                 )
             }
             Text(
-                text = model?.displayName ?: "Select Model",
+                text = model?.displayName ?: stringResource(R.string.model_list_select_model),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.bodySmall
@@ -174,7 +174,7 @@ fun ModelList(
         if (providers.isEmpty()) {
             item {
                 Text(
-                    text = "没有可用AI提供商, 请在设置添加",
+                    text = stringResource(R.string.model_list_no_providers),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.extendColors.gray6,
                     modifier = Modifier.padding(8.dp)
@@ -185,7 +185,7 @@ fun ModelList(
         if (favoriteModels.isNotEmpty()) {
             stickyHeader {
                 Text(
-                    text = "收藏",
+                    text = stringResource(R.string.model_list_favorite),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
@@ -319,8 +319,8 @@ fun ModelItem(
                     Tag(type = TagType.INFO) {
                         Text(
                             when (model.type) {
-                                ModelType.CHAT -> "Chat"
-                                ModelType.EMBEDDING -> "Embedding"
+                                ModelType.CHAT -> stringResource(R.string.model_list_chat)
+                                ModelType.EMBEDDING -> stringResource(R.string.model_list_embedding)
                             }
                         )
                     }

@@ -130,4 +130,11 @@
     <string name="menu_page_ai_translator">AI翻译</string>
     <string name="menu_page_knowledge_base">知识库 (施工中)</string>
     <string name="menu_page_llm_leaderboard">LLM排行榜</string>
+    
+    <!-- ModelList Page -->
+    <string name="model_list_select_model">选择模型</string>
+    <string name="model_list_no_providers">没有可用AI提供商, 请在设置添加</string>
+    <string name="model_list_favorite">收藏</string>
+    <string name="model_list_chat">聊天</string>
+    <string name="model_list_embedding">嵌入</string>
 </resources> 

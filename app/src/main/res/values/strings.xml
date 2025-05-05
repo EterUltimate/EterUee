@@ -129,4 +129,11 @@
     <string name="menu_page_ai_translator">AI Translator</string>
     <string name="menu_page_knowledge_base">Knowledge Base (WIP)</string>
     <string name="menu_page_llm_leaderboard">LLM Leaderboard</string>
+
+    <!-- ModelList Page -->
+    <string name="model_list_select_model">Select Model</string>
+    <string name="model_list_no_providers">No available AI providers, please add in settings</string>
+    <string name="model_list_favorite">Favorites</string>
+    <string name="model_list_chat">Chat</string>
+    <string name="model_list_embedding">Embedding</string>
 </resources>

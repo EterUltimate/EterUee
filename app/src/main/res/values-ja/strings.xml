@@ -131,4 +131,11 @@
     <string name="menu_page_ai_translator">AI翻訳</string>
     <string name="menu_page_knowledge_base">知識ベース (開発中)</string>
     <string name="menu_page_llm_leaderboard">LLMランキング</string>
+
+    <!-- ModelList Page -->
+    <string name="model_list_select_model">モデルを選択</string>
+    <string name="model_list_no_providers">利用可能なAIプロバイダーがありません。設定で追加してください</string>
+    <string name="model_list_favorite">お気に入り</string>
+    <string name="model_list_chat">チャット</string>
+    <string name="model_list_embedding">埋め込み</string>
 </resources> 

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -30,17 +31,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastForEach
+import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Hammer
 import com.composables.icons.lucide.Lucide
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.ProviderSetting
+import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.Tag
@@ -53,6 +57,7 @@ fun ModelSelector(
     modelId: Uuid,
     providers: List<ProviderSetting>,
     type: ModelType,
+    onlyIcon: Boolean = false,
     modifier: Modifier = Modifier,
     onSelect: (Model) -> Unit = {}
 ) {
@@ -61,24 +66,46 @@ fun ModelSelector(
     }
     val model = providers.findModelById(modelId)
 
-    TextButton(
-        onClick = {
-            popup = true
-        }, modifier = modifier
-    ) {
-        model?.modelId?.let {
-            AutoAIIcon(
-                it, Modifier
-                    .padding(end = 4.dp)
-                    .size(24.dp)
+    if(!onlyIcon) {
+        TextButton(
+            onClick = {
+                popup = true
+            },
+            modifier = modifier
+        ) {
+            model?.modelId?.let {
+                AutoAIIcon(
+                    it, Modifier
+                        .padding(end = 4.dp)
+                        .size(24.dp)
+                )
+            }
+            Text(
+                text = model?.displayName ?: "Select Model",
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodySmall
             )
         }
-        Text(
-            text = model?.displayName ?: "Select Model",
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodySmall
-        )
+    } else {
+        IconButton(
+            onClick = {
+                popup = true
+            }
+        ) {
+            if (model != null) {
+                AutoAIIcon(
+                    modifier = Modifier.size(20.dp),
+                    name = model.modelId
+                )
+            } else {
+                Icon(
+                    Lucide.Boxes,
+                    contentDescription = stringResource(R.string.setting_model_page_chat_model),
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
     }
 
     if (popup) {

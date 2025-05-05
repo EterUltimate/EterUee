@@ -64,7 +64,6 @@ import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import com.composables.icons.lucide.ArrowUp
-import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Camera
 import com.composables.icons.lucide.Compass
 import com.composables.icons.lucide.Fullscreen
@@ -80,8 +79,6 @@ import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyInputMessage
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.Settings
-import me.rerere.rikkahub.data.datastore.findModelById
-import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.utils.createChatFiles
 import me.rerere.rikkahub.utils.deleteChatFiles
 import java.io.File
@@ -142,7 +139,6 @@ fun rememberChatInputState(
 
 enum class ExpandState {
     Collapsed,
-    Model,
     Files
 }
 
@@ -312,25 +308,19 @@ fun ChatInput(
                     .padding(horizontal = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                IconButton(
-                    onClick = {
-                        expandToggle(ExpandState.Model)
-                    }
-                ) {
-                    val model = settings.providers.findModelById(settings.chatModelId)
-                    if (model != null) {
-                        AutoAIIcon(
-                            modifier = Modifier.size(20.dp),
-                            name = model.modelId
-                        )
-                    } else {
-                        Icon(
-                            if (expand == ExpandState.Model) Lucide.X else Lucide.Boxes,
-                            contentDescription = stringResource(R.string.setting_model_page_chat_model),
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
+                ModelSelector(
+                    modelId = settings.chatModelId,
+                    providers = settings.providers,
+                    onSelect = {
+                        onUpdateChatModel(it)
+                        dismissExpand()
+                    },
+                    type = ModelType.CHAT,
+                    onlyIcon = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                )
 
                 Surface(
                     onClick = {
@@ -405,22 +395,6 @@ fun ChatInput(
                                 dismissExpand()
                             }
                         }
-
-                        ExpandState.Model -> {
-                            ModelSelector(
-                                modelId = settings.chatModelId,
-                                providers = settings.providers,
-                                onSelect = {
-                                    onUpdateChatModel(it)
-                                    dismissExpand()
-                                },
-                                type = ModelType.CHAT,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(8.dp)
-                            )
-                        }
-
                         else -> {}
                     }
                 }

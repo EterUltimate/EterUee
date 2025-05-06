@@ -119,7 +119,7 @@ private fun FeaturesSection() {
                     modifier = Modifier.padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    ProvideTextStyle(MaterialTheme.typography.titleSmall) {
+                    ProvideTextStyle(MaterialTheme.typography.labelSmall) {
                         title()
                     }
                 }

@@ -180,9 +180,11 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                         vm.setChatModel(it)
                     },
                     onUpdateProviders = {
-                        vm.updateSettings(setting.copy(
-                            providers = it
-                        ))
+                        vm.updateSettings(
+                            setting.copy(
+                                providers = it
+                            )
+                        )
                     }
                 )
             }
@@ -233,7 +235,7 @@ private fun ChatList(
             if (lastItem.key == LoadingIndicatorKey || lastItem.key == ScrollBottomKey || lastItem.key == TokenUsageItemKey) {
                 return true
             }
-            return (lastItem.offset + lastItem.size >= state.layoutInfo.viewportEndOffset - 4) && lastItem.key == conversation.messages.lastOrNull()?.id
+            return lastItem.key == conversation.messages.lastOrNull()?.id && (lastItem.offset + lastItem.size <= state.layoutInfo.viewportEndOffset + lastItem.size * 0.1)
         }
 
         // 自动滚动到底部
@@ -389,7 +391,7 @@ private fun TopBar(
                         style = MaterialTheme.typography.bodyMedium,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    if(model != null) {
+                    if (model != null) {
                         Text(
                             text = model.displayName,
                             overflow = TextOverflow.Ellipsis,

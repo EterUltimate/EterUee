@@ -1,6 +1,8 @@
 package me.rerere.rikkahub.ui.pages.chat
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -39,6 +42,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -54,10 +58,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastCoerceAtLeast
 import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.composables.icons.lucide.ChevronDown
+import com.composables.icons.lucide.ChevronUp
 import com.composables.icons.lucide.Download
 import com.composables.icons.lucide.History
 import com.composables.icons.lucide.ListTree
@@ -66,6 +72,7 @@ import com.composables.icons.lucide.Menu
 import com.composables.icons.lucide.MessageCirclePlus
 import com.composables.icons.lucide.Settings
 import com.dokar.sonner.ToastType
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.rerere.ai.provider.Model
 import me.rerere.ai.ui.UIMessage
@@ -227,6 +234,7 @@ private fun ChatList(
         state.requestScrollToItem(conversation.messages.lastIndex + 5)
     }
     val viewPortSize by remember { derivedStateOf { state.layoutInfo.viewportSize } }
+    var isRecentScroll by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier.padding(innerPadding),
     ) {
@@ -239,11 +247,23 @@ private fun ChatList(
         }
 
         // 自动滚动到底部
-        LaunchedEffect(loading, conversation.messages, viewPortSize) {
-            if (!state.isScrollInProgress && state.canScrollForward) {
+        LaunchedEffect(loading, conversation.messages, viewPortSize, loading) {
+            if (!state.isScrollInProgress && state.canScrollForward && loading) {
                 if (state.layoutInfo.visibleItemsInfo.isAtBottom()) {
                     state.requestScrollToItem(conversation.messages.lastIndex + 10)
                 }
+            }
+        }
+
+        // 判断最近是否滚动
+        LaunchedEffect(state.isScrollInProgress) {
+            if (state.isScrollInProgress) {
+                isRecentScroll = true
+                delay(1500)
+                isRecentScroll = false
+            } else {
+                delay(1500)
+                isRecentScroll = false
             }
         }
 
@@ -312,6 +332,7 @@ private fun ChatList(
             }
         }
 
+        // 滚动到底部按钮
         AnimatedVisibility(
             state.canScrollForward,
             modifier = Modifier.align(Alignment.BottomCenter)
@@ -340,6 +361,65 @@ private fun ChatList(
                     Text(
                         stringResource(R.string.chat_page_scroll_to_bottom),
                         style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+        }
+
+        // 消息快速跳转
+        AnimatedVisibility(
+            isRecentScroll,
+            modifier = Modifier.align(Alignment.CenterEnd),
+            enter = slideInHorizontally(
+                initialOffsetX = { it * 2 },
+            ),
+            exit = slideOutHorizontally(
+                targetOffsetX = { it * 2 },
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Surface(
+                    onClick = {
+                        scope.launch {
+                            state.animateScrollToItem(
+                                (state.firstVisibleItemIndex - 1).fastCoerceAtLeast(
+                                    0
+                                )
+                            )
+                        }
+                    },
+                    shape = CircleShape,
+                    tonalElevation = 4.dp,
+                    color = MaterialTheme.colorScheme.surfaceColorAtElevation(
+                        4.dp
+                    ).copy(alpha = 0.65f)
+                ) {
+                    Icon(
+                        imageVector = Lucide.ChevronUp,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .padding(4.dp)
+                    )
+                }
+                Surface(
+                    onClick = {
+                        scope.launch {
+                            state.animateScrollToItem(state.firstVisibleItemIndex + 1)
+                        }
+                    },
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceColorAtElevation(
+                        4.dp
+                    ).copy(alpha = 0.65f)
+                ) {
+                    Icon(
+                        imageVector = Lucide.ChevronDown,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .padding(4.dp)
                     )
                 }
             }

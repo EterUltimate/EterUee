@@ -144,13 +144,14 @@ private fun AssistantEditSheet(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .height(500.dp)
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(600.dp)
+                        .weight(1f)
                         .verticalScroll(
                             state = rememberScrollState(),
                         ),
@@ -430,7 +431,7 @@ private fun MemorySheet(vm: AssistantVM, memoryState: EditState<Assistant>) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(600.dp)
+                    .height(500.dp)
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -462,7 +463,7 @@ private fun MemorySheet(vm: AssistantVM, memoryState: EditState<Assistant>) {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(500.dp),
+                        .weight(1f),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     items(memories, key = { it.id }) { memory ->

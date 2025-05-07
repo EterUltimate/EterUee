@@ -243,7 +243,7 @@ private fun ChatList(
             if (lastItem.key == LoadingIndicatorKey || lastItem.key == ScrollBottomKey || lastItem.key == TokenUsageItemKey) {
                 return true
             }
-            return lastItem.key == conversation.messages.lastOrNull()?.id && (lastItem.offset + lastItem.size <= state.layoutInfo.viewportEndOffset + lastItem.size * 0.1)
+            return lastItem.key == conversation.messages.lastOrNull()?.id && (lastItem.offset + lastItem.size <= state.layoutInfo.viewportEndOffset + lastItem.size * 0.1 + 32)
         }
 
         // 自动滚动到底部

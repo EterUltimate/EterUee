@@ -138,4 +138,8 @@
     <string name="model_list_favorite">お気に入り</string>
     <string name="model_list_chat">チャット</string>
     <string name="model_list_embedding">埋め込み</string>
+
+    <!-- Code Block -->
+    <string name="code_block_copy">コードをコピー</string>
+    <string name="code_block_preview">プレビュー</string>
 </resources> 

@@ -137,4 +137,8 @@
     <string name="model_list_favorite">收藏</string>
     <string name="model_list_chat">聊天</string>
     <string name="model_list_embedding">嵌入</string>
+    
+    <!-- Code Block -->
+    <string name="code_block_copy">复制代码</string>
+    <string name="code_block_preview">预览</string>
 </resources> 

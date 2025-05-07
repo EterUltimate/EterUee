@@ -108,6 +108,19 @@
     <string name="assistant_page_no_system_prompt">無系統提示詞</string>
     <string name="assistant_page_top_p_value">Top P: %s</string>
     
+    <!-- Custom Headers and Bodies -->
+    <string name="assistant_page_custom_headers">自定義 Headers</string>
+    <string name="assistant_page_header_name">Header 名稱</string>
+    <string name="assistant_page_header_value">Header 值</string>
+    <string name="assistant_page_delete_header">刪除 Header</string>
+    <string name="assistant_page_add_header">添加 Header</string>
+    <string name="assistant_page_custom_bodies">自定義 Body</string>
+    <string name="assistant_page_body_key">Body Key</string>
+    <string name="assistant_page_body_value">Body 值 (JSON)</string>
+    <string name="assistant_page_invalid_json">無效的 JSON: %s</string>
+    <string name="assistant_page_delete_body">刪除 Body</string>
+    <string name="assistant_page_add_body">添加 Body</string>
+    
     <!-- Notification -->
     <string name="notification_channel_chat_completed">聊天完成</string>
     

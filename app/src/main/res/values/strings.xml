@@ -107,6 +107,19 @@
     <string name="assistant_page_no_system_prompt">No system prompt</string>
     <string name="assistant_page_top_p_value">Top P: %s</string>
     
+    <!-- Custom Headers and Bodies -->
+    <string name="assistant_page_custom_headers">Custom Headers</string>
+    <string name="assistant_page_header_name">Header Name</string>
+    <string name="assistant_page_header_value">Header Value</string>
+    <string name="assistant_page_delete_header">Delete Header</string>
+    <string name="assistant_page_add_header">Add Header</string>
+    <string name="assistant_page_custom_bodies">Custom Body</string>
+    <string name="assistant_page_body_key">Body Key</string>
+    <string name="assistant_page_body_value">Body Value (JSON)</string>
+    <string name="assistant_page_invalid_json">Invalid JSON: %s</string>
+    <string name="assistant_page_delete_body">Delete Body</string>
+    <string name="assistant_page_add_body">Add Body</string>
+    
     <!-- Notification -->
     <string name="notification_channel_chat_completed">Chat Completed</string>
     

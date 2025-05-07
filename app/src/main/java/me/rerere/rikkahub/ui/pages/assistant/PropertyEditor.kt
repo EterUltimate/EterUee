@@ -20,6 +20,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
@@ -29,7 +31,11 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import me.rerere.ai.provider.CustomBody
 import me.rerere.ai.provider.CustomHeader
+import me.rerere.highlight.LocalHighlighter
+import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.model.Assistant
+import me.rerere.rikkahub.ui.components.richtext.HighlightCodeVisualTransformation
+import me.rerere.rikkahub.ui.theme.LocalDarkMode
 
 private val jsonLenient  = Json {
     ignoreUnknownKeys = true
@@ -42,7 +48,7 @@ fun AssistantCustomHeaders(assistant: Assistant, onUpdate: (Assistant) -> Unit) 
     Column(
         modifier = Modifier.padding(16.dp)
     ) {
-        Text("自定义 Headers")
+        Text(stringResource(R.string.assistant_page_custom_headers))
         Spacer(Modifier.height(8.dp))
 
         assistant.customHeaders.forEachIndexed { index, header ->
@@ -62,7 +68,7 @@ fun AssistantCustomHeaders(assistant: Assistant, onUpdate: (Assistant) -> Unit) 
                             updatedHeaders[index] = updatedHeaders[index].copy(name = it.trim())
                             onUpdate(assistant.copy(customHeaders = updatedHeaders))
                         },
-                        label = { Text("Header 名称") },
+                        label = { Text(stringResource(R.string.assistant_page_header_name)) },
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
@@ -74,7 +80,7 @@ fun AssistantCustomHeaders(assistant: Assistant, onUpdate: (Assistant) -> Unit) 
                             updatedHeaders[index] = updatedHeaders[index].copy(value = it.trim())
                             onUpdate(assistant.copy(customHeaders = updatedHeaders))
                         },
-                        label = { Text("Header 值") },
+                        label = { Text(stringResource(R.string.assistant_page_header_value)) },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -83,7 +89,7 @@ fun AssistantCustomHeaders(assistant: Assistant, onUpdate: (Assistant) -> Unit) 
                     updatedHeaders.removeAt(index)
                     onUpdate(assistant.copy(customHeaders = updatedHeaders))
                 }) {
-                    Icon(Lucide.Trash, contentDescription = "删除 Header")
+                    Icon(Lucide.Trash, contentDescription = stringResource(R.string.assistant_page_delete_header))
                 }
             }
             Spacer(Modifier.height(8.dp))
@@ -97,19 +103,20 @@ fun AssistantCustomHeaders(assistant: Assistant, onUpdate: (Assistant) -> Unit) 
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(Lucide.Plus, contentDescription = "添加 Header")
+            Icon(Lucide.Plus, contentDescription = stringResource(R.string.assistant_page_add_header))
             Spacer(Modifier.width(4.dp))
-            Text("添加 Header")
+            Text(stringResource(R.string.assistant_page_add_header))
         }
     }
 }
 
 @Composable
 fun AssistantCustomBodies(assistant: Assistant, onUpdate: (Assistant) -> Unit) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier.padding(16.dp)
     ) {
-        Text("自定义 Body")
+        Text(stringResource(R.string.assistant_page_custom_bodies))
         Spacer(Modifier.height(8.dp))
 
         assistant.customBodies.forEachIndexed { index, body ->
@@ -132,7 +139,7 @@ fun AssistantCustomBodies(assistant: Assistant, onUpdate: (Assistant) -> Unit) {
                             updatedBodies[index] = updatedBodies[index].copy(key = it.trim())
                             onUpdate(assistant.copy(customBodies = updatedBodies))
                         },
-                        label = { Text("Body Key") },
+                        label = { Text(stringResource(R.string.assistant_page_body_key)) },
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
@@ -149,10 +156,10 @@ fun AssistantCustomBodies(assistant: Assistant, onUpdate: (Assistant) -> Unit) {
                                 jsonParseError = null // Clear error on successful parse
                             } catch (e: Exception) { // Catching general Exception, JsonException is common here
                                 jsonParseError =
-                                    "无效的 JSON: ${e.message?.take(100)}" // Truncate for very long messages
+                                    context.getString(R.string.assistant_page_invalid_json, e.message?.take(100) ?: "") // Truncate for very long messages
                             }
                         },
-                        label = { Text("Body Value (JSON)") },
+                        label = { Text(stringResource(R.string.assistant_page_body_value)) },
                         modifier = Modifier.fillMaxWidth(),
                         isError = jsonParseError != null,
                         supportingText = {
@@ -161,7 +168,12 @@ fun AssistantCustomBodies(assistant: Assistant, onUpdate: (Assistant) -> Unit) {
                             }
                         },
                         minLines = 3,
-                        maxLines = 5
+                        maxLines = 5,
+                        visualTransformation = HighlightCodeVisualTransformation(
+                            language = "json",
+                            highlighter = LocalHighlighter.current,
+                            darkMode = LocalDarkMode.current
+                        )
                     )
                 }
                 IconButton(onClick = {
@@ -169,7 +181,7 @@ fun AssistantCustomBodies(assistant: Assistant, onUpdate: (Assistant) -> Unit) {
                     updatedBodies.removeAt(index)
                     onUpdate(assistant.copy(customBodies = updatedBodies))
                 }) {
-                    Icon(Lucide.Trash, contentDescription = "删除 Body")
+                    Icon(Lucide.Trash, contentDescription = stringResource(R.string.assistant_page_delete_body))
                 }
             }
             Spacer(Modifier.height(8.dp))
@@ -183,9 +195,9 @@ fun AssistantCustomBodies(assistant: Assistant, onUpdate: (Assistant) -> Unit) {
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(Lucide.Plus, contentDescription = "添加 Body")
+            Icon(Lucide.Plus, contentDescription = stringResource(R.string.assistant_page_add_body))
             Spacer(Modifier.width(4.dp))
-            Text("添加 Body")
+            Text(stringResource(R.string.assistant_page_add_body))
         }
     }
 }

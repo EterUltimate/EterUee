@@ -73,7 +73,7 @@ fun HighlightText(
     )
 }
 
-private fun AnnotatedString.Builder.buildHighlightText(
+fun AnnotatedString.Builder.buildHighlightText(
     token: HighlightToken,
     colors: HighlightTextColorPalette
 ) {

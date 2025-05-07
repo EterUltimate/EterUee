@@ -31,6 +31,8 @@ class Highlighter(ctx: Context) {
     init {
         executor.submit {
             QuickJSLoader.init()
+
+            context // init context
         }
     }
 

@@ -213,6 +213,12 @@ private val DEFAULT_PROVIDERS = listOf(
         baseUrl = "https://api.openai.com/v1",
         apiKey = "sk-"
     ),
+    ProviderSetting.Google(
+        id = Uuid.parse("6ab18148-c138-4394-a46f-1cd8c8ceaa6d"),
+        name = "Gemini",
+        apiKey = "",
+        enabled = true
+    ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("f099ad5b-ef03-446d-8e78-7e36787f780b"),
         name = "DeepSeek",
@@ -251,12 +257,6 @@ private val DEFAULT_PROVIDERS = listOf(
         baseUrl = "https://open.bigmodel.cn/api/paas/v4",
         apiKey = "",
         enabled = false
-    ),
-    ProviderSetting.Google(
-        id = Uuid.parse("6ab18148-c138-4394-a46f-1cd8c8ceaa6d"),
-        name = "Google",
-        apiKey = "",
-        enabled = true
     ),
 )
 

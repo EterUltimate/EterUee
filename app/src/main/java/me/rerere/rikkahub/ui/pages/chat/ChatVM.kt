@@ -309,6 +309,20 @@ class ChatVM(
         }
     }
 
+    suspend fun forkMessage(
+        message: UIMessage
+    ): Conversation {
+        val messages =
+            conversation.value.messages.subList(0, conversation.value.messages.indexOf(message) + 1)
+        val newConversation = Conversation.ofId(
+            id = Uuid.random(),
+            assistantId = settings.value.assistantId,
+            messages = messages
+        )
+        saveConversation(newConversation)
+        return newConversation
+    }
+
     fun regenerateAtMessage(
         message: UIMessage,
         regenerateAssistantMsg: Boolean = true

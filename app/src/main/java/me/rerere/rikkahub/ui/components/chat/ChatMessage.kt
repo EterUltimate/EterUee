@@ -69,6 +69,7 @@ import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.ChevronUp
 import com.composables.icons.lucide.CircleStop
 import com.composables.icons.lucide.Copy
+import com.composables.icons.lucide.GitFork
 import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Pencil
@@ -104,6 +105,7 @@ fun ChatMessage(
     modifier: Modifier = Modifier,
     showIcon: Boolean = true,
     model: Model? = null,
+    onFork: () -> Unit,
     onRegenerate: () -> Unit,
     onEdit: () -> Unit,
 ) {
@@ -127,7 +129,8 @@ fun ChatMessage(
                 Actions(
                     message = message,
                     onRegenerate = onRegenerate,
-                    onEdit = onEdit
+                    onEdit = onEdit,
+                    onFork = onFork
                 )
             }
         }
@@ -151,6 +154,7 @@ private fun ModelIcon(
 @Composable
 private fun ColumnScope.Actions(
     message: UIMessage,
+    onFork: () -> Unit,
     onRegenerate: () -> Unit,
     onEdit: () -> Unit,
 ) {
@@ -225,6 +229,19 @@ private fun ColumnScope.Actions(
                     .size(16.dp)
             )
         }
+        Icon(
+            Lucide.GitFork, "Fork", modifier = Modifier
+                .clip(CircleShape)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = LocalIndication.current,
+                    onClick = {
+                        onFork()
+                    }
+                )
+                .padding(8.dp)
+                .size(16.dp)
+        )
         if (message.role == MessageRole.USER) {
             Icon(
                 imageVector = if (showInformation) Lucide.ChevronUp else Lucide.ChevronDown,

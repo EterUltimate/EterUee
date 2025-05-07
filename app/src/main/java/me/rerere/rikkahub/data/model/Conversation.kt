@@ -30,9 +30,9 @@ data class Conversation(
             .map { it.url.toUri() }
 
     companion object {
-        fun ofId(id: Uuid, assistantId: Uuid = DEFAULT_ASSISTANT_ID) = Conversation(
+        fun ofId(id: Uuid, assistantId: Uuid = DEFAULT_ASSISTANT_ID, messages: List<UIMessage> = emptyList()) = Conversation(
             id = id,
-            messages = emptyList(),
+            messages = messages,
             assistantId = assistantId
         )
     }

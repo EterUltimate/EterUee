@@ -108,6 +108,7 @@ import kotlin.uuid.Uuid
 fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
     val navController = LocalNavController.current
     val toaster = LocalToaster.current
+    val scope = rememberCoroutineScope()
 
     // Handle Error
     LaunchedEffect(Unit) {
@@ -208,6 +209,12 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                 onEdit = {
                     inputState.editingMessage = it.id
                     inputState.messageContent = it.parts
+                },
+                onForkMessage = {
+                    scope.launch {
+                        val fork = vm.forkMessage(message = it)
+                        navigateToChatPage(navController, chatId = fork.id)
+                    }
                 }
             )
         }
@@ -227,6 +234,7 @@ private fun ChatList(
     settings: Settings,
     onRegenerate: (UIMessage) -> Unit = {},
     onEdit: (UIMessage) -> Unit = {},
+    onForkMessage: (UIMessage) -> Unit = {},
 ) {
     val state = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -284,6 +292,9 @@ private fun ChatList(
                     onEdit = {
                         onEdit(message)
                     },
+                    onFork = {
+                        onForkMessage(message)
+                    }
                 )
             }
 

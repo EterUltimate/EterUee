@@ -9,14 +9,17 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ProviderSetting
+import me.rerere.rikkahub.AppScope
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.ui.theme.PresetThemeType
 import me.rerere.rikkahub.ui.theme.PresetThemes
 import me.rerere.rikkahub.utils.JsonInstant
+import me.rerere.rikkahub.utils.toMutableStateFlow
 import me.rerere.search.SearchCommonOptions
 import me.rerere.search.SearchServiceOptions
 import kotlin.uuid.Uuid
@@ -32,7 +35,7 @@ private val Context.settingsStore by preferencesDataStore(
     }
 )
 
-class SettingsStore(context: Context) {
+class SettingsStore(context: Context, scope: AppScope) {
     companion object {
         // UI设置
         val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
@@ -131,8 +134,11 @@ class SettingsStore(context: Context) {
                 assistants = settings.assistants.distinctBy { it.id },
             )
         }
+        .distinctUntilChanged()
+        .toMutableStateFlow(scope, Settings())
 
     suspend fun update(settings: Settings) {
+        settingsFlow.value = settings
         dataStore.edit { preferences ->
             preferences[DYNAMIC_COLOR] = settings.dynamicColor
             preferences[THEME_ID] = settings.themeId

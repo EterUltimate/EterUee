@@ -3,10 +3,15 @@ package me.rerere.rikkahub
 import android.app.Application
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import me.rerere.rikkahub.di.appModule
 import me.rerere.rikkahub.di.dataSourceModule
 import me.rerere.rikkahub.di.repositoryModule
 import me.rerere.rikkahub.di.viewModelModule
+import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -35,4 +40,11 @@ class RikkaHubApp : Application() {
             .build()
         notificationManager.createNotificationChannel(channel)
     }
+
+    override fun onTerminate() {
+        super.onTerminate()
+        get<AppScope>().cancel()
+    }
 }
+
+class AppScope : CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default)

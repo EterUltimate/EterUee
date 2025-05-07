@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
 
 val dataSourceModule = module {
     single {
-        SettingsStore(get())
+        SettingsStore(get(), get())
     }
 
     single {

@@ -109,30 +109,25 @@ fun ChatMessage(
     onRegenerate: () -> Unit,
     onEdit: () -> Unit,
 ) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = if (message.role == MessageRole.USER) Alignment.End else Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         ModelIcon(showIcon, message, model)
-
-        Column(
-            modifier = modifier.weight(1f),
-            horizontalAlignment = if (message.role == MessageRole.USER) Alignment.End else Alignment.Start,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            MessagePartsBlock(
-                message.role,
-                message.parts,
-                message.annotations,
+        MessagePartsBlock(
+            message.role,
+            message.parts,
+            message.annotations,
+        )
+        if (message.isValidToShowActions()) {
+            Actions(
+                message = message,
+                model = model,
+                onRegenerate = onRegenerate,
+                onEdit = onEdit,
+                onFork = onFork
             )
-            if (message.isValidToShowActions()) {
-                Actions(
-                    message = message,
-                    onRegenerate = onRegenerate,
-                    onEdit = onEdit,
-                    onFork = onFork
-                )
-            }
         }
     }
 }
@@ -144,16 +139,26 @@ private fun ModelIcon(
     model: Model?
 ) {
     if (showIcon && message.role == MessageRole.ASSISTANT && !message.parts.isEmptyUIMessage() && model != null) {
-        AutoAIIcon(
-            model.modelId,
-            modifier = Modifier.padding(top = 12.dp)
-        )
+        Row(
+            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            AutoAIIcon(
+                model.modelId,
+            )
+            Text(
+                text = model.displayName,
+                style = MaterialTheme.typography.titleSmall
+            )
+        }
     }
 }
 
 @Composable
 private fun ColumnScope.Actions(
     message: UIMessage,
+    model: Model?,
     onFork: () -> Unit,
     onRegenerate: () -> Unit,
     onEdit: () -> Unit,
@@ -242,7 +247,7 @@ private fun ColumnScope.Actions(
                 .padding(8.dp)
                 .size(16.dp)
         )
-        if (message.role == MessageRole.USER) {
+        if (message.role == MessageRole.USER || message.role == MessageRole.ASSISTANT) {
             Icon(
                 imageVector = if (showInformation) Lucide.ChevronUp else Lucide.ChevronDown,
                 contentDescription = "Info",
@@ -268,9 +273,12 @@ private fun ColumnScope.Actions(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+                horizontalArrangement = Arrangement.SpaceAround,
             ) {
                 Text(message.createdAt.toJavaLocalDateTime().toLocalString())
+                if (model != null) {
+                    Text(model.displayName)
+                }
             }
         }
     }

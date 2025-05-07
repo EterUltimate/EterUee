@@ -60,7 +60,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         .addInterceptor { chain ->
             val request = chain.request().newBuilder()
                 .addHeader("X-Title", "RikkaHub")
-                .addHeader("HTTP-Referer", "https://github.com/re-ovo/rikkahub")
+                .addHeader("HTTP-Referer", "https://rikka-ai.com")
                 .build()
             chain.proceed(request)
         }

@@ -100,7 +100,7 @@ class SettingsStore(context: Context) {
             val providers = it.providers.ifEmpty { DEFAULT_PROVIDERS }.toMutableList()
             DEFAULT_PROVIDERS.forEach { defaultProvider ->
                 if (providers.none { it.id == defaultProvider.id }) {
-                    providers.add(defaultProvider.copy())
+                    providers.add(defaultProvider.copyProvider())
                 }
             }
             val assistants = it.assistants.ifEmpty { DEFAULT_ASSISTANTS }.toMutableList()
@@ -251,7 +251,13 @@ private val DEFAULT_PROVIDERS = listOf(
         baseUrl = "https://open.bigmodel.cn/api/paas/v4",
         apiKey = "",
         enabled = false
-    )
+    ),
+    ProviderSetting.Google(
+        id = Uuid.parse("6ab18148-c138-4394-a46f-1cd8c8ceaa6d"),
+        name = "Google",
+        apiKey = "",
+        enabled = true
+    ),
 )
 
 internal val DEFAULT_ASSISTANT_ID = Uuid.parse("0950e2dc-9bd5-4801-afa3-aa887aa36b4e")

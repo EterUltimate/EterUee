@@ -171,15 +171,21 @@ class RouteActivity : ComponentActivity() {
                     }
 
                     composableHelper(
-                        route = "webview?url={url}",
+                        route = "webview?url={url}&content={content}",
                         args = listOf(
                             navArgument("url") {
                                 type = NavType.StringType
+                                defaultValue = ""
+                            },
+                            navArgument("content") {
+                                type = NavType.StringType
+                                defaultValue = ""
                             }
                         ),
                     ) {
                         val url = it.arguments?.getString("url") ?: ""
-                        WebViewPage(url)
+                        val content = it.arguments?.getString("content") ?: ""
+                        WebViewPage(url, content)
                     }
 
                     composableHelper("setting/display") {

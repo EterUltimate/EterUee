@@ -34,7 +34,7 @@ import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.Favicon
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.utils.plus
-import me.rerere.rikkahub.utils.urlDecode
+import me.rerere.rikkahub.utils.urlEncode
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import java.util.Calendar
 
@@ -182,7 +182,7 @@ private fun LeaderBoard() {
     ) {
         Card(
             onClick = {
-                navController.navigate("webview?url=${url.urlDecode()}")
+                navController.navigate("webview?url=${url.urlEncode()}")
             },
             modifier = Modifier.widthIn(min = 150.dp)
         ) {

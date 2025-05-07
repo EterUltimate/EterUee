@@ -20,10 +20,17 @@ import com.composables.icons.lucide.Lucide
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.webview.WebView
 import me.rerere.rikkahub.ui.components.webview.rememberWebViewState
+import me.rerere.rikkahub.utils.base64Decode
 
 @Composable
-fun WebViewPage(url: String) {
-    val state = rememberWebViewState(url)
+fun WebViewPage(url: String, content: String) {
+    val state = if(url.isNotEmpty()) {
+        rememberWebViewState(url)
+    } else {
+        rememberWebViewState().also {
+            it.loadData(content.base64Decode())
+        }
+    }
 
     BackHandler(state.canGoBack) {
         state.goBack()

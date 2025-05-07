@@ -4,6 +4,7 @@ import android.content.ClipData
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,9 +27,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import me.rerere.highlight.HighlightText
+import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.theme.AtomOneDarkPalette
 import me.rerere.rikkahub.ui.theme.AtomOneLightPalette
 import me.rerere.rikkahub.ui.theme.LocalDarkMode
+import me.rerere.rikkahub.utils.base64Encode
 
 @Composable
 fun HighlightCodeBlock(
@@ -41,6 +44,7 @@ fun HighlightCodeBlock(
     val scrollState = rememberScrollState()
     val clipboardManager = LocalClipboard.current
     val scope = rememberCoroutineScope()
+    val navController = LocalNavController.current
 
     Column(
         modifier = modifier
@@ -72,12 +76,25 @@ fun HighlightCodeBlock(
                         }
                     }
                     .padding(1.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
                     text = "复制代码",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                 )
+
+                if (language == "html") {
+                    Text(
+                        text = "预览",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier
+                            .clickable {
+                                navController.navigate("webview?content=" + code.base64Encode())
+                            }
+                    )
+                }
             }
         }
         SelectionContainer {

@@ -34,7 +34,7 @@ import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.Lucide
 import me.rerere.rikkahub.ui.components.ui.Favicon
 import me.rerere.rikkahub.ui.context.LocalNavController
-import me.rerere.rikkahub.utils.urlDecode
+import me.rerere.rikkahub.utils.urlEncode
 import me.rerere.search.SearchResult
 
 @Composable
@@ -88,7 +88,7 @@ fun SearchResultList(
                 items(result.items) { item ->
                     Card(
                         onClick = {
-                            navController.navigate("webview?url=${item.url.urlDecode()}")
+                            navController.navigate("webview?url=${item.url.urlEncode()}")
                         }
                     ) {
                         ListItem(

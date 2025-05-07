@@ -6,7 +6,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -34,12 +33,16 @@ import me.rerere.ai.ui.UIMessageChoice
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.util.await
 import me.rerere.ai.util.encodeBase64
+import me.rerere.ai.util.json
+import me.rerere.ai.util.mergeCustomBody
+import me.rerere.ai.util.toHeaders
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.sse.EventSource
 import okhttp3.sse.EventSourceListener
 import okhttp3.sse.EventSources
@@ -51,16 +54,14 @@ private const val API_URL = "https://generativelanguage.googleapis.com"
 private const val TAG = "GoogleProvider"
 
 object GoogleProvider : Provider<ProviderSetting.Google> {
-    private val json = Json {
-        ignoreUnknownKeys = true
-        encodeDefaults = true
-    }
-
     private val client = OkHttpClient.Builder()
         .connectTimeout(120, TimeUnit.SECONDS)
         .readTimeout(120, TimeUnit.SECONDS)
         .writeTimeout(120, TimeUnit.SECONDS)
         .retryOnConnectionFailure(true)
+        .addInterceptor(HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.HEADERS
+        })
         .build()
 
     override suspend fun listModels(providerSetting: ProviderSetting.Google): List<Model> {
@@ -114,6 +115,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
 
         val request = Request.Builder()
             .url(url)
+            .headers(params.customHeaders.toHeaders())
             .post(json.encodeToString(requestBody).toRequestBody("application/json".toMediaType()))
             .build()
 
@@ -161,6 +163,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
 
         val request = Request.Builder()
             .url(url)
+            .headers(params.customHeaders.toHeaders())
             .post(
                 json.encodeToString(requestBody).toRequestBody("application/json".toMediaType())
             )
@@ -324,7 +327,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
                 })
             })
         }
-    }
+    }.mergeCustomBody(params.customBody)
 
     private fun commonRoleToGoogleRole(role: MessageRole): String {
         return when (role) {

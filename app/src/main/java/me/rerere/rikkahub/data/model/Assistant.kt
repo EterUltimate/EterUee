@@ -1,6 +1,8 @@
 package me.rerere.rikkahub.data.model
 
 import kotlinx.serialization.Serializable
+import me.rerere.ai.provider.CustomBody
+import me.rerere.ai.provider.CustomHeader
 import kotlin.uuid.Uuid
 
 @Serializable
@@ -12,6 +14,8 @@ data class Assistant(
     val topP: Float = 1.0f,
     val contextMessageSize: Int = 32,
     val enableMemory: Boolean = false,
+    val customHeaders: List<CustomHeader> = emptyList(),
+    val customBodies: List<CustomBody> = emptyList(),
 )
 
 @Serializable

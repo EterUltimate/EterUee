@@ -33,12 +33,16 @@ import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessageChoice
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.util.encodeBase64
+import me.rerere.ai.util.json
+import me.rerere.ai.util.mergeCustomBody
 import me.rerere.ai.util.parseErrorDetail
+import me.rerere.ai.util.toHeaders
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.sse.EventSource
 import okhttp3.sse.EventSourceListener
 import okhttp3.sse.EventSources
@@ -47,11 +51,6 @@ import java.util.concurrent.TimeUnit
 private const val TAG = "OpenAIProvider"
 
 object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
-    private val json = Json {
-        ignoreUnknownKeys = true
-        encodeDefaults = false
-    }
-
     private val client = OkHttpClient.Builder()
         .connectTimeout(120, TimeUnit.SECONDS)
         .readTimeout(120, TimeUnit.SECONDS)
@@ -64,6 +63,9 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                 .build()
             chain.proceed(request)
         }
+        .addInterceptor(HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.HEADERS
+        })
         .build()
 
     override suspend fun listModels(providerSetting: ProviderSetting.OpenAI): List<Model> =
@@ -103,8 +105,9 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             buildChatCompletionRequest(messages, params)
         val request = Request.Builder()
             .url("${providerSetting.baseUrl}/chat/completions")
-            .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
+            .headers(params.customHeaders.toHeaders())
             .post(json.encodeToString(requestBody).toRequestBody("application/json".toMediaType()))
+            .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
             .build()
 
         Log.i(TAG, "generateText: ${json.encodeToString(requestBody)}")
@@ -156,9 +159,10 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         )
         val request = Request.Builder()
             .url("${providerSetting.baseUrl}/chat/completions")
+            .headers(params.customHeaders.toHeaders())
+            .post(json.encodeToString(requestBody).toRequestBody("application/json".toMediaType()))
             .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
             .addHeader("Content-Type", "application/json")
-            .post(json.encodeToString(requestBody).toRequestBody("application/json".toMediaType()))
             .build()
 
         Log.i(TAG, "streamText: ${json.encodeToString(requestBody)}")
@@ -195,18 +199,22 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
 
                         val choices = it["choices"]?.jsonArray ?: JsonArray(emptyList())
                         val choiceList = buildList {
-                            if(choices.isNotEmpty()) {
+                            if (choices.isNotEmpty()) {
                                 val choice = choices[0].jsonObject
-                                val message = choice["delta"]?.jsonObject ?: choice["message"]?.jsonObject
-                                ?: throw Exception("delta/message is null")
+                                val message =
+                                    choice["delta"]?.jsonObject ?: choice["message"]?.jsonObject
+                                    ?: throw Exception("delta/message is null")
                                 val finishReason =
-                                    choice["finish_reason"]?.jsonPrimitive?.contentOrNull ?: "unknown"
-                                add( UIMessageChoice(
-                                    index = 0,
-                                    delta = parseMessage(message),
-                                    message = null,
-                                    finishReason = finishReason,
-                                ))
+                                    choice["finish_reason"]?.jsonPrimitive?.contentOrNull
+                                        ?: "unknown"
+                                add(
+                                    UIMessageChoice(
+                                        index = 0,
+                                        delta = parseMessage(message),
+                                        message = null,
+                                        finishReason = finishReason,
+                                    )
+                                )
                             }
                         }
                         val usage = parseTokenUsage(it["usage"] as? JsonObject)
@@ -271,7 +279,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
             if (params.topP != null) put("top_p", params.topP)
             put("top_p", params.topP)
             put("stream", stream)
-            if(stream) {
+            if (stream) {
                 put("stream_options", buildJsonObject {
                     put("include_usage", true)
                 })
@@ -296,7 +304,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                     }
                 }
             }
-        }
+        }.mergeCustomBody(params.customBody)
     }
 
     private fun buildMessages(messages: List<UIMessage>) = buildJsonArray {
@@ -323,7 +331,10 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                     // content
                     if (message.parts.isOnlyTextPart()) {
                         // 如果只是纯文本，直接赋值给content
-                        put("content", message.parts.filterIsInstance<UIMessagePart.Text>().first().text)
+                        put(
+                            "content",
+                            message.parts.filterIsInstance<UIMessagePart.Text>().first().text
+                        )
                     } else {
                         // 否则，使用parts构建
                         putJsonArray("content") {

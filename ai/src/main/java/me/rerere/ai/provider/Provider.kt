@@ -2,6 +2,7 @@ package me.rerere.ai.provider
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 import me.rerere.ai.core.Tool
 import me.rerere.ai.ui.MessageChunk
 import me.rerere.ai.ui.UIMessage
@@ -30,4 +31,18 @@ data class TextGenerationParams(
     val temperature: Float? = 0.6f,
     val topP: Float? = 1f,
     val tools: List<Tool> = emptyList(),
+    val customHeaders: List<CustomHeader> = emptyList(),
+    val customBody: List<CustomBody> = emptyList()
+)
+
+@Serializable
+data class CustomHeader(
+    val name: String,
+    val value: String
+)
+
+@Serializable
+data class CustomBody(
+    val key: String,
+    val value: JsonElement
 )

@@ -198,7 +198,9 @@ class GenerationHandler(private val context: Context, private val json: Json) {
             model = model,
             temperature = assistant?.temperature,
             topP = assistant?.topP,
-            tools = tools
+            tools = tools,
+            customHeaders = assistant?.customHeaders ?: emptyList(),
+            customBody = assistant?.customBodies ?: emptyList()
         )
         if (stream) {
             providerImpl.streamText(

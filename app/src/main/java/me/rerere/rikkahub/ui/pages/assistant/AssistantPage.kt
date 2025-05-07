@@ -381,6 +381,14 @@ private fun AssistantEditSheet(
                             )
                         }
                     }
+
+                    HorizontalDivider()
+
+                    AssistantCustomHeaders(assistant = assistant, onUpdate = update)
+
+                    HorizontalDivider()
+
+                    AssistantCustomBodies(assistant = assistant, onUpdate = update)
                 }
 
                 HorizontalDivider()

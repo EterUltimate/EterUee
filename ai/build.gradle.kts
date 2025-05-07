@@ -43,12 +43,13 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
 
-    implementation(libs.okhttp)
-    implementation(libs.okhttp.sse)
-    implementation(libs.okhttp.logging)
+    api(libs.okhttp)
+    api(libs.okhttp.sse)
+    api(libs.okhttp.logging)
 
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.kotlinx.coroutines.core)
+    api(libs.kotlinx.serialization.json)
+    api(libs.kotlinx.coroutines.core)
+    api(libs.kotlinx.datetime)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -2,6 +2,7 @@ package me.rerere.rikkahub.utils
 
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
@@ -26,6 +27,12 @@ fun Instant.toLocalDateTime(): String {
     return DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
         .withLocale(Locale.getDefault())
         .format(localDateTime)
+}
+
+fun LocalDateTime.toLocalString(): String {
+    val locale = Locale.getDefault()
+    val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withLocale(locale)
+    return formatter.format(this)
 }
 
 fun LocalDate.toLocalString(includeYear: Boolean): String {

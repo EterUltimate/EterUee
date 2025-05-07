@@ -19,6 +19,7 @@ koin = "4.0.4"
 datastore = "1.1.4"
 serialization-json = "1.8.1"
 kotlin-coroutines-core = "1.10.2"
+kotlinx-datetime = "0.6.2"
 ksp = "2.1.20-2.0.0"
 paging = "3.3.6"
 lucide-icons = "1.1.0"
@@ -75,6 +76,7 @@ koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = 
 koin-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization-json" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlin-coroutines-core" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 lucide-icons = { group = "com.composables", name = "icons-lucide", version.ref = "lucide-icons" }
 ucrop = { group = "com.github.jens-muenker", name = "uCrop-n-Edit", version.ref = "ucrop" }
 image-viewer = { group = "com.jvziyaoyao.scale", name = "image-viewer", version.ref = "image-viewer" }

@@ -384,6 +384,36 @@ private fun AssistantEditSheet(
 
                     HorizontalDivider()
 
+                    FormItem(
+                        label = {
+                            Text(stringResource(R.string.assistant_page_inject_message_time))
+                        },
+                        description = {
+                            Text(
+                                text = stringResource(R.string.assistant_page_inject_message_time_desc),
+                            )
+                        }
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Switch(
+                                checked = assistant.enableMessageTime,
+                                onCheckedChange = {
+                                    update(
+                                        assistant.copy(
+                                            enableMessageTime = it
+                                        )
+                                    )
+                                }
+                            )
+                        }
+                    }
+
+                    HorizontalDivider()
+
                     AssistantCustomHeaders(assistant = assistant, onUpdate = update)
 
                     HorizontalDivider()

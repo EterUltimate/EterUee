@@ -107,6 +107,8 @@
     <string name="assistant_page_memory_count">記憶: %d</string>
     <string name="assistant_page_no_system_prompt">無系統提示詞</string>
     <string name="assistant_page_top_p_value">Top P: %s</string>
+    <string name="assistant_page_inject_message_time">注入訊息時間</string>
+    <string name="assistant_page_inject_message_time_desc">是否把每條訊息的發送時間注入到上下文中，以便模型理解訊息發送時間，注意開啟會消耗更多token</string>
     
     <!-- Custom Headers and Bodies -->
     <string name="assistant_page_custom_headers">自定義 Headers</string>

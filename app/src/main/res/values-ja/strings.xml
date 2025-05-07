@@ -108,6 +108,8 @@
     <string name="assistant_page_memory_count">記憶: %d</string>
     <string name="assistant_page_no_system_prompt">システムプロンプトなし</string>
     <string name="assistant_page_top_p_value">Top P: %s</string>
+    <string name="assistant_page_inject_message_time">メッセージ時間を注入</string>
+    <string name="assistant_page_inject_message_time_desc">各メッセージの送信時間をコンテキストに注入して、モデルがメッセージがいつ送信されたかを理解できるようにするかどうか。これを有効にするとトークンの消費が増えることに注意してください</string>
     
     <!-- Custom Headers and Bodies -->
     <string name="assistant_page_custom_headers">カスタムヘッダー</string>

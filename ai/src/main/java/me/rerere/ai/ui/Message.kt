@@ -1,5 +1,9 @@
 package me.rerere.ai.ui
 
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
@@ -16,6 +20,7 @@ data class UIMessage(
     val role: MessageRole,
     val parts: List<UIMessagePart>,
     val annotations: List<UIMessageAnnotation> = emptyList(),
+    val createdAt: LocalDateTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
     val modelId: Uuid? = null,
 ) {
     private fun appendChunk(chunk: MessageChunk): UIMessage {

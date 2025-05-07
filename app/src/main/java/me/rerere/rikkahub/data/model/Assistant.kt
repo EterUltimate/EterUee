@@ -14,6 +14,7 @@ data class Assistant(
     val topP: Float = 1.0f,
     val contextMessageSize: Int = 32,
     val enableMemory: Boolean = false,
+    val enableMessageTime: Boolean = false,
     val customHeaders: List<CustomHeader> = emptyList(),
     val customBodies: List<CustomBody> = emptyList(),
 )

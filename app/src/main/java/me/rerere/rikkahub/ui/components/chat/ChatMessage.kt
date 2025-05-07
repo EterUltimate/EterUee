@@ -1,12 +1,14 @@
 package me.rerere.rikkahub.ui.components.chat
 
 import android.speech.tts.TextToSpeech
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -73,6 +75,7 @@ import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.Volume2
 import com.composables.icons.lucide.Wrench
+import kotlinx.datetime.toJavaLocalDateTime
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.provider.Model
 import me.rerere.ai.ui.UIMessage
@@ -92,6 +95,7 @@ import me.rerere.rikkahub.ui.modifier.shimmer
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.JsonInstantPretty
 import me.rerere.rikkahub.utils.copyMessageToClipboard
+import me.rerere.rikkahub.utils.toLocalString
 import me.rerere.rikkahub.utils.urlDecode
 
 @Composable
@@ -105,6 +109,7 @@ fun ChatMessage(
 ) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
     ) {
         ModelIcon(showIcon, message, model)
 
@@ -144,12 +149,13 @@ private fun ModelIcon(
 }
 
 @Composable
-private fun Actions(
+private fun ColumnScope.Actions(
     message: UIMessage,
     onRegenerate: () -> Unit,
     onEdit: () -> Unit,
 ) {
     val context = LocalContext.current
+    var showInformation by remember { mutableStateOf(false) }
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -218,6 +224,37 @@ private fun Actions(
                     .padding(8.dp)
                     .size(16.dp)
             )
+        }
+        if (message.role == MessageRole.USER) {
+            Icon(
+                imageVector = if (showInformation) Lucide.ChevronUp else Lucide.ChevronDown,
+                contentDescription = "Info",
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = LocalIndication.current,
+                        onClick = {
+                            showInformation = !showInformation
+                        }
+                    )
+                    .padding(8.dp)
+                    .size(16.dp)
+            )
+        }
+    }
+
+    // Information
+    AnimatedVisibility(showInformation) {
+        ProvideTextStyle(MaterialTheme.typography.labelSmall) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+            ) {
+                Text(message.createdAt.toJavaLocalDateTime().toLocalString())
+            }
         }
     }
 }
@@ -470,7 +507,7 @@ fun ReasoningCard(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
-                modifier = Modifier.let { if(expanded) it.fillMaxWidth() else it.width(150.dp) },
+                modifier = Modifier.let { if (expanded) it.fillMaxWidth() else it.width(150.dp) },
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {

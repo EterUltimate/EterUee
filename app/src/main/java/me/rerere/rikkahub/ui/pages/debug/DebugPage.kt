@@ -2,6 +2,7 @@ package me.rerere.rikkahub.ui.pages.debug
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
@@ -19,6 +20,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.launch
 import me.rerere.rikkahub.ui.components.nav.BackButton
+import me.rerere.rikkahub.ui.components.richtext.Mermaid
+import me.rerere.rikkahub.ui.components.richtext.MermaidTheme
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.search.SearchService
 import org.koin.androidx.compose.koinViewModel
@@ -47,6 +50,22 @@ fun DebugPage(vm: DebugVM = koinViewModel()) {
                 .padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
+            Mermaid(
+                code = """
+journey
+    title My working day
+    section Go to work
+      Make tea: 5: Me
+      Go upstairs: 3: Me
+      Do work: 1: Me, Cat
+    section Go home
+      Go downstairs: 5: Me
+      Sit down: 5: Me
+                """.trimIndent(),
+                modifier = Modifier.fillMaxWidth(),
+                theme = MermaidTheme.DARK
+            )
+
             DebugTtsDemoComponent()
 
             var counter by remember {

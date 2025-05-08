@@ -238,6 +238,13 @@ class WebViewState(
     fun clearHistory() {
         webView?.clearHistory()
     }
+
+    fun addJavaScriptInterface(
+        obj: Any,
+        name: String
+    ) {
+        webView?.addJavascriptInterface(obj, name)
+    }
 }
 
 // --- Remember Functions ---

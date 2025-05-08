@@ -21,7 +21,6 @@ import com.dokar.sonner.ToastType
 import kotlinx.coroutines.launch
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.richtext.Mermaid
-import me.rerere.rikkahub.ui.components.richtext.MermaidTheme
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.search.SearchService
 import org.koin.androidx.compose.koinViewModel
@@ -71,7 +70,6 @@ fun DebugPage(vm: DebugVM = koinViewModel()) {
                       Mermaid
                 """.trimIndent(),
                 modifier = Modifier.fillMaxWidth(),
-                theme = MermaidTheme.DEFAULT
             )
 
             DebugTtsDemoComponent()

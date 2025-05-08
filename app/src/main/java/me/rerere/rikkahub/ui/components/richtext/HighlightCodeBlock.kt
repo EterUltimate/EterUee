@@ -47,7 +47,8 @@ import me.rerere.rikkahub.utils.base64Encode
 fun HighlightCodeBlock(
     code: String,
     language: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    completeCodeBlock: Boolean = true
 ) {
     val darkMode = LocalDarkMode.current
     val colorPalette = if (darkMode) AtomOneDarkPalette else AtomOneLightPalette
@@ -106,6 +107,13 @@ fun HighlightCodeBlock(
                     )
                 }
             }
+        }
+        if(completeCodeBlock && language == "mermaid") {
+            Mermaid(
+                code = code,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            return
         }
         SelectionContainer {
             HighlightText(

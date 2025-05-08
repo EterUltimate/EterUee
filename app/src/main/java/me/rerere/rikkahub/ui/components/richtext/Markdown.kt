@@ -57,6 +57,7 @@ import org.intellij.markdown.IElementType
 import org.intellij.markdown.MarkdownElementTypes
 import org.intellij.markdown.MarkdownTokenTypes
 import org.intellij.markdown.ast.ASTNode
+import org.intellij.markdown.ast.findChildOfType
 import org.intellij.markdown.flavours.gfm.GFMElementTypes
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.flavours.gfm.GFMTokenTypes
@@ -418,17 +419,20 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
 
         // 代码块
         MarkdownElementTypes.CODE_FENCE -> {
+            dumpAst(node, content)
             val code = node.getTextInNode(content, MarkdownTokenTypes.CODE_FENCE_CONTENT)
             val language = node.findChildOfType(MarkdownTokenTypes.FENCE_LANG)
                 ?.getTextInNode(content)
                 ?: "plaintext"
+            val hasEnd = node.findChildOfType(MarkdownTokenTypes.CODE_FENCE_END) != null
 
             HighlightCodeBlock(
                 code = code,
                 language = language,
                 modifier = Modifier
                     .padding(bottom = 4.dp)
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
+                completeCodeBlock = hasEnd
             )
         }
 

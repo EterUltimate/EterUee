@@ -2,7 +2,9 @@ package me.rerere.rikkahub.ui.components.webview
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
+import android.util.Log
 import android.view.ViewGroup.LayoutParams
+import android.webkit.ConsoleMessage
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -19,6 +21,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 
+private const val TAG = "WebView"
+
 internal class MyWebChromeClient(private val state: WebViewState) : WebChromeClient() {
     override fun onProgressChanged(view: WebView?, newProgress: Int) {
         state.loadingProgress = newProgress / 100f
@@ -27,6 +31,16 @@ internal class MyWebChromeClient(private val state: WebViewState) : WebChromeCli
     override fun onReceivedTitle(view: WebView?, title: String?) {
         super.onReceivedTitle(view, title)
         state.pageTitle = title
+    }
+
+    override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
+        if (consoleMessage.messageLevel() == ConsoleMessage.MessageLevel.ERROR || consoleMessage.messageLevel() == ConsoleMessage.MessageLevel.WARNING) {
+            Log.e(
+                TAG,
+                "onConsoleMessage:  ${consoleMessage.message()}  ${consoleMessage.lineNumber()}  ${consoleMessage.sourceId()}"
+            )
+        }
+        return super.onConsoleMessage(consoleMessage);
     }
 }
 
@@ -47,7 +61,7 @@ internal class MyWebViewClient(private val state: WebViewState) : WebViewClient(
     }
 }
 
-@SuppressLint("SetJavaScriptEnabled")
+@SuppressLint("SetJavaScriptEnabled", "JavascriptInterface")
 @Composable
 fun WebView(
     state: WebViewState,
@@ -68,6 +82,7 @@ fun WebView(
                         LayoutParams.MATCH_PARENT,
                         LayoutParams.MATCH_PARENT
                     )
+                    setInitialScale(100)
 
                     state.webView = this // Assign the WebView instance to the state
 
@@ -78,6 +93,10 @@ fun WebView(
                     // Use the created clients
                     this.webChromeClient = webChromeClient
                     this.webViewClient = webViewClient
+
+                    state.interfaces.forEach { (name, obj) ->
+                        addJavascriptInterface(obj, name)
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth(), // Make WebView fill the width
@@ -154,7 +173,8 @@ sealed class WebContent {
 
 @Stable // Mark as Stable for better Compose performance
 class WebViewState(
-    initialContent: WebContent = WebContent.NavigatorOnly
+    initialContent: WebContent = WebContent.NavigatorOnly,
+    val interfaces: Map<String, Any>  = emptyMap(),
 ) {
     // --- Content State ---
     var content: WebContent by mutableStateOf(initialContent)
@@ -238,13 +258,6 @@ class WebViewState(
     fun clearHistory() {
         webView?.clearHistory()
     }
-
-    fun addJavaScriptInterface(
-        obj: Any,
-        name: String
-    ) {
-        webView?.addJavascriptInterface(obj, name)
-    }
 }
 
 // --- Remember Functions ---
@@ -263,7 +276,8 @@ fun rememberWebViewState(
     baseUrl: String? = null,
     encoding: String = "utf-8",
     mimeType: String? = null,
-    historyUrl: String? = null
+    historyUrl: String? = null,
+    interfaces: Map<String, Any> = emptyMap(),
 ) = remember(data, baseUrl, encoding, mimeType, historyUrl) { // Use keys
-    WebViewState(WebContent.Data(data, baseUrl, encoding, mimeType, historyUrl))
+    WebViewState(WebContent.Data(data, baseUrl, encoding, mimeType, historyUrl), interfaces)
 }

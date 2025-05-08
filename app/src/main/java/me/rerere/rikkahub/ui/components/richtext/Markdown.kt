@@ -419,7 +419,6 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
 
         // 代码块
         MarkdownElementTypes.CODE_FENCE -> {
-            dumpAst(node, content)
             val code = node.getTextInNode(content, MarkdownTokenTypes.CODE_FENCE_CONTENT)
             val language = node.findChildOfType(MarkdownTokenTypes.FENCE_LANG)
                 ?.getTextInNode(content)

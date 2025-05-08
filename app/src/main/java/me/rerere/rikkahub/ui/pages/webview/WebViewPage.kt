@@ -24,12 +24,21 @@ import me.rerere.rikkahub.utils.base64Decode
 
 @Composable
 fun WebViewPage(url: String, content: String) {
-    val state = if(url.isNotEmpty()) {
-        rememberWebViewState(url)
+    val state = if (url.isNotEmpty()) {
+        rememberWebViewState(
+            url = url,
+            settings = {
+                builtInZoomControls = true
+                displayZoomControls = false
+            })
     } else {
-        rememberWebViewState().also {
-            it.loadData(content.base64Decode())
-        }
+        rememberWebViewState(
+            data = content.base64Decode(),
+            settings = {
+                builtInZoomControls = true
+                displayZoomControls = false
+            }
+        )
     }
 
     BackHandler(state.canGoBack) {
@@ -41,7 +50,8 @@ fun WebViewPage(url: String, content: String) {
             TopAppBar(
                 title = {
                     Text(
-                        text = state.pageTitle?.takeIf { it.isNotEmpty() } ?: state.currentUrl ?: "",
+                        text = state.pageTitle?.takeIf { it.isNotEmpty() } ?: state.currentUrl
+                        ?: "",
                         maxLines = 1,
                         style = MaterialTheme.typography.titleSmall
                     )
@@ -65,7 +75,7 @@ fun WebViewPage(url: String, content: String) {
                     IconButton(
                         onClick = {
                             state.currentUrl?.let { url ->
-                                if(url.isNotBlank()) {
+                                if (url.isNotBlank()) {
                                     urlHandler.openUri(url)
                                 }
                             }

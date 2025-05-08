@@ -7,18 +7,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import me.rerere.rikkahub.ui.components.webview.WebView
 import me.rerere.rikkahub.ui.components.webview.rememberWebViewState
 import me.rerere.rikkahub.ui.theme.LocalDarkMode
+import me.rerere.rikkahub.utils.escapeHtml
 import me.rerere.rikkahub.utils.toCssHex
 
 /**
@@ -26,7 +27,6 @@ import me.rerere.rikkahub.utils.toCssHex
  *
  * @param code The Mermaid diagram code
  * @param modifier The modifier to be applied to the component
- * @param theme The theme for the Mermaid diagram (default, forest, dark, neutral)
  */
 @Composable
 fun Mermaid(
@@ -36,6 +36,7 @@ fun Mermaid(
     val colorScheme = MaterialTheme.colorScheme
     val darkMode = LocalDarkMode.current
     val density = LocalDensity.current
+    val context = LocalContext.current
 
     var contentHeight by remember { mutableIntStateOf(50) }
     var height = with(density) {
@@ -43,7 +44,9 @@ fun Mermaid(
     }
     val jsInterface = remember {
         MermaidHeightInterface { height ->
-            contentHeight = height
+            // 需要乘以density
+            // https://stackoverflow.com/questions/43394498/how-to-get-the-full-height-of-in-android-webview
+            contentHeight = (height * context.resources.displayMetrics.density).toInt()
         }
     }
 
@@ -63,21 +66,18 @@ fun Mermaid(
         interfaces = mapOf(
             "AndroidInterface" to jsInterface
         ),
-    )
-
-    LaunchedEffect(Unit) {
-        webViewState.webView?.settings?.apply {
+        settings = {
             builtInZoomControls = true
             displayZoomControls = false
         }
-    }
+    )
 
     WebView(
         state = webViewState,
         modifier = modifier
             .clip(RoundedCornerShape(4.dp))
             .animateContentSize()
-            .height(height)
+            .height(height),
     )
 }
 
@@ -89,26 +89,6 @@ private class MermaidHeightInterface(private val onHeightChanged: (Int) -> Unit)
     fun updateHeight(height: Int) {
         onHeightChanged(height)
     }
-}
-
-fun String.escapeHtml(): String {
-    if (this.isEmpty()) {
-        return ""
-    }
-    val sb = StringBuilder(this.length + (this.length / 10)) // 预估容量，避免多次扩容
-    for (char in this) {
-        when (char) {
-            '&' -> sb.append("&amp;")
-            '<' -> sb.append("&lt;")
-            '>' -> sb.append("&gt;")
-            '"' -> sb.append("&quot;")
-            '\'' -> sb.append("&apos;")
-            // 可选：处理其他一些不常见的字符，但以上5个是最核心的
-            // '/' -> sb.append("&#x2F;") // OWASP 推荐，但并非所有场景都需要
-            else -> sb.append(char)
-        }
-    }
-    return sb.toString()
 }
 
 /**
@@ -168,22 +148,7 @@ private fun buildMermaidHtml(
               mermaid.initialize({
                     startOnLoad: false,
                     theme: '${theme.value}',
-                    themeVariables: {
-                        fontSize: '2.5rem',
-                        
-                        // 饼图字体大小
-                        pieTitleTextSize: '2rem',
-                        pieSectionTextSize: '1.7rem',
-                        pieLegendTextSize: '1.7rem',
-                        
-                        // 标签字体大小
-                        tagLabelFontSize: '1.7rem',
-                        commitLabelFontSize: '1.7rem',
-                        
-                        // 雷达图字体大小
-                        axisLabelFontSize: '2rem', 
-                        legendFontSize: '2rem',
-                        
+                    themeVariables: {                        
                         primaryColor: '${primaryColor}',
                         primaryTextColor: '${onPrimary}',
                         primaryBorderColor: '${primaryColor}',
@@ -232,12 +197,28 @@ private fun buildMermaidHtml(
               });
 
               function calculateAndSendHeight() {
-                    const height = document.body.scrollHeight;
-                    AndroidInterface.updateHeight(height);
+                    // 获取实际内容高度，考虑缩放因素
+                    const contentElement = document.querySelector('.mermaid');
+                    const contentBox = contentElement.getBoundingClientRect();
+                    // 添加内边距和一点额外空间以确保完整显示
+                    const height = Math.ceil(contentBox.height) + 20;
+                    
+                    // 处理移动设备的初始缩放
+                    const visualViewportScale = window.visualViewport ? window.visualViewport.scale : 1;
+                    console.warn('visualViewportScale', visualViewportScale)
+                    const adjustedHeight = Math.ceil(height * visualViewportScale);
+                    
+                    AndroidInterface.updateHeight(adjustedHeight);
               }
               
-              // Schedule the height update after the browser's next paint
-              requestAnimationFrame(calculateAndSendHeight);
+              // 等待绘制完成后计算高度
+              requestAnimationFrame(() => {
+                  // 延迟一点时间以确保Mermaid渲染完成
+                  setTimeout(calculateAndSendHeight, 100);
+              });
+              
+              // 监听窗口大小变化以重新计算高度
+              window.addEventListener('resize', calculateAndSendHeight);
             </script>
         </body>
         </html>
@@ -249,7 +230,5 @@ private fun buildMermaidHtml(
  */
 enum class MermaidTheme(val value: String) {
     DEFAULT("default"),
-    FOREST("forest"),
     DARK("dark"),
-    NEUTRAL("neutral")
 }

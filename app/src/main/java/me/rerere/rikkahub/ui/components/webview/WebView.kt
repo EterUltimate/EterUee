@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.ViewGroup.LayoutParams
 import android.webkit.ConsoleMessage
 import android.webkit.WebChromeClient
+import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.Box
@@ -82,13 +83,15 @@ fun WebView(
                         LayoutParams.MATCH_PARENT,
                         LayoutParams.MATCH_PARENT
                     )
-                    setInitialScale(100)
 
                     state.webView = this // Assign the WebView instance to the state
 
                     onCreated(this)
 
                     settings.javaScriptEnabled = true // Enable JavaScript
+                    settings.domStorageEnabled = true
+                    settings.allowContentAccess = true
+                    settings.apply(state.settings)
 
                     // Use the created clients
                     this.webChromeClient = webChromeClient
@@ -175,6 +178,7 @@ sealed class WebContent {
 class WebViewState(
     initialContent: WebContent = WebContent.NavigatorOnly,
     val interfaces: Map<String, Any>  = emptyMap(),
+    val settings: WebSettings.() -> Unit = {}
 ) {
     // --- Content State ---
     var content: WebContent by mutableStateOf(initialContent)
@@ -266,8 +270,14 @@ class WebViewState(
 fun rememberWebViewState(
     url: String = "about:blank",
     additionalHttpHeaders: Map<String, String> = emptyMap(),
+    interfaces: Map<String, Any> = emptyMap(),
+    settings: WebSettings.() -> Unit = {},
 ) = remember(url, additionalHttpHeaders) { // Use keys for better recomposition control
-    WebViewState(WebContent.Url(url, additionalHttpHeaders))
+    WebViewState(
+        initialContent = WebContent.Url(url, additionalHttpHeaders),
+        interfaces = interfaces,
+        settings = settings
+    )
 }
 
 @Composable
@@ -278,6 +288,11 @@ fun rememberWebViewState(
     mimeType: String? = null,
     historyUrl: String? = null,
     interfaces: Map<String, Any> = emptyMap(),
+    settings: WebSettings.() -> Unit = {},
 ) = remember(data, baseUrl, encoding, mimeType, historyUrl) { // Use keys
-    WebViewState(WebContent.Data(data, baseUrl, encoding, mimeType, historyUrl), interfaces)
+    WebViewState(
+        initialContent = WebContent.Data(data, baseUrl, encoding, mimeType, historyUrl),
+        interfaces = interfaces,
+        settings = settings
+    )
 }

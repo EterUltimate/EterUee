@@ -2,7 +2,9 @@ package me.rerere.rikkahub.ui.pages.chat
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -243,17 +245,23 @@ private fun ChatList(
     }
     val viewPortSize by remember { derivedStateOf { state.layoutInfo.viewportSize } }
     var isRecentScroll by remember { mutableStateOf(false) }
+    var isAtBottom by remember { mutableStateOf(false) }
+
+    fun List<LazyListItemInfo>.isAtBottom(): Boolean {
+        val lastItem = lastOrNull() ?: return false
+        if (lastItem.key == LoadingIndicatorKey || lastItem.key == ScrollBottomKey || lastItem.key == TokenUsageItemKey) {
+            return true
+        }
+        return lastItem.key == conversation.messages.lastOrNull()?.id && (lastItem.offset + lastItem.size <= state.layoutInfo.viewportEndOffset + lastItem.size * 0.1 + 32)
+    }
+
+    LaunchedEffect(state, conversation) {
+        isAtBottom = state.layoutInfo.visibleItemsInfo.isAtBottom()
+    }
+
     Box(
         modifier = Modifier.padding(innerPadding),
     ) {
-        fun List<LazyListItemInfo>.isAtBottom(): Boolean {
-            val lastItem = lastOrNull() ?: return false
-            if (lastItem.key == LoadingIndicatorKey || lastItem.key == ScrollBottomKey || lastItem.key == TokenUsageItemKey) {
-                return true
-            }
-            return lastItem.key == conversation.messages.lastOrNull()?.id && (lastItem.offset + lastItem.size <= state.layoutInfo.viewportEndOffset + lastItem.size * 0.1 + 32)
-        }
-
         // 自动滚动到底部
         LaunchedEffect(loading, conversation.messages, viewPortSize, loading) {
             if (!state.isScrollInProgress && state.canScrollForward && loading) {
@@ -345,8 +353,14 @@ private fun ChatList(
 
         // 滚动到底部按钮
         AnimatedVisibility(
-            state.canScrollForward,
-            modifier = Modifier.align(Alignment.BottomCenter)
+            state.canScrollForward && isAtBottom,
+            modifier = Modifier.align(Alignment.BottomCenter),
+            enter = slideInVertically(
+                initialOffsetY = { it * 2 },
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { it * 2 },
+            ),
         ) {
             Surface(
                 shape = RoundedCornerShape(50),

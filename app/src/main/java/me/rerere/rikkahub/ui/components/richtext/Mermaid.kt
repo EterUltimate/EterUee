@@ -3,6 +3,7 @@ package me.rerere.rikkahub.ui.components.richtext
 import android.webkit.JavascriptInterface
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -11,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import me.rerere.rikkahub.ui.components.webview.WebView
 import me.rerere.rikkahub.ui.components.webview.rememberWebViewState
-import me.rerere.rikkahub.ui.context.LocalToaster
 
 /**
  * A component that renders Mermaid diagrams.
@@ -30,11 +30,9 @@ fun Mermaid(
     var height = with(LocalDensity.current) {
         contentHeight.toDp()
     }
-    val toaster = LocalToaster.current
     val jsInterface = remember {
         MermaidHeightInterface { height ->
             contentHeight = height
-            toaster.show("height = $height")
         }
     }
 
@@ -48,8 +46,15 @@ fun Mermaid(
         encoding = "UTF-8",
         interfaces = mapOf(
             "AndroidInterface" to jsInterface
-        )
+        ),
     )
+
+    LaunchedEffect(Unit) {
+        webViewState.webView?.settings?.apply {
+            builtInZoomControls = true
+            displayZoomControls = false
+        }
+    }
 
     WebView(
         state = webViewState,
@@ -97,7 +102,7 @@ private fun buildMermaidHtml(code: String, theme: MermaidTheme): String {
         <html>
         <head>
             <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=5.0">
             <title>Mermaid Diagram</title>
             <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
             <style>

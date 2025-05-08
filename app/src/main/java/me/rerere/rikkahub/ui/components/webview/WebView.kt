@@ -1,6 +1,8 @@
 package me.rerere.rikkahub.ui.components.webview
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
 import android.view.ViewGroup.LayoutParams
@@ -21,6 +23,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.graphics.createBitmap
+import me.rerere.rikkahub.utils.exportImage
 
 private const val TAG = "WebView"
 
@@ -264,8 +268,6 @@ class WebViewState(
     }
 }
 
-// --- Remember Functions ---
-
 @Composable
 fun rememberWebViewState(
     url: String = "about:blank",
@@ -295,4 +297,20 @@ fun rememberWebViewState(
         interfaces = interfaces,
         settings = settings
     )
+}
+
+fun saveWebViewToGallery(context: Context, webView: WebView, activity: Activity) {
+    // 获取WebView截图
+    val width = webView.width
+    val height = (webView.contentHeight * webView.scale).toInt()
+    if (width == 0 || height == 0) {
+        // WebView尚未布局完成
+        return
+    }
+    val bitmap = createBitmap(width, height)
+    val canvas = android.graphics.Canvas(bitmap)
+    webView.draw(canvas)
+    
+    // 使用exportImage函数保存到相册
+    context.exportImage(activity, bitmap, "webview_capture_${System.currentTimeMillis()}.png")
 }

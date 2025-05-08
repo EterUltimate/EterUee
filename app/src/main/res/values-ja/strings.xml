@@ -157,4 +157,9 @@
     <!-- Code Block -->
     <string name="code_block_copy">コードをコピー</string>
     <string name="code_block_preview">プレビュー</string>
+    
+    <!-- Mermaid Diagram -->
+    <string name="mermaid_export">エクスポート</string>
+    <string name="mermaid_export_success">エクスポートに成功しました</string>
+    <string name="mermaid_export_failed">エクスポートに失敗しました</string>
 </resources> 

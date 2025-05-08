@@ -155,4 +155,9 @@
     <!-- Code Block -->
     <string name="code_block_copy">Copy Code</string>
     <string name="code_block_preview">Preview</string>
+    
+    <!-- Mermaid Diagram -->
+    <string name="mermaid_export">Export</string>
+    <string name="mermaid_export_success">Export successful</string>
+    <string name="mermaid_export_failed">Export failed</string>
 </resources>

@@ -156,4 +156,9 @@
     <!-- Code Block -->
     <string name="code_block_copy">複製代碼</string>
     <string name="code_block_preview">預覽</string>
+    
+    <!-- Mermaid Diagram -->
+    <string name="mermaid_export">匯出</string>
+    <string name="mermaid_export_success">匯出成功</string>
+    <string name="mermaid_export_failed">匯出失敗</string>
 </resources> 

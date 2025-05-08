@@ -1,25 +1,40 @@
 package me.rerere.rikkahub.ui.components.richtext
 
+import android.graphics.BitmapFactory
+import android.util.Base64
 import android.webkit.JavascriptInterface
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.Download
+import com.composables.icons.lucide.Lucide
+import com.dokar.sonner.ToastType
+import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.webview.WebView
 import me.rerere.rikkahub.ui.components.webview.rememberWebViewState
+import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.ui.theme.LocalDarkMode
 import me.rerere.rikkahub.utils.escapeHtml
+import me.rerere.rikkahub.utils.exportImage
 import me.rerere.rikkahub.utils.toCssHex
 
 /**
@@ -37,17 +52,44 @@ fun Mermaid(
     val darkMode = LocalDarkMode.current
     val density = LocalDensity.current
     val context = LocalContext.current
+    val activity = LocalActivity.current
+    val toaster = LocalToaster.current
 
     var contentHeight by remember { mutableIntStateOf(50) }
     var height = with(density) {
         contentHeight.toDp()
     }
     val jsInterface = remember {
-        MermaidHeightInterface { height ->
-            // 需要乘以density
-            // https://stackoverflow.com/questions/43394498/how-to-get-the-full-height-of-in-android-webview
-            contentHeight = (height * context.resources.displayMetrics.density).toInt()
-        }
+        MermaidInterface(
+            onHeightChanged = { height ->
+                // 需要乘以density
+                // https://stackoverflow.com/questions/43394498/how-to-get-the-full-height-of-in-android-webview
+                contentHeight = (height * context.resources.displayMetrics.density).toInt()
+            },
+            onExportImage = { base64Image ->
+                runCatching {
+                    activity?.let {
+                        // 解码Base64图像并保存
+                        try {
+                            val imageBytes = Base64.decode(base64Image, Base64.DEFAULT)
+                            val bitmap =
+                                BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                            context.exportImage(
+                                it,
+                                bitmap,
+                                "mermaid_${System.currentTimeMillis()}.png"
+                            )
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                    toaster.show(context.getString(R.string.mermaid_export_success), type = ToastType.Success)
+                }.onFailure {
+                    it.printStackTrace()
+                    toaster.show(context.getString(R.string.mermaid_export_failed), type = ToastType.Error)
+                }
+            }
+        )
     }
 
     val html = remember(code, colorScheme) {
@@ -55,7 +97,6 @@ fun Mermaid(
             code = code,
             theme = if (darkMode) MermaidTheme.DARK else MermaidTheme.DEFAULT,
             colorScheme = colorScheme,
-            darkMode = darkMode
         )
     }
 
@@ -72,22 +113,52 @@ fun Mermaid(
         }
     )
 
-    WebView(
-        state = webViewState,
-        modifier = modifier
-            .clip(RoundedCornerShape(4.dp))
-            .animateContentSize()
-            .height(height),
-    )
+    Box(modifier = modifier) {
+        WebView(
+            state = webViewState,
+            modifier = Modifier
+                .clip(RoundedCornerShape(4.dp))
+                .animateContentSize()
+                .height(height),
+        )
+        
+        // 导出图片按钮
+        if (activity != null) {
+            IconButton(
+                onClick = {
+                    webViewState.webView?.evaluateJavascript(
+                        "exportSvgToPng();",
+                        null
+                    )
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(8.dp),
+            ) {
+                Icon(
+                    Lucide.Download, 
+                    contentDescription = stringResource(R.string.mermaid_export)
+                )
+            }
+        }
+    }
 }
 
 /**
- * JavaScript interface to receive height updates from the WebView
+ * JavaScript interface to receive height updates and handle image export from the WebView
  */
-private class MermaidHeightInterface(private val onHeightChanged: (Int) -> Unit) {
+private class MermaidInterface(
+    private val onHeightChanged: (Int) -> Unit,
+    private val onExportImage: (String) -> Unit
+) {
     @JavascriptInterface
     fun updateHeight(height: Int) {
         onHeightChanged(height)
+    }
+
+    @JavascriptInterface
+    fun exportImage(base64Image: String) {
+        onExportImage(base64Image)
     }
 }
 
@@ -98,7 +169,6 @@ private fun buildMermaidHtml(
     code: String,
     theme: MermaidTheme,
     colorScheme: ColorScheme,
-    darkMode: Boolean
 ): String {
     // 将 ColorScheme 颜色转为 HEX 字符串
     val primaryColor = colorScheme.primaryContainer.toCssHex()
@@ -219,6 +289,56 @@ private fun buildMermaidHtml(
               
               // 监听窗口大小变化以重新计算高度
               window.addEventListener('resize', calculateAndSendHeight);
+              
+              // 导出SVG为PNG图像
+              window.exportSvgToPng = function() {
+                try {
+                    const svgElement = document.querySelector('.mermaid svg');
+                    if (!svgElement) {
+                        console.error('No SVG element found');
+                        return;
+                    }
+                    
+                    // 创建一个临时画布
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // 获取SVG的尺寸
+                    const svgRect = svgElement.getBoundingClientRect();
+                    const width = svgRect.width;
+                    const height = svgRect.height;
+                    
+                    // 设置画布尺寸
+                    canvas.width = width * window.devicePixelRatio * 2;
+                    canvas.height = height * window.devicePixelRatio * 2;
+                    
+                    // 设置背景色（可选）
+                    ctx.fillStyle = '${background}';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // 将SVG转换为XML字符串
+                    const svgData = new XMLSerializer().serializeToString(svgElement);
+                    const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+                    const url = URL.createObjectURL(svgBlob);
+                    
+                    // 创建图像对象
+                    const img = new Image();
+                    img.onload = function() {
+                        // 画图
+                        ctx.drawImage(img, 0, 0);
+                        URL.revokeObjectURL(url);
+                        
+                        // 转换为PNG并发送到Android
+                        const pngBase64 = canvas.toDataURL('image/png').split(',')[1];
+                        AndroidInterface.exportImage(pngBase64);
+                    };
+                    
+                    // 加载SVG数据
+                    img.src = url;
+                } catch (e) {
+                    console.error('Error exporting SVG:', e);
+                }
+              };
             </script>
         </body>
         </html>

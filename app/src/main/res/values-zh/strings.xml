@@ -35,6 +35,7 @@
     <string name="chat_page_cancel">取消</string>
     <string name="chat_page_new_chat">新聊天</string>
     <string name="chat_page_edit_title_warning">请先聊天再编辑标题吧</string>
+    <string name="chat_page_search_placeholder">搜索聊天记录</string>
 
     <string name="setting_page_display_setting">显示设置</string>
     <string name="setting_page_display_setting_desc">管理显示设置</string>

@@ -7,6 +7,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,11 +20,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.Trash2
+import com.composables.icons.lucide.X
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.ui.theme.extendColors
@@ -50,7 +58,7 @@ import java.time.ZoneId
 import kotlin.uuid.Uuid
 
 @Composable
-fun ConversationList(
+fun ColumnScope.ConversationList(
     current: Conversation,
     conversations: List<Conversation>,
     loadings: Collection<Uuid>,
@@ -59,17 +67,58 @@ fun ConversationList(
     onDelete: (Conversation) -> Unit = {},
     onRegenerateTitle: (Conversation) -> Unit = {}
 ) {
+    var searchInput by remember {
+        mutableStateOf("")
+    }
+
+    TextField(
+        value = searchInput,
+        onValueChange = {
+            searchInput = it
+        },
+        modifier = Modifier.fillMaxWidth().padding(8.dp),
+        shape = RoundedCornerShape(50),
+        trailingIcon = {
+            AnimatedVisibility(searchInput.isNotEmpty()) {
+                IconButton(
+                    onClick = {
+                        searchInput = ""
+                    }
+                ) {
+                    Icon(Lucide.X, null)
+                }
+            }
+        },
+        colors = TextFieldDefaults.colors(
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+        ),
+        placeholder = {
+            Text(stringResource(id = R.string.chat_page_search_placeholder))
+        }
+    )
+
     // 按日期分组对话
-    val groupedConversations = conversations.groupBy { conversation ->
-        val instant = conversation.updateAt
-        instant.atZone(ZoneId.systemDefault()).toLocalDate()
-    }.toSortedMap(compareByDescending { it })
+    val groupedConversations by remember(conversations) {
+        derivedStateOf {
+            conversations
+                .filter { conversation ->
+                    conversation.title.contains(searchInput, true)
+                }
+                .groupBy { conversation ->
+                    val instant = conversation.updateAt
+                    instant.atZone(ZoneId.systemDefault()).toLocalDate()
+                }
+                .toSortedMap(compareByDescending { it })
+        }
+    }
 
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        if(conversations.isEmpty()) {
+        if (conversations.isEmpty()) {
             item {
                 Surface(
                     modifier = Modifier

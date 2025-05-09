@@ -264,6 +264,8 @@ private fun buildMermaidHtml(
               
               await mermaid.run({
                     querySelector: '.mermaid'
+              }).catch((err) => {
+                 console.error(err);
               });
 
               function calculateAndSendHeight() {
@@ -296,47 +298,49 @@ private fun buildMermaidHtml(
                     const svgElement = document.querySelector('.mermaid svg');
                     if (!svgElement) {
                         console.error('No SVG element found');
+                        AndroidInterface.exportImage(''); // Notify error or send empty
                         return;
                     }
-                    
-                    // 创建一个临时画布
+
+                    // Create a temporary canvas
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    
-                    // 获取SVG的尺寸
+
+                    // Get SVG's dimensions
                     const svgRect = svgElement.getBoundingClientRect();
                     const width = svgRect.width;
                     const height = svgRect.height;
-                    
-                    // 设置画布尺寸
-                    canvas.width = width * window.devicePixelRatio * 2;
-                    canvas.height = height * window.devicePixelRatio * 2;
-                    
-                    // 设置背景色（可选）
-                    ctx.fillStyle = '${background}';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    
-                    // 将SVG转换为XML字符串
-                    const svgData = new XMLSerializer().serializeToString(svgElement);
-                    const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
-                    const url = URL.createObjectURL(svgBlob);
-                    
-                    // 创建图像对象
+
+                    // Set canvas dimensions with scaling for better resolution
+                    const scaleFactor = window.devicePixelRatio * 2; // Increase resolution
+                    canvas.width = width * scaleFactor;
+                    canvas.height = height * scaleFactor;
+
+                    // Serialize SVG to XML
+                    const svgXml = new XMLSerializer().serializeToString(svgElement);
+                    const svgBase64 = btoa(unescape(encodeURIComponent(svgXml))); // Properly encode to base64
+
                     const img = new Image();
                     img.onload = function() {
-                        // 画图
-                        ctx.drawImage(img, 0, 0);
-                        URL.revokeObjectURL(url);
-                        
-                        // 转换为PNG并发送到Android
+                        // Set background color (optional, matches HTML background)
+                        ctx.fillStyle = '${background}';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                        // Draw the SVG image onto the canvas
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                        // Get PNG image as base64
                         const pngBase64 = canvas.toDataURL('image/png').split(',')[1];
                         AndroidInterface.exportImage(pngBase64);
                     };
-                    
-                    // 加载SVG数据
-                    img.src = url;
+                    img.onerror = function(e) {
+                        console.error('Error loading SVG image:', e);
+                        AndroidInterface.exportImage(''); // Notify error or send empty
+                    }
+                    img.src = 'data:image/svg+xml;base64,' + svgBase64;
                 } catch (e) {
                     console.error('Error exporting SVG:', e);
+                    AndroidInterface.exportImage(''); // Notify error or send empty
                 }
               };
             </script>

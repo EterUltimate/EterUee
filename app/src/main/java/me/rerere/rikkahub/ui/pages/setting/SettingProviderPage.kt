@@ -16,10 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -67,6 +63,8 @@ import com.composables.icons.lucide.GripHorizontal
 import com.composables.icons.lucide.Hammer
 import com.composables.icons.lucide.Import
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Pencil
+import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Settings
 import com.composables.icons.lucide.Share
 import com.composables.icons.lucide.Trash2
@@ -248,7 +246,7 @@ private fun AddButton(onAdd: (ProviderSetting) -> Unit) {
             dialogState.open(ProviderSetting.OpenAI())
         }
     ) {
-        Icon(Icons.Outlined.Add, "Add")
+        Icon(Lucide.Plus, "Add")
     }
 
     if (dialogState.isEditing) {
@@ -437,7 +435,7 @@ private fun ProviderItem(
                             onDelete()
                         }
                     ) {
-                        Icon(Icons.Outlined.Delete, "Delete")
+                        Icon(Lucide.Trash2, "Delete")
                     }
 
                     Button(
@@ -447,7 +445,7 @@ private fun ProviderItem(
                             expand = ProviderExpandState.None
                         }
                     ) {
-                        Icon(Icons.Outlined.Edit, "Delete")
+                        Icon(Lucide.Pencil, "Delete")
                         Text("保存")
                     }
                 }
@@ -568,7 +566,7 @@ private fun AddModelButton(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Outlined.Add, contentDescription = "添加模型")
+            Icon(Lucide.Plus, contentDescription = "添加模型")
             Spacer(modifier = Modifier.size(8.dp))
             Text("添加新模型", style = MaterialTheme.typography.bodyLarge)
         }
@@ -1087,7 +1085,7 @@ private fun ModelCard(
                         dialogState.open(model.copy())
                     }
                 ) {
-                    Icon(Icons.Outlined.Edit, "Edit")
+                    Icon(Lucide.Pencil, "Edit")
                 }
             }
         }

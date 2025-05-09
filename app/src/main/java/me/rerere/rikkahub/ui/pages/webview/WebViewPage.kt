@@ -3,9 +3,6 @@ package me.rerere.rikkahub.ui.pages.webview
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -15,8 +12,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
+import com.composables.icons.lucide.ArrowRight
 import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.RefreshCw
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.webview.WebView
 import me.rerere.rikkahub.ui.components.webview.rememberWebViewState
@@ -61,14 +60,14 @@ fun WebViewPage(url: String, content: String) {
                 },
                 actions = {
                     IconButton(onClick = { state.reload() }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                        Icon(Lucide.RefreshCw, contentDescription = "Refresh")
                     }
 
                     IconButton(
                         onClick = { state.goForward() },
                         enabled = state.canGoForward
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Forward")
+                        Icon(Lucide.ArrowRight, contentDescription = "Forward")
                     }
 
                     val urlHandler = LocalUriHandler.current

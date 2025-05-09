@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastAny
@@ -116,7 +117,7 @@ fun ModelSelector(
             onDismissRequest = {
                 popup = false
             },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         ) {
             Column(
                 modifier = Modifier.padding(8.dp),
@@ -188,7 +189,10 @@ fun ModelList(
                     text = stringResource(R.string.model_list_favorite),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
+                    modifier = Modifier
+                        .padding(bottom = 4.dp, top = 8.dp)
+                        .fillMaxWidth(),
+                    textAlign = TextAlign.Center
                 )
             }
 
@@ -235,7 +239,10 @@ fun ModelList(
                     text = providerSetting.name,
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
+                    modifier = Modifier
+                        .padding(bottom = 4.dp, top = 8.dp)
+                        .fillMaxWidth(),
+                    textAlign = TextAlign.Center
                 )
             }
 

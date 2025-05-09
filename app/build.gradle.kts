@@ -147,6 +147,9 @@ dependencies {
     implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.compose)
 
+    // Apache Commons Text
+    implementation(libs.commons.text)
+
     // Compose Cropper
     implementation(libs.ucrop)
 

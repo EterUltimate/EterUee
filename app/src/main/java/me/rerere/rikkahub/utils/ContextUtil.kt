@@ -104,7 +104,7 @@ fun Context.exportImage(activity: Activity, bitmap: Bitmap, fileName: String = "
             val imagesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
             val image = File(imagesDir, fileName)
             outputStream = FileOutputStream(image)
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream!!)
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
 
             // 通知图库更新
             val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)

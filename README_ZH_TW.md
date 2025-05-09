@@ -27,13 +27,14 @@
 - 🌙 暗色模式
 - 🔄 多種類型的供應商支持，自定義 API / URL / 模型（目前支持 OpenAI、Google）
 - 🖼️ 多模態輸入支持
-- 📝 Markdown 渲染（支持代碼高亮、數學公式、表格等）
-- 🔍 搜索支持（Exa、Tavily）
+- 📝 Markdown 渲染（支持代碼高亮、數學公式、表格、Mermaid）
+- 🔍 搜索支持（Exa、Tavily、Zhipu）
 - 🧩 Prompt 變量（模型名稱、時間等）
 - 🤳 二維碼導出和導入提供商
 - 🤖 智能體自定義
 - 🧠 類ChatGPT記憶功能
 - 📝 AI翻譯
+- 🌐 自定義HTTP請求頭和請求體
 
 ## ✨ 貢獻
 

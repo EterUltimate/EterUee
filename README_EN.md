@@ -26,13 +26,14 @@ Click to join our Discord server 👉 [【RikkaHub】](https://discord.gg/9weBqx
 - 🌙 Dark mode
 - 🔄 Support for multiple provider types, custom API / URL / models (currently supports OpenAI, Google)
 - 🖼️ Multimodal input support
-- 📝 Markdown rendering (supports code highlighting, math formulas, tables, etc.)
-- 🔍 Search capabilities (Exa, Tavily)
+- 📝 Markdown rendering (supports code highlighting, math formulas, tables, Mermaid)
+- 🔍 Search capabilities (Exa, Tavily, Zhipu)
 - 🧩 Prompt variables (model name, time, etc.)
 - 🤳 QR code export and import for providers
 - 🤖 Agent customization
 - 🧠 ChatGPT-like memory feature
 - 📝 AI Translation
+- 🌐 Custom HTTP request headers and request bodies
 
 ## ✨ Contributing
 

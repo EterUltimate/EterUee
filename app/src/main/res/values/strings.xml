@@ -36,6 +36,13 @@
     <string name="chat_page_edit_title_warning">Please chat first before editing the title</string>
     <string name="chat_page_search_placeholder">Search conversations</string>
 
+    <!-- Export Chat -->
+    <string name="chat_page_export_format">Export Format</string>
+    <string name="chat_page_export_markdown">Markdown</string>
+    <string name="chat_page_export_markdown_desc">Export conversation as a markdown file</string>
+    <string name="chat_page_export_success">Exported to %1$s</string>
+    <string name="chat_page_export_share_via">Share via</string>
+
     <string name="setting_page_display_setting">Display Settings</string>
     <string name="setting_page_display_setting_desc">Manage display settings</string>
     <string name="setting_page_dynamic_color">Dynamic Color</string>

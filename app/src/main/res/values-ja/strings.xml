@@ -37,6 +37,13 @@
     <string name="chat_page_edit_title_warning">まずチャットしてからタイトルを編集してください</string>
     <string name="chat_page_search_placeholder">会話を検索</string>
 
+    <!-- Export Chat -->
+    <string name="chat_page_export_format">エクスポート形式</string>
+    <string name="chat_page_export_markdown">Markdown</string>
+    <string name="chat_page_export_markdown_desc">会話をmarkdownファイルとしてエクスポート</string>
+    <string name="chat_page_export_success">%1$sにエクスポートしました</string>
+    <string name="chat_page_export_share_via">共有方法</string>
+
     <string name="setting_page_display_setting">表示設定</string>
     <string name="setting_page_display_setting_desc">表示設定を管理</string>
     <string name="setting_page_dynamic_color">ダイナミックカラー</string>

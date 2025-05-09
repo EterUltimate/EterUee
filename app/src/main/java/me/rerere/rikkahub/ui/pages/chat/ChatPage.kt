@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -38,6 +39,7 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -49,6 +51,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -64,6 +67,7 @@ import androidx.compose.ui.util.fastCoerceAtLeast
 import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.ChevronUp
 import com.composables.icons.lucide.Download
@@ -88,6 +92,7 @@ import me.rerere.rikkahub.ui.components.chat.ChatInput
 import me.rerere.rikkahub.ui.components.chat.ChatMessage
 import me.rerere.rikkahub.ui.components.chat.rememberChatInputState
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
+import me.rerere.rikkahub.ui.components.ui.ListSelectableItem
 import me.rerere.rikkahub.ui.components.ui.WavyCircularProgressIndicator
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalToaster
@@ -240,13 +245,12 @@ private fun ChatList(
 ) {
     val state = rememberLazyListState()
     val scope = rememberCoroutineScope()
-    val scrollToBottom = {
-        state.requestScrollToItem(conversation.messages.lastIndex + 5)
-    }
+
     val viewPortSize by remember { derivedStateOf { state.layoutInfo.viewportSize } }
     var isRecentScroll by remember { mutableStateOf(false) }
-    var isAtBottom by remember { mutableStateOf(false) }
 
+    var isAtBottom by remember { mutableStateOf(false) }
+    val scrollToBottom = { state.requestScrollToItem(conversation.messages.lastIndex + 5) }
     fun List<LazyListItemInfo>.isAtBottom(): Boolean {
         val lastItem = lastOrNull() ?: return false
         if (lastItem.key == LoadingIndicatorKey || lastItem.key == ScrollBottomKey || lastItem.key == TokenUsageItemKey) {
@@ -254,13 +258,19 @@ private fun ChatList(
         }
         return lastItem.key == conversation.messages.lastOrNull()?.id && (lastItem.offset + lastItem.size <= state.layoutInfo.viewportEndOffset + lastItem.size * 0.1 + 32)
     }
-
     LaunchedEffect(state, conversation) {
         isAtBottom = state.layoutInfo.visibleItemsInfo.isAtBottom()
     }
 
+    // 聊天选择
+    val selectedItems = remember { mutableStateListOf<Uuid>() }
+    var selecting by remember { mutableStateOf(false) }
+    var showExportSheet by remember { mutableStateOf(false) }
+
     Box(
-        modifier = Modifier.padding(innerPadding),
+        modifier = Modifier
+            .padding(innerPadding)
+            .fillMaxSize(),
     ) {
         // 自动滚动到底部
         LaunchedEffect(loading, conversation.messages, viewPortSize, loading) {
@@ -290,20 +300,39 @@ private fun ChatList(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             items(conversation.messages, key = { it.id }) { message ->
-                ChatMessage(
-                    message = message,
-                    showIcon = settings.displaySetting.showModelIcon,
-                    model = message.modelId?.let { settings.providers.findModelById(it) },
-                    onRegenerate = {
-                        onRegenerate(message)
+                ListSelectableItem(
+                    key = message.id,
+                    onSelectChange = {
+                        if (!selectedItems.contains(message.id)) {
+                            selectedItems.add(message.id)
+                        } else {
+                            selectedItems.remove(message.id)
+                        }
                     },
-                    onEdit = {
-                        onEdit(message)
-                    },
-                    onFork = {
-                        onForkMessage(message)
-                    }
-                )
+                    selectedKeys = selectedItems,
+                    enabled = selecting && message.isValidToShowActions(),
+                ) {
+                    ChatMessage(
+                        message = message,
+                        showIcon = settings.displaySetting.showModelIcon,
+                        model = message.modelId?.let { settings.providers.findModelById(it) },
+                        onRegenerate = {
+                            onRegenerate(message)
+                        },
+                        onEdit = {
+                            onEdit(message)
+                        },
+                        onFork = {
+                            onForkMessage(message)
+                        },
+                        onShare = {
+                            selecting = true
+                            selectedItems.clear()
+                            selectedItems.addAll(conversation.messages.map { it.id }
+                                .subList(0, conversation.messages.indexOf(message) + 1))
+                        }
+                    )
+                }
             }
 
             if (loading) {
@@ -350,6 +379,44 @@ private fun ChatList(
                 )
             }
         }
+
+        // 完成选择
+        AnimatedVisibility(
+            visible = selecting,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp),
+            enter = slideInVertically(
+                initialOffsetY = { it * 2 },
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { it * 2 },
+            ),
+        ) {
+            SmallFloatingActionButton(
+                onClick = {
+                    selecting = false
+                    val messages =
+                        conversation.messages.filter { it.id in selectedItems && it.isValidToShowActions() }
+                    if (messages.isNotEmpty()) {
+                        showExportSheet = true
+                    }
+                }
+            ) {
+                Icon(Lucide.Check, null)
+            }
+        }
+
+        // 导出对话框
+        ChatExportSheet(
+            visible = showExportSheet,
+            onDismissRequest = {
+                showExportSheet = false
+                selectedItems.clear()
+            },
+            conversation = conversation,
+            selectedMessages = conversation.messages.filter { it.id in selectedItems }
+        )
 
         // 滚动到底部按钮
         AnimatedVisibility(

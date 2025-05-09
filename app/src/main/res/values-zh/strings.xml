@@ -37,6 +37,13 @@
     <string name="chat_page_edit_title_warning">请先聊天再编辑标题吧</string>
     <string name="chat_page_search_placeholder">搜索聊天记录</string>
 
+    <!-- Export Chat -->
+    <string name="chat_page_export_format">导出格式</string>
+    <string name="chat_page_export_markdown">Markdown</string>
+    <string name="chat_page_export_markdown_desc">将对话导出为markdown文件</string>
+    <string name="chat_page_export_success">已导出为%1$s</string>
+    <string name="chat_page_export_share_via">分享方式</string>
+
     <string name="setting_page_display_setting">显示设置</string>
     <string name="setting_page_display_setting_desc">管理显示设置</string>
     <string name="setting_page_dynamic_color">动态颜色</string>

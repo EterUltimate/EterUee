@@ -5,7 +5,11 @@ import android.util.Base64
 import android.webkit.JavascriptInterface
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,9 +17,12 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -26,7 +33,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Download
+import com.composables.icons.lucide.Eye
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.X
 import com.dokar.sonner.ToastType
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.webview.WebView
@@ -55,7 +64,7 @@ fun Mermaid(
     val activity = LocalActivity.current
     val toaster = LocalToaster.current
 
-    var contentHeight by remember { mutableIntStateOf(50) }
+    var contentHeight by remember { mutableIntStateOf(150) }
     var height = with(density) {
         contentHeight.toDp()
     }
@@ -83,10 +92,16 @@ fun Mermaid(
                             e.printStackTrace()
                         }
                     }
-                    toaster.show(context.getString(R.string.mermaid_export_success), type = ToastType.Success)
+                    toaster.show(
+                        context.getString(R.string.mermaid_export_success),
+                        type = ToastType.Success
+                    )
                 }.onFailure {
                     it.printStackTrace()
-                    toaster.show(context.getString(R.string.mermaid_export_failed), type = ToastType.Error)
+                    toaster.show(
+                        context.getString(R.string.mermaid_export_failed),
+                        type = ToastType.Error
+                    )
                 }
             }
         )
@@ -113,7 +128,10 @@ fun Mermaid(
         }
     )
 
-    Box(modifier = modifier) {
+    var preview by remember { mutableStateOf(false) }
+    Box(
+        modifier = modifier
+    ) {
         WebView(
             state = webViewState,
             modifier = Modifier
@@ -121,23 +139,89 @@ fun Mermaid(
                 .animateContentSize()
                 .height(height),
         )
-        
+
         // 导出图片按钮
         if (activity != null) {
-            IconButton(
-                onClick = {
-                    webViewState.webView?.evaluateJavascript(
-                        "exportSvgToPng();",
-                        null
-                    )
-                },
+            Row(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Icon(
-                    Lucide.Download, 
-                    contentDescription = stringResource(R.string.mermaid_export)
+                IconButton(
+                    onClick = {
+                        preview = true
+                    },
+                ) {
+                    Icon(
+                        Lucide.Eye,
+                        contentDescription = "Prewview"
+                    )
+                }
+                IconButton(
+                    onClick = {
+                        webViewState.webView?.evaluateJavascript(
+                            "exportSvgToPng();",
+                            null
+                        )
+                    },
+                ) {
+                    Icon(
+                        Lucide.Download,
+                        contentDescription = stringResource(R.string.mermaid_export)
+                    )
+                }
+            }
+        }
+    }
+
+    if (preview) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                preview = false
+            },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            sheetGesturesEnabled = false,
+            dragHandle = {}
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    IconButton(
+                        onClick = {
+                            preview = false
+                        }
+                    ) {
+                        Icon(
+                            Lucide.X,
+                            contentDescription = "Close"
+                        )
+                    }
+                }
+                WebView(
+                    state = rememberWebViewState(
+                        data = html,
+                        mimeType = "text/html",
+                        encoding = "UTF-8",
+                        interfaces = mapOf(
+                            "AndroidInterface" to jsInterface
+                        ),
+                        settings = {
+                            builtInZoomControls = true
+                            displayZoomControls = false
+                        }
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(400.dp)
+                        .clip(RoundedCornerShape(4.dp))
                 )
             }
         }

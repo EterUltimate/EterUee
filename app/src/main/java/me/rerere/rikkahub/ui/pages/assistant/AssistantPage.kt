@@ -139,7 +139,9 @@ private fun AssistantEditSheet(
             onDismissRequest = {
                 state.dismiss()
             },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            dragHandle = {},
+            sheetGesturesEnabled = false
         ) {
             Column(
                 modifier = Modifier

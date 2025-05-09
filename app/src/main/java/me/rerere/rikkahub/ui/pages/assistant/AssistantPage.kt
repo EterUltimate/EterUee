@@ -50,6 +50,8 @@ import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Trash2
 import me.rerere.ai.ui.transformers.PlaceholderTransformer
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.data.datastore.DEFAULT_ASSISTANTS
+import me.rerere.rikkahub.data.datastore.DEFAULT_ASSISTANTS_IDS
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
 import me.rerere.rikkahub.ui.components.nav.BackButton
@@ -684,6 +686,7 @@ private fun AssistantItem(
                     onClick = {
                         onDelete()
                     },
+                    enabled = assistant.id !in DEFAULT_ASSISTANTS_IDS
                 ) {
                     Icon(
                         Lucide.Trash2,

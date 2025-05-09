@@ -296,9 +296,7 @@ private fun buildMermaidHtml(
             <pre class="mermaid">
                 ${code.escapeHtml()}
             </pre>
-            <script type="module">
-              import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-              
+            <script>
               mermaid.initialize({
                     startOnLoad: false,
                     theme: '${theme.value}',
@@ -346,12 +344,6 @@ private fun buildMermaidHtml(
                     }
               });
               
-              await mermaid.run({
-                    querySelector: '.mermaid'
-              }).catch((err) => {
-                 console.error(err);
-              });
-
               function calculateAndSendHeight() {
                     // 获取实际内容高度，考虑缩放因素
                     const contentElement = document.querySelector('.mermaid');
@@ -367,10 +359,12 @@ private fun buildMermaidHtml(
                     AndroidInterface.updateHeight(adjustedHeight);
               }
               
-              // 等待绘制完成后计算高度
-              requestAnimationFrame(() => {
-                  // 延迟一点时间以确保Mermaid渲染完成
-                  setTimeout(calculateAndSendHeight, 100);
+              mermaid.run({
+                    querySelector: '.mermaid'
+              }).catch((err) => {
+                 console.error(err);
+              }).then(() => {
+                calculateAndSendHeight();
               });
               
               // 监听窗口大小变化以重新计算高度

@@ -296,8 +296,9 @@ private fun ChatList(
         LazyColumn(
             state = state,
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxSize()
         ) {
             items(conversation.messages, key = { it.id }) { message ->
                 ListSelectableItem(

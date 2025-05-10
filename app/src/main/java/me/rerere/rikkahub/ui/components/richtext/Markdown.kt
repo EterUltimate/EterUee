@@ -57,7 +57,7 @@ import org.intellij.markdown.IElementType
 import org.intellij.markdown.MarkdownElementTypes
 import org.intellij.markdown.MarkdownTokenTypes
 import org.intellij.markdown.ast.ASTNode
-import org.intellij.markdown.ast.findChildOfType
+import org.intellij.markdown.ast.LeafASTNode
 import org.intellij.markdown.flavours.gfm.GFMElementTypes
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.flavours.gfm.GFMTokenTypes
@@ -75,6 +75,7 @@ private val INLINE_LATEX_REGEX = Regex("\\\\\\((.+?)\\\\\\)")
 private val BLOCK_LATEX_REGEX = Regex("\\\\\\[(.+?)\\\\\\]", RegexOption.DOT_MATCHES_ALL)
 private val CITATION_REGEX = Regex("\\[citation:(\\w+)\\]")
 val THINKING_REGEX = Regex("<think>([\\s\\S]*?)(?:</think>|$)", RegexOption.DOT_MATCHES_ALL)
+
 // 预处理markdown内容
 private fun preProcess(content: String): String {
     // 替换行内公式 \( ... \) 到 $ ... $
@@ -136,9 +137,9 @@ fun MarkdownBlock(
     val preprocessed = remember(content) { preProcess(content) }
     val astTree = remember(preprocessed) {
         parser.buildMarkdownTreeFromString(preprocessed)
-            .also {
-                dumpAst(it, preprocessed) // for debugging ast tree
-            }
+//            .also {
+//                dumpAst(it, preprocessed) // for debugging ast tree
+//            }
     }
 
     ProvideTextStyle(style) {
@@ -535,7 +536,7 @@ private fun TableNode(node: ASTNode, content: String, modifier: Modifier = Modif
     // 创建列定义
     val columns = List(columnCount) { columnIndex ->
         ColumnDefinition<List<String>>(
-            header = { 
+            header = {
                 Text(
                     text = if (columnIndex < headerCells.size) headerCells[columnIndex] else "",
                     fontWeight = FontWeight.Bold
@@ -570,21 +571,12 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
     colorScheme: ColorScheme,
     maxWidth: Dp
 ) {
-    when (node.type) {
-        MarkdownTokenTypes.TEXT,
-        MarkdownTokenTypes.LPAREN,
-        MarkdownTokenTypes.RPAREN,
-        MarkdownTokenTypes.WHITE_SPACE,
-        MarkdownTokenTypes.COLON -> {
+    when {
+        node is LeafASTNode -> {
             append(node.getTextInNode(content))
         }
 
-        MarkdownTokenTypes.EMPH -> {
-            val text = node.getTextInNode(content)
-            if (text != "*") append(text)
-        }
-
-        MarkdownTokenTypes.HTML_TAG -> {
+        node.type == MarkdownTokenTypes.HTML_TAG -> {
             val text = node.getTextInNode(content)
             if (text == "<citation>") {
                 val id = node.nextSibling()?.getTextInNode(content)
@@ -606,40 +598,60 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
             }
         }
 
-        MarkdownElementTypes.EMPH -> {
+        node.type == MarkdownElementTypes.EMPH -> {
             withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
-                node.children.fastForEach {
-                    appendMarkdownNodeContent(
-                        it,
-                        content,
-                        inlineContents,
-                        colorScheme,
-                        maxWidth
-                    )
-                }
+                node.children
+                    .trim(MarkdownTokenTypes.EMPH, 1)
+                    .fastForEach {
+                        appendMarkdownNodeContent(
+                            it,
+                            content,
+                            inlineContents,
+                            colorScheme,
+                            maxWidth
+                        )
+                    }
             }
         }
 
-        MarkdownElementTypes.STRONG -> {
+        node.type == MarkdownElementTypes.STRONG -> {
             withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                node.children.fastForEach {
-                    appendMarkdownNodeContent(
-                        it,
-                        content,
-                        inlineContents,
-                        colorScheme,
-                        maxWidth
-                    )
-                }
+                node.children
+                    .trim(MarkdownTokenTypes.EMPH, 2)
+                    .fastForEach {
+                        appendMarkdownNodeContent(
+                            it,
+                            content,
+                            inlineContents,
+                            colorScheme,
+                            maxWidth
+                        )
+                    }
             }
         }
 
-        MarkdownElementTypes.INLINE_LINK -> {
-            val linkText =
-                node.findChildOfType(MarkdownTokenTypes.TEXT)?.getTextInNode(content) ?: ""
+        node.type == GFMElementTypes.STRIKETHROUGH -> {
+            withStyle(SpanStyle(textDecoration = TextDecoration.LineThrough)) {
+                node.children
+                    .trim(GFMTokenTypes.TILDE, 2)
+                    .fastForEach {
+                        appendMarkdownNodeContent(
+                            it,
+                            content,
+                            inlineContents,
+                            colorScheme,
+                            maxWidth
+                        )
+                    }
+            }
+        }
+
+        node.type == MarkdownElementTypes.INLINE_LINK -> {
             val linkDest =
                 node.findChildOfType(MarkdownElementTypes.LINK_DESTINATION)?.getTextInNode(content)
                     ?: ""
+            val linkText =
+                node.findChildOfType(MarkdownTokenTypes.TEXT)?.getTextInNode(content) ?: linkDest
             withLink(LinkAnnotation.Url(linkDest)) {
                 withStyle(
                     SpanStyle(
@@ -652,19 +664,20 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
             }
         }
 
-        MarkdownElementTypes.CODE_SPAN -> {
+        node.type == MarkdownElementTypes.CODE_SPAN -> {
             val code = node.getTextInNode(content).trim('`')
             withStyle(
                 SpanStyle(
                     fontFamily = FontFamily.Monospace,
                     fontSize = 0.95.em,
+                    background = colorScheme.secondaryContainer.copy(alpha = 0.2f),
                 )
             ) {
                 append(code)
             }
         }
 
-        GFMElementTypes.INLINE_MATH -> {
+        node.type == GFMElementTypes.INLINE_MATH -> {
             // formula as id
             val formula = node.getTextInNode(content)
             appendInlineContent(formula, "[Latex]")
@@ -704,7 +717,7 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
                 ))
         }
 
-        GFMElementTypes.BLOCK_MATH -> {
+        node.type == GFMElementTypes.BLOCK_MATH -> {
             // formula as id
             val formula = node.getTextInNode(content)
             appendInlineContent(formula, "[Latex]")
@@ -808,4 +821,23 @@ private fun ASTNode.traverseChildren(
         action(child)
         child.traverseChildren(action)
     }
+}
+
+private fun List<ASTNode>.trim(type: IElementType, size: Int): List<ASTNode> {
+    if (this.isEmpty() || size <= 0) return this
+    var start = 0
+    var end = this.size
+    // 从头裁剪
+    var trimmed = 0
+    while (start < end && trimmed < size && this[start].type == type) {
+        start++
+        trimmed++
+    }
+    // 从尾裁剪
+    trimmed = 0
+    while (end > start && trimmed < size && this[end - 1].type == type) {
+        end--
+        trimmed++
+    }
+    return this.subList(start, end)
 }

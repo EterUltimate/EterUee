@@ -1,30 +1,31 @@
 package me.rerere.rikkahub.ui.pages.menu
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.carousel.CarouselItemScope
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
+import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -96,43 +97,40 @@ private fun FeaturesSection() {
     val navController = LocalNavController.current
 
     @Composable
-    fun FeatureCard(
+    fun CarouselItemScope.FeatureCard(
         title: @Composable () -> Unit,
         image: @Composable () -> Unit,
         modifier: Modifier = Modifier,
         onClick: () -> Unit,
     ) {
-        OutlinedCard(
-            modifier = modifier,
-            onClick = onClick
+        Box(
+            modifier = modifier
+                .clickable { onClick() }
+                .maskClip(MaterialTheme.shapes.medium)
+                .fillMaxWidth()
+                .height(200.dp)
         ) {
-            Column {
-                Box(
-                    modifier = Modifier
-                        .clip(CardDefaults.shape)
-                        .width(150.dp)
-                        .aspectRatio(1f)
-                ) {
-                    image()
-                }
-                Column(
-                    modifier = Modifier.padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    ProvideTextStyle(MaterialTheme.typography.labelSmall) {
-                        title()
-                    }
+            image()
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(8.dp)
+            ) {
+                ProvideTextStyle(MaterialTheme.typography.titleMedium.copy(color = Color.White)) {
+                    title()
                 }
             }
         }
     }
 
-    Column {
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            item {
+    HorizontalMultiBrowseCarousel(
+        state = rememberCarouselState { 2 },
+        itemSpacing = 8.dp,
+        preferredItemWidth = 250.dp
+    ) { index ->
+        when (index) {
+            0 -> {
                 FeatureCard(
                     title = {
                         Text(stringResource(id = R.string.menu_page_ai_translator))
@@ -150,7 +148,7 @@ private fun FeaturesSection() {
                 }
             }
 
-            item {
+            1 -> {
                 FeatureCard(
                     title = {
                         Text(stringResource(id = R.string.menu_page_knowledge_base))

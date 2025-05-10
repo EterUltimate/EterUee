@@ -28,7 +28,6 @@ import me.rerere.ai.ui.MessageTransformer
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.handleMessageChunk
-import me.rerere.ai.ui.transformers.MessageTimeTransformer
 import me.rerere.ai.ui.transforms
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.findProvider
@@ -55,7 +54,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
         messages: List<UIMessage>,
         inputTransformers: List<MessageTransformer> = emptyList(),
         outputTransformers: List<MessageTransformer> = emptyList(),
-        assistant: (() -> Assistant)? = null,
+        assistant: Assistant? = null,
         memories: (suspend () -> List<AssistantMemory>)? = null,
         tools: List<Tool> = emptyList(),
         onCreationMemory: (suspend (String) -> AssistantMemory)? = null,
@@ -71,10 +70,9 @@ class GenerationHandler(private val context: Context, private val json: Json) {
         for (stepIndex in 0 until maxSteps) {
             Log.i(TAG, "streamText: start step #$stepIndex (${model.id})")
 
-            val assistantRef = assistant?.invoke()
             val toolsInternal = buildList {
-                Log.i(TAG, "generateInternal: build tools($assistantRef)")
-                if (assistantRef?.enableMemory == true) {
+                Log.i(TAG, "generateInternal: build tools($assistant)")
+                if (assistant?.enableMemory == true) {
                     checkNotNull(onCreationMemory)
                     checkNotNull(onUpdateMemory)
                     checkNotNull(onDeleteMemory)
@@ -88,7 +86,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
             }
 
             generateInternal(
-                assistantRef,
+                assistant,
                 messages,
                 {
                     messages = it
@@ -192,13 +190,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                 if (system.isNotBlank()) add(UIMessage.system(system))
             }
             addAll(messages.takeLast(assistant?.contextMessageSize ?: 32))
-        }
-            .transforms(transformers, context, model)
-            .transforms(
-                if (assistant?.enableMessageTime == true) listOf(MessageTimeTransformer) else emptyList(),
-                context,
-                model
-            )
+        }.transforms(transformers, context, model)
 
         var messages: List<UIMessage> = messages
         val params = TextGenerationParams(

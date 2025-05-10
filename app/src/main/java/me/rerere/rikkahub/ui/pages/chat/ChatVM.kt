@@ -26,6 +26,7 @@ import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyInputMessage
+import me.rerere.ai.ui.transformers.MessageTimeTransformer
 import me.rerere.ai.ui.transformers.PlaceholderTransformer
 import me.rerere.ai.ui.transformers.SearchTextTransformer
 import me.rerere.ai.ui.transformers.ThinkTagTransformer
@@ -226,9 +227,14 @@ class ChatVM(
                 settings = settings.value,
                 model = model,
                 messages = conversation.value.messages,
-                assistant = { settings.value.getCurrentAssistant() },
+                assistant = settings.value.getCurrentAssistant(),
                 memories = { memoryRepository.getMemoriesOfAssistant(settings.value.assistantId.toString()) },
-                inputTransformers = inputTransformers,
+                inputTransformers = buildList {
+                    addAll(inputTransformers)
+                    if (settings.value.getCurrentAssistant().enableMessageTime) {
+                        add(MessageTimeTransformer)
+                    }
+                },
                 outputTransformers = outputTransformers,
                 onUpdateMemory = { id, content ->
                     updateMemory(id, content)

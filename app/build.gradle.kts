@@ -111,8 +111,10 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
 
     // koin
+    implementation(platform(libs.koin.bom))
     implementation(libs.koin.android)
     implementation(libs.koin.compose)
+    implementation(libs.koin.androidx.workmanager)
 
     // jetbrains markdown parser
     implementation(libs.jetbrains.markdown)

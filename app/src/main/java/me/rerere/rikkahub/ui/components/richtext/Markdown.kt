@@ -136,9 +136,9 @@ fun MarkdownBlock(
     val preprocessed = remember(content) { preProcess(content) }
     val astTree = remember(preprocessed) {
         parser.buildMarkdownTreeFromString(preprocessed)
-//            .also {
-//                dumpAst(it, preprocessed) // for debugging ast tree
-//            }
+            .also {
+                dumpAst(it, preprocessed) // for debugging ast tree
+            }
     }
 
     ProvideTextStyle(style) {
@@ -414,6 +414,18 @@ fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Modifier) 
                 text = code,
                 fontFamily = FontFamily.Monospace,
                 modifier = modifier
+            )
+        }
+
+        MarkdownElementTypes.CODE_BLOCK -> {
+            val code = node.getTextInNode(content)
+            HighlightCodeBlock(
+                code = code,
+                language = "plaintext",
+                modifier = Modifier
+                    .padding(bottom = 4.dp)
+                    .fillMaxWidth(),
+                completeCodeBlock = true
             )
         }
 

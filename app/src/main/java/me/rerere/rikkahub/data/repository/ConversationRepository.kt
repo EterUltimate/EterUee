@@ -85,6 +85,14 @@ class ConversationRepository(
         } else null
     }
 
+    suspend fun upsertConversation(conversation: Conversation) {
+        if(getConversationById(conversation.id) !=  null) {
+            updateConversation(conversation)
+        } else {
+            insertConversation(conversation)
+        }
+    }
+
     suspend fun insertConversation(conversation: Conversation) {
         conversationDAO.insert(
             ConversationEntity(

@@ -223,6 +223,13 @@ class ChatVM(
     private suspend fun handleMessageComplete() {
         val model = settings.value.providers.findModelById(settings.value.chatModelId) ?: return
         runCatching {
+//            ChatService.startGeneration(
+//                context = context,
+//                settings = settings.value,
+//                model = model,
+//                assistant = settings.value.getCurrentAssistant(),
+//                conversation = conversation.value
+//            )
             generationHandler.streamText(
                 settings = settings.value,
                 model = model,

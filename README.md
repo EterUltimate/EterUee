@@ -1,73 +1,68 @@
 <div align="center">
-  <img src="docs/icon.png" alt="App 图标" width="100" />
+  <img src="docs/icon.png" alt="App Icon" width="100" />
   <h1>RikkaHub</h1>
 
-一个原生Android LLM 聊天客户端，支持切换不同的供应商进行聊天 🤖💬
+A native Android LLM chat client that supports switching between different providers for conversations 🤖💬
 
-[English](README_EN.md) | [繁體中文](README_ZH_TW.md) | 简体中文
+Click to join our Discord server 👉 [【RikkaHub】](https://discord.gg/9weBqxe5c4)
 
-点击链接加入群聊 👉 [【RikkaHub】](https://qm.qq.com/q/I8MSU0FkOu)
-
+[简体中文](README_ZH_CN.md) | [繁體中文](README_ZH_TW.md) | English
 </div>
 
 <div align="center">
-  <img src="docs/img/chat.png" alt="聊天界面" width="150" />
-  <img src="docs/img/chat_img.png" alt="多模态聊天界面" width="150" />
-  <img src="docs/img/setting.png" alt="设置界面" width="150" />
-  <img src="docs/img/provider.png" alt="供应商选择" width="150" />
+  <img src="docs/img/chat.png" alt="Chat Interface" width="150" />
+  <img src="docs/img/chat_img.png" alt="Multimodal Chat Interface" width="150" />
+  <img src="docs/img/setting.png" alt="Settings Interface" width="150" />
+  <img src="docs/img/provider.png" alt="Provider Selection" width="150" />
 </div>
 
-## 🚀 下载
+## 🚀 Download
 
-🔗 [点击前往官网下载](https://rikka-ai.com/)
+🔗 [Visit the official website to download](https://rikka-ai.com/)
 
-## ✨ 功能特色
+## ✨ Features
 
-- 🎨 现代化安卓APP设计（Material You / 预测性返回）
-- 🌙 暗色模式
-- 🔄 多种类型的供应商支持，自定义 API / URL / 模型（目前支持 OpenAI、Google）
-- 🖼️ 多模态输入支持
-- 📝 Markdown 渲染（支持代码高亮、数学公式、表格、Mermaid）
-- 🔍 搜索支持（Exa、Tavily、Zhipu）
-- 🧩 Prompt 变量（模型名称、时间等）
-- 🤳 二维码导出和导入提供商
-- 🤖 智能体自定义
-- 🧠 类ChatGPT记忆功能
-- 📝 翻译页面
-- 🌐 自定义HTTP请求头和请求体
+- 🎨 Modern Android app design (Material You / Predictive Back)
+- 🌙 Dark mode
+- 🔄 Support for multiple provider types, custom API / URL / models (currently supports OpenAI, Google)
+- 🖼️ Multimodal input support
+- 📝 Markdown rendering (supports code highlighting, math formulas, tables, Mermaid)
+- 🔍 Search capabilities (Exa, Tavily, Zhipu)
+- 🧩 Prompt variables (model name, time, etc.)
+- 🤳 QR code export and import for providers
+- 🤖 Agent customization
+- 🧠 ChatGPT-like memory feature
+- 📝 AI Translation
+- 🌐 Custom HTTP request headers and request bodies
 
-## ✨ 贡献
+## ✨ Contributing
 
-本项目使用[Android Studio](https://developer.android.com/studio)开发，欢迎提交PR
+This project is developed using [Android Studio](https://developer.android.com/studio). PRs are welcome!
 
-技术栈文档:
+Technology stack documentation:
 
-- [Kotlin](https://kotlinlang.org/) (开发语言)
-- [Koin](https://insert-koin.io/) (依赖注入)
-- [Jetpack Compose](https://developer.android.com/jetpack/compose) (UI 框架)
-- [DataStore](https://developer.android.com/topic/libraries/architecture/datastore?hl=zh-cn#preferences-datastore) (偏好数据存储)
-- [Room](https://developer.android.com/training/data-storage/room) (数据库)
-- [Coil](https://coil-kt.github.io/coil/) (图片加载)
-- [Material You](https://m3.material.io/) (UI 设计)
-- [Navigation Compose](https://developer.android.com/develop/ui/compose/navigation) (导航)
-- [Okhttp](https://square.github.io/okhttp/) (HTTP 客户端)
-- [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization) (Json序列化)
-- [compose-icons/lucide](https://composeicons.com/icon-libraries/lucide) (图标库)
+- [Kotlin](https://kotlinlang.org/) (Development language)
+- [Koin](https://insert-koin.io/) (Dependency Injection)
+- [Jetpack Compose](https://developer.android.com/jetpack/compose) (UI framework)
+- [DataStore](https://developer.android.com/topic/libraries/architecture/datastore) (Preference data storage)
+- [Room](https://developer.android.com/training/data-storage/room) (Database)
+- [Coil](https://coil-kt.github.io/coil/) (Image loading)
+- [Material You](https://m3.material.io/) (UI design)
+- [Navigation Compose](https://developer.android.com/develop/ui/compose/navigation) (Navigation)
+- [Okhttp](https://square.github.io/okhttp/) (HTTP client)
+- [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization) (JSON serialization)
+- [compose-icons/lucide](https://composeicons.com/icon-libraries/lucide) (Icon library)
 
-## 💖 捐赠
+## 💰 Donate
 
-如果你喜欢这个项目，可以请我喝杯咖啡 ☕
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/X8X71DVU91)
 
-<div>
-  <img src="docs/donate.png" alt="捐赠" width="200" />
-</div>
+## ⭐ Star History
 
-## Star History
-
-如果喜欢这个项目，可以给个Star ⭐
+If you like this project, please give it a star ⭐
 
 [![Star History Chart](https://api.star-history.com/svg?repos=re-ovo/rikkahub&type=Date)](https://star-history.com/#re-ovo/rikkahub&Date)
 
-## 📄 许可证
+## 📄 License
 
 [License](LICENSE)

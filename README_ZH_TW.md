@@ -4,7 +4,7 @@
 
 一個原生Android LLM 聊天客戶端，支持切換不同的供應商進行聊天 🤖💬
 
-[English](README_EN.md) | 繁體中文 | [简体中文](README.md)
+[English](README.md) | 繁體中文 | [简体中文](README_ZH_CN.md)
 
 點擊連結加入群聊 👉 [【RikkaHub】](https://qm.qq.com/q/I8MSU0FkOu)
 

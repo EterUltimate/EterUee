@@ -1,6 +1,7 @@
 package me.rerere.rikkahub.utils
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import androidx.core.net.toFile
@@ -9,6 +10,8 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.rerere.ai.ui.UIMessage
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.uuid.Uuid
 
 private const val TAG = "ChatUtil"
@@ -29,6 +32,20 @@ fun navigateToChatPage(
 
 fun Context.copyMessageToClipboard(message: UIMessage) {
     this.writeClipboardText(message.toText())
+}
+
+@OptIn(ExperimentalEncodingApi::class)
+fun Context.saveMessageImage(image: String) {
+    if(image.startsWith("data:image")) {
+        val byteArray = Base64.decode(image.substringAfter("base64,").toByteArray())
+        val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+        exportImage(this.getActivity()!!, bitmap)
+    } else if(image.startsWith("file:")) {
+        val file = image.toUri().toFile()
+        exportImageFile(this.getActivity()!!, file)
+    } else {
+        error("Invalid image format")
+    }
 }
 
 fun Context.createChatFiles(uris: List<Uri>): List<Uri> {

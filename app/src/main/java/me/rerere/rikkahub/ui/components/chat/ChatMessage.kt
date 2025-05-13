@@ -92,6 +92,7 @@ import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.Favicon
 import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.ImagePreviewDialog
+import me.rerere.rikkahub.ui.context.LocalSettings
 import me.rerere.rikkahub.ui.hooks.tts.rememberTtsState
 import me.rerere.rikkahub.ui.modifier.shimmer
 import me.rerere.rikkahub.ui.theme.extendColors
@@ -529,13 +530,14 @@ fun ReasoningCard(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
+    val settings = LocalSettings.current
 
     LaunchedEffect(reasoning, loading) {
         if (loading) {
             if (!expanded) expanded = true
             scrollState.animateScrollTo(scrollState.maxValue.toInt())
         } else {
-            if (expanded) expanded = false
+            if (expanded && settings.displaySetting.autoCloseThinking) expanded = false
         }
     }
 

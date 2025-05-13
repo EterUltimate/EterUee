@@ -20,8 +20,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
@@ -43,9 +45,11 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
 import me.rerere.highlight.Highlighter
 import me.rerere.highlight.LocalHighlighter
+import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.ui.context.LocalAnimatedVisibilityScope
 import me.rerere.rikkahub.ui.context.LocalFirebaseAnalytics
 import me.rerere.rikkahub.ui.context.LocalNavController
+import me.rerere.rikkahub.ui.context.LocalSettings
 import me.rerere.rikkahub.ui.context.LocalSharedTransitionScope
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.ui.pages.assistant.AssistantPage
@@ -73,6 +77,7 @@ class RouteActivity : ComponentActivity() {
     private lateinit var firebaseAnalytics: FirebaseAnalytics
     private val highlighter by inject<Highlighter>()
     private val okHttpClient by inject<OkHttpClient>()
+    private val settingsStore by inject<SettingsStore>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -105,10 +110,12 @@ class RouteActivity : ComponentActivity() {
     @Composable
     fun AppRoutes(navController: NavHostController) {
         val toastState = rememberToasterState()
+        val settings by settingsStore.settingsFlow.collectAsStateWithLifecycle()
         SharedTransitionLayout {
             CompositionLocalProvider(
                 LocalNavController provides navController,
                 LocalSharedTransitionScope provides this,
+                LocalSettings provides settings,
                 LocalHighlighter provides highlighter,
                 LocalFirebaseAnalytics provides firebaseAnalytics,
                 LocalToaster provides toastState,

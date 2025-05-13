@@ -186,6 +186,7 @@ data class Settings(
 data class DisplaySetting(
     val showModelIcon: Boolean = false,
     val showTokenUsage: Boolean = true,
+    val autoCloseThinking: Boolean = true,
 )
 
 fun Settings.isNotConfigured() = providers.all { it.models.isEmpty() }

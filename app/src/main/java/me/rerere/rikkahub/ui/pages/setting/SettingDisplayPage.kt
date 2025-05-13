@@ -90,6 +90,25 @@ fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
                     },
                 )
             }
+
+            item {
+                ListItem(
+                    headlineContent = {
+                        Text("自动折叠思考")
+                    },
+                    supportingContent = {
+                        Text("思考完成自动折叠思考内容")
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = displaySetting.autoCloseThinking,
+                            onCheckedChange = {
+                                updateDisplaySetting(displaySetting.copy(autoCloseThinking = it))
+                            }
+                        )
+                    },
+                )
+            }
         }
     }
 }

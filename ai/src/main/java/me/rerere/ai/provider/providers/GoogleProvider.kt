@@ -308,12 +308,24 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
 
 
         // Safety
-//        put("safetySettings", buildJsonArray {
-//            add(buildJsonObject {
-//                put("category", "HARM_CATEGORY_SEXUALLY_EXPLICIT")
-//                put("threshold", "BLOCK_NONE")
-//            })
-//        })
+        put("safetySettings", buildJsonArray {
+            add(buildJsonObject {
+                put("category", "HARM_CATEGORY_SEXUALLY_EXPLICIT")
+                put("threshold", "BLOCK_NONE")
+            })
+            add(buildJsonObject {
+                put("category", "HARM_CATEGORY_HATE_SPEECH")
+                put("threshold", "BLOCK_NONE")
+            })
+            add(buildJsonObject {
+                put("category", "HARM_CATEGORY_HATE_SPEECH")
+                put("threshold", "BLOCK_NONE")
+            })
+            add(buildJsonObject {
+                put("category", "HARM_CATEGORY_DANGEROUS_CONTENT")
+                put("threshold", "BLOCK_NONE")
+            })
+        })
 
         // Contents (user messages)
         put(

@@ -27,7 +27,9 @@ data class Conversation(
         get() = messages
             .flatMap { it.parts }
             .filterIsInstance<UIMessagePart.Image>()
-            .map { it.url.toUri() }
+            .mapNotNull {
+                it.url.takeIf { it.startsWith("file://") }?.toUri()
+            }
 
     companion object {
         fun ofId(id: Uuid, assistantId: Uuid = DEFAULT_ASSISTANT_ID, messages: List<UIMessage> = emptyList()) = Conversation(

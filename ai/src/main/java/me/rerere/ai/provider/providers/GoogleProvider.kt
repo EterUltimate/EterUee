@@ -21,6 +21,7 @@ import kotlinx.serialization.json.putJsonArray
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.core.Schema
 import me.rerere.ai.core.TokenUsage
+import me.rerere.ai.provider.Modality
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ModelType
@@ -280,7 +281,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
     ): JsonObject = buildJsonObject {
         // System message if available
         val systemMessage = messages.firstOrNull { it.role == MessageRole.SYSTEM }
-        if (systemMessage != null) {
+        if (systemMessage != null && !params.model.outputModalities.contains(Modality.IMAGE)) {
             put("system_instruction", buildJsonObject {
                 putJsonArray("parts") {
                     add(buildJsonObject {
@@ -297,7 +298,22 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
         put("generationConfig", buildJsonObject {
             if(params.temperature != null) put("temperature", params.temperature)
             if(params.topP != null) put("topP", params.topP)
+            if(params.model.outputModalities.contains(Modality.IMAGE)) {
+                put("responseModalities", buildJsonArray {
+                    add(JsonPrimitive("TEXT"))
+                    add(JsonPrimitive("IMAGE"))
+                })
+            }
         })
+
+
+        // Safety
+//        put("safetySettings", buildJsonArray {
+//            add(buildJsonObject {
+//                put("category", "HARM_CATEGORY_SEXUALLY_EXPLICIT")
+//                put("threshold", "BLOCK_NONE")
+//            })
+//        })
 
         // Contents (user messages)
         put(
@@ -374,6 +390,16 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
                     toolName = jsonObject["functionCall"]!!.jsonObject["name"]!!.jsonPrimitive.content,
                     arguments = json.encodeToString(jsonObject["functionCall"]!!.jsonObject["args"])
                 )
+            }
+
+            jsonObject.containsKey("inlineData") -> {
+                val inlineData = jsonObject["inlineData"]!!.jsonObject
+                val mime = inlineData["mimeType"]?.jsonPrimitive?.content ?: "image/png"
+                val data = inlineData["data"]?.jsonPrimitive?.content ?: ""
+                require(mime.startsWith("image/")) {
+                    "Only image mime type is supported"
+                }
+                UIMessagePart.Image(data)
             }
 
             else -> error("unknown message part type: $jsonObject")

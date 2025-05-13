@@ -43,6 +43,20 @@ data class UIMessage(
                         }
                     }
 
+                    is UIMessagePart.Image -> {
+                        val existingImagePart =
+                            acc.find { it is UIMessagePart.Image } as? UIMessagePart.Image
+                        if (existingImagePart != null) {
+                            acc.map { part ->
+                                if (part is UIMessagePart.Image) {
+                                    UIMessagePart.Image(existingImagePart.url + deltaPart.url)
+                                } else part
+                            }
+                        } else {
+                            acc + UIMessagePart.Image("data:image/png;base64,${deltaPart.url}")
+                        }
+                    }
+
                     is UIMessagePart.Reasoning -> {
                         val existingReasoningPart =
                             acc.find { it is UIMessagePart.Reasoning } as? UIMessagePart.Reasoning

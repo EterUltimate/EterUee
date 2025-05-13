@@ -70,7 +70,7 @@ fun Context.createChatFiles(uris: List<Uri>): List<Uri> {
 }
 
 fun Context.deleteChatFiles(uris: List<Uri>) {
-    uris.forEach { uri ->
+    uris.filter { it.toString().startsWith("file:") }.forEach { uri ->
         val file = uri.toFile()
         if (file.exists()) {
             file.delete()

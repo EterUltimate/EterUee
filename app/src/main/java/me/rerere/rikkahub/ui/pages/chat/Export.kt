@@ -29,6 +29,8 @@ import com.composables.icons.lucide.Lucide
 import com.dokar.sonner.ToastType
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.ui.UIMessage
+import me.rerere.ai.ui.UIMessagePart
+import me.rerere.ai.ui.toSortedMessageParts
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.ui.context.LocalToaster
@@ -157,8 +159,35 @@ private fun exportToMarkdown(
         messages.forEach { message ->
             val role = if (message.role == MessageRole.USER) "**User**" else "**Assistant**"
             append("$role:\n\n")
-            append("${message.toText()}\n\n")
-            append("---\n\n")
+            message.parts.toSortedMessageParts().forEach { part ->
+                when (part) {
+                    is UIMessagePart.Text -> {
+                        append(part.text)
+                        appendLine()
+                    }
+
+                    is UIMessagePart.Image -> {
+                        append("![Image](${part.toBase64()})")
+                        appendLine()
+                    }
+
+                    is UIMessagePart.Reasoning -> {
+                        part.reasoning.lines()
+                            .filter { it.isNotBlank() }
+                            .map { "> $it" }
+                            .forEach {
+                                append(it)
+                            }
+                        appendLine()
+                        appendLine()
+                    }
+
+                    else -> {}
+                }
+            }
+            appendLine()
+            append("---")
+            appendLine()
         }
     }
 

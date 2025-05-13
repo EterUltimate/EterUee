@@ -41,7 +41,7 @@ fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
         topBar = {
             TopAppBar(
                 title = {
-                    Text(stringResource(R.string.setting_model_page_title))
+                    Text(stringResource(R.string.setting_display_page_title))
                 },
                 navigationIcon = {
                     BackButton()
@@ -56,10 +56,10 @@ fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
             item {
                 ListItem(
                     headlineContent = {
-                        Text("聊天列表模型图标")
+                        Text(stringResource(R.string.setting_display_page_chat_list_model_icon_title))
                     },
                     supportingContent = {
-                        Text("是否在聊天列表消息中显示模型图标")
+                        Text(stringResource(R.string.setting_display_page_chat_list_model_icon_desc))
                     },
                     trailingContent = {
                         Switch(
@@ -75,10 +75,10 @@ fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
             item {
                 ListItem(
                     headlineContent = {
-                        Text("显示Token消耗")
+                        Text(stringResource(R.string.setting_display_page_show_token_usage_title))
                     },
                     supportingContent = {
-                        Text("在对话底部显示Token消耗")
+                        Text(stringResource(R.string.setting_display_page_show_token_usage_desc))
                     },
                     trailingContent = {
                         Switch(
@@ -94,10 +94,10 @@ fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
             item {
                 ListItem(
                     headlineContent = {
-                        Text("自动折叠思考")
+                        Text(stringResource(R.string.setting_display_page_auto_collapse_thinking_title))
                     },
                     supportingContent = {
-                        Text("思考完成自动折叠思考内容")
+                        Text(stringResource(R.string.setting_display_page_auto_collapse_thinking_desc))
                     },
                     trailingContent = {
                         Switch(

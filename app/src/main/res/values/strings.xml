@@ -168,4 +168,13 @@
     <string name="mermaid_export">Export</string>
     <string name="mermaid_export_success">Export successful</string>
     <string name="mermaid_export_failed">Export failed</string>
+
+    <!-- Setting Display Page -->
+    <string name="setting_display_page_chat_list_model_icon_title">Chat List Model Icon</string>
+    <string name="setting_display_page_chat_list_model_icon_desc">Whether to display model icons in chat list messages</string>
+    <string name="setting_display_page_show_token_usage_title">Show Token Usage</string>
+    <string name="setting_display_page_show_token_usage_desc">Display token usage at the bottom of the conversation</string>
+    <string name="setting_display_page_auto_collapse_thinking_title">Auto Collapse Thinking</string>
+    <string name="setting_display_page_auto_collapse_thinking_desc">Automatically collapse thinking content after thinking is complete</string>
+    <string name="setting_display_page_title">Display Settings</string>
 </resources>

@@ -169,4 +169,13 @@
     <string name="mermaid_export">导出</string>
     <string name="mermaid_export_success">导出成功</string>
     <string name="mermaid_export_failed">导出失败</string>
+
+    <!-- Setting Display Page -->
+    <string name="setting_display_page_chat_list_model_icon_title">聊天列表模型图标</string>
+    <string name="setting_display_page_chat_list_model_icon_desc">是否在聊天列表消息中显示模型图标</string>
+    <string name="setting_display_page_show_token_usage_title">显示Token消耗</string>
+    <string name="setting_display_page_show_token_usage_desc">在对话底部显示Token消耗</string>
+    <string name="setting_display_page_auto_collapse_thinking_title">自动折叠思考</string>
+    <string name="setting_display_page_auto_collapse_thinking_desc">思考完成自动折叠思考内容</string>
+    <string name="setting_display_page_title">显示设置</string>
 </resources> 

@@ -92,6 +92,7 @@ import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.Favicon
 import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.ImagePreviewDialog
+import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSettings
 import me.rerere.rikkahub.ui.hooks.tts.rememberTtsState
 import me.rerere.rikkahub.ui.modifier.shimmer
@@ -100,6 +101,7 @@ import me.rerere.rikkahub.utils.JsonInstantPretty
 import me.rerere.rikkahub.utils.copyMessageToClipboard
 import me.rerere.rikkahub.utils.toLocalString
 import me.rerere.rikkahub.utils.urlDecode
+import me.rerere.rikkahub.utils.urlEncode
 
 @Composable
 fun ChatMessage(
@@ -110,7 +112,7 @@ fun ChatMessage(
     onFork: () -> Unit,
     onRegenerate: () -> Unit,
     onEdit: () -> Unit,
-    onShare:  () -> Unit,
+    onShare: () -> Unit,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -312,6 +314,17 @@ fun MessagePartsBlock(
     annotations: List<UIMessageAnnotation>,
 ) {
     val contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
+    val navController = LocalNavController.current
+
+    fun handleClickCitation(id: Int) {
+        val search = parts.filterIsInstance<UIMessagePart.Search>().firstOrNull()
+        if (search != null) {
+            val item = search.search.items.getOrNull(id - 1)
+            if (item != null) {
+                navController.navigate("webview?url=${item.url.urlEncode()}")
+            }
+        }
+    }
 
     // Search
     parts.filterIsInstance<UIMessagePart.Search>().fastForEach { search ->
@@ -336,11 +349,21 @@ fun MessagePartsBlock(
                     shape = RoundedCornerShape(8.dp),
                 ) {
                     Column(Modifier.padding(8.dp)) {
-                        MarkdownBlock(part.text)
+                        MarkdownBlock(
+                            content = part.text,
+                            onClickCitation = { id ->
+                                handleClickCitation(id)
+                            }
+                        )
                     }
                 }
             } else {
-                MarkdownBlock(part.text)
+                MarkdownBlock(
+                    content = part.text,
+                    onClickCitation = { id ->
+                        handleClickCitation(id)
+                    }
+                )
             }
         }
     }

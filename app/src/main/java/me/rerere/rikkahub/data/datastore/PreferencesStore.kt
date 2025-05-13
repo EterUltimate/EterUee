@@ -265,6 +265,13 @@ private val DEFAULT_PROVIDERS = listOf(
         apiKey = "",
         enabled = false
     ),
+    ProviderSetting.OpenAI(
+        id = Uuid.parse("ef5d149b-8e34-404b-818c-6ec242e5c3c5"),
+        name = "腾讯Hunyuan",
+        baseUrl = "https://api.hunyuan.cloud.tencent.com/v1",
+        apiKey = "",
+        enabled = false
+    ),
 )
 internal val DEFAULT_PROVIDERS_IDS = DEFAULT_PROVIDERS.map { it.id }
 

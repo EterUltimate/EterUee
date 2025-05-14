@@ -11,9 +11,9 @@ Click to join our Discord server 👉 [【RikkaHub】](https://discord.gg/9weBqx
 
 <div align="center">
   <img src="docs/img/chat.png" alt="Chat Interface" width="150" />
-  <img src="docs/img/chat_img.png" alt="Multimodal Chat Interface" width="150" />
-  <img src="docs/img/setting.png" alt="Settings Interface" width="150" />
-  <img src="docs/img/provider.png" alt="Provider Selection" width="150" />
+  <img src="docs/img/models.png" alt="Models Picker" width="150" />
+  <img src="docs/img/providers.png" alt="Providers" width="150" />
+  <img src="docs/img/assistants.png" alt="Assistants" width="150" />
 </div>
 
 ## 🚀 Download
@@ -52,6 +52,8 @@ Technology stack documentation:
 - [Okhttp](https://square.github.io/okhttp/) (HTTP client)
 - [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization) (JSON serialization)
 - [compose-icons/lucide](https://composeicons.com/icon-libraries/lucide) (Icon library)
+
+> You need a `google-services.json` file at `app` folder to build the app.
 
 ## 💰 Donate
 

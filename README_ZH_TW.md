@@ -11,10 +11,10 @@
 </div>
 
 <div align="center">
-  <img src="docs/img/chat.png" alt="聊天界面" width="150" />
-  <img src="docs/img/chat_img.png" alt="多模態聊天界面" width="150" />
-  <img src="docs/img/setting.png" alt="設置界面" width="150" />
-  <img src="docs/img/provider.png" alt="供應商選擇" width="150" />
+  <img src="docs/img/chat.png" alt="Chat Interface" width="150" />
+  <img src="docs/img/models.png" alt="Models Picker" width="150" />
+  <img src="docs/img/providers.png" alt="Providers" width="150" />
+  <img src="docs/img/assistants.png" alt="Assistants" width="150" />
 </div>
 
 ## 🚀 下載
@@ -53,6 +53,8 @@
 - [Okhttp](https://square.github.io/okhttp/) (HTTP 客戶端)
 - [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization) (Json序列化)
 - [compose-icons/lucide](https://composeicons.com/icon-libraries/lucide) (圖標庫)
+
+> 你需要在 `app` 文件夹下添加 `google-services.json` 文件才能构建应用
 
 ## 💖 捐贈
 

@@ -30,7 +30,6 @@ google-services = "4.4.2"
 firebase-bom = "33.13.0"
 firebase-crashlytics = "3.0.3"
 jsoup = "1.19.1"
-requery-sqlite = "3.45.0"
 zxing = "3.5.3"
 quickie-bundled = "1.10.0"
 sonner = "0.3.10"
@@ -88,7 +87,6 @@ firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.r
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics" }
 jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
-requery-sqlite-android = { group = "com.github.requery", name = "sqlite-android", version.ref = "requery-sqlite" }
 zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
 quickie-bundled = { group = "io.github.g00fy2.quickie", name = "quickie-bundled", version.ref = "quickie-bundled" }
 sonner = { module = "io.github.brdominguez:compose-sonner", version.ref = "sonner" }

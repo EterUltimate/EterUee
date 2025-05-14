@@ -3,14 +3,15 @@ package me.rerere.ai.ui.transformers
 import android.content.Context
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.provider.Model
-import me.rerere.ai.ui.MessageTransformer
+import me.rerere.ai.ui.OutputMessageTransformer
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
 
 private val THINKING_REGEX = Regex("<think>([\\s\\S]*?)(?:</think>|$)", RegexOption.DOT_MATCHES_ALL)
 
-object ThinkTagTransformer : MessageTransformer {
-    override fun transform(
+// 部分供应商不会返回reasoning parts, 所以需要这个transformer
+object ThinkTagTransformer : OutputMessageTransformer {
+    override suspend fun visualTransform(
         context: Context,
         messages: List<UIMessage>,
         model: Model

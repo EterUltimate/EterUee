@@ -20,7 +20,8 @@ data class UIMessage(
     val role: MessageRole,
     val parts: List<UIMessagePart>,
     val annotations: List<UIMessageAnnotation> = emptyList(),
-    val createdAt: LocalDateTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
+    val createdAt: LocalDateTime = Clock.System.now()
+        .toLocalDateTime(TimeZone.currentSystemDefault()),
     val modelId: Uuid? = null,
 ) {
     private fun appendChunk(chunk: MessageChunk): UIMessage {
@@ -49,11 +50,15 @@ data class UIMessage(
                         if (existingImagePart != null) {
                             acc.map { part ->
                                 if (part is UIMessagePart.Image) {
-                                    UIMessagePart.Image(existingImagePart.url + deltaPart.url)
+                                    UIMessagePart.Image(
+                                        url = existingImagePart.url + deltaPart.url,
+                                    )
                                 } else part
                             }
                         } else {
-                            acc + UIMessagePart.Image("data:image/png;base64,${deltaPart.url}")
+                            acc + UIMessagePart.Image(
+                                url = "data:image/png;base64,${deltaPart.url}",
+                            )
                         }
                     }
 

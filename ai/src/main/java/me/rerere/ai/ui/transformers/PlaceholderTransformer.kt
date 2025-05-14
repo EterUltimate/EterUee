@@ -3,7 +3,7 @@ package me.rerere.ai.ui.transformers
 import android.content.Context
 import android.os.Build
 import me.rerere.ai.provider.Model
-import me.rerere.ai.ui.MessageTransformer
+import me.rerere.ai.ui.InputMessageTransformer
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
 import java.time.LocalDate
@@ -15,7 +15,7 @@ import java.time.temporal.Temporal
 import java.util.Locale
 import java.util.TimeZone
 
-object PlaceholderTransformer : MessageTransformer {
+object PlaceholderTransformer : InputMessageTransformer {
     val Placeholders = mapOf(
         "{cur_date}" to "日期",
         "{cur_time}" to "时间",
@@ -29,7 +29,7 @@ object PlaceholderTransformer : MessageTransformer {
         "{battery_level}" to "电池电量"
     )
 
-    override fun transform(context: Context, messages: List<UIMessage>, model: Model): List<UIMessage> {
+    override suspend fun transform(context: Context, messages: List<UIMessage>, model: Model): List<UIMessage> {
         return messages.map {
             it.copy(
                 parts = it.parts.map { part ->

@@ -5,12 +5,12 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.format
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.provider.Model
-import me.rerere.ai.ui.MessageTransformer
+import me.rerere.ai.ui.InputMessageTransformer
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
 
-object MessageTimeTransformer : MessageTransformer {
-    override fun transform(
+object MessageTimeTransformer : InputMessageTransformer {
+    override suspend fun transform(
         context: Context,
         messages: List<UIMessage>,
         model: Model

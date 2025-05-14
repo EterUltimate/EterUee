@@ -41,6 +41,7 @@ import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.data.repository.MemoryRepository
 import me.rerere.rikkahub.ui.hooks.getCurrentAssistant
+import me.rerere.rikkahub.data.ai.Base64ImageToLocalFileTransformer
 import me.rerere.rikkahub.utils.UiState
 import me.rerere.rikkahub.utils.UpdateChecker
 import me.rerere.rikkahub.utils.deleteChatFiles
@@ -61,6 +62,7 @@ private val inputTransformers by lazy {
 private val outputTransformers by lazy {
     listOf(
         ThinkTagTransformer,
+        Base64ImageToLocalFileTransformer,
     )
 }
 
@@ -259,7 +261,7 @@ class ChatVM(
                     }
 
                     is GenerationChunk.TokenUsage -> {
-                        saveConversation(conversation.value.copy(tokenUsage = chunk.usage))
+                        updateConversation(conversation.value.copy(tokenUsage = chunk.usage))
                         Log.i(TAG, "handleMessageComplete: usage = ${chunk.usage}")
                     }
                 }

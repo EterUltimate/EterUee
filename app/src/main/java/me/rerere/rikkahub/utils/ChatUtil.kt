@@ -1,6 +1,7 @@
 package me.rerere.rikkahub.utils
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
@@ -10,6 +11,8 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.rerere.ai.ui.UIMessage
+import me.rerere.ai.ui.UIMessagePart
+import java.io.ByteArrayOutputStream
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.uuid.Uuid
@@ -50,7 +53,7 @@ fun Context.saveMessageImage(image: String) {
     }
 }
 
-fun Context.createChatFiles(uris: List<Uri>): List<Uri> {
+fun Context.createChatFilesByContents(uris: List<Uri>): List<Uri> {
     val newUris = mutableListOf<Uri>()
     val dir = this.filesDir.resolve("upload")
     if (!dir.exists()) {
@@ -69,6 +72,56 @@ fun Context.createChatFiles(uris: List<Uri>): List<Uri> {
         newUris.add(newUri)
     }
     return newUris
+}
+
+fun Context.createChatFilesByByteArrays(byteArrays: List<ByteArray>): List<Uri> {
+    val newUris = mutableListOf<Uri>()
+    val dir = this.filesDir.resolve("upload")
+    if (!dir.exists()) {
+        dir.mkdirs()
+    }
+    byteArrays.forEach { byteArray ->
+        val fileName = Uuid.random()
+        val newUri = dir
+            .resolve("$fileName")
+            .toUri()
+        this.contentResolver.openOutputStream(newUri)?.use { outputStream ->
+            outputStream.write(byteArray)
+        }
+        newUris.add(newUri)
+    }
+    return newUris
+}
+
+@OptIn(ExperimentalEncodingApi::class)
+suspend fun Context.convertBase64ImagePartToLocalFile(message: UIMessage): UIMessage = withContext(Dispatchers.IO) {
+    message.copy(
+        parts = message.parts.map { part ->
+            when(part) {
+                is UIMessagePart.Image -> {
+                    if (part.url.startsWith("data:image")) {
+                        // base64 image
+                        val sourceByteArray = Base64.decode(part.url.substringAfter("base64,").toByteArray())
+                        val bitmap = BitmapFactory.decodeByteArray(sourceByteArray, 0, sourceByteArray.size)
+                        val byteArray = bitmap.compress()
+                        val urls = createChatFilesByByteArrays(listOf(byteArray))
+                        Log.i(TAG, "convertBase64ImagePartToLocalFile: convert base64 img to ${urls.joinToString(", ")}")
+                        part.copy(
+                            url = urls.first().toString(),
+                        )
+                    } else {
+                        part
+                    }
+                }
+                else -> part
+            }
+        }
+    )
+}
+
+fun Bitmap.compress(): ByteArray = ByteArrayOutputStream().use {
+    compress(Bitmap.CompressFormat.PNG, 100, it)
+    it.toByteArray()
 }
 
 fun Context.deleteChatFiles(uris: List<Uri>) {

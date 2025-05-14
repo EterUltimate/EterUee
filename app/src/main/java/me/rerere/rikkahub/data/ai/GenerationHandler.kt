@@ -24,11 +24,15 @@ import me.rerere.ai.provider.Provider
 import me.rerere.ai.provider.ProviderManager
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.TextGenerationParams
+import me.rerere.ai.ui.InputMessageTransformer
 import me.rerere.ai.ui.MessageTransformer
+import me.rerere.ai.ui.OutputMessageTransformer
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.handleMessageChunk
+import me.rerere.ai.ui.onGenerationFinish
 import me.rerere.ai.ui.transforms
+import me.rerere.ai.ui.visualTransforms
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.findProvider
 import me.rerere.rikkahub.data.model.Assistant
@@ -52,8 +56,8 @@ class GenerationHandler(private val context: Context, private val json: Json) {
         settings: Settings,
         model: Model,
         messages: List<UIMessage>,
-        inputTransformers: List<MessageTransformer> = emptyList(),
-        outputTransformers: List<MessageTransformer> = emptyList(),
+        inputTransformers: List<InputMessageTransformer> = emptyList(),
+        outputTransformers: List<OutputMessageTransformer> = emptyList(),
         assistant: Assistant? = null,
         memories: (suspend () -> List<AssistantMemory>)? = null,
         tools: List<Tool> = emptyList(),
@@ -89,14 +93,14 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                 assistant,
                 messages,
                 {
-                    messages = it
+                    messages = it.transforms(
+                        outputTransformers,
+                        context,
+                        model
+                    )
                     emit(
                         GenerationChunk.Messages(
-                            messages.transforms(
-                                outputTransformers,
-                                context,
-                                model
-                            )
+                            messages.visualTransforms(outputTransformers, context, model)
                         )
                     )
                 },
@@ -111,6 +115,9 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                 memories?.invoke() ?: emptyList(),
                 stream = true
             )
+            messages = messages.onGenerationFinish(outputTransformers, context, model)
+            emit(GenerationChunk.Messages(messages))
+
             val toolCalls = messages.last().getToolCalls()
             if (toolCalls.isEmpty()) {
                 // no tool calls, break

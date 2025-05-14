@@ -80,7 +80,7 @@ import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyInputMessage
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.Settings
-import me.rerere.rikkahub.utils.createChatFiles
+import me.rerere.rikkahub.utils.createChatFilesByContents
 import me.rerere.rikkahub.utils.deleteChatFiles
 import java.io.File
 import kotlin.uuid.Uuid
@@ -499,7 +499,7 @@ private fun ImagePickButton(onAddImages: (List<Uri>) -> Unit = {}) {
         rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { uris ->
             if (uris.isNotEmpty()) {
                 Log.d("PhotoPicker", "Selected URI: $uris")
-                onAddImages(context.createChatFiles(uris))
+                onAddImages(context.createChatFilesByContents(uris))
             } else {
                 Log.d("PhotoPicker", "No media selected")
             }
@@ -533,7 +533,7 @@ fun TakePicButton(onAddImages: (List<Uri>) -> Unit = {}) {
     val pickMedia =
         rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             if (success) {
-                onAddImages(context.createChatFiles(listOf(providerUri!!)))
+                onAddImages(context.createChatFilesByContents(listOf(providerUri!!)))
             }
             // delete the temp file
             file?.delete()

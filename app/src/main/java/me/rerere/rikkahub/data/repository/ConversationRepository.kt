@@ -9,6 +9,7 @@ import me.rerere.rikkahub.data.db.dao.ConversationDAO
 import me.rerere.rikkahub.data.db.entity.ConversationEntity
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.utils.JsonInstant
+import me.rerere.rikkahub.utils.convertBase64ImagePartToLocalFile
 import me.rerere.rikkahub.utils.deleteAllChatFiles
 import me.rerere.rikkahub.utils.deleteChatFiles
 import java.time.Instant
@@ -86,7 +87,7 @@ class ConversationRepository(
         }
     }
 
-    suspend fun conversationToConversationEntity(conversation: Conversation): ConversationEntity {
+    fun conversationToConversationEntity(conversation: Conversation): ConversationEntity {
         return ConversationEntity(
             id = conversation.id.toString(),
             title = conversation.title,
@@ -98,7 +99,7 @@ class ConversationRepository(
         )
     }
 
-    suspend fun conversationEntityToConversation(conversationEntity: ConversationEntity): Conversation {
+    fun conversationEntityToConversation(conversationEntity: ConversationEntity): Conversation {
         return Conversation(
             id = Uuid.parse(conversationEntity.id),
             title = conversationEntity.title,

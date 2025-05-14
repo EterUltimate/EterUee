@@ -22,15 +22,7 @@ class ConversationRepository(
         .getAll()
         .map { flow ->
             flow.map { entity ->
-                Conversation(
-                    id = Uuid.parse(entity.id),
-                    assistantId = Uuid.parse(entity.assistantId),
-                    title = entity.title,
-                    messages = JsonInstant.decodeFromString<List<UIMessage>>(entity.messages),
-                    tokenUsage = entity.tokenUsage,
-                    createAt = Instant.ofEpochMilli(entity.createAt),
-                    updateAt = Instant.ofEpochMilli(entity.updateAt),
-                )
+                conversationEntityToConversation(entity)
             }
         }
 
@@ -39,15 +31,7 @@ class ConversationRepository(
             .getConversationsOfAssistant(assistantId.toString())
             .map { flow ->
                 flow.map { entity ->
-                    Conversation(
-                        id = Uuid.parse(entity.id),
-                        assistantId = Uuid.parse(entity.assistantId),
-                        title = entity.title,
-                        messages = JsonInstant.decodeFromString<List<UIMessage>>(entity.messages),
-                        tokenUsage = entity.tokenUsage,
-                        createAt = Instant.ofEpochMilli(entity.createAt),
-                        updateAt = Instant.ofEpochMilli(entity.updateAt),
-                    )
+                    conversationEntityToConversation(entity)
                 }
             }
     }
@@ -57,15 +41,7 @@ class ConversationRepository(
             .searchConversations(titleKeyword)
             .map { flow ->
                 flow.map { entity ->
-                    Conversation(
-                        id = Uuid.parse(entity.id),
-                        assistantId = Uuid.parse(entity.assistantId),
-                        title = entity.title,
-                        messages = JsonInstant.decodeFromString<List<UIMessage>>(entity.messages),
-                        tokenUsage = entity.tokenUsage,
-                        createAt = Instant.ofEpochMilli(entity.createAt),
-                        updateAt = Instant.ofEpochMilli(entity.updateAt),
-                    )
+                    conversationEntityToConversation(entity)
                 }
             }
     }
@@ -73,15 +49,7 @@ class ConversationRepository(
     suspend fun getConversationById(uuid: Uuid): Conversation? {
         val entity = conversationDAO.getConversationById(uuid.toString())
         return if (entity != null) {
-            Conversation(
-                id = Uuid.parse(entity.id),
-                title = entity.title,
-                messages = JsonInstant.decodeFromString<List<UIMessage>>(entity.messages),
-                tokenUsage = entity.tokenUsage,
-                createAt = Instant.ofEpochMilli(entity.createAt),
-                updateAt = Instant.ofEpochMilli(entity.updateAt),
-                assistantId = Uuid.parse(entity.assistantId)
-            )
+            conversationEntityToConversation(entity)
         } else null
     }
 
@@ -95,43 +63,19 @@ class ConversationRepository(
 
     suspend fun insertConversation(conversation: Conversation) {
         conversationDAO.insert(
-            ConversationEntity(
-                id = conversation.id.toString(),
-                title = conversation.title,
-                messages = JsonInstant.encodeToString(conversation.messages),
-                createAt = conversation.createAt.toEpochMilli(),
-                updateAt = conversation.updateAt.toEpochMilli(),
-                tokenUsage = conversation.tokenUsage,
-                assistantId = conversation.assistantId.toString()
-            )
+            conversationToConversationEntity(conversation)
         )
     }
 
     suspend fun updateConversation(conversation: Conversation) {
         conversationDAO.update(
-            ConversationEntity(
-                id = conversation.id.toString(),
-                title = conversation.title,
-                messages = JsonInstant.encodeToString(conversation.messages),
-                createAt = conversation.createAt.toEpochMilli(),
-                updateAt = conversation.updateAt.toEpochMilli(),
-                tokenUsage = conversation.tokenUsage,
-                assistantId = conversation.assistantId.toString()
-            )
+            conversationToConversationEntity(conversation)
         )
     }
 
     suspend fun deleteConversation(conversation: Conversation) {
         conversationDAO.delete(
-            ConversationEntity(
-                id = conversation.id.toString(),
-                title = conversation.title,
-                messages = JsonInstant.encodeToString(conversation.messages),
-                createAt = conversation.createAt.toEpochMilli(),
-                updateAt = conversation.updateAt.toEpochMilli(),
-                tokenUsage = conversation.tokenUsage,
-                assistantId = conversation.assistantId.toString()
-            )
+            conversationToConversationEntity(conversation)
         )
         context.deleteChatFiles(conversation.files)
     }
@@ -140,6 +84,30 @@ class ConversationRepository(
         getConversationsOfAssistant(assistantId).first().forEach { conversation ->
             deleteConversation(conversation)
         }
+    }
+
+    suspend fun conversationToConversationEntity(conversation: Conversation): ConversationEntity {
+        return ConversationEntity(
+            id = conversation.id.toString(),
+            title = conversation.title,
+            messages = JsonInstant.encodeToString(conversation.messages),
+            createAt = conversation.createAt.toEpochMilli(),
+            updateAt = conversation.updateAt.toEpochMilli(),
+            tokenUsage = conversation.tokenUsage,
+            assistantId = conversation.assistantId.toString()
+        )
+    }
+
+    suspend fun conversationEntityToConversation(conversationEntity: ConversationEntity): Conversation {
+        return Conversation(
+            id = Uuid.parse(conversationEntity.id),
+            title = conversationEntity.title,
+            messages = JsonInstant.decodeFromString<List<UIMessage>>(conversationEntity.messages),
+            tokenUsage = conversationEntity.tokenUsage,
+            createAt = Instant.ofEpochMilli(conversationEntity.createAt),
+            updateAt = Instant.ofEpochMilli(conversationEntity.updateAt),
+            assistantId = Uuid.parse(conversationEntity.assistantId)
+        )
     }
 
     suspend fun deleteAllConversations() {

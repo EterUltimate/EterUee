@@ -51,7 +51,6 @@ import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Trash2
 import me.rerere.ai.ui.transformers.PlaceholderTransformer
 import me.rerere.rikkahub.R
-import me.rerere.rikkahub.data.datastore.DEFAULT_ASSISTANTS
 import me.rerere.rikkahub.data.datastore.DEFAULT_ASSISTANTS_IDS
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
@@ -150,7 +149,7 @@ private fun AssistantEditSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.9f)
-                    .padding(16.dp),
+                    .padding(horizontal = 16.dp, vertical = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Column(

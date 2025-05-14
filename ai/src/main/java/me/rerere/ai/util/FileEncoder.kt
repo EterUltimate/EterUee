@@ -16,23 +16,24 @@ private val supportedTypes = setOf(
 )
 
 fun UIMessagePart.Image.encodeBase64(withPrefix: Boolean = true): Result<String> = runCatching {
-    if (this.url.startsWith("file://")) {
-        val filePath =
-            this.url.toUri().path ?: throw IllegalArgumentException("Invalid file URI: ${this.url}")
-        val file = File(filePath)
-        if (file.exists()) {
-            if(!file.isSupportedType()) {
-                convertToJpeg(file)// 转换为 JPEG 格式
+    when {
+        this.url.startsWith("file://") -> {
+            val filePath = this.url.toUri().path ?: throw IllegalArgumentException("Invalid file URI: ${this.url}")
+            val file = File(filePath)
+            if (!file.exists()) {
+                throw IllegalArgumentException("File does not exist: ${this.url}")
+            }
+            if (!file.isSupportedType()) {
+                convertToJpeg(file) // 转换为 JPEG 格式
                 println("File converted to JPEG format: ${file.absolutePath}")
             }
             val bytes = file.readBytes()
             val encoded = Base64.encodeToString(bytes, Base64.NO_WRAP)
-            if(withPrefix) "data:${file.guessMimeType().getOrThrow()};base64,$encoded" else encoded
-        } else {
-            throw IllegalArgumentException("File does not exist: ${this.url}")
+            if (withPrefix) "data:${file.guessMimeType().getOrThrow()};base64,$encoded" else encoded
         }
-    } else {
-        throw IllegalArgumentException("Unsupported URL format: $url")
+        this.url.startsWith("data:") -> url
+        this.url.startsWith("http:") -> url
+        else -> throw IllegalArgumentException("Unsupported URL format: $url")
     }
 }
 

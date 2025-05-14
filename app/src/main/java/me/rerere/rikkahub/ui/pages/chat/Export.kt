@@ -31,6 +31,7 @@ import me.rerere.ai.core.MessageRole
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.toSortedMessageParts
+import me.rerere.ai.util.encodeBase64
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.ui.context.LocalToaster
@@ -167,7 +168,7 @@ private fun exportToMarkdown(
                     }
 
                     is UIMessagePart.Image -> {
-                        append("![Image](${part.toBase64()})")
+                        append("![Image](${part.encodeBase64()})")
                         appendLine()
                     }
 

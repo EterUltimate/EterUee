@@ -36,15 +36,17 @@ fun Context.copyMessageToClipboard(message: UIMessage) {
 
 @OptIn(ExperimentalEncodingApi::class)
 fun Context.saveMessageImage(image: String) {
-    if(image.startsWith("data:image")) {
-        val byteArray = Base64.decode(image.substringAfter("base64,").toByteArray())
-        val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-        exportImage(this.getActivity()!!, bitmap)
-    } else if(image.startsWith("file:")) {
-        val file = image.toUri().toFile()
-        exportImageFile(this.getActivity()!!, file)
-    } else {
-        error("Invalid image format")
+    when {
+        image.startsWith("data:image") -> {
+            val byteArray = Base64.decode(image.substringAfter("base64,").toByteArray())
+            val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+            exportImage(this.getActivity()!!, bitmap)
+        }
+        image.startsWith("file:") -> {
+            val file = image.toUri().toFile()
+            exportImageFile(this.getActivity()!!, file)
+        }
+        else -> error("Invalid image format")
     }
 }
 

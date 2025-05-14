@@ -1,7 +1,5 @@
 package me.rerere.ai.ui
 
-import androidx.core.net.toFile
-import androidx.core.net.toUri
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -13,8 +11,6 @@ import me.rerere.ai.core.MessageRole
 import me.rerere.ai.core.TokenUsage
 import me.rerere.ai.provider.Model
 import me.rerere.search.SearchResult
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.uuid.Uuid
 
 // 公共消息抽象, 具体的Provider实现会转换为API接口需要的DTO
@@ -289,17 +285,6 @@ sealed class UIMessagePart {
 
     @Serializable
     data class Image(val url: String) : UIMessagePart() {
-        @OptIn(ExperimentalEncodingApi::class)
-        fun toBase64(): String {
-            if(url.startsWith("data:")) return url
-            if(url.startsWith("file:")) {
-                val file = url.toUri().toFile()
-                val base64 = Base64.encode(file.readBytes())
-                return "data:image/*;base64,$base64"
-            }
-            return url
-        }
-
         override val priority: Int = 1
     }
 

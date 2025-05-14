@@ -81,8 +81,6 @@ import me.rerere.ai.provider.ProviderManager
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.guessModalityFromModelId
 import me.rerere.ai.provider.guessModelAbilityFromModelId
-import me.rerere.rikkahub.data.datastore.DEFAULT_ASSISTANTS_IDS
-import me.rerere.rikkahub.data.datastore.DEFAULT_PROVIDERS_IDS
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.ShareSheet
@@ -436,7 +434,7 @@ private fun ProviderItem(
                         onClick = {
                             onDelete()
                         },
-                        enabled = internalProvider.id !in DEFAULT_PROVIDERS_IDS
+                        enabled = !internalProvider.builtIn
                     ) {
                         Icon(Lucide.Trash2, "Delete")
                     }

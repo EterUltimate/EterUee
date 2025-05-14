@@ -2,6 +2,7 @@ package me.rerere.rikkahub.ui.pages.setting.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Checkbox
@@ -17,7 +18,6 @@ import androidx.compose.ui.unit.dp
 import me.rerere.ai.provider.ProviderSetting
 import kotlin.reflect.full.primaryConstructor
 
-
 @Composable
 fun ProviderConfigure(
     provider: ProviderSetting,
@@ -29,23 +29,25 @@ fun ProviderConfigure(
         modifier = modifier
     ) {
         // Type
-        SingleChoiceSegmentedButtonRow(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            ProviderSetting.Types.forEachIndexed { index, type ->
-                SegmentedButton(
-                    shape = SegmentedButtonDefaults.itemShape(
-                        index = index,
-                        count = ProviderSetting.Types.size
-                    ),
-                    label = {
-                        Text(type.simpleName ?: "")
-                    },
-                    selected = provider::class == type,
-                    onClick = {
-                        onEdit(type.primaryConstructor?.callBy(emptyMap())!!)
-                    }
-                )
+        if(!provider.builtIn) {
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                ProviderSetting.Types.forEachIndexed { index, type ->
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = ProviderSetting.Types.size
+                        ),
+                        label = {
+                            Text(type.simpleName ?: "")
+                        },
+                        selected = provider::class == type,
+                        onClick = {
+                            onEdit(type.primaryConstructor?.callBy(emptyMap())!!)
+                        }
+                    )
+                }
             }
         }
 
@@ -66,10 +68,12 @@ fun ProviderConfigure(
 }
 
 @Composable
-private fun ProviderConfigureOpenAI(
+private fun ColumnScope.ProviderConfigureOpenAI(
     provider: ProviderSetting.OpenAI,
     onEdit: (provider: ProviderSetting.OpenAI) -> Unit
 ) {
+    provider.description()
+
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -90,7 +94,7 @@ private fun ProviderConfigureOpenAI(
         label = {
             Text("名称")
         },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     )
 
     OutlinedTextField(
@@ -117,10 +121,12 @@ private fun ProviderConfigureOpenAI(
 }
 
 @Composable
-private fun ProviderConfigureGoogle(
+private fun ColumnScope.ProviderConfigureGoogle(
     provider: ProviderSetting.Google,
     onEdit: (provider: ProviderSetting.Google) -> Unit
 ) {
+    provider.description()
+
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {

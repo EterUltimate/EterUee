@@ -1,7 +1,9 @@
 package me.rerere.ai.provider
 
+import androidx.compose.runtime.Composable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlin.uuid.Uuid
 
 @Serializable
@@ -10,6 +12,8 @@ sealed class ProviderSetting {
     abstract val enabled: Boolean
     abstract val name: String
     abstract val models: List<Model>
+    abstract val builtIn: Boolean
+    abstract val description: @Composable() () -> Unit
 
     abstract fun addModel(model: Model): ProviderSetting
     abstract fun editModel(model: Model): ProviderSetting
@@ -20,6 +24,8 @@ sealed class ProviderSetting {
         enabled: Boolean = this.enabled,
         name: String = this.name,
         models: List<Model> = this.models,
+        builtIn: Boolean = this.builtIn,
+        description: @Composable (() -> Unit) = this.description,
     ): ProviderSetting
 
     @Serializable
@@ -29,6 +35,8 @@ sealed class ProviderSetting {
         override var enabled: Boolean = true,
         override var name: String = "OpenAI",
         override var models: List<Model> = emptyList(),
+        @Transient override val builtIn: Boolean = false,
+        @Transient override val description: @Composable (() -> Unit) = {},
         var apiKey: String = "sk-",
         var baseUrl: String = "https://api.openai.com/v1",
     ) : ProviderSetting() {
@@ -58,13 +66,17 @@ sealed class ProviderSetting {
             id: Uuid,
             enabled: Boolean,
             name: String,
-            models: List<Model>
+            models: List<Model>,
+            builtIn: Boolean,
+            description: @Composable (() -> Unit)
         ): ProviderSetting {
             return this.copy(
                 id = id,
                 enabled = enabled,
                 name = name,
-                models = models
+                models = models,
+                builtIn = builtIn,
+                description = description
             )
         }
     }
@@ -76,8 +88,10 @@ sealed class ProviderSetting {
         override var enabled: Boolean = true,
         override var name: String = "Google",
         override var models: List<Model> = emptyList(),
+        @Transient override val builtIn: Boolean = false,
+        @Transient override val description: @Composable (() -> Unit) = {},
         var apiKey: String = "",
-    ): ProviderSetting() {
+    ) : ProviderSetting() {
         override fun addModel(model: Model): ProviderSetting {
             return copy(models = models + model)
         }
@@ -104,13 +118,17 @@ sealed class ProviderSetting {
             id: Uuid,
             enabled: Boolean,
             name: String,
-            models: List<Model>
+            models: List<Model>,
+            builtIn: Boolean,
+            description: @Composable (() -> Unit)
         ): ProviderSetting {
             return this.copy(
                 id = id,
                 enabled = enabled,
                 name = name,
-                models = models
+                models = models,
+                builtIn = builtIn,
+                description = description,
             )
         }
     }

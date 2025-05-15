@@ -115,6 +115,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                 memories?.invoke() ?: emptyList(),
                 stream = true
             )
+            messages = messages.visualTransforms(outputTransformers, context, model)
             messages = messages.onGenerationFinish(outputTransformers, context, model)
             emit(GenerationChunk.Messages(messages))
 

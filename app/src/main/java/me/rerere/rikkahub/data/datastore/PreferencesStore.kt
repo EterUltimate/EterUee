@@ -290,6 +290,14 @@ private val DEFAULT_PROVIDERS = listOf(
         enabled = false,
         builtIn = true
     ),
+    ProviderSetting.OpenAI(
+        id = Uuid.parse("ff3cde7e-0f65-43d7-8fb2-6475c99f5990"),
+        name = "xAI",
+        baseUrl = "https://api.x.ai/v1",
+        apiKey = "",
+        enabled = false,
+        builtIn = true
+    )
 )
 
 internal val DEFAULT_ASSISTANT_ID = Uuid.parse("0950e2dc-9bd5-4801-afa3-aa887aa36b4e")

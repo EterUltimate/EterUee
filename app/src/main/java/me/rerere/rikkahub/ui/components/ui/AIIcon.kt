@@ -89,6 +89,7 @@ private fun computeAIIconByName(name: String): String? {
         PATTERN_OLLAMA.containsMatchIn(lowerName) -> "ollama"
         PATTERN_GITHUB.containsMatchIn(lowerName) -> "github"
         PATTERN_CLOUDFLARE.containsMatchIn(lowerName) -> "cloudflare-color"
+        PATTERN_XAI.containsMatchIn(lowerName) -> "xai"
         else -> null
     }
 
@@ -123,3 +124,4 @@ private val PATTERN_AIHUBMIX = Regex("aihubmix")
 private val PATTERN_OLLAMA = Regex("ollama")
 private val PATTERN_GITHUB = Regex("github")
 private val PATTERN_CLOUDFLARE = Regex("cloudflare")
+private val PATTERN_XAI = Regex("xai")

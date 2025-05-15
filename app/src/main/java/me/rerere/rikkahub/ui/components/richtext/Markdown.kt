@@ -52,7 +52,6 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.core.net.toUri
-import coil3.compose.AsyncImage
 import me.rerere.rikkahub.ui.components.table.ColumnDefinition
 import me.rerere.rikkahub.ui.components.table.ColumnWidth
 import me.rerere.rikkahub.ui.components.table.DataTable
@@ -142,9 +141,9 @@ fun MarkdownBlock(
     val preprocessed = remember(content) { preProcess(content) }
     val astTree = remember(preprocessed) {
         parser.buildMarkdownTreeFromString(preprocessed)
-//            .also {
-//                dumpAst(it, preprocessed) // for debugging ast tree
-//            }
+            .also {
+                dumpAst(it, preprocessed) // for debugging ast tree
+            }
     }
 
     ProvideTextStyle(style) {
@@ -425,7 +424,7 @@ fun MarkdownNode(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // 这里可以使用Coil等图片加载库加载图片
-                AsyncImage(model = imageUrl, contentDescription = altText)
+                ZoomableAsyncImage(model = imageUrl, contentDescription = altText)
             }
         }
 
@@ -521,6 +520,18 @@ private fun Paragraph(
     modifier: Modifier,
 ) {
     // dumpAst(node, content)
+    if(node.findChildOfType(MarkdownElementTypes.IMAGE) != null) {
+        Column(modifier = modifier) {
+            node.children.fastForEach { child ->
+                MarkdownNode(
+                    node = child,
+                    content = content,
+                    onClickCitation = onClickCitation
+                )
+            }
+        }
+        return
+    }
 
     val colorScheme = MaterialTheme.colorScheme
     val inlineContents = remember {

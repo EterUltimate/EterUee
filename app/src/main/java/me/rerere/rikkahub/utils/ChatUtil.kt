@@ -38,16 +38,31 @@ fun Context.copyMessageToClipboard(message: UIMessage) {
 }
 
 @OptIn(ExperimentalEncodingApi::class)
-fun Context.saveMessageImage(image: String) {
+suspend fun Context.saveMessageImage(image: String) = withContext(Dispatchers.IO) {
     when {
         image.startsWith("data:image") -> {
             val byteArray = Base64.decode(image.substringAfter("base64,").toByteArray())
             val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-            exportImage(this.getActivity()!!, bitmap)
+            exportImage(this@saveMessageImage.getActivity()!!, bitmap)
         }
         image.startsWith("file:") -> {
             val file = image.toUri().toFile()
-            exportImageFile(this.getActivity()!!, file)
+            exportImageFile(this@saveMessageImage.getActivity()!!, file)
+        }
+        image.startsWith("http") -> {
+            kotlin.runCatching { // Use runCatching to handle potential network exceptions
+                val url = java.net.URL(image)
+                val connection = url.openConnection() as java.net.HttpURLConnection
+                connection.connect()
+
+                if (connection.responseCode == java.net.HttpURLConnection.HTTP_OK) {
+                    val bitmap = BitmapFactory.decodeStream(connection.inputStream)
+                    exportImage(this@saveMessageImage.getActivity()!!, bitmap)
+                } else {
+                    Log.e(TAG, "saveMessageImage: Failed to download image from $image, response code: ${connection.responseCode}")
+                    null // Return null on failure
+                }
+            }.getOrNull() // Return null if any exception occurs during download
         }
         else -> error("Invalid image format")
     }

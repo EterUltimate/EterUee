@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,8 +20,10 @@ import androidx.compose.ui.zIndex
 import coil3.compose.rememberAsyncImagePainter
 import com.composables.icons.lucide.Download
 import com.composables.icons.lucide.Lucide
+import com.dokar.sonner.ToastType
 import com.jvziyaoyao.scale.image.pager.ImagePager
 import com.jvziyaoyao.scale.zoomable.pager.rememberZoomablePagerState
+import kotlinx.coroutines.launch
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.utils.saveMessageImage
 
@@ -32,6 +35,7 @@ fun ImagePreviewDialog(
     val context = LocalContext.current
     val state = rememberZoomablePagerState { images.size }
     val toaster = LocalToaster.current
+    val scope = rememberCoroutineScope()
     Dialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(
@@ -58,14 +62,17 @@ fun ImagePreviewDialog(
             ) {
                 IconButton(
                     onClick = {
-                        runCatching {
-                            val imgUrl = images[state.currentPage]
-                            context.saveMessageImage(imgUrl)
-                            onDismissRequest()
-                            toaster.show("已保存图片")
-                        }.onFailure {
-                            it.printStackTrace()
-                            toaster.show(it.message ?: it.javaClass.simpleName)
+                        scope.launch {
+                            runCatching {
+                                onDismissRequest()
+                                toaster.show("正在保存")
+                                val imgUrl = images[state.currentPage]
+                                context.saveMessageImage(imgUrl)
+                                toaster.show("已保存图片", type = ToastType.Success)
+                            }.onFailure {
+                                it.printStackTrace()
+                                toaster.show(it.message ?: it.javaClass.simpleName)
+                            }
                         }
                     }
                 ) {

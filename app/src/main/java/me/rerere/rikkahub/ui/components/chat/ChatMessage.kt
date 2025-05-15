@@ -62,7 +62,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
-import coil3.compose.AsyncImage
 import com.composables.icons.lucide.BookDashed
 import com.composables.icons.lucide.BookHeart
 import com.composables.icons.lucide.ChevronDown
@@ -88,10 +87,10 @@ import me.rerere.ai.ui.isEmptyUIMessage
 import me.rerere.highlight.HighlightText
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
+import me.rerere.rikkahub.ui.components.richtext.ZoomableAsyncImage
 import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.Favicon
 import me.rerere.rikkahub.ui.components.ui.FormItem
-import me.rerere.rikkahub.ui.components.ui.ImagePreviewDialog
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSettings
 import me.rerere.rikkahub.ui.hooks.tts.rememberTtsState
@@ -522,24 +521,15 @@ fun MessagePartsBlock(
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        var showImageViewer by remember { mutableStateOf(false) }
         val images = parts.filterIsInstance<UIMessagePart.Image>()
         images.fastForEach {
-            AsyncImage(
+            ZoomableAsyncImage(
                 model = it.url,
                 contentDescription = null,
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
                     .width(72.dp)
-                    .clickable {
-                        showImageViewer = true
-                    }
             )
-        }
-        if (showImageViewer) {
-            ImagePreviewDialog(images.map { it.url }) {
-                showImageViewer = false
-            }
         }
     }
 }

@@ -45,6 +45,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.SaverScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -73,6 +76,13 @@ import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.X
 import com.meticha.permissions_compose.AppPermission
 import com.meticha.permissions_compose.rememberAppPermissionState
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.ProviderSetting
@@ -80,11 +90,13 @@ import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyInputMessage
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.Settings
+import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.createChatFilesByContents
 import me.rerere.rikkahub.utils.deleteChatFiles
 import java.io.File
 import kotlin.uuid.Uuid
 
+@Serializable
 class ChatInputState {
     var messageContent by mutableStateOf(listOf<UIMessagePart>())
     var editingMessage by mutableStateOf<Uuid?>(null)
@@ -125,12 +137,36 @@ class ChatInputState {
     }
 }
 
+object ChatInputStateSaver : Saver<ChatInputState, String> {
+    override fun restore(value: String): ChatInputState? {
+        val jsonObject = JsonInstant.parseToJsonElement(value).jsonObject
+        val messageContent = jsonObject["messageContent"]?.let {
+            JsonInstant.decodeFromJsonElement<List<UIMessagePart>>(it)
+        }
+        val editingMessage = jsonObject["editingMessage"]?.jsonPrimitive?.contentOrNull?.let {
+            Uuid.parse(it)
+        }
+        val state = ChatInputState()
+        state.messageContent = messageContent ?: emptyList()
+        state.editingMessage = editingMessage
+        return state
+    }
+
+    override fun SaverScope.save(value: ChatInputState): String? {
+        return JsonInstant.encodeToString(buildJsonObject {
+            put("messageContent", JsonInstant.encodeToJsonElement(value.messageContent))
+            put("editingMessage", JsonInstant.encodeToJsonElement(value.editingMessage))
+        })
+    }
+}
+
+
 @Composable
 fun rememberChatInputState(
     message: List<UIMessagePart> = emptyList(),
     loading: Boolean = false,
 ): ChatInputState {
-    return remember(message, loading) {
+    return rememberSaveable(message, loading, saver = ChatInputStateSaver) {
         ChatInputState().apply {
             this.messageContent = message
             this.loading = loading

@@ -43,7 +43,7 @@ fun guessModalityFromModelId(modelId: String): Pair<List<Modality>, List<Modalit
             listOf(Modality.TEXT, Modality.IMAGE) to listOf(Modality.TEXT)
         }
 
-        CLAUDE_SONNET_3.containsMatchIn(modelId) -> {
+        CLAUDE_SONNET_3_5.containsMatchIn(modelId) || CLAUDE_SONNET_3_7.containsMatchIn(modelId) -> {
             listOf(Modality.TEXT, Modality.IMAGE) to listOf(Modality.TEXT)
         }
 
@@ -63,16 +63,20 @@ fun guessModelAbilityFromModelId(modelId: String): List<ModelAbility> {
             listOf(ModelAbility.TOOL)
         }
 
-        GEMINI_2_5_FLASH.containsMatchIn(modelId) -> {
+        GEMINI_2_5_FLASH.containsMatchIn(modelId) || GEMINI_2_5_PRO.containsMatchIn(modelId) -> {
+            listOf(ModelAbility.TOOL, ModelAbility.REASONING)
+        }
+
+        CLAUDE_SONNET_3_5.containsMatchIn(modelId) -> {
             listOf(ModelAbility.TOOL)
         }
 
-        CLAUDE_SONNET_3.containsMatchIn(modelId) -> {
-            listOf(ModelAbility.TOOL)
+        CLAUDE_SONNET_3_7.containsMatchIn(modelId) -> {
+            listOf(ModelAbility.TOOL, ModelAbility.REASONING)
         }
 
         QWEN_3.containsMatchIn(modelId) -> {
-            listOf(ModelAbility.TOOL)
+            listOf(ModelAbility.TOOL, ModelAbility.REASONING)
         }
 
         else -> {
@@ -85,5 +89,7 @@ private val GPT4O = Regex("gpt-4o")
 private val GPT_4_1 = Regex("gpt-4\\.1")
 private val GEMINI_20_FLASH = Regex("gemini-2.0-flash")
 private val GEMINI_2_5_FLASH = Regex("gemini-2.5-flash")
-private val CLAUDE_SONNET_3 = Regex("claude-3.+sonnet")
+private val GEMINI_2_5_PRO = Regex("gemini-2.5-pro")
+private val CLAUDE_SONNET_3_5 = Regex("claude-3.5-sonnet")
+private val CLAUDE_SONNET_3_7 = Regex("claude-3.7-sonnet")
 private val QWEN_3 = Regex("qwen-?3")

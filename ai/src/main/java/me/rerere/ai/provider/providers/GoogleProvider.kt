@@ -9,6 +9,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -342,6 +343,11 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
                     add(JsonPrimitive("IMAGE"))
                 })
             }
+            if(params.model.abilities.contains(ModelAbility.REASONING)) {
+                put("thinkingConfig", buildJsonObject {
+                    put("includeThoughts", true)
+                })
+            }
         })
 
 
@@ -431,7 +437,9 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
     private fun parseMessagePart(jsonObject: JsonObject): UIMessagePart {
         return when {
             jsonObject.containsKey("text") -> {
-                UIMessagePart.Text(jsonObject["text"]!!.jsonPrimitive.content)
+                val thought = jsonObject["thought"]?.jsonPrimitive?.booleanOrNull ?: false
+                val text = jsonObject["text"]?.jsonPrimitive?.content ?: ""
+                if(thought) UIMessagePart.Reasoning(text) else UIMessagePart.Text(text)
             }
 
             jsonObject.containsKey("functionCall") -> {

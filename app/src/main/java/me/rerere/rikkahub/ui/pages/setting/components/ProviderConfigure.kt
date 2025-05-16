@@ -161,14 +161,51 @@ private fun ColumnScope.ProviderConfigureGoogle(
         modifier = Modifier.fillMaxWidth()
     )
 
-    OutlinedTextField(
-        value = provider.baseUrl,
-        onValueChange = {
-            onEdit(provider.copy(baseUrl = it.trim()))
-        },
-        label = {
-            Text("API Base Url")
-        },
-        modifier = Modifier.fillMaxWidth()
-    )
+    if(!provider.vertexAI) {
+        OutlinedTextField(
+            value = provider.baseUrl,
+            onValueChange = {
+                onEdit(provider.copy(baseUrl = it.trim()))
+            },
+            label = {
+                Text("API Base Url")
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text("Vertex AI", modifier = Modifier.weight(1f))
+        Checkbox(
+            checked = provider.vertexAI,
+            onCheckedChange = {
+                onEdit(provider.copy(vertexAI = it))
+            }
+        )
+    }
+
+    if(provider.vertexAI) {
+        OutlinedTextField(
+            value = provider.location,
+            onValueChange = {
+                onEdit(provider.copy(location = it.trim()))
+            },
+            label = {
+                Text("Location (e.g. us-central1)")
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = provider.projectId,
+            onValueChange = {
+                onEdit(provider.copy(projectId = it.trim()))
+            },
+            label = {
+                Text("Project Id")
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
 }

@@ -37,6 +37,7 @@ import me.rerere.ai.util.encodeBase64
 import me.rerere.ai.util.json
 import me.rerere.ai.util.mergeCustomBody
 import me.rerere.ai.util.toHeaders
+import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -50,7 +51,6 @@ import okhttp3.sse.EventSources
 import java.util.concurrent.TimeUnit
 import kotlin.uuid.Uuid
 
-private const val API_VERSION = "v1beta"
 private const val TAG = "GoogleProvider"
 
 object GoogleProvider : Provider<ProviderSetting.Google> {
@@ -64,21 +64,46 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
         })
         .build()
 
-    override suspend fun listModels(providerSetting: ProviderSetting.Google): List<Model> {
-        val url = "${providerSetting.baseUrl}/$API_VERSION/models".toHttpUrl()
-            .newBuilder()
-            .addQueryParameter("key", providerSetting.apiKey)
-            .build()
-        val request = Request.Builder()
-            .url(url)
-            .get()
-            .build()
-        val response = client.newCall(request).await()
+    private fun buildUrl(providerSetting: ProviderSetting.Google, path: String): HttpUrl {
+        return if (!providerSetting.vertexAI) {
+            return "${providerSetting.baseUrl}/$path".toHttpUrl()
+                .newBuilder()
+                .addQueryParameter("key", providerSetting.apiKey)
+                .build()
+        } else {
+            return "https://${providerSetting.location}-aiplatform.googleapis.com/v1/projects/${providerSetting.projectId}/locations/${providerSetting.location}/$path".toHttpUrl()
+        }
+    }
 
+    private fun transformRequest(
+        providerSetting: ProviderSetting.Google,
+        request: Request
+    ): Request {
+        return if (providerSetting.vertexAI) {
+            request.newBuilder()
+                .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
+                .build()
+        } else {
+            request.newBuilder().build()
+        }
+    }
+
+    override suspend fun listModels(providerSetting: ProviderSetting.Google): List<Model> {
+        val url = buildUrl(providerSetting = providerSetting, path = "models")
+        val request = transformRequest(
+            providerSetting = providerSetting,
+            request = Request.Builder()
+                .url(url)
+                .get()
+                .build()
+        )
+        val response = client.newCall(request).await()
         return if (response.isSuccessful) {
             val body = response.body?.string() ?: error("empty body")
+            Log.d(TAG, "listModels: $body")
             val bodyObject = json.parseToJsonElement(body).jsonObject
-            val models = bodyObject["models"]!!.jsonArray
+            val models = bodyObject["models"]?.jsonArray ?: return emptyList()
+
             models.mapNotNull {
                 val modelObject = it.jsonObject
 
@@ -108,16 +133,25 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
     ): MessageChunk = withContext(Dispatchers.IO) {
         val requestBody = buildCompletionRequestBody(messages, params)
 
-        val url = "${providerSetting.baseUrl}/$API_VERSION/models/${params.model.modelId}:generateContent".toHttpUrl()
-            .newBuilder()
-            .addQueryParameter("key", providerSetting.apiKey)
-            .build()
+        val url = buildUrl(
+            providerSetting = providerSetting,
+            path = if (providerSetting.vertexAI) {
+                "publishers/google/models/${params.model.modelId}:generateContent"
+            } else {
+                "models/${params.model.modelId}:generateContent"
+            }
+        )
 
-        val request = Request.Builder()
-            .url(url)
-            .headers(params.customHeaders.toHeaders())
-            .post(json.encodeToString(requestBody).toRequestBody("application/json".toMediaType()))
-            .build()
+        val request = transformRequest(
+            providerSetting = providerSetting,
+            request = Request.Builder()
+                .url(url)
+                .headers(params.customHeaders.toHeaders())
+                .post(
+                    json.encodeToString(requestBody).toRequestBody("application/json".toMediaType())
+                )
+                .build()
+        )
 
         val response = client.newCall(request).await()
         if (!response.isSuccessful) {
@@ -154,20 +188,25 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
     ): Flow<MessageChunk> = callbackFlow {
         val requestBody = buildCompletionRequestBody(messages, params)
 
-        val url =
-            "${providerSetting.baseUrl}/$API_VERSION/models/${params.model.modelId}:streamGenerateContent".toHttpUrl()
-                .newBuilder()
-                .addQueryParameter("key", providerSetting.apiKey)
-                .addQueryParameter("alt", "sse")
-                .build()
+        val url = buildUrl(
+            providerSetting = providerSetting,
+            path = if (providerSetting.vertexAI) {
+                "publishers/google/models/${params.model.modelId}:streamGenerateContent"
+            } else {
+                "models/${params.model.modelId}:streamGenerateContent"
+            }
+        ).newBuilder().addQueryParameter("alt", "sse").build()
 
-        val request = Request.Builder()
-            .url(url)
-            .headers(params.customHeaders.toHeaders())
-            .post(
-                json.encodeToString(requestBody).toRequestBody("application/json".toMediaType())
-            )
-            .build()
+        val request = transformRequest(
+            providerSetting = providerSetting,
+            request = Request.Builder()
+                .url(url)
+                .headers(params.customHeaders.toHeaders())
+                .post(
+                    json.encodeToString(requestBody).toRequestBody("application/json".toMediaType())
+                )
+                .build()
+        )
 
         Log.i(TAG, "streamText: ${json.encodeToString(requestBody)}")
 
@@ -295,9 +334,9 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
 
         // Generation config
         put("generationConfig", buildJsonObject {
-            if(params.temperature != null) put("temperature", params.temperature)
-            if(params.topP != null) put("topP", params.topP)
-            if(params.model.outputModalities.contains(Modality.IMAGE)) {
+            if (params.temperature != null) put("temperature", params.temperature)
+            if (params.topP != null) put("topP", params.topP)
+            if (params.model.outputModalities.contains(Modality.IMAGE)) {
                 put("responseModalities", buildJsonArray {
                     add(JsonPrimitive("TEXT"))
                     add(JsonPrimitive("IMAGE"))
@@ -307,24 +346,24 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
 
 
         // Safety
-        put("safetySettings", buildJsonArray {
-            add(buildJsonObject {
-                put("category", "HARM_CATEGORY_SEXUALLY_EXPLICIT")
-                put("threshold", "BLOCK_NONE")
-            })
-            add(buildJsonObject {
-                put("category", "HARM_CATEGORY_HATE_SPEECH")
-                put("threshold", "BLOCK_NONE")
-            })
-            add(buildJsonObject {
-                put("category", "HARM_CATEGORY_HATE_SPEECH")
-                put("threshold", "BLOCK_NONE")
-            })
-            add(buildJsonObject {
-                put("category", "HARM_CATEGORY_DANGEROUS_CONTENT")
-                put("threshold", "BLOCK_NONE")
-            })
-        })
+//        put("safetySettings", buildJsonArray {
+//            add(buildJsonObject {
+//                put("category", "HARM_CATEGORY_SEXUALLY_EXPLICIT")
+//                put("threshold", "BLOCK_NONE")
+//            })
+//            add(buildJsonObject {
+//                put("category", "HARM_CATEGORY_HATE_SPEECH")
+//                put("threshold", "BLOCK_NONE")
+//            })
+//            add(buildJsonObject {
+//                put("category", "HARM_CATEGORY_HATE_SPEECH")
+//                put("threshold", "BLOCK_NONE")
+//            })
+//            add(buildJsonObject {
+//                put("category", "HARM_CATEGORY_DANGEROUS_CONTENT")
+//                put("threshold", "BLOCK_NONE")
+//            })
+//        })
 
         // Contents (user messages)
         put(

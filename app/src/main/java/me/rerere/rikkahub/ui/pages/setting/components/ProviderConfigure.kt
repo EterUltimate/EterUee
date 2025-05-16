@@ -89,7 +89,7 @@ private fun ColumnScope.ProviderConfigureOpenAI(
     OutlinedTextField(
         value = provider.name,
         onValueChange = {
-            onEdit(provider.copy(name = it))
+            onEdit(provider.copy(name = it.trim()))
         },
         label = {
             Text("名称")
@@ -100,7 +100,7 @@ private fun ColumnScope.ProviderConfigureOpenAI(
     OutlinedTextField(
         value = provider.apiKey,
         onValueChange = {
-            onEdit(provider.copy(apiKey = it))
+            onEdit(provider.copy(apiKey = it.trim()))
         },
         label = {
             Text("API Key")
@@ -111,7 +111,7 @@ private fun ColumnScope.ProviderConfigureOpenAI(
     OutlinedTextField(
         value = provider.baseUrl,
         onValueChange = {
-            onEdit(provider.copy(baseUrl = it))
+            onEdit(provider.copy(baseUrl = it.trim()))
         },
         label = {
             Text("API Base Url")
@@ -142,7 +142,7 @@ private fun ColumnScope.ProviderConfigureGoogle(
     OutlinedTextField(
         value = provider.name,
         onValueChange = {
-            onEdit(provider.copy(name = it))
+            onEdit(provider.copy(name = it.trim()))
         },
         label = {
             Text("名称")
@@ -153,10 +153,21 @@ private fun ColumnScope.ProviderConfigureGoogle(
     OutlinedTextField(
         value = provider.apiKey,
         onValueChange = {
-            onEdit(provider.copy(apiKey = it))
+            onEdit(provider.copy(apiKey = it.trim()))
         },
         label = {
             Text("API Key")
+        },
+        modifier = Modifier.fillMaxWidth()
+    )
+
+    OutlinedTextField(
+        value = provider.baseUrl,
+        onValueChange = {
+            onEdit(provider.copy(baseUrl = it.trim()))
+        },
+        label = {
+            Text("API Base Url")
         },
         modifier = Modifier.fillMaxWidth()
     )

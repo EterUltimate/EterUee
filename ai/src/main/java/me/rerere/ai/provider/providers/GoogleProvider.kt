@@ -51,7 +51,6 @@ import java.util.concurrent.TimeUnit
 import kotlin.uuid.Uuid
 
 private const val API_VERSION = "v1beta"
-private const val API_URL = "https://generativelanguage.googleapis.com"
 private const val TAG = "GoogleProvider"
 
 object GoogleProvider : Provider<ProviderSetting.Google> {
@@ -66,7 +65,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
         .build()
 
     override suspend fun listModels(providerSetting: ProviderSetting.Google): List<Model> {
-        val url = "$API_URL/$API_VERSION/models".toHttpUrl()
+        val url = "${providerSetting.baseUrl}/$API_VERSION/models".toHttpUrl()
             .newBuilder()
             .addQueryParameter("key", providerSetting.apiKey)
             .build()
@@ -109,7 +108,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
     ): MessageChunk = withContext(Dispatchers.IO) {
         val requestBody = buildCompletionRequestBody(messages, params)
 
-        val url = "$API_URL/$API_VERSION/models/${params.model.modelId}:generateContent".toHttpUrl()
+        val url = "${providerSetting.baseUrl}/$API_VERSION/models/${params.model.modelId}:generateContent".toHttpUrl()
             .newBuilder()
             .addQueryParameter("key", providerSetting.apiKey)
             .build()
@@ -156,7 +155,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
         val requestBody = buildCompletionRequestBody(messages, params)
 
         val url =
-            "$API_URL/$API_VERSION/models/${params.model.modelId}:streamGenerateContent".toHttpUrl()
+            "${providerSetting.baseUrl}/$API_VERSION/models/${params.model.modelId}:streamGenerateContent".toHttpUrl()
                 .newBuilder()
                 .addQueryParameter("key", providerSetting.apiKey)
                 .addQueryParameter("alt", "sse")

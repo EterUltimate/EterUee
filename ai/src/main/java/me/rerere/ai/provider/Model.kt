@@ -30,6 +30,7 @@ enum class Modality {
 @Serializable
 enum class ModelAbility {
     TOOL,
+    REASONING,
 }
 
 fun guessModalityFromModelId(modelId: String): Pair<List<Modality>, List<Modality>> {

@@ -42,6 +42,7 @@ import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Hammer
 import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.HeartOff
+import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.Lucide
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
@@ -355,6 +356,21 @@ fun ModelItem(
                                 ) {
                                     Icon(
                                         imageVector = Lucide.Hammer,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .height(iconHeight)
+                                            .aspectRatio(1f)
+                                    )
+                                }
+                            }
+
+                            ModelAbility.REASONING -> {
+                                Tag(
+                                    type = TagType.INFO,
+                                    modifier = Modifier.fillMaxHeight()
+                                ) {
+                                    Icon(
+                                        imageVector = Lucide.Lightbulb,
                                         contentDescription = null,
                                         modifier = Modifier
                                             .height(iconHeight)

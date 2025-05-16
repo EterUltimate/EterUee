@@ -57,11 +57,13 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFilter
+import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.GripHorizontal
 import com.composables.icons.lucide.Hammer
 import com.composables.icons.lucide.Import
+import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.Plus
@@ -890,6 +892,7 @@ fun ModalAbilitySelector(
                     Text(
                         text = when (ability) {
                             ModelAbility.TOOL -> "工具"
+                            ModelAbility.REASONING -> "推理"
                         }
                     )
                 }
@@ -1070,12 +1073,26 @@ private fun ModelCard(
                                 maxLines = 1,
                             )
                         }
-                        if (model.abilities.contains(ModelAbility.TOOL)) {
-                            Tag(
-                                type = TagType.WARNING
-                            ) {
-                                Icon(Lucide.Hammer, null, modifier = Modifier.size(14.dp))
+                        model.abilities.fastForEach { ability ->
+                            when(ability) {
+                                ModelAbility.TOOL -> {
+                                    Tag(
+                                        type = TagType.WARNING
+                                    ) {
+                                        Icon(Lucide.Hammer, null, modifier = Modifier.size(14.dp))
+                                    }
+                                }
+                                ModelAbility.REASONING -> {
+                                    Tag(
+                                        type = TagType.INFO
+                                    ) {
+                                        Icon(Lucide.Lightbulb, null, modifier = Modifier.size(14.dp))
+                                    }
+                                }
                             }
+                        }
+                        if (model.abilities.contains(ModelAbility.TOOL)) {
+
                         }
                     }
                 }

@@ -193,6 +193,7 @@ private fun ColumnScope.ProviderConfigureGoogle(
                 onEdit(provider.copy(location = it.trim()))
             },
             label = {
+                // https://cloud.google.com/vertex-ai/generative-ai/docs/learn/locations#available-regions
                 Text("Location (e.g. us-central1)")
             },
             modifier = Modifier.fillMaxWidth()

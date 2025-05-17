@@ -424,44 +424,61 @@ private fun AssistantEditSheet(
 
                     FormItem(
                         label = {
-                            Text("Thinking Budget")
+                            Text(stringResource(R.string.assistant_page_thinking_budget))
                         },
                         description = {
-                            Text("The number of thoughts tokens that the model should generate. 0 means thinking will be disabled, and blank means using the default value of the model.")
+                            Text(stringResource(R.string.assistant_page_thinking_budget_desc))
+                            Text(
+                                text = stringResource(R.string.assistant_page_thinking_budget_warning),
+                                color = MaterialTheme.colorScheme.error,
+                            )
                         }
                     ) {
                         var input by remember(assistant) {
                             mutableStateOf(assistant.thinkingBudget?.toString() ?: "")
                         }
-                        OutlinedTextField(
-                            value = input,
-                            onValueChange = {
-                                input = it
-                                update(
-                                    assistant.copy(
-                                        thinkingBudget = if (it.isEmpty()) null else it.toIntOrNull()
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            OutlinedTextField(
+                                value = input,
+                                onValueChange = {
+                                    input = it
+                                    update(
+                                        assistant.copy(
+                                            thinkingBudget = if (it.isBlank()) null else it.toIntOrNull()
+                                        )
                                     )
-                                )
-                            },
-                            trailingIcon = {
-                                IconButton(
-                                    onClick = {
-                                        input = ""
-                                        update(
-                                            assistant.copy(
-                                                thinkingBudget = null
+                                },
+                                trailingIcon = {
+                                    IconButton(
+                                        onClick = {
+                                            input = ""
+                                            update(
+                                                assistant.copy(
+                                                    thinkingBudget = null
+                                                )
                                             )
+                                        }
+                                    ) {
+                                        Icon(
+                                            Lucide.X,
+                                            contentDescription = null
                                         )
                                     }
-                                ) {
-                                    Icon(
-                                        Lucide.X,
-                                        contentDescription = null
-                                    )
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+                                },
+                                modifier = Modifier.weight(1f),
+                            )
+                            Text(
+                                text = stringResource(
+                                    R.string.assistant_page_thinking_budget_tokens,
+                                    assistant.thinkingBudget?.toString()
+                                        ?: stringResource(R.string.assistant_page_thinking_budget_default)
+                                ),
+                            )
+                        }
                     }
 
                     HorizontalDivider()

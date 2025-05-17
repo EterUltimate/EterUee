@@ -118,6 +118,11 @@
     <string name="assistant_page_top_p_value">Top P: %s</string>
     <string name="assistant_page_inject_message_time">メッセージ時間を注入</string>
     <string name="assistant_page_inject_message_time_desc">各メッセージの送信時間をコンテキストに注入して、モデルがメッセージがいつ送信されたかを理解できるようにするかどうか。これを有効にするとトークンの消費が増えることに注意してください</string>
+    <string name="assistant_page_thinking_budget">思考バジェット</string>
+    <string name="assistant_page_thinking_budget_desc">モデルが生成すべき思考トークンの数。0は思考が無効になることを意味し、空白はモデルのデフォルト値を使用することを意味します。</string>
+    <string name="assistant_page_thinking_budget_tokens">%s トークン</string>
+    <string name="assistant_page_thinking_budget_default">デフォルト</string>
+    <string name="assistant_page_thinking_budget_warning">注意：異なるプロバイダーは様々な思考バジェットAPIフォーマットを定義しており、アプリはすべてに対応できないため、このオプションが機能しない場合があります。機能しない場合は、下のカスタムボディを使用してリクエストをカスタマイズすることをお勧めします。</string>
     
     <!-- Custom Headers and Bodies -->
     <string name="assistant_page_custom_headers">カスタムヘッダー</string>

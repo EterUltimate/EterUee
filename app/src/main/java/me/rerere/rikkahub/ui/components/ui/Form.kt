@@ -3,7 +3,6 @@ package me.rerere.rikkahub.ui.components.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -39,7 +38,7 @@ fun FormItem(
                 color = LocalContentColor.current.copy(alpha = 0.6f)
             )
         ) {
-            Row {
+            Column {
                 description?.invoke()
             }
         }

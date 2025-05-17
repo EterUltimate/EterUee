@@ -67,12 +67,12 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
 
     private fun buildUrl(providerSetting: ProviderSetting.Google, path: String): HttpUrl {
         return if (!providerSetting.vertexAI) {
-            return "${providerSetting.baseUrl}/$path".toHttpUrl()
+            "${providerSetting.baseUrl}/$path".toHttpUrl()
                 .newBuilder()
                 .addQueryParameter("key", providerSetting.apiKey)
                 .build()
         } else {
-            return "https://${providerSetting.location}-aiplatform.googleapis.com/v1/projects/${providerSetting.projectId}/locations/${providerSetting.location}/$path".toHttpUrl()
+            "https://${providerSetting.location}-aiplatform.googleapis.com/v1/projects/${providerSetting.projectId}/locations/${providerSetting.location}/$path".toHttpUrl()
         }
     }
 
@@ -345,7 +345,12 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
             }
             if(params.model.abilities.contains(ModelAbility.REASONING)) {
                 put("thinkingConfig", buildJsonObject {
-                    put("includeThoughts", true)
+                    if(params.thinkingBudget != null) {
+                        put("thinkingBudget", params.thinkingBudget)
+                    }
+                    if(params.thinkingBudget == null || params.thinkingBudget > 0) {
+                        put("includeThoughts", true)
+                    }
                 })
             }
         })

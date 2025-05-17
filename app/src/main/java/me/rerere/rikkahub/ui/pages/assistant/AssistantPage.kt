@@ -35,6 +35,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -49,6 +52,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Trash2
+import com.composables.icons.lucide.X
 import me.rerere.ai.ui.transformers.PlaceholderTransformer
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.DEFAULT_ASSISTANTS_IDS
@@ -414,6 +418,50 @@ private fun AssistantEditSheet(
                                 }
                             )
                         }
+                    }
+
+                    HorizontalDivider()
+
+                    FormItem(
+                        label = {
+                            Text("Thinking Budget")
+                        },
+                        description = {
+                            Text("The number of thoughts tokens that the model should generate. 0 means thinking will be disabled, and blank means using the default value of the model.")
+                        }
+                    ) {
+                        var input by remember(assistant) {
+                            mutableStateOf(assistant.thinkingBudget?.toString() ?: "")
+                        }
+                        OutlinedTextField(
+                            value = input,
+                            onValueChange = {
+                                input = it
+                                update(
+                                    assistant.copy(
+                                        thinkingBudget = if (it.isEmpty()) null else it.toIntOrNull()
+                                    )
+                                )
+                            },
+                            trailingIcon = {
+                                IconButton(
+                                    onClick = {
+                                        input = ""
+                                        update(
+                                            assistant.copy(
+                                                thinkingBudget = null
+                                            )
+                                        )
+                                    }
+                                ) {
+                                    Icon(
+                                        Lucide.X,
+                                        contentDescription = null
+                                    )
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                     }
 
                     HorizontalDivider()

@@ -206,6 +206,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
             temperature = assistant?.temperature,
             topP = assistant?.topP,
             tools = tools,
+            thinkingBudget = assistant?.thinkingBudget,
             customHeaders = assistant?.customHeaders ?: emptyList(),
             customBody = assistant?.customBodies ?: emptyList()
         )

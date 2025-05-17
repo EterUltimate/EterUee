@@ -31,8 +31,9 @@ data class TextGenerationParams(
     val temperature: Float? = 0.6f,
     val topP: Float? = 1f,
     val tools: List<Tool> = emptyList(),
+    val thinkingBudget: Int? = null,
     val customHeaders: List<CustomHeader> = emptyList(),
-    val customBody: List<CustomBody> = emptyList()
+    val customBody: List<CustomBody> = emptyList(),
 )
 
 @Serializable

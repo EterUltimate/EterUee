@@ -185,4 +185,10 @@
     <string name="setting_display_page_show_updates_title">顯示更新</string>
     <string name="setting_display_page_show_updates_desc">是否顯示應用更新通知</string>
     <string name="setting_display_page_title">顯示設定</string>
+    
+    <!-- Color Mode -->
+    <string name="setting_page_color_mode">顏色模式</string>
+    <string name="setting_page_color_mode_system">跟隨系統</string>
+    <string name="setting_page_color_mode_light">淺色</string>
+    <string name="setting_page_color_mode_dark">深色</string>
 </resources> 

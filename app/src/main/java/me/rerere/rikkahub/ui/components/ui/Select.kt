@@ -35,7 +35,7 @@ fun <T> Select(
     selectedOption: T,
     onOptionSelected: (T) -> Unit,
     modifier: Modifier = Modifier,
-    optionToString: (T) -> String = { it.toString() },
+    optionToString: @Composable (T) -> String = { it.toString() },
     leading: @Composable () -> Unit = {},
     trailing: @Composable () -> Unit = {}
 ) {

@@ -53,6 +53,7 @@ import me.rerere.rikkahub.ui.context.LocalSettings
 import me.rerere.rikkahub.ui.context.LocalSharedTransitionScope
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.ui.pages.assistant.AssistantPage
+import me.rerere.rikkahub.ui.pages.assistant.detail.AssistantDetailPage
 import me.rerere.rikkahub.ui.pages.chat.ChatPage
 import me.rerere.rikkahub.ui.pages.debug.DebugPage
 import me.rerere.rikkahub.ui.pages.history.HistoryPage
@@ -163,6 +164,17 @@ class RouteActivity : ComponentActivity() {
 
                     composableHelper("assistant") {
                         AssistantPage()
+                    }
+
+                    composableHelper(
+                        route = "assistant/{id}",
+                        args = listOf(
+                            navArgument("id") {
+                                type = NavType.StringType
+                            }
+                        ),
+                    ) {
+                        AssistantDetailPage()
                     }
 
                     composableHelper("menu") {

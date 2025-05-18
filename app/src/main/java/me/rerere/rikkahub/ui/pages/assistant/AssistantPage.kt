@@ -62,6 +62,7 @@ import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
+import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.hooks.EditState
 import me.rerere.rikkahub.ui.hooks.EditStateContent
 import me.rerere.rikkahub.ui.hooks.useEditState
@@ -83,6 +84,7 @@ fun AssistantPage(vm: AssistantVM = koinViewModel()) {
     val memoryState = useEditState<Assistant> {
         vm.updateAssistant(it)
     }
+    val navController = LocalNavController.current
     Scaffold(
         topBar = {
             TopAppBar(
@@ -117,7 +119,8 @@ fun AssistantPage(vm: AssistantVM = koinViewModel()) {
                     assistant = assistant,
                     memories = memories,
                     onEdit = {
-                        editState.open(assistant)
+                        // editState.open(assistant)
+                        navController.navigate("assistant/${assistant.id}")
                     },
                     onDelete = {
                         vm.removeAssistant(assistant)

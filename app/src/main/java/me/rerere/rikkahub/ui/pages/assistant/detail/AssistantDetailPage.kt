@@ -492,7 +492,7 @@ private fun AssistantPromptSettings(
             Text(
                 text = stringResource(
                     R.string.assistant_page_available_variables,
-                    PlaceholderTransformer.Placeholders.entries.joinToString(", ") { "${it.key}: ${it.value}" }
+                    PlaceholderTransformer.Placeholders.entries.joinToString(", ") { "${it.value}: ${it.key}" }
                 ),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),

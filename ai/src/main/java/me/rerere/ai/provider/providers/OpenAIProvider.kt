@@ -271,13 +271,13 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
     ): JsonObject {
         return buildJsonObject {
             put("model", params.model.modelId)
-            put(
-                "messages",
-                buildMessages(messages)
-            )
-            if (params.temperature != null) put("temperature", params.temperature)
-            if (params.topP != null) put("top_p", params.topP)
-            put("top_p", params.topP)
+            put("messages", buildMessages(messages))
+
+            if(isModelAllowTemperature(params.model)) {
+                if (params.temperature != null) put("temperature", params.temperature)
+                if (params.topP != null) put("top_p", params.topP)
+            }
+
             put("stream", stream)
             if (stream) {
                 put("stream_options", buildJsonObject {
@@ -307,7 +307,12 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         }.mergeCustomBody(params.customBody)
     }
 
-    private fun buildMessages(messages: List<UIMessage>) = buildJsonArray {
+    private fun isModelAllowTemperature(model: Model): Boolean {
+        // 不能是openai o-系列模型，例如o3, o4-mini
+        return !model.modelId.matches(Regex("o[0-9](-.+)?"))
+    }
+
+    private fun buildMessages(messages: List<UIMessage>) = buildJsonArray {111
         messages
             .filter {
                 it.isValidToUpload()

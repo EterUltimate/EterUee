@@ -1,4 +1,4 @@
-package me.rerere.rikkahub.ui.pages.assistant
+package me.rerere.rikkahub.ui.pages.assistant.detail
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

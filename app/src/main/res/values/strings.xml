@@ -190,4 +190,10 @@
     <string name="setting_page_color_mode_system">System</string>
     <string name="setting_page_color_mode_light">Light</string>
     <string name="setting_page_color_mode_dark">Dark</string>
+
+    <!-- Assistant Detail Page -->
+    <string name="assistant_page_tab_basic">Basic Settings</string>
+    <string name="assistant_page_tab_prompt">Prompts</string>
+    <string name="assistant_page_tab_memory">Memory</string>
+    <string name="assistant_page_tab_request">Custom Request</string>
 </resources>

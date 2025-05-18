@@ -24,6 +24,7 @@ import me.rerere.ai.ui.transformers.SearchTextTransformer
 import me.rerere.ai.ui.transformers.ThinkTagTransformer
 import me.rerere.rikkahub.CHAT_COMPLETED_NOTIFICATION_CHANNEL_ID
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.data.ai.Base64ImageToLocalFileTransformer
 import me.rerere.rikkahub.data.ai.GenerationChunk
 import me.rerere.rikkahub.data.ai.GenerationHandler
 import me.rerere.rikkahub.data.datastore.Settings
@@ -47,6 +48,7 @@ private val inputTransformers by lazy {
 private val outputTransformers by lazy {
     listOf(
         ThinkTagTransformer,
+        Base64ImageToLocalFileTransformer
     )
 }
 

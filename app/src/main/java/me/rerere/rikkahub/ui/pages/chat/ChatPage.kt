@@ -200,6 +200,10 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                                 providers = it
                             )
                         )
+                    },
+                    onClearContext = {
+                        vm.updateConversation(conversation.copy(messages = emptyList()))
+                        vm.saveConversationAsync()
                     }
                 )
             }

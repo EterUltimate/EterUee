@@ -347,7 +347,7 @@ fun MessagePartsBlock(
                         .animateContentSize(),
                     shape = RoundedCornerShape(8.dp),
                 ) {
-                    Column(Modifier.padding(8.dp)) {
+                    Column(modifier = Modifier.padding(8.dp)) {
                         MarkdownBlock(
                             content = part.text,
                             onClickCitation = { id ->

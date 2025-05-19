@@ -35,6 +35,7 @@
     <string name="chat_page_new_chat">New Chat</string>
     <string name="chat_page_edit_title_warning">Please chat first before editing the title</string>
     <string name="chat_page_search_placeholder">Search conversations</string>
+    <string name="chat_page_clear_context">Clear Context</string>
 
     <!-- Export Chat -->
     <string name="chat_page_export_format">Export Format</string>

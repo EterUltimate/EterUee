@@ -36,6 +36,7 @@
     <string name="chat_page_new_chat">新しいチャット</string>
     <string name="chat_page_edit_title_warning">まずチャットしてからタイトルを編集してください</string>
     <string name="chat_page_search_placeholder">会話を検索</string>
+    <string name="chat_page_clear_context">コンテキストをクリア</string>
 
     <!-- Export Chat -->
     <string name="chat_page_export_format">エクスポート形式</string>

@@ -418,6 +418,12 @@ class ChatVM(
         }
     }
 
+    fun saveConversationAsync() {
+        viewModelScope.launch {
+            saveConversation(conversation.value)
+        }
+    }
+
     fun updateTitle(title: String) {
         viewModelScope.launch {
             saveConversation(conversation.value.copy(title = title))

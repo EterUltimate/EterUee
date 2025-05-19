@@ -31,6 +31,9 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -68,7 +71,9 @@ import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import com.composables.icons.lucide.ArrowUp
 import com.composables.icons.lucide.Camera
-import com.composables.icons.lucide.Compass
+import com.composables.icons.lucide.Earth
+import com.composables.icons.lucide.Ellipsis
+import com.composables.icons.lucide.Eraser
 import com.composables.icons.lucide.Fullscreen
 import com.composables.icons.lucide.Image
 import com.composables.icons.lucide.Lucide
@@ -188,6 +193,7 @@ fun ChatInput(
     modifier: Modifier = Modifier,
     onUpdateChatModel: (Model) -> Unit,
     onUpdateProviders: (List<ProviderSetting>) -> Unit,
+    onClearContext: () -> Unit,
     onCancelClick: () -> Unit,
     onSendClick: () -> Unit,
 ) {
@@ -377,7 +383,7 @@ fun ChatInput(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
-                            Lucide.Compass,
+                            Lucide.Earth,
                             contentDescription = stringResource(R.string.use_web_search),
                             modifier = Modifier.size(20.dp)
                         )
@@ -391,6 +397,10 @@ fun ChatInput(
                         }
                     }
                 }
+
+                MoreOptionsButton(
+                    onClearContext = onClearContext
+                )
 
                 Spacer(Modifier.weight(1f))
 
@@ -436,10 +446,48 @@ fun ChatInput(
                                 dismissExpand()
                             }
                         }
+
                         else -> {}
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun MoreOptionsButton(
+    onClearContext: () -> Unit = {},
+) {
+    var showMoreOptions by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(
+        expanded = showMoreOptions,
+        onExpandedChange = { showMoreOptions = it },
+    ) {
+        IconButton(
+            onClick = { showMoreOptions = true },
+            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+        ) {
+            Icon(Lucide.Ellipsis, "More Options")
+        }
+
+        ExposedDropdownMenu(
+            expanded = showMoreOptions,
+            onDismissRequest = { showMoreOptions = false },
+            modifier = Modifier.width(200.dp)
+        ) {
+            DropdownMenuItem(
+                text = {
+                    Text(stringResource(R.string.chat_page_clear_context))
+                },
+                onClick = {
+                    showMoreOptions = false
+                    onClearContext()
+                },
+                leadingIcon = {
+                    Icon(Lucide.Eraser, null)
+                }
+            )
         }
     }
 }

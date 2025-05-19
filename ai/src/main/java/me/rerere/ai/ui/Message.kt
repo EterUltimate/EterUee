@@ -175,7 +175,7 @@ data class UIMessage(
     }
 
     fun isValidToShowActions() = parts.any {
-        (it is UIMessagePart.Text && it.text.isNotEmpty()) || it is UIMessagePart.Image
+        (it is UIMessagePart.Text && it.text.isNotBlank()) || it is UIMessagePart.Image
     }
 
     inline fun <reified P : UIMessagePart> hasPart(): Boolean {

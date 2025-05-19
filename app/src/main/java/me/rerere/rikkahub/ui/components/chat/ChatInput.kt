@@ -95,6 +95,7 @@ import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyInputMessage
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.Settings
+import me.rerere.rikkahub.ui.components.ui.KeepScreenOn
 import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.createChatFilesByContents
 import me.rerere.rikkahub.utils.deleteChatFiles
@@ -425,9 +426,10 @@ fun ChatInput(
                         containerColor = if (state.loading) MaterialTheme.colorScheme.errorContainer else Color.Unspecified,
                         contentColor = if (state.loading) MaterialTheme.colorScheme.onErrorContainer else Color.Unspecified,
                     ),
-                    enabled = state.loading || !state.messageContent.isEmptyInputMessage()
+                    enabled = state.loading || !state.messageContent.isEmptyInputMessage(),
                 ) {
                     if (state.loading) {
+                        KeepScreenOn()
                         Icon(Lucide.X, stringResource(R.string.stop))
                     } else {
                         Icon(Lucide.ArrowUp, stringResource(R.string.send))

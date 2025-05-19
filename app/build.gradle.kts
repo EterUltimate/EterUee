@@ -138,6 +138,8 @@ dependencies {
 
     // quickie (qrcode scanner)
     implementation(libs.quickie.bundled)
+    implementation(libs.barcode.scanning)
+    implementation(libs.androidx.camera.core)
 
     // Room
     implementation(libs.androidx.room.runtime)

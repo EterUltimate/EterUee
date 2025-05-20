@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.takeOrElse
-import icu.ketal.katexmath.KaTeXMath
 
 @Composable
 fun MathInline(
@@ -22,12 +21,10 @@ fun MathInline(
     fontSize: TextUnit = TextUnit.Unspecified
 ) {
     val proceededLatex = processLatex(latex)
-    KaTeXMath(
+    LatexText(
         latex = proceededLatex,
-        style = LocalTextStyle.current.merge(
-            color = LocalContentColor.current,
-            fontSize = fontSize.takeOrElse { LocalTextStyle.current.fontSize },
-        ),
+        color = LocalContentColor.current,
+        fontSize = fontSize.takeOrElse { LocalTextStyle.current.fontSize },
         modifier = modifier,
     )
 }
@@ -42,12 +39,10 @@ fun MathBlock(
     Box(
         modifier = modifier.padding(8.dp)
     ) {
-        KaTeXMath(
+        LatexText(
             latex = proceededLatex,
-            style = LocalTextStyle.current.merge(
-                color = LocalContentColor.current,
-                fontSize = fontSize.takeOrElse { MaterialTheme.typography.bodyLarge.fontSize },
-            ),
+            color = LocalContentColor.current,
+            fontSize = fontSize.takeOrElse { MaterialTheme.typography.bodyLarge.fontSize },
             modifier = Modifier
                 .align(Alignment.Center)
                 .horizontalScroll(

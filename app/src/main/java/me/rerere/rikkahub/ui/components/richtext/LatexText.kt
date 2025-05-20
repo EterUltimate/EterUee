@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.ui.components.richtext
 
+import android.graphics.Rect
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.LocalTextStyle
@@ -14,6 +15,16 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.TextUnit
 import ru.noties.jlatexmath.JLatexMathDrawable
+
+fun assumeLatexSize(latex: String, fontSize: Float): Rect {
+    return runCatching {
+        JLatexMathDrawable.builder(latex)
+            .textSize(fontSize)
+            .padding(0)
+            .build()
+            .bounds
+    }.getOrElse { Rect(0, 0, 0, 0) }
+}
 
 @Composable
 fun LatexText(
@@ -37,6 +48,7 @@ fun LatexText(
                     .background(style.background.toArgb())
                     .padding(0)
                     .color(style.color.toArgb())
+                    .align(JLatexMathDrawable.ALIGN_LEFT)
                     .build()
             }
         }.onFailure {
@@ -47,10 +59,11 @@ fun LatexText(
     if (drawable != null) {
         with(density) {
             Canvas(
-                modifier = modifier.size(
-                    width = drawable.intrinsicWidth.toDp(),
-                    height = drawable.intrinsicHeight.toDp()
-                )
+                modifier = modifier
+                    .size(
+                        width = drawable.bounds.width().toDp(),
+                        height = drawable.bounds.height().toDp()
+                    )
             ) {
                 drawable.draw(drawContext.canvas.nativeCanvas)
             }

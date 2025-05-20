@@ -31,6 +31,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -39,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -579,34 +581,47 @@ private fun AssistantMemorySettings(
         }
 
         memories.forEach { memory ->
-            Card(
-                modifier = Modifier.fillMaxWidth()
+            key(memory.id) {
+                MemoryItem(memory, onEditMemory, onDeleteMemory)
+            }
+        }
+    }
+}
+
+@Composable
+private fun MemoryItem(
+    memory: AssistantMemory,
+    onEditMemory: (AssistantMemory) -> Unit,
+    onDeleteMemory: (AssistantMemory) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = memory.content,
+                modifier = Modifier.weight(1f),
+                maxLines = 5,
+                overflow = TextOverflow.Ellipsis
+            )
+            IconButton(
+                onClick = { onEditMemory(memory) }
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = memory.content,
-                        modifier = Modifier.weight(1f)
-                    )
-                    IconButton(
-                        onClick = { onEditMemory(memory) }
-                    ) {
-                        Icon(Lucide.Pencil, null)
-                    }
-                    IconButton(
-                        onClick = { onDeleteMemory(memory) }
-                    ) {
-                        Icon(
-                            Lucide.Trash2,
-                            stringResource(R.string.assistant_page_delete)
-                        )
-                    }
-                }
+                Icon(Lucide.Pencil, null)
+            }
+            IconButton(
+                onClick = { onDeleteMemory(memory) }
+            ) {
+                Icon(
+                    Lucide.Trash2,
+                    stringResource(R.string.assistant_page_delete)
+                )
             }
         }
     }

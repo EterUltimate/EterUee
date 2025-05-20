@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -216,7 +217,8 @@ private fun AssistantBasicSettings(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState())
+            .imePadding(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         FormItem(
@@ -468,7 +470,8 @@ private fun AssistantPromptSettings(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState())
+            .imePadding(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         FormItem(
@@ -515,7 +518,8 @@ private fun AssistantMemorySettings(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState())
+            .imePadding(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         FormItem(
@@ -616,7 +620,8 @@ private fun AssistantCustomRequestSettings(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState())
+            .imePadding(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         AssistantCustomHeaders(assistant = assistant, onUpdate = onUpdate)

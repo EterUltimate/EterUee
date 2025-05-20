@@ -20,5 +20,5 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keep class me.rerere.** { *; }
+-keep @kotlinx.serialization.Serializable class * {*;}
 -dontobfuscate

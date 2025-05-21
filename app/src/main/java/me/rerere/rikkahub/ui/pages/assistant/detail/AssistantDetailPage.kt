@@ -356,7 +356,7 @@ private fun AssistantBasicSettings(
                         )
                     )
                 },
-                valueRange = 4f..512f,
+                valueRange = 1f..512f,
                 steps = 0,
                 modifier = Modifier.fillMaxWidth()
             )

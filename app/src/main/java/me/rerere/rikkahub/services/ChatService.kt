@@ -116,7 +116,7 @@ class ChatService : Service() {
         currentJob = serviceScope.launch {
             runCatching {
                 Log.i(TAG, "startGeneration: start stream text")
-                handler.streamText(
+                handler.generateText(
                     settings = settings,
                     model = model,
                     messages = conversation.messages,

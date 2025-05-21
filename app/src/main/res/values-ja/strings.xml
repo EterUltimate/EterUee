@@ -199,4 +199,6 @@
     <string name="assistant_page_tab_prompt">プロンプト</string>
     <string name="assistant_page_tab_memory">記憶</string>
     <string name="assistant_page_tab_request">カスタムリクエスト</string>
+    <string name="assistant_page_stream_output">ストリーミング出力</string>
+    <string name="assistant_page_stream_output_desc">メッセージをストリーミング出力するかどうか</string>
 </resources> 

@@ -404,6 +404,34 @@ private fun AssistantBasicSettings(
 
         FormItem(
             label = {
+                Text(stringResource(R.string.assistant_page_stream_output))
+            },
+            description = {
+                Text(stringResource(R.string.assistant_page_stream_output_desc))
+            }
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Switch(
+                    checked = assistant.streamOutput,
+                    onCheckedChange = {
+                        onUpdate(
+                            assistant.copy(
+                                streamOutput = it
+                            )
+                        )
+                    }
+                )
+            }
+        }
+
+        HorizontalDivider()
+
+        FormItem(
+            label = {
                 Text(stringResource(R.string.assistant_page_thinking_budget))
             },
             description = {

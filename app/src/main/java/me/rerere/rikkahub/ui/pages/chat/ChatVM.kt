@@ -232,7 +232,7 @@ class ChatVM(
 //                assistant = settings.value.getCurrentAssistant(),
 //                conversation = conversation.value
 //            )
-            generationHandler.streamText(
+            generationHandler.generateText(
                 settings = settings.value,
                 model = model,
                 messages = conversation.value.messages,

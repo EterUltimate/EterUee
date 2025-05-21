@@ -198,4 +198,6 @@
     <string name="assistant_page_tab_prompt">提示詞</string>
     <string name="assistant_page_tab_memory">記憶</string>
     <string name="assistant_page_tab_request">自定義請求</string>
+    <string name="assistant_page_stream_output">串流輸出</string>
+    <string name="assistant_page_stream_output_desc">是否啟用訊息的串流輸出</string>
 </resources> 

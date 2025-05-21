@@ -198,4 +198,6 @@
     <string name="assistant_page_tab_prompt">提示词</string>
     <string name="assistant_page_tab_memory">记忆</string>
     <string name="assistant_page_tab_request">自定义请求</string>
+    <string name="assistant_page_stream_output">流式输出</string>
+    <string name="assistant_page_stream_output_desc">是否启用消息的流式输出</string>
 </resources> 

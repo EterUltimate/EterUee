@@ -197,4 +197,6 @@
     <string name="assistant_page_tab_prompt">Prompts</string>
     <string name="assistant_page_tab_memory">Memory</string>
     <string name="assistant_page_tab_request">Custom Request</string>
+    <string name="assistant_page_stream_output">Stream Output</string>
+    <string name="assistant_page_stream_output_desc">Whether to enable streaming output for messages</string>
 </resources>

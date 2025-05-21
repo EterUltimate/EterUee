@@ -52,7 +52,7 @@ sealed interface GenerationChunk {
 }
 
 class GenerationHandler(private val context: Context, private val json: Json) {
-    fun streamText(
+    fun generateText(
         settings: Settings,
         model: Model,
         messages: List<UIMessage>,
@@ -113,7 +113,7 @@ class GenerationHandler(private val context: Context, private val json: Json) {
                 provider,
                 toolsInternal,
                 memories?.invoke() ?: emptyList(),
-                stream = true
+                stream = assistant?.streamOutput ?: true
             )
             messages = messages.visualTransforms(outputTransformers, context, model)
             messages = messages.onGenerationFinish(outputTransformers, context, model)

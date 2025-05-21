@@ -13,6 +13,7 @@ data class Assistant(
     val temperature: Float = 0.6f,
     val topP: Float = 1.0f,
     val contextMessageSize: Int = 32,
+    val streamOutput: Boolean = true,
     val enableMemory: Boolean = false,
     val enableMessageTime: Boolean = false,
     val thinkingBudget: Int? = null,

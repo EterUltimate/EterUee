@@ -23,6 +23,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
@@ -138,12 +139,15 @@ class RouteActivity : ComponentActivity() {
                     exitTransition = {
                         fadeOut(animationSpec = tween(300))
                     },
-                    popEnterTransition = {
-                        fadeIn(animationSpec = tween(300))
-                    },
                     popExitTransition = {
-                        scaleOut(targetScale = 0.35f) + fadeOut(animationSpec = tween(300))
-                    }
+                        scaleOut(
+                            targetScale = 0.9f,
+                            transformOrigin = TransformOrigin(pivotFractionX = 0.5f, pivotFractionY = 0.5f)
+                        )
+                    },
+                    popEnterTransition = {
+                        EnterTransition.None
+                    },
                 ) {
                     composableHelper(
                         route = "chat/{id}",

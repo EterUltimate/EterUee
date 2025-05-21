@@ -92,7 +92,7 @@
     <string name="assistant_page_add">Add</string>
     <string name="assistant_page_name">Assistant Name</string>
     <string name="assistant_page_system_prompt">System Prompt</string>
-    <string name="assistant_page_available_variables">Available variables: %s</string>
+    <string name="assistant_page_available_variables">"Available variables: "</string>
     <string name="assistant_page_temperature">Temperature</string>
     <string name="assistant_page_strict">Strict</string>
     <string name="assistant_page_balanced">Balanced</string>

@@ -39,8 +39,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -60,6 +64,7 @@ import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
 import me.rerere.rikkahub.ui.hooks.EditStateContent
 import me.rerere.rikkahub.ui.hooks.useEditState
+import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.toFixed
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.roundToInt
@@ -524,10 +529,29 @@ private fun AssistantPromptSettings(
             )
 
             Text(
-                text = stringResource(
-                    R.string.assistant_page_available_variables,
-                    PlaceholderTransformer.Placeholders.entries.joinToString(", ") { "${it.value}: ${it.key}" }
-                ),
+                text = buildAnnotatedString {
+                    append(stringResource(R.string.assistant_page_available_variables))
+                    PlaceholderTransformer.Placeholders.entries.forEach { (k, v) ->
+                        append(v)
+                        append(": ")
+                        withLink(
+                            LinkAnnotation.Clickable(
+                            tag = k,
+                            linkInteractionListener = {
+                                onUpdate(
+                                    assistant.copy(
+                                        systemPrompt = assistant.systemPrompt + k
+                                    )
+                                )
+                            }
+                        )) {
+                            withStyle(SpanStyle(color = MaterialTheme.extendColors.blue6)) {
+                                append(k)
+                            }
+                        }
+                        append(", ")
+                    }
+                },
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
             )

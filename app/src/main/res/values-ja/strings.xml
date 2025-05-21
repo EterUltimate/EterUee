@@ -94,7 +94,7 @@
     <string name="assistant_page_add">追加</string>
     <string name="assistant_page_name">アシスタント名</string>
     <string name="assistant_page_system_prompt">システムプロンプト</string>
-    <string name="assistant_page_available_variables">利用可能な変数: %s</string>
+    <string name="assistant_page_available_variables">"利用可能な変数: "</string>
     <string name="assistant_page_temperature">温度</string>
     <string name="assistant_page_strict">厳密</string>
     <string name="assistant_page_balanced">バランス</string>

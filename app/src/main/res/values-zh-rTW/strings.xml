@@ -93,7 +93,7 @@
     <string name="assistant_page_add">添加</string>
     <string name="assistant_page_name">助手名稱</string>
     <string name="assistant_page_system_prompt">系統提示詞</string>
-    <string name="assistant_page_available_variables">可用變數: %s</string>
+    <string name="assistant_page_available_variables">"可用變數: "</string>
     <string name="assistant_page_temperature">溫度</string>
     <string name="assistant_page_strict">嚴謹</string>
     <string name="assistant_page_balanced">平衡</string>

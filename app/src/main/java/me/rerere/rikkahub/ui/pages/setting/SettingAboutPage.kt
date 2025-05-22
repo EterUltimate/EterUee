@@ -152,11 +152,11 @@ fun SettingAboutPage() {
                     },
                     supportingContent = {
                         Text(
-                            text = "https://github.com/re-ovo/rikkahub"
+                            text = "https://github.com/rikkahub/rikkahub"
                         )
                     },
                     modifier = Modifier.clickable {
-                        context.openUrl("https://github.com/re-ovo/rikkahub")
+                        context.openUrl("https://github.com/rikkahub/rikkahub")
                     },
                     leadingContent = {
                         Icon(Lucide.Github, null)

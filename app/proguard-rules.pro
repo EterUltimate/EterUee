@@ -20,5 +20,10 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
+# keep kotlinx serializable classes
 -keep @kotlinx.serialization.Serializable class * {*;}
+
+# keep jlatexmath
+-keep class org.scilab.forge.jlatexmath.** {*;}
+
 -dontobfuscate

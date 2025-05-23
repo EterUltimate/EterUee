@@ -43,7 +43,7 @@ fun guessModalityFromModelId(modelId: String): Pair<List<Modality>, List<Modalit
             listOf(Modality.TEXT, Modality.IMAGE) to listOf(Modality.TEXT)
         }
 
-        CLAUDE_SONNET_3_5.containsMatchIn(modelId) || CLAUDE_SONNET_3_7.containsMatchIn(modelId) -> {
+        CLAUDE_SONNET_3_5.containsMatchIn(modelId) || CLAUDE_SONNET_3_7.containsMatchIn(modelId) || CLAUDE_4.containsMatchIn(modelId) -> {
             listOf(Modality.TEXT, Modality.IMAGE) to listOf(Modality.TEXT)
         }
 

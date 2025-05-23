@@ -61,6 +61,7 @@ import me.rerere.rikkahub.ui.pages.history.HistoryPage
 import me.rerere.rikkahub.ui.pages.menu.MenuPage
 import me.rerere.rikkahub.ui.pages.setting.SettingAboutPage
 import me.rerere.rikkahub.ui.pages.setting.SettingDisplayPage
+import me.rerere.rikkahub.ui.pages.setting.SettingMcpPage
 import me.rerere.rikkahub.ui.pages.setting.SettingModelPage
 import me.rerere.rikkahub.ui.pages.setting.SettingPage
 import me.rerere.rikkahub.ui.pages.setting.SettingProviderPage
@@ -229,6 +230,10 @@ class RouteActivity : ComponentActivity() {
 
                     composableHelper("setting/search") {
                         SettingSearchPage()
+                    }
+
+                    composableHelper("setting/mcp") {
+                        SettingMcpPage()
                     }
 
                     composableHelper("debug") {

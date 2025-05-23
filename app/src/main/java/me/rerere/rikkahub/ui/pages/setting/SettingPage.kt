@@ -48,6 +48,7 @@ import com.composables.icons.lucide.Monitor
 import com.composables.icons.lucide.Palette
 import com.composables.icons.lucide.Share2
 import com.composables.icons.lucide.SunMoon
+import com.composables.icons.lucide.Terminal
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.isNotConfigured
 import me.rerere.rikkahub.ui.components.nav.BackButton
@@ -227,6 +228,16 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                     description = { Text(stringResource(R.string.setting_page_search_service_desc)) },
                     icon = { Icon(Lucide.Compass, "Search") },
                     link = "setting/search"
+                )
+            }
+
+            item {
+                SettingItem(
+                    navController = navController,
+                    title = { Text("MCP") },
+                    description = { Text("配置MCP Servers") },
+                    icon = { Icon(Lucide.Terminal, "MCP")},
+                    link = "setting/mcp"
                 )
             }
 

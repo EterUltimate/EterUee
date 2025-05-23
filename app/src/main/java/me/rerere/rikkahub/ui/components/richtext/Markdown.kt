@@ -541,7 +541,7 @@ private fun Paragraph(
 
     val textStyle = LocalTextStyle.current
     val density = LocalDensity.current
-    BoxWithConstraints {
+    BoxWithConstraints(modifier = Modifier.padding(start = 4.dp)) {
         val maxWidth = this.maxWidth
         val annotatedString = remember(content) {
             buildAnnotatedString {
@@ -561,8 +561,7 @@ private fun Paragraph(
         }
         Text(
             text = annotatedString,
-            modifier = modifier
-                .padding(start = 4.dp),
+            modifier = modifier,
             style = LocalTextStyle.current,
             inlineContent = inlineContents,
             softWrap = true,

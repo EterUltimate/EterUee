@@ -7,13 +7,15 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -36,6 +39,8 @@ import com.composables.icons.lucide.Phone
 import me.rerere.rikkahub.BuildConfig
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.nav.BackButton
+import me.rerere.rikkahub.ui.components.ui.icons.DiscordIcon
+import me.rerere.rikkahub.ui.components.ui.icons.TencentQQIcon
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.utils.openUrl
 import me.rerere.rikkahub.utils.plus
@@ -67,7 +72,6 @@ fun SettingAboutPage() {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp)
                         .padding(8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -76,13 +80,47 @@ fun SettingAboutPage() {
                         model = R.mipmap.ic_launcher,
                         contentDescription = "Logo",
                         modifier = Modifier
+                            .clip(CircleShape)
                             .size(150.dp)
                     )
 
                     Text(
                         text = "RikkaHub",
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.displaySmall,
                     )
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(
+                            8.dp,
+                            Alignment.CenterHorizontally
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        IconButton(
+                            onClick = {
+                                context.openUrl("https://qm.qq.com/q/I8MSU0FkOu")
+                            }
+                        ) {
+                            Icon(
+                                imageVector = TencentQQIcon,
+                                contentDescription = "QQ",
+                                tint = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                context.openUrl("https://discord.gg/9weBqxe5c4")
+                            }
+                        ) {
+                            Icon(
+                                imageVector = DiscordIcon,
+                                contentDescription = "Discord",
+                                tint = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                    }
                 }
             }
 

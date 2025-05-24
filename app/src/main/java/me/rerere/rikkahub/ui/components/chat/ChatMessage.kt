@@ -4,9 +4,11 @@ import android.speech.tts.TextToSpeech
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
@@ -20,21 +22,22 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.ProvideTextStyle
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -56,6 +59,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -68,6 +72,7 @@ import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.ChevronUp
 import com.composables.icons.lucide.CircleStop
 import com.composables.icons.lucide.Copy
+import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.GitFork
 import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.Lucide
@@ -77,6 +82,9 @@ import com.composables.icons.lucide.Share
 import com.composables.icons.lucide.Volume2
 import com.composables.icons.lucide.Wrench
 import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.provider.Model
 import me.rerere.ai.ui.UIMessage
@@ -316,18 +324,13 @@ fun MessagePartsBlock(
     val navController = LocalNavController.current
 
     fun handleClickCitation(id: Int) {
-        val search = parts.filterIsInstance<UIMessagePart.Search>().firstOrNull()
-        if (search != null) {
-            val item = search.search.items.getOrNull(id - 1)
-            if (item != null) {
-                navController.navigate("webview?url=${item.url.urlEncode()}")
-            }
-        }
-    }
-
-    // Search
-    parts.filterIsInstance<UIMessagePart.Search>().fastForEach { search ->
-        SearchResultList(search.search)
+//        val search = parts.filterIsInstance<UIMessagePart.Search>().firstOrNull()
+//        if (search != null) {
+//            val item = search.search.items.getOrNull(id - 1)
+//            if (item != null) {
+//                navController.navigate("webview?url=${item.url.urlEncode()}")
+//            }
+//        }
     }
 
     // Reasoning
@@ -372,12 +375,13 @@ fun MessagePartsBlock(
     parts.filterIsInstance<UIMessagePart.ToolResult>().fastForEachIndexed { index, toolCall ->
         key(index) {
             var showResult by remember { mutableStateOf(false) }
-            Surface(
-                shape = RoundedCornerShape(25),
-                tonalElevation = 4.dp,
-                onClick = {
-                    showResult = true
-                }
+            Box(
+                modifier = Modifier
+                    .clip(MaterialTheme.shapes.small)
+                    .clickable {
+                        showResult = true
+                    }
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -390,10 +394,12 @@ fun MessagePartsBlock(
                         imageVector = when (toolCall.toolName) {
                             "create_memory", "edit_memory" -> Lucide.BookHeart
                             "delete_memory" -> Lucide.BookDashed
+                            "search_web" -> Lucide.Earth
                             else -> Lucide.Wrench
                         },
                         contentDescription = null,
-                        modifier = Modifier.fillMaxHeight()
+                        modifier = Modifier.size(20.dp),
+                        tint = contentColor.copy(alpha = 0.7f)
                     )
                     Column {
                         Text(
@@ -401,62 +407,18 @@ fun MessagePartsBlock(
                                 "create_memory" -> "创建了记忆"
                                 "edit_memory" -> "更新了记忆"
                                 "delete_memory" -> "删除了记忆"
+                                "search_web" -> "搜索网页: ${toolCall.arguments.jsonObject["query"]?.jsonPrimitive?.content}"
                                 else -> "调用工具 ${toolCall.toolName}"
                             },
-                            style = MaterialTheme.typography.labelMedium,
+                            style = MaterialTheme.typography.labelSmall,
                         )
                     }
                 }
             }
             if (showResult) {
-                AlertDialog(
-                    onDismissRequest = {
-                        showResult = false
-                    },
-                    title = {
-                        Text("工具调用")
-                    },
-                    text = {
-                        Column(
-                            modifier = Modifier
-                                .heightIn(max = 400.dp)
-                                .verticalScroll(rememberScrollState()),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            FormItem(
-                                label = {
-                                    Text("调用工具 ${toolCall.toolName}")
-                                }
-                            ) {
-                                HighlightText(
-                                    code = JsonInstantPretty.encodeToString(toolCall.arguments),
-                                    language = "json",
-                                    fontSize = 12.sp
-                                )
-                            }
-                            FormItem(
-                                label = {
-                                    Text("调用结果")
-                                }
-                            ) {
-                                HighlightText(
-                                    code = JsonInstantPretty.encodeToString(toolCall.content),
-                                    language = "json",
-                                    fontSize = 12.sp
-                                )
-                            }
-                        }
-                    },
-                    confirmButton = {
-                        Button(
-                            onClick = {
-                                showResult = false
-                            }
-                        ) {
-                            Text("确定")
-                        }
-                    }
-                )
+                ToolCallPreviewDialog(toolCall) {
+                    showResult = false
+                }
             }
         }
     }
@@ -533,6 +495,112 @@ fun MessagePartsBlock(
             )
         }
     }
+}
+
+@Composable
+private fun ToolCallPreviewDialog(
+    toolCall: UIMessagePart.ToolResult,
+    onDismissRequest: () -> Unit = {}
+) {
+    val navController = LocalNavController.current
+    ModalBottomSheet(
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        onDismissRequest = {
+            onDismissRequest()
+        },
+        content = {
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight(0.8f)
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                when (toolCall.toolName) {
+                    "search_web" -> {
+                        Text("搜索: ${toolCall.arguments.jsonObject["query"]?.jsonPrimitive?.content}")
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(toolCall.content.jsonObject["items"]?.jsonArray ?: emptyList()) {
+                                val url =
+                                    it.jsonObject["url"]?.jsonPrimitive?.content ?: return@items
+                                val title =
+                                    it.jsonObject["title"]?.jsonPrimitive?.content ?: return@items
+                                val text =
+                                    it.jsonObject["text"]?.jsonPrimitive?.content ?: return@items
+                                Card(
+                                    onClick = {
+                                        navController.navigate("webview?url=${url.urlEncode()}")
+                                    }
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 8.dp, horizontal = 16.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Favicon(
+                                            url = url,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                        Column {
+                                            Text(
+                                                text = title,
+                                                maxLines = 1
+                                            )
+                                            Text(
+                                                text = text,
+                                                maxLines = 2,
+                                                overflow = TextOverflow.Ellipsis,
+                                                style = MaterialTheme.typography.bodySmall
+                                            )
+                                            Text(
+                                                text = url,
+                                                maxLines = 1,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    else -> {
+                        Text("工具调用")
+                        FormItem(
+                            label = {
+                                Text("调用工具 ${toolCall.toolName}")
+                            }
+                        ) {
+                            HighlightText(
+                                code = JsonInstantPretty.encodeToString(toolCall.arguments),
+                                language = "json",
+                                fontSize = 12.sp
+                            )
+                        }
+                        FormItem(
+                            label = {
+                                Text("调用结果")
+                            }
+                        ) {
+                            HighlightText(
+                                code = JsonInstantPretty.encodeToString(toolCall.content),
+                                language = "json",
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                }
+            }
+        },
+    )
 }
 
 @Composable

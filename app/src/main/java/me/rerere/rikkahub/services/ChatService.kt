@@ -20,7 +20,6 @@ import kotlinx.coroutines.launch
 import me.rerere.ai.provider.Model
 import me.rerere.ai.ui.transformers.MessageTimeTransformer
 import me.rerere.ai.ui.transformers.PlaceholderTransformer
-import me.rerere.ai.ui.transformers.SearchTextTransformer
 import me.rerere.ai.ui.transformers.ThinkTagTransformer
 import me.rerere.rikkahub.CHAT_COMPLETED_NOTIFICATION_CHANNEL_ID
 import me.rerere.rikkahub.R
@@ -40,7 +39,6 @@ private const val NOTIFICATION_ID = 1001
 
 private val inputTransformers by lazy {
     listOf(
-        SearchTextTransformer,
         PlaceholderTransformer,
     )
 }

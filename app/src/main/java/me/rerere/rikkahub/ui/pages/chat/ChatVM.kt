@@ -19,7 +19,12 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import me.rerere.ai.core.MessageRole
+import me.rerere.ai.core.SchemaBuilder
+import me.rerere.ai.core.Tool
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ProviderManager
 import me.rerere.ai.provider.TextGenerationParams
@@ -28,7 +33,6 @@ import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyInputMessage
 import me.rerere.ai.ui.transformers.MessageTimeTransformer
 import me.rerere.ai.ui.transformers.PlaceholderTransformer
-import me.rerere.ai.ui.transformers.SearchTextTransformer
 import me.rerere.ai.ui.transformers.ThinkTagTransformer
 import me.rerere.rikkahub.data.ai.Base64ImageToLocalFileTransformer
 import me.rerere.rikkahub.data.ai.GenerationChunk
@@ -42,6 +46,7 @@ import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.data.repository.MemoryRepository
 import me.rerere.rikkahub.ui.hooks.getCurrentAssistant
+import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.UiState
 import me.rerere.rikkahub.utils.UpdateChecker
 import me.rerere.rikkahub.utils.deleteChatFiles
@@ -54,7 +59,6 @@ private const val TAG = "ChatVM"
 
 private val inputTransformers by lazy {
     listOf(
-        SearchTextTransformer,
         PlaceholderTransformer,
     )
 }
@@ -151,6 +155,27 @@ class ChatVM(
     val updateState = updateChecker.checkUpdate()
         .stateIn(viewModelScope, SharingStarted.Eagerly, UiState.Loading)
 
+    // Search Tool
+    private val searchTool = Tool(
+        name = "search_web",
+        description = "search web for information",
+        parameters = SchemaBuilder.obj(
+            "query" to SchemaBuilder.str(),
+            required = listOf("query")
+        ),
+        execute = {
+            val query = it.jsonObject["query"]!!.jsonPrimitive.content
+            val service = SearchService.getService(settings.value.searchServiceOptions)
+            val result = service.search(
+                query = query,
+                commonOptions = settings.value.searchCommonOptions,
+                serviceOptions = settings.value.searchServiceOptions,
+            )
+            val results = result.getOrThrow()
+            JsonInstant.encodeToJsonElement(results)
+        }
+    )
+
     fun handleMessageSend(content: List<UIMessagePart>) {
         if (content.isEmptyInputMessage()) return
 
@@ -165,9 +190,6 @@ class ChatVM(
             )
             saveConversation(newConversation)
 
-            // 处理网络搜索
-            handleWebSearch()
-
             // 开始补全
             handleMessageComplete()
 
@@ -176,31 +198,6 @@ class ChatVM(
         this.conversationJob.value = job
         job.invokeOnCompletion {
             this.conversationJob.value = null
-        }
-    }
-
-    suspend fun handleWebSearch() {
-        if (!useWebSearch) return
-        val service = SearchService.getService(settings.value.searchServiceOptions)
-        val result = service.search(
-            query = conversation.value.messages.last().toText(),
-            commonOptions = settings.value.searchCommonOptions,
-            serviceOptions = settings.value.searchServiceOptions,
-        )
-        result.onSuccess {
-            updateConversation(
-                conversation.value.copy(
-                    messages = conversation.value.messages + UIMessage(
-                        role = MessageRole.ASSISTANT,
-                        parts = listOf(
-                            UIMessagePart.Search(it)
-                        )
-                    )
-                )
-            )
-        }.onFailure {
-            Log.e(TAG, "handleMessageSend: ", it)
-            errorFlow.emit(it)
         }
     }
 
@@ -245,6 +242,11 @@ class ChatVM(
                     }
                 },
                 outputTransformers = outputTransformers,
+                tools = buildList {
+                    if(useWebSearch) {
+                        add(searchTool)
+                    }
+                }
             ).collect { chunk ->
                 when (chunk) {
                     is GenerationChunk.Messages -> {
@@ -362,7 +364,6 @@ class ChatVM(
             }
             conversationJob.value?.cancel()
             val job = viewModelScope.launch {
-                handleWebSearch()
                 handleMessageComplete()
                 generationDoneFlow.emit(Uuid.random())
             }

@@ -10,7 +10,6 @@ import kotlinx.serialization.json.JsonElement
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.core.TokenUsage
 import me.rerere.ai.provider.Model
-import me.rerere.search.SearchResult
 import kotlin.uuid.Uuid
 
 // 公共消息抽象, 具体的Provider实现会转换为API接口需要的DTO
@@ -73,24 +72,6 @@ data class UIMessage(
                             }
                         } else {
                             acc + UIMessagePart.Reasoning(deltaPart.reasoning)
-                        }
-                    }
-
-                    is UIMessagePart.Search -> {
-                        val existingSearchPart =
-                            acc.find { it is UIMessagePart.Search } as? UIMessagePart.Search
-                        if (existingSearchPart != null) {
-                            acc.map { part ->
-                                if (part is UIMessagePart.Search) {
-                                    UIMessagePart.Search(
-                                        existingSearchPart.search.copy(
-                                            items = existingSearchPart.search.items + deltaPart.search.items
-                                        )
-                                    )
-                                } else part
-                            }
-                        } else {
-                            acc + UIMessagePart.Search(deltaPart.search)
                         }
                     }
 
@@ -171,7 +152,7 @@ data class UIMessage(
     fun getToolResults() = parts.filterIsInstance<UIMessagePart.ToolResult>()
 
     fun isValidToUpload() = parts.any {
-        it !is UIMessagePart.Search && it !is UIMessagePart.Reasoning
+        it !is UIMessagePart.Reasoning
     }
 
     fun isValidToShowActions() = parts.any {
@@ -253,32 +234,6 @@ fun List<UIMessagePart>.isEmptyUIMessage(): Boolean {
     }
 }
 
-/**
- * 将消息内的Search part转为文本prompt
- *
- * @return 搜索结果文本
- */
-fun List<UIMessagePart>.searchTextContent(): String {
-    return buildString {
-        for (part in this@searchTextContent) {
-            when (part) {
-                is UIMessagePart.Search -> {
-                    part.search.items.forEachIndexed { index, item ->
-                        append("<search_item>\n")
-                        append("<index>${index + 1}</index>\n")
-                        append("<title>${item.title}</title>\n")
-                        append("<content>${item.text}</content>\n")
-                        append("<url>${item.url}</url>\n")
-                        append("</search_item>\n")
-                    }
-                }
-
-                else -> {}
-            }
-        }
-    }
-}
-
 @Serializable
 sealed class UIMessagePart {
     abstract val priority: Int
@@ -298,9 +253,10 @@ sealed class UIMessagePart {
         override val priority: Int = -1
     }
 
+    @Deprecated("Deprecated")
     @Serializable
-    data class Search(val search: SearchResult) : UIMessagePart() {
-        override val priority: Int = -2
+    data object Search: UIMessagePart() {
+        override val priority: Int = 0
     }
 
     @Serializable

@@ -81,6 +81,9 @@ import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.Share
 import com.composables.icons.lucide.Volume2
 import com.composables.icons.lucide.Wrench
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.datetime.Clock
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -90,7 +93,6 @@ import me.rerere.ai.provider.Model
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessagePart
-import me.rerere.ai.ui.isEmptyInputMessage
 import me.rerere.ai.ui.isEmptyUIMessage
 import me.rerere.highlight.HighlightText
 import me.rerere.rikkahub.R
@@ -109,6 +111,7 @@ import me.rerere.rikkahub.utils.copyMessageToClipboard
 import me.rerere.rikkahub.utils.toLocalString
 import me.rerere.rikkahub.utils.urlDecode
 import me.rerere.rikkahub.utils.urlEncode
+import kotlin.time.DurationUnit
 
 @Composable
 fun ChatMessage(
@@ -337,7 +340,6 @@ fun MessagePartsBlock(
     parts.filterIsInstance<UIMessagePart.Reasoning>().fastForEach { reasoning ->
         ReasoningCard(
             reasoning = reasoning,
-            loading = parts.isEmptyInputMessage()
         )
     }
 
@@ -622,20 +624,37 @@ private fun ToolCallPreviewDialog(
 @Composable
 fun ReasoningCard(
     reasoning: UIMessagePart.Reasoning,
-    loading: Boolean,
     modifier: Modifier = Modifier,
     fadeHeight: Float = 64f,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     val settings = LocalSettings.current
+    val loading = reasoning.finishedAt == null
 
     LaunchedEffect(reasoning, loading) {
         if (loading) {
             if (!expanded) expanded = true
-            scrollState.animateScrollTo(scrollState.maxValue.toInt())
+            scrollState.animateScrollTo(scrollState.maxValue)
         } else {
             if (expanded && settings.displaySetting.autoCloseThinking) expanded = false
+        }
+    }
+
+    var duration by remember {
+        mutableStateOf(
+            value = reasoning.finishedAt?.let { endTime ->
+                endTime - reasoning.createdAt
+            } ?: (Clock.System.now() - reasoning.createdAt)
+        )
+    }
+
+    LaunchedEffect(loading) {
+        if(loading) {
+            while (isActive) {
+                duration = (reasoning.finishedAt ?: Clock.System.now()) - reasoning.createdAt
+                delay(50)
+            }
         }
     }
 
@@ -664,6 +683,14 @@ fun ReasoningCard(
                 )
                 Text(
                     text = stringResource(R.string.deep_thinking),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.shimmer(
+                        isLoading = loading
+                    )
+                )
+                Text(
+                    text = "(${duration.toString(DurationUnit.SECONDS, 1)})",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.shimmer(
@@ -754,7 +781,6 @@ private fun ReasoningCardPreview() {
         """.trimIndent()
             ),
             modifier = Modifier.padding(8.dp),
-            loading = false
         )
 
         ReasoningCard(
@@ -770,7 +796,6 @@ private fun ReasoningCardPreview() {
         """.trimIndent()
             ),
             modifier = Modifier.padding(8.dp),
-            loading = true
         )
     }
 }

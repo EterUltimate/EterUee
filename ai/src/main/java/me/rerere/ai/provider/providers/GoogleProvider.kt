@@ -6,6 +6,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.Clock
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -343,12 +344,12 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
                     add(JsonPrimitive("IMAGE"))
                 })
             }
-            if(params.model.abilities.contains(ModelAbility.REASONING)) {
+            if (params.model.abilities.contains(ModelAbility.REASONING)) {
                 put("thinkingConfig", buildJsonObject {
-                    if(params.thinkingBudget != null) {
+                    if (params.thinkingBudget != null) {
                         put("thinkingBudget", params.thinkingBudget)
                     }
-                    if(params.thinkingBudget == null || params.thinkingBudget > 0) {
+                    if (params.thinkingBudget == null || params.thinkingBudget > 0) {
                         put("includeThoughts", true)
                     }
                 })
@@ -444,7 +445,11 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
             jsonObject.containsKey("text") -> {
                 val thought = jsonObject["thought"]?.jsonPrimitive?.booleanOrNull ?: false
                 val text = jsonObject["text"]?.jsonPrimitive?.content ?: ""
-                if(thought) UIMessagePart.Reasoning(text) else UIMessagePart.Text(text)
+                if (thought) UIMessagePart.Reasoning(
+                    reasoning = text,
+                    createdAt = Clock.System.now(),
+                    finishedAt = null
+                ) else UIMessagePart.Text(text)
             }
 
             jsonObject.containsKey("functionCall") -> {

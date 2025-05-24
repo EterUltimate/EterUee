@@ -6,6 +6,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -418,7 +419,9 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                 if (reasoning?.jsonPrimitive?.contentOrNull != null) {
                     add(
                         UIMessagePart.Reasoning(
-                            reasoning = reasoning.jsonPrimitive.contentOrNull ?: ""
+                            reasoning = reasoning.jsonPrimitive.contentOrNull ?: "",
+                            createdAt = Clock.System.now(),
+                            finishedAt = null
                         )
                     )
                 }

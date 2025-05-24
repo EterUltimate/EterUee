@@ -1,6 +1,7 @@
 package me.rerere.ai.ui
 
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -27,7 +28,7 @@ data class UIMessage(
         val choice = chunk.choices.getOrNull(0)
         return choice?.delta?.let { delta ->
             // Handle Parts
-            val newParts = delta.parts.fold(parts) { acc, deltaPart ->
+            var newParts = delta.parts.fold(parts) { acc, deltaPart ->
                 when (deltaPart) {
                     is UIMessagePart.Text -> {
                         val existingTextPart =
@@ -67,7 +68,11 @@ data class UIMessage(
                         if (existingReasoningPart != null) {
                             acc.map { part ->
                                 if (part is UIMessagePart.Reasoning) {
-                                    UIMessagePart.Reasoning(existingReasoningPart.reasoning + deltaPart.reasoning)
+                                    UIMessagePart.Reasoning(
+                                        reasoning = existingReasoningPart.reasoning + deltaPart.reasoning,
+                                        createdAt = existingReasoningPart.createdAt,
+                                        finishedAt = null,
+                                    )
                                 } else part
                             }
                         } else {
@@ -119,6 +124,14 @@ data class UIMessage(
                         println("delta part append not supported: $deltaPart")
                         acc
                     }
+                }
+            }
+            // Handle Reasoning End
+            if(parts.filterIsInstance<UIMessagePart.Reasoning>().isNotEmpty() && delta.parts.filterIsInstance<UIMessagePart.Reasoning>().isEmpty()) {
+                newParts = newParts.map { part ->
+                    if (part is UIMessagePart.Reasoning) {
+                        part.copy(finishedAt = Clock.System.now())
+                    } else part
                 }
             }
             // Handle annotations
@@ -249,13 +262,17 @@ sealed class UIMessagePart {
     }
 
     @Serializable
-    data class Reasoning(val reasoning: String) : UIMessagePart() {
+    data class Reasoning(
+        val reasoning: String,
+        val createdAt: Instant = Clock.System.now(),
+        val finishedAt: Instant? = Clock.System.now(),
+    ) : UIMessagePart() {
         override val priority: Int = -1
     }
 
     @Deprecated("Deprecated")
     @Serializable
-    data object Search: UIMessagePart() {
+    data object Search : UIMessagePart() {
         override val priority: Int = 0
     }
 

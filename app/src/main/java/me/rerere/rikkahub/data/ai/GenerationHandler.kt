@@ -37,6 +37,7 @@ import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.findProvider
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
+import me.rerere.rikkahub.data.repository.MemoryRepository
 
 private const val TAG = "GenerationHandler"
 
@@ -51,7 +52,11 @@ sealed interface GenerationChunk {
     ) : GenerationChunk
 }
 
-class GenerationHandler(private val context: Context, private val json: Json) {
+class GenerationHandler(
+    private val context: Context,
+    private val json: Json,
+    private val memoryRepo: MemoryRepository,
+) {
     fun generateText(
         settings: Settings,
         model: Model,
@@ -61,9 +66,6 @@ class GenerationHandler(private val context: Context, private val json: Json) {
         assistant: Assistant? = null,
         memories: (suspend () -> List<AssistantMemory>)? = null,
         tools: List<Tool> = emptyList(),
-        onCreationMemory: (suspend (String) -> AssistantMemory)? = null,
-        onUpdateMemory: (suspend (Int, String) -> AssistantMemory)? = null,
-        onDeleteMemory: (suspend (Int) -> Unit)? = null,
         maxSteps: Int = 5,
     ): Flow<GenerationChunk> = flow {
         val provider = model.findProvider(settings.providers) ?: error("Provider not found")
@@ -77,13 +79,16 @@ class GenerationHandler(private val context: Context, private val json: Json) {
             val toolsInternal = buildList {
                 Log.i(TAG, "generateInternal: build tools($assistant)")
                 if (assistant?.enableMemory == true) {
-                    checkNotNull(onCreationMemory)
-                    checkNotNull(onUpdateMemory)
-                    checkNotNull(onDeleteMemory)
                     buildMemoryTools(
-                        onCreation = onCreationMemory,
-                        onUpdate = onUpdateMemory,
-                        onDelete = onDeleteMemory
+                        onCreation = { content ->
+                            memoryRepo.addMemory(assistant.id.toString(), content)
+                        },
+                        onUpdate = { id, content ->
+                            memoryRepo.updateContent(id, content)
+                        },
+                        onDelete = { id ->
+                            memoryRepo.deleteMemory(id)
+                        }
                     ).let(this::addAll)
                 }
                 addAll(tools)

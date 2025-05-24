@@ -31,7 +31,7 @@ val dataSourceModule = module {
         get<AppDatabase>().memoryDao()
     }
 
-    single { GenerationHandler(get(), get()) }
+    single { GenerationHandler(get(), get(), get()) }
 
     single<OkHttpClient> {
         OkHttpClient.Builder()

@@ -124,15 +124,6 @@ class ChatService : Service() {
                     memories = {
                         if (assistant != null) memoryRepository.getMemoriesOfAssistant(assistant.id.toString()) else emptyList()
                     },
-                    onCreationMemory = {
-                        memoryRepository.addMemory(assistant!!.id.toString(), it)
-                    },
-                    onUpdateMemory = { id, content ->
-                        memoryRepository.updateContent(id, content)
-                    },
-                    onDeleteMemory = {
-                        memoryRepository.deleteMemory(it)
-                    },
                     inputTransformers = buildList {
                         addAll(inputTransformers)
                         if (assistant?.enableMessageTime == true) add(MessageTimeTransformer)

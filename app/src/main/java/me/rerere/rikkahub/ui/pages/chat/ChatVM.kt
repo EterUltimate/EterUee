@@ -245,15 +245,6 @@ class ChatVM(
                     }
                 },
                 outputTransformers = outputTransformers,
-                onUpdateMemory = { id, content ->
-                    updateMemory(id, content)
-                },
-                onCreationMemory = { content ->
-                    addMemory(content)
-                },
-                onDeleteMemory = { id ->
-                    deleteMemory(id)
-                }
             ).collect { chunk ->
                 when (chunk) {
                     is GenerationChunk.Messages -> {

@@ -31,6 +31,7 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -93,7 +94,6 @@ import me.rerere.rikkahub.ui.components.chat.ChatMessage
 import me.rerere.rikkahub.ui.components.chat.rememberChatInputState
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.components.ui.ListSelectableItem
-import me.rerere.rikkahub.ui.components.ui.WavyCircularProgressIndicator
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.ui.hooks.EditStateContent
@@ -300,7 +300,7 @@ private fun ChatList(
         LazyColumn(
             state = state,
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize()
         ) {
@@ -342,13 +342,7 @@ private fun ChatList(
 
             if (loading) {
                 item(LoadingIndicatorKey) {
-                    WavyCircularProgressIndicator(
-                        modifier = Modifier
-                            .padding(vertical = 4.dp)
-                            .size(24.dp),
-                        strokeWidth = 2.dp,
-                        waveCount = 8
-                    )
+                    LoadingIndicator()
                 }
             }
 

@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.composables.icons.lucide.Code
 import com.composables.icons.lucide.Earth
+import com.composables.icons.lucide.FileText
 import com.composables.icons.lucide.Github
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Phone
@@ -44,6 +45,7 @@ import me.rerere.rikkahub.ui.components.ui.icons.TencentQQIcon
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.utils.openUrl
 import me.rerere.rikkahub.utils.plus
+import me.rerere.rikkahub.utils.urlEncode
 
 @Composable
 fun SettingAboutPage() {
@@ -199,6 +201,24 @@ fun SettingAboutPage() {
                     leadingContent = {
                         Icon(Lucide.Github, null)
                     }
+                )
+            }
+
+            item {
+                ListItem(
+                    headlineContent = {
+                        Text("License")
+                    },
+                    supportingContent = {
+                        Text("https://github.com/rikkahub/rikkahub/blob/master/LICENSE")
+                    },
+                    leadingContent = {
+                        Icon(Lucide.FileText, null)
+                    },
+                    modifier = Modifier
+                        .clickable {
+                            navController.navigate("webview?url=${"https://github.com/rikkahub/rikkahub/blob/master/LICENSE".urlEncode()}")
+                        }
                 )
             }
         }

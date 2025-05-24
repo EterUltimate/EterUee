@@ -416,9 +416,12 @@ fun MessagePartsBlock(
                 }
             }
             if (showResult) {
-                ToolCallPreviewDialog(toolCall) {
-                    showResult = false
-                }
+                ToolCallPreviewDialog(
+                    toolCall = toolCall,
+                    onDismissRequest = {
+                        showResult = false
+                    }
+                )
             }
         }
     }
@@ -519,56 +522,69 @@ private fun ToolCallPreviewDialog(
                 when (toolCall.toolName) {
                     "search_web" -> {
                         Text("搜索: ${toolCall.arguments.jsonObject["query"]?.jsonPrimitive?.content}")
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            items(toolCall.content.jsonObject["items"]?.jsonArray ?: emptyList()) {
-                                val url =
-                                    it.jsonObject["url"]?.jsonPrimitive?.content ?: return@items
-                                val title =
-                                    it.jsonObject["title"]?.jsonPrimitive?.content ?: return@items
-                                val text =
-                                    it.jsonObject["text"]?.jsonPrimitive?.content ?: return@items
-                                Card(
-                                    onClick = {
-                                        navController.navigate("webview?url=${url.urlEncode()}")
-                                    }
-                                ) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 8.dp, horizontal = 16.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
+                        val items = toolCall.content.jsonObject["items"]?.jsonArray ?: emptyList()
+                        if (items.isNotEmpty()) {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(items) {
+                                    val url =
+                                        it.jsonObject["url"]?.jsonPrimitive?.content ?: return@items
+                                    val title =
+                                        it.jsonObject["title"]?.jsonPrimitive?.content
+                                            ?: return@items
+                                    val text =
+                                        it.jsonObject["text"]?.jsonPrimitive?.content
+                                            ?: return@items
+                                    Card(
+                                        onClick = {
+                                            navController.navigate("webview?url=${url.urlEncode()}")
+                                        }
                                     ) {
-                                        Favicon(
-                                            url = url,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                        Column {
-                                            Text(
-                                                text = title,
-                                                maxLines = 1
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 8.dp, horizontal = 16.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ) {
+                                            Favicon(
+                                                url = url,
+                                                modifier = Modifier.size(24.dp)
                                             )
-                                            Text(
-                                                text = text,
-                                                maxLines = 2,
-                                                overflow = TextOverflow.Ellipsis,
-                                                style = MaterialTheme.typography.bodySmall
-                                            )
-                                            Text(
-                                                text = url,
-                                                maxLines = 1,
-                                                style = MaterialTheme.typography.labelSmall,
-                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                            )
+                                            Column {
+                                                Text(
+                                                    text = title,
+                                                    maxLines = 1
+                                                )
+                                                Text(
+                                                    text = text,
+                                                    maxLines = 2,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                    style = MaterialTheme.typography.bodySmall
+                                                )
+                                                Text(
+                                                    text = url,
+                                                    maxLines = 1,
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    color = MaterialTheme.colorScheme.onSurface.copy(
+                                                        alpha = 0.6f
+                                                    )
+                                                )
+                                            }
                                         }
                                     }
                                 }
                             }
+                        } else {
+                            HighlightText(
+                                code = JsonInstantPretty.encodeToString(toolCall.content),
+                                language = "json",
+                                fontSize = 12.sp
+                            )
                         }
                     }
 

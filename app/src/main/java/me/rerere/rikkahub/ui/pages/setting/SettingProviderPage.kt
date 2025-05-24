@@ -91,7 +91,6 @@ import me.rerere.rikkahub.ui.components.ui.TagType
 import me.rerere.rikkahub.ui.components.ui.decodeProviderSetting
 import me.rerere.rikkahub.ui.components.ui.rememberShareSheetState
 import me.rerere.rikkahub.ui.context.LocalToaster
-import me.rerere.rikkahub.ui.hooks.EditState
 import me.rerere.rikkahub.ui.hooks.EditStateContent
 import me.rerere.rikkahub.ui.hooks.useEditState
 import me.rerere.rikkahub.ui.pages.setting.components.ProviderConfigure
@@ -525,16 +524,25 @@ private fun ModelList(
                 }
             }
         }
-        AddModelButton(modelList) {
-            onUpdateProvider(providerSetting.addModel(it))
-        }
+        AddModelButton(
+            models = modelList,
+            selectedModels = providerSetting.models,
+            onAddModel = {
+                onUpdateProvider(providerSetting.addModel(it))
+            },
+            onRemoveModel = {
+                onUpdateProvider(providerSetting.delModel(it))
+            }
+        )
     }
 }
 
 @Composable
 private fun AddModelButton(
     models: List<Model>,
-    onAddModel: (Model) -> Unit
+    selectedModels: List<Model>,
+    onAddModel: (Model) -> Unit,
+    onRemoveModel: (Model) -> Unit
 ) {
     val dialogState = useEditState<Model> { onAddModel(it) }
 
@@ -548,12 +556,6 @@ private fun AddModelButton(
             outputModalities = modality.second,
             abilities = abilities
         )
-    }
-
-    val modelPickerState = useEditState<Model?> { model ->
-        model?.let {
-            setModelId(it.modelId)
-        }
     }
 
     Card(
@@ -599,7 +601,24 @@ private fun AddModelButton(
                                 Text("例如：gpt-3.5-turbo")
                             },
                             trailingIcon = {
-                                ModelPicker(modelPickerState, models)
+                                ModelPicker(
+                                    models = models,
+                                    selectedModels = selectedModels,
+                                    onModelSelected = { model ->
+                                        val modality = guessModalityFromModelId(model.modelId)
+                                        val abilities = guessModelAbilityFromModelId(model.modelId)
+                                        onAddModel(
+                                            model.copy(
+                                                inputModalities = modality.first,
+                                                outputModalities = modality.second,
+                                                abilities = abilities
+                                            )
+                                        )
+                                    },
+                                    onModelDeselected = { model ->
+                                        onRemoveModel(model)
+                                    }
+                                )
                             }
                         )
 
@@ -679,12 +698,15 @@ private fun AddModelButton(
 
 @Composable
 private fun ModelPicker(
-    modelListState: EditState<Model?>,
-    models: List<Model>
+    models: List<Model>,
+    selectedModels: List<Model>,
+    onModelSelected: (Model) -> Unit,
+    onModelDeselected: (Model) -> Unit
 ) {
-    if (modelListState.isEditing) {
+    var showModal by remember { mutableStateOf(false) }
+    if (showModal) {
         ModalBottomSheet(
-            onDismissRequest = { modelListState.dismiss() },
+            onDismissRequest = { showModal = false },
             sheetState = rememberModalBottomSheetState(
                 skipPartiallyExpanded = true
             )
@@ -714,14 +736,10 @@ private fun ModelPicker(
                         .fillMaxWidth()
                         .weight(1f),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(8.dp),
                 ) {
                     items(filteredModels) {
-                        Card(
-                            onClick = {
-                                modelListState.currentState = it.copy()
-                                modelListState.confirm()
-                            }
-                        ) {
+                        Card {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(
@@ -739,11 +757,28 @@ private fun ModelPicker(
                                     verticalArrangement = Arrangement.spacedBy(
                                         4.dp
                                     ),
+                                    modifier = Modifier.weight(1f),
                                 ) {
                                     Text(
                                         text = it.modelId,
                                         style = MaterialTheme.typography.titleSmall,
                                     )
+                                }
+                                IconButton(
+                                    onClick = {
+                                        if (selectedModels.any { model -> model.modelId == it.modelId }) {
+                                            // 从selectedModels中计算出要删除的model，因为删除需要id匹配，而不是ModelId
+                                            onModelDeselected(selectedModels.firstOrNull { model -> model.modelId == it.modelId } ?: it)
+                                        } else {
+                                            onModelSelected(it)
+                                        }
+                                    }
+                                ) {
+                                    if (selectedModels.any { model -> model.modelId == it.modelId }) {
+                                        Icon(Lucide.X, null)
+                                    } else {
+                                        Icon(Lucide.Plus, null)
+                                    }
                                 }
                             }
                         }
@@ -774,7 +809,7 @@ private fun ModelPicker(
     ) {
         IconButton(
             onClick = {
-                modelListState.open(null)
+                showModal = true
             }
         ) {
             Icon(Lucide.Boxes, null)
@@ -1074,7 +1109,7 @@ private fun ModelCard(
                             )
                         }
                         model.abilities.fastForEach { ability ->
-                            when(ability) {
+                            when (ability) {
                                 ModelAbility.TOOL -> {
                                     Tag(
                                         type = TagType.WARNING
@@ -1082,11 +1117,16 @@ private fun ModelCard(
                                         Icon(Lucide.Hammer, null, modifier = Modifier.size(14.dp))
                                     }
                                 }
+
                                 ModelAbility.REASONING -> {
                                     Tag(
                                         type = TagType.INFO
                                     ) {
-                                        Icon(Lucide.Lightbulb, null, modifier = Modifier.size(14.dp))
+                                        Icon(
+                                            Lucide.Lightbulb,
+                                            null,
+                                            modifier = Modifier.size(14.dp)
+                                        )
                                     }
                                 }
                             }

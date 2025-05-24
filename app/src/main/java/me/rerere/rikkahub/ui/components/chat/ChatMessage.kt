@@ -720,8 +720,8 @@ fun ReasoningCard(
 
                 ) {
                     SelectionContainer {
-                        Text(
-                            text = reasoning.reasoning,
+                        MarkdownBlock(
+                            content = reasoning.reasoning,
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier
                         )

@@ -178,6 +178,10 @@ class SettingsStore(context: Context, scope: AppScope) {
         }
     }
 
+    suspend fun update(fn: (Settings) -> Settings) {
+        update(fn(settingsFlow.value))
+    }
+
     suspend fun updateAssistant(assistantId: Uuid) {
         dataStore.edit { preferences ->
             preferences[SELECT_ASSISTANT] = assistantId.toString()

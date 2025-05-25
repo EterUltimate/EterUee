@@ -40,7 +40,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -117,7 +116,7 @@ fun SettingMcpPage(vm: SettingVM = koinViewModel()) {
             modifier = Modifier
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = innerPadding + PaddingValues(8.dp)
+            contentPadding = innerPadding + PaddingValues(16.dp)
         ) {
             items(mcpConfigs) { mcpConfig ->
                 McpServerItem(
@@ -580,10 +579,6 @@ private fun McpToolsConfigure(
     config: McpServerConfig,
     update: (McpServerConfig) -> Unit
 ) {
-    LaunchedEffect(config.commonOptions) {
-        // 加载tools
-    }
-
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -591,7 +586,7 @@ private fun McpToolsConfigure(
         items(config.commonOptions.tools) { tool ->
             Card {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(
@@ -599,11 +594,13 @@ private fun McpToolsConfigure(
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Text(
-                            text = tool.name
+                            text = tool.name,
+                            style = MaterialTheme.typography.titleLarge
                         )
                         Text(
                             text = tool.description ?: "",
-                            style = MaterialTheme.typography.bodySmall
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
                         )
                     }
                     Switch(

@@ -66,15 +66,14 @@ class SettingsStore(context: Context, scope: AppScope) {
 
     private val dataStore = context.settingsStore
 
-    val settingsFlow = dataStore.data
+    val settingsFlowRaw = dataStore.data
         .catch { exception ->
             if (exception is IOException) {
                 emit(emptyPreferences())
             } else {
                 throw exception
             }
-        }
-        .map { preferences ->
+        }.map { preferences ->
             Settings(
                 chatModelId = preferences[SELECT_MODEL]?.let { Uuid.parse(it) } ?: Uuid.random(),
                 titleModelId = preferences[TITLE_MODEL]?.let { Uuid.parse(it) } ?: Uuid.random(),
@@ -150,6 +149,8 @@ class SettingsStore(context: Context, scope: AppScope) {
                 assistants = settings.assistants.distinctBy { it.id },
             )
         }
+
+    val settingsFlow = settingsFlowRaw
         .distinctUntilChanged()
         .toMutableStateFlow(scope, Settings())
 

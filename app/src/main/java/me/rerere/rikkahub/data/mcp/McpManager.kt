@@ -8,12 +8,17 @@ import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.serialization.kotlinx.json.json
 import io.modelcontextprotocol.kotlin.sdk.Implementation
 import io.modelcontextprotocol.kotlin.sdk.client.Client
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.ClassDiscriminatorMode
 import kotlinx.serialization.json.Json
+import me.rerere.rikkahub.AppScope
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.mcp.transport.SseClientTransport
 
-class McpManager(private val settingsStore: SettingsStore) {
+class McpManager(
+    private val settingsStore: SettingsStore,
+    private val appScope: AppScope
+) {
     private val httpClient = HttpClient(OkHttp) {
         install(ContentNegotiation) {
             json(McpJson)
@@ -33,7 +38,18 @@ class McpManager(private val settingsStore: SettingsStore) {
 
     private val clients: MutableMap<McpServerConfig, Client> = mutableMapOf()
 
+    init {
+        appScope.launch {
+            settingsStore.settingsFlowRaw
+                .collect { settings ->
+                    val mcpServerConfigs = settings.mcpServers
+                    println("configs = $mcpServerConfigs")
+                }
+        }
+    }
+
     suspend fun init(configs: List<McpServerConfig>) {
+        this.closeAll()
         for (config in configs) {
             val client = when (config) {
                 is McpServerConfig.SseTransportServer -> {
@@ -43,8 +59,7 @@ class McpManager(private val settingsStore: SettingsStore) {
                     )
                     val client = Client(
                         clientInfo = Implementation(
-                            name = "test",
-                            version = "1.0.0"
+                            name = "test", version = "1.0.0"
                         ),
                     )
                     client.connect(transport)
@@ -65,10 +80,11 @@ class McpManager(private val settingsStore: SettingsStore) {
         clients.remove(config)?.close()
     }
 
-    suspend fun close() {
+    suspend fun closeAll() {
         clients.values.forEach {
-            it.close()
+            runCatching { it.close() }.onFailure { it.printStackTrace() }
         }
+        clients.clear()
     }
 }
 

@@ -1,6 +1,7 @@
 package me.rerere.rikkahub.ui.pages.setting
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -46,6 +48,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -62,6 +65,7 @@ import me.rerere.rikkahub.ui.components.ui.TagType
 import me.rerere.rikkahub.ui.hooks.EditState
 import me.rerere.rikkahub.ui.hooks.EditStateContent
 import me.rerere.rikkahub.ui.hooks.useEditState
+import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.plus
 import org.koin.androidx.compose.koinViewModel
 
@@ -70,9 +74,24 @@ fun SettingMcpPage(vm: SettingVM = koinViewModel()) {
     val settings by vm.settings.collectAsStateWithLifecycle()
     val mcpConfigs = settings.mcpServers
     val creationState = useEditState<McpServerConfig> {
-
+        vm.updateSettings(
+            settings.copy(
+                mcpServers = mcpConfigs + it
+            )
+        )
     }
-    val editState = useEditState<McpServerConfig> { }
+    val editState = useEditState<McpServerConfig> { newConfig ->
+        vm.updateSettings(
+            settings.copy(
+                mcpServers = mcpConfigs.map {
+                    if (it.id == newConfig.id) {
+                        newConfig
+                    } else {
+                        it
+                    }
+                }
+            ))
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -121,26 +140,43 @@ private fun McpServerItem(
 ) {
     Card {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text(
-                    text = item.commonOptions.name,
-                    style = MaterialTheme.typography.titleMedium,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = item.commonOptions.name,
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                    val dotColor = if (item.commonOptions.enable) MaterialTheme.extendColors.green6 else MaterialTheme.extendColors.red6
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .drawWithContent {
+                                drawCircle(
+                                    color = dotColor
+                                )
+                            }
+                    )
+                }
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Tag(type = TagType.SUCCESS) {
                         when (item) {
-                            is McpServerConfig.SseTransportServer -> "SSE"
-                            is McpServerConfig.WebSocketServer -> "WebSocket"
+                            is McpServerConfig.SseTransportServer -> Text("SSE")
+                            is McpServerConfig.WebSocketServer -> Text("WebSocket")
                         }
                     }
                 }
@@ -230,7 +266,7 @@ private fun McpServerConfigModal(state: EditState<McpServerConfig>) {
                 ) {
                     TextButton(
                         onClick = {
-
+                            state.confirm()
                         }
                     ) {
                         Text("保存")

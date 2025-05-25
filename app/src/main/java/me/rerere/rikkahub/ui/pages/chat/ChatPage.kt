@@ -226,6 +226,9 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                         val fork = vm.forkMessage(message = it)
                         navigateToChatPage(navController, chatId = fork.id)
                     }
+                },
+                onDelete = {
+                    vm.deleteMessage(it)
                 }
             )
         }
@@ -246,6 +249,7 @@ private fun ChatList(
     onRegenerate: (UIMessage) -> Unit = {},
     onEdit: (UIMessage) -> Unit = {},
     onForkMessage: (UIMessage) -> Unit = {},
+    onDelete: (UIMessage) -> Unit = {},
 ) {
     val state = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -329,6 +333,9 @@ private fun ChatList(
                         },
                         onFork = {
                             onForkMessage(message)
+                        },
+                        onDelete = {
+                            onDelete(message)
                         },
                         onShare = {
                             selecting = true

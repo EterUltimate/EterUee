@@ -331,6 +331,17 @@ class ChatVM(
         return newConversation
     }
 
+    fun deleteMessage(
+        message: UIMessage
+    ) {
+        val indexAt = conversation.value.messages.indexOf(message)
+        if (indexAt == -1) return
+        val newConversation = conversation.value.copy(
+            messages = conversation.value.messages.filterIndexed { index, _ -> index != indexAt }
+        )
+        updateConversation(newConversation)
+    }
+
     fun regenerateAtMessage(
         message: UIMessage,
         regenerateAssistantMsg: Boolean = true

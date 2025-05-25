@@ -79,6 +79,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.Share
+import com.composables.icons.lucide.Trash
 import com.composables.icons.lucide.Volume2
 import com.composables.icons.lucide.Wrench
 import kotlinx.coroutines.delay
@@ -123,6 +124,7 @@ fun ChatMessage(
     onRegenerate: () -> Unit,
     onEdit: () -> Unit,
     onShare: () -> Unit,
+    onDelete: () -> Unit
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -142,7 +144,8 @@ fun ChatMessage(
                 onRegenerate = onRegenerate,
                 onEdit = onEdit,
                 onFork = onFork,
-                onShare = onShare
+                onShare = onShare,
+                onDelete = onDelete
             )
         }
     }
@@ -179,6 +182,7 @@ private fun ColumnScope.Actions(
     onRegenerate: () -> Unit,
     onEdit: () -> Unit,
     onShare: () -> Unit,
+    onDelete: () -> Unit
 ) {
     val context = LocalContext.current
     var showInformation by remember { mutableStateOf(false) }
@@ -227,6 +231,20 @@ private fun ColumnScope.Actions(
                     .padding(8.dp)
                     .size(16.dp)
             )
+            Icon(
+                Lucide.Trash, "Delete",
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = LocalIndication.current,
+                        onClick = {
+                            onDelete()
+                        }
+                    )
+                    .padding(8.dp)
+                    .size(16.dp)
+            )
         }
         if (message.role == MessageRole.ASSISTANT) {
             val tts = rememberTtsState()
@@ -251,19 +269,6 @@ private fun ColumnScope.Actions(
                     .size(16.dp)
             )
         }
-        Icon(
-            Lucide.GitFork, "Fork", modifier = Modifier
-                .clip(CircleShape)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = LocalIndication.current,
-                    onClick = {
-                        onFork()
-                    }
-                )
-                .padding(8.dp)
-                .size(16.dp)
-        )
         if (message.role == MessageRole.USER || message.role == MessageRole.ASSISTANT) {
             Icon(
                 imageVector = if (showInformation) Lucide.ChevronUp else Lucide.ChevronDown,
@@ -280,22 +285,6 @@ private fun ColumnScope.Actions(
                     .padding(8.dp)
                     .size(16.dp)
             )
-
-            Icon(
-                imageVector = Lucide.Share,
-                contentDescription = "Share",
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = LocalIndication.current,
-                        onClick = {
-                            onShare()
-                        }
-                    )
-                    .padding(8.dp)
-                    .size(16.dp)
-            )
         }
     }
 
@@ -307,10 +296,43 @@ private fun ColumnScope.Actions(
                     .fillMaxWidth()
                     .padding(8.dp),
                 horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(message.createdAt.toJavaLocalDateTime().toLocalString())
-                if (model != null) {
-                    Text(model.displayName)
+                Icon(
+                    imageVector = Lucide.Share,
+                    contentDescription = "Share",
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = LocalIndication.current,
+                            onClick = {
+                                onShare()
+                            }
+                        )
+                        .padding(8.dp)
+                        .size(16.dp)
+                )
+
+                Icon(
+                    Lucide.GitFork, "Fork", modifier = Modifier
+                        .clip(CircleShape)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = LocalIndication.current,
+                            onClick = {
+                                onFork()
+                            }
+                        )
+                        .padding(8.dp)
+                        .size(16.dp)
+                )
+
+                Column {
+                    Text(message.createdAt.toJavaLocalDateTime().toLocalString())
+                    if (model != null) {
+                        Text(model.displayName)
+                    }
                 }
             }
         }
@@ -650,7 +672,7 @@ fun ReasoningCard(
     }
 
     LaunchedEffect(loading) {
-        if(loading) {
+        if (loading) {
             while (isActive) {
                 duration = (reasoning.finishedAt ?: Clock.System.now()) - reasoning.createdAt
                 delay(50)

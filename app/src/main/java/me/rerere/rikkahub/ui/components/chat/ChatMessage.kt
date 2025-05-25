@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -112,6 +113,7 @@ import me.rerere.rikkahub.utils.copyMessageToClipboard
 import me.rerere.rikkahub.utils.toLocalString
 import me.rerere.rikkahub.utils.urlDecode
 import me.rerere.rikkahub.utils.urlEncode
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 
 @Composable
@@ -693,7 +695,7 @@ fun ReasoningCard(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
-                modifier = Modifier.let { if (expanded) it.fillMaxWidth() else it.width(150.dp) },
+                modifier = Modifier.let { if (expanded) it.fillMaxWidth() else it.wrapContentWidth() },
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -711,15 +713,19 @@ fun ReasoningCard(
                         isLoading = loading
                     )
                 )
-                Text(
-                    text = "(${duration.toString(DurationUnit.SECONDS, 1)})",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier.shimmer(
-                        isLoading = loading
+                if(duration > 0.seconds) {
+                    Text(
+                        text = "(${duration.toString(DurationUnit.SECONDS, 1)})",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.shimmer(
+                            isLoading = loading
+                        )
                     )
+                }
+                Spacer(
+                    modifier = if(expanded) Modifier.weight(1f) else Modifier.width(4.dp)
                 )
-                Spacer(Modifier.weight(1f))
                 Icon(
                     imageVector = if (expanded) Lucide.ChevronUp else Lucide.ChevronDown,
                     contentDescription = null,

@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.encodeToJsonElement
@@ -30,6 +31,7 @@ import me.rerere.ai.provider.ProviderManager
 import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
+import me.rerere.ai.ui.finishReasoning
 import me.rerere.ai.ui.isEmptyInputMessage
 import me.rerere.ai.ui.transformers.MessageTimeTransformer
 import me.rerere.ai.ui.transformers.PlaceholderTransformer
@@ -243,11 +245,18 @@ class ChatVM(
                 },
                 outputTransformers = outputTransformers,
                 tools = buildList {
-                    if(useWebSearch) {
+                    if (useWebSearch) {
                         add(searchTool)
                     }
                 }
-            ).collect { chunk ->
+            ).onCompletion {
+                // 可能被取消了，或者意外结束，兜底更新
+                updateConversation(conversation = conversation.value.copy(
+                    messages = conversation.value.messages.map { message ->
+                        message.finishReasoning() // 结束思考
+                    }
+                ))
+            }.collect { chunk ->
                 when (chunk) {
                     is GenerationChunk.Messages -> {
                         updateConversation(conversation.value.copy(messages = chunk.messages))

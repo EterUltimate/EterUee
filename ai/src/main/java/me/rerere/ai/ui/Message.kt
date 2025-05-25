@@ -308,6 +308,26 @@ fun List<UIMessagePart>.toSortedMessageParts(): List<UIMessagePart> {
     return sortedBy { it.priority }
 }
 
+fun UIMessage.finishReasoning(): UIMessage {
+    return copy(
+        parts = parts.map { part ->
+            when (part) {
+                is UIMessagePart.Reasoning -> {
+                    if (part.finishedAt == null) {
+                        part.copy(
+                            finishedAt = Clock.System.now()
+                        )
+                    } else {
+                        part
+                    }
+                }
+
+                else -> part
+            }
+        }
+    )
+}
+
 @Serializable
 sealed class UIMessageAnnotation {
     @Serializable

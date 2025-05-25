@@ -8,11 +8,13 @@ import io.ktor.client.plugins.sse.SSE
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.serialization.kotlinx.json.json
 import io.modelcontextprotocol.kotlin.sdk.Implementation
+import io.modelcontextprotocol.kotlin.sdk.Tool
 import io.modelcontextprotocol.kotlin.sdk.client.Client
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.ClassDiscriminatorMode
 import kotlinx.serialization.json.Json
+import me.rerere.ai.core.Schema
 import me.rerere.rikkahub.AppScope
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.mcp.transport.SseClientTransport
@@ -112,12 +114,14 @@ class McpManager(
                             tools.add(McpTool(
                                 name = serverTool.name,
                                 description = serverTool.description,
-                                enable = true
+                                enable = true,
+                                inputSchema = serverTool.inputSchema.toSchema()
                             ))
                         } else {
                             val index = tools.indexOf(tool)
                             tools[index] = tool.copy(
                                 description = serverTool.description,
+                                inputSchema = serverTool.inputSchema.toSchema()
                             )
                         }
                     }
@@ -164,4 +168,11 @@ internal val McpJson: Json by lazy {
         classDiscriminatorMode = ClassDiscriminatorMode.NONE
         explicitNulls = false
     }
+}
+
+private fun Tool.Input.toSchema(): Schema.ObjectSchema {
+    return Schema.ObjectSchema(
+        properties = McpJson.decodeFromString<Map<String, Schema>>(McpJson.encodeToString(this.properties)),
+        required = required ?: emptyList()
+    )
 }

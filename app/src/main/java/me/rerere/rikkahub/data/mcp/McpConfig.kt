@@ -1,6 +1,7 @@
 package me.rerere.rikkahub.data.mcp
 
 import kotlinx.serialization.Serializable
+import me.rerere.ai.core.Schema
 import kotlin.uuid.Uuid
 
 @Serializable
@@ -14,8 +15,9 @@ data class McpCommonOptions(
 @Serializable
 data class McpTool(
     val enable: Boolean = true,
-    val name: String,
-    val description: String?,
+    val name: String = "",
+    val description: String? = null,
+    val inputSchema: Schema.ObjectSchema = Schema.ObjectSchema(emptyMap())
 )
 
 @Serializable

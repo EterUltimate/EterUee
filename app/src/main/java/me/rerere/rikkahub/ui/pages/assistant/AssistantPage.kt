@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
@@ -29,6 +30,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -57,6 +61,8 @@ import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.plus
 import me.rerere.rikkahub.utils.toFixed
 import org.koin.androidx.compose.koinViewModel
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @Composable
 fun AssistantPage(vm: AssistantVM = koinViewModel()) {
@@ -86,26 +92,50 @@ fun AssistantPage(vm: AssistantVM = koinViewModel()) {
             )
         }
     ) {
+        val lazyListState = rememberLazyListState()
+        val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
+            val newAssistants = settings.assistants.toMutableList().apply {
+                add(to.index, removeAt(from.index))
+            }
+            vm.updateSettings(settings.copy(assistants = newAssistants))
+        }
+        val haptic = LocalHapticFeedback.current
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = it + PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
+            state = lazyListState
         ) {
             items(settings.assistants, key = { assistant -> assistant.id }) { assistant ->
-                val memories by vm.getMemories(assistant).collectAsStateWithLifecycle(
-                    initialValue = emptyList(),
-                )
-                AssistantItem(
-                    assistant = assistant,
-                    memories = memories,
-                    onEdit = {
-                        navController.navigate("assistant/${assistant.id}")
-                    },
-                    onDelete = {
-                        vm.removeAssistant(assistant)
-                    },
-                    modifier = Modifier.animateItem(),
-                )
+                ReorderableItem(
+                    state = reorderableState,
+                    key = assistant.id
+                ) { isDragging ->
+                    val memories by vm.getMemories(assistant).collectAsStateWithLifecycle(
+                        initialValue = emptyList(),
+                    )
+                    AssistantItem(
+                        assistant = assistant,
+                        memories = memories,
+                        onEdit = {
+                            navController.navigate("assistant/${assistant.id}")
+                        },
+                        onDelete = {
+                            vm.removeAssistant(assistant)
+                        },
+                        modifier = Modifier
+                            .scale(if (isDragging) 0.95f else 1f)
+                            .animateItem()
+                            .longPressDraggableHandle(
+                                onDragStarted = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
+                                },
+                                onDragStopped = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                                }
+                            ),
+                    )
+                }
             }
         }
     }

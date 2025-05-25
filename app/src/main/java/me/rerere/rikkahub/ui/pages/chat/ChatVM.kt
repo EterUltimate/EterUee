@@ -43,6 +43,7 @@ import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.findProvider
+import me.rerere.rikkahub.data.mcp.McpManager
 import me.rerere.rikkahub.data.model.AssistantMemory
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.repository.ConversationRepository
@@ -79,6 +80,7 @@ class ChatVM(
     private val conversationRepo: ConversationRepository,
     private val memoryRepository: MemoryRepository,
     private val generationHandler: GenerationHandler,
+    private val mcpManager: McpManager,
     val updateChecker: UpdateChecker,
 ) : ViewModel() {
     private val _conversationId: Uuid = Uuid.parse(checkNotNull(savedStateHandle["id"]))
@@ -247,6 +249,16 @@ class ChatVM(
                 tools = buildList {
                     if (useWebSearch) {
                         add(searchTool)
+                    }
+                    mcpManager.getAllAvailableTools().forEach { tool ->
+                        add(Tool(
+                            name = tool.name,
+                            description = tool.description ?: "",
+                            parameters = tool.inputSchema,
+                            execute = {
+                                mcpManager.callTool(tool.name, it.jsonObject)
+                            }
+                        ))
                     }
                 }
             ).onCompletion {

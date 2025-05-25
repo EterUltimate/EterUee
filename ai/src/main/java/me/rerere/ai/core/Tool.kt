@@ -29,6 +29,17 @@ sealed class Schema {
      */
     abstract fun validate(json: JsonElement): ValidationResult
 
+    @Serializable
+    @SerialName("raw")
+    data class RawSchema(
+        val properties: JsonObject,
+        val required: List<String>? = null,
+    ): Schema() {
+        override fun validate(json: JsonElement): ValidationResult {
+            return ValidationResult.success()
+        }
+    }
+
     /**
      * 对象类型 Schema
      */
@@ -140,8 +151,6 @@ sealed class Schema {
     data class NumberSchema(
         val minimum: Double? = null,
         val maximum: Double? = null,
-        val exclusiveMinimum: Boolean = false,
-        val exclusiveMaximum: Boolean = false,
         val multipleOf: Double? = null
     ) : Schema() {
         override fun validate(json: JsonElement): ValidationResult {
@@ -150,22 +159,6 @@ sealed class Schema {
             }
             val value = json.doubleOrNull
                 ?: return ValidationResult.failure("Cannot parse as number: $json")
-
-            minimum?.let {
-                if (exclusiveMinimum && value <= it) {
-                    return ValidationResult.failure("Value $value must be greater than $it")
-                } else if (!exclusiveMinimum && value < it) {
-                    return ValidationResult.failure("Value $value must be greater than or equal to $it")
-                }
-            }
-
-            maximum?.let {
-                if (exclusiveMaximum && value >= it) {
-                    return ValidationResult.failure("Value $value must be less than $it")
-                } else if (!exclusiveMaximum && value > it) {
-                    return ValidationResult.failure("Value $value must be less than or equal to $it")
-                }
-            }
 
             multipleOf?.let {
                 if (value % it != 0.0) {
@@ -337,11 +330,9 @@ object SchemaBuilder {
     fun num(
         min: Double? = null,
         max: Double? = null,
-        exclusiveMin: Boolean = false,
-        exclusiveMax: Boolean = false,
         multipleOf: Double? = null
     ) =
-        Schema.NumberSchema(min, max, exclusiveMin, exclusiveMax, multipleOf)
+        Schema.NumberSchema(min, max,  multipleOf)
 
     fun int(
         min: Long? = null,

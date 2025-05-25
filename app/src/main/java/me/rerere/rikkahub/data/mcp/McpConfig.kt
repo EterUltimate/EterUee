@@ -17,7 +17,7 @@ data class McpTool(
     val enable: Boolean = true,
     val name: String = "",
     val description: String? = null,
-    val inputSchema: Schema.ObjectSchema = Schema.ObjectSchema(emptyMap())
+    val inputSchema: Schema = Schema.ObjectSchema(emptyMap())
 )
 
 @Serializable

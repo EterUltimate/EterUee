@@ -7,18 +7,25 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.sse.SSE
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.serialization.kotlinx.json.json
+import io.modelcontextprotocol.kotlin.sdk.CallToolRequest
 import io.modelcontextprotocol.kotlin.sdk.Implementation
 import io.modelcontextprotocol.kotlin.sdk.Tool
 import io.modelcontextprotocol.kotlin.sdk.client.Client
+import io.modelcontextprotocol.kotlin.sdk.shared.RequestOptions
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.ClassDiscriminatorMode
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.encodeToJsonElement
 import me.rerere.ai.core.Schema
 import me.rerere.rikkahub.AppScope
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.mcp.transport.SseClientTransport
 import me.rerere.rikkahub.utils.checkDifferent
+import kotlin.time.Duration.Companion.seconds
 
 private const val TAG = "McpManager"
 
@@ -57,7 +64,10 @@ class McpManager(
                         eq = { a, b -> a.id == b.id }
                     )
                     toAdd.forEach { cfg ->
-                        appScope.launch { addClient(cfg) }
+                        appScope.launch {
+                            runCatching { addClient(cfg) }
+                                .onFailure { it.printStackTrace() }
+                        }
                     }
                     toRemove.forEach { cfg ->
                         appScope.launch { removeClient(cfg) }
@@ -69,6 +79,35 @@ class McpManager(
     }
 
     fun getClient(config: McpServerConfig): Client? = clients[config]
+
+    fun getAllAvailableTools(): List<McpTool> {
+        return settingsStore.settingsFlow.value.mcpServers
+            .flatMap {
+                it.commonOptions.tools.filter { tool -> tool.enable }
+            }
+    }
+
+    suspend fun callTool(toolName: String, args: JsonObject): JsonElement {
+        val tools = getAllAvailableTools()
+        val tool = tools.find { it.name == toolName }
+            ?: return JsonPrimitive("Failed to execute tool, because no such tool")
+        val client =
+            clients.entries.find { it.key.commonOptions.tools.any { it.name == toolName } }
+        if (client == null) return JsonPrimitive("Failed to execute tool, because no such mcp client for the tool")
+        Log.i(TAG, "callTool: $toolName / $args")
+        val result = client.value.callTool(
+            request = CallToolRequest(
+                name = tool.name,
+                arguments = args,
+            ),
+            options = RequestOptions(timeout = 10.seconds),
+            compatibility = true
+        )
+        require(result != null) {
+            "Result is null"
+        }
+        return McpJson.encodeToJsonElement(result.content)
+    }
 
     suspend fun addClient(config: McpServerConfig) {
         this.removeClient(config) // Remove first
@@ -104,6 +143,7 @@ class McpManager(
         settingsStore.update { old ->
             old.copy(
                 mcpServers = old.mcpServers.map { serverConfig ->
+                    if(serverConfig.id != config.id) return@map serverConfig
                     val common = serverConfig.commonOptions
                     val tools = common.tools.toMutableList()
 
@@ -111,12 +151,14 @@ class McpManager(
                     serverTools.forEach { serverTool ->
                         val tool = tools.find { it.name == serverTool.name }
                         if (tool == null) {
-                            tools.add(McpTool(
-                                name = serverTool.name,
-                                description = serverTool.description,
-                                enable = true,
-                                inputSchema = serverTool.inputSchema.toSchema()
-                            ))
+                            tools.add(
+                                McpTool(
+                                    name = serverTool.name,
+                                    description = serverTool.description,
+                                    enable = true,
+                                    inputSchema = serverTool.inputSchema.toSchema()
+                                )
+                            )
                         } else {
                             val index = tools.indexOf(tool)
                             tools[index] = tool.copy(
@@ -127,7 +169,7 @@ class McpManager(
                     }
 
                     // 删除不在server内的
-                    tools.removeIf { tool -> serverTools.none { it.name == tool.name }}
+                    tools.removeIf { tool -> serverTools.none { it.name == tool.name } }
 
                     serverConfig.clone(
                         commonOptions = common.copy(
@@ -170,9 +212,6 @@ internal val McpJson: Json by lazy {
     }
 }
 
-private fun Tool.Input.toSchema(): Schema.ObjectSchema {
-    return Schema.ObjectSchema(
-        properties = McpJson.decodeFromString<Map<String, Schema>>(McpJson.encodeToString(this.properties)),
-        required = required ?: emptyList()
-    )
+private fun Tool.Input.toSchema(): Schema.RawSchema {
+    return Schema.RawSchema(this.properties, this.required)
 }

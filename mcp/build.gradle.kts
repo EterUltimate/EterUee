@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -30,11 +32,25 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    tasks.withType<KotlinCompile>().configureEach {
+        compilerOptions.optIn.add("kotlin.uuid.ExperimentalUuidApi")
+    }
 }
 
 dependencies {
     implementation(libs.modelcontextprotocol.kotlin.sdk)
     implementation(libs.androidx.core.ktx)
+
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.ktor.client.logging)
+
+    api(libs.kotlinx.coroutines.core)
+    api(libs.kotlinx.serialization.json)
+    implementation(libs.kotlin.logging.jvm)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

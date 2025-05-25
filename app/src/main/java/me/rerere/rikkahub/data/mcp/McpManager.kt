@@ -1,4 +1,4 @@
-package me.rerere.mcp
+package me.rerere.rikkahub.data.mcp
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
@@ -10,9 +10,10 @@ import io.modelcontextprotocol.kotlin.sdk.Implementation
 import io.modelcontextprotocol.kotlin.sdk.client.Client
 import kotlinx.serialization.json.ClassDiscriminatorMode
 import kotlinx.serialization.json.Json
-import me.rerere.mcp.transport.SseClientTransport
+import me.rerere.rikkahub.data.datastore.SettingsStore
+import me.rerere.rikkahub.data.mcp.transport.SseClientTransport
 
-class McpManager {
+class McpManager(private val settingsStore: SettingsStore) {
     private val httpClient = HttpClient(OkHttp) {
         install(ContentNegotiation) {
             json(McpJson)
@@ -58,7 +59,17 @@ class McpManager {
         }
     }
 
-    fun getClient(config: McpServerConfig) = clients[config]
+    fun getClient(config: McpServerConfig): Client? = clients[config]
+
+    suspend fun removeClient(config: McpServerConfig) {
+        clients.remove(config)?.close()
+    }
+
+    suspend fun close() {
+        clients.values.forEach {
+            it.close()
+        }
+    }
 }
 
 internal val McpJson: Json by lazy {

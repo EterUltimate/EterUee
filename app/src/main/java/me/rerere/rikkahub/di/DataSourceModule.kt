@@ -6,6 +6,7 @@ import me.rerere.rikkahub.data.ai.GenerationHandler
 import me.rerere.rikkahub.data.api.RikkaHubAPI
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.db.AppDatabase
+import me.rerere.rikkahub.data.mcp.McpManager
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import org.koin.dsl.module
@@ -30,6 +31,8 @@ val dataSourceModule = module {
     single {
         get<AppDatabase>().memoryDao()
     }
+
+    single { McpManager() }
 
     single { GenerationHandler(get(), get(), get()) }
 

@@ -1,4 +1,4 @@
-package me.rerere.mcp.transport
+package me.rerere.rikkahub.data.mcp.transport
 
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.sse.ClientSSESession
@@ -25,7 +25,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
-import me.rerere.mcp.McpJson
+import me.rerere.rikkahub.data.mcp.McpJson
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.properties.Delegates
@@ -49,7 +49,6 @@ internal class SseClientTransport(
     private var job: Job? = null
 
     private val baseUrl by lazy {
-        // 移除掉后缀，只保留host
         URLBuilder()
             .takeFrom(session.call.request.url)
             .apply {

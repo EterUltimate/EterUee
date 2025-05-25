@@ -181,12 +181,19 @@ dependencies {
     implementation(libs.jlatexmath.font.greek)
     implementation(libs.jlatexmath.font.cyrillic)
 
+    // mcp
+    implementation(libs.modelcontextprotocol.kotlin.sdk)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.ktor.client.logging)
+
     // modules
     implementation(project(":ai"))
     implementation(project(":highlight"))
     implementation(project(":search"))
     implementation(project(":rag"))
-    implementation(project(":mcp"))
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
     implementation(kotlin("reflect"))
 

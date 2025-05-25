@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.composables.icons.lucide.GripHorizontal
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.Plus
@@ -125,15 +126,21 @@ fun AssistantPage(vm: AssistantVM = koinViewModel()) {
                         },
                         modifier = Modifier
                             .scale(if (isDragging) 0.95f else 1f)
-                            .animateItem()
-                            .longPressDraggableHandle(
-                                onDragStarted = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
-                                },
-                                onDragStopped = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
-                                }
-                            ),
+                            .animateItem(),
+                        dragHandle = {
+                            Icon(
+                                imageVector = Lucide.GripHorizontal,
+                                contentDescription = null,
+                                modifier = Modifier.longPressDraggableHandle(
+                                    onDragStarted = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
+                                    },
+                                    onDragStopped = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                                    }
+                                )
+                            )
+                        }
                     )
                 }
             }
@@ -220,12 +227,12 @@ private fun AssistantItem(
     modifier: Modifier = Modifier,
     memories: List<AssistantMemory>,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    dragHandle: @Composable () -> Unit
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
     ) {
-        // Left
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -239,8 +246,6 @@ private fun AssistantItem(
                     text = assistant.name.ifBlank { stringResource(R.string.assistant_page_default_assistant) },
                     style = MaterialTheme.typography.titleMedium
                 )
-
-                Spacer(Modifier.weight(1f))
 
                 Tag(
                     type = TagType.INFO
@@ -260,6 +265,10 @@ private fun AssistantItem(
                         Text(stringResource(R.string.assistant_page_memory_count, memories.size))
                     }
                 }
+
+                Spacer(Modifier.weight(1f))
+
+                dragHandle()
             }
 
             Text(

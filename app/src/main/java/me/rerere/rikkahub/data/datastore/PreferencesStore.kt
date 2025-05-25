@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ProviderSetting
+import me.rerere.mcp.McpServerConfig
 import me.rerere.rikkahub.AppScope
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.ui.theme.PresetThemeType
@@ -58,6 +59,9 @@ class SettingsStore(context: Context, scope: AppScope) {
         // 搜索
         val SEARCH_SERVICE = stringPreferencesKey("search_service")
         val SEARCH_COMMON = stringPreferencesKey("search_common")
+
+        // MCP
+        val MCP_SERVERS = stringPreferencesKey("mcp_servers")
     }
 
     private val dataStore = context.settingsStore
@@ -91,7 +95,10 @@ class SettingsStore(context: Context, scope: AppScope) {
                 } ?: SearchServiceOptions.DEFAULT,
                 searchCommonOptions = preferences[SEARCH_COMMON]?.let {
                     JsonInstant.decodeFromString(it)
-                } ?: SearchCommonOptions()
+                } ?: SearchCommonOptions(),
+                mcpServers = preferences[MCP_SERVERS]?.let {
+                    JsonInstant.decodeFromString(it)
+                } ?: emptyList()
             )
         }
         .catch {
@@ -108,7 +115,7 @@ class SettingsStore(context: Context, scope: AppScope) {
             }
             providers = providers.map { provider ->
                 val defaultProvider = DEFAULT_PROVIDERS.find { it.id == provider.id }
-                if(defaultProvider != null) {
+                if (defaultProvider != null) {
                     provider.copyProvider(
                         builtIn = defaultProvider.builtIn,
                         description = defaultProvider.description,
@@ -165,6 +172,8 @@ class SettingsStore(context: Context, scope: AppScope) {
 
             preferences[SEARCH_SERVICE] = JsonInstant.encodeToString(settings.searchServiceOptions)
             preferences[SEARCH_COMMON] = JsonInstant.encodeToString(settings.searchCommonOptions)
+
+            preferences[MCP_SERVERS] = JsonInstant.encodeToString(settings.mcpServers)
         }
     }
 
@@ -180,7 +189,7 @@ data class Settings(
     val dynamicColor: Boolean = true,
     val themeId: String = PresetThemes[0].id,
     val themeType: PresetThemeType = PresetThemeType.STANDARD,
-    val displaySetting: DisplaySetting  = DisplaySetting(),
+    val displaySetting: DisplaySetting = DisplaySetting(),
     val chatModelId: Uuid = Uuid.random(),
     val titleModelId: Uuid = Uuid.random(),
     val translateModeId: Uuid = Uuid.random(),
@@ -188,7 +197,8 @@ data class Settings(
     val providers: List<ProviderSetting> = DEFAULT_PROVIDERS,
     val assistants: List<Assistant> = DEFAULT_ASSISTANTS,
     val searchServiceOptions: SearchServiceOptions = SearchServiceOptions.DEFAULT,
-    val searchCommonOptions: SearchCommonOptions = SearchCommonOptions()
+    val searchCommonOptions: SearchCommonOptions = SearchCommonOptions(),
+    val mcpServers: List<McpServerConfig> = emptyList(),
 )
 
 @Serializable

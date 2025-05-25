@@ -49,7 +49,7 @@ dependencies {
 
     api(libs.kotlinx.coroutines.core)
     api(libs.kotlinx.serialization.json)
-    implementation(libs.kotlin.logging.jvm)
+    // implementation(libs.kotlin.logging.jvm)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

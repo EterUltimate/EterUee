@@ -53,6 +53,7 @@ import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
+import me.rerere.rikkahub.ui.components.ui.icons.HeartIcon
 import me.rerere.rikkahub.ui.theme.extendColors
 import kotlin.uuid.Uuid
 
@@ -217,7 +218,7 @@ fun ModelList(
                     ) {
                         if (model.favorite) {
                             Icon(
-                                Lucide.Heart,
+                                HeartIcon,
                                 contentDescription = null,
                                 modifier = Modifier.size(20.dp),
                                 tint = MaterialTheme.extendColors.red6
@@ -267,7 +268,7 @@ fun ModelList(
                     ) {
                         if (model.favorite) {
                             Icon(
-                                Lucide.Heart,
+                                HeartIcon,
                                 contentDescription = null,
                                 modifier = Modifier.size(20.dp),
                                 tint = MaterialTheme.extendColors.red6

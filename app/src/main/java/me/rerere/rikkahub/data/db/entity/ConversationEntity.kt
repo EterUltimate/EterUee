@@ -21,4 +21,6 @@ data class ConversationEntity(
     val createAt: Long,
     @ColumnInfo("update_at")
     val updateAt: Long,
+    @ColumnInfo("truncate_index", defaultValue = "-1")
+    val truncateIndex: Int,
 )

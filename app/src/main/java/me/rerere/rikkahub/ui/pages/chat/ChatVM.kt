@@ -223,6 +223,17 @@ class ChatVM(
         this.regenerateAtMessage(message, false)
     }
 
+    fun handleMessageTruncate() {
+        viewModelScope.launch {
+            val lastTruncateIndex = conversation.value.messages.lastIndex + 1
+            // 如果截断在最后一个索引，则取消截断，否则更新 truncateIndex 到最后一个截断位置
+            val newConversation = conversation.value.copy(
+                truncateIndex = if (conversation.value.truncateIndex == lastTruncateIndex) -1 else lastTruncateIndex,
+            )
+            saveConversation(newConversation)
+        }
+    }
+
     private suspend fun handleMessageComplete() {
         val model = settings.value.providers.findModelById(settings.value.chatModelId) ?: return
         runCatching {
@@ -251,7 +262,8 @@ class ChatVM(
                         add(searchTool)
                     }
                     mcpManager.getAllAvailableTools().forEach { tool ->
-                        add(Tool(
+                        add(
+                            Tool(
                             name = tool.name,
                             description = tool.description ?: "",
                             parameters = tool.inputSchema,
@@ -260,10 +272,12 @@ class ChatVM(
                             }
                         ))
                     }
-                }
+                },
+                truncateIndex = conversation.value.truncateIndex,
             ).onCompletion {
                 // 可能被取消了，或者意外结束，兜底更新
-                updateConversation(conversation = conversation.value.copy(
+                updateConversation(
+                    conversation = conversation.value.copy(
                     messages = conversation.value.messages.map { message ->
                         message.finishReasoning() // 结束思考
                     }

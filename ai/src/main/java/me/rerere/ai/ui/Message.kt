@@ -127,7 +127,10 @@ data class UIMessage(
                 }
             }
             // Handle Reasoning End
-            if(parts.filterIsInstance<UIMessagePart.Reasoning>().isNotEmpty() && delta.parts.filterIsInstance<UIMessagePart.Reasoning>().isEmpty()) {
+            if (parts.filterIsInstance<UIMessagePart.Reasoning>()
+                    .isNotEmpty() && delta.parts.filterIsInstance<UIMessagePart.Reasoning>()
+                    .isEmpty()
+            ) {
                 newParts = newParts.map { part ->
                     if (part is UIMessagePart.Reasoning) {
                         part.copy(finishedAt = Clock.System.now())
@@ -245,6 +248,11 @@ fun List<UIMessagePart>.isEmptyUIMessage(): Boolean {
             else -> true
         }
     }
+}
+
+fun List<UIMessage>.truncate(index: Int): List<UIMessage> {
+    if(index < 0 || index > this.lastIndex) return this
+    return this.subList(index, this.size)
 }
 
 @Serializable

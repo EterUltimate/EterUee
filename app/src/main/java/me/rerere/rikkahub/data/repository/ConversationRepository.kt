@@ -9,7 +9,6 @@ import me.rerere.rikkahub.data.db.dao.ConversationDAO
 import me.rerere.rikkahub.data.db.entity.ConversationEntity
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.utils.JsonInstant
-import me.rerere.rikkahub.utils.convertBase64ImagePartToLocalFile
 import me.rerere.rikkahub.utils.deleteAllChatFiles
 import me.rerere.rikkahub.utils.deleteChatFiles
 import java.time.Instant
@@ -95,7 +94,8 @@ class ConversationRepository(
             createAt = conversation.createAt.toEpochMilli(),
             updateAt = conversation.updateAt.toEpochMilli(),
             tokenUsage = conversation.tokenUsage,
-            assistantId = conversation.assistantId.toString()
+            assistantId = conversation.assistantId.toString(),
+            truncateIndex = conversation.truncateIndex
         )
     }
 
@@ -107,7 +107,8 @@ class ConversationRepository(
             tokenUsage = conversationEntity.tokenUsage,
             createAt = Instant.ofEpochMilli(conversationEntity.createAt),
             updateAt = Instant.ofEpochMilli(conversationEntity.updateAt),
-            assistantId = Uuid.parse(conversationEntity.assistantId)
+            assistantId = Uuid.parse(conversationEntity.assistantId),
+            truncateIndex = conversationEntity.truncateIndex
         )
     }
 

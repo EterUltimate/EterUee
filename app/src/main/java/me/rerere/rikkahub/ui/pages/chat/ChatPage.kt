@@ -20,7 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListItemInfo
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,6 +28,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -202,8 +203,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                         )
                     },
                     onClearContext = {
-                        vm.updateConversation(conversation.copy(messages = emptyList()))
-                        vm.saveConversationAsync()
+                        vm.handleMessageTruncate()
                     }
                 )
             }
@@ -308,42 +308,62 @@ private fun ChatList(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize()
         ) {
-            items(conversation.messages, key = { it.id }) { message ->
-                ListSelectableItem(
-                    key = message.id,
-                    onSelectChange = {
-                        if (!selectedItems.contains(message.id)) {
-                            selectedItems.add(message.id)
-                        } else {
-                            selectedItems.remove(message.id)
+            itemsIndexed(
+                conversation.messages,
+                key = { index, item -> item.id }) { index, message ->
+                Column {
+                    ListSelectableItem(
+                        key = message.id,
+                        onSelectChange = {
+                            if (!selectedItems.contains(message.id)) {
+                                selectedItems.add(message.id)
+                            } else {
+                                selectedItems.remove(message.id)
+                            }
+                        },
+                        selectedKeys = selectedItems,
+                        enabled = selecting && message.isValidToShowActions(),
+                    ) {
+                        ChatMessage(
+                            message = message,
+                            showIcon = settings.displaySetting.showModelIcon,
+                            model = message.modelId?.let { settings.providers.findModelById(it) },
+                            onRegenerate = {
+                                onRegenerate(message)
+                            },
+                            onEdit = {
+                                onEdit(message)
+                            },
+                            onFork = {
+                                onForkMessage(message)
+                            },
+                            onDelete = {
+                                onDelete(message)
+                            },
+                            onShare = {
+                                selecting = true
+                                selectedItems.clear()
+                                selectedItems.addAll(conversation.messages.map { it.id }
+                                    .subList(0, conversation.messages.indexOf(message) + 1))
+                            }
+                        )
+                    }
+                    if (index == conversation.truncateIndex - 1) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier
+                                .padding(vertical = 8.dp)
+                                .fillMaxWidth()
+                        ) {
+                            HorizontalDivider(modifier = Modifier.weight(1f))
+                            Text(
+                                text = stringResource(R.string.chat_page_clear_context),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                            HorizontalDivider(modifier = Modifier.weight(1f))
                         }
-                    },
-                    selectedKeys = selectedItems,
-                    enabled = selecting && message.isValidToShowActions(),
-                ) {
-                    ChatMessage(
-                        message = message,
-                        showIcon = settings.displaySetting.showModelIcon,
-                        model = message.modelId?.let { settings.providers.findModelById(it) },
-                        onRegenerate = {
-                            onRegenerate(message)
-                        },
-                        onEdit = {
-                            onEdit(message)
-                        },
-                        onFork = {
-                            onForkMessage(message)
-                        },
-                        onDelete = {
-                            onDelete(message)
-                        },
-                        onShare = {
-                            selecting = true
-                            selectedItems.clear()
-                            selectedItems.addAll(conversation.messages.map { it.id }
-                                .subList(0, conversation.messages.indexOf(message) + 1))
-                        }
-                    )
+                    }
                 }
             }
 
@@ -655,7 +675,7 @@ private fun DrawerContent(
             modifier = Modifier.padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if(settings.displaySetting.showUpdates) {
+            if (settings.displaySetting.showUpdates) {
                 UpdateCard(vm)
             }
             ConversationList(

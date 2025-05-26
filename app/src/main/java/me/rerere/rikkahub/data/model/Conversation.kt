@@ -17,6 +17,7 @@ data class Conversation(
     val assistantId: Uuid,
     val title: String = "",
     val messages: List<UIMessage>,
+    val truncateIndex: Int = -1,
     val tokenUsage: TokenUsage? = null,
     @Serializable(with = InstantSerializer::class)
     val createAt: Instant = Instant.now(),

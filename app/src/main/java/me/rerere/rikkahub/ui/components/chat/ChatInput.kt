@@ -386,18 +386,18 @@ fun ChatInput(
                         Icon(
                             Lucide.Earth,
                             contentDescription = stringResource(R.string.use_web_search),
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .size(20.dp)
+                                .background(
+                                    if(enableSearch) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+                                ),
+                            tint = if(enableSearch) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        if (enableSearch) {
-                            Text(
-                                text = stringResource(R.string.use_web_search),
-                                modifier = Modifier.padding(start = 4.dp),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
                     }
                 }
+
+                McpPicker(emptyList())
 
                 MoreOptionsButton(
                     onClearContext = onClearContext

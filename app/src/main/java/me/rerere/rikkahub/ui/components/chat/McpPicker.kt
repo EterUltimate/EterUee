@@ -113,15 +113,21 @@ fun McpPicker(
                         checked = server.id in assistant.mcpServers,
                         onCheckedChange = {
                             if (it) {
+                                val newServers = assistant.mcpServers.toMutableSet()
+                                newServers.add(server.id)
+                                newServers.removeIf { servers.none { s -> s.id == server.id } } // remove invalid servers
                                 onUpdateAssistant(
                                     assistant.copy(
-                                        mcpServers = assistant.mcpServers + server.id
+                                        mcpServers = newServers.toSet()
                                     )
                                 )
                             } else {
+                                val newServers = assistant.mcpServers.toMutableSet()
+                                newServers.remove(server.id)
+                                newServers.removeIf { servers.none { s -> s.id == server.id } }
                                 onUpdateAssistant(
                                     assistant.copy(
-                                        mcpServers = assistant.mcpServers - server.id
+                                        mcpServers = newServers.toSet()
                                     )
                                 )
                             }

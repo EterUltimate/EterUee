@@ -124,7 +124,7 @@ fun McpPicker(
                             } else {
                                 val newServers = assistant.mcpServers.toMutableSet()
                                 newServers.remove(server.id)
-                                newServers.removeIf { servers.none { s -> s.id == server.id } }
+                                newServers.removeIf { servers.none { s -> s.id == server.id } } //  remove invalid servers
                                 onUpdateAssistant(
                                     assistant.copy(
                                         mcpServers = newServers.toSet()

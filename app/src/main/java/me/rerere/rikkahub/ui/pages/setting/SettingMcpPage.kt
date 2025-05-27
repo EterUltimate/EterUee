@@ -22,6 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,12 +34,14 @@ import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,6 +58,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Settings
 import com.composables.icons.lucide.Trash2
+import com.composables.icons.lucide.X
 import kotlinx.coroutines.launch
 import me.rerere.rikkahub.data.mcp.McpServerConfig
 import me.rerere.rikkahub.ui.components.nav.BackButton
@@ -118,12 +122,20 @@ fun SettingMcpPage(vm: SettingVM = koinViewModel()) {
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = innerPadding + PaddingValues(16.dp)
         ) {
-            items(mcpConfigs) { mcpConfig ->
+            items(mcpConfigs, key = { it.id }) { mcpConfig ->
                 McpServerItem(
                     item = mcpConfig,
                     onEdit = {
                         editState.open(mcpConfig)
-                    }
+                    },
+                    onDelete = {
+                        vm.updateSettings(
+                            settings.copy(
+                                mcpServers = mcpConfigs.filter { it.id != mcpConfig.id }
+                            )
+                        )
+                    },
+                    modifier = Modifier.animateItem()
                 )
             }
         }
@@ -135,59 +147,92 @@ fun SettingMcpPage(vm: SettingVM = koinViewModel()) {
 @Composable
 private fun McpServerItem(
     item: McpServerConfig,
-    onEdit: (McpServerConfig) -> Unit
+    modifier: Modifier = Modifier,
+    onDelete: () -> Unit,
+    onEdit: (McpServerConfig) -> Unit,
 ) {
-
-    Card {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+    val dismissBoxState = rememberSwipeToDismissBoxState()
+    val scope = rememberCoroutineScope()
+    SwipeToDismissBox(
+        state = dismissBoxState,
+        backgroundContent = {
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                FilledTonalIconButton(
+                    onClick = {
+                        scope.launch { dismissBoxState.reset() }
+                    }
                 ) {
-                    Text(
-                        text = item.commonOptions.name,
-                        style = MaterialTheme.typography.titleLarge,
-                    )
-                    val dotColor = if (item.commonOptions.enable) MaterialTheme.extendColors.green6 else MaterialTheme.extendColors.red6
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .drawWithContent {
-                                drawCircle(
-                                    color = dotColor
-                                )
-                            }
-                    )
+                    Icon(Lucide.X, null)
                 }
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                FilledTonalIconButton(
+                    onClick = {
+                        onDelete()
+                    }
                 ) {
-                    Tag(type = TagType.SUCCESS) {
-                        when (item) {
-                            is McpServerConfig.SseTransportServer -> Text("SSE")
-                            is McpServerConfig.WebSocketServer -> Text("WebSocket")
+                    Icon(Lucide.Trash2, null)
+                }
+            }
+        },
+        enableDismissFromStartToEnd = false,
+        enableDismissFromEndToStart = true,
+        modifier = modifier
+    ) {
+        Card {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = item.commonOptions.name,
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                        val dotColor =
+                            if (item.commonOptions.enable) MaterialTheme.extendColors.green6 else MaterialTheme.extendColors.red6
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .drawWithContent {
+                                    drawCircle(
+                                        color = dotColor
+                                    )
+                                }
+                        )
+                    }
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Tag(type = TagType.SUCCESS) {
+                            when (item) {
+                                is McpServerConfig.SseTransportServer -> Text("SSE")
+                                is McpServerConfig.WebSocketServer -> Text("WebSocket")
+                            }
                         }
                     }
                 }
-            }
 
-            IconButton(
-                onClick = {
-                    onEdit(item)
+                IconButton(
+                    onClick = {
+                        onEdit(item)
+                    }
+                ) {
+                    Icon(Lucide.Settings, null)
                 }
-            ) {
-                Icon(Lucide.Settings, null)
             }
         }
     }
@@ -587,7 +632,9 @@ private fun McpToolsConfigure(
         items(config.commonOptions.tools) { tool ->
             Card {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(

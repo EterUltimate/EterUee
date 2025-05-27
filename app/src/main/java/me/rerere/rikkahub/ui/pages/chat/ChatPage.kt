@@ -202,6 +202,19 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                             )
                         )
                     },
+                    onUpdateAssistant = {
+                        vm.updateSettings(
+                            setting.copy(
+                                assistants = setting.assistants.map { assistant ->
+                                    if (assistant.id == it.id) {
+                                        it
+                                    } else {
+                                        assistant
+                                    }
+                                }
+                            )
+                        )
+                    },
                     onClearContext = {
                         vm.handleMessageTruncate()
                     }

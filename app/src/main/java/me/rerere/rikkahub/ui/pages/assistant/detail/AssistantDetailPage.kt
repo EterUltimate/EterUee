@@ -56,8 +56,10 @@ import com.composables.icons.lucide.X
 import kotlinx.coroutines.launch
 import me.rerere.ai.ui.transformers.PlaceholderTransformer
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.data.mcp.McpServerConfig
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
+import me.rerere.rikkahub.ui.components.chat.McpPicker
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.Tag
@@ -73,6 +75,7 @@ import kotlin.math.roundToInt
 fun AssistantDetailPage(vm: AssistantDetailVM = koinViewModel()) {
     val scope = rememberCoroutineScope()
 
+    val mcpServerConfigs by vm.mcpServerConfigs.collectAsStateWithLifecycle()
     val assistant by vm.assistant.collectAsStateWithLifecycle()
     val memories by vm.memories.collectAsStateWithLifecycle()
     val memoryDialogState = useEditState<AssistantMemory> {
@@ -91,7 +94,8 @@ fun AssistantDetailPage(vm: AssistantDetailVM = koinViewModel()) {
         stringResource(R.string.assistant_page_tab_basic),
         stringResource(R.string.assistant_page_tab_prompt),
         stringResource(R.string.assistant_page_tab_memory),
-        stringResource(R.string.assistant_page_tab_request)
+        stringResource(R.string.assistant_page_tab_request),
+        "MCP"
     )
     val pagerState = rememberPagerState { tabs.size }
 
@@ -165,6 +169,16 @@ fun AssistantDetailPage(vm: AssistantDetailVM = koinViewModel()) {
                         AssistantCustomRequestSettings(assistant = assistant) {
                             onUpdate(it)
                         }
+                    }
+
+                    4 -> {
+                        AssistantMcpSettings(
+                            assistant = assistant,
+                            onUpdate = {
+                                onUpdate(it)
+                            },
+                            mcpServerConfigs = mcpServerConfigs
+                        )
                     }
                 }
             }
@@ -536,15 +550,15 @@ private fun AssistantPromptSettings(
                         append(": ")
                         withLink(
                             LinkAnnotation.Clickable(
-                            tag = k,
-                            linkInteractionListener = {
-                                onUpdate(
-                                    assistant.copy(
-                                        systemPrompt = assistant.systemPrompt + k
+                                tag = k,
+                                linkInteractionListener = {
+                                    onUpdate(
+                                        assistant.copy(
+                                            systemPrompt = assistant.systemPrompt + k
+                                        )
                                     )
-                                )
-                            }
-                        )) {
+                                }
+                            )) {
                             withStyle(SpanStyle(color = MaterialTheme.extendColors.blue6)) {
                                 append(k)
                             }
@@ -697,4 +711,20 @@ private fun AssistantCustomRequestSettings(
 
         AssistantCustomBodies(assistant = assistant, onUpdate = onUpdate)
     }
+}
+
+@Composable
+private fun AssistantMcpSettings(
+    assistant: Assistant,
+    onUpdate: (Assistant) -> Unit,
+    mcpServerConfigs: List<McpServerConfig>
+) {
+    McpPicker(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        assistant = assistant,
+        servers = mcpServerConfigs,
+        onUpdateAssistant = onUpdate,
+    )
 }

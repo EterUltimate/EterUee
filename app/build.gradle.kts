@@ -193,6 +193,10 @@ dependencies {
     // Reorderable (https://github.com/Calvin-LL/Reorderable/)
     implementation(libs.reorderable)
 
+    // Reveal Swipe
+    // https://github.com/ch4rl3x/RevealSwipe
+    implementation(libs.revealswipe)
+
     // Permission
     implementation(libs.permissions.compose)
 

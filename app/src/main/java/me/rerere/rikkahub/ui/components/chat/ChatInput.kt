@@ -95,7 +95,9 @@ import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyInputMessage
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.Settings
+import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.ui.components.ui.KeepScreenOn
+import me.rerere.rikkahub.ui.hooks.getCurrentAssistant
 import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.createChatFilesByContents
 import me.rerere.rikkahub.utils.deleteChatFiles
@@ -194,6 +196,7 @@ fun ChatInput(
     modifier: Modifier = Modifier,
     onUpdateChatModel: (Model) -> Unit,
     onUpdateProviders: (List<ProviderSetting>) -> Unit,
+    onUpdateAssistant: (Assistant) -> Unit,
     onClearContext: () -> Unit,
     onCancelClick: () -> Unit,
     onSendClick: () -> Unit,
@@ -390,14 +393,20 @@ fun ChatInput(
                                 .clip(CircleShape)
                                 .size(20.dp)
                                 .background(
-                                    if(enableSearch) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+                                    if (enableSearch) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
                                 ),
-                            tint = if(enableSearch) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = if (enableSearch) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
 
-                McpPicker(emptyList())
+                McpPickerButton(
+                    assistant = settings.getCurrentAssistant(),
+                    servers = settings.mcpServers,
+                    onUpdateAssistant = {
+                        onUpdateAssistant(it)
+                    }
+                )
 
                 MoreOptionsButton(
                     onClearContext = onClearContext

@@ -20,6 +20,7 @@ okhttp = "4.12.0"
 retrofit = "3.0.0"
 coil = "3.2.0"
 quickjs = "3.2.0"
+revealswipe = "3.0.0"
 room = "2.7.1"
 koin-bom = "4.0.4"
 datastore = "1.1.7"
@@ -98,6 +99,7 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlin-coroutines-core" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 lucide-icons = { group = "com.composables", name = "icons-lucide", version.ref = "lucide-icons" }
+revealswipe = { module = "de.charlex.compose:revealswipe", version.ref = "revealswipe" }
 ucrop = { group = "com.github.jens-muenker", name = "uCrop-n-Edit", version.ref = "ucrop" }
 image-viewer = { group = "com.jvziyaoyao.scale", name = "image-viewer", version.ref = "image-viewer" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase-bom" }

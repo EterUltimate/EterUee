@@ -11,9 +11,11 @@ import io.modelcontextprotocol.kotlin.sdk.CallToolRequest
 import io.modelcontextprotocol.kotlin.sdk.Implementation
 import io.modelcontextprotocol.kotlin.sdk.Tool
 import io.modelcontextprotocol.kotlin.sdk.client.Client
+import io.modelcontextprotocol.kotlin.sdk.client.WebSocketClientTransport
 import io.modelcontextprotocol.kotlin.sdk.shared.RequestOptions
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.ClassDiscriminatorMode
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -24,6 +26,7 @@ import me.rerere.ai.core.Schema
 import me.rerere.rikkahub.AppScope
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.mcp.transport.SseClientTransport
+import me.rerere.rikkahub.ui.hooks.getCurrentAssistant
 import me.rerere.rikkahub.utils.checkDifferent
 import kotlin.time.Duration.Companion.seconds
 
@@ -74,6 +77,7 @@ class McpManager(
                     }
                     Log.i(TAG, "add: $toAdd")
                     Log.i(TAG, "remove: $toRemove")
+
                 }
         }
     }
@@ -81,10 +85,16 @@ class McpManager(
     fun getClient(config: McpServerConfig): Client? = clients[config]
 
     fun getAllAvailableTools(): List<McpTool> {
-        return settingsStore.settingsFlow.value.mcpServers
+        val settings = settingsStore.settingsFlow.value
+        val assistant = settings.getCurrentAssistant()
+        val mcpServers = settings.mcpServers
+            .filter {
+                it.commonOptions.enable && it.id in assistant.mcpServers
+            }
             .flatMap {
                 it.commonOptions.tools.filter { tool -> tool.enable }
             }
+        return mcpServers
     }
 
     suspend fun callTool(toolName: String, args: JsonObject): JsonElement {
@@ -95,14 +105,17 @@ class McpManager(
             clients.entries.find { it.key.commonOptions.tools.any { it.name == toolName } }
         if (client == null) return JsonPrimitive("Failed to execute tool, because no such mcp client for the tool")
         Log.i(TAG, "callTool: $toolName / $args")
-        val result = client.value.callTool(
-            request = CallToolRequest(
-                name = tool.name,
-                arguments = args,
-            ),
-            options = RequestOptions(timeout = 10.seconds),
-            compatibility = true
-        )
+
+        val result =  withTimeout(10.seconds) {
+            client.value.callTool(
+                request = CallToolRequest(
+                    name = tool.name,
+                    arguments = args,
+                ),
+                options = RequestOptions(timeout = 10.seconds),
+                compatibility = true
+            )
+        }
         require(result != null) {
             "Result is null"
         }
@@ -127,7 +140,17 @@ class McpManager(
             }
 
             is McpServerConfig.WebSocketServer -> {
-                TODO()
+                val transport = WebSocketClientTransport(
+                    urlString = config.url,
+                    client = httpClient,
+                )
+                val client = Client(
+                    clientInfo = Implementation(
+                        name = "test", version = "1.0.0"
+                    ),
+                )
+                client.connect(transport)
+                client
             }
         }
         clients[config] = client
@@ -143,7 +166,7 @@ class McpManager(
         settingsStore.update { old ->
             old.copy(
                 mcpServers = old.mcpServers.map { serverConfig ->
-                    if(serverConfig.id != config.id) return@map serverConfig
+                    if (serverConfig.id != config.id) return@map serverConfig
                     val common = serverConfig.commonOptions
                     val tools = common.tools.toMutableList()
 
@@ -171,6 +194,15 @@ class McpManager(
                     // 删除不在server内的
                     tools.removeIf { tool -> serverTools.none { it.name == tool.name } }
 
+                    // 更新clients
+                    clients.remove(config)
+                    clients.put(config.clone(
+                        commonOptions = common.copy(
+                            tools = tools
+                        )
+                    ), client)
+
+                    // 返回新的serverConfig，更新到settings store
                     serverConfig.clone(
                         commonOptions = common.copy(
                             tools = tools

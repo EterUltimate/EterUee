@@ -19,6 +19,7 @@ data class Assistant(
     val thinkingBudget: Int? = null,
     val customHeaders: List<CustomHeader> = emptyList(),
     val customBodies: List<CustomBody> = emptyList(),
+    val mcpServers: Set<Uuid> = emptySet(),
 )
 
 @Serializable

@@ -137,6 +137,7 @@ private fun McpServerItem(
     item: McpServerConfig,
     onEdit: (McpServerConfig) -> Unit
 ) {
+
     Card {
         Row(
             modifier = Modifier

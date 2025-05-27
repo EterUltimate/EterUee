@@ -170,6 +170,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                 ChatInput(
                     state = inputState,
                     settings = setting,
+                    mcpManager = vm.mcpManager,
                     onCancelClick = {
                         loadingJob?.cancel()
                     },

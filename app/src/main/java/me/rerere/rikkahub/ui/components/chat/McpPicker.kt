@@ -1,15 +1,18 @@
 package me.rerere.rikkahub.ui.components.chat
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,8 +30,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFilter
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Terminal
+import me.rerere.rikkahub.data.mcp.McpManager
 import me.rerere.rikkahub.data.mcp.McpServerConfig
 import me.rerere.rikkahub.data.model.Assistant
 
@@ -36,15 +41,24 @@ import me.rerere.rikkahub.data.model.Assistant
 fun McpPickerButton(
     assistant: Assistant,
     servers: List<McpServerConfig>,
+    mcpManager: McpManager,
     onUpdateAssistant: (Assistant) -> Unit
 ) {
     var showMcpPicker by remember { mutableStateOf(false) }
+    val loading by mcpManager.syncing.collectAsStateWithLifecycle()
     IconButton(
         onClick = {
             showMcpPicker = true
-        }
+        },
+        modifier = Modifier
     ) {
-        Icon(Lucide.Terminal, null)
+        Box {
+            if (loading) {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+            } else {
+                Icon(Lucide.Terminal, null)
+            }
+        }
     }
     if (showMcpPicker) {
         ModalBottomSheet(

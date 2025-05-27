@@ -95,6 +95,7 @@ import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyInputMessage
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.Settings
+import me.rerere.rikkahub.data.mcp.McpManager
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.ui.components.ui.KeepScreenOn
 import me.rerere.rikkahub.ui.hooks.getCurrentAssistant
@@ -191,6 +192,7 @@ enum class ExpandState {
 fun ChatInput(
     state: ChatInputState,
     settings: Settings,
+    mcpManager: McpManager,
     enableSearch: Boolean,
     onToggleSearch: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
@@ -403,6 +405,7 @@ fun ChatInput(
                 McpPickerButton(
                     assistant = settings.getCurrentAssistant(),
                     servers = settings.mcpServers,
+                    mcpManager = mcpManager,
                     onUpdateAssistant = {
                         onUpdateAssistant(it)
                     }

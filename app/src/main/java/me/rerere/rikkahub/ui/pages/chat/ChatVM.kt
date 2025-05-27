@@ -80,7 +80,7 @@ class ChatVM(
     private val conversationRepo: ConversationRepository,
     private val memoryRepository: MemoryRepository,
     private val generationHandler: GenerationHandler,
-    private val mcpManager: McpManager,
+    val mcpManager: McpManager,
     val updateChecker: UpdateChecker,
 ) : ViewModel() {
     private val _conversationId: Uuid = Uuid.parse(checkNotNull(savedStateHandle["id"]))

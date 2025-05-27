@@ -13,6 +13,8 @@ import io.modelcontextprotocol.kotlin.sdk.Tool
 import io.modelcontextprotocol.kotlin.sdk.client.Client
 import io.modelcontextprotocol.kotlin.sdk.client.WebSocketClientTransport
 import io.modelcontextprotocol.kotlin.sdk.shared.RequestOptions
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
@@ -54,30 +56,38 @@ class McpManager(
     }
 
     private val clients: MutableMap<McpServerConfig, Client> = mutableMapOf()
+    val syncing = MutableStateFlow(false)
 
     init {
         appScope.launch {
             settingsStore.settingsFlow
                 .map { settings -> settings.mcpServers }
                 .collect { mcpServerConfigs ->
-                    val newConfigs = mcpServerConfigs.filter { it.commonOptions.enable }
-                    val currentConfigs = clients.keys.toList()
-                    val (toAdd, toRemove) = currentConfigs.checkDifferent(
-                        other = newConfigs,
-                        eq = { a, b -> a.id == b.id }
-                    )
-                    toAdd.forEach { cfg ->
-                        appScope.launch {
-                            runCatching { addClient(cfg) }
-                                .onFailure { it.printStackTrace() }
+                    syncing.value = true
+                    runCatching {
+                        val newConfigs = mcpServerConfigs.filter { it.commonOptions.enable }
+                        val currentConfigs = clients.keys.toList()
+                        val (toAdd, toRemove) = currentConfigs.checkDifferent(
+                            other = newConfigs,
+                            eq = { a, b -> a.id == b.id }
+                        )
+                        Log.i(TAG, "to_add: $toAdd")
+                        Log.i(TAG, "to_remove: $toRemove")
+                        coroutineScope {
+                            toAdd.forEach { cfg ->
+                                launch {
+                                    runCatching { addClient(cfg) }
+                                        .onFailure { it.printStackTrace() }
+                                }
+                            }
+                            toRemove.forEach { cfg ->
+                                launch { removeClient(cfg) }
+                            }
                         }
+                    }.onFailure {
+                        it.printStackTrace()
                     }
-                    toRemove.forEach { cfg ->
-                        appScope.launch { removeClient(cfg) }
-                    }
-                    Log.i(TAG, "add: $toAdd")
-                    Log.i(TAG, "remove: $toRemove")
-
+                    syncing.value = false
                 }
         }
     }
@@ -106,7 +116,7 @@ class McpManager(
         if (client == null) return JsonPrimitive("Failed to execute tool, because no such mcp client for the tool")
         Log.i(TAG, "callTool: $toolName / $args")
 
-        val result =  withTimeout(10.seconds) {
+        val result = withTimeout(10.seconds) {
             client.value.callTool(
                 request = CallToolRequest(
                     name = tool.name,
@@ -153,6 +163,7 @@ class McpManager(
                 client
             }
         }
+        Log.i(TAG, "addClient: connected ${config.commonOptions.name}")
         clients[config] = client
         this.sync(config)
     }
@@ -196,11 +207,13 @@ class McpManager(
 
                     // 更新clients
                     clients.remove(config)
-                    clients.put(config.clone(
-                        commonOptions = common.copy(
-                            tools = tools
-                        )
-                    ), client)
+                    clients.put(
+                        config.clone(
+                            commonOptions = common.copy(
+                                tools = tools
+                            )
+                        ), client
+                    )
 
                     // 返回新的serverConfig，更新到settings store
                     serverConfig.clone(

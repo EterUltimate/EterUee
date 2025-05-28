@@ -99,6 +99,7 @@ import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.ui.hooks.EditStateContent
 import me.rerere.rikkahub.ui.hooks.useEditState
+import me.rerere.rikkahub.ui.hooks.getCurrentAssistant
 import me.rerere.rikkahub.ui.hooks.useThrottle
 import me.rerere.rikkahub.utils.UpdateDownload
 import me.rerere.rikkahub.utils.Version
@@ -252,6 +253,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
 private const val LoadingIndicatorKey = "LoadingIndicator"
 private const val ScrollBottomKey = "ScrollBottomKey"
 private const val TokenUsageItemKey = "TokenUsageItemKey"
+private const val ContextUsageItemKey = "ContextUsageItemKey"
 
 @Composable
 private fun ChatList(
@@ -387,26 +389,32 @@ private fun ChatList(
                 }
             }
 
-            if (settings.displaySetting.showTokenUsage) {
-                conversation.tokenUsage?.let { usage ->
-                    item(TokenUsageItemKey) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(
-                                8.dp,
-                                Alignment.CenterHorizontally
-                            ),
-                        ) {
-                            Text(
-                                text = "Tokens: ${usage.totalTokens}  (${usage.promptTokens} -> ${usage.completionTokens})",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.outlineVariant,
-                            )
-                        }
+            // NEW: Combined Token and Context Usage Item
+            item(ContextUsageItemKey) { // 仍然使用 ContextUsageItemKey 作为这个合并项的键
+                val configuredContextSize = settings.getCurrentAssistant().contextMessageSize
+                val effectiveMessagesAfterTruncation = conversation.messages.size - conversation.truncateIndex.coerceAtLeast(0)
+                val actualContextMessageCount = minOf(effectiveMessagesAfterTruncation, configuredContextSize)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally), // 居中对齐，并提供间距
+                ) {
+                    // 只有当设置允许显示Token使用量且实际有Token数据时才显示
+                    if (settings.displaySetting.showTokenUsage && conversation.tokenUsage != null) {
+                        Text(
+                            text = "Tokens: ${conversation.tokenUsage.totalTokens} (${conversation.tokenUsage.promptTokens} -> ${conversation.tokenUsage.completionTokens})",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                        )
                     }
+                    // 始终显示上下文数量
+                    Text(
+                        text = "Context: $actualContextMessageCount/$configuredContextSize",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                    )
                 }
             }
 

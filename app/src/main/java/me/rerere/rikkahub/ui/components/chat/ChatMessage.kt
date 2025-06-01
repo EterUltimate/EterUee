@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -56,6 +57,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
@@ -80,6 +82,8 @@ import androidx.compose.ui.util.fastForEachIndexed
 import com.composables.icons.lucide.BookDashed
 import com.composables.icons.lucide.BookHeart
 import com.composables.icons.lucide.ChevronDown
+import com.composables.icons.lucide.ChevronLeft
+import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.ChevronUp
 import com.composables.icons.lucide.CircleStop
 import com.composables.icons.lucide.Copy
@@ -134,60 +138,50 @@ fun ChatMessage(
     modifier: Modifier = Modifier,
     showIcon: Boolean = true,
     model: Model? = null,
-    isFullyLoaded: Boolean, // New parameter
+    isFullyLoaded: Boolean,
     onFork: () -> Unit,
     onRegenerate: () -> Unit,
     onEdit: () -> Unit,
     onShare: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onUpdate: (MessageNode) -> Unit
 ) {
-    val pagerState = rememberPagerState(initialPage = node.selectIndex) { node.messages.size }
-
-    LaunchedEffect(node.selectIndex) {
-        if (node.selectIndex != pagerState.currentPage) {
-            pagerState.scrollToPage(node.selectIndex)
-        }
-    }
-
-    HorizontalPager(
-        state = pagerState,
-        modifier = Modifier.fillMaxWidth(),
-    ) { index ->
-        val message = node.messages[index]
-        Column(
-            modifier = modifier
-                .fillMaxWidth(), // Add this to the root Column of ChatMessage
-            horizontalAlignment = if (message.role == MessageRole.USER) Alignment.End else Alignment.Start,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+    val message = node.messages[node.selectIndex]
+    Column(
+        modifier = modifier
+            .fillMaxWidth(), // Add this to the root Column of ChatMessage
+        horizontalAlignment = if (message.role == MessageRole.USER) Alignment.End else Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        ModelIcon(
+            showIcon = showIcon,
+            message = message,
+            model = model
+        )
+        MessagePartsBlock(
+            role = message.role,
+            parts = message.parts,
+            annotations = message.annotations,
+        )
+        AnimatedVisibility(
+            visible = message.isValidToShowActions() && isFullyLoaded,
+            enter = slideInVertically { it / 2 } + fadeIn(),
+            exit = slideOutVertically { it / 2 } + fadeOut()
         ) {
-            ModelIcon(
-                showIcon = showIcon,
-                message = message,
-                model = model
-            )
-            MessagePartsBlock(
-                role = message.role,
-                parts = message.parts,
-                annotations = message.annotations,
-            )
-            AnimatedVisibility(
-                visible = message.isValidToShowActions() && isFullyLoaded,
-                enter = slideInVertically { it / 2 } + fadeIn(),
-                exit = slideOutVertically { it / 2 } + fadeOut()
+            Column(
+                modifier = Modifier.animateContentSize()
             ) {
-                Column(
-                    modifier = Modifier.animateContentSize()
-                ) {
-                    Actions(
-                        message = message,
-                        model = model,
-                        onRegenerate = onRegenerate,
-                        onEdit = onEdit,
-                        onFork = onFork,
-                        onShare = onShare,
-                        onDelete = onDelete
-                    )
-                }
+                Actions(
+                    message = message,
+                    model = model,
+                    onRegenerate = onRegenerate,
+                    onEdit = onEdit,
+                    onFork = onFork,
+                    onShare = onShare,
+                    onDelete = onDelete,
+                    node = node,
+                    onUpdate = onUpdate
+                )
             }
         }
     }
@@ -220,17 +214,22 @@ private fun ModelIcon(
 private fun ColumnScope.Actions(
     message: UIMessage,
     model: Model?,
+    node: MessageNode,
     onFork: () -> Unit,
     onRegenerate: () -> Unit,
     onEdit: () -> Unit,
     onShare: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onUpdate: (MessageNode) -> Unit,
 ) {
     val context = LocalContext.current
     var showInformation by remember { mutableStateOf(false) }
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
+        MessageNodePagerButtons(node, onUpdate)
+
         Icon(
             Lucide.Copy, stringResource(R.string.copy), modifier = Modifier
                 .clip(CircleShape)
@@ -378,6 +377,65 @@ private fun ColumnScope.Actions(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun MessageNodePagerButtons(
+    node: MessageNode,
+    onUpdate: (MessageNode) -> Unit
+) {
+    if (node.messages.size > 1) {
+        Icon(
+            imageVector = Lucide.ChevronLeft,
+            contentDescription = "Prev",
+            modifier = Modifier
+                .clip(CircleShape)
+                .alpha( if (node.selectIndex == 0) 0.5f else 1f)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = LocalIndication.current,
+                    onClick = {
+                        if (node.selectIndex > 0) {
+                            onUpdate(
+                                node.copy(
+                                    selectIndex = node.selectIndex - 1
+                                )
+                            )
+                        }
+                    }
+                )
+                .padding(8.dp)
+                .size(16.dp)
+        )
+
+        Text(
+            text = "${node.selectIndex + 1}/${node.messages.size}",
+            style = MaterialTheme.typography.bodySmall
+        )
+
+        Icon(
+            imageVector = Lucide.ChevronRight,
+            contentDescription = "Next",
+            modifier = Modifier
+                .clip(CircleShape)
+                .alpha( if (node.selectIndex == node.messages.lastIndex) 0.5f else 1f)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = LocalIndication.current,
+                    onClick = {
+                        if (node.selectIndex < node.messages.lastIndex) {
+                            onUpdate(
+                                node.copy(
+                                    selectIndex = node.selectIndex + 1
+                                )
+                            )
+                        }
+                    }
+                )
+                .padding(8.dp)
+                .size(16.dp),
+        )
     }
 }
 

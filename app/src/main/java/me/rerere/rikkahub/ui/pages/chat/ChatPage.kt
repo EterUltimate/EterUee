@@ -91,6 +91,7 @@ import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.getCurrentAssistant
 import me.rerere.rikkahub.data.datastore.getCurrentChatModel
 import me.rerere.rikkahub.data.model.Conversation
+import me.rerere.rikkahub.data.model.MessageNode
 import me.rerere.rikkahub.ui.components.chat.AssistantPicker
 import me.rerere.rikkahub.ui.components.chat.ChatInput
 import me.rerere.rikkahub.ui.components.chat.ChatMessage
@@ -244,6 +245,18 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                 },
                 onDelete = {
                     vm.deleteMessage(it)
+                },
+                onUpdateMessage = { newNode ->
+                    vm.updateConversation(conversation.copy(
+                        messageNodes = conversation.messageNodes.map { node ->
+                            if (node.id == newNode.id) {
+                                newNode
+                            } else {
+                                node
+                            }
+                        }
+                    ))
+                    vm.saveConversationAsync()
                 }
             )
         }
@@ -265,6 +278,7 @@ private fun ChatList(
     onEdit: (UIMessage) -> Unit = {},
     onForkMessage: (UIMessage) -> Unit = {},
     onDelete: (UIMessage) -> Unit = {},
+    onUpdateMessage: (MessageNode) -> Unit = {},
 ) {
     val state = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -374,6 +388,9 @@ private fun ChatList(
                                 selectedItems.clear()
                                 selectedItems.addAll(conversation.messageNodes.map { it.id }
                                     .subList(0, conversation.messageNodes.indexOf(node) + 1))
+                            },
+                            onUpdate = {
+                                onUpdateMessage(it)
                             }
                         )
                     }

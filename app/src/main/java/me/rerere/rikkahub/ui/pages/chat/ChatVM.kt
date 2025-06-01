@@ -49,8 +49,9 @@ import me.rerere.rikkahub.data.datastore.getCurrentAssistant
 import me.rerere.rikkahub.data.datastore.getCurrentChatModel
 import me.rerere.rikkahub.data.mcp.McpManager
 import me.rerere.rikkahub.data.model.Assistant
-import me.rerere.rikkahub.data.model.AssistantMemory
 import me.rerere.rikkahub.data.model.Conversation
+import me.rerere.rikkahub.data.model.MessageNode
+import me.rerere.rikkahub.data.model.toMessageNode
 import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.data.repository.MemoryRepository
 import me.rerere.rikkahub.utils.JsonInstant
@@ -204,10 +205,10 @@ class ChatVM(
         val job = viewModelScope.launch {
             // 添加消息到列表
             val newConversation = conversation.value.copy(
-                messages = conversation.value.messages + UIMessage(
+                messageNodes = conversation.value.messageNodes + UIMessage(
                     role = MessageRole.USER,
                     parts = content,
-                ),
+                ).toMessageNode(),
             )
             saveConversation(newConversation)
 
@@ -222,27 +223,32 @@ class ChatVM(
         }
     }
 
-    fun handleMessageEdit(parts: List<UIMessagePart>, uuid: Uuid?) {
+    fun handleMessageEdit(parts: List<UIMessagePart>, messageId: Uuid) {
         if (parts.isEmptyInputMessage()) return
         val newConversation = conversation.value.copy(
-            messages = conversation.value.messages.map {
-                if (it.id == uuid) {
-                    it.copy(
-                        parts = parts,
-                    )
-                } else {
-                    it
-                }
+            messageNodes = conversation.value.messageNodes.map { node ->
+                node.copy(
+                    messages = node.messages.map { message ->
+                        if (message.id == messageId) {
+                            message.copy(parts = parts)
+                        } else {
+                            message
+                        }
+                    }
+                )
             },
         )
         this.updateConversation(newConversation)
-        val message = newConversation.messages.find { it.id == uuid } ?: return
-        this.regenerateAtMessage(message, false)
+        val node = newConversation.getMessageNodeByMessageId(messageId) ?: return
+        this.regenerateAtMessage(
+            message = node.currentMessage,
+            regenerateAssistantMsg = false
+        )
     }
 
     fun handleMessageTruncate() {
         viewModelScope.launch {
-            val lastTruncateIndex = conversation.value.messages.lastIndex + 1
+            val lastTruncateIndex = conversation.value.messageNodes.lastIndex + 1
             // 如果截断在最后一个索引，则取消截断，否则更新 truncateIndex 到最后一个截断位置
             val newConversation = conversation.value.copy(
                 truncateIndex = if (conversation.value.truncateIndex == lastTruncateIndex) -1 else lastTruncateIndex,
@@ -254,17 +260,10 @@ class ChatVM(
     private suspend fun handleMessageComplete() {
         val model = currentChatModel.value ?: return
         runCatching {
-//            ChatService.startGeneration(
-//                context = context,
-//                settings = settings.value,
-//                model = model,
-//                assistant = settings.value.getCurrentAssistant(),
-//                conversation = conversation.value
-//            )
             generationHandler.generateText(
                 settings = settings.value,
                 model = model,
-                messages = conversation.value.messages,
+                messages = conversation.value.currentMessages,
                 assistant = settings.value.getCurrentAssistant(),
                 memories = { memoryRepository.getMemoriesOfAssistant(settings.value.assistantId.toString()) },
                 inputTransformers = buildList {
@@ -295,14 +294,17 @@ class ChatVM(
                 // 可能被取消了，或者意外结束，兜底更新
                 updateConversation(
                     conversation = conversation.value.copy(
-                        messages = conversation.value.messages.map { message ->
-                            message.finishReasoning() // 结束思考
+                        messageNodes = conversation.value.messageNodes.map { node ->
+                            node.copy(
+                                messages = node.messages.map { it.finishReasoning() } // 结束思考
+                            )
                         }
-                    ))
+                    )
+                )
             }.collect { chunk ->
                 when (chunk) {
                     is GenerationChunk.Messages -> {
-                        updateConversation(conversation.value.copy(messages = chunk.messages))
+                        updateConversation(conversation.value.updateCurrentMessages(chunk.messages))
                     }
 
                     is GenerationChunk.TokenUsage -> {
@@ -344,7 +346,7 @@ class ChatVM(
                                 4. 使用 ${Locale.getDefault().displayName} 语言总结
                                 
                                 <content>
-                                ${conversation.messages.joinToString("\n\n") { it.summaryAsText() }}
+                                ${conversation.currentMessages.joinToString("\n\n") { it.summaryAsText() }}
                                 </content>
                                 """.trimIndent()
                         )
@@ -372,12 +374,16 @@ class ChatVM(
     suspend fun forkMessage(
         message: UIMessage
     ): Conversation {
-        val messages =
-            conversation.value.messages.subList(0, conversation.value.messages.indexOf(message) + 1)
-        val newConversation = Conversation.ofId(
+        val node = conversation.value.getMessageNodeByMessage(message)
+        val nodes =
+            conversation.value.messageNodes.subList(
+                0,
+                conversation.value.messageNodes.indexOf(node) + 1
+            )
+        val newConversation = Conversation(
             id = Uuid.random(),
             assistantId = settings.value.assistantId,
-            messages = messages
+            messageNodes = nodes
         )
         saveConversation(newConversation)
         return newConversation
@@ -386,11 +392,25 @@ class ChatVM(
     fun deleteMessage(
         message: UIMessage
     ) {
-        val indexAt = conversation.value.messages.indexOf(message)
-        if (indexAt == -1) return
-        val newConversation = conversation.value.copy(
-            messages = conversation.value.messages.filterIndexed { index, _ -> index != indexAt }
-        )
+        val conversation = conversation.value
+        val node = conversation.getMessageNodeByMessage(message) ?: return // 找到这个消息所在的node
+        val nodeIndex = conversation.messageNodes.indexOf(node)
+        if (nodeIndex == -1) return
+        val newConversation = if (node.messages.size == 1) {
+            // 删除这个Node，因为这个node只有一个消息，那么这个node就是这个消息
+            conversation.copy(
+                messageNodes = conversation.messageNodes.filterIndexed { index, node -> index != nodeIndex }
+            )
+        } else {
+            // 更新node，删除这个消息
+            conversation.copy(
+                messageNodes = conversation.messageNodes.map { node ->
+                    node.copy(
+                        messages = node.messages.filter { it.id != message.id }
+                    )
+                }
+            )
+        }
         updateConversation(newConversation)
     }
 
@@ -401,9 +421,10 @@ class ChatVM(
         viewModelScope.launch {
             if (message.role == MessageRole.USER) {
                 // 如果是用户消息，则截止到当前消息
-                val indexAt = conversation.value.messages.indexOf(message)
+                val node = conversation.value.getMessageNodeByMessage(message)
+                val indexAt = conversation.value.messageNodes.indexOf(node)
                 val newConversation = conversation.value.copy(
-                    messages = conversation.value.messages.subList(0, indexAt + 1)
+                    messageNodes = conversation.value.messageNodes.subList(0, indexAt + 1)
                 )
                 saveConversation(newConversation)
             } else {
@@ -413,15 +434,16 @@ class ChatVM(
                     return@launch
                 }
                 // 如果是助手消息，则需要向上查找第一个用户消息
-                var indexAt = conversation.value.messages.indexOf(message)
+                val node = conversation.value.getMessageNodeByMessage(message)
+                var indexAt = conversation.value.messageNodes.indexOf(node)
                 for (i in indexAt downTo 0) {
-                    if (conversation.value.messages[i].role == MessageRole.USER) {
+                    if (conversation.value.messageNodes[i].role == MessageRole.USER) {
                         indexAt = i
                         break
                     }
                 }
                 val newConversation = conversation.value.copy(
-                    messages = conversation.value.messages.subList(0, indexAt + 1)
+                    messageNodes = conversation.value.messageNodes.subList(0, indexAt + 1)
                 )
                 saveConversation(newConversation)
             }
@@ -489,20 +511,5 @@ class ChatVM(
         viewModelScope.launch {
             conversationRepo.deleteConversation(conversation)
         }
-    }
-
-    suspend fun addMemory(content: String): AssistantMemory {
-        return memoryRepository.addMemory(
-            assistantId = settings.value.assistantId.toString(),
-            content = content,
-        )
-    }
-
-    suspend fun updateMemory(id: Int, content: String): AssistantMemory {
-        return memoryRepository.updateContent(id, content)
-    }
-
-    suspend fun deleteMemory(id: Int) {
-        memoryRepository.deleteMemory(id)
     }
 }

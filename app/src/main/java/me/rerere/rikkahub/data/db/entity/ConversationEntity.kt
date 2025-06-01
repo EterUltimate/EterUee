@@ -13,8 +13,8 @@ data class ConversationEntity(
     val assistantId: String,
     @ColumnInfo("title")
     val title: String,
-    @ColumnInfo("messages")
-    val messages: String,
+    @ColumnInfo("nodes")
+    val nodes: String,
     @ColumnInfo("usage")
     val tokenUsage: TokenUsage?,
     @ColumnInfo("create_at")

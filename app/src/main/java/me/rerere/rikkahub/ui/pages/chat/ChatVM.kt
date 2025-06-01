@@ -411,8 +411,11 @@ class ChatVM(
             // 更新node，删除这个消息
             conversation.copy(
                 messageNodes = conversation.messageNodes.map { node ->
-                    node.copy(
+                    val newNode  = node.copy(
                         messages = node.messages.filter { it.id != message.id }
+                    )
+                    newNode.copy(
+                        selectIndex = newNode.messages.lastIndex // 更新selectIndex
                     )
                 }
             )

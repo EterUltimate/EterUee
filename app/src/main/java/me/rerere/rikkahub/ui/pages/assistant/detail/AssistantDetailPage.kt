@@ -252,280 +252,294 @@ private fun AssistantBasicSettings(
             .imePadding(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        FormItem(
-            label = {
-                Text(stringResource(R.string.assistant_page_name))
-            },
-        ) {
-            OutlinedTextField(
-                value = assistant.name,
-                onValueChange = {
-                    onUpdate(
-                        assistant.copy(
-                            name = it
-                        )
-                    )
+        Card {
+            FormItem(
+                label = {
+                    Text(stringResource(R.string.assistant_page_name))
                 },
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-
-
-        FormItem(
-            label = {
-                Text("聊天模型")
-            },
-            description = {
-                Text("设置助手的默认聊天模型，如果不设置，则使用全局默认聊天模型")
-            },
-            content = {
-                ModelSelector(
-                    modelId = assistant.chatModelId,
-                    providers = providers,
-                    type = ModelType.CHAT,
-                    onSelect = {
-                        onUpdate(assistant.copy(
-                            chatModelId = it.id
-                        ))
-                    },
-                )
-            }
-        )
-
-
-        FormItem(
-            label = {
-                Text(stringResource(R.string.assistant_page_temperature))
-            },
-        ) {
-            Slider(
-                value = assistant.temperature,
-                onValueChange = {
-                    onUpdate(
-                        assistant.copy(
-                            temperature = it.toFixed(2).toFloatOrNull() ?: 0.6f
-                        )
-                    )
-                },
-                valueRange = 0f..2f,
-                steps = 19,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                val currentTemperature = assistant.temperature
-                val tagType = when (currentTemperature) {
-                    in 0.0f..0.3f -> TagType.INFO
-                    in 0.3f..1.0f -> TagType.SUCCESS
-                    in 1.0f..1.5f -> TagType.WARNING
-                    in 1.5f..2.0f -> TagType.ERROR
-                    else -> TagType.ERROR
-                }
-                Tag(
-                    type = TagType.INFO
-                ) {
-                    Text(
-                        text = "$currentTemperature"
-                    )
-                }
-
-                Tag(
-                    type = tagType
-                ) {
-                    Text(
-                        text = when (currentTemperature) {
-                            in 0.0f..0.3f -> stringResource(R.string.assistant_page_strict)
-                            in 0.3f..1.0f -> stringResource(R.string.assistant_page_balanced)
-                            in 1.0f..1.5f -> stringResource(R.string.assistant_page_creative)
-                            in 1.5f..2.0f -> stringResource(R.string.assistant_page_chaotic)
-                            else -> "?"
-                        }
-                    )
-                }
-            }
-        }
-
-        FormItem(
-            label = {
-                Text(stringResource(R.string.assistant_page_top_p))
-            },
-            description = {
-                Text(
-                    text = buildAnnotatedString {
-                        append(stringResource(R.string.assistant_page_top_p_warning))
-                    }
-                )
-            }
-        ) {
-            Slider(
-                value = assistant.topP,
-                onValueChange = {
-                    onUpdate(
-                        assistant.copy(
-                            topP = it.toFixed(2).toFloatOrNull() ?: 1.0f
-                        )
-                    )
-                },
-                valueRange = 0f..1f,
-                steps = 0,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Text(
-                text = stringResource(
-                    R.string.assistant_page_top_p_value,
-                    assistant.topP.toString()
-                ),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
-            )
-        }
-
-        FormItem(
-            label = {
-                Text(stringResource(R.string.assistant_page_context_message_size))
-            },
-            description = {
-                Text(
-                    text = stringResource(R.string.assistant_page_context_message_desc),
-                )
-            }
-        ) {
-            Slider(
-                value = assistant.contextMessageSize.toFloat(),
-                onValueChange = {
-                    onUpdate(
-                        assistant.copy(
-                            contextMessageSize = it.roundToInt()
-                        )
-                    )
-                },
-                valueRange = 1f..512f,
-                steps = 0,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Text(
-                text = stringResource(
-                    R.string.assistant_page_context_message_count,
-                    assistant.contextMessageSize
-                ),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
-            )
-        }
-
-        FormItem(
-            label = {
-                Text(stringResource(R.string.assistant_page_inject_message_time))
-            },
-            description = {
-                Text(
-                    text = stringResource(R.string.assistant_page_inject_message_time_desc),
-                )
-            }
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Switch(
-                    checked = assistant.enableMessageTime,
-                    onCheckedChange = {
-                        onUpdate(
-                            assistant.copy(
-                                enableMessageTime = it
-                            )
-                        )
-                    }
-                )
-            }
-        }
-
-        FormItem(
-            label = {
-                Text(stringResource(R.string.assistant_page_stream_output))
-            },
-            description = {
-                Text(stringResource(R.string.assistant_page_stream_output_desc))
-            }
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Switch(
-                    checked = assistant.streamOutput,
-                    onCheckedChange = {
-                        onUpdate(
-                            assistant.copy(
-                                streamOutput = it
-                            )
-                        )
-                    }
-                )
-            }
-        }
-
-        FormItem(
-            label = {
-                Text(stringResource(R.string.assistant_page_thinking_budget))
-            },
-            description = {
-                Text(stringResource(R.string.assistant_page_thinking_budget_desc))
-                Text(
-                    text = stringResource(R.string.assistant_page_thinking_budget_warning),
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-        ) {
-            var input by remember(assistant) {
-                mutableStateOf(assistant.thinkingBudget?.toString() ?: "")
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.padding(16.dp),
             ) {
                 OutlinedTextField(
-                    value = input,
+                    value = assistant.name,
                     onValueChange = {
-                        input = it
                         onUpdate(
                             assistant.copy(
-                                thinkingBudget = if (it.isBlank()) null else it.toIntOrNull()
+                                name = it
                             )
                         )
                     },
-                    trailingIcon = {
-                        IconButton(
-                            onClick = {
-                                input = ""
-                                onUpdate(
-                                    assistant.copy(
-                                        thinkingBudget = null
-                                    )
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+
+        Card {
+            FormItem(
+                modifier = Modifier.padding(16.dp),
+                label = {
+                    Text("聊天模型")
+                },
+                description = {
+                    Text("设置助手的默认聊天模型，如果不设置，则使用全局默认聊天模型")
+                },
+                content = {
+                    ModelSelector(
+                        modelId = assistant.chatModelId,
+                        providers = providers,
+                        type = ModelType.CHAT,
+                        onSelect = {
+                            onUpdate(
+                                assistant.copy(
+                                    chatModelId = it.id
                                 )
-                            }
-                        ) {
-                            Icon(
-                                Lucide.X,
-                                contentDescription = null
                             )
-                        }
+                        },
+                    )
+                }
+            )
+        }
+
+        Card {
+            FormItem(
+                modifier = Modifier.padding(16.dp),
+                label = {
+                    Text(stringResource(R.string.assistant_page_temperature))
+                },
+            ) {
+                Slider(
+                    value = assistant.temperature,
+                    onValueChange = {
+                        onUpdate(
+                            assistant.copy(
+                                temperature = it.toFixed(2).toFloatOrNull() ?: 0.6f
+                            )
+                        )
                     },
-                    modifier = Modifier.weight(1f),
+                    valueRange = 0f..2f,
+                    steps = 19,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    val currentTemperature = assistant.temperature
+                    val tagType = when (currentTemperature) {
+                        in 0.0f..0.3f -> TagType.INFO
+                        in 0.3f..1.0f -> TagType.SUCCESS
+                        in 1.0f..1.5f -> TagType.WARNING
+                        in 1.5f..2.0f -> TagType.ERROR
+                        else -> TagType.ERROR
+                    }
+                    Tag(
+                        type = TagType.INFO
+                    ) {
+                        Text(
+                            text = "$currentTemperature"
+                        )
+                    }
+
+                    Tag(
+                        type = tagType
+                    ) {
+                        Text(
+                            text = when (currentTemperature) {
+                                in 0.0f..0.3f -> stringResource(R.string.assistant_page_strict)
+                                in 0.3f..1.0f -> stringResource(R.string.assistant_page_balanced)
+                                in 1.0f..1.5f -> stringResource(R.string.assistant_page_creative)
+                                in 1.5f..2.0f -> stringResource(R.string.assistant_page_chaotic)
+                                else -> "?"
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+        Card {
+            FormItem(
+                modifier = Modifier.padding(16.dp),
+                label = {
+                    Text(stringResource(R.string.assistant_page_top_p))
+                },
+                description = {
+                    Text(
+                        text = buildAnnotatedString {
+                            append(stringResource(R.string.assistant_page_top_p_warning))
+                        }
+                    )
+                }
+            ) {
+                Slider(
+                    value = assistant.topP,
+                    onValueChange = {
+                        onUpdate(
+                            assistant.copy(
+                                topP = it.toFixed(2).toFloatOrNull() ?: 1.0f
+                            )
+                        )
+                    },
+                    valueRange = 0f..1f,
+                    steps = 0,
+                    modifier = Modifier.fillMaxWidth()
                 )
                 Text(
                     text = stringResource(
-                        R.string.assistant_page_thinking_budget_tokens,
-                        assistant.thinkingBudget?.toString()
-                            ?: stringResource(R.string.assistant_page_thinking_budget_default)
+                        R.string.assistant_page_top_p_value,
+                        assistant.topP.toString()
                     ),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
                 )
+            }
+        }
+
+        Card {
+            FormItem(
+                modifier = Modifier.padding(16.dp),
+                label = {
+                    Text(stringResource(R.string.assistant_page_context_message_size))
+                },
+                description = {
+                    Text(
+                        text = stringResource(R.string.assistant_page_context_message_desc),
+                    )
+                }
+            ) {
+                Slider(
+                    value = assistant.contextMessageSize.toFloat(),
+                    onValueChange = {
+                        onUpdate(
+                            assistant.copy(
+                                contextMessageSize = it.roundToInt()
+                            )
+                        )
+                    },
+                    valueRange = 1f..512f,
+                    steps = 0,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Text(
+                    text = stringResource(
+                        R.string.assistant_page_context_message_count,
+                        assistant.contextMessageSize
+                    ),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
+                )
+            }
+        }
+
+        Card {
+            FormItem(
+                modifier = Modifier.padding(16.dp),
+                label = {
+                    Text(stringResource(R.string.assistant_page_inject_message_time))
+                },
+                description = {
+                    Text(
+                        text = stringResource(R.string.assistant_page_inject_message_time_desc),
+                    )
+                },
+                tail = {
+                    Switch(
+                        checked = assistant.enableMessageTime,
+                        onCheckedChange = {
+                            onUpdate(
+                                assistant.copy(
+                                    enableMessageTime = it
+                                )
+                            )
+                        }
+                    )
+                }
+            )
+        }
+
+        Card {
+            FormItem(
+                modifier = Modifier.padding(16.dp),
+                label = {
+                    Text(stringResource(R.string.assistant_page_stream_output))
+                },
+                description = {
+                    Text(stringResource(R.string.assistant_page_stream_output_desc))
+                },
+                tail = {
+                    Switch(
+                        checked = assistant.streamOutput,
+                        onCheckedChange = {
+                            onUpdate(
+                                assistant.copy(
+                                    streamOutput = it
+                                )
+                            )
+                        }
+                    )
+                }
+            )
+        }
+
+        Card {
+            FormItem(
+                modifier = Modifier.padding(16.dp),
+                label = {
+                    Text(stringResource(R.string.assistant_page_thinking_budget))
+                },
+                description = {
+                    Text(stringResource(R.string.assistant_page_thinking_budget_desc))
+                    Text(
+                        text = stringResource(R.string.assistant_page_thinking_budget_warning),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            ) {
+                var input by remember(assistant) {
+                    mutableStateOf(assistant.thinkingBudget?.toString() ?: "")
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = input,
+                        onValueChange = {
+                            input = it
+                            onUpdate(
+                                assistant.copy(
+                                    thinkingBudget = if (it.isBlank()) null else it.toIntOrNull()
+                                )
+                            )
+                        },
+                        trailingIcon = {
+                            IconButton(
+                                onClick = {
+                                    input = ""
+                                    onUpdate(
+                                        assistant.copy(
+                                            thinkingBudget = null
+                                        )
+                                    )
+                                }
+                            ) {
+                                Icon(
+                                    Lucide.X,
+                                    contentDescription = null
+                                )
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        text = stringResource(
+                            R.string.assistant_page_thinking_budget_tokens,
+                            assistant.thinkingBudget?.toString()
+                                ?: stringResource(R.string.assistant_page_thinking_budget_default)
+                        ),
+                    )
+                }
             }
         }
     }
@@ -544,52 +558,55 @@ private fun AssistantPromptSettings(
             .imePadding(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        FormItem(
-            label = {
-                Text(stringResource(R.string.assistant_page_system_prompt))
-            },
-        ) {
-            OutlinedTextField(
-                value = assistant.systemPrompt,
-                onValueChange = {
-                    onUpdate(
-                        assistant.copy(
-                            systemPrompt = it
+        Card {
+            FormItem(
+                modifier = Modifier.padding(16.dp),
+                label = {
+                    Text(stringResource(R.string.assistant_page_system_prompt))
+                },
+            ) {
+                OutlinedTextField(
+                    value = assistant.systemPrompt,
+                    onValueChange = {
+                        onUpdate(
+                            assistant.copy(
+                                systemPrompt = it
+                            )
                         )
-                    )
-                },
-                minLines = 6,
-                maxLines = 15,
-                modifier = Modifier.fillMaxWidth()
-            )
+                    },
+                    minLines = 6,
+                    maxLines = 15,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-            Text(
-                text = buildAnnotatedString {
-                    append(stringResource(R.string.assistant_page_available_variables))
-                    PlaceholderTransformer.Placeholders.entries.forEach { (k, v) ->
-                        append(v)
-                        append(": ")
-                        withLink(
-                            LinkAnnotation.Clickable(
-                                tag = k,
-                                linkInteractionListener = {
-                                    onUpdate(
-                                        assistant.copy(
-                                            systemPrompt = assistant.systemPrompt + k
+                Text(
+                    text = buildAnnotatedString {
+                        append(stringResource(R.string.assistant_page_available_variables))
+                        PlaceholderTransformer.Placeholders.entries.forEach { (k, v) ->
+                            append(v)
+                            append(": ")
+                            withLink(
+                                LinkAnnotation.Clickable(
+                                    tag = k,
+                                    linkInteractionListener = {
+                                        onUpdate(
+                                            assistant.copy(
+                                                systemPrompt = assistant.systemPrompt + k
+                                            )
                                         )
-                                    )
+                                    }
+                                )) {
+                                withStyle(SpanStyle(color = MaterialTheme.extendColors.blue6)) {
+                                    append(k)
                                 }
-                            )) {
-                            withStyle(SpanStyle(color = MaterialTheme.extendColors.blue6)) {
-                                append(k)
                             }
+                            append(", ")
                         }
-                        append(", ")
-                    }
-                },
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
-            )
+                    },
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
+                )
+            }
         }
     }
 }
@@ -611,39 +628,31 @@ private fun AssistantMemorySettings(
             .imePadding(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        FormItem(
-            label = {
-                Text(stringResource(R.string.assistant_page_memory))
-            },
-            description = {
-                Text(
-                    text = stringResource(R.string.assistant_page_memory_desc),
-                )
-            }
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.assistant_page_memory),
-                )
-                Spacer(Modifier.weight(1f))
-                Switch(
-                    checked = assistant.enableMemory,
-                    onCheckedChange = {
-                        onUpdate(
-                            assistant.copy(
-                                enableMemory = it
+        Card {
+            FormItem(
+                modifier = Modifier.padding(16.dp),
+                label = {
+                    Text(stringResource(R.string.assistant_page_memory))
+                },
+                description = {
+                    Text(
+                        text = stringResource(R.string.assistant_page_memory_desc),
+                    )
+                },
+                tail = {
+                    Switch(
+                        checked = assistant.enableMemory,
+                        onCheckedChange = {
+                            onUpdate(
+                                assistant.copy(
+                                    enableMemory = it
+                                )
                             )
-                        )
-                    }
-                )
-            }
+                        }
+                    )
+                }
+            )
         }
-
-        HorizontalDivider()
 
         Box(
             modifier = Modifier.fillMaxWidth()

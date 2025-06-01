@@ -29,6 +29,7 @@ fun FormItem(
     Row(
         modifier = modifier.padding(4.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(4.dp),

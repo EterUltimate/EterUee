@@ -2,7 +2,7 @@ package me.rerere.rikkahub.data.mcp
 
 import android.util.Log
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.sse.SSE
 import io.ktor.client.plugins.websocket.WebSockets
@@ -38,7 +38,7 @@ class McpManager(
     private val settingsStore: SettingsStore,
     private val appScope: AppScope
 ) {
-    private val httpClient = HttpClient(OkHttp) {
+    private val httpClient = HttpClient(CIO) {
         install(ContentNegotiation) {
             json(McpJson)
         }
@@ -116,13 +116,13 @@ class McpManager(
         if (client == null) return JsonPrimitive("Failed to execute tool, because no such mcp client for the tool")
         Log.i(TAG, "callTool: $toolName / $args")
 
-        val result = withTimeout(10.seconds) {
+        val result = withTimeout(15.seconds) {
             client.value.callTool(
                 request = CallToolRequest(
                     name = tool.name,
                     arguments = args,
                 ),
-                options = RequestOptions(timeout = 10.seconds),
+                options = RequestOptions(timeout = 15.seconds),
                 compatibility = true
             )
         }
@@ -173,7 +173,7 @@ class McpManager(
 
         // Update tools
         val serverTools = client.listTools()?.tools ?: emptyList()
-        Log.i(TAG, "addClient: $serverTools")
+        Log.i(TAG, "sync: tools: $serverTools")
         settingsStore.update { old ->
             old.copy(
                 mcpServers = old.mcpServers.map { serverConfig ->

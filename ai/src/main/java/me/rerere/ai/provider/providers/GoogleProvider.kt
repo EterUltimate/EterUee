@@ -396,7 +396,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
                                 put(
                                     key = "parameters",
                                     element = json.encodeToJsonElement(tool.parameters)
-                                        .removeElements(listOf("const"))
+                                        .removeElements(listOf("const", "exclusiveMaximum", "exclusiveMinimum", "format"))
                                 )
                             })
                         }

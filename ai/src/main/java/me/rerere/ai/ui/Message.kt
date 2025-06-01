@@ -76,6 +76,10 @@ data class UIMessage(
                                 } else part
                             }
                         } else {
+                            if (deltaPart.reasoning.isBlank()) {
+                                // 如果之前没有reasoning内容，并且 新的reasoning内容为空，则不处理
+                                return@fold acc
+                            }
                             acc + UIMessagePart.Reasoning(deltaPart.reasoning)
                         }
                     }
@@ -213,7 +217,10 @@ fun List<UIMessage>.handleMessageChunk(chunk: MessageChunk, model: Model? = null
     val choice = chunk.choices.getOrNull(0) ?: return this
     val message = choice.delta ?: choice.message ?: throw Exception("delta/message is null")
     if (this.last().role != message.role) {
-        return this + message.copy(modelId = model?.id)
+        return this + message.copy(
+            modelId = model?.id,
+            parts = message.parts.filter { it !is UIMessagePart.Reasoning || it.reasoning.isNotBlank() }, // 过滤掉reasoning为空的
+        )
     } else {
         val last = this.last() + chunk
         return this.dropLast(1) + last
@@ -251,7 +258,7 @@ fun List<UIMessagePart>.isEmptyUIMessage(): Boolean {
 }
 
 fun List<UIMessage>.truncate(index: Int): List<UIMessage> {
-    if(index < 0 || index > this.lastIndex) return this
+    if (index < 0 || index > this.lastIndex) return this
     return this.subList(index, this.size)
 }
 

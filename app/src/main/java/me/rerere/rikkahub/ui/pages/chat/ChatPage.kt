@@ -392,14 +392,19 @@ private fun ChatList(
             // NEW: Combined Token and Context Usage Item
             item(ContextUsageItemKey) { // 仍然使用 ContextUsageItemKey 作为这个合并项的键
                 val configuredContextSize = settings.getCurrentAssistant().contextMessageSize
-                val effectiveMessagesAfterTruncation = conversation.messages.size - conversation.truncateIndex.coerceAtLeast(0)
-                val actualContextMessageCount = minOf(effectiveMessagesAfterTruncation, configuredContextSize)
+                val effectiveMessagesAfterTruncation =
+                    conversation.messages.size - conversation.truncateIndex.coerceAtLeast(0)
+                val actualContextMessageCount =
+                    minOf(effectiveMessagesAfterTruncation, configuredContextSize)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally), // 居中对齐，并提供间距
+                    horizontalArrangement = Arrangement.spacedBy(
+                        8.dp,
+                        Alignment.CenterHorizontally
+                    ), // 居中对齐，并提供间距
                 ) {
                     // 只有当设置允许显示Token使用量且实际有Token数据时才显示
                     if (settings.displaySetting.showTokenUsage && conversation.tokenUsage != null) {
@@ -727,7 +732,10 @@ private fun DrawerContent(
             )
             AssistantPicker(
                 settings = settings,
-                onUpdateSettings = { vm.updateSettings(it) },
+                onUpdateSettings = {
+                    vm.updateSettings(it)
+                    navigateToChatPage(navController)
+                },
                 modifier = Modifier.fillMaxWidth(),
                 onClickSetting = {
                     navController.navigate("assistant")

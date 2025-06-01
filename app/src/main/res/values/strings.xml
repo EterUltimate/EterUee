@@ -181,8 +181,8 @@
     <!-- Setting Display Page -->
     <string name="setting_display_page_chat_list_model_icon_title">Chat List Model Icon</string>
     <string name="setting_display_page_chat_list_model_icon_desc">Whether to display model icons in chat list messages</string>
-    <string name="setting_display_page_show_token_usage_title">Show Token Usage</string>
-    <string name="setting_display_page_show_token_usage_desc">Display token usage at the bottom of the conversation</string>
+    <string name="setting_display_page_show_token_usage_title">Show Token &amp; Context Stats</string>
+    <string name="setting_display_page_show_token_usage_desc">Display token usage and context count at the bottom of the conversation</string>
     <string name="setting_display_page_auto_collapse_thinking_title">Auto Collapse Thinking</string>
     <string name="setting_display_page_auto_collapse_thinking_desc">Automatically collapse thinking content after thinking is complete</string>
     <string name="setting_display_page_show_updates_title">Show Updates</string>

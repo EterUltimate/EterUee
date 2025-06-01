@@ -184,8 +184,8 @@
     <string name="setting_display_page_title">表示設定</string>
     <string name="setting_display_page_chat_list_model_icon_title">チャットリストのモデルアイコン</string>
     <string name="setting_display_page_chat_list_model_icon_desc">チャットリストのメッセージにモデルアイコンを表示するかどうか</string>
-    <string name="setting_display_page_show_token_usage_title">トークン使用量を表示</string>
-    <string name="setting_display_page_show_token_usage_desc">会話の下部にトークン使用量を表示</string>
+    <string name="setting_display_page_show_token_usage_title">トークンとコンテキスト統計を表示</string>
+    <string name="setting_display_page_show_token_usage_desc">会話の下部にトークン使用量とコンテキスト数を表示</string>
     <string name="setting_display_page_auto_collapse_thinking_title">思考を自動折りたたむ</string>
     <string name="setting_display_page_auto_collapse_thinking_desc">思考が完了したら思考内容を自動的に折りたたむ</string>
     <string name="setting_display_page_show_updates_title">アップデートを表示</string>

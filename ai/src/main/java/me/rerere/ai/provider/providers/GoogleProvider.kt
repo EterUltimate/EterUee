@@ -397,9 +397,6 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
                                     key = "parameters",
                                     element = json.encodeToJsonElement(tool.parameters)
                                         .removeElements(listOf("const"))
-                                        .also {
-                                            println(it.toString())
-                                        }
                                 )
                             })
                         }

@@ -89,7 +89,7 @@ val Migration_6_7 = object : Migration(6, 7) {
             // 批量更新数据
             updates.forEach { (id, newMessagesJson) ->
                 db.execSQL(
-                    "UPDATE ConversationEntity SET messages = ? WHERE id = ?",
+                    "UPDATE ConversationEntity SET nodes = ? WHERE id = ?",
                     arrayOf(newMessagesJson, id)
                 )
             }
@@ -99,7 +99,7 @@ val Migration_6_7 = object : Migration(6, 7) {
             
             db.setTransactionSuccessful()
 
-            Log.i(TAG, "migrate: migrate from 6 to 7 success")
+            Log.i(TAG, "migrate: migrate from 6 to 7 success (${updates.size} conversations updated)")
         } finally {
             db.endTransaction()
         }

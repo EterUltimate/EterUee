@@ -63,6 +63,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
@@ -741,7 +744,10 @@ fun ReasoningCard(
                         indication = LocalIndication.current,
                         interactionSource = remember { MutableInteractionSource() }
                     )
-                    .padding(vertical = 4.dp, horizontal = 8.dp),
+                    .padding(horizontal = 8.dp)
+                    .semantics {
+                        role = Role.Button
+                    },
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {

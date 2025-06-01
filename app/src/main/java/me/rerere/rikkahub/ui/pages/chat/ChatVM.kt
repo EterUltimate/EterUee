@@ -45,12 +45,14 @@ import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.findProvider
+import me.rerere.rikkahub.data.datastore.getCurrentAssistant
+import me.rerere.rikkahub.data.datastore.getCurrentChatModel
 import me.rerere.rikkahub.data.mcp.McpManager
+import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.data.repository.MemoryRepository
-import me.rerere.rikkahub.ui.hooks.getCurrentAssistant
 import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.UiState
 import me.rerere.rikkahub.utils.UpdateChecker
@@ -128,8 +130,8 @@ class ChatVM(
 
     // 当前模型
     val currentChatModel = settings
-        .map {
-            it.providers.findModelById(it.chatModelId)
+        .map { settings ->
+            settings.getCurrentChatModel()
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
@@ -147,13 +149,21 @@ class ChatVM(
     }
 
     // 设置聊天模型
-    fun setChatModel(model: Model) {
+    fun setChatModel(assistant: Assistant, model: Model) {
         viewModelScope.launch {
-            settingsStore.update(
-                settings.value.copy(
-                    chatModelId = model.id
+            settingsStore.update { settings ->
+                settings.copy(
+                    assistants = settings.assistants.map {
+                        if (it.id == assistant.id) {
+                            it.copy(
+                                chatModelId = model.id
+                            )
+                        } else {
+                            it
+                        }
+                    }
                 )
-            )
+            }
         }
     }
 
@@ -242,7 +252,7 @@ class ChatVM(
     }
 
     private suspend fun handleMessageComplete() {
-        val model = settings.value.providers.findModelById(settings.value.chatModelId) ?: return
+        val model = currentChatModel.value ?: return
         runCatching {
 //            ChatService.startGeneration(
 //                context = context,
@@ -313,9 +323,9 @@ class ChatVM(
     fun generateTitle(conversation: Conversation, force: Boolean = false) {
         if (conversation.title.isNotBlank() && !force) return
 
-        val model = settings.value.providers.findModelById(settings.value.titleModelId) ?: let {
+        val model = settings.value.findModelById(settings.value.titleModelId) ?: let {
             // 如果没有标题模型，则使用聊天模型
-            settings.value.providers.findModelById(settings.value.chatModelId)
+            settings.value.getCurrentChatModel()
         } ?: return
         val provider = model.findProvider(settings.value.providers) ?: return
 

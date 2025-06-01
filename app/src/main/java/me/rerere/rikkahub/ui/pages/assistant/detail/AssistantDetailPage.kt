@@ -18,6 +18,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -54,12 +55,15 @@ import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.X
 import kotlinx.coroutines.launch
+import me.rerere.ai.provider.ModelType
+import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.ui.transformers.PlaceholderTransformer
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.mcp.McpServerConfig
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
 import me.rerere.rikkahub.ui.components.chat.McpPicker
+import me.rerere.rikkahub.ui.components.chat.ModelSelector
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.Tag
@@ -70,6 +74,7 @@ import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.toFixed
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.roundToInt
+import kotlin.uuid.Uuid
 
 @Composable
 fun AssistantDetailPage(vm: AssistantDetailVM = koinViewModel()) {
@@ -85,6 +90,7 @@ fun AssistantDetailPage(vm: AssistantDetailVM = koinViewModel()) {
             vm.updateMemory(it)
         }
     }
+    val providers by vm.providers.collectAsStateWithLifecycle()
 
     fun onUpdate(assistant: Assistant) {
         vm.update(assistant)
@@ -143,7 +149,10 @@ fun AssistantDetailPage(vm: AssistantDetailVM = koinViewModel()) {
             ) { page ->
                 when (page) {
                     0 -> {
-                        AssistantBasicSettings(assistant = assistant) {
+                        AssistantBasicSettings(
+                            assistant = assistant,
+                            providers = providers,
+                        ) {
                             onUpdate(it)
                         }
                     }
@@ -232,7 +241,8 @@ fun AssistantDetailPage(vm: AssistantDetailVM = koinViewModel()) {
 @Composable
 private fun AssistantBasicSettings(
     assistant: Assistant,
-    onUpdate: (Assistant) -> Unit
+    providers: List<ProviderSetting>,
+    onUpdate: (Assistant) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -240,7 +250,7 @@ private fun AssistantBasicSettings(
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
             .imePadding(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         FormItem(
             label = {
@@ -260,7 +270,28 @@ private fun AssistantBasicSettings(
             )
         }
 
-        HorizontalDivider()
+
+        FormItem(
+            label = {
+                Text("聊天模型")
+            },
+            description = {
+                Text("设置助手的默认聊天模型，如果不设置，则使用全局默认聊天模型")
+            },
+            content = {
+                ModelSelector(
+                    modelId = assistant.chatModelId,
+                    providers = providers,
+                    type = ModelType.CHAT,
+                    onSelect = {
+                        onUpdate(assistant.copy(
+                            chatModelId = it.id
+                        ))
+                    },
+                )
+            }
+        )
+
 
         FormItem(
             label = {
@@ -317,8 +348,6 @@ private fun AssistantBasicSettings(
             }
         }
 
-        HorizontalDivider()
-
         FormItem(
             label = {
                 Text(stringResource(R.string.assistant_page_top_p))
@@ -354,8 +383,6 @@ private fun AssistantBasicSettings(
             )
         }
 
-        HorizontalDivider()
-
         FormItem(
             label = {
                 Text(stringResource(R.string.assistant_page_context_message_size))
@@ -389,8 +416,6 @@ private fun AssistantBasicSettings(
             )
         }
 
-        HorizontalDivider()
-
         FormItem(
             label = {
                 Text(stringResource(R.string.assistant_page_inject_message_time))
@@ -419,8 +444,6 @@ private fun AssistantBasicSettings(
             }
         }
 
-        HorizontalDivider()
-
         FormItem(
             label = {
                 Text(stringResource(R.string.assistant_page_stream_output))
@@ -446,8 +469,6 @@ private fun AssistantBasicSettings(
                 )
             }
         }
-
-        HorizontalDivider()
 
         FormItem(
             label = {

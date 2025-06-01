@@ -216,6 +216,10 @@ data class DisplaySetting(
 
 fun Settings.isNotConfigured() = providers.all { it.models.isEmpty() }
 
+fun Settings.findModelById(uuid: Uuid): Model? {
+    return this.providers.findModelById(uuid)
+}
+
 fun List<ProviderSetting>.findModelById(uuid: Uuid): Model? {
     this.forEach { setting ->
         setting.models.forEach { model ->
@@ -225,6 +229,14 @@ fun List<ProviderSetting>.findModelById(uuid: Uuid): Model? {
         }
     }
     return null
+}
+
+fun Settings.getCurrentChatModel(): Model? {
+    return findModelById(this.getCurrentAssistant().chatModelId ?: this.chatModelId)
+}
+
+fun Settings.getCurrentAssistant(): Assistant {
+    return this.assistants.find { it.id == assistantId } ?: this.assistants.first()
 }
 
 fun Model.findProvider(providers: List<ProviderSetting>): ProviderSetting? {

@@ -27,8 +27,8 @@ import kotlinx.serialization.json.encodeToJsonElement
 import me.rerere.ai.core.InputSchema
 import me.rerere.rikkahub.AppScope
 import me.rerere.rikkahub.data.datastore.SettingsStore
+import me.rerere.rikkahub.data.datastore.getCurrentAssistant
 import me.rerere.rikkahub.data.mcp.transport.SseClientTransport
-import me.rerere.rikkahub.ui.hooks.getCurrentAssistant
 import me.rerere.rikkahub.utils.checkDifferent
 import kotlin.time.Duration.Companion.seconds
 

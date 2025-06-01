@@ -8,6 +8,7 @@ import kotlin.uuid.Uuid
 @Serializable
 data class Assistant(
     val id: Uuid = Uuid.random(),
+    val chatModelId: Uuid? = null, // 如果为null, 使用全局默认模型
     val name: String = "",
     val systemPrompt: String = "",
     val temperature: Float = 0.6f,

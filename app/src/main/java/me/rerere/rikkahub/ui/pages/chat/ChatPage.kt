@@ -82,13 +82,14 @@ import com.composables.icons.lucide.Settings
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import me.rerere.ai.provider.Model
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.ui.UIMessage
 import me.rerere.rikkahub.BuildConfig
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.findModelById
+import me.rerere.rikkahub.data.datastore.getCurrentAssistant
+import me.rerere.rikkahub.data.datastore.getCurrentChatModel
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.ui.components.chat.AssistantPicker
 import me.rerere.rikkahub.ui.components.chat.ChatInput
@@ -100,7 +101,6 @@ import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.ui.hooks.EditStateContent
 import me.rerere.rikkahub.ui.hooks.useEditState
-import me.rerere.rikkahub.ui.hooks.getCurrentAssistant
 import me.rerere.rikkahub.ui.hooks.useThrottle
 import me.rerere.rikkahub.utils.UpdateDownload
 import me.rerere.rikkahub.utils.Version
@@ -196,7 +196,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                         inputState.clearInput()
                     },
                     onUpdateChatModel = {
-                        vm.setChatModel(it)
+                        vm.setChatModel(assistant = setting.getCurrentAssistant(), model = it)
                     },
                     onUpdateProviders = {
                         vm.updateSettings(
@@ -228,7 +228,6 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                 innerPadding = innerPadding,
                 conversation = conversation,
                 loading = loadingJob != null,
-                model = currentChatModel ?: Model(),
                 settings = setting,
                 onRegenerate = {
                     vm.regenerateAtMessage(it)
@@ -261,7 +260,6 @@ private fun ChatList(
     innerPadding: PaddingValues,
     conversation: Conversation,
     loading: Boolean,
-    model: Model,
     settings: Settings,
     onRegenerate: (UIMessage) -> Unit = {},
     onEdit: (UIMessage) -> Unit = {},
@@ -341,43 +339,43 @@ private fun ChatList(
                         selectedKeys = selectedItems,
                         enabled = selecting && message.isValidToShowActions(),
                     ) {
-                // Determine if the current message is fully loaded
-                val isLastMessage = index == conversation.messages.lastIndex
-                val isAssistantMessage = message.role == MessageRole.ASSISTANT
-                // The message is considered fully loaded if:
-                // 1. It's not the last assistant message (i.e., it's a historical message).
-                // 2. Or, it IS the last assistant message, AND the global 'loading' (generation job) is false.
-                // 3. Or, it's a user message.
-                val isMessageFullyLoaded = if (isLastMessage && isAssistantMessage) {
-                    !loading
-                } else {
-                    true
-                }
+                        // Determine if the current message is fully loaded
+                        val isLastMessage = index == conversation.messages.lastIndex
+                        val isAssistantMessage = message.role == MessageRole.ASSISTANT
+                        // The message is considered fully loaded if:
+                        // 1. It's not the last assistant message (i.e., it's a historical message).
+                        // 2. Or, it IS the last assistant message, AND the global 'loading' (generation job) is false.
+                        // 3. Or, it's a user message.
+                        val isMessageFullyLoaded = if (isLastMessage && isAssistantMessage) {
+                            !loading
+                        } else {
+                            true
+                        }
 
-                ChatMessage(
-                    message = message,
-                    showIcon = settings.displaySetting.showModelIcon,
-                    model = message.modelId?.let { settings.providers.findModelById(it) },
-                    isFullyLoaded = isMessageFullyLoaded, // Pass the new parameter
-                    onRegenerate = {
-                        onRegenerate(message)
-                    },
-                    onEdit = {
-                        onEdit(message)
-                    },
-                    onFork = {
-                        onForkMessage(message)
-                    },
-                    onDelete = {
-                        onDelete(message)
-                    },
-                    onShare = {
-                        selecting = true
-                        selectedItems.clear()
-                        selectedItems.addAll(conversation.messages.map { it.id }
-                            .subList(0, conversation.messages.indexOf(message) + 1))
-                    }
-                )
+                        ChatMessage(
+                            message = message,
+                            showIcon = settings.displaySetting.showModelIcon,
+                            model = message.modelId?.let { settings.findModelById(it) },
+                            isFullyLoaded = isMessageFullyLoaded, // Pass the new parameter
+                            onRegenerate = {
+                                onRegenerate(message)
+                            },
+                            onEdit = {
+                                onEdit(message)
+                            },
+                            onFork = {
+                                onForkMessage(message)
+                            },
+                            onDelete = {
+                                onDelete(message)
+                            },
+                            onShare = {
+                                selecting = true
+                                selectedItems.clear()
+                                selectedItems.addAll(conversation.messages.map { it.id }
+                                    .subList(0, conversation.messages.indexOf(message) + 1))
+                            }
+                        )
                     }
                     if (index == conversation.truncateIndex - 1) {
                         Row(
@@ -410,15 +408,20 @@ private fun ChatList(
                 // 当设置允许显示统计信息，并且聊天记录不为空时才显示
                 if (settings.displaySetting.showTokenUsage && conversation.messages.isNotEmpty()) {
                     val configuredContextSize = settings.getCurrentAssistant().contextMessageSize
-                    val effectiveMessagesAfterTruncation = conversation.messages.size - conversation.truncateIndex.coerceAtLeast(0)
-                    val actualContextMessageCount = minOf(effectiveMessagesAfterTruncation, configuredContextSize)
+                    val effectiveMessagesAfterTruncation =
+                        conversation.messages.size - conversation.truncateIndex.coerceAtLeast(0)
+                    val actualContextMessageCount =
+                        minOf(effectiveMessagesAfterTruncation, configuredContextSize)
 
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                        horizontalArrangement = Arrangement.spacedBy(
+                            8.dp,
+                            Alignment.CenterHorizontally
+                        ),
                     ) {
                         // Token使用量统计 (仅当有数据时)
                         if (conversation.tokenUsage != null) {
@@ -624,7 +627,8 @@ private fun TopBar(
                 }
             ) {
                 Column {
-                    val model = settings.providers.findModelById(settings.chatModelId)
+                    val assistant = settings.getCurrentAssistant()
+                    val model = settings.getCurrentChatModel()
                     Text(
                         text = conversation.title.ifBlank { stringResource(R.string.chat_page_new_chat) },
                         maxLines = 1,
@@ -633,7 +637,7 @@ private fun TopBar(
                     )
                     if (model != null) {
                         Text(
-                            text = model.displayName,
+                            text = "${assistant.name.ifBlank { stringResource(R.string.assistant_page_default_assistant) }} / ${model.displayName}",
                             overflow = TextOverflow.Ellipsis,
                             maxLines = 1,
                             color = LocalContentColor.current.copy(0.65f),

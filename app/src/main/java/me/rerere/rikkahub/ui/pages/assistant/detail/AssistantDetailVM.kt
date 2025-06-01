@@ -45,6 +45,14 @@ class AssistantDetailVM(
             scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList()
         )
 
+    val providers = settingsStore
+        .settingsFlow
+        .map { settings ->
+            settings.providers
+        }.stateIn(
+            scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList()
+        )
+
     fun update(assistant: Assistant) {
         viewModelScope.launch {
             val settings = settings.value

@@ -257,13 +257,19 @@ class ChatVM(
         }
     }
 
-    private suspend fun handleMessageComplete() {
+    private suspend fun handleMessageComplete(messageRange: ClosedRange<Int>? = null) {
         val model = currentChatModel.value ?: return
         runCatching {
             generationHandler.generateText(
                 settings = settings.value,
                 model = model,
-                messages = conversation.value.currentMessages,
+                messages = conversation.value.currentMessages.let {
+                    if (messageRange != null) {
+                        it.subList(messageRange.start, messageRange.endInclusive + 1)
+                    } else {
+                        it
+                    }
+                },
                 assistant = settings.value.getCurrentAssistant(),
                 memories = { memoryRepository.getMemoriesOfAssistant(settings.value.assistantId.toString()) },
                 inputTransformers = buildList {
@@ -427,34 +433,34 @@ class ChatVM(
                     messageNodes = conversation.value.messageNodes.subList(0, indexAt + 1)
                 )
                 saveConversation(newConversation)
+                conversationJob.value?.cancel()
+                val job = viewModelScope.launch {
+                    handleMessageComplete()
+                    generationDoneFlow.emit(Uuid.random())
+                }
+                conversationJob.value = job
+                job.invokeOnCompletion {
+                    conversationJob.value = null
+                }
             } else {
                 if (!regenerateAssistantMsg) {
                     // 如果不需要重新生成助手消息，则直接返回
                     saveConversation(conversation.value)
                     return@launch
                 }
-                // 如果是助手消息，则需要向上查找第一个用户消息
                 val node = conversation.value.getMessageNodeByMessage(message)
-                var indexAt = conversation.value.messageNodes.indexOf(node)
-                for (i in indexAt downTo 0) {
-                    if (conversation.value.messageNodes[i].role == MessageRole.USER) {
-                        indexAt = i
-                        break
-                    }
+                val nodeIndex = conversation.value.messageNodes.indexOf(node)
+                conversationJob.value?.cancel()
+                val job = viewModelScope.launch {
+                    handleMessageComplete(
+                        messageRange = 0..<nodeIndex,
+                    )
+                    generationDoneFlow.emit(Uuid.random())
                 }
-                val newConversation = conversation.value.copy(
-                    messageNodes = conversation.value.messageNodes.subList(0, indexAt + 1)
-                )
-                saveConversation(newConversation)
-            }
-            conversationJob.value?.cancel()
-            val job = viewModelScope.launch {
-                handleMessageComplete()
-                generationDoneFlow.emit(Uuid.random())
-            }
-            conversationJob.value = job
-            job.invokeOnCompletion {
-                conversationJob.value = null
+                conversationJob.value = job
+                job.invokeOnCompletion {
+                    conversationJob.value = null
+                }
             }
         }
     }

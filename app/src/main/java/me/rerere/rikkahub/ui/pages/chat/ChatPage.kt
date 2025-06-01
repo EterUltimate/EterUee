@@ -353,7 +353,7 @@ private fun ChatList(
                         }
 
                         ChatMessage(
-                            message = node.currentMessage,
+                            node = node,
                             showIcon = settings.displaySetting.showModelIcon,
                             model = node.currentMessage.modelId?.let { settings.findModelById(it) },
                             isFullyLoaded = isMessageFullyLoaded, // Pass the new parameter

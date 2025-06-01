@@ -29,6 +29,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -107,6 +109,7 @@ import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyUIMessage
 import me.rerere.highlight.HighlightText
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.data.model.MessageNode
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.components.richtext.ZoomableAsyncImage
 import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
@@ -127,7 +130,7 @@ import kotlin.time.DurationUnit
 
 @Composable
 fun ChatMessage(
-    message: UIMessage,
+    node: MessageNode,
     modifier: Modifier = Modifier,
     showIcon: Boolean = true,
     model: Model? = null,
@@ -138,38 +141,53 @@ fun ChatMessage(
     onShare: () -> Unit,
     onDelete: () -> Unit
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .animateContentSize(), // Add this to the root Column of ChatMessage
-        horizontalAlignment = if (message.role == MessageRole.USER) Alignment.End else Alignment.Start,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        ModelIcon(showIcon, message, model)
-        MessagePartsBlock(
-            message.role,
-            message.parts,
-            message.annotations,
-        )
-        AnimatedVisibility(
-            visible = message.isValidToShowActions() && isFullyLoaded,
-            enter = slideInVertically { it / 2 } + fadeIn(),
-            exit = slideOutVertically { it / 2 } + fadeOut()
+    val pagerState = rememberPagerState(initialPage = node.selectIndex) { node.messages.size }
+
+    LaunchedEffect(node.selectIndex) {
+        if (node.selectIndex != pagerState.currentPage) {
+            pagerState.scrollToPage(node.selectIndex)
+        }
+    }
+
+    HorizontalPager(
+        state = pagerState,
+        modifier = Modifier.fillMaxWidth(),
+    ) { index ->
+        val message = node.messages[index]
+        Column(
+            modifier = modifier
+                .fillMaxWidth(), // Add this to the root Column of ChatMessage
+            horizontalAlignment = if (message.role == MessageRole.USER) Alignment.End else Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            // Wrap Actions content in its own Column to ensure it's a distinct layout block
-            // that AnimatedVisibility can properly manage.
-            Column(
-                modifier = Modifier.animateContentSize() // Also animate size changes within Actions
+            ModelIcon(
+                showIcon = showIcon,
+                message = message,
+                model = model
+            )
+            MessagePartsBlock(
+                role = message.role,
+                parts = message.parts,
+                annotations = message.annotations,
+            )
+            AnimatedVisibility(
+                visible = message.isValidToShowActions() && isFullyLoaded,
+                enter = slideInVertically { it / 2 } + fadeIn(),
+                exit = slideOutVertically { it / 2 } + fadeOut()
             ) {
-                Actions( // Actions is a ColumnScope extension, so it adds its children here
-                    message = message,
-                    model = model,
-                    onRegenerate = onRegenerate,
-                    onEdit = onEdit,
-                    onFork = onFork,
-                    onShare = onShare,
-                    onDelete = onDelete
-                )
+                Column(
+                    modifier = Modifier.animateContentSize()
+                ) {
+                    Actions(
+                        message = message,
+                        model = model,
+                        onRegenerate = onRegenerate,
+                        onEdit = onEdit,
+                        onFork = onFork,
+                        onShare = onShare,
+                        onDelete = onDelete
+                    )
+                }
             }
         }
     }

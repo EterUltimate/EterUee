@@ -2,11 +2,11 @@ package me.rerere.rikkahub.ui.components.chat
 
 import android.speech.tts.TextToSpeech
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -42,6 +42,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -78,6 +79,7 @@ import com.composables.icons.lucide.ChevronUp
 import com.composables.icons.lucide.CircleStop
 import com.composables.icons.lucide.Copy
 import com.composables.icons.lucide.Earth
+import com.composables.icons.lucide.Expand
 import com.composables.icons.lucide.GitFork
 import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.Lucide
@@ -662,23 +664,35 @@ private fun ToolCallPreviewDialog(
     )
 }
 
+enum class ReasoningCardState(val expanded: Boolean) {
+    Collapsed(false),
+    Preview(true),
+    Expanded(true),
+}
+
 @Composable
 fun ReasoningCard(
     reasoning: UIMessagePart.Reasoning,
     modifier: Modifier = Modifier,
     fadeHeight: Float = 64f,
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    var expandState by remember { mutableStateOf(ReasoningCardState.Collapsed) }
     val scrollState = rememberScrollState()
     val settings = LocalSettings.current
     val loading = reasoning.finishedAt == null
 
-    LaunchedEffect(reasoning, loading) {
+    LaunchedEffect(reasoning.reasoning, loading) {
         if (loading) {
-            if (!expanded) expanded = true
+            if (!expandState.expanded) expandState = ReasoningCardState.Preview
             scrollState.animateScrollTo(scrollState.maxValue)
         } else {
-            if (expanded && settings.displaySetting.autoCloseThinking) expanded = false
+            if (expandState.expanded) {
+                expandState = if (settings.displaySetting.autoCloseThinking) {
+                    ReasoningCardState.Collapsed
+                } else {
+                    ReasoningCardState.Expanded
+                }
+            }
         }
     }
 
@@ -699,11 +713,16 @@ fun ReasoningCard(
         }
     }
 
+    fun toggle() {
+        expandState = if (loading) {
+            if (expandState == ReasoningCardState.Expanded) ReasoningCardState.Preview else ReasoningCardState.Expanded
+        } else {
+            if (expandState == ReasoningCardState.Expanded) ReasoningCardState.Collapsed else ReasoningCardState.Expanded
+        }
+    }
+
     OutlinedCard(
         modifier = modifier,
-        onClick = {
-            expanded = !expanded
-        }
     ) {
         Column(
             modifier = Modifier
@@ -712,7 +731,17 @@ fun ReasoningCard(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
-                modifier = Modifier.let { if (expanded) it.fillMaxWidth() else it.wrapContentWidth() },
+                modifier = Modifier
+                    .clip(MaterialTheme.shapes.small)
+                    .let { if (expandState.expanded) it.fillMaxWidth() else it.wrapContentWidth() }
+                    .clickable(
+                        onClick = {
+                            toggle()
+                        },
+                        indication = LocalIndication.current,
+                        interactionSource = remember { MutableInteractionSource() }
+                    )
+                    .padding(vertical = 4.dp, horizontal = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -730,7 +759,7 @@ fun ReasoningCard(
                         isLoading = loading
                     )
                 )
-                if(duration > 0.seconds) {
+                if (duration > 0.seconds) {
                     Text(
                         text = "(${duration.toString(DurationUnit.SECONDS, 1)})",
                         style = MaterialTheme.typography.titleSmall,
@@ -741,25 +770,25 @@ fun ReasoningCard(
                     )
                 }
                 Spacer(
-                    modifier = if(expanded) Modifier.weight(1f) else Modifier.width(4.dp)
+                    modifier = if (expandState.expanded) Modifier.weight(1f) else Modifier.width(4.dp)
                 )
                 Icon(
-                    imageVector = if (expanded) Lucide.ChevronUp else Lucide.ChevronDown,
+                    imageVector = when (expandState) {
+                        ReasoningCardState.Collapsed -> Lucide.ChevronDown
+                        ReasoningCardState.Expanded -> Lucide.ChevronUp
+                        ReasoningCardState.Preview -> Lucide.Expand
+                    },
                     contentDescription = null,
-                    modifier = Modifier
-                        .clickable {
-                            expanded = !expanded
-                        }
-                        .size(14.dp),
-                    tint = MaterialTheme.colorScheme.secondary
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.secondary,
                 )
             }
-            if (expanded) {
+            if (expandState.expanded) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .let {
-                            if (loading) {
+                            if (expandState == ReasoningCardState.Preview) {
                                 it
                                     .graphicsLayer { alpha = 0.99f } // 触发离屏渲染，保证蒙版生效
                                     .drawWithCache {

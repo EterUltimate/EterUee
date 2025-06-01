@@ -410,16 +410,16 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
 
         // 也许支持其他模态的输出content? 暂时只支持文本吧
         val content = jsonObject["content"]?.jsonPrimitive?.contentOrNull ?: ""
-        val reasoning = jsonObject["reasoning_content"] ?: jsonObject["reasoning"]
+        val reasoning = jsonObject["reasoning_content"]?.jsonPrimitive?.contentOrNull ?: jsonObject["reasoning"]?.jsonPrimitive?.contentOrNull
         val toolCalls = jsonObject["tool_calls"] as? JsonArray ?: JsonArray(emptyList())
 
         return UIMessage(
             role = role,
             parts = buildList {
-                if (reasoning?.jsonPrimitive?.contentOrNull != null) {
+                if (!reasoning.isNullOrEmpty()) {
                     add(
                         UIMessagePart.Reasoning(
-                            reasoning = reasoning.jsonPrimitive.contentOrNull ?: "",
+                            reasoning = reasoning,
                             createdAt = Clock.System.now(),
                             finishedAt = null
                         )

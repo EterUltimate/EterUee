@@ -24,7 +24,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.encodeToJsonElement
-import me.rerere.ai.core.Schema
+import me.rerere.ai.core.InputSchema
 import me.rerere.rikkahub.AppScope
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.mcp.transport.SseClientTransport
@@ -257,6 +257,6 @@ internal val McpJson: Json by lazy {
     }
 }
 
-private fun Tool.Input.toSchema(): Schema.RawSchema {
-    return Schema.RawSchema(this.properties, this.required)
+private fun Tool.Input.toSchema(): InputSchema {
+    return InputSchema.Obj(properties = this.properties, required = this.required)
 }

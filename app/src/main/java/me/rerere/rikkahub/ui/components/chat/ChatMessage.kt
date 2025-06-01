@@ -2,6 +2,10 @@ package me.rerere.rikkahub.ui.components.chat
 
 import android.speech.tts.TextToSpeech
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
@@ -122,6 +126,7 @@ fun ChatMessage(
     modifier: Modifier = Modifier,
     showIcon: Boolean = true,
     model: Model? = null,
+    isFullyLoaded: Boolean, // New parameter
     onFork: () -> Unit,
     onRegenerate: () -> Unit,
     onEdit: () -> Unit,
@@ -129,7 +134,9 @@ fun ChatMessage(
     onDelete: () -> Unit
 ) {
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .animateContentSize(), // Add this to the root Column of ChatMessage
         horizontalAlignment = if (message.role == MessageRole.USER) Alignment.End else Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -139,16 +146,26 @@ fun ChatMessage(
             message.parts,
             message.annotations,
         )
-        if (message.isValidToShowActions()) {
-            Actions(
-                message = message,
-                model = model,
-                onRegenerate = onRegenerate,
-                onEdit = onEdit,
-                onFork = onFork,
-                onShare = onShare,
-                onDelete = onDelete
-            )
+        AnimatedVisibility(
+            visible = message.isValidToShowActions() && isFullyLoaded,
+            enter = slideInVertically { it / 2 } + fadeIn(),
+            exit = slideOutVertically { it / 2 } + fadeOut()
+        ) {
+            // Wrap Actions content in its own Column to ensure it's a distinct layout block
+            // that AnimatedVisibility can properly manage.
+            Column(
+                modifier = Modifier.animateContentSize() // Also animate size changes within Actions
+            ) {
+                Actions( // Actions is a ColumnScope extension, so it adds its children here
+                    message = message,
+                    model = model,
+                    onRegenerate = onRegenerate,
+                    onEdit = onEdit,
+                    onFork = onFork,
+                    onShare = onShare,
+                    onDelete = onDelete
+                )
+            }
         }
     }
 }

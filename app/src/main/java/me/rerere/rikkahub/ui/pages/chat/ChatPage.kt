@@ -83,6 +83,7 @@ import com.dokar.sonner.ToastType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.rerere.ai.provider.Model
+import me.rerere.ai.core.MessageRole
 import me.rerere.ai.ui.UIMessage
 import me.rerere.rikkahub.BuildConfig
 import me.rerere.rikkahub.R
@@ -340,29 +341,43 @@ private fun ChatList(
                         selectedKeys = selectedItems,
                         enabled = selecting && message.isValidToShowActions(),
                     ) {
-                        ChatMessage(
-                            message = message,
-                            showIcon = settings.displaySetting.showModelIcon,
-                            model = message.modelId?.let { settings.providers.findModelById(it) },
-                            onRegenerate = {
-                                onRegenerate(message)
-                            },
-                            onEdit = {
-                                onEdit(message)
-                            },
-                            onFork = {
-                                onForkMessage(message)
-                            },
-                            onDelete = {
-                                onDelete(message)
-                            },
-                            onShare = {
-                                selecting = true
-                                selectedItems.clear()
-                                selectedItems.addAll(conversation.messages.map { it.id }
-                                    .subList(0, conversation.messages.indexOf(message) + 1))
-                            }
-                        )
+                // Determine if the current message is fully loaded
+                val isLastMessage = index == conversation.messages.lastIndex
+                val isAssistantMessage = message.role == MessageRole.ASSISTANT
+                // The message is considered fully loaded if:
+                // 1. It's not the last assistant message (i.e., it's a historical message).
+                // 2. Or, it IS the last assistant message, AND the global 'loading' (generation job) is false.
+                // 3. Or, it's a user message.
+                val isMessageFullyLoaded = if (isLastMessage && isAssistantMessage) {
+                    !loading
+                } else {
+                    true
+                }
+
+                ChatMessage(
+                    message = message,
+                    showIcon = settings.displaySetting.showModelIcon,
+                    model = message.modelId?.let { settings.providers.findModelById(it) },
+                    isFullyLoaded = isMessageFullyLoaded, // Pass the new parameter
+                    onRegenerate = {
+                        onRegenerate(message)
+                    },
+                    onEdit = {
+                        onEdit(message)
+                    },
+                    onFork = {
+                        onForkMessage(message)
+                    },
+                    onDelete = {
+                        onDelete(message)
+                    },
+                    onShare = {
+                        selecting = true
+                        selectedItems.clear()
+                        selectedItems.addAll(conversation.messages.map { it.id }
+                            .subList(0, conversation.messages.indexOf(message) + 1))
+                    }
+                )
                     }
                     if (index == conversation.truncateIndex - 1) {
                         Row(

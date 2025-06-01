@@ -203,6 +203,8 @@
     <string name="assistant_page_tab_request">自定義請求</string>
     <string name="assistant_page_stream_output">串流輸出</string>
     <string name="assistant_page_stream_output_desc">是否啟用訊息的串流輸出</string>
+    <string name="assistant_page_chat_model">聊天模型</string>
+    <string name="assistant_page_chat_model_desc">設定助手的預設聊天模型，如果不設定，則使用全域預設聊天模型</string>
 
     <!-- MCP Setting Page -->
     <string name="setting_mcp_page_title">MCP</string>

@@ -277,10 +277,10 @@ private fun AssistantBasicSettings(
             FormItem(
                 modifier = Modifier.padding(16.dp),
                 label = {
-                    Text("聊天模型")
+                    Text(stringResource(R.string.assistant_page_chat_model))
                 },
                 description = {
-                    Text("设置助手的默认聊天模型，如果不设置，则使用全局默认聊天模型")
+                    Text(stringResource(R.string.assistant_page_chat_model_desc))
                 },
                 content = {
                     ModelSelector(

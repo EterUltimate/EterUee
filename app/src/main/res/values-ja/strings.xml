@@ -204,6 +204,8 @@
     <string name="assistant_page_tab_request">カスタムリクエスト</string>
     <string name="assistant_page_stream_output">ストリーミング出力</string>
     <string name="assistant_page_stream_output_desc">メッセージをストリーミング出力するかどうか</string>
+    <string name="assistant_page_chat_model">チャットモデル</string>
+    <string name="assistant_page_chat_model_desc">アシスタントのデフォルトチャットモデルを設定します。設定しない場合は、グローバルデフォルトチャットモデルが使用されます</string>
 
     <!-- MCP Setting Page -->
     <string name="setting_mcp_page_title">MCP</string>

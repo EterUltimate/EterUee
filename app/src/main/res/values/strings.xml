@@ -231,6 +231,7 @@
     <string name="setting_mcp_page_add_header">Add Header</string>
     <string name="setting_mcp_page_save">Save</string>
     <string name="setting_mcp_page_url_label">URL</string>
+    <string name="setting_mcp_page_tools_unavailable_message">Cannot view tool list when adding MCP Server, please check back after adding</string>
 
     <!-- MCP Picker -->
     <string name="mcp_picker_title">MCP Servers</string>

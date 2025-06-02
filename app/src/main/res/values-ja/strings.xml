@@ -233,6 +233,7 @@
     <string name="setting_mcp_page_add_header">ヘッダーを追加</string>
     <string name="setting_mcp_page_save">保存</string>
     <string name="setting_mcp_page_url_label">URL</string>
+    <string name="setting_mcp_page_tools_unavailable_message">MCPサーバー追加時にはツールリストを表示できません。追加完了後に再度確認してください</string>
 
     <!-- MCP Picker -->
     <string name="mcp_picker_title">MCPサーバー</string>

@@ -232,6 +232,7 @@
     <string name="setting_mcp_page_add_header">添加請求頭</string>
     <string name="setting_mcp_page_save">保存</string>
     <string name="setting_mcp_page_url_label">URL</string>
+    <string name="setting_mcp_page_tools_unavailable_message">添加MCP Server時無法查看工具列表，請添加完後再來查看</string>
 
     <!-- MCP Picker -->
     <string name="mcp_picker_title">MCP伺服器</string>

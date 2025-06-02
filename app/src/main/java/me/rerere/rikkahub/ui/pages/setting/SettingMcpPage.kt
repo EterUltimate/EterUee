@@ -462,7 +462,10 @@ private fun McpCommonOptionsConfigure(
                 Text(stringResource(R.string.setting_mcp_page_transport_type_desc))
             }
         ) {
-            val transportTypes = listOf("SSE", "WebSocket")
+            val transportTypes = listOf(
+                "SSE",
+                // "WebSocket"
+            )
             val currentTypeIndex = when (config) {
                 is McpServerConfig.SseTransportServer -> 0
                 is McpServerConfig.WebSocketServer -> 1
@@ -678,12 +681,19 @@ private fun McpCommonOptionsConfigure(
 @Composable
 private fun McpToolsConfigure(
     config: McpServerConfig,
-    update: (McpServerConfig) -> Unit
+    update: (McpServerConfig) -> Unit,
 ) {
+    val mcpManager = koinInject<McpManager>()
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        if(mcpManager.getClient(config) == null) {
+            item {
+                Text(stringResource(R.string.setting_mcp_page_tools_unavailable_message))
+            }
+        }
         items(config.commonOptions.tools) { tool ->
             Card {
                 Row(

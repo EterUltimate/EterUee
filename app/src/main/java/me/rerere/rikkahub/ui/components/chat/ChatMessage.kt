@@ -153,11 +153,22 @@ fun ChatMessage(
         horizontalAlignment = if (message.role == MessageRole.USER) Alignment.End else Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        ModelIcon(
-            showIcon = showIcon,
-            message = message,
-            model = model
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            ModelIcon(
+                showIcon = showIcon,
+                message = message,
+                model = model
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            MessageNodePagerButtons(
+                node = node,
+                onUpdate = onUpdate
+            )
+        }
         MessagePartsBlock(
             role = message.role,
             parts = message.parts,
@@ -179,8 +190,6 @@ fun ChatMessage(
                     onFork = onFork,
                     onShare = onShare,
                     onDelete = onDelete,
-                    node = node,
-                    onUpdate = onUpdate
                 )
             }
         }
@@ -214,13 +223,11 @@ private fun ModelIcon(
 private fun ColumnScope.Actions(
     message: UIMessage,
     model: Model?,
-    node: MessageNode,
     onFork: () -> Unit,
     onRegenerate: () -> Unit,
     onEdit: () -> Unit,
     onShare: () -> Unit,
     onDelete: () -> Unit,
-    onUpdate: (MessageNode) -> Unit,
 ) {
     val context = LocalContext.current
     var showInformation by remember { mutableStateOf(false) }
@@ -228,8 +235,6 @@ private fun ColumnScope.Actions(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
-        MessageNodePagerButtons(node, onUpdate)
-
         Icon(
             Lucide.Copy, stringResource(R.string.copy), modifier = Modifier
                 .clip(CircleShape)

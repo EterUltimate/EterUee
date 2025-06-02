@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -863,7 +864,8 @@ private fun UpdateCard(vm: ChatVM) {
                     )
                     MarkdownBlock(
                         content = info.changelog,
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.heightIn(max = 400.dp)
                     )
                 }
             }
@@ -899,7 +901,7 @@ private fun UpdateCard(vm: ChatVM) {
                         content = info.changelog,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(400.dp)
+                            .height(300.dp)
                             .verticalScroll(rememberScrollState()),
                         style = MaterialTheme.typography.bodyMedium
                     )

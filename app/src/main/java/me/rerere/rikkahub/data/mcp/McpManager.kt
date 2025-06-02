@@ -215,6 +215,15 @@ class McpManager(
         }
     }
 
+    suspend fun syncAll() {
+        clients.keys.toList().forEach { config ->
+            runCatching { this.sync(config) }
+                .onFailure {
+                    it.printStackTrace()
+                }
+        }
+    }
+
     suspend fun removeClient(config: McpServerConfig) {
         val toRemove = clients.entries.filter { it.key.id == config.id }
         toRemove.forEach { entry ->

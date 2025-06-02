@@ -23,6 +23,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -30,6 +32,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.SegmentedButton
@@ -41,6 +44,10 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
@@ -56,15 +63,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.composables.icons.lucide.CircleAlert
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.MessageSquareOff
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Settings
+import com.composables.icons.lucide.Terminal
 import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.X
 import kotlinx.coroutines.launch
 import me.rerere.ai.core.InputSchema
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.data.mcp.McpManager
 import me.rerere.rikkahub.data.mcp.McpServerConfig
+import me.rerere.rikkahub.data.mcp.McpStatus
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.Tag
@@ -75,6 +87,7 @@ import me.rerere.rikkahub.ui.hooks.useEditState
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.plus
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @Composable
 fun SettingMcpPage(vm: SettingVM = koinViewModel()) {
@@ -120,27 +133,43 @@ fun SettingMcpPage(vm: SettingVM = koinViewModel()) {
             )
         }
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = innerPadding + PaddingValues(16.dp)
+        val mcpManager = koinInject<McpManager>()
+        val status by mcpManager.syncingStatus.collectAsStateWithLifecycle()
+        val scope = rememberCoroutineScope()
+        val state = rememberPullToRefreshState()
+        val loading = status.values.any { it == McpStatus.Connecting }
+        PullToRefreshBox(
+            isRefreshing = loading,
+            onRefresh = {
+                scope.launch {
+                    mcpManager.syncAll()
+                }
+            },
+            state = state,
+            modifier = Modifier.padding(innerPadding)
         ) {
-            items(mcpConfigs, key = { it.id }) { mcpConfig ->
-                McpServerItem(
-                    item = mcpConfig,
-                    onEdit = {
-                        editState.open(mcpConfig)
-                    },
-                    onDelete = {
-                        vm.updateSettings(
-                            settings.copy(
-                                mcpServers = mcpConfigs.filter { it.id != mcpConfig.id }
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(16.dp)
+            ) {
+                items(mcpConfigs, key = { it.id }) { mcpConfig ->
+                    McpServerItem(
+                        item = mcpConfig,
+                        onEdit = {
+                            editState.open(mcpConfig)
+                        },
+                        onDelete = {
+                            vm.updateSettings(
+                                settings.copy(
+                                    mcpServers = mcpConfigs.filter { it.id != mcpConfig.id }
+                                )
                             )
-                        )
-                    },
-                    modifier = Modifier.animateItem()
-                )
+                        },
+                        modifier = Modifier.animateItem()
+                    )
+                }
             }
         }
     }
@@ -155,6 +184,8 @@ private fun McpServerItem(
     onDelete: () -> Unit,
     onEdit: (McpServerConfig) -> Unit,
 ) {
+    val mcpManager = koinInject<McpManager>()
+    val status by mcpManager.getStatus(item).collectAsStateWithLifecycle(McpStatus.Idle)
     val dismissBoxState = rememberSwipeToDismissBoxState()
     val scope = rememberCoroutineScope()
     SwipeToDismissBox(
@@ -190,9 +221,21 @@ private fun McpServerItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                when (status) {
+                    McpStatus.Idle -> Icon(Lucide.MessageSquareOff, null)
+                    McpStatus.Connecting -> CircularProgressIndicator(
+                        modifier = Modifier.size(
+                            24.dp
+                        )
+                    )
+
+                    McpStatus.Connected -> Icon(Lucide.Terminal, null)
+                    is McpStatus.Error -> Icon(Lucide.CircleAlert, null)
+                }
+
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(8.dp),

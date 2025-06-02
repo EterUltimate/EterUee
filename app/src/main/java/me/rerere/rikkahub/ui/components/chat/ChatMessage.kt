@@ -154,21 +154,23 @@ fun ChatMessage(
         horizontalAlignment = if (message.role == MessageRole.USER) Alignment.End else Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            ModelIcon(
-                showIcon = showIcon,
-                message = message,
-                model = model,
-                modifier = Modifier.weight(1f)
-            )
-            MessageNodePagerButtons(
-                node = node,
-                onUpdate = onUpdate
-            )
+        if(!message.parts.isEmptyUIMessage()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                ModelIcon(
+                    showIcon = showIcon,
+                    message = message,
+                    model = model,
+                    modifier = Modifier.weight(1f)
+                )
+                MessageNodePagerButtons(
+                    node = node,
+                    onUpdate = onUpdate
+                )
+            }
         }
         MessagePartsBlock(
             role = message.role,

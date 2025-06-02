@@ -73,6 +73,7 @@ import me.rerere.rikkahub.ui.hooks.useEditState
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.toFixed
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import kotlin.math.roundToInt
 import kotlin.uuid.Uuid
 

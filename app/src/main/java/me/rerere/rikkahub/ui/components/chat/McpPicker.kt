@@ -17,6 +17,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearWavyProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Switch
@@ -29,17 +30,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFilter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.ui.res.stringResource
+import com.composables.icons.lucide.Check
+import com.composables.icons.lucide.CircleAlert
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.MessageSquareOff
+import com.composables.icons.lucide.MessageSquareX
 import com.composables.icons.lucide.Terminal
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.mcp.McpManager
 import me.rerere.rikkahub.data.mcp.McpServerConfig
+import me.rerere.rikkahub.data.mcp.McpStatus
 import me.rerere.rikkahub.data.model.Assistant
+import org.koin.compose.koinInject
 
 @Composable
 fun McpPickerButton(
@@ -49,7 +56,8 @@ fun McpPickerButton(
     onUpdateAssistant: (Assistant) -> Unit
 ) {
     var showMcpPicker by remember { mutableStateOf(false) }
-    val loading by mcpManager.syncing.collectAsStateWithLifecycle()
+    val status by mcpManager.syncingStatus.collectAsStateWithLifecycle()
+    val loading = status.values.any { it == McpStatus.Connecting }
     IconButton(
         onClick = {
             showMcpPicker = true
@@ -118,11 +126,13 @@ fun McpPicker(
     modifier: Modifier = Modifier,
     onUpdateAssistant: (Assistant) -> Unit
 ) {
+    val mcpManager = koinInject<McpManager>()
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         items(servers.fastFilter { it.commonOptions.enable }) { server ->
+            val status by mcpManager.getStatus(server).collectAsStateWithLifecycle(McpStatus.Idle)
             Card {
                 Row(
                     modifier = Modifier
@@ -131,6 +141,17 @@ fun McpPicker(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    when (status) {
+                        McpStatus.Idle -> Icon(Lucide.MessageSquareOff, null)
+                        McpStatus.Connecting -> CircularProgressIndicator(
+                            modifier = Modifier.size(
+                                24.dp
+                            )
+                        )
+
+                        McpStatus.Connected -> Icon(Lucide.Terminal, null)
+                        is McpStatus.Error -> Icon(Lucide.CircleAlert, null)
+                    }
                     Column(
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -139,6 +160,21 @@ fun McpPicker(
                             text = server.commonOptions.name,
                             style = MaterialTheme.typography.titleLarge,
                         )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = when (status) {
+                                    is McpStatus.Idle -> "Idle"
+                                    is McpStatus.Connecting -> "Connecting"
+                                    is McpStatus.Connected -> "Connected"
+                                    is McpStatus.Error -> "Error: ${(status as McpStatus.Error).message}"
+                                },
+                                style = MaterialTheme.typography.labelSmall,
+                                color = LocalContentColor.current.copy(alpha = 0.8f)
+                            )
+                        }
                     }
                     Switch(
                         checked = server.id in assistant.mcpServers,

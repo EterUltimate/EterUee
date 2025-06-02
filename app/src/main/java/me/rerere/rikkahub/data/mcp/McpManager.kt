@@ -13,6 +13,7 @@ import io.modelcontextprotocol.kotlin.sdk.client.Client
 import io.modelcontextprotocol.kotlin.sdk.client.WebSocketClientTransport
 import io.modelcontextprotocol.kotlin.sdk.shared.RequestOptions
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -30,6 +31,7 @@ import me.rerere.rikkahub.data.datastore.getCurrentAssistant
 import me.rerere.rikkahub.data.mcp.transport.SseClientTransport
 import me.rerere.rikkahub.utils.checkDifferent
 import kotlin.time.Duration.Companion.seconds
+import kotlin.uuid.Uuid
 
 private const val TAG = "McpManager"
 
@@ -41,27 +43,17 @@ class McpManager(
         install(ContentNegotiation) {
             json(McpJson)
         }
-//        install(Logging) {
-//            level = LogLevel.ALL
-//            logger = object : Logger {
-//                override fun log(message: String) {
-//                    println()
-//                    println("[ktor] $message")
-//                }
-//            }
-//        }
         install(SSE)
     }
 
     private val clients: MutableMap<McpServerConfig, Client> = mutableMapOf()
-    val syncing = MutableStateFlow(false)
+    val syncingStatus = MutableStateFlow<Map<Uuid, McpStatus>>(mapOf())
 
     init {
         appScope.launch {
             settingsStore.settingsFlow
                 .map { settings -> settings.mcpServers }
                 .collect { mcpServerConfigs ->
-                    syncing.value = true
                     runCatching {
                         val newConfigs = mcpServerConfigs.filter { it.commonOptions.enable }
                         val currentConfigs = clients.keys.toList()
@@ -85,7 +77,6 @@ class McpManager(
                     }.onFailure {
                         it.printStackTrace()
                     }
-                    syncing.value = false
                 }
         }
     }
@@ -132,38 +123,38 @@ class McpManager(
 
     suspend fun addClient(config: McpServerConfig) {
         this.removeClient(config) // Remove first
-        val client = when (config) {
+        val transport = when (config) {
             is McpServerConfig.SseTransportServer -> {
-                val transport = SseClientTransport(
+                SseClientTransport(
                     urlString = config.url,
                     client = httpClient,
                 )
-                val client = Client(
-                    clientInfo = Implementation(
-                        name = "test", version = "1.0.0"
-                    ),
-                )
-                client.connect(transport)
-                client
             }
 
             is McpServerConfig.WebSocketServer -> {
-                val transport = WebSocketClientTransport(
+                WebSocketClientTransport(
                     urlString = config.url,
                     client = httpClient,
                 )
-                val client = Client(
-                    clientInfo = Implementation(
-                        name = "test", version = "1.0.0"
-                    ),
-                )
-                client.connect(transport)
-                client
             }
         }
-        Log.i(TAG, "addClient: connected ${config.commonOptions.name}")
+        val client = Client(
+            clientInfo = Implementation(
+                name = config.commonOptions.name,
+                version = "1.0",
+            )
+        )
         clients[config] = client
-        this.sync(config)
+        runCatching {
+            setStatus(config = config, status = McpStatus.Connecting)
+            client.connect(transport)
+            this.sync(config)
+            setStatus(config = config, status = McpStatus.Connected)
+            Log.i(TAG, "addClient: connected ${config.commonOptions.name}")
+        }.onFailure {
+            it.printStackTrace()
+            setStatus(config = config, status = McpStatus.Error(it.message ?: it.javaClass.name))
+        }
     }
 
     suspend fun sync(config: McpServerConfig) {
@@ -233,15 +224,19 @@ class McpManager(
                 it.printStackTrace()
             }
             clients.remove(entry.key)
-            Log.i(TAG, "removeClient: ${entry.key}")
+            syncingStatus.emit(syncingStatus.value.toMutableMap().apply { remove(entry.key.id) })
+            Log.i(TAG, "removeClient: ${entry.key} / ${entry.key.commonOptions.name}")
         }
     }
 
-    suspend fun closeAll() {
-        clients.values.forEach {
-            runCatching { it.close() }.onFailure { it.printStackTrace() }
-        }
-        clients.clear()
+    private suspend fun setStatus(config: McpServerConfig, status: McpStatus) {
+        syncingStatus.emit(syncingStatus.value.toMutableMap().apply {
+            put(config.id, status)
+        })
+    }
+
+    fun getStatus(config: McpServerConfig): Flow<McpStatus> {
+        return syncingStatus.map { it[config.id] ?: McpStatus.Idle }
     }
 }
 

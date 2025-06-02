@@ -2,6 +2,7 @@ package me.rerere.rikkahub.ui.components.chat
 
 import android.speech.tts.TextToSpeech
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -154,16 +155,16 @@ fun ChatMessage(
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             ModelIcon(
                 showIcon = showIcon,
                 message = message,
-                model = model
+                model = model,
+                modifier = Modifier.weight(1f)
             )
-            Spacer(modifier = Modifier.weight(1f))
             MessageNodePagerButtons(
                 node = node,
                 onUpdate = onUpdate
@@ -200,11 +201,12 @@ fun ChatMessage(
 private fun ModelIcon(
     showIcon: Boolean,
     message: UIMessage,
-    model: Model?
+    model: Model?,
+    modifier: Modifier = Modifier,
 ) {
     if (showIcon && message.role == MessageRole.ASSISTANT && !message.parts.isEmptyUIMessage() && model != null) {
         Row(
-            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+            modifier = modifier,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

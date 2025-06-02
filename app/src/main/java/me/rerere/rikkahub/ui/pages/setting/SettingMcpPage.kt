@@ -3,6 +3,7 @@ package me.rerere.rikkahub.ui.pages.setting
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -61,6 +62,7 @@ import com.composables.icons.lucide.Settings
 import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.X
 import kotlinx.coroutines.launch
+import me.rerere.ai.core.InputSchema
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.mcp.McpServerConfig
 import me.rerere.rikkahub.ui.components.nav.BackButton
@@ -313,7 +315,7 @@ private fun McpServerConfigModal(state: EditState<McpServerConfig>) {
                 ) {
                     TextButton(
                         onClick = {
-                            if(config.commonOptions.name.isNotBlank()) {
+                            if (config.commonOptions.name.isNotBlank()) {
                                 state.confirm()
                             }
                         }
@@ -592,7 +594,10 @@ private fun McpCommonOptionsConfigure(
                                 }
                             )
                         }) {
-                            Icon(Lucide.Trash2, contentDescription = stringResource(R.string.setting_mcp_page_delete_header))
+                            Icon(
+                                Lucide.Trash2,
+                                contentDescription = stringResource(R.string.setting_mcp_page_delete_header)
+                            )
                         }
                     }
                 }
@@ -615,7 +620,10 @@ private fun McpCommonOptionsConfigure(
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Icon(Lucide.Plus, contentDescription = stringResource(R.string.setting_mcp_page_add_header))
+                    Icon(
+                        Lucide.Plus,
+                        contentDescription = stringResource(R.string.setting_mcp_page_add_header)
+                    )
                     Spacer(Modifier.width(4.dp))
                     Text(stringResource(R.string.setting_mcp_page_add_header))
                 }
@@ -639,7 +647,8 @@ private fun McpToolsConfigure(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Column(
                         modifier = Modifier.weight(1f),
@@ -654,6 +663,22 @@ private fun McpToolsConfigure(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
                         )
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            tool.inputSchema?.let { it as InputSchema.Obj }?.let { schema ->
+                                schema.properties.forEach { (key, _) ->
+                                    Tag(
+                                        type = if(schema.required?.contains(key) == true ) TagType.INFO else TagType.DEFAULT
+                                    ) {
+                                        Text(
+                                            text = key,
+                                            style = MaterialTheme.typography.bodySmall,
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                     Switch(
                         checked = tool.enable,

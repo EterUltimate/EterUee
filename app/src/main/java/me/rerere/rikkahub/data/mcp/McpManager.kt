@@ -5,7 +5,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.sse.SSE
-import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.serialization.kotlinx.json.json
 import io.modelcontextprotocol.kotlin.sdk.CallToolRequest
 import io.modelcontextprotocol.kotlin.sdk.Implementation
@@ -52,7 +51,6 @@ class McpManager(
 //            }
 //        }
         install(SSE)
-        install(WebSockets)
     }
 
     private val clients: MutableMap<McpServerConfig, Client> = mutableMapOf()

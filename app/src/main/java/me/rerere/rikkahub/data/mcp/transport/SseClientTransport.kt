@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.data.mcp.transport
 
+import android.util.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.sse.ClientSSESession
 import io.ktor.client.plugins.sse.sseSession
@@ -12,6 +13,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.URLBuilder
 import io.ktor.http.append
 import io.ktor.http.isSuccess
+import io.ktor.http.parameters
 import io.ktor.http.path
 import io.ktor.http.takeFrom
 import io.modelcontextprotocol.kotlin.sdk.JSONRPCMessage
@@ -30,6 +32,8 @@ import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.properties.Delegates
 import kotlin.time.Duration
+
+private const val TAG = "SseClientTransport"
 
 @OptIn(ExperimentalAtomicApi::class)
 internal class SseClientTransport(
@@ -52,7 +56,8 @@ internal class SseClientTransport(
         URLBuilder()
             .takeFrom(session.call.request.url)
             .apply {
-                path()
+                path() // set path to empty
+                parameters.clear() //  clear parameters
             }
             .build()
             .toString()
@@ -133,7 +138,7 @@ internal class SseClientTransport(
 
             if (!response.status.isSuccess()) {
                 val text = response.bodyAsText()
-                error("Error POSTing to endpoint (HTTP ${response.status}): $text")
+                error("Error POSTing to endpoint ${endpoint.getCompleted()} (HTTP ${response.status}): $text")
             }
         } catch (e: Exception) {
             _onError(e)

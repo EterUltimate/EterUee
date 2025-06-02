@@ -22,8 +22,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.DrawerState
@@ -247,7 +249,8 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                     vm.deleteMessage(it)
                 },
                 onUpdateMessage = { newNode ->
-                    vm.updateConversation(conversation.copy(
+                    vm.updateConversation(
+                        conversation.copy(
                         messageNodes = conversation.messageNodes.map { node ->
                             if (node.id == newNode.id) {
                                 newNode
@@ -503,7 +506,8 @@ private fun ChatList(
                 selectedItems.clear()
             },
             conversation = conversation,
-            selectedMessages = conversation.messageNodes.filter { it.id in selectedItems }.map { it.currentMessage }
+            selectedMessages = conversation.messageNodes.filter { it.id in selectedItems }
+                .map { it.currentMessage }
         )
 
         // 滚动到底部按钮
@@ -887,14 +891,16 @@ private fun UpdateCard(vm: ChatVM) {
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = Instant.parse(info.publishedAt).toJavaInstant().toLocalDateTime()
-                            .toString(),
+                        text = Instant.parse(info.publishedAt).toJavaInstant().toLocalDateTime(),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary
                     )
                     MarkdownBlock(
                         content = info.changelog,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(400.dp)
+                            .verticalScroll(rememberScrollState()),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     info.downloads.fastForEach { downloadItem ->

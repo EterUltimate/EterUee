@@ -100,11 +100,6 @@ class SettingsStore(context: Context, scope: AppScope) {
                 } ?: emptyList()
             )
         }
-        .catch {
-            it.printStackTrace()
-            update(Settings())
-            emit(Settings())
-        }
         .map {
             var providers = it.providers.ifEmpty { DEFAULT_PROVIDERS }.toMutableList()
             DEFAULT_PROVIDERS.forEach { defaultProvider ->

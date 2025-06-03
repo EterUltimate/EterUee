@@ -1,11 +1,6 @@
 package me.rerere.rikkahub.data.mcp
 
 import android.util.Log
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.sse.SSE
-import io.ktor.serialization.kotlinx.json.json
 import io.modelcontextprotocol.kotlin.sdk.CallToolRequest
 import io.modelcontextprotocol.kotlin.sdk.Implementation
 import io.modelcontextprotocol.kotlin.sdk.Tool
@@ -30,6 +25,7 @@ import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.getCurrentAssistant
 import me.rerere.rikkahub.data.mcp.transport.SseClientTransport
 import me.rerere.rikkahub.utils.checkDifferent
+import okhttp3.OkHttpClient
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 
@@ -37,15 +33,9 @@ private const val TAG = "McpManager"
 
 class McpManager(
     private val settingsStore: SettingsStore,
-    private val appScope: AppScope
+    private val appScope: AppScope,
+    private val okHttpClient: OkHttpClient,
 ) {
-    private val httpClient = HttpClient(CIO) {
-        install(ContentNegotiation) {
-            json(McpJson)
-        }
-        install(SSE)
-    }
-
     private val clients: MutableMap<McpServerConfig, Client> = mutableMapOf()
     val syncingStatus = MutableStateFlow<Map<Uuid, McpStatus>>(mapOf())
 
@@ -127,15 +117,12 @@ class McpManager(
             is McpServerConfig.SseTransportServer -> {
                 SseClientTransport(
                     urlString = config.url,
-                    client = httpClient,
+                    client = okHttpClient,
                 )
             }
 
             is McpServerConfig.WebSocketServer -> {
-                WebSocketClientTransport(
-                    urlString = config.url,
-                    client = httpClient,
-                )
+                error("WebSocket is not support!")
             }
         }
         val client = Client(

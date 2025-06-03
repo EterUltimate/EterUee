@@ -34,7 +34,7 @@ val dataSourceModule = module {
         get<AppDatabase>().memoryDao()
     }
 
-    single { McpManager(get(), get()) }
+    single { McpManager(get(), get(), get()) }
 
     single { GenerationHandler(get(), get(), get()) }
 

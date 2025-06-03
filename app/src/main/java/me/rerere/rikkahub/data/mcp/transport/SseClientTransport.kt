@@ -1,60 +1,51 @@
 package me.rerere.rikkahub.data.mcp.transport
 
 import android.util.Log
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.sse.ClientSSESession
-import io.ktor.client.plugins.sse.sseSession
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
 import io.ktor.http.URLBuilder
-import io.ktor.http.append
-import io.ktor.http.isSuccess
-import io.ktor.http.parameters
 import io.ktor.http.path
 import io.ktor.http.takeFrom
 import io.modelcontextprotocol.kotlin.sdk.JSONRPCMessage
 import io.modelcontextprotocol.kotlin.sdk.shared.AbstractTransport
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
+import me.rerere.ai.util.await
 import me.rerere.rikkahub.data.mcp.McpJson
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import okhttp3.sse.EventSource
+import okhttp3.sse.EventSourceListener
+import okhttp3.sse.EventSources
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.properties.Delegates
-import kotlin.time.Duration
 
 private const val TAG = "SseClientTransport"
 
 @OptIn(ExperimentalAtomicApi::class)
 internal class SseClientTransport(
-    private val client: HttpClient,
-    private val urlString: String?,
-    private val reconnectionTime: Duration? = null,
-    private val requestBuilder: HttpRequestBuilder.() -> Unit = {},
+    private val client: OkHttpClient,
+    private val urlString: String,
 ) : AbstractTransport() {
-    private val scope by lazy {
-        CoroutineScope(session.coroutineContext + SupervisorJob())
-    }
-
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val eventSourceFactory = EventSources.createFactory(client)
     private val initialized: AtomicBoolean = AtomicBoolean(false)
-    private var session: ClientSSESession by Delegates.notNull()
+    private var session: EventSource by Delegates.notNull()
     private val endpoint = CompletableDeferred<String>()
 
     private var job: Job? = null
 
     private val baseUrl by lazy {
         URLBuilder()
-            .takeFrom(session.call.request.url)
+            .takeFrom(urlString)
             .apply {
                 path() // set path to empty
                 parameters.clear() //  clear parameters
@@ -71,56 +62,77 @@ internal class SseClientTransport(
             )
         }
 
-        session = urlString?.let {
-            client.sseSession(
-                urlString = it,
-                reconnectionTime = reconnectionTime,
-                block = requestBuilder,
-            )
-        } ?: client.sseSession(
-            reconnectionTime = reconnectionTime,
-            block = requestBuilder,
-        )
+        Log.i(TAG, "start: $urlString")
 
-        job = scope.launch(CoroutineName("SseMcpClientTransport.collect#${hashCode()}")) {
-            session.incoming.collect { event ->
-                when (event.event) {
-                    "error" -> {
-                        val e = IllegalStateException("SSE error: ${event.data}")
-                        _onError(e)
-                        throw e
-                    }
+        eventSourceFactory.newEventSource(
+            request = Request.Builder()
+                .url(urlString)
+                .build(),
+            listener = object : EventSourceListener() {
+                override fun onOpen(eventSource: EventSource, response: Response) {
+                    super.onOpen(eventSource, response)
+                    Log.i(TAG, "onOpen: $urlString")
+                }
 
-                    "open" -> {
-                        // The connection is open, but we need to wait for the endpoint to be received.
-                    }
+                override fun onClosed(eventSource: EventSource) {
+                    super.onClosed(eventSource)
+                    Log.i(TAG, "onClosed: $urlString")
+                }
 
-                    "endpoint" -> {
-                        try {
-                            val eventData = event.data ?: ""
+                override fun onFailure(
+                    eventSource: EventSource,
+                    t: Throwable?,
+                    response: Response?
+                ) {
+                    super.onFailure(eventSource, t, response)
+                    t?.printStackTrace()
+                    Log.i(TAG, "onFailure: $urlString / $t")
+                    _onError(t ?: Exception("SSE Failure"))
+                }
 
-                            val maybeEndpoint = baseUrl + eventData
-
-                            endpoint.complete(maybeEndpoint)
-                        } catch (e: Exception) {
+                override fun onEvent(
+                    eventSource: EventSource,
+                    id: String?,
+                    type: String?,
+                    data: String
+                ) {
+                    Log.i(TAG, "onEvent:  #$id($type) - $data")
+                    when (type) {
+                        "error" -> {
+                            val e = IllegalStateException("SSE error: $data")
                             _onError(e)
-                            close()
-                            error(e)
+                            throw e
                         }
-                    }
 
-                    else -> {
-                        try {
-                            val message = McpJson.decodeFromString<JSONRPCMessage>(event.data ?: "")
-                            _onMessage(message)
-                        } catch (e: Exception) {
-                            _onError(e)
+                        "open" -> {
+                            // The connection is open, but we need to wait for the endpoint to be received.
+                        }
+
+                        "endpoint" -> {
+                            val endpointData = if (data.startsWith("http://") || data.startsWith("https://")) {
+                                // 绝对路径，直接使用
+                                data
+                            } else {
+                                // 相对路径，加上baseUrl
+                                baseUrl + if (data.startsWith("/")) data else "/$data"
+                            }
+                            endpoint.complete(endpointData)
+                        }
+
+                        else -> {
+                            scope.launch {
+                                try {
+                                    val message = McpJson.decodeFromString<JSONRPCMessage>(data)
+                                    _onMessage(message)
+                                } catch (e: Exception) {
+                                    _onError(e)
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
-
+        )
         endpoint.await()
     }
 
@@ -131,14 +143,17 @@ internal class SseClientTransport(
         }
 
         try {
-            val response = client.post(endpoint.getCompleted()) {
-                headers.append(HttpHeaders.ContentType, ContentType.Application.Json)
-                setBody(McpJson.encodeToString(message))
-            }
+            val request = Request.Builder()
+                .url(endpoint.getCompleted())
+                .post(McpJson.encodeToString(message).toRequestBody(
+                    contentType = "application/json".toMediaType(),
+                ))
+                .build()
+            val response = client.newCall(request).await()
 
-            if (!response.status.isSuccess()) {
-                val text = response.bodyAsText()
-                error("Error POSTing to endpoint ${endpoint.getCompleted()} (HTTP ${response.status}): $text")
+            if (!response.isSuccessful) {
+                val text = response.body?.string()
+                error("Error POSTing to endpoint ${endpoint.getCompleted()} (HTTP ${response.code}): $text")
             }
         } catch (e: Exception) {
             _onError(e)

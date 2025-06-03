@@ -24,6 +24,7 @@ Click to join our Discord server 👉 [【RikkaHub】](https://discord.gg/9weBqx
 
 - 🎨 Modern Android app design (Material You / Predictive Back)
 - 🌙 Dark mode
+- 🛠️ MCP support
 - 🔄 Support for multiple provider types, custom API / URL / models (currently supports OpenAI, Google)
 - 🖼️ Multimodal input support
 - 📝 Markdown rendering (supports code highlighting, math formulas, tables, Mermaid)

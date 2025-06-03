@@ -25,6 +25,7 @@
 
 - 🎨 現代化安卓APP設計（Material You / 預測性返回）
 - 🌙 暗色模式
+- 🛠️ MCP 支持
 - 🔄 多種類型的供應商支持，自定義 API / URL / 模型（目前支持 OpenAI、Google）
 - 🖼️ 多模態輸入支持
 - 📝 Markdown 渲染（支持代碼高亮、數學公式、表格、Mermaid）

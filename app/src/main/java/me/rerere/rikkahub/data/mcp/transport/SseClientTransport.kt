@@ -88,6 +88,7 @@ internal class SseClientTransport(
                     t?.printStackTrace()
                     Log.i(TAG, "onFailure: $urlString / $t")
                     _onError(t ?: Exception("SSE Failure"))
+                    _onClose()
                 }
 
                 override fun onEvent(

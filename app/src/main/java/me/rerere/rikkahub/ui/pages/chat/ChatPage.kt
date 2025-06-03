@@ -297,7 +297,7 @@ private fun ChatList(
         if (lastItem.key == LoadingIndicatorKey || lastItem.key == ScrollBottomKey || lastItem.key == TokenUsageItemKey) {
             return true
         }
-        return lastItem.key == conversation.messageNodes.lastOrNull()?.id && (lastItem.offset + lastItem.size <= state.layoutInfo.viewportEndOffset + lastItem.size * 0.1 + 32)
+        return lastItem.key == conversation.messageNodes.lastOrNull()?.id && (lastItem.offset + lastItem.size <= state.layoutInfo.viewportEndOffset + lastItem.size * 0.15 + 32)
     }
     LaunchedEffect(state, conversation) {
         isAtBottom = state.layoutInfo.visibleItemsInfo.isAtBottom()

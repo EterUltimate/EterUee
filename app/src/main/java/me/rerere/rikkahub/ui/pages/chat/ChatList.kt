@@ -8,6 +8,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListItemInfo
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -49,6 +51,7 @@ import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.ChevronUp
 import com.composables.icons.lucide.Lucide
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.rerere.ai.core.MessageRole
@@ -318,101 +321,119 @@ fun ChatList(
         )
 
         // 滚动到底部按钮
-        AnimatedVisibility(
-            state.canScrollForward && isAtBottom,
-            modifier = Modifier.align(Alignment.BottomCenter),
-            enter = slideInVertically(
-                initialOffsetY = { it * 2 },
-            ),
-            exit = slideOutVertically(
-                targetOffsetY = { it * 2 },
-            ),
-        ) {
-            Surface(
-                shape = RoundedCornerShape(50),
-                modifier = Modifier.padding(8.dp),
-                onClick = {
-                    scrollToBottom()
-                },
-                border = BorderStroke(
-                    1.dp,
-                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                )
-            ) {
-                Row(
-                    modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Lucide.ChevronDown,
-                        contentDescription = "Scroll to bottom",
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Text(
-                        stringResource(R.string.chat_page_scroll_to_bottom),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
-        }
+        MessageQuickBottom(state = state, isAtBottom = isAtBottom, scrollToBottom = scrollToBottom)
 
         // 消息快速跳转
-        AnimatedVisibility(
-            isRecentScroll,
-            modifier = Modifier.align(Alignment.CenterEnd),
-            enter = slideInHorizontally(
-                initialOffsetX = { it * 2 },
-            ),
-            exit = slideOutHorizontally(
-                targetOffsetX = { it * 2 },
+        MessageJumper(isRecentScroll = isRecentScroll, scope = scope, state = state)
+    }
+}
+
+@Composable
+private fun BoxScope.MessageQuickBottom(
+    state: LazyListState,
+    isAtBottom: Boolean,
+    scrollToBottom: () -> Unit
+) {
+    AnimatedVisibility(
+        state.canScrollForward && isAtBottom,
+        modifier = Modifier.align(Alignment.BottomCenter),
+        enter = slideInVertically(
+            initialOffsetY = { it * 2 },
+        ),
+        exit = slideOutVertically(
+            targetOffsetY = { it * 2 },
+        ),
+    ) {
+        Surface(
+            shape = RoundedCornerShape(50),
+            modifier = Modifier.padding(8.dp),
+            onClick = {
+                scrollToBottom()
+            },
+            border = BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
             )
         ) {
-            Column(
-                modifier = Modifier.padding(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            Row(
+                modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Surface(
-                    onClick = {
-                        scope.launch {
-                            state.animateScrollToItem(
-                                (state.firstVisibleItemIndex - 1).fastCoerceAtLeast(
-                                    0
-                                )
+                Icon(
+                    Lucide.ChevronDown,
+                    contentDescription = "Scroll to bottom",
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(
+                    stringResource(R.string.chat_page_scroll_to_bottom),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun BoxScope.MessageJumper(
+    isRecentScroll: Boolean,
+    scope: CoroutineScope,
+    state: LazyListState
+) {
+    AnimatedVisibility(
+        isRecentScroll,
+        modifier = Modifier.align(Alignment.CenterEnd),
+        enter = slideInHorizontally(
+            initialOffsetX = { it * 2 },
+        ),
+        exit = slideOutHorizontally(
+            targetOffsetX = { it * 2 },
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Surface(
+                onClick = {
+                    scope.launch {
+                        state.animateScrollToItem(
+                            (state.firstVisibleItemIndex - 1).fastCoerceAtLeast(
+                                0
                             )
-                        }
-                    },
-                    shape = CircleShape,
-                    tonalElevation = 4.dp,
-                    color = MaterialTheme.colorScheme.surfaceColorAtElevation(
-                        4.dp
-                    ).copy(alpha = 0.65f)
-                ) {
-                    Icon(
-                        imageVector = Lucide.ChevronUp,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .padding(4.dp)
-                    )
-                }
-                Surface(
-                    onClick = {
-                        scope.launch {
-                            state.animateScrollToItem(state.firstVisibleItemIndex + 1)
-                        }
-                    },
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surfaceColorAtElevation(
-                        4.dp
-                    ).copy(alpha = 0.65f)
-                ) {
-                    Icon(
-                        imageVector = Lucide.ChevronDown,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .padding(4.dp)
-                    )
-                }
+                        )
+                    }
+                },
+                shape = CircleShape,
+                tonalElevation = 4.dp,
+                color = MaterialTheme.colorScheme.surfaceColorAtElevation(
+                    4.dp
+                ).copy(alpha = 0.65f)
+            ) {
+                Icon(
+                    imageVector = Lucide.ChevronUp,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(4.dp)
+                )
+            }
+            Surface(
+                onClick = {
+                    scope.launch {
+                        state.animateScrollToItem(state.firstVisibleItemIndex + 1)
+                    }
+                },
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surfaceColorAtElevation(
+                    4.dp
+                ).copy(alpha = 0.65f)
+            ) {
+                Icon(
+                    imageVector = Lucide.ChevronDown,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(4.dp)
+                )
             }
         }
     }

@@ -95,17 +95,15 @@ class McpManager(
         val config = clients.entries.first { it.value == client }.key
         Log.i(TAG, "callTool: $toolName / $args")
 
-        val result = withTimeout(15.seconds) {
-            if(client.transport == null) client.connect(getTransport(config))
-            client.callTool(
-                request = CallToolRequest(
-                    name = tool.name,
-                    arguments = args,
-                ),
-                options = RequestOptions(timeout = 15.seconds),
-                compatibility = true
-            )
-        }
+        if(client.transport == null) client.connect(getTransport(config))
+        val result = client.callTool(
+            request = CallToolRequest(
+                name = tool.name,
+                arguments = args,
+            ),
+            options = RequestOptions(timeout = 30.seconds),
+            compatibility = true
+        )
         require(result != null) {
             "Result is null"
         }

@@ -91,14 +91,6 @@ object SearXNGService : SearchService<SearchServiceOptions.SearXNGOptions> {
         val numberOfResults: Int,
         @SerialName("results")
         val results: List<SearXNGResult>,
-        @SerialName("answers")
-        val answers: List<String> = emptyList(),
-        @SerialName("corrections")
-        val corrections: List<String> = emptyList(),
-        @SerialName("suggestions")
-        val suggestions: List<String> = emptyList(),
-        @SerialName("unresponsive_engines")
-        val unresponsiveEngines: List<List<String>> = emptyList()
     )
 
     @Serializable

@@ -370,24 +370,21 @@ private fun ChatList(
                         selectedKeys = selectedItems,
                         enabled = selecting && node.currentMessage.isValidToShowActions(),
                     ) {
-                        // Determine if the current message is fully loaded
                         val isLastMessage = index == conversation.messageNodes.lastIndex
                         val isAssistantMessage = node.role == MessageRole.ASSISTANT
-                        // The message is considered fully loaded if:
-                        // 1. It's not the last assistant message (i.e., it's a historical message).
-                        // 2. Or, it IS the last assistant message, AND the global 'loading' (generation job) is false.
-                        // 3. Or, it's a user message.
-                        val isMessageFullyLoaded = if (isLastMessage && isAssistantMessage) {
+
+                        // 计算是否显示操作菜单的最终标志
+                        val showActionsForThisMessage = if (isLastMessage && isAssistantMessage) {
                             !loading
                         } else {
-                            true
+                            node.currentMessage.isValidToShowActions()
                         }
 
                         ChatMessage(
                             node = node,
                             showIcon = settings.displaySetting.showModelIcon,
                             model = node.currentMessage.modelId?.let { settings.findModelById(it) },
-                            isFullyLoaded = isMessageFullyLoaded, // Pass the new parameter
+                            showActions = showActionsForThisMessage, 
                             onRegenerate = {
                                 onRegenerate(node.currentMessage)
                             },

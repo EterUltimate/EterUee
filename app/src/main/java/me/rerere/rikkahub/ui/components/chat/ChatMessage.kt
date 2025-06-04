@@ -139,7 +139,7 @@ fun ChatMessage(
     modifier: Modifier = Modifier,
     showIcon: Boolean = true,
     model: Model? = null,
-    isFullyLoaded: Boolean,
+    showActions: Boolean, 
     onFork: () -> Unit,
     onRegenerate: () -> Unit,
     onEdit: () -> Unit,
@@ -147,10 +147,10 @@ fun ChatMessage(
     onDelete: () -> Unit,
     onUpdate: (MessageNode) -> Unit
 ) {
-    val message = node.messages[node.selectIndex]
+    val message = node.messages[node.selectIndex] 
     Column(
         modifier = modifier
-            .fillMaxWidth(), // Add this to the root Column of ChatMessage
+            .fillMaxWidth(),
         horizontalAlignment = if (message.role == MessageRole.USER) Alignment.End else Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -178,7 +178,7 @@ fun ChatMessage(
             annotations = message.annotations,
         )
         AnimatedVisibility(
-            visible = message.isValidToShowActions() && isFullyLoaded,
+            visible = showActions, 
             enter = slideInVertically { it / 2 } + fadeIn(),
             exit = slideOutVertically { it / 2 } + fadeOut()
         ) {
@@ -186,7 +186,7 @@ fun ChatMessage(
                 modifier = Modifier.animateContentSize()
             ) {
                 Actions(
-                    message = message,
+                    message = message, 
                     model = model,
                     onRegenerate = onRegenerate,
                     onEdit = onEdit,

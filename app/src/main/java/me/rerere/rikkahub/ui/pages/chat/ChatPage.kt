@@ -322,6 +322,19 @@ private fun ChatList(
             }
         }
 
+        // 用户发送消息后滚动到底部
+        LaunchedEffect(conversation.messageNodes.lastOrNull()?.id) {
+            val lastNode = conversation.messageNodes.lastOrNull()
+            // 检查最后一条消息是否是用户发送的
+            if (lastNode?.currentMessage?.role == MessageRole.USER) {
+                if (conversation.messageNodes.isNotEmpty()) {
+                    scope.launch { 
+                        state.animateScrollToItem(conversation.messageNodes.lastIndex)
+                    }
+                }
+            }
+        }
+
         // 判断最近是否滚动
         LaunchedEffect(state.isScrollInProgress) {
             if (state.isScrollInProgress) {

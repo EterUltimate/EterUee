@@ -27,7 +27,6 @@ import okhttp3.sse.EventSourceListener
 import okhttp3.sse.EventSources
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
-import kotlin.properties.Delegates
 
 private const val TAG = "SseClientTransport"
 
@@ -97,6 +96,7 @@ internal class SseClientTransport(
                     super.onFailure(eventSource, t, response)
                     t?.printStackTrace()
                     Log.i(TAG, "onFailure: $urlString / $t")
+                    endpoint.completeExceptionally(t ?: Exception("SSE Failure"))
                     _onError(t ?: Exception("SSE Failure"))
                     _onClose()
                 }

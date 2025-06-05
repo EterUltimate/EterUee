@@ -43,6 +43,7 @@ class McpManager(
                 .map { settings -> settings.mcpServers }
                 .collect { mcpServerConfigs ->
                     runCatching {
+                        Log.i(TAG, "update configs: $mcpServerConfigs")
                         val newConfigs = mcpServerConfigs.filter { it.commonOptions.enable }
                         val currentConfigs = clients.keys.toList()
                         val (toAdd, toRemove) = currentConfigs.checkDifferent(
@@ -51,16 +52,14 @@ class McpManager(
                         )
                         Log.i(TAG, "to_add: $toAdd")
                         Log.i(TAG, "to_remove: $toRemove")
-                        coroutineScope {
-                            toAdd.forEach { cfg ->
-                                launch {
-                                    runCatching { addClient(cfg) }
-                                        .onFailure { it.printStackTrace() }
-                                }
+                        toAdd.forEach { cfg ->
+                            appScope.launch {
+                                runCatching { addClient(cfg) }
+                                    .onFailure { it.printStackTrace() }
                             }
-                            toRemove.forEach { cfg ->
-                                launch { removeClient(cfg) }
-                            }
+                        }
+                        toRemove.forEach { cfg ->
+                            appScope.launch { removeClient(cfg) }
                         }
                     }.onFailure {
                         it.printStackTrace()

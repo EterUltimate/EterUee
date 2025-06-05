@@ -217,7 +217,7 @@ private fun LeaderBoard() {
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             LeaderBoardItem(
-                url = "https://beta.lmarena.ai/leaderboard",
+                url = "https://lmarena.ai/leaderboard",
                 name = "LMArena"
             )
 

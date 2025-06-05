@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.ClassDiscriminatorMode
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -70,7 +69,9 @@ class McpManager(
         }
     }
 
-    fun getClient(config: McpServerConfig): Client? = clients[config]
+    fun getClient(config: McpServerConfig): Client? {
+        return clients.entries.find { it.key.id == config.id }?.value
+    }
 
     fun getAllAvailableTools(): List<McpTool> {
         val settings = settingsStore.settingsFlow.value

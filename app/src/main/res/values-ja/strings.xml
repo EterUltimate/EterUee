@@ -59,6 +59,8 @@
     <string name="setting_page_providers_desc">AIプロバイダーを設定</string>
     <string name="setting_page_search_service">検索サービス</string>
     <string name="setting_page_search_service_desc">検索サービスを設定</string>
+    <string name="setting_page_mcp">MCP</string>
+    <string name="setting_page_mcp_desc">MCPサーバーを設定</string>
     <string name="setting_page_assistant">アシスタント</string>
     <string name="setting_page_assistant_desc">カスタムアシスタント（エージェント）を設定</string>
     <string name="setting_page_about">アプリについて</string>
@@ -239,4 +241,42 @@
     <!-- MCP Picker -->
     <string name="mcp_picker_title">MCPサーバー</string>
     <string name="mcp_picker_syncing">MCPサーバーを同期中...</string>
+
+    <!-- Setting Provider Page -->
+    <string name="setting_provider_page_title">プロバイダー</string>
+    <string name="setting_provider_page_scan_error">エラー: %s</string>
+    <string name="setting_provider_page_no_permission">権限がありません</string>
+    <string name="setting_provider_page_import_success">インポートに成功しました</string>
+    <string name="setting_provider_page_add_provider">プロバイダーを追加</string>
+    <string name="setting_provider_page_add">追加</string>
+    <string name="setting_provider_page_enabled">有効</string>
+    <string name="setting_provider_page_disabled">無効</string>
+    <string name="setting_provider_page_model_count">%dモデル</string>
+    <string name="setting_provider_page_share">共有</string>
+    <string name="setting_provider_page_models">モデル</string>
+    <string name="setting_provider_page_configuration">設定</string>
+    <string name="setting_provider_page_save_success">保存に成功しました</string>
+    <string name="setting_provider_page_save">保存</string>
+    <string name="setting_provider_page_no_models">モデルがありません</string>
+    <string name="setting_provider_page_add_models_hint">下のボタンをクリックしてモデルを追加</string>
+    <string name="setting_provider_page_add_new_model">新しいモデルを追加</string>
+    <string name="setting_provider_page_add_model">モデルを追加</string>
+    <string name="setting_provider_page_model_id">モデルID</string>
+    <string name="setting_provider_page_model_id_placeholder">例：gpt-3.5-turbo</string>
+    <string name="setting_provider_page_model_display_name">モデル表示名</string>
+    <string name="setting_provider_page_model_display_name_placeholder">例：GPT-3.5、UI表示用</string>
+    <string name="setting_provider_page_model_type">モデルタイプ</string>
+    <string name="setting_provider_page_chat_model">チャットモデル</string>
+    <string name="setting_provider_page_embedding_model">埋め込みモデル</string>
+    <string name="setting_provider_page_input_modality">入力モダリティ</string>
+    <string name="setting_provider_page_output_modality">出力モダリティ</string>
+    <string name="setting_provider_page_text">テキスト</string>
+    <string name="setting_provider_page_image">画像</string>
+    <string name="setting_provider_page_abilities">能力</string>
+    <string name="setting_provider_page_tool">ツール</string>
+    <string name="setting_provider_page_reasoning">推論</string>
+    <string name="setting_provider_page_filter_placeholder">モデル名を入力してフィルタ</string>
+    <string name="setting_provider_page_filter_example">例：GPT-3.5</string>
+    <string name="setting_provider_page_edit_model">モデルを編集</string>
+    <string name="setting_provider_page_model_name">モデル名</string>
 </resources> 

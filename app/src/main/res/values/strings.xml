@@ -58,6 +58,8 @@
     <string name="setting_page_providers_desc">Configure AI providers</string>
     <string name="setting_page_search_service">Search Service</string>
     <string name="setting_page_search_service_desc">Set up search service</string>
+    <string name="setting_page_mcp">MCP</string>
+    <string name="setting_page_mcp_desc">Configure MCP Servers</string>
     <string name="setting_page_assistant">Assistant</string>
     <string name="setting_page_assistant_desc">Set up personalized assistants (agents)</string>
     <string name="setting_page_about">About</string>
@@ -237,4 +239,42 @@
     <!-- MCP Picker -->
     <string name="mcp_picker_title">MCP Servers</string>
     <string name="mcp_picker_syncing">Syncing MCP servers...</string>
+
+    <!-- Setting Provider Page -->
+    <string name="setting_provider_page_title">Providers</string>
+    <string name="setting_provider_page_scan_error">Error: %s</string>
+    <string name="setting_provider_page_no_permission">No permission</string>
+    <string name="setting_provider_page_import_success">Import successful</string>
+    <string name="setting_provider_page_add_provider">Add Provider</string>
+    <string name="setting_provider_page_add">Add</string>
+    <string name="setting_provider_page_enabled">Enabled</string>
+    <string name="setting_provider_page_disabled">Disabled</string>
+    <string name="setting_provider_page_model_count">%d models</string>
+    <string name="setting_provider_page_share">Share</string>
+    <string name="setting_provider_page_models">Models</string>
+    <string name="setting_provider_page_configuration">Configuration</string>
+    <string name="setting_provider_page_save_success">Save successful</string>
+    <string name="setting_provider_page_save">Save</string>
+    <string name="setting_provider_page_no_models">No models</string>
+    <string name="setting_provider_page_add_models_hint">Click the button below to add models</string>
+    <string name="setting_provider_page_add_new_model">Add New Model</string>
+    <string name="setting_provider_page_add_model">Add Model</string>
+    <string name="setting_provider_page_model_id">Model ID</string>
+    <string name="setting_provider_page_model_id_placeholder">e.g.: gpt-3.5-turbo</string>
+    <string name="setting_provider_page_model_display_name">Model Display Name</string>
+    <string name="setting_provider_page_model_display_name_placeholder">e.g.: GPT-3.5, for UI display</string>
+    <string name="setting_provider_page_model_type">Model Type</string>
+    <string name="setting_provider_page_chat_model">Chat Model</string>
+    <string name="setting_provider_page_embedding_model">Embedding Model</string>
+    <string name="setting_provider_page_input_modality">Input Modality</string>
+    <string name="setting_provider_page_output_modality">Output Modality</string>
+    <string name="setting_provider_page_text">Text</string>
+    <string name="setting_provider_page_image">Image</string>
+    <string name="setting_provider_page_abilities">Abilities</string>
+    <string name="setting_provider_page_tool">Tool</string>
+    <string name="setting_provider_page_reasoning">Reasoning</string>
+    <string name="setting_provider_page_filter_placeholder">Enter model name to filter</string>
+    <string name="setting_provider_page_filter_example">e.g.: GPT-3.5</string>
+    <string name="setting_provider_page_edit_model">Edit Model</string>
+    <string name="setting_provider_page_model_name">Model Name</string>
 </resources>

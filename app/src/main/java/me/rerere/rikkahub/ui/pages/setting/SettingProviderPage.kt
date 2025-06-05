@@ -53,7 +53,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFilter
@@ -83,6 +85,7 @@ import me.rerere.ai.provider.ProviderManager
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.guessModalityFromModelId
 import me.rerere.ai.provider.guessModelAbilityFromModelId
+import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.ShareSheet
@@ -107,7 +110,7 @@ fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "提供商")
+                    Text(text = stringResource(R.string.setting_provider_page_title))
                 },
                 navigationIcon = {
                     BackButton()
@@ -205,22 +208,23 @@ private fun ImportProviderButton(
     onAdd: (ProviderSetting) -> Unit
 ) {
     val toaster = LocalToaster.current
+    val context = LocalContext.current
     val scanQrCodeLauncher = rememberLauncherForActivityResult(ScanQRCode()) { result ->
         // handle QRResult
         runCatching {
             when (result) {
                 is QRResult.QRError -> {
-                    toaster.show("错误: $result", type = ToastType.Error)
+                    toaster.show(context.getString(R.string.setting_provider_page_scan_error, result), type = ToastType.Error)
                 }
 
                 QRResult.QRMissingPermission -> {
-                    toaster.show("没有权限", type = ToastType.Error)
+                    toaster.show(context.getString(R.string.setting_provider_page_no_permission), type = ToastType.Error)
                 }
 
                 is QRResult.QRSuccess -> {
                     val setting = decodeProviderSetting(result.content.rawValue ?: "")
                     onAdd(setting)
-                    toaster.show("导入成功", type = ToastType.Error)
+                    toaster.show(context.getString(R.string.setting_provider_page_import_success), type = ToastType.Success)
                 }
 
                 QRResult.QRUserCanceled -> {}
@@ -256,7 +260,7 @@ private fun AddButton(onAdd: (ProviderSetting) -> Unit) {
                 dialogState.dismiss()
             },
             title = {
-                Text("添加提供商")
+                Text(stringResource(R.string.setting_provider_page_add_provider))
             },
             text = {
                 dialogState.currentState?.let {
@@ -271,7 +275,7 @@ private fun AddButton(onAdd: (ProviderSetting) -> Unit) {
                         dialogState.confirm()
                     }
                 ) {
-                    Text("添加")
+                    Text(stringResource(R.string.setting_provider_page_add))
                 }
             },
             dismissButton = {
@@ -280,7 +284,7 @@ private fun AddButton(onAdd: (ProviderSetting) -> Unit) {
                         dialogState.dismiss()
                     }
                 ) {
-                    Text("取消")
+                    Text(stringResource(R.string.cancel))
                 }
             },
         )
@@ -303,6 +307,7 @@ private fun ProviderItem(
     onDelete: () -> Unit
 ) {
     val toaster = LocalToaster.current
+    val context = LocalContext.current
 
     // 临时复制一份用于编辑, 因为data store是异步操作的，会导致UI编辑不同步
     var internalProvider by remember(provider) { mutableStateOf(provider) }
@@ -350,10 +355,10 @@ private fun ProviderItem(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Tag(type = if (provider.enabled) TagType.SUCCESS else TagType.WARNING) {
-                            Text(if (provider.enabled) "启用" else "禁用")
+                            Text(stringResource(if (provider.enabled) R.string.setting_provider_page_enabled else R.string.setting_provider_page_disabled))
                         }
                         Tag(type = TagType.INFO) {
-                            Text("${provider.models.size}个模型")
+                            Text(stringResource(R.string.setting_provider_page_model_count, provider.models.size))
                         }
                     }
                 }
@@ -378,7 +383,7 @@ private fun ProviderItem(
                             .padding(end = 8.dp)
                             .size(16.dp)
                     )
-                    Text("分享")
+                    Text(stringResource(R.string.setting_provider_page_share))
                 }
                 TextButton(
                     onClick = {
@@ -392,7 +397,7 @@ private fun ProviderItem(
                             .padding(end = 8.dp)
                             .size(16.dp)
                     )
-                    Text("模型")
+                    Text(stringResource(R.string.setting_provider_page_models))
                 }
                 TextButton(
                     onClick = {
@@ -406,7 +411,7 @@ private fun ProviderItem(
                             .padding(end = 8.dp)
                             .size(16.dp)
                     )
-                    Text("配置")
+                    Text(stringResource(R.string.setting_provider_page_configuration))
                 }
             }
 
@@ -443,12 +448,12 @@ private fun ProviderItem(
                     Button(
                         onClick = {
                             onEdit(internalProvider)
-                            toaster.show("保存成功", type = ToastType.Success)
+                            toaster.show(context.getString(R.string.setting_provider_page_save_success), type = ToastType.Success)
                             expand = ProviderExpandState.None
                         }
                     ) {
                         Icon(Lucide.Pencil, "Delete")
-                        Text("保存", modifier = Modifier.padding(start = 4.dp))
+                        Text(stringResource(R.string.setting_provider_page_save), modifier = Modifier.padding(start = 4.dp))
                     }
                 }
             }
@@ -490,12 +495,12 @@ private fun ModelList(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "暂无模型",
+                    text = stringResource(R.string.setting_provider_page_no_models),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "点击下方按钮添加模型",
+                    text = stringResource(R.string.setting_provider_page_add_models_hint),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
@@ -593,9 +598,9 @@ private fun AddModelButton(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Lucide.Plus, contentDescription = "添加模型")
+                Icon(Lucide.Plus, contentDescription = stringResource(R.string.setting_provider_page_add_model))
                 Spacer(modifier = Modifier.size(8.dp))
-                Text("添加新模型", style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(R.string.setting_provider_page_add_new_model), style = MaterialTheme.typography.bodyLarge)
             }
         }
     }
@@ -607,7 +612,7 @@ private fun AddModelButton(
                     dialogState.dismiss()
                 },
                 title = {
-                    Text("添加模型")
+                    Text(stringResource(R.string.setting_provider_page_add_model))
                 },
                 text = {
                     Column(
@@ -618,10 +623,10 @@ private fun AddModelButton(
                             onValueChange = {
                                 setModelId(it.trim())
                             },
-                            label = { Text("模型ID") },
+                            label = { Text(stringResource(R.string.setting_provider_page_model_id)) },
                             modifier = Modifier.fillMaxWidth(),
                             placeholder = {
-                                Text("例如：gpt-3.5-turbo")
+                                Text(stringResource(R.string.setting_provider_page_model_id_placeholder))
                             },
                         )
 
@@ -632,10 +637,10 @@ private fun AddModelButton(
                                     displayName = it.trim()
                                 )
                             },
-                            label = { Text("模型显示名称") },
+                            label = { Text(stringResource(R.string.setting_provider_page_model_display_name)) },
                             modifier = Modifier.fillMaxWidth(),
                             placeholder = {
-                                Text("例如：GPT-3.5, 用于UI显示")
+                                Text(stringResource(R.string.setting_provider_page_model_display_name_placeholder))
                             }
                         )
 
@@ -682,7 +687,7 @@ private fun AddModelButton(
                             }
                         },
                     ) {
-                        Text("添加")
+                        Text(stringResource(R.string.setting_provider_page_add))
                     }
                 },
                 dismissButton = {
@@ -691,7 +696,7 @@ private fun AddModelButton(
                             dialogState.dismiss()
                         },
                     ) {
-                        Text("取消")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             )
@@ -792,10 +797,10 @@ private fun ModelPicker(
                     onValueChange = {
                         filterText = it
                     },
-                    label = { Text("输入模型名称筛选") },
+                    label = { Text(stringResource(R.string.setting_provider_page_filter_placeholder)) },
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = {
-                        Text("例如：GPT-3.5")
+                        Text(stringResource(R.string.setting_provider_page_filter_example))
                     },
                 )
             }
@@ -825,7 +830,7 @@ private fun ModelTypeSelector(
     selectedType: ModelType,
     onTypeSelected: (ModelType) -> Unit
 ) {
-    Text("模型类型", style = MaterialTheme.typography.titleSmall)
+    Text(stringResource(R.string.setting_provider_page_model_type), style = MaterialTheme.typography.titleSmall)
     SingleChoiceSegmentedButtonRow(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -834,10 +839,10 @@ private fun ModelTypeSelector(
                 shape = SegmentedButtonDefaults.itemShape(index, ModelType.entries.size),
                 label = {
                     Text(
-                        text = when (type) {
-                            ModelType.CHAT -> "聊天模型"
-                            ModelType.EMBEDDING -> "嵌入模型"
-                        }
+                        text = stringResource(when (type) {
+                            ModelType.CHAT -> R.string.setting_provider_page_chat_model
+                            ModelType.EMBEDDING -> R.string.setting_provider_page_embedding_model
+                        })
                     )
                 },
                 selected = selectedType == type,
@@ -854,7 +859,7 @@ private fun ModelModalitySelector(
     outputModalities: List<Modality>,
     onUpdateOutputModalities: (List<Modality>) -> Unit
 ) {
-    Text("输入模态", style = MaterialTheme.typography.titleSmall)
+    Text(stringResource(R.string.setting_provider_page_input_modality), style = MaterialTheme.typography.titleSmall)
     MultiChoiceSegmentedButtonRow(
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -871,15 +876,15 @@ private fun ModelModalitySelector(
                 }
             ) {
                 Text(
-                    text = when (modality) {
-                        Modality.TEXT -> "文本"
-                        Modality.IMAGE -> "图片"
-                    }
+                    text = stringResource(when (modality) {
+                        Modality.TEXT -> R.string.setting_provider_page_text
+                        Modality.IMAGE -> R.string.setting_provider_page_image
+                    })
                 )
             }
         }
     }
-    Text("输出模态", style = MaterialTheme.typography.titleSmall)
+    Text(stringResource(R.string.setting_provider_page_output_modality), style = MaterialTheme.typography.titleSmall)
     MultiChoiceSegmentedButtonRow(
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -896,10 +901,10 @@ private fun ModelModalitySelector(
                 }
             ) {
                 Text(
-                    text = when (modality) {
-                        Modality.TEXT -> "文本"
-                        Modality.IMAGE -> "图片"
-                    }
+                    text = stringResource(when (modality) {
+                        Modality.TEXT -> R.string.setting_provider_page_text
+                        Modality.IMAGE -> R.string.setting_provider_page_image
+                    })
                 )
             }
         }
@@ -911,7 +916,7 @@ fun ModalAbilitySelector(
     abilities: List<ModelAbility>,
     onUpdateAbilities: (List<ModelAbility>) -> Unit
 ) {
-    Text("能力", style = MaterialTheme.typography.titleSmall)
+    Text(stringResource(R.string.setting_provider_page_abilities), style = MaterialTheme.typography.titleSmall)
     MultiChoiceSegmentedButtonRow(
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -928,10 +933,10 @@ fun ModalAbilitySelector(
                 },
                 label = {
                     Text(
-                        text = when (ability) {
-                            ModelAbility.TOOL -> "工具"
-                            ModelAbility.REASONING -> "推理"
-                        }
+                        text = stringResource(when (ability) {
+                            ModelAbility.TOOL -> R.string.setting_provider_page_tool
+                            ModelAbility.REASONING -> R.string.setting_provider_page_reasoning
+                        })
                     )
                 }
             )
@@ -957,7 +962,7 @@ private fun ModelCard(
         AlertDialog(
             onDismissRequest = { dialogState.dismiss() },
             title = {
-                Text("编辑模型")
+                Text(stringResource(R.string.setting_provider_page_edit_model))
             },
             text = {
                 Column(
@@ -966,7 +971,7 @@ private fun ModelCard(
                     OutlinedTextField(
                         value = editingModel.modelId,
                         onValueChange = {},
-                        label = { Text("模型ID") },
+                        label = { Text(stringResource(R.string.setting_provider_page_model_id)) },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = false
                     )
@@ -976,7 +981,7 @@ private fun ModelCard(
                         onValueChange = {
                             updateEditingModel(editingModel.copy(displayName = it.trim()))
                         },
-                        label = { Text("模型名称") },
+                        label = { Text(stringResource(R.string.setting_provider_page_model_name)) },
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -1012,7 +1017,7 @@ private fun ModelCard(
                         }
                     }
                 ) {
-                    Text("确定")
+                    Text(stringResource(R.string.confirm))
                 }
             },
             dismissButton = {
@@ -1021,7 +1026,7 @@ private fun ModelCard(
                         dialogState.dismiss()
                     }
                 ) {
-                    Text("取消")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -1054,7 +1059,7 @@ private fun ModelCard(
                         }
                     }
                 ) {
-                    Icon(Lucide.Trash2, contentDescription = "删除")
+                    Icon(Lucide.Trash2, contentDescription = stringResource(R.string.chat_page_delete))
                 }
             }
         },
@@ -1093,10 +1098,10 @@ private fun ModelCard(
                             type = TagType.INFO
                         ) {
                             Text(
-                                text = when (model.type) {
-                                    ModelType.CHAT -> "聊天模型"
-                                    ModelType.EMBEDDING -> "嵌入模型"
-                                }
+                                text = stringResource(when (model.type) {
+                                    ModelType.CHAT -> R.string.setting_provider_page_chat_model
+                                    ModelType.EMBEDDING -> R.string.setting_provider_page_embedding_model
+                                })
                             )
                         }
                         Tag(

@@ -234,8 +234,8 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
             item {
                 SettingItem(
                     navController = navController,
-                    title = { Text("MCP") },
-                    description = { Text("配置MCP Servers") },
+                    title = { Text(stringResource(R.string.setting_page_mcp)) },
+                    description = { Text(stringResource(R.string.setting_page_mcp_desc)) },
                     icon = { Icon(Lucide.Terminal, "MCP")},
                     link = "setting/mcp"
                 )

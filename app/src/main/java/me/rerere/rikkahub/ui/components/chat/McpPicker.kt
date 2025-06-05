@@ -46,6 +46,8 @@ import me.rerere.rikkahub.data.mcp.McpManager
 import me.rerere.rikkahub.data.mcp.McpServerConfig
 import me.rerere.rikkahub.data.mcp.McpStatus
 import me.rerere.rikkahub.data.model.Assistant
+import me.rerere.rikkahub.ui.components.ui.Tag
+import me.rerere.rikkahub.ui.components.ui.TagType
 import org.koin.compose.koinInject
 
 @Composable
@@ -160,20 +162,24 @@ fun McpPicker(
                             text = server.commonOptions.name,
                             style = MaterialTheme.typography.titleLarge,
                         )
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = when (status) {
-                                    is McpStatus.Idle -> "Idle"
-                                    is McpStatus.Connecting -> "Connecting"
-                                    is McpStatus.Connected -> "Connected"
-                                    is McpStatus.Error -> "Error: ${(status as McpStatus.Error).message}"
-                                },
-                                style = MaterialTheme.typography.labelSmall,
-                                color = LocalContentColor.current.copy(alpha = 0.8f)
-                            )
+                        Text(
+                            text = when (status) {
+                                is McpStatus.Idle -> "Idle"
+                                is McpStatus.Connecting -> "Connecting"
+                                is McpStatus.Connected -> "Connected"
+                                is McpStatus.Error -> "Error: ${(status as McpStatus.Error).message}"
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = LocalContentColor.current.copy(alpha = 0.8f)
+                        )
+                        if(status == McpStatus.Connected) {
+                            val tools = server.commonOptions.tools
+                            val enabledTools = tools.fastFilter { it.enable }
+                            Tag(
+                                type = TagType.INFO
+                            ) {
+                                Text("${enabledTools.size}/${tools.size} tools")
+                            }
                         }
                     }
                     Switch(

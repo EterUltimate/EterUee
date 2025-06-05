@@ -168,6 +168,7 @@
     <string name="model_list_favorite">Favorites</string>
     <string name="model_list_chat">Chat</string>
     <string name="model_list_embedding">Embedding</string>
+    <string name="model_list_search_placeholder">Enter model name to search</string>
     
     <!-- Code Block -->
     <string name="code_block_copy">Copy Code</string>

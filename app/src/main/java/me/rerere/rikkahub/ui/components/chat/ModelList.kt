@@ -2,6 +2,7 @@ package me.rerere.rikkahub.ui.components.chat
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -10,16 +11,19 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -122,7 +126,10 @@ fun ModelSelector(
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         ) {
             Column(
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxHeight(0.8f)
+                    .imePadding(),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 val filteredProviderSettings = providers.fastFilter {
@@ -156,7 +163,7 @@ fun ModelSelector(
 }
 
 @Composable
-fun ModelList(
+private fun ColumnScope.ModelList(
     providers: List<ProviderSetting>,
     modelType: ModelType,
     allowFavorite: Boolean = true,
@@ -168,13 +175,14 @@ fun ModelList(
         .fastFilter {
             it.favorite && it.type == modelType
         }
+    var searchKeywords by remember { mutableStateOf("") }
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         contentPadding = PaddingValues(8.dp),
         modifier = Modifier
-            .fillMaxWidth()
-            .height(500.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .weight(1f)
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         if (providers.isEmpty()) {
             item {
@@ -251,7 +259,7 @@ fun ModelList(
             }
 
             items(
-                items = providerSetting.models.fastFilter { it.type == modelType },
+                items = providerSetting.models.fastFilter { it.type == modelType && it.displayName.contains(searchKeywords, true) },
                 key = { it.id }
             ) { model ->
                 ModelItem(
@@ -259,7 +267,7 @@ fun ModelList(
                     onSelect = onSelect,
                     modifier = Modifier.animateItem(),
                     tail = {
-                        if(allowFavorite) {
+                        if (allowFavorite) {
                             IconButton(
                                 onClick = {
                                     onUpdate(
@@ -290,6 +298,17 @@ fun ModelList(
             }
         }
     }
+    OutlinedTextField(
+        value = searchKeywords,
+        onValueChange = { searchKeywords = it },
+        modifier = Modifier.fillMaxWidth(),
+        placeholder = {
+            Text(
+                text = stringResource(R.string.model_list_search_placeholder),
+            )
+        },
+        shape = RoundedCornerShape(50)
+    )
 }
 
 @Composable

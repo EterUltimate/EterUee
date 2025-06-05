@@ -170,6 +170,7 @@
     <string name="model_list_favorite">お気に入り</string>
     <string name="model_list_chat">チャット</string>
     <string name="model_list_embedding">埋め込み</string>
+    <string name="model_list_search_placeholder">モデル名を入力して検索</string>
 
     <!-- Code Block -->
     <string name="code_block_copy">コードをコピー</string>

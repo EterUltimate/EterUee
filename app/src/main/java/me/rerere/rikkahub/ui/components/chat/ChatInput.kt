@@ -11,6 +11,11 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.content.MediaType
+import androidx.compose.foundation.content.ReceiveContentListener
+import androidx.compose.foundation.content.consume
+import androidx.compose.foundation.content.contentReceiver
+import androidx.compose.foundation.content.hasMediaType
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -312,11 +317,28 @@ fun ChatInput(
                     }
                     var isFocused by remember { mutableStateOf(false) }
                     var isFullScreen by remember { mutableStateOf(false) }
+                    val receiveContentListener = remember {
+                        ReceiveContentListener { transferableContent ->
+                            when {
+                                transferableContent.hasMediaType(MediaType.Image) -> {
+                                    transferableContent.consume { item ->
+                                        val uri = item.uri
+                                        if (uri != null) {
+                                            state.addImages(context.createChatFilesByContents(listOf(uri)))
+                                        }
+                                        uri != null
+                                    }
+                                }
+                                else -> transferableContent
+                            }
+                        }
+                    }
                     TextField(
                         value = text.text,
                         onValueChange = { state.setMessageText(it) },
                         modifier = Modifier
                             .fillMaxWidth()
+                            .contentReceiver(receiveContentListener)
                             .onFocusChanged {
                                 isFocused = it.isFocused
                             },

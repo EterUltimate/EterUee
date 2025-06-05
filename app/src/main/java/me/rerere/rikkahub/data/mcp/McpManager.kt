@@ -115,6 +115,7 @@ class McpManager(
             SseClientTransport(
                 urlString = config.url,
                 client = okHttpClient,
+                headers = config.commonOptions.headers,
             )
         }
 

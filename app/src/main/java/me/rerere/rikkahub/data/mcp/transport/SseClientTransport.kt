@@ -16,6 +16,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import me.rerere.ai.util.await
 import me.rerere.rikkahub.data.mcp.McpJson
+import okhttp3.Headers
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -34,11 +35,12 @@ private const val TAG = "SseClientTransport"
 internal class SseClientTransport(
     private val client: OkHttpClient,
     private val urlString: String,
+    private val headers: List<Pair<String, String>>,
 ) : AbstractTransport() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val eventSourceFactory = EventSources.createFactory(client)
     private val initialized: AtomicBoolean = AtomicBoolean(false)
-    private var session: EventSource by Delegates.notNull()
+    private var session: EventSource? = null
     private val endpoint = CompletableDeferred<String>()
 
     private var job: Job? = null
@@ -67,6 +69,14 @@ internal class SseClientTransport(
         eventSourceFactory.newEventSource(
             request = Request.Builder()
                 .url(urlString)
+                .headers(
+                    Headers.Builder()
+                    .apply {
+                        for ((key, value) in headers) {
+                            add(key, value)
+                        }
+                    }
+                    .build())
                 .build(),
             listener = object : EventSourceListener() {
                 override fun onOpen(eventSource: EventSource, response: Response) {
@@ -110,13 +120,14 @@ internal class SseClientTransport(
                         }
 
                         "endpoint" -> {
-                            val endpointData = if (data.startsWith("http://") || data.startsWith("https://")) {
-                                // 绝对路径，直接使用
-                                data
-                            } else {
-                                // 相对路径，加上baseUrl
-                                baseUrl + if (data.startsWith("/")) data else "/$data"
-                            }
+                            val endpointData =
+                                if (data.startsWith("http://") || data.startsWith("https://")) {
+                                    // 绝对路径，直接使用
+                                    data
+                                } else {
+                                    // 相对路径，加上baseUrl
+                                    baseUrl + if (data.startsWith("/")) data else "/$data"
+                                }
                             endpoint.complete(endpointData)
                         }
 
@@ -146,9 +157,16 @@ internal class SseClientTransport(
         try {
             val request = Request.Builder()
                 .url(endpoint.getCompleted())
-                .post(McpJson.encodeToString(message).toRequestBody(
-                    contentType = "application/json".toMediaType(),
-                ))
+                .apply {
+                    for ((key, value) in headers) {
+                        addHeader(key, value)
+                    }
+                }
+                .post(
+                    McpJson.encodeToString(message).toRequestBody(
+                        contentType = "application/json".toMediaType(),
+                    )
+                )
                 .build()
             val response = client.newCall(request).await()
 
@@ -167,7 +185,7 @@ internal class SseClientTransport(
             error("SSEClientTransport is not initialized!")
         }
 
-        session.cancel()
+        session?.cancel()
         _onClose()
         job?.cancelAndJoin()
     }

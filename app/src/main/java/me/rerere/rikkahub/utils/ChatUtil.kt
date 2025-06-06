@@ -4,6 +4,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.provider.DocumentsContract
+import android.provider.OpenableColumns
 import android.util.Log
 import androidx.core.net.toFile
 import androidx.core.net.toUri
@@ -106,6 +108,32 @@ fun Context.createChatFilesByByteArrays(byteArrays: List<ByteArray>): List<Uri> 
         newUris.add(newUri)
     }
     return newUris
+}
+
+fun Context.getFileNameFromUri(uri: Uri): String? {
+    var fileName: String? = null
+    val projection = arrayOf(
+        OpenableColumns.DISPLAY_NAME,
+        DocumentsContract.Document.COLUMN_DISPLAY_NAME // 优先尝试 DocumentProvider 标准列
+    )
+    contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+        // 移动到第一行结果
+        if (cursor.moveToFirst()) {
+            // 尝试获取 DocumentsContract.Document.COLUMN_DISPLAY_NAME 的索引
+            val documentDisplayNameIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
+            if (documentDisplayNameIndex != -1) {
+                fileName = cursor.getString(documentDisplayNameIndex)
+            } else {
+                // 如果 DocumentProvider 标准列不存在，尝试 OpenableColumns.DISPLAY_NAME
+                val openableDisplayNameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (openableDisplayNameIndex != -1) {
+                    fileName = cursor.getString(openableDisplayNameIndex)
+                }
+            }
+        }
+    }
+    // 如果查询失败或没有获取到名称，fileName 会保持 null
+    return fileName
 }
 
 @OptIn(ExperimentalEncodingApi::class)

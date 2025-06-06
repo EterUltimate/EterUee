@@ -39,6 +39,7 @@ import me.rerere.ai.ui.transformers.MessageTimeTransformer
 import me.rerere.ai.ui.transformers.PlaceholderTransformer
 import me.rerere.ai.ui.transformers.ThinkTagTransformer
 import me.rerere.rikkahub.data.ai.Base64ImageToLocalFileTransformer
+import me.rerere.rikkahub.data.ai.DocumentAsPromptTransformer
 import me.rerere.rikkahub.data.ai.GenerationChunk
 import me.rerere.rikkahub.data.ai.GenerationHandler
 import me.rerere.rikkahub.data.datastore.Settings
@@ -68,6 +69,7 @@ private const val TAG = "ChatVM"
 private val inputTransformers by lazy {
     listOf(
         PlaceholderTransformer,
+        DocumentAsPromptTransformer,
     )
 }
 

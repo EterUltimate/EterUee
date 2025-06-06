@@ -26,12 +26,21 @@ data class Conversation(
     val updateAt: Instant = Instant.now(),
 ) {
     val files: List<Uri>
-        get() = messageNodes
-            .flatMap { node -> node.messages.flatMap { it.parts } }
-            .filterIsInstance<UIMessagePart.Image>()
-            .mapNotNull {
-                it.url.takeIf { it.startsWith("file://") }?.toUri()
-            }
+        get() {
+            val images = messageNodes
+                .flatMap { node -> node.messages.flatMap { it.parts } }
+                .filterIsInstance<UIMessagePart.Image>()
+                .mapNotNull {
+                    it.url.takeIf { it.startsWith("file://") }?.toUri()
+                }
+            val documents = messageNodes
+                .flatMap { node -> node.messages.flatMap { it.parts } }
+                .filterIsInstance<UIMessagePart.Document>()
+                .mapNotNull {
+                    it.url.takeIf { it.startsWith("file://") }?.toUri()
+                }
+            return images + documents
+        }
 
     val currentMessages
         /**

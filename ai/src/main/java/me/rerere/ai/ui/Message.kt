@@ -172,7 +172,7 @@ data class UIMessage(
     }
 
     fun isValidToShowActions() = parts.any {
-        (it is UIMessagePart.Text && it.text.isNotBlank()) || it is UIMessagePart.Image
+        (it is UIMessagePart.Text && it.text.isNotBlank()) || it is UIMessagePart.Image || it is UIMessagePart.Document
     }
 
     inline fun <reified P : UIMessagePart> hasPart(): Boolean {
@@ -221,7 +221,7 @@ fun List<UIMessage>.handleMessageChunk(chunk: MessageChunk, model: Model? = null
 }
 
 /**
- * 判断这个消息是否有有任何可编辑的内容
+ * 判断这个消息是否有有任何内容
  * 例如，文本，图片...
  */
 fun List<UIMessagePart>.isEmptyInputMessage(): Boolean {
@@ -230,6 +230,7 @@ fun List<UIMessagePart>.isEmptyInputMessage(): Boolean {
         when (message) {
             is UIMessagePart.Text -> message.text.isBlank()
             is UIMessagePart.Image -> message.url.isBlank()
+            is UIMessagePart.Document -> message.url.isBlank()
             else -> true
         }
     }
@@ -244,6 +245,7 @@ fun List<UIMessagePart>.isEmptyUIMessage(): Boolean {
         when (message) {
             is UIMessagePart.Text -> message.text.isBlank()
             is UIMessagePart.Image -> message.url.isBlank()
+            is UIMessagePart.Document -> message.url.isBlank()
             is UIMessagePart.Reasoning -> message.reasoning.isBlank()
             else -> true
         }
@@ -266,6 +268,11 @@ sealed class UIMessagePart {
 
     @Serializable
     data class Image(val url: String) : UIMessagePart() {
+        override val priority: Int = 1
+    }
+
+    @Serializable
+    data class Document(val url: String, val fileName: String): UIMessagePart() {
         override val priority: Int = 1
     }
 

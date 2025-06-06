@@ -1,7 +1,10 @@
 package me.rerere.rikkahub.ui.components.chat
 
 import android.Manifest
+import android.content.ContentResolver
 import android.net.Uri
+import android.provider.DocumentsContract
+import android.provider.OpenableColumns
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -16,6 +19,7 @@ import androidx.compose.foundation.content.ReceiveContentListener
 import androidx.compose.foundation.content.consume
 import androidx.compose.foundation.content.contentReceiver
 import androidx.compose.foundation.content.hasMediaType
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,13 +30,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BasicAlertDialog
@@ -42,6 +49,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
@@ -50,6 +58,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -68,8 +77,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
@@ -79,6 +90,7 @@ import com.composables.icons.lucide.Camera
 import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.Ellipsis
 import com.composables.icons.lucide.Eraser
+import com.composables.icons.lucide.Files
 import com.composables.icons.lucide.Fullscreen
 import com.composables.icons.lucide.Image
 import com.composables.icons.lucide.Lucide
@@ -107,6 +119,7 @@ import me.rerere.rikkahub.ui.components.ui.KeepScreenOn
 import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.createChatFilesByContents
 import me.rerere.rikkahub.utils.deleteChatFiles
+import me.rerere.rikkahub.utils.getFileNameFromUri
 import java.io.File
 import kotlin.uuid.Uuid
 
@@ -146,6 +159,19 @@ class ChatInputState {
         val newMessage = messageContent.toMutableList()
         uris.forEach { uri ->
             newMessage.add(UIMessagePart.Image(uri.toString()))
+        }
+        messageContent = newMessage
+    }
+
+    fun addFiles(uris: List<Pair<Uri, String>>) {
+        val newMessage = messageContent.toMutableList()
+        uris.forEach { uri ->
+            newMessage.add(
+                UIMessagePart.Document(
+                    url = uri.first.toString(),
+                    fileName = uri.second
+                )
+            )
         }
         messageContent = newMessage
     }
@@ -247,8 +273,9 @@ fun ChatInput(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp)
+                    .horizontalScroll(rememberScrollState())
             ) {
-                state.messageContent.filterIsInstance<UIMessagePart.Image>().forEach { image ->
+                state.messageContent.filterIsInstance<UIMessagePart.Image>().fastForEach { image ->
                     Box {
                         Surface(
                             modifier = Modifier.size(48.dp),
@@ -280,6 +307,51 @@ fun ChatInput(
                         )
                     }
                 }
+                state.messageContent.filterIsInstance<UIMessagePart.Document>()
+                    .fastForEach { document ->
+                        Box {
+                            Surface(
+                                modifier = Modifier
+                                    .height(48.dp)
+                                    .widthIn(max = 128.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                tonalElevation = 4.dp
+                            ) {
+                                CompositionLocalProvider(
+                                    LocalContentColor provides MaterialTheme.colorScheme.onSurface.copy(
+                                        0.8f
+                                    )
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(4.dp)
+                                    ) {
+                                        Text(
+                                            text = document.fileName,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                    }
+                                }
+                            }
+                            Icon(
+                                imageVector = Lucide.X,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .size(20.dp)
+                                    .clickable {
+                                        // Remove image
+                                        state.messageContent =
+                                            state.messageContent.filterNot { it == document }
+                                        // Delete image
+                                        context.deleteChatFiles(listOf(document.url.toUri()))
+                                    }
+                                    .align(Alignment.TopEnd)
+                                    .background(MaterialTheme.colorScheme.secondary),
+                                tint = MaterialTheme.colorScheme.onSecondary
+                            )
+                        }
+                    }
             }
 
             // TextField
@@ -324,11 +396,18 @@ fun ChatInput(
                                     transferableContent.consume { item ->
                                         val uri = item.uri
                                         if (uri != null) {
-                                            state.addImages(context.createChatFilesByContents(listOf(uri)))
+                                            state.addImages(
+                                                context.createChatFilesByContents(
+                                                    listOf(
+                                                        uri
+                                                    )
+                                                )
+                                            )
                                         }
                                         uri != null
                                     }
                                 }
+
                                 else -> transferableContent
                             }
                         }
@@ -545,6 +624,11 @@ private fun FilesPicker(state: ChatInputState, onDismiss: () -> Unit) {
             state.addImages(it)
             onDismiss()
         }
+
+        FilePickButton {
+            state.addFiles(it)
+            onDismiss()
+        }
     }
 }
 
@@ -679,6 +763,34 @@ fun TakePicButton(onAddImages: (List<Uri>) -> Unit = {}) {
         }
     }
 }
+
+@Composable
+fun FilePickButton(onAddFiles: (List<Pair<Uri, String>>) -> Unit = {}) {
+    val context = LocalContext.current
+    val pickMedia =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) {
+                val localUri = context.createChatFilesByContents(listOf(uri))[0]
+                val fileName = context.getFileNameFromUri(uri) ?: "file"
+                onAddFiles(
+                    listOf(
+                        localUri to fileName
+                    )
+                )
+            }
+        }
+    BigIconTextButton(
+        icon = {
+            Icon(Lucide.Files, null)
+        },
+        text = {
+            Text("上传文件")
+        }
+    ) {
+        pickMedia.launch(arrayOf("text/plain"))
+    }
+}
+
 
 @Composable
 private fun BigIconTextButton(

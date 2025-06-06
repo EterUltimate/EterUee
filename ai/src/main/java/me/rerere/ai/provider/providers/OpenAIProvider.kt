@@ -427,7 +427,7 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
                 }
                 toolCalls.forEach { toolCalls ->
                     val type = toolCalls.jsonObject["type"]?.jsonPrimitive?.contentOrNull
-                    if (type != null && type != "function") error("tool call type not supported: $type")
+                    if (!type.isNullOrEmpty() && type != "function") error("tool call type not supported: $type")
                     val toolCallId = toolCalls.jsonObject["id"]?.jsonPrimitive?.contentOrNull
                     val toolName =
                         toolCalls.jsonObject["function"]?.jsonObject?.get("name")?.jsonPrimitive?.contentOrNull

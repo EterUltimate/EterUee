@@ -292,7 +292,7 @@ sealed class UIMessagePart {
     ) : UIMessagePart() {
         fun merge(other: ToolCall): ToolCall {
             return ToolCall(
-                toolCallId = toolCallId + other.toolCallId,
+                toolCallId = toolCallId,
                 toolName = toolName + other.toolName,
                 arguments = arguments + other.arguments
             )

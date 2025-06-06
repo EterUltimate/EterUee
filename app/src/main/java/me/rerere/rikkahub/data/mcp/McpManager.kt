@@ -149,7 +149,10 @@ class McpManager(
     suspend fun sync(config: McpServerConfig) {
         val client = clients[config] ?: return
 
+        setStatus(config = config, status = McpStatus.Connecting)
+
         // Update tools
+        if(client.transport == null) { client.connect(getTransport(config)) }
         val serverTools = client.listTools()?.tools ?: emptyList()
         Log.i(TAG, "sync: tools: $serverTools")
         settingsStore.update { old ->
@@ -202,6 +205,8 @@ class McpManager(
                 }
             )
         }
+
+        setStatus(config = config, status = McpStatus.Connected)
     }
 
     suspend fun syncAll() {

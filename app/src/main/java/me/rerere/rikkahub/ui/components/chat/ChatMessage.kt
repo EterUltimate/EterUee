@@ -1,8 +1,8 @@
 package me.rerere.rikkahub.ui.components.chat
 
+import android.content.Intent
 import android.speech.tts.TextToSpeech
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,11 +27,10 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,9 +42,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -80,6 +78,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
+import androidx.core.content.FileProvider
+import androidx.core.net.toFile
+import androidx.core.net.toUri
 import com.composables.icons.lucide.BookDashed
 import com.composables.icons.lucide.BookHeart
 import com.composables.icons.lucide.ChevronDown
@@ -90,6 +91,7 @@ import com.composables.icons.lucide.CircleStop
 import com.composables.icons.lucide.Copy
 import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.Expand
+import com.composables.icons.lucide.File
 import com.composables.icons.lucide.GitFork
 import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.Lucide
@@ -139,7 +141,7 @@ fun ChatMessage(
     modifier: Modifier = Modifier,
     showIcon: Boolean = true,
     model: Model? = null,
-    showActions: Boolean, 
+    showActions: Boolean,
     onFork: () -> Unit,
     onRegenerate: () -> Unit,
     onEdit: () -> Unit,
@@ -147,16 +149,18 @@ fun ChatMessage(
     onDelete: () -> Unit,
     onUpdate: (MessageNode) -> Unit
 ) {
-    val message = node.messages[node.selectIndex] 
+    val message = node.messages[node.selectIndex]
     Column(
         modifier = modifier
             .fillMaxWidth(),
         horizontalAlignment = if (message.role == MessageRole.USER) Alignment.End else Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        if(!message.parts.isEmptyUIMessage()) {
+        if (!message.parts.isEmptyUIMessage()) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
@@ -178,7 +182,7 @@ fun ChatMessage(
             annotations = message.annotations,
         )
         AnimatedVisibility(
-            visible = showActions, 
+            visible = showActions,
             enter = slideInVertically { it / 2 } + fadeIn(),
             exit = slideOutVertically { it / 2 } + fadeOut()
         ) {
@@ -186,7 +190,7 @@ fun ChatMessage(
                 modifier = Modifier.animateContentSize()
             ) {
                 Actions(
-                    message = message, 
+                    message = message,
                     model = model,
                     onRegenerate = onRegenerate,
                     onEdit = onEdit,
@@ -400,7 +404,7 @@ private fun MessageNodePagerButtons(
             contentDescription = "Prev",
             modifier = Modifier
                 .clip(CircleShape)
-                .alpha( if (node.selectIndex == 0) 0.5f else 1f)
+                .alpha(if (node.selectIndex == 0) 0.5f else 1f)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = LocalIndication.current,
@@ -428,7 +432,7 @@ private fun MessageNodePagerButtons(
             contentDescription = "Next",
             modifier = Modifier
                 .clip(CircleShape)
-                .alpha( if (node.selectIndex == node.messages.lastIndex) 0.5f else 1f)
+                .alpha(if (node.selectIndex == node.messages.lastIndex) 0.5f else 1f)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = LocalIndication.current,
@@ -454,6 +458,7 @@ fun MessagePartsBlock(
     parts: List<UIMessagePart>,
     annotations: List<UIMessageAnnotation>,
 ) {
+    val context = LocalContext.current
     val contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
     val navController = LocalNavController.current
 
@@ -627,8 +632,52 @@ fun MessagePartsBlock(
                 contentDescription = null,
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
-                    .width(72.dp)
+                    .height(72.dp)
             )
+        }
+    }
+
+    // Documents
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        val documents = parts.filterIsInstance<UIMessagePart.Document>()
+        documents.fastForEach {
+            Surface(
+                tonalElevation = 2.dp,
+                onClick = {
+                    val intent = Intent(Intent.ACTION_VIEW)
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    intent.data = FileProvider.getUriForFile(
+                        context,
+                        "${context.packageName}.fileprovider",
+                        it.url.toUri().toFile()
+                    )
+                    val chooserIndent = Intent.createChooser(intent, null)
+                    context.startActivity(chooserIndent)
+                },
+                modifier = Modifier,
+                shape = RoundedCornerShape(50),
+            ) {
+                Row(
+                    modifier = Modifier.padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Lucide.File,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(
+                        text = it.fileName,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .widthIn(max = 200.dp)
+                    )
+                }
+            }
         }
     }
 }

@@ -61,6 +61,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -84,6 +85,7 @@ import com.composables.icons.lucide.MessageCirclePlus
 import com.composables.icons.lucide.Settings
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.ui.UIMessage
@@ -138,6 +140,29 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
     val currentChatModel by vm.currentChatModel.collectAsStateWithLifecycle()
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val nextConversationId by vm.nextConversationAfterSwitch.collectAsStateWithLifecycle()
+
+    // 新增 LaunchedEffect 来处理抽屉关闭时的导航逻辑
+    LaunchedEffect(drawerState, navController) {
+        // 使用 snapshotFlow 监听抽屉状态的变化
+        snapshotFlow { drawerState.isClosed }
+            .filter { it } // 只关心抽屉变为关闭(true)的事件
+            .collect {
+                // 当抽屉关闭时，检查是否有待导航的对话ID
+                nextConversationId?.let { targetId ->
+                    // 执行导航
+                    navController.navigate("chat/$targetId") {
+                        // 从后退栈中弹出当前页面，避免返回时回到旧的聊天页
+                        popUpTo("chat/$id") {
+                            inclusive = true
+                        }
+                        // 避免创建多个实例
+                        launchSingleTop = true
+                    }
+                }
+            }
+    }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -430,11 +455,12 @@ private fun DrawerContent(
                 settings = settings,
                 onUpdateSettings = {
                     vm.updateSettings(it)
-                    navigateToChatPage(navController)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 onClickSetting = {
-                    navController.navigate("assistant")
+                    val currentAssistantId = settings.assistantId
+                    // 直接导航到该助手的详细设置页面
+                    navController.navigate("assistant/$currentAssistantId") 
                 }
             )
             Row(

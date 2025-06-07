@@ -13,6 +13,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -130,6 +133,22 @@ class ChatVM(
                 }
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    // 新增 StateFlow，用于追踪切换助手后应导航到的对话
+    val nextConversationAfterSwitch: StateFlow<Uuid?> = settings
+        .map { it.assistantId } // 1. 监听助手ID的变化
+        .distinctUntilChanged()
+        .combine(conversations) { assistantId, conversationList -> // 2. 结合最新的对话列表
+            // 只有在助手ID确实改变后才处理，避免不必要的计算
+            // 并且确保当前的对话不属于新助手
+            if (conversation.value.assistantId != assistantId) {
+                // 3. 找到新助手的第一个对话，如果不存在，则创建一个新的随机ID
+                conversationList.firstOrNull()?.id ?: Uuid.random()
+            } else {
+                null // 如果助手没变，则不触发导航
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     // 当前模型
     val currentChatModel = settings

@@ -142,7 +142,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val nextConversationId by vm.nextConversationAfterSwitch.collectAsStateWithLifecycle()
 
-    // 新增 LaunchedEffect 来处理抽屉关闭时的导航逻辑
+    // 处理抽屉关闭时的导航逻辑
     LaunchedEffect(drawerState, navController) {
         // 使用 snapshotFlow 监听抽屉状态的变化
         snapshotFlow { drawerState.isClosed }
@@ -150,15 +150,7 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
             .collect {
                 // 当抽屉关闭时，检查是否有待导航的对话ID
                 nextConversationId?.let { targetId ->
-                    // 执行导航
-                    navController.navigate("chat/$targetId") {
-                        // 从后退栈中弹出当前页面，避免返回时回到旧的聊天页
-                        popUpTo("chat/$id") {
-                            inclusive = true
-                        }
-                        // 避免创建多个实例
-                        launchSingleTop = true
-                    }
+                    navigateToChatPage(navController, targetId)
                 }
             }
     }
@@ -459,7 +451,6 @@ private fun DrawerContent(
                 modifier = Modifier.fillMaxWidth(),
                 onClickSetting = {
                     val currentAssistantId = settings.assistantId
-                    // 直接导航到该助手的详细设置页面
                     navController.navigate("assistant/$currentAssistantId") 
                 }
             )

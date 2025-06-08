@@ -520,7 +520,7 @@ private fun ConnectionTester(
         AlertDialog(
             onDismissRequest = { showTestDialog = false },
             title = {
-                Text("测试连接")
+                Text(stringResource(R.string.setting_provider_page_test_connection))
             },
             text = {
                 Column(
@@ -540,7 +540,7 @@ private fun ConnectionTester(
                         }
 
                         is UiState.Success -> {
-                            Text("测试成功")
+                            Text(stringResource(R.string.setting_provider_page_test_success))
                         }
 
                         is UiState.Error -> {
@@ -580,7 +580,7 @@ private fun ConnectionTester(
                         }
                     }
                 ) {
-                    Text("Test")
+                    Text(stringResource(R.string.setting_provider_page_test))
                 }
             }
         )

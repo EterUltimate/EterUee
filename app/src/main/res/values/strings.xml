@@ -277,6 +277,9 @@
     <string name="setting_provider_page_filter_example">e.g.: GPT-3.5</string>
     <string name="setting_provider_page_edit_model">Edit Model</string>
     <string name="setting_provider_page_model_name">Model Name</string>
+    <string name="setting_provider_page_test_connection">Test Connection</string>
+    <string name="setting_provider_page_test_success">Test Successful</string>
+    <string name="setting_provider_page_test">Test</string>
 
     <!-- Chat Message Tool Calls -->
     <string name="chat_message_tool_create_memory">Created memory</string>

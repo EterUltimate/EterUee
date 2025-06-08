@@ -278,6 +278,9 @@
     <string name="setting_provider_page_filter_example">例如：GPT-3.5</string>
     <string name="setting_provider_page_edit_model">編輯模型</string>
     <string name="setting_provider_page_model_name">模型名稱</string>
+    <string name="setting_provider_page_test_connection">測試連接</string>
+    <string name="setting_provider_page_test_success">測試成功</string>
+    <string name="setting_provider_page_test">測試</string>
 
     <!-- Chat Message Tool Calls -->
     <string name="chat_message_tool_create_memory">創建了記憶</string>

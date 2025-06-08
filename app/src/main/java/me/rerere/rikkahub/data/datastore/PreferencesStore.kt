@@ -139,6 +139,10 @@ class SettingsStore(context: Context, scope: AppScope) {
                         is ProviderSetting.Google -> provider.copy(
                             models = provider.models.distinctBy { model -> model.id }
                         )
+
+                        is ProviderSetting.Claude -> provider.copy(
+                            models = provider.models.distinctBy { model -> model.id }
+                        )
                     }
                 },
                 assistants = settings.assistants.distinctBy { it.id },

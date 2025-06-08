@@ -289,7 +289,7 @@ private fun ColumnScope.Actions(
                     .size(16.dp)
             )
             Icon(
-                Lucide.Trash, "Delete",
+                Lucide.Trash, stringResource(R.string.delete),
                 modifier = Modifier
                     .clip(CircleShape)
                     .clickable(
@@ -545,11 +545,14 @@ fun MessagePartsBlock(
                     Column {
                         Text(
                             text = when (toolCall.toolName) {
-                                "create_memory" -> "创建了记忆"
-                                "edit_memory" -> "更新了记忆"
-                                "delete_memory" -> "删除了记忆"
-                                "search_web" -> "搜索网页: ${toolCall.arguments.jsonObject["query"]?.jsonPrimitive?.content}"
-                                else -> "调用工具 ${toolCall.toolName}"
+                                "create_memory" -> stringResource(R.string.chat_message_tool_create_memory)
+                                "edit_memory" -> stringResource(R.string.chat_message_tool_edit_memory)
+                                "delete_memory" -> stringResource(R.string.chat_message_tool_delete_memory)
+                                "search_web" -> stringResource(
+                                    R.string.chat_message_tool_search_web,
+                                    toolCall.arguments.jsonObject["query"]?.jsonPrimitive?.content ?: ""
+                                )
+                                else -> stringResource(R.string.chat_message_tool_call_generic, toolCall.toolName)
                             },
                             style = MaterialTheme.typography.labelSmall,
                         )
@@ -706,7 +709,10 @@ private fun ToolCallPreviewDialog(
             ) {
                 when (toolCall.toolName) {
                     "search_web" -> {
-                        Text("搜索: ${toolCall.arguments.jsonObject["query"]?.jsonPrimitive?.content}")
+                        Text(stringResource(
+                            R.string.chat_message_tool_search_prefix,
+                            toolCall.arguments.jsonObject["query"]?.jsonPrimitive?.content ?: ""
+                        ))
                         val items = toolCall.content.jsonObject["items"]?.jsonArray ?: emptyList()
                         if (items.isNotEmpty()) {
                             LazyColumn(
@@ -775,14 +781,14 @@ private fun ToolCallPreviewDialog(
 
                     else -> {
                         Text(
-                            text = "工具调用",
+                            text = stringResource(R.string.chat_message_tool_call_title),
                             style = MaterialTheme.typography.headlineSmall,
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Center
                         )
                         FormItem(
                             label = {
-                                Text("调用工具 ${toolCall.toolName}")
+                                Text(stringResource(R.string.chat_message_tool_call_label, toolCall.toolName))
                             }
                         ) {
                             HighlightCodeBlock(
@@ -793,7 +799,7 @@ private fun ToolCallPreviewDialog(
                         }
                         FormItem(
                             label = {
-                                Text("调用结果")
+                                Text(stringResource(R.string.chat_message_tool_call_result))
                             }
                         ) {
                             HighlightCodeBlock(

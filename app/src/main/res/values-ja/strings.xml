@@ -279,4 +279,16 @@
     <string name="setting_provider_page_filter_example">例：GPT-3.5</string>
     <string name="setting_provider_page_edit_model">モデルを編集</string>
     <string name="setting_provider_page_model_name">モデル名</string>
+
+    <!-- Chat Message Tool Calls -->
+    <string name="chat_message_tool_create_memory">記憶を作成しました</string>
+    <string name="chat_message_tool_edit_memory">記憶を更新しました</string>
+    <string name="chat_message_tool_delete_memory">記憶を削除しました</string>
+    <string name="chat_message_tool_search_web">ウェブ検索: %1$s</string>
+    <string name="chat_message_tool_call_generic">ツール %1$s を呼び出しました</string>
+    <string name="chat_message_tool_search_prefix">検索: %1$s</string>
+    <string name="chat_message_tool_call_title">ツール呼び出し</string>
+    <string name="chat_message_tool_call_label">ツール %1$s を呼び出しました</string>
+    <string name="chat_message_tool_call_result">呼び出し結果</string>
+    <string name="delete">削除</string>
 </resources> 

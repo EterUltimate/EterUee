@@ -1,41 +1,22 @@
 package me.rerere.rikkahub.ui.pages.chat
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListItemInfo
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -44,24 +25,19 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -69,13 +45,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastCoerceAtLeast
 import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.composables.icons.lucide.Check
-import com.composables.icons.lucide.ChevronDown
-import com.composables.icons.lucide.ChevronUp
 import com.composables.icons.lucide.Download
 import com.composables.icons.lucide.History
 import com.composables.icons.lucide.ListTree
@@ -84,25 +56,19 @@ import com.composables.icons.lucide.Menu
 import com.composables.icons.lucide.MessageCirclePlus
 import com.composables.icons.lucide.Settings
 import com.dokar.sonner.ToastType
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import me.rerere.ai.core.MessageRole
-import me.rerere.ai.ui.UIMessage
 import me.rerere.rikkahub.BuildConfig
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.Settings
-import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.getCurrentAssistant
 import me.rerere.rikkahub.data.datastore.getCurrentChatModel
 import me.rerere.rikkahub.data.model.Conversation
-import me.rerere.rikkahub.data.model.MessageNode
+import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.ui.components.chat.AssistantPicker
 import me.rerere.rikkahub.ui.components.chat.ChatInput
-import me.rerere.rikkahub.ui.components.chat.ChatMessage
 import me.rerere.rikkahub.ui.components.chat.rememberChatInputState
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
-import me.rerere.rikkahub.ui.components.ui.ListSelectableItem
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.ui.hooks.EditStateContent
@@ -115,6 +81,7 @@ import me.rerere.rikkahub.utils.onError
 import me.rerere.rikkahub.utils.onSuccess
 import me.rerere.rikkahub.utils.toLocalDateTime
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 import kotlin.time.toJavaInstant
@@ -140,20 +107,6 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
     val currentChatModel by vm.currentChatModel.collectAsStateWithLifecycle()
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val nextConversationId by vm.nextConversationAfterSwitch.collectAsStateWithLifecycle()
-
-    // 处理抽屉关闭时的导航逻辑
-    LaunchedEffect(drawerState, navController) {
-        // 使用 snapshotFlow 监听抽屉状态的变化
-        snapshotFlow { drawerState.isClosed }
-            .filter { it } // 只关心抽屉变为关闭(true)的事件
-            .collect {
-                // 当抽屉关闭时，检查是否有待导航的对话ID
-                nextConversationId?.let { targetId ->
-                    navigateToChatPage(navController, targetId)
-                }
-            }
-    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -269,14 +222,14 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
                 onUpdateMessage = { newNode ->
                     vm.updateConversation(
                         conversation.copy(
-                        messageNodes = conversation.messageNodes.map { node ->
-                            if (node.id == newNode.id) {
-                                newNode
-                            } else {
-                                node
+                            messageNodes = conversation.messageNodes.map { node ->
+                                if (node.id == newNode.id) {
+                                    newNode
+                                } else {
+                                    node
+                                }
                             }
-                        }
-                    ))
+                        ))
                     vm.saveConversationAsync()
                 }
             )
@@ -408,6 +361,7 @@ private fun DrawerContent(
     conversations: List<Conversation>,
     loading: Boolean,
 ) {
+    val scope = rememberCoroutineScope()
     ModalDrawerSheet(
         modifier = Modifier.width(300.dp)
     ) {
@@ -443,15 +397,22 @@ private fun DrawerContent(
                     }
                 }
             )
+            val repo = koinInject<ConversationRepository>()
             AssistantPicker(
                 settings = settings,
                 onUpdateSettings = {
                     vm.updateSettings(it)
+                    scope.launch {
+                        val conversation = repo.getConversationsOfAssistant(it.assistantId)
+                            .first()
+                            .firstOrNull()
+                        navigateToChatPage(navController, conversation?.id ?: Uuid.random())
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 onClickSetting = {
                     val currentAssistantId = settings.assistantId
-                    navController.navigate("assistant/$currentAssistantId") 
+                    navController.navigate("assistant/$currentAssistantId")
                 }
             )
             Row(

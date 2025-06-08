@@ -52,7 +52,10 @@ fun HighlightCodeBlock(
     language: String,
     modifier: Modifier = Modifier,
     completeCodeBlock: Boolean = true,
-    style: TextStyle? = null,
+    style: TextStyle? = TextStyle(
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+    ),
 ) {
     val darkMode = LocalDarkMode.current
     val colorPalette = if (darkMode) AtomOneDarkPalette else AtomOneLightPalette

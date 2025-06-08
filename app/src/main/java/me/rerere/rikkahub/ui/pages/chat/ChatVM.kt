@@ -23,6 +23,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
@@ -236,7 +240,12 @@ class ChatVM(
                 node.copy(
                     messages = node.messages.map { message ->
                         if (message.id == messageId) {
-                            message.copy(parts = parts)
+                            message.copy(
+                                parts = parts,
+                                createdAt = Clock.System.now().toLocalDateTime(
+                                    TimeZone.currentSystemDefault()
+                                )
+                            )
                         } else {
                             message
                         }
@@ -322,8 +331,10 @@ class ChatVM(
                     is GenerationChunk.TokenUsage -> {
                         var tokenUsage = conversation.value.tokenUsage ?: TokenUsage()
                         tokenUsage = tokenUsage.copy(
-                            promptTokens = chunk.usage.promptTokens.takeIf { it > 0 } ?: tokenUsage.promptTokens,
-                            completionTokens = chunk.usage.completionTokens.takeIf { it > 0 } ?: tokenUsage.completionTokens,
+                            promptTokens = chunk.usage.promptTokens.takeIf { it > 0 }
+                                ?: tokenUsage.promptTokens,
+                            completionTokens = chunk.usage.completionTokens.takeIf { it > 0 }
+                                ?: tokenUsage.completionTokens,
                         )
                         tokenUsage = tokenUsage.copy(
                             totalTokens = tokenUsage.promptTokens + tokenUsage.completionTokens,
@@ -425,7 +436,7 @@ class ChatVM(
             // 更新node，删除这个消息
             conversation.copy(
                 messageNodes = conversation.messageNodes.map { node ->
-                    val newNode  = node.copy(
+                    val newNode = node.copy(
                         messages = node.messages.filter { it.id != message.id }
                     )
                     newNode.copy(

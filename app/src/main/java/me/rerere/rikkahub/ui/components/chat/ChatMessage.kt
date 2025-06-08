@@ -70,7 +70,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
@@ -117,6 +119,7 @@ import me.rerere.ai.ui.isEmptyUIMessage
 import me.rerere.highlight.HighlightText
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.model.MessageNode
+import me.rerere.rikkahub.ui.components.richtext.HighlightCodeBlock
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.components.richtext.ZoomableAsyncImage
 import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
@@ -771,16 +774,21 @@ private fun ToolCallPreviewDialog(
                     }
 
                     else -> {
-                        Text("工具调用")
+                        Text(
+                            text = "工具调用",
+                            style = MaterialTheme.typography.headlineSmall,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
                         FormItem(
                             label = {
                                 Text("调用工具 ${toolCall.toolName}")
                             }
                         ) {
-                            HighlightText(
+                            HighlightCodeBlock(
                                 code = JsonInstantPretty.encodeToString(toolCall.arguments),
                                 language = "json",
-                                fontSize = 12.sp
+                                style = TextStyle(fontSize = 10.sp, lineHeight = 12.sp)
                             )
                         }
                         FormItem(
@@ -788,10 +796,10 @@ private fun ToolCallPreviewDialog(
                                 Text("调用结果")
                             }
                         ) {
-                            HighlightText(
+                            HighlightCodeBlock(
                                 code = JsonInstantPretty.encodeToString(toolCall.content),
                                 language = "json",
-                                fontSize = 12.sp
+                                style = TextStyle(fontSize = 10.sp, lineHeight = 12.sp)
                             )
                         }
                     }

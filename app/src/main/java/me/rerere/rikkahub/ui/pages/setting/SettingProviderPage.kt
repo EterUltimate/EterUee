@@ -106,6 +106,7 @@ import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.ui.hooks.EditStateContent
 import me.rerere.rikkahub.ui.hooks.useEditState
 import me.rerere.rikkahub.ui.pages.setting.components.ProviderConfigure
+import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.UiState
 import me.rerere.rikkahub.utils.plus
 import org.koin.androidx.compose.koinViewModel
@@ -524,7 +525,8 @@ private fun ConnectionTester(
             },
             text = {
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     ModelSelector(
                         modelId = model?.id,
@@ -540,11 +542,19 @@ private fun ConnectionTester(
                         }
 
                         is UiState.Success -> {
-                            Text(stringResource(R.string.setting_provider_page_test_success))
+                            Text(
+                                text = stringResource(R.string.setting_provider_page_test_success),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.extendColors.green6
+                            )
                         }
 
                         is UiState.Error -> {
-                            Text((testState as UiState.Error).error.message ?: "Error")
+                            Text(
+                                text = (testState as UiState.Error).error.message ?: "Error",
+                                color = MaterialTheme.extendColors.red6,
+                                maxLines = 10
+                            )
                         }
 
                         else -> {}

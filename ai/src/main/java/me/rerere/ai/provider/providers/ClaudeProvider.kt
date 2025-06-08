@@ -186,7 +186,7 @@ object ClaudeProvider : Provider<ProviderSetting.Claude> {
                         add(deltaObj)
                     }
                 })
-                val tokenUsage = parseTokenUsage(dataJson["usage"]?.jsonObject)
+                val tokenUsage = parseTokenUsage(dataJson["usage"]?.jsonObject ?: dataJson["message"]?.jsonObject?.get("usage")?.jsonObject)
                 val messageChunk = MessageChunk(
                     id = id ?: "",
                     model = "",

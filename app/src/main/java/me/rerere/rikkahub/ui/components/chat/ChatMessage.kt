@@ -38,6 +38,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
@@ -45,7 +46,9 @@ import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -85,6 +88,7 @@ import androidx.core.net.toFile
 import androidx.core.net.toUri
 import com.composables.icons.lucide.BookDashed
 import com.composables.icons.lucide.BookHeart
+import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.ChevronLeft
 import com.composables.icons.lucide.ChevronRight
@@ -103,6 +107,7 @@ import com.composables.icons.lucide.Share
 import com.composables.icons.lucide.Trash
 import com.composables.icons.lucide.Volume2
 import com.composables.icons.lucide.Wrench
+import com.composables.icons.lucide.X
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.datetime.Clock
@@ -150,6 +155,9 @@ fun ChatMessage(
     onEdit: () -> Unit,
     onShare: () -> Unit,
     onDelete: () -> Unit,
+    isPendingDelete: Boolean,
+    onRequestDelete: () -> Unit,
+    onCancelDelete: () -> Unit,
     onUpdate: (MessageNode) -> Unit
 ) {
     val message = node.messages[node.selectIndex]
@@ -200,6 +208,9 @@ fun ChatMessage(
                     onFork = onFork,
                     onShare = onShare,
                     onDelete = onDelete,
+                    isPendingDelete = isPendingDelete,
+                    onRequestDelete = onRequestDelete,
+                    onCancelDelete = onCancelDelete,
                 )
             }
         }
@@ -239,9 +250,20 @@ private fun ColumnScope.Actions(
     onEdit: () -> Unit,
     onShare: () -> Unit,
     onDelete: () -> Unit,
+    isPendingDelete: Boolean,
+    onRequestDelete: () -> Unit,
+    onCancelDelete: () -> Unit,
 ) {
     val context = LocalContext.current
     var showInformation by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isPendingDelete) {
+        if (isPendingDelete) {
+            delay(3000) // 3秒后自动取消
+            onCancelDelete()
+        }
+    }
+
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         itemVerticalAlignment = Alignment.CenterVertically,
@@ -249,13 +271,7 @@ private fun ColumnScope.Actions(
         Icon(
             Lucide.Copy, stringResource(R.string.copy), modifier = Modifier
                 .clip(CircleShape)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = LocalIndication.current,
-                    onClick = {
-                        context.copyMessageToClipboard(message)
-                    }
-                )
+                .clickable { context.copyMessageToClipboard(message) }
                 .padding(8.dp)
                 .size(16.dp)
         )
@@ -263,13 +279,7 @@ private fun ColumnScope.Actions(
         Icon(
             Lucide.RefreshCw, stringResource(R.string.regenerate), modifier = Modifier
                 .clip(CircleShape)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = LocalIndication.current,
-                    onClick = {
-                        onRegenerate()
-                    }
-                )
+                .clickable { onRegenerate() }
                 .padding(8.dp)
                 .size(16.dp)
         )
@@ -278,30 +288,58 @@ private fun ColumnScope.Actions(
             Icon(
                 Lucide.Pencil, stringResource(R.string.edit), modifier = Modifier
                     .clip(CircleShape)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = LocalIndication.current,
-                        onClick = {
-                            onEdit()
-                        }
-                    )
+                    .clickable { onEdit() }
                     .padding(8.dp)
                     .size(16.dp)
             )
-            Icon(
-                Lucide.Trash, stringResource(R.string.delete),
+
+            Box(
                 modifier = Modifier
-                    .clip(CircleShape)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = LocalIndication.current,
-                        onClick = {
-                            onDelete()
+                    .animateContentSize() 
+                    .height(32.dp), 
+                contentAlignment = Alignment.Center
+            ) {
+                if (isPendingDelete) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)) 
+                            .padding(horizontal = 4.dp)
+                    ) {
+                        IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
+                            Icon(
+                                Lucide.Check, 
+                                contentDescription = stringResource(R.string.confirm_delete),
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(16.dp)
+                            )
                         }
+                        VerticalDivider( 
+                            modifier = Modifier.height(16.dp),
+                            thickness = 1.dp,
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                        )
+                        IconButton(onClick = onCancelDelete, modifier = Modifier.size(24.dp)) {
+                            Icon(
+                                Lucide.X, 
+                                contentDescription = stringResource(R.string.cancel),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                } else {
+                    Icon(
+                        imageVector = Lucide.Trash,
+                        contentDescription = stringResource(R.string.delete),
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .clickable { onRequestDelete() }
+                            .padding(8.dp)
+                            .size(16.dp)
                     )
-                    .padding(8.dp)
-                    .size(16.dp)
-            )
+                }
+            }
         }
         if (message.role == MessageRole.ASSISTANT) {
             val tts = rememberTtsState()
@@ -345,7 +383,6 @@ private fun ColumnScope.Actions(
         }
     }
 
-    // Information
     AnimatedVisibility(showInformation) {
         ProvideTextStyle(MaterialTheme.typography.labelSmall) {
             Row(

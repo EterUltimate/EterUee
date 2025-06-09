@@ -20,6 +20,7 @@
     <string name="settings">设置</string>
     <string name="confirm">确认</string>
     <string name="cancel">取消</string>
+    <string name="confirm_delete">确认删除</string>
 
     <!-- Chat Page -->
     <string name="chat_page_no_conversations">没有对话记录</string>
@@ -191,8 +192,10 @@
     <string name="setting_display_page_auto_collapse_thinking_desc">思考完成自动折叠思考内容</string>
     <string name="setting_display_page_show_updates_title">显示更新</string>
     <string name="setting_display_page_show_updates_desc">是否显示应用更新通知</string>
+    <string name="setting_display_page_show_message_jumper_title">消息导航按钮</string>
+    <string name="setting_display_page_show_message_jumper_desc">在滚动聊天列表时，在右侧显示快速跳转按钮</string>
     <string name="setting_display_page_title">显示设置</string>
-    
+
     <!-- Color Mode -->
     <string name="setting_page_color_mode">颜色模式</string>
     <string name="setting_page_color_mode_system">跟随系统</string>

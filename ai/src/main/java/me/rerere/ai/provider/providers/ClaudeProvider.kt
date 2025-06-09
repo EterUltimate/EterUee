@@ -260,7 +260,7 @@ object ClaudeProvider : Provider<ProviderSetting.Claude> {
         return buildJsonObject {
             put("model", params.model.modelId)
             put("messages", buildMessages(messages))
-            put("max_tokens", 4096) // Claude 需要明确指定 max_tokens
+            put("max_tokens", 64000) // Claude 需要明确指定 max_tokens
 
             if (params.temperature != null && (params.thinkingBudget ?: 0) == 0) put(
                 "temperature",

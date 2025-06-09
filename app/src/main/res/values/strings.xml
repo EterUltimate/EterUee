@@ -190,8 +190,10 @@
     <string name="setting_display_page_auto_collapse_thinking_desc">Automatically collapse thinking content after thinking is complete</string>
     <string name="setting_display_page_show_updates_title">Show Updates</string>
     <string name="setting_display_page_show_updates_desc">Whether to display app update notifications</string>
+    <string name="setting_display_page_show_message_jumper_title">Show Message Jumper</string>
+    <string name="setting_display_page_show_message_jumper_desc">Display quick jump buttons on the right when scrolling the chat list</string>
     <string name="setting_display_page_title">Display Settings</string>
-    
+
     <!-- Color Mode -->
     <string name="setting_page_color_mode">Color Mode</string>
     <string name="setting_page_color_mode_system">System</string>

@@ -19,6 +19,7 @@
     <string name="settings">Settings</string>
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
+    <string name="confirm_delete">Confirm Delete</string>
 
     <!-- Chat Page -->
     <string name="chat_page_no_conversations">No conversations</string>

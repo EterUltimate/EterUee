@@ -85,6 +85,7 @@ fun ChatList(
 ) {
     val state = rememberLazyListState()
     val scope = rememberCoroutineScope()
+    var pendingDeleteMessageId by remember { mutableStateOf<Uuid?>(null) }
 
     val viewPortSize by remember { derivedStateOf { state.layoutInfo.viewportSize } }
     var isRecentScroll by remember { mutableStateOf(false) }
@@ -195,6 +196,14 @@ fun ChatList(
                             },
                             onDelete = {
                                 onDelete(node.currentMessage)
+                                pendingDeleteMessageId = null
+                            },
+                            isPendingDelete = pendingDeleteMessageId == node.currentMessage.id,
+                            onRequestDelete = {
+                                pendingDeleteMessageId = node.currentMessage.id
+                            },
+                            onCancelDelete = {
+                                pendingDeleteMessageId = null
                             },
                             onShare = {
                                 selecting = true

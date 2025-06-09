@@ -20,6 +20,7 @@
     <string name="settings">設定</string>
     <string name="confirm">確認</string>
     <string name="cancel">キャンセル</string>
+    <string name="confirm_delete">削除を確認</string>
 
     <!-- Chat Page -->
     <string name="chat_page_no_conversations">会話がありません</string>

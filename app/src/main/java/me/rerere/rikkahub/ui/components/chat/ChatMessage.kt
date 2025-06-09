@@ -155,9 +155,6 @@ fun ChatMessage(
     onEdit: () -> Unit,
     onShare: () -> Unit,
     onDelete: () -> Unit,
-    isPendingDelete: Boolean,
-    onRequestDelete: () -> Unit,
-    onCancelDelete: () -> Unit,
     onUpdate: (MessageNode) -> Unit
 ) {
     val message = node.messages[node.selectIndex]
@@ -208,9 +205,6 @@ fun ChatMessage(
                     onFork = onFork,
                     onShare = onShare,
                     onDelete = onDelete,
-                    isPendingDelete = isPendingDelete,
-                    onRequestDelete = onRequestDelete,
-                    onCancelDelete = onCancelDelete,
                 )
             }
         }
@@ -250,17 +244,15 @@ private fun ColumnScope.Actions(
     onEdit: () -> Unit,
     onShare: () -> Unit,
     onDelete: () -> Unit,
-    isPendingDelete: Boolean,
-    onRequestDelete: () -> Unit,
-    onCancelDelete: () -> Unit,
 ) {
     val context = LocalContext.current
     var showInformation by remember { mutableStateOf(false) }
+    var isPendingDelete by remember { mutableStateOf(false) }
 
     LaunchedEffect(isPendingDelete) {
         if (isPendingDelete) {
             delay(3000) // 3秒后自动取消
-            onCancelDelete()
+            isPendingDelete = false
         }
     }
 
@@ -295,8 +287,8 @@ private fun ColumnScope.Actions(
 
             Box(
                 modifier = Modifier
-                    .animateContentSize() 
-                    .height(32.dp), 
+                    .animateContentSize()
+                    .height(32.dp),
                 contentAlignment = Alignment.Center
             ) {
                 if (isPendingDelete) {
@@ -304,25 +296,28 @@ private fun ColumnScope.Actions(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)) 
+                            .background(MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp))
                             .padding(horizontal = 4.dp)
                     ) {
                         IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
                             Icon(
-                                Lucide.Check, 
+                                Lucide.Check,
                                 contentDescription = stringResource(R.string.confirm_delete),
                                 tint = MaterialTheme.colorScheme.error,
                                 modifier = Modifier.size(16.dp)
                             )
                         }
-                        VerticalDivider( 
+                        VerticalDivider(
                             modifier = Modifier.height(16.dp),
                             thickness = 1.dp,
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                         )
-                        IconButton(onClick = onCancelDelete, modifier = Modifier.size(24.dp)) {
+                        IconButton(
+                            onClick = { isPendingDelete = false },
+                            modifier = Modifier.size(24.dp)
+                        ) {
                             Icon(
-                                Lucide.X, 
+                                Lucide.X,
                                 contentDescription = stringResource(R.string.cancel),
                                 modifier = Modifier.size(16.dp)
                             )
@@ -334,7 +329,7 @@ private fun ColumnScope.Actions(
                         contentDescription = stringResource(R.string.delete),
                         modifier = Modifier
                             .clip(CircleShape)
-                            .clickable { onRequestDelete() }
+                            .clickable { isPendingDelete = true }
                             .padding(8.dp)
                             .size(16.dp)
                     )
@@ -587,9 +582,14 @@ fun MessagePartsBlock(
                                 "delete_memory" -> stringResource(R.string.chat_message_tool_delete_memory)
                                 "search_web" -> stringResource(
                                     R.string.chat_message_tool_search_web,
-                                    toolCall.arguments.jsonObject["query"]?.jsonPrimitive?.content ?: ""
+                                    toolCall.arguments.jsonObject["query"]?.jsonPrimitive?.content
+                                        ?: ""
                                 )
-                                else -> stringResource(R.string.chat_message_tool_call_generic, toolCall.toolName)
+
+                                else -> stringResource(
+                                    R.string.chat_message_tool_call_generic,
+                                    toolCall.toolName
+                                )
                             },
                             style = MaterialTheme.typography.labelSmall,
                         )
@@ -746,10 +746,12 @@ private fun ToolCallPreviewDialog(
             ) {
                 when (toolCall.toolName) {
                     "search_web" -> {
-                        Text(stringResource(
-                            R.string.chat_message_tool_search_prefix,
-                            toolCall.arguments.jsonObject["query"]?.jsonPrimitive?.content ?: ""
-                        ))
+                        Text(
+                            stringResource(
+                                R.string.chat_message_tool_search_prefix,
+                                toolCall.arguments.jsonObject["query"]?.jsonPrimitive?.content ?: ""
+                            )
+                        )
                         val items = toolCall.content.jsonObject["items"]?.jsonArray ?: emptyList()
                         if (items.isNotEmpty()) {
                             LazyColumn(
@@ -825,7 +827,12 @@ private fun ToolCallPreviewDialog(
                         )
                         FormItem(
                             label = {
-                                Text(stringResource(R.string.chat_message_tool_call_label, toolCall.toolName))
+                                Text(
+                                    stringResource(
+                                        R.string.chat_message_tool_call_label,
+                                        toolCall.toolName
+                                    )
+                                )
                             }
                         ) {
                             HighlightCodeBlock(

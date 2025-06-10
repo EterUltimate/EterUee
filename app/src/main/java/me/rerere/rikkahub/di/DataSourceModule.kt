@@ -1,6 +1,8 @@
 package me.rerere.rikkahub.di
 
 import androidx.room.Room
+import io.pebbletemplates.pebble.PebbleEngine
+import io.pebbletemplates.pebble.loader.MemoryLoader
 import kotlinx.serialization.json.Json
 import me.rerere.rikkahub.data.ai.GenerationHandler
 import me.rerere.rikkahub.data.api.RikkaHubAPI
@@ -13,6 +15,7 @@ import okhttp3.OkHttpClient
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 val dataSourceModule = module {
@@ -23,6 +26,17 @@ val dataSourceModule = module {
     single {
         Room.databaseBuilder(get(), AppDatabase::class.java, "rikka_hub")
             .addMigrations(Migration_6_7)
+            .build()
+    }
+
+    single {
+        MemoryLoader()
+    }
+
+    single {
+        PebbleEngine.Builder()
+            .loader(get())
+            .defaultLocale(Locale.getDefault())
             .build()
     }
 

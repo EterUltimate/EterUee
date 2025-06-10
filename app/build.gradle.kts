@@ -155,6 +155,9 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.serialization.json)
 
+    // pebble (template engine)
+    implementation(libs.pebble)
+
     // coil
     implementation(libs.coil.compose)
     implementation(libs.coil.okhttp)

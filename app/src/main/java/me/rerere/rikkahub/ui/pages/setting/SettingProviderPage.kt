@@ -130,14 +130,14 @@ fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
                     ImportProviderButton {
                         vm.updateSettings(
                             settings.copy(
-                                providers = settings.providers + it
+                                providers = listOf(it) + settings.providers
                             )
                         )
                     }
                     AddButton {
                         vm.updateSettings(
                             settings.copy(
-                                providers = settings.providers + it
+                                providers = listOf(it) + settings.providers
                             )
                         )
                     }

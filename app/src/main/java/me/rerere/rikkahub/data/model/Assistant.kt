@@ -16,7 +16,6 @@ data class Assistant(
     val contextMessageSize: Int = 32,
     val streamOutput: Boolean = true,
     val enableMemory: Boolean = false,
-    val enableMessageTime: Boolean = false,
     val thinkingBudget: Int? = null,
     val customHeaders: List<CustomHeader> = emptyList(),
     val customBodies: List<CustomBody> = emptyList(),

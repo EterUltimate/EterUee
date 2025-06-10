@@ -122,8 +122,6 @@
     <string name="assistant_page_memory_count">记忆: %d</string>
     <string name="assistant_page_no_system_prompt">无系统提示词</string>
     <string name="assistant_page_top_p_value">Top P: %s</string>
-    <string name="assistant_page_inject_message_time">注入消息时间</string>
-    <string name="assistant_page_inject_message_time_desc">是否把每条消息的发送时间注入到上下文中，以便模型理解消息发送时间，注意开启会消耗更多token</string>
     <string name="assistant_page_thinking_budget">思考预算</string>
     <string name="assistant_page_thinking_budget_desc">模型应该生成的思考内容的token数量。0表示将禁用思考，留空表示使用模型的默认值。</string>
     <string name="assistant_page_thinking_budget_tokens">%s token</string>

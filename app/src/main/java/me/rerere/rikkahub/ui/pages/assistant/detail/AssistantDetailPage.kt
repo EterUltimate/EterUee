@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -18,7 +17,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -73,9 +71,7 @@ import me.rerere.rikkahub.ui.hooks.useEditState
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.toFixed
 import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
 import kotlin.math.roundToInt
-import kotlin.uuid.Uuid
 
 @Composable
 fun AssistantDetailPage(vm: AssistantDetailVM = koinViewModel()) {
@@ -430,32 +426,6 @@ private fun AssistantBasicSettings(
                     color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
                 )
             }
-        }
-
-        Card {
-            FormItem(
-                modifier = Modifier.padding(16.dp),
-                label = {
-                    Text(stringResource(R.string.assistant_page_inject_message_time))
-                },
-                description = {
-                    Text(
-                        text = stringResource(R.string.assistant_page_inject_message_time_desc),
-                    )
-                },
-                tail = {
-                    Switch(
-                        checked = assistant.enableMessageTime,
-                        onCheckedChange = {
-                            onUpdate(
-                                assistant.copy(
-                                    enableMessageTime = it
-                                )
-                            )
-                        }
-                    )
-                }
-            )
         }
 
         Card {

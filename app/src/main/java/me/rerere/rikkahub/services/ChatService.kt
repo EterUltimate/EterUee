@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import me.rerere.ai.provider.Model
-import me.rerere.ai.ui.transformers.MessageTimeTransformer
 import me.rerere.ai.ui.transformers.PlaceholderTransformer
 import me.rerere.ai.ui.transformers.ThinkTagTransformer
 import me.rerere.rikkahub.CHAT_COMPLETED_NOTIFICATION_CHANNEL_ID
@@ -125,7 +124,6 @@ class ChatService : Service() {
                     },
                     inputTransformers = buildList {
                         addAll(inputTransformers)
-                        if (assistant?.enableMessageTime == true) add(MessageTimeTransformer)
                     },
                     outputTransformers = outputTransformers,
                     maxSteps = 5,

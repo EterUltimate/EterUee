@@ -121,8 +121,6 @@
     <string name="assistant_page_memory_count">Memory: %d</string>
     <string name="assistant_page_no_system_prompt">No system prompt</string>
     <string name="assistant_page_top_p_value">Top P: %s</string>
-    <string name="assistant_page_inject_message_time">Inject Message Time</string>
-    <string name="assistant_page_inject_message_time_desc">Whether to inject the message sending time into the context to help the model understand when each message was sent. Note that enabling this will consume more tokens</string>
     <string name="assistant_page_thinking_budget">Thinking Budget</string>
     <string name="assistant_page_thinking_budget_desc">The number of thoughts tokens that the model should generate. 0 means thinking will be disabled, and blank means using the default value of the model.</string>
     <string name="assistant_page_thinking_budget_tokens">%s tokens</string>

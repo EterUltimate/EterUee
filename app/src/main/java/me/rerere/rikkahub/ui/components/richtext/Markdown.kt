@@ -119,6 +119,15 @@ private fun MarkdownPreview() {
             content = """
                 # Hello World
                 
+                1. To be or not to be, that is the question: Whether 'tis nobler in the mind to suffer
+                    * the slings and arrows of outrageous fortune, Or to take arms against a sea of troubles,
+                    * by opposing end them.
+                2. To die: to sleep; No more; and by a sleep to say we end the heart-ache and the thousand natural shocks
+                * that flesh is heir to, 'tis a consummation devoutly to be wish'd.
+                * TTL
+                3. To die, to sleep; To sleep: perchance to dream: ay, there's the rub;
+                4. For in that sleep of death what dreams may come
+                
                 | A | B |
                 | - | - |
                 | 1 | 2 |
@@ -235,7 +244,7 @@ fun MarkdownNode(
             Paragraph(
                 node = node,
                 content = content,
-                modifier = modifier,
+                modifier = Modifier.padding(vertical = 0.dp),
                 onClickCitation = onClickCitation
             )
         }
@@ -273,11 +282,13 @@ fun MarkdownNode(
         // 列表
         MarkdownElementTypes.UNORDERED_LIST -> {
             Column(
-                modifier = modifier.padding(start = 4.dp)
+                modifier = modifier.padding(start = 4.dp, bottom = 8.dp)
             ) {
                 node.children.fastForEach { child ->
                     if (child.type == MarkdownElementTypes.LIST_ITEM) {
-                        Row {
+                        Row(
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        ) {
                             Text(
                                 text = "• ",
                                 modifier = Modifier.alignByBaseline()
@@ -299,12 +310,14 @@ fun MarkdownNode(
 
         MarkdownElementTypes.ORDERED_LIST -> {
             Column(
-                modifier = modifier.padding(start = 4.dp)
+                modifier = modifier.padding(start = 4.dp, bottom = 8.dp)
             ) {
                 var index = 1
                 node.children.fastForEach { child ->
                     if (child.type == MarkdownElementTypes.LIST_ITEM) {
-                        Row {
+                        Row(
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        ) {
                             Text(
                                 text = child.findChildOfType(MarkdownTokenTypes.LIST_NUMBER)
                                     ?.getTextInNode(content) ?: "-",

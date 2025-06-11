@@ -83,6 +83,9 @@ import me.rerere.rikkahub.ui.hooks.EditStateContent
 import me.rerere.rikkahub.ui.hooks.useEditState
 import me.rerere.rikkahub.ui.theme.JetbrainsMono
 import me.rerere.rikkahub.ui.theme.extendColors
+import me.rerere.rikkahub.utils.UiState
+import me.rerere.rikkahub.utils.onError
+import me.rerere.rikkahub.utils.onSuccess
 import me.rerere.rikkahub.utils.toFixed
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -671,24 +674,41 @@ private fun AssistantPromptSettings(
                     UIMessage.user("你好啊"),
                     UIMessage.assistant("你好，有什么我可以帮你的吗？"),
                 )
-                val preview by produceState(rawMessages, assistant) {
-                    value = templateTransformer.transform(
-                        context = context,
-                        messages = rawMessages,
-                        model = Model(modelId = "gpt-4o", displayName = "GPT-4o")
+                val preview by produceState<UiState<List<UIMessage>>>(
+                    UiState.Success(rawMessages),
+                    assistant
+                ) {
+                    value = runCatching {
+                        UiState.Success(
+                            templateTransformer.transform(
+                                context = context,
+                                messages = rawMessages,
+                                model = Model(modelId = "gpt-4o", displayName = "GPT-4o")
+                            )
+                        )
+                    }.getOrElse {
+                        UiState.Error(it)
+                    }
+                }
+                preview.onError {
+                    Text(
+                        text = it.message ?: it.javaClass.name,
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
-                preview.fastForEach { message ->
-                    ChatMessage(
-                        node = message.toMessageNode(),
-                        showActions = true,
-                        onFork = {},
-                        onRegenerate = {},
-                        onEdit = {},
-                        onShare = {},
-                        onDelete = {},
-                        onUpdate = {},
-                    )
+                preview.onSuccess {
+                    it.fastForEach { message ->
+                        ChatMessage(
+                            node = message.toMessageNode(),
+                            showActions = true,
+                            onFork = {},
+                            onRegenerate = {},
+                            onEdit = {},
+                            onShare = {},
+                            onDelete = {},
+                            onUpdate = {},
+                        )
+                    }
                 }
             }
         }

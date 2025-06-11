@@ -267,7 +267,7 @@ private fun McpServerItem(
                         Tag(type = TagType.SUCCESS) {
                             when (item) {
                                 is McpServerConfig.SseTransportServer -> Text("SSE")
-                                is McpServerConfig.WebSocketServer -> Text("WebSocket")
+                                is McpServerConfig.StreamableHTTPServer -> Text("Streamable HTTP")
                             }
                         }
                     }
@@ -408,8 +408,7 @@ private fun McpCommonOptionsConfigure(
                                 is McpServerConfig.SseTransportServer -> config.copy(
                                     commonOptions = config.commonOptions.copy(enable = enabled)
                                 )
-
-                                is McpServerConfig.WebSocketServer -> config.copy(
+                                is McpServerConfig.StreamableHTTPServer -> config.copy(
                                     commonOptions = config.commonOptions.copy(enable = enabled)
                                 )
                             }
@@ -438,8 +437,7 @@ private fun McpCommonOptionsConfigure(
                             is McpServerConfig.SseTransportServer -> config.copy(
                                 commonOptions = config.commonOptions.copy(name = name)
                             )
-
-                            is McpServerConfig.WebSocketServer -> config.copy(
+                            is McpServerConfig.StreamableHTTPServer -> config.copy(
                                 commonOptions = config.commonOptions.copy(name = name)
                             )
                         }
@@ -464,11 +462,11 @@ private fun McpCommonOptionsConfigure(
         ) {
             val transportTypes = listOf(
                 "SSE",
-                // "WebSocket"
+                "Streamable HTTP"
             )
             val currentTypeIndex = when (config) {
                 is McpServerConfig.SseTransportServer -> 0
-                is McpServerConfig.WebSocketServer -> 1
+                is McpServerConfig.StreamableHTTPServer -> 1
             }
 
             SingleChoiceSegmentedButtonRow(
@@ -485,16 +483,16 @@ private fun McpCommonOptionsConfigure(
                                         commonOptions = config.commonOptions,
                                         url = when (config) {
                                             is McpServerConfig.SseTransportServer -> config.url
-                                            is McpServerConfig.WebSocketServer -> config.url
+                                            is McpServerConfig.StreamableHTTPServer -> config.url
                                         }
                                     )
 
-                                    1 -> McpServerConfig.WebSocketServer(
+                                    1 -> McpServerConfig.StreamableHTTPServer(
                                         id = config.id,
                                         commonOptions = config.commonOptions,
                                         url = when (config) {
                                             is McpServerConfig.SseTransportServer -> config.url
-                                            is McpServerConfig.WebSocketServer -> config.url
+                                            is McpServerConfig.StreamableHTTPServer -> config.url
                                         }
                                     )
 
@@ -522,7 +520,7 @@ private fun McpCommonOptionsConfigure(
                 Text(
                     when (config) {
                         is McpServerConfig.SseTransportServer -> stringResource(R.string.setting_mcp_page_sse_url_desc)
-                        is McpServerConfig.WebSocketServer -> stringResource(R.string.setting_mcp_page_websocket_url_desc)
+                        is McpServerConfig.StreamableHTTPServer -> stringResource(R.string.setting_mcp_page_streamable_http_url_desc)
                     }
                 )
             }
@@ -530,13 +528,13 @@ private fun McpCommonOptionsConfigure(
             OutlinedTextField(
                 value = when (config) {
                     is McpServerConfig.SseTransportServer -> config.url
-                    is McpServerConfig.WebSocketServer -> config.url
+                    is McpServerConfig.StreamableHTTPServer -> config.url
                 },
                 onValueChange = { url ->
                     update(
                         when (config) {
                             is McpServerConfig.SseTransportServer -> config.copy(url = url)
-                            is McpServerConfig.WebSocketServer -> config.copy(url = url)
+                            is McpServerConfig.StreamableHTTPServer -> config.copy(url = url)
                         }
                     )
                 },
@@ -546,7 +544,7 @@ private fun McpCommonOptionsConfigure(
                     Text(
                         when (config) {
                             is McpServerConfig.SseTransportServer -> stringResource(R.string.setting_mcp_page_sse_url_placeholder)
-                            is McpServerConfig.WebSocketServer -> stringResource(R.string.setting_mcp_page_websocket_url_placeholder)
+                            is McpServerConfig.StreamableHTTPServer -> stringResource(R.string.setting_mcp_page_streamable_http_url_placeholder)
                         }
                     )
                 }
@@ -590,7 +588,7 @@ private fun McpCommonOptionsConfigure(
                                                 commonOptions = config.commonOptions.copy(headers = updatedHeaders)
                                             )
 
-                                            is McpServerConfig.WebSocketServer -> config.copy(
+                                            is McpServerConfig.StreamableHTTPServer -> config.copy(
                                                 commonOptions = config.commonOptions.copy(headers = updatedHeaders)
                                             )
                                         }
@@ -614,7 +612,7 @@ private fun McpCommonOptionsConfigure(
                                                 commonOptions = config.commonOptions.copy(headers = updatedHeaders)
                                             )
 
-                                            is McpServerConfig.WebSocketServer -> config.copy(
+                                            is McpServerConfig.StreamableHTTPServer -> config.copy(
                                                 commonOptions = config.commonOptions.copy(headers = updatedHeaders)
                                             )
                                         }
@@ -634,7 +632,7 @@ private fun McpCommonOptionsConfigure(
                                         commonOptions = config.commonOptions.copy(headers = updatedHeaders)
                                     )
 
-                                    is McpServerConfig.WebSocketServer -> config.copy(
+                                    is McpServerConfig.StreamableHTTPServer -> config.copy(
                                         commonOptions = config.commonOptions.copy(headers = updatedHeaders)
                                     )
                                 }
@@ -658,7 +656,7 @@ private fun McpCommonOptionsConfigure(
                                     commonOptions = config.commonOptions.copy(headers = updatedHeaders)
                                 )
 
-                                is McpServerConfig.WebSocketServer -> config.copy(
+                                is McpServerConfig.StreamableHTTPServer -> config.copy(
                                     commonOptions = config.commonOptions.copy(headers = updatedHeaders)
                                 )
                             }
@@ -689,7 +687,7 @@ private fun McpToolsConfigure(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        if(mcpManager.getClient(config) == null) {
+        if (mcpManager.getClient(config) == null) {
             item {
                 Text(stringResource(R.string.setting_mcp_page_tools_unavailable_message))
             }
@@ -722,7 +720,7 @@ private fun McpToolsConfigure(
                             tool.inputSchema?.let { it as InputSchema.Obj }?.let { schema ->
                                 schema.properties.forEach { (key, _) ->
                                     Tag(
-                                        type = if(schema.required?.contains(key) == true ) TagType.INFO else TagType.DEFAULT
+                                        type = if (schema.required?.contains(key) == true) TagType.INFO else TagType.DEFAULT
                                     ) {
                                         Text(
                                             text = key,

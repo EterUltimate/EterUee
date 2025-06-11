@@ -5,6 +5,7 @@ import io.modelcontextprotocol.kotlin.sdk.CallToolRequest
 import io.modelcontextprotocol.kotlin.sdk.Implementation
 import io.modelcontextprotocol.kotlin.sdk.Tool
 import io.modelcontextprotocol.kotlin.sdk.client.Client
+import io.modelcontextprotocol.kotlin.sdk.shared.AbstractTransport
 import io.modelcontextprotocol.kotlin.sdk.shared.RequestOptions
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -22,6 +23,7 @@ import me.rerere.rikkahub.AppScope
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.getCurrentAssistant
 import me.rerere.rikkahub.data.mcp.transport.SseClientTransport
+import me.rerere.rikkahub.data.mcp.transport.StreamableHttpClientTransport
 import me.rerere.rikkahub.utils.checkDifferent
 import okhttp3.OkHttpClient
 import kotlin.time.Duration.Companion.seconds
@@ -95,7 +97,7 @@ class McpManager(
         val config = clients.entries.first { it.value == client }.key
         Log.i(TAG, "callTool: $toolName / $args")
 
-        if(client.transport == null) client.connect(getTransport(config))
+        if (client.transport == null) client.connect(getTransport(config))
         val result = client.callTool(
             request = CallToolRequest(
                 name = tool.name,
@@ -110,7 +112,7 @@ class McpManager(
         return McpJson.encodeToJsonElement(result.content)
     }
 
-    private fun getTransport(config: McpServerConfig): SseClientTransport =when (config) {
+    private fun getTransport(config: McpServerConfig): AbstractTransport = when (config) {
         is McpServerConfig.SseTransportServer -> {
             SseClientTransport(
                 urlString = config.url,
@@ -119,8 +121,12 @@ class McpManager(
             )
         }
 
-        is McpServerConfig.WebSocketServer -> {
-            error("WebSocket is not support!")
+        is McpServerConfig.StreamableHTTPServer -> {
+            StreamableHttpClientTransport(
+                urlString = config.url,
+                client = okHttpClient,
+                headers = config.commonOptions.headers,
+            )
         }
     }
 
@@ -152,7 +158,9 @@ class McpManager(
         setStatus(config = config, status = McpStatus.Connecting)
 
         // Update tools
-        if(client.transport == null) { client.connect(getTransport(config)) }
+        if (client.transport == null) {
+            client.connect(getTransport(config))
+        }
         val serverTools = client.listTools()?.tools ?: emptyList()
         Log.i(TAG, "sync: tools: $serverTools")
         settingsStore.update { old ->

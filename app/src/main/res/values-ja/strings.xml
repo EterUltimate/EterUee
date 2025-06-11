@@ -230,9 +230,9 @@
     <string name="setting_mcp_page_transport_type_desc">MCPサーバーの転送プロトコルタイプを選択</string>
     <string name="setting_mcp_page_server_url">サーバーURL</string>
     <string name="setting_mcp_page_sse_url_desc">SSE転送サーバーのURLアドレス</string>
-    <string name="setting_mcp_page_websocket_url_desc">WebSocketサーバーのURLアドレス</string>
+    <string name="setting_mcp_page_streamable_http_url_desc">ストリーミングHTTPサーバーのURLアドレス</string>
     <string name="setting_mcp_page_sse_url_placeholder">https://example.com/sse</string>
-    <string name="setting_mcp_page_websocket_url_placeholder">wss://example.com/ws</string>
+    <string name="setting_mcp_page_streamable_http_url_placeholder">https://example.com/mcp</string>
     <string name="setting_mcp_page_custom_headers">カスタムヘッダー</string>
     <string name="setting_mcp_page_custom_headers_desc">MCPサーバーリクエストにカスタムHTTPヘッダーを追加</string>
     <string name="setting_mcp_page_header_name">ヘッダー名</string>

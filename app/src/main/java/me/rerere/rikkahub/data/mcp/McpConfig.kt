@@ -42,11 +42,11 @@ sealed class McpServerConfig {
     }
 
     @Serializable
-    data class WebSocketServer(
+    data class StreamableHTTPServer(
         override val id: Uuid = Uuid.random(),
         override val commonOptions: McpCommonOptions,
         val url: String = "",
-    ) : McpServerConfig() {
+    ):  McpServerConfig() {
         override fun clone(id: Uuid, commonOptions: McpCommonOptions): McpServerConfig {
             return copy(id = id, commonOptions = commonOptions)
         }

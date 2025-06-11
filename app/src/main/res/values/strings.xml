@@ -230,9 +230,9 @@
     <string name="setting_mcp_page_transport_type_desc">Select the transport protocol type for the MCP server</string>
     <string name="setting_mcp_page_server_url">Server URL</string>
     <string name="setting_mcp_page_sse_url_desc">URL address for SSE transport server</string>
-    <string name="setting_mcp_page_websocket_url_desc">URL address for WebSocket server</string>
+    <string name="setting_mcp_page_streamable_http_url_desc">URL address for Streamable HTTP server</string>
     <string name="setting_mcp_page_sse_url_placeholder">https://example.com/sse</string>
-    <string name="setting_mcp_page_websocket_url_placeholder">wss://example.com/ws</string>
+    <string name="setting_mcp_page_streamable_http_url_placeholder">https://example.com/mcp</string>
     <string name="setting_mcp_page_custom_headers">Custom Headers</string>
     <string name="setting_mcp_page_custom_headers_desc">Add custom HTTP headers for MCP server requests</string>
     <string name="setting_mcp_page_header_name">Header Name</string>

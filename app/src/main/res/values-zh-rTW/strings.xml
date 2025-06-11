@@ -228,9 +228,9 @@
     <string name="setting_mcp_page_transport_type_desc">選擇MCP伺服器的傳輸協定類型</string>
     <string name="setting_mcp_page_server_url">伺服器地址</string>
     <string name="setting_mcp_page_sse_url_desc">SSE傳輸伺服器的URL地址</string>
-    <string name="setting_mcp_page_websocket_url_desc">WebSocket伺服器的URL地址</string>
+    <string name="setting_mcp_page_streamable_http_url_desc">串流HTTP伺服器的URL地址</string>
     <string name="setting_mcp_page_sse_url_placeholder">https://example.com/sse</string>
-    <string name="setting_mcp_page_websocket_url_placeholder">wss://example.com/ws</string>
+    <string name="setting_mcp_page_streamable_http_url_placeholder">https://example.com/mcp</string>
     <string name="setting_mcp_page_custom_headers">自定義請求頭</string>
     <string name="setting_mcp_page_custom_headers_desc">為MCP伺服器請求添加自定義HTTP頭</string>
     <string name="setting_mcp_page_header_name">請求頭名稱</string>

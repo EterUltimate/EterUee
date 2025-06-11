@@ -49,6 +49,7 @@ import me.rerere.rikkahub.data.ai.Base64ImageToLocalFileTransformer
 import me.rerere.rikkahub.data.ai.DocumentAsPromptTransformer
 import me.rerere.rikkahub.data.ai.GenerationChunk
 import me.rerere.rikkahub.data.ai.GenerationHandler
+import me.rerere.rikkahub.data.ai.TemplateTransformer
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.findModelById
@@ -94,6 +95,7 @@ class ChatVM(
     private val conversationRepo: ConversationRepository,
     private val memoryRepository: MemoryRepository,
     private val generationHandler: GenerationHandler,
+    private val templateTransformer: TemplateTransformer,
     val mcpManager: McpManager,
     val updateChecker: UpdateChecker,
 ) : ViewModel() {
@@ -288,6 +290,7 @@ class ChatVM(
                 memories = { memoryRepository.getMemoriesOfAssistant(settings.value.assistantId.toString()) },
                 inputTransformers = buildList {
                     addAll(inputTransformers)
+                    add(templateTransformer)
                 },
                 outputTransformers = outputTransformers,
                 tools = buildList {

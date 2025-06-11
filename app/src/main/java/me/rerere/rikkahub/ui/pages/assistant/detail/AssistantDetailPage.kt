@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.ui.pages.assistant.detail
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +18,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryScrollableTabRow
@@ -32,11 +35,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
@@ -45,6 +51,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Lucide
@@ -53,13 +61,18 @@ import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.X
 import kotlinx.coroutines.launch
+import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.ProviderSetting
+import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.transformers.PlaceholderTransformer
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.data.ai.TemplateTransformer
 import me.rerere.rikkahub.data.mcp.McpServerConfig
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
+import me.rerere.rikkahub.data.model.toMessageNode
+import me.rerere.rikkahub.ui.components.chat.ChatMessage
 import me.rerere.rikkahub.ui.components.chat.McpPicker
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
 import me.rerere.rikkahub.ui.components.nav.BackButton
@@ -68,9 +81,11 @@ import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
 import me.rerere.rikkahub.ui.hooks.EditStateContent
 import me.rerere.rikkahub.ui.hooks.useEditState
+import me.rerere.rikkahub.ui.theme.JetbrainsMono
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.toFixed
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import kotlin.math.roundToInt
 
 @Composable
@@ -521,12 +536,15 @@ private fun AssistantPromptSettings(
     assistant: Assistant,
     onUpdate: (Assistant) -> Unit
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val templateTransformer = koinInject<TemplateTransformer>()
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .verticalScroll(rememberScrollState())
-            .imePadding(),
+            .imePadding()
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Card {
@@ -577,6 +595,101 @@ private fun AssistantPromptSettings(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
                 )
+            }
+        }
+
+        Card {
+            FormItem(
+                modifier = Modifier.padding(16.dp),
+                label = {
+                    Text(stringResource(R.string.assistant_page_message_template))
+                },
+                content = {
+                    OutlinedTextField(
+                        value = assistant.messageTemplate,
+                        onValueChange = {
+                            onUpdate(
+                                assistant.copy(
+                                    messageTemplate = it
+                                )
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 5,
+                        maxLines = 15,
+                        textStyle = LocalTextStyle.current.copy(
+                            fontSize = 12.sp,
+                            fontFamily = JetbrainsMono,
+                            lineHeight = 16.sp
+                        )
+                    )
+                },
+                description = {
+                    Text(stringResource(R.string.assistant_page_message_template_desc))
+                    Text(buildAnnotatedString {
+                        append(stringResource(R.string.assistant_page_template_variables_label))
+                        append(" ")
+                        append(stringResource(R.string.assistant_page_template_variable_role))
+                        append(": ")
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+                            append("{{ role }}")
+                        }
+                        append(", ")
+                        append(stringResource(R.string.assistant_page_template_variable_message))
+                        append(": ")
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+                            append("{{ message }}")
+                        }
+                        append(", ")
+                        append(stringResource(R.string.assistant_page_template_variable_time))
+                        append(": ")
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+                            append("{{ time }}")
+                        }
+                        append(", ")
+                        append(stringResource(R.string.assistant_page_template_variable_date))
+                        append(": ")
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+                            append("{{ date }}")
+                        }
+                    })
+                }
+            )
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .clip(MaterialTheme.shapes.small)
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(8.dp)
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    text = stringResource(R.string.assistant_page_template_preview),
+                    style = MaterialTheme.typography.titleSmall
+                )
+                val rawMessages = listOf(
+                    UIMessage.user("你好啊"),
+                    UIMessage.assistant("你好，有什么我可以帮你的吗？"),
+                )
+                val preview by produceState(rawMessages, assistant) {
+                    value = templateTransformer.transform(
+                        context = context,
+                        messages = rawMessages,
+                        model = Model(modelId = "gpt-4o", displayName = "GPT-4o")
+                    )
+                }
+                preview.fastForEach { message ->
+                    ChatMessage(
+                        node = message.toMessageNode(),
+                        showActions = true,
+                        onFork = {},
+                        onRegenerate = {},
+                        onEdit = {},
+                        onShare = {},
+                        onDelete = {},
+                        onUpdate = {},
+                    )
+                }
             }
         }
     }

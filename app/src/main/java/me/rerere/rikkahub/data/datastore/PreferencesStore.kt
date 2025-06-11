@@ -8,9 +8,11 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import io.pebbletemplates.pebble.PebbleEngine
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.serialization.Serializable
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ProviderSetting
@@ -23,6 +25,9 @@ import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.toMutableStateFlow
 import me.rerere.search.SearchCommonOptions
 import me.rerere.search.SearchServiceOptions
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
+import org.koin.core.component.inject
 import kotlin.uuid.Uuid
 
 private const val TAG = "PreferencesStore"
@@ -36,7 +41,10 @@ private val Context.settingsStore by preferencesDataStore(
     }
 )
 
-class SettingsStore(context: Context, scope: AppScope) {
+class SettingsStore(
+    context: Context,
+    scope: AppScope,
+) : KoinComponent {
     companion object {
         // UI设置
         val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
@@ -147,6 +155,9 @@ class SettingsStore(context: Context, scope: AppScope) {
                 },
                 assistants = settings.assistants.distinctBy { it.id },
             )
+        }
+        .onEach {
+            get<PebbleEngine>().templateCache.invalidateAll()
         }
 
     val settingsFlow = settingsFlowRaw

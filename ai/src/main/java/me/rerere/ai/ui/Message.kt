@@ -202,6 +202,11 @@ data class UIMessage(
             role = MessageRole.USER,
             parts = listOf(UIMessagePart.Text(prompt))
         )
+
+        fun assistant(prompt: String) = UIMessage(
+            role = MessageRole.ASSISTANT,
+            parts = listOf(UIMessagePart.Text(prompt))
+        )
     }
 }
 

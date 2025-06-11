@@ -126,6 +126,14 @@
     <string name="assistant_page_thinking_budget_tokens">%s tokens</string>
     <string name="assistant_page_thinking_budget_default">Default</string>
     <string name="assistant_page_thinking_budget_warning">Note: Different providers define various thinking budget API formats that the APP cannot accommodate for all, so this option may not work. If it doesn\'t work, we recommend using the custom body below to customize your request.</string>
+    <string name="assistant_page_message_template">Message Content Template</string>
+    <string name="assistant_page_message_template_desc">Controls the content format of chat messages before being sent to the LLM, usually no need to modify</string>
+    <string name="assistant_page_template_preview">Preview:</string>
+    <string name="assistant_page_template_variable_role">Role</string>
+    <string name="assistant_page_template_variable_message">Content</string>
+    <string name="assistant_page_template_variable_time">Time</string>
+    <string name="assistant_page_template_variable_date">Date</string>
+    <string name="assistant_page_template_variables_label">Variables:</string>
     
     <!-- Custom Headers and Bodies -->
     <string name="assistant_page_custom_headers">Custom Headers</string>

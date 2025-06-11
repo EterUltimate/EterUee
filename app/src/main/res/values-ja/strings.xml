@@ -128,6 +128,14 @@
     <string name="assistant_page_thinking_budget_tokens">%s トークン</string>
     <string name="assistant_page_thinking_budget_default">デフォルト</string>
     <string name="assistant_page_thinking_budget_warning">注意：異なるプロバイダーは様々な思考バジェットAPIフォーマットを定義しており、アプリはすべてに対応できないため、このオプションが機能しない場合があります。機能しない場合は、下のカスタムボディを使用してリクエストをカスタマイズすることをお勧めします。</string>
+    <string name="assistant_page_message_template">チャットコンテンツテンプレート</string>
+    <string name="assistant_page_message_template_desc">チャットメッセージがLLMに送信される前のコンテンツ形式を制御します。通常は変更する必要がありません</string>
+    <string name="assistant_page_template_preview">プレビュー:</string>
+    <string name="assistant_page_template_variable_role">役割</string>
+    <string name="assistant_page_template_variable_message">内容</string>
+    <string name="assistant_page_template_variable_time">時間</string>
+    <string name="assistant_page_template_variable_date">日付</string>
+    <string name="assistant_page_template_variables_label">変数:</string>
     
     <!-- Custom Headers and Bodies -->
     <string name="assistant_page_custom_headers">カスタムヘッダー</string>

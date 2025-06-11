@@ -29,6 +29,15 @@ fun Instant.toLocalDateTime(): String {
         .format(localDateTime)
 }
 
+fun Instant.toLocalTime(): String {
+    val zoneId = ZoneId.systemDefault()
+    val localDateTime = this.atZone(zoneId).toLocalDateTime()
+
+    return DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM)
+        .withLocale(Locale.getDefault())
+        .format(localDateTime)
+}
+
 fun LocalDateTime.toLocalString(): String {
     val locale = Locale.getDefault()
     val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withLocale(locale)

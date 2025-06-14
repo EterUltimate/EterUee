@@ -146,7 +146,8 @@ class GenerationHandler(
                         toolName = toolCall.toolName,
                         toolCallId = toolCall.toolCallId,
                         content = result,
-                        arguments = args
+                        arguments = args,
+                        metadata = toolCall.metadata
                     )
                 }.onFailure {
                     it.printStackTrace()

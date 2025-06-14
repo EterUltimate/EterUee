@@ -47,6 +47,10 @@ fun guessModalityFromModelId(modelId: String): Pair<List<Modality>, List<Modalit
             listOf(Modality.TEXT, Modality.IMAGE) to listOf(Modality.TEXT)
         }
 
+        DOUBAO_1_6.containsMatchIn(modelId) -> {
+            listOf(Modality.TEXT, Modality.IMAGE) to listOf(Modality.TEXT)
+        }
+
         else -> {
             listOf(Modality.TEXT) to listOf(Modality.TEXT)
         }
@@ -83,6 +87,10 @@ fun guessModelAbilityFromModelId(modelId: String): List<ModelAbility> {
             listOf(ModelAbility.TOOL, ModelAbility.REASONING)
         }
 
+        DOUBAO_1_6.containsMatchIn(modelId) -> {
+            listOf(ModelAbility.TOOL, ModelAbility.REASONING)
+        }
+
         else -> {
             emptyList()
         }
@@ -98,3 +106,4 @@ private val CLAUDE_SONNET_3_5 = Regex("claude-3.5-sonnet")
 private val CLAUDE_SONNET_3_7 = Regex("claude-3.7-sonnet")
 private val CLAUDE_4 = Regex("claude-4")
 private val QWEN_3 = Regex("qwen-?3")
+private val DOUBAO_1_6 = Regex("doubao.+1-6")

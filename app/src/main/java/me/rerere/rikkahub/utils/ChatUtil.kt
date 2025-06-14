@@ -24,10 +24,11 @@ private const val TAG = "ChatUtil"
 
 fun navigateToChatPage(
     navController: NavController,
-    chatId: Uuid = Uuid.random()
+    chatId: Uuid = Uuid.random(),
+    urlHandler: (String) -> String = { it }
 ) {
     Log.i(TAG, "navigateToChatPage: navigate to $chatId")
-    navController.navigate("chat/${chatId}") {
+    navController.navigate(urlHandler("chat/${chatId}")) {
         popUpTo(0) {
             inclusive = true
         }

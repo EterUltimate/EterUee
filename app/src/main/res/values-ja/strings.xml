@@ -200,6 +200,9 @@
     <string name="setting_display_page_auto_collapse_thinking_desc">思考が完了したら思考内容を自動的に折りたたむ</string>
     <string name="setting_display_page_show_updates_title">アップデートを表示</string>
     <string name="setting_display_page_show_updates_desc">アプリのアップデート通知を表示するかどうか</string>
+
+    <!-- Share Handler Page -->
+    <string name="share_handler_page_title">共有を処理するアシスタントを選択</string>
     
     <!-- Color Mode -->
     <string name="setting_page_color_mode">カラーモード</string>
@@ -301,4 +304,6 @@
     <string name="chat_message_tool_call_label">ツール %1$s を呼び出しました</string>
     <string name="chat_message_tool_call_result">呼び出し結果</string>
     <string name="delete">削除</string>
+    <string name="setting_display_page_show_message_jumper_title">メッセージナビゲーションボタン</string>
+    <string name="setting_display_page_show_message_jumper_desc">チャットリストをスクロールすると、右側にクイックジャンプボタンが表示されます。</string>
 </resources> 

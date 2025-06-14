@@ -1,5 +1,6 @@
 package me.rerere.rikkahub
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -66,10 +68,12 @@ import me.rerere.rikkahub.ui.pages.setting.SettingModelPage
 import me.rerere.rikkahub.ui.pages.setting.SettingPage
 import me.rerere.rikkahub.ui.pages.setting.SettingProviderPage
 import me.rerere.rikkahub.ui.pages.setting.SettingSearchPage
+import me.rerere.rikkahub.ui.pages.share.handler.ShareHandlerPage
 import me.rerere.rikkahub.ui.pages.translator.TranslatorPage
 import me.rerere.rikkahub.ui.pages.webview.WebViewPage
 import me.rerere.rikkahub.ui.theme.LocalDarkMode
 import me.rerere.rikkahub.ui.theme.RikkahubTheme
+import me.rerere.rikkahub.utils.base64Encode
 import okhttp3.OkHttpClient
 import org.koin.android.ext.android.inject
 import kotlin.uuid.Uuid
@@ -88,6 +92,7 @@ class RouteActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             val navController = rememberNavController()
+            ShareHandler(navController)
             RikkahubTheme {
                 setSingletonImageLoaderFactory { context ->
                     ImageLoader.Builder(context)
@@ -107,6 +112,20 @@ class RouteActivity : ComponentActivity() {
     private fun disableNavigationBarContrast() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false
+        }
+    }
+
+    @Composable
+    private fun ShareHandler(navController: NavHostController) {
+        LaunchedEffect(navController) {
+            when (intent.action) {
+                Intent.ACTION_SEND -> {
+                    val text = intent.getStringExtra(Intent.EXTRA_TEXT)
+                    if (text != null) {
+                        navController.navigate("share/handler?text=${text.base64Encode()}")
+                    }
+                }
+            }
         }
     }
 
@@ -143,7 +162,10 @@ class RouteActivity : ComponentActivity() {
                     popExitTransition = {
                         scaleOut(
                             targetScale = 0.5f,
-                            transformOrigin = TransformOrigin(pivotFractionX = 0.5f, pivotFractionY = 0.5f)
+                            transformOrigin = TransformOrigin(
+                                pivotFractionX = 0.5f,
+                                pivotFractionY = 0.5f
+                            )
                         ) + fadeOut()
                     },
                     popEnterTransition = {
@@ -151,16 +173,32 @@ class RouteActivity : ComponentActivity() {
                     },
                 ) {
                     composableHelper(
-                        route = "chat/{id}",
+                        route = "chat/{id}?text={text}",
                         args = listOf(
                             navArgument("id") {
                                 type = NavType.StringType
+                            },
+                            navArgument("text") {
+                                type = NavType.StringType
+                                nullable = true
                             }
                         ),
                     ) { entry ->
                         ChatPage(
-                            id = Uuid.parse(entry.arguments?.getString("id")!!)
+                            id = Uuid.parse(entry.arguments?.getString("id")!!),
+                            text = entry.arguments?.getString("text")
                         )
+                    }
+
+                    composableHelper(
+                        route = "share/handler?text={text}",
+                        args = listOf(
+                            navArgument("text") {
+                                type = NavType.StringType
+                            }
+                        )
+                    ) {
+                        ShareHandlerPage()
                     }
 
                     composableHelper("history") {

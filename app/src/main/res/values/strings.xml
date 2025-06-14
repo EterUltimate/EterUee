@@ -201,6 +201,9 @@
     <string name="setting_display_page_show_message_jumper_desc">Display quick jump buttons on the right when scrolling the chat list</string>
     <string name="setting_display_page_title">Display Settings</string>
 
+    <!-- Share Handler Page -->
+    <string name="share_handler_page_title">Select an Assistant</string>
+
     <!-- Color Mode -->
     <string name="setting_page_color_mode">Color Mode</string>
     <string name="setting_page_color_mode_system">System</string>

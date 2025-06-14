@@ -58,6 +58,7 @@ import com.composables.icons.lucide.Settings
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import me.rerere.ai.ui.UIMessagePart
 import me.rerere.rikkahub.BuildConfig
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.Settings
@@ -76,6 +77,7 @@ import me.rerere.rikkahub.ui.hooks.useEditState
 import me.rerere.rikkahub.ui.hooks.useThrottle
 import me.rerere.rikkahub.utils.UpdateDownload
 import me.rerere.rikkahub.utils.Version
+import me.rerere.rikkahub.utils.base64Decode
 import me.rerere.rikkahub.utils.navigateToChatPage
 import me.rerere.rikkahub.utils.onError
 import me.rerere.rikkahub.utils.onSuccess
@@ -88,7 +90,7 @@ import kotlin.time.toJavaInstant
 import kotlin.uuid.Uuid
 
 @Composable
-fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
+fun ChatPage(id: Uuid, text: String?, vm: ChatVM = koinViewModel()) {
     val navController = LocalNavController.current
     val toaster = LocalToaster.current
     val scope = rememberCoroutineScope()
@@ -121,7 +123,11 @@ fun ChatPage(id: Uuid, vm: ChatVM = koinViewModel()) {
             )
         }
     ) {
-        val inputState = rememberChatInputState()
+        val inputState = rememberChatInputState(
+            message = text?.let {
+                listOf(UIMessagePart.Text(it.base64Decode()))
+            } ?: emptyList(),
+        )
         LaunchedEffect(loadingJob) {
             inputState.loading = loadingJob != null
         }

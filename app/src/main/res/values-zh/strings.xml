@@ -202,6 +202,9 @@
     <string name="setting_display_page_show_message_jumper_desc">在滚动聊天列表时，在右侧显示快速跳转按钮</string>
     <string name="setting_display_page_title">显示设置</string>
 
+    <!-- Share Handler Page -->
+    <string name="share_handler_page_title">选择一个助手处理分享</string>
+
     <!-- Color Mode -->
     <string name="setting_page_color_mode">颜色模式</string>
     <string name="setting_page_color_mode_system">跟随系统</string>

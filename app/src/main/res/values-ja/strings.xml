@@ -21,6 +21,7 @@
     <string name="confirm">確認</string>
     <string name="cancel">キャンセル</string>
     <string name="confirm_delete">削除を確認</string>
+    <string name="tools_warning">現在のモデルではツール呼び出しが有効になっていません。設定でモデルのツール機能を有効にしてから、検索/MCPなどの機能を使用してください。</string>
 
     <!-- Chat Page -->
     <string name="chat_page_no_conversations">会話がありません</string>

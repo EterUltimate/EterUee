@@ -20,6 +20,8 @@
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
     <string name="confirm_delete">Confirm Delete</string>
+    <string name="delete">Delete</string>
+    <string name="tools_warning">The current model does not have tool calling enabled. Please enable the model\'s tool capabilities in the settings to use features like search/MCP.</string>
 
     <!-- Chat Page -->
     <string name="chat_page_no_conversations">No conversations</string>
@@ -303,5 +305,4 @@
     <string name="chat_message_tool_call_title">Tool Call</string>
     <string name="chat_message_tool_call_label">Called tool %1$s</string>
     <string name="chat_message_tool_call_result">Call result</string>
-    <string name="delete">Delete</string>
 </resources>

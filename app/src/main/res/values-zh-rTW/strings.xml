@@ -22,6 +22,7 @@
     <string name="cancel">取消</string>
 
     <!-- Chat Page -->
+    <string name="tools_warning">當前模型未開啟工具調用，請在設定內啟用模型的工具能力，再使用搜尋/MCP等功能</string>
     <string name="chat_page_no_conversations">沒有對話記錄</string>
     <string name="chat_page_new_message">新訊息</string>
     <string name="chat_page_today">今天</string>

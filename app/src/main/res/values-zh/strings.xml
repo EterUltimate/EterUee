@@ -21,6 +21,8 @@
     <string name="confirm">确认</string>
     <string name="cancel">取消</string>
     <string name="confirm_delete">确认删除</string>
+    <string name="delete">删除</string>
+    <string name="tools_warning">当前模型未开启工具调用，请在设置内启用模型的工具能力，再使用搜索/MCP等功能</string>
 
     <!-- Chat Page -->
     <string name="chat_page_no_conversations">没有对话记录</string>
@@ -304,5 +306,4 @@
     <string name="chat_message_tool_call_title">工具调用</string>
     <string name="chat_message_tool_call_label">调用工具 %1$s</string>
     <string name="chat_message_tool_call_result">调用结果</string>
-    <string name="delete">删除</string>
 </resources> 

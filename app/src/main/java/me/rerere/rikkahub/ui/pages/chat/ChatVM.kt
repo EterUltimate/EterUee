@@ -37,6 +37,7 @@ import me.rerere.ai.core.MessageRole
 import me.rerere.ai.core.TokenUsage
 import me.rerere.ai.core.Tool
 import me.rerere.ai.provider.Model
+import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ProviderManager
 import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.ui.UIMessage
@@ -45,6 +46,7 @@ import me.rerere.ai.ui.finishReasoning
 import me.rerere.ai.ui.isEmptyInputMessage
 import me.rerere.ai.ui.transformers.PlaceholderTransformer
 import me.rerere.ai.ui.transformers.ThinkTagTransformer
+import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.ai.Base64ImageToLocalFileTransformer
 import me.rerere.rikkahub.data.ai.DocumentAsPromptTransformer
 import me.rerere.rikkahub.data.ai.GenerationChunk
@@ -276,6 +278,11 @@ class ChatVM(
     private suspend fun handleMessageComplete(messageRange: ClosedRange<Int>? = null) {
         val model = currentChatModel.value ?: return
         runCatching {
+            if(!model.abilities.contains(ModelAbility.TOOL)) {
+                if(useWebSearch || mcpManager.getAllAvailableTools().isNotEmpty() || settings.value.getCurrentAssistant().enableMemory) {
+                    errorFlow.emit(IllegalStateException(context.getString(R.string.tools_warning)))
+                }
+            }
             generationHandler.generateText(
                 settings = settings.value,
                 model = model,

@@ -12,12 +12,14 @@ import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import me.rerere.ai.core.MessageRole
+import me.rerere.ai.core.TokenUsage
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ProviderSetting
@@ -70,8 +72,8 @@ class ResponseAPI(private val client: OkHttpClient) : OpenAIImpl {
         }
 
         val bodyStr = response.body?.string() ?: ""
+        Log.i(TAG, "generateText: $bodyStr")
         val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
-
         val output = parseResponseOutput(bodyJson)
 
         return output
@@ -104,12 +106,14 @@ class ResponseAPI(private val client: OkHttpClient) : OpenAIImpl {
                 type: String?,
                 data: String
             ) {
-                Log.d(TAG, "onEvent: $id/$type/$data")
-                if(type == "response.completed") close()
+                Log.d(TAG, "onEvent: $id/$type $data")
                 val json = json.parseToJsonElement(data).jsonObject
                 val chunk = parseResponseDelta(json)
                 if (chunk != null) {
                     trySend(chunk)
+                }
+                if(type == "response.completed") {
+                    close()
                 }
             }
 
@@ -398,6 +402,15 @@ class ResponseAPI(private val client: OkHttpClient) : OpenAIImpl {
                     ),
                 )
             }
+
+            "response.completed" -> {
+                return MessageChunk(
+                    id = jsonObject["item_id"]?.jsonPrimitive?.contentOrNull ?: "",
+                    model = "",
+                    choices = emptyList(),
+                    usage = parseTokenUsage(jsonObject["response"]?.jsonObject?.get("usage")?.jsonObject)
+                )
+            }
         }
 
         return null
@@ -475,7 +488,17 @@ class ResponseAPI(private val client: OkHttpClient) : OpenAIImpl {
                     finishReason = null,
                     delta = null
                 )
-            )
+            ),
+            usage = parseTokenUsage(jsonObject["usage"]?.jsonObject)
+        )
+    }
+
+    private fun parseTokenUsage(jsonObject: JsonObject?): TokenUsage? {
+        if (jsonObject == null) return null
+        return TokenUsage(
+            promptTokens = jsonObject["input_tokens"]?.jsonPrimitive?.intOrNull ?: 0,
+            completionTokens = jsonObject["output_tokens"]?.jsonPrimitive?.intOrNull ?: 0,
+            totalTokens = jsonObject["total_tokens"]?.jsonPrimitive?.intOrNull ?: 0,
         )
     }
 }

@@ -63,6 +63,10 @@ fun guessModelAbilityFromModelId(modelId: String): List<ModelAbility> {
             listOf(ModelAbility.TOOL)
         }
 
+        OPENAI_O_MODELS.containsMatchIn(modelId) -> {
+            listOf(ModelAbility.TOOL, ModelAbility.REASONING)
+        }
+
         GEMINI_20_FLASH.containsMatchIn(modelId) -> {
             listOf(ModelAbility.TOOL)
         }
@@ -97,6 +101,7 @@ fun guessModelAbilityFromModelId(modelId: String): List<ModelAbility> {
     }
 }
 
+private val OPENAI_O_MODELS = Regex("o\\d")
 private val GPT4O = Regex("gpt-4o")
 private val GPT_4_1 = Regex("gpt-4\\.1")
 private val GEMINI_20_FLASH = Regex("gemini-2.0-flash")

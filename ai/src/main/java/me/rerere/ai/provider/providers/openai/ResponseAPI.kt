@@ -105,10 +105,10 @@ class ResponseAPI(private val client: OkHttpClient) : OpenAIImpl {
                 data: String
             ) {
                 Log.d(TAG, "onEvent: $id/$type/$data")
+                if(type == "response.completed") close()
                 val json = json.parseToJsonElement(data).jsonObject
                 val chunk = parseResponseDelta(json)
                 if (chunk != null) {
-                    println(chunk)
                     trySend(chunk)
                 }
             }

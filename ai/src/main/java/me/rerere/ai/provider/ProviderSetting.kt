@@ -39,6 +39,7 @@ sealed class ProviderSetting {
         @Transient override val description: @Composable (() -> Unit) = {},
         var apiKey: String = "sk-",
         var baseUrl: String = "https://api.openai.com/v1",
+        var useResponseApi: Boolean = false,
     ) : ProviderSetting() {
         override fun addModel(model: Model): ProviderSetting {
             return copy(models = models + model)

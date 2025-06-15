@@ -122,6 +122,18 @@ private fun ColumnScope.ProviderConfigureOpenAI(
         },
         modifier = Modifier.fillMaxWidth()
     )
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text("Response API", modifier = Modifier.weight(1f))
+        Checkbox(
+            checked = provider.useResponseApi,
+            onCheckedChange = {
+                onEdit(provider.copy(useResponseApi = it))
+            }
+        )
+    }
 }
 
 @Composable

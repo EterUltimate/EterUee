@@ -28,4 +28,8 @@ fun String.escapeHtml(): String {
     return StringEscapeUtils.escapeHtml4(this)
 }
 
+fun String.unescapeHtml(): String {
+    return StringEscapeUtils.unescapeHtml4(this)
+}
+
 fun Number.toFixed(digits: Int = 0) = "%.${digits}f".format(this)

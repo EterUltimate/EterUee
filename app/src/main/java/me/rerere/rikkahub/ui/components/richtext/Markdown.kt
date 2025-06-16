@@ -5,16 +5,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
@@ -48,7 +45,6 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -57,6 +53,7 @@ import androidx.core.net.toUri
 import me.rerere.rikkahub.ui.components.table.ColumnDefinition
 import me.rerere.rikkahub.ui.components.table.ColumnWidth
 import me.rerere.rikkahub.ui.components.table.DataTable
+import me.rerere.rikkahub.utils.unescapeHtml
 import org.intellij.markdown.IElementType
 import org.intellij.markdown.MarkdownElementTypes
 import org.intellij.markdown.MarkdownTokenTypes
@@ -136,6 +133,9 @@ private fun MarkdownPreview() {
                 | ---- | --- | ------- | ----- | --- | -------- |
                 | John | 25  | New York | john@example.com | Software Engineer | john.com |
                 | Jane | 26  | London   | jane@example.com | Data Scientist | jane.com |
+                
+                ## HTML Escaping
+                This is a &gt;  test
                 
             """.trimIndent()
         )
@@ -650,7 +650,7 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
 ) {
     when {
         node is LeafASTNode -> {
-            append(node.getTextInNode(content))
+            append(node.getTextInNode(content).unescapeHtml())
         }
 
         node.type == MarkdownElementTypes.EMPH -> {

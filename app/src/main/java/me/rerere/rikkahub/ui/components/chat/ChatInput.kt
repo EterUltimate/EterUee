@@ -80,6 +80,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.FileProvider
@@ -503,14 +504,16 @@ fun ChatInput(
                     }
                 }
 
-                McpPickerButton(
-                    assistant = settings.getCurrentAssistant(),
-                    servers = settings.mcpServers,
-                    mcpManager = mcpManager,
-                    onUpdateAssistant = {
-                        onUpdateAssistant(it)
-                    }
-                )
+                if(settings.mcpServers.fastFilter { it.commonOptions.enable }.isNotEmpty()) {
+                    McpPickerButton(
+                        assistant = settings.getCurrentAssistant(),
+                        servers = settings.mcpServers,
+                        mcpManager = mcpManager,
+                        onUpdateAssistant = {
+                            onUpdateAssistant(it)
+                        }
+                    )
+                }
 
                 MoreOptionsButton(
                     onClearContext = onClearContext

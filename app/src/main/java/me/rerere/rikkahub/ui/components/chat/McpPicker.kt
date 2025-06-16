@@ -66,7 +66,7 @@ fun McpPickerButton(
     BadgedBox(
         badge = {
             val enabledServers = servers.fastFilter {
-                it.commonOptions.enable
+                it.commonOptions.enable && assistant.mcpServers.contains(it.id)
             }
             if (enabledServers.isNotEmpty()) {
                 Badge(

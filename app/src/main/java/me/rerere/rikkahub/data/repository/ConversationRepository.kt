@@ -96,7 +96,8 @@ class ConversationRepository(
             updateAt = conversation.updateAt.toEpochMilli(),
             tokenUsage = conversation.tokenUsage,
             assistantId = conversation.assistantId.toString(),
-            truncateIndex = conversation.truncateIndex
+            truncateIndex = conversation.truncateIndex,
+            chatSuggestions = JsonInstant.encodeToString(conversation.chatSuggestions)
         )
     }
 
@@ -109,7 +110,8 @@ class ConversationRepository(
             createAt = Instant.ofEpochMilli(conversationEntity.createAt),
             updateAt = Instant.ofEpochMilli(conversationEntity.updateAt),
             assistantId = Uuid.parse(conversationEntity.assistantId),
-            truncateIndex = conversationEntity.truncateIndex
+            truncateIndex = conversationEntity.truncateIndex,
+            chatSuggestions = JsonInstant.decodeFromString(conversationEntity.chatSuggestions),
         )
     }
 

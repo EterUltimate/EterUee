@@ -17,6 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.MessageCircle
+import com.composables.icons.lucide.MessageSquareMore
 import com.composables.icons.lucide.NotebookTabs
 import me.rerere.ai.provider.ModelType
 import me.rerere.rikkahub.R
@@ -85,6 +86,34 @@ fun SettingModelPage(vm: SettingVM = koinViewModel()) {
                             vm.updateSettings(
                                 settings.copy(
                                     titleModelId = it.id
+                                )
+                            )
+                        },
+                        onUpdate = {
+                            vm.updateSettings(settings.copy(
+                                providers = it
+                            ))
+                        },
+                        providers = settings.providers,
+                        modifier = Modifier.widthIn(max = 200.dp)
+                    )
+                }
+            )
+            ListItem(
+                headlineContent = {
+                    Text(stringResource(R.string.setting_model_page_suggestion_model), maxLines = 1)
+                },
+                leadingContent = {
+                    Icon(Lucide.MessageSquareMore, null)
+                },
+                trailingContent = {
+                    ModelSelector(
+                        modelId = settings.suggestionModelId,
+                        type = ModelType.CHAT,
+                        onSelect = {
+                            vm.updateSettings(
+                                settings.copy(
+                                    suggestionModelId = it.id
                                 )
                             )
                         },

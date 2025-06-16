@@ -82,6 +82,7 @@
     <string name="setting_model_page_title">Model Settings</string>
     <string name="setting_model_page_chat_model">Chat Model</string>
     <string name="setting_model_page_title_model">Title Summary Model</string>
+    <string name="setting_model_page_suggestion_model">Chat Suggestion Model</string>
     <string name="setting_model_page_translate_model">Translation Model</string>
 
     <!-- Translator Page -->

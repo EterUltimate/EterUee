@@ -23,4 +23,6 @@ data class ConversationEntity(
     val updateAt: Long,
     @ColumnInfo("truncate_index", defaultValue = "-1")
     val truncateIndex: Int,
+    @ColumnInfo("suggestions", defaultValue = "[]")
+    val chatSuggestions: String,
 )

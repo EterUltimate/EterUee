@@ -278,8 +278,10 @@ class ChatVM(
     private suspend fun handleMessageComplete(messageRange: ClosedRange<Int>? = null) {
         val model = currentChatModel.value ?: return
         runCatching {
-            if(!model.abilities.contains(ModelAbility.TOOL)) {
-                if(useWebSearch || mcpManager.getAllAvailableTools().isNotEmpty() || settings.value.getCurrentAssistant().enableMemory) {
+            if (!model.abilities.contains(ModelAbility.TOOL)) {
+                if (useWebSearch || mcpManager.getAllAvailableTools()
+                        .isNotEmpty() || settings.value.getCurrentAssistant().enableMemory
+                ) {
                     errorFlow.emit(IllegalStateException(context.getString(R.string.tools_warning)))
                 }
             }
@@ -356,6 +358,7 @@ class ChatVM(
         }.onSuccess {
             saveConversation(conversation.value)
             generateTitle(conversation.value)
+            generateSuggestion(conversation.value)
         }
     }
 
@@ -402,6 +405,61 @@ class ChatVM(
                         )
                     )
                 }
+            }.onFailure {
+                it.printStackTrace()
+            }
+        }
+    }
+
+    fun generateSuggestion(conversation: Conversation) {
+        val model = settings.value.findModelById(settings.value.suggestionModelId) ?: return
+        val provider = model.findProvider(settings.value.providers) ?: return
+        viewModelScope.launch {
+            runCatching {
+                updateConversation(_conversation.value.copy(chatSuggestions = emptyList()))
+                val providerHandler = ProviderManager.getProviderByType(provider)
+                val result = providerHandler.generateText(
+                    providerSetting = provider,
+                    messages = listOf(
+                        UIMessage.user(
+                            """
+                                你是一名擅长会话的助理，我会给你一些对话内容在content内，包含用户(user)和助手(assistant)的对话内容
+                                你需要根据聊天内容生成3~5条聊天建议给用户，方便用户快速回复
+                                
+                                规则:
+                                1. 直接回复建议，不要使用任何格式，并且使用换行符分隔建议
+                                2. 使用 ${Locale.getDefault().displayName} 语言
+                                3. 确保每条建议都是有效的
+                                4. 每条建议不超过10个字
+                                5. 模仿用户之前的对话风格
+                                
+                                <content>
+                                ${
+                                conversation.currentMessages.takeLast(8)
+                                    .joinToString("\n\n") { it.summaryAsText() }
+                            }
+                                </content>
+                                """.trimIndent()
+                        )
+                    ),
+                    params = TextGenerationParams(
+                        model = model,
+                        temperature = 1.0f,
+                        thinkingBudget = 0,
+                    ),
+                )
+                val suggestions =
+                    result.choices[0].message?.toText()
+                        ?.split("\n")
+                        ?.map { it.trim() }
+                        ?.filter { it.isNotBlank() }
+                        ?: emptyList()
+                Log.i(TAG, "generateSuggestion: ${result.choices[0]}")
+                saveConversation(
+                    _conversation.value.copy(
+                        chatSuggestions = suggestions,
+                    )
+                )
             }.onFailure {
                 it.printStackTrace()
             }

@@ -56,6 +56,7 @@ class SettingsStore(
         val SELECT_MODEL = stringPreferencesKey("chat_model")
         val TITLE_MODEL = stringPreferencesKey("title_model")
         val TRANSLATE_MODEL = stringPreferencesKey("translate_model")
+        val SUGGESTION_MODEL = stringPreferencesKey("suggestion_model")
 
         // 提供商
         val PROVIDERS = stringPreferencesKey("providers")
@@ -86,6 +87,8 @@ class SettingsStore(
                 chatModelId = preferences[SELECT_MODEL]?.let { Uuid.parse(it) } ?: Uuid.random(),
                 titleModelId = preferences[TITLE_MODEL]?.let { Uuid.parse(it) } ?: Uuid.random(),
                 translateModeId = preferences[TRANSLATE_MODEL]?.let { Uuid.parse(it) }
+                    ?: Uuid.random(),
+                suggestionModelId = preferences[SUGGESTION_MODEL]?.let { Uuid.parse(it) }
                     ?: Uuid.random(),
                 assistantId = preferences[SELECT_ASSISTANT]?.let { Uuid.parse(it) }
                     ?: DEFAULT_ASSISTANT_ID,
@@ -175,6 +178,7 @@ class SettingsStore(
             preferences[SELECT_MODEL] = settings.chatModelId.toString()
             preferences[TITLE_MODEL] = settings.titleModelId.toString()
             preferences[TRANSLATE_MODEL] = settings.translateModeId.toString()
+            preferences[SUGGESTION_MODEL] = settings.suggestionModelId.toString()
 
             preferences[PROVIDERS] = JsonInstant.encodeToString(settings.providers)
 
@@ -208,6 +212,7 @@ data class Settings(
     val chatModelId: Uuid = Uuid.random(),
     val titleModelId: Uuid = Uuid.random(),
     val translateModeId: Uuid = Uuid.random(),
+    val suggestionModelId: Uuid = Uuid.random(),
     val assistantId: Uuid = DEFAULT_ASSISTANT_ID,
     val providers: List<ProviderSetting> = DEFAULT_PROVIDERS,
     val assistants: List<Assistant> = DEFAULT_ASSISTANTS,

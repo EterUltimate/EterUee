@@ -83,6 +83,7 @@
     <string name="setting_model_page_title">モデル設定</string>
     <string name="setting_model_page_chat_model">チャットモデル</string>
     <string name="setting_model_page_title_model">タイトル要約モデル</string>
+    <string name="setting_model_page_suggestion_model">チャット提案モデル</string>
     <string name="setting_model_page_translate_model">翻訳モデル</string>
     
     <!-- Translator Page -->

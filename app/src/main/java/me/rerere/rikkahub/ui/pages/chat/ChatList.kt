@@ -6,10 +6,13 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,6 +28,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
@@ -44,9 +48,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtLeast
+import androidx.compose.ui.util.fastForEach
 import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.ChevronUp
@@ -70,6 +76,7 @@ private const val LoadingIndicatorKey = "LoadingIndicator"
 private const val ScrollBottomKey = "ScrollBottomKey"
 private const val TokenUsageItemKey = "TokenUsageItemKey"
 private const val ContextUsageItemKey = "ContextUsageItemKey"
+private const val SuggestionItemKey = "SuggestionItemKey"
 
 @Composable
 fun ChatList(
@@ -82,6 +89,7 @@ fun ChatList(
     onForkMessage: (UIMessage) -> Unit = {},
     onDelete: (UIMessage) -> Unit = {},
     onUpdateMessage: (MessageNode) -> Unit = {},
+    onClickSuggestion: (String) -> Unit = {},
 ) {
     val state = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -230,10 +238,35 @@ fun ChatList(
                 item(LoadingIndicatorKey) {
                     LoadingIndicator()
                 }
+            } else if (conversation.chatSuggestions.isNotEmpty()) {
+                item(SuggestionItemKey) {
+                    FlowRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        conversation.chatSuggestions.fastForEach { suggestion ->
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(50))
+                                    .clickable {
+                                        onClickSuggestion(suggestion)
+                                    }
+                                    .background(MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp))
+                                    .padding(vertical = 4.dp, horizontal = 8.dp),
+                            ) {
+                                Text(
+                                    text = suggestion,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
-            // NEW: Combined Token and Context Usage Item
-            // Combined Token and Context Usage Item
             item(ContextUsageItemKey) {
                 // 当设置允许显示统计信息，并且聊天记录不为空时才显示
                 if (settings.displaySetting.showTokenUsage && conversation.messageNodes.isNotEmpty()) {

@@ -83,6 +83,7 @@
     <string name="setting_model_page_title">模型设置</string>
     <string name="setting_model_page_chat_model">聊天模型</string>
     <string name="setting_model_page_title_model">标题总结模型</string>
+    <string name="setting_model_page_suggestion_model">聊天建议模型</string>
     <string name="setting_model_page_translate_model">翻译模型</string>
     
     <!-- Translator Page -->

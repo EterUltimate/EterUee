@@ -237,6 +237,13 @@ fun ChatPage(id: Uuid, text: String?, vm: ChatVM = koinViewModel()) {
                             }
                         ))
                     vm.saveConversationAsync()
+                },
+                onClickSuggestion = {
+                    vm.handleMessageSend(listOf(
+                        UIMessagePart.Text(
+                            text = it,
+                        )
+                    ))
                 }
             )
         }

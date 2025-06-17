@@ -375,11 +375,13 @@ internal val DEFAULT_ASSISTANTS = listOf(
 internal val DEFAULT_ASSISTANTS_IDS = DEFAULT_ASSISTANTS.map { it.id }
 
 internal val DEFAULT_TITLE_PROMPT = """
-    You are a conversational assistant I will give you some dialogue content in the `<content>` block and you need to summarize the user's conversation into a title of no more than 10 characters.
+    I will give you some dialogue content in the `<content>` block.
+    You need to summarize the conversation between user and assistant into a short title.
     1. The title language should be consistent with the user's primary language
     2. Do not use punctuation or other special symbols
     3. Reply directly with the title
     4. Summarize using {locale} language
+    5. The title should not exceed 10 characters
     
     <content>
     {content}
@@ -387,11 +389,11 @@ internal val DEFAULT_TITLE_PROMPT = """
 """.trimIndent()
 
 internal val DEFAULT_SUGGESTION_PROMPT = """
-    You are a conversational assistant. I will provide you with some dialogue content in the `<content>` block, including conversations between the user and the assistant.
-    You need to generate 3-5 chat suggestions for the user based on the chat content, to facilitate quick replies for the user.
+    I will provide you with some dialogue content in the `<content>` block, including conversations between the user and the assistant.
+    You need to act as the user to reply to the assistant, generating 3~5 appropriate and contextually relevant responses to the assistant.
     
     Rules:
-    1. Reply directly with suggestions, do not use any formatting, and separate suggestions with newlines.
+    1. Reply directly with suggestions, do not add any formatting, and separate suggestions with newlines, no need to add markdown list formats.
     2. Use {locale} language.
     3. Ensure each suggestion is valid.
     4. Each suggestion should not exceed 10 characters.

@@ -25,6 +25,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -46,6 +47,9 @@ import com.composables.icons.lucide.NotebookTabs
 import com.composables.icons.lucide.Settings2
 import me.rerere.ai.provider.ModelType
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.data.datastore.DEFAULT_SUGGESTION_PROMPT
+import me.rerere.rikkahub.data.datastore.DEFAULT_TITLE_PROMPT
+import me.rerere.rikkahub.data.datastore.DEFAULT_TRANSLATION_PROMPT
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
 import me.rerere.rikkahub.ui.components.nav.BackButton
@@ -175,8 +179,19 @@ private fun DefaultTranslationModelSetting(
                             )
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        maxLines = 8
+                        maxLines = 10,
                     )
+                    TextButton(
+                        onClick = {
+                            vm.updateSettings(
+                                settings.copy(
+                                    translatePrompt = DEFAULT_TRANSLATION_PROMPT
+                                )
+                            )
+                        }
+                    ) {
+                        Text("重置为默认")
+                    }
                 }
             }
         }
@@ -269,6 +284,17 @@ private fun DefaultSuggestionModelSetting(
                         modifier = Modifier.fillMaxWidth(),
                         maxLines = 8
                     )
+                    TextButton(
+                        onClick = {
+                            vm.updateSettings(
+                                settings.copy(
+                                    suggestionPrompt = DEFAULT_SUGGESTION_PROMPT
+                                )
+                            )
+                        }
+                    ) {
+                        Text("重置为默认")
+                    }
                 }
             }
         }
@@ -357,6 +383,17 @@ private fun DefaultTitleModelSetting(
                         modifier = Modifier.fillMaxWidth(),
                         maxLines = 8
                     )
+                    TextButton(
+                        onClick = {
+                            vm.updateSettings(
+                                settings.copy(
+                                    titlePrompt = DEFAULT_TITLE_PROMPT
+                                )
+                            )
+                        }
+                    ) {
+                        Text("重置为默认")
+                    }
                 }
             }
         }

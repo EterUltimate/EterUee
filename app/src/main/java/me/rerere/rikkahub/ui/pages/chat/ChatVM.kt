@@ -68,6 +68,7 @@ import me.rerere.rikkahub.data.repository.MemoryRepository
 import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.UiState
 import me.rerere.rikkahub.utils.UpdateChecker
+import me.rerere.rikkahub.utils.applyPlaceholders
 import me.rerere.rikkahub.utils.deleteChatFiles
 import me.rerere.search.SearchService
 import java.time.Instant
@@ -378,25 +379,19 @@ class ChatVM(
                     providerSetting = provider,
                     messages = listOf(
                         UIMessage.user(
-                            """
-                                你是一名擅长会话的助理，我会给你一些对话内容在content内，你需要将用户的会话总结为 10 个字以内的标题
-                                1. 标题语言与用户的首要语言一致
-                                2. 不要使用标点符号和其他特殊符号
-                                3. 直接回复标题即可
-                                4. 使用 ${Locale.getDefault().displayName} 语言总结
-                                
-                                <content>
-                                ${conversation.currentMessages.joinToString("\n\n") { it.summaryAsText() }}
-                                </content>
-                                """.trimIndent()
-                        )
+                            prompt = settings.value.titlePrompt.applyPlaceholders(
+                                "locale" to Locale.getDefault().displayName,
+                                "content" to conversation.currentMessages.joinToString("\n\n") { it.summaryAsText() }
+                            )
+                        ),
                     ),
                     params = TextGenerationParams(
                         model = model,
                         temperature = 0.3f,
+                        thinkingBudget = 0
                     ),
                 )
-                Log.i(TAG, "generateTitle: ${result.choices[0]}")
+                Log.i(TAG, "generateTitle: ${result.choices[0].message?.toText()}")
                 // 生成完，conversation可能不是最新了，因此需要重新获取
                 conversationRepo.getConversationById(conversation.id)?.let {
                     saveConversation(
@@ -422,24 +417,11 @@ class ChatVM(
                     providerSetting = provider,
                     messages = listOf(
                         UIMessage.user(
-                            """
-                                你是一名擅长会话的助理，我会给你一些对话内容在content内，包含用户(user)和助手(assistant)的对话内容
-                                你需要根据聊天内容生成3~5条聊天建议给用户，方便用户快速回复
-                                
-                                规则:
-                                1. 直接回复建议，不要使用任何格式，并且使用换行符分隔建议
-                                2. 使用 ${Locale.getDefault().displayName} 语言
-                                3. 确保每条建议都是有效的
-                                4. 每条建议不超过10个字
-                                5. 模仿用户之前的对话风格
-                                
-                                <content>
-                                ${
-                                conversation.currentMessages.takeLast(8)
+                            settings.value.suggestionPrompt.applyPlaceholders(
+                                "locale" to Locale.getDefault().displayName,
+                                "content" to conversation.currentMessages.takeLast(8)
                                     .joinToString("\n\n") { it.summaryAsText() }
-                            }
-                                </content>
-                                """.trimIndent()
+                            ),
                         )
                     ),
                     params = TextGenerationParams(

@@ -18,6 +18,7 @@ import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.findProvider
 import me.rerere.rikkahub.data.datastore.getCurrentAssistant
+import me.rerere.rikkahub.utils.applyPlaceholders
 import java.util.Locale
 
 private const val TAG = "TranslatorVM"
@@ -82,16 +83,10 @@ class TranslatorVM(
         currentJob = viewModelScope.launch {
             runCatching {
                 val providerHandler = ProviderManager.getProviderByType(provider)
-                val prompt = """
-                    你是一个翻译专家，擅长翻译各国语言，并且保持翻译准确和信达雅。
-                    接下来我会给你发送文本，请将其翻译为 ${targetLanguage.value}，直接返回翻译结果，不要添加任何解释和其他内容。
-                    
-                    请翻译<source_text>部分:
-                    
-                    <source_text>
-                    $inputText
-                    </source_text>
-                """.trimIndent()
+                val prompt = settings.value.translatePrompt.applyPlaceholders(
+                    "source_text" to inputText,
+                    "target_lang" to targetLanguage.value.toString(),
+                )
 
                 var messages = listOf(
                     UIMessage.user(prompt)

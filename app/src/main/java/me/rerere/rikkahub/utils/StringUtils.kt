@@ -33,3 +33,13 @@ fun String.unescapeHtml(): String {
 }
 
 fun Number.toFixed(digits: Int = 0) = "%.${digits}f".format(this)
+
+fun String.applyPlaceholders(
+    vararg placeholders: Pair<String, String>,
+): String {
+    var result = this
+    for ((placeholder, replacement) in placeholders) {
+        result = result.replace("{$placeholder}", replacement)
+    }
+    return result
+}

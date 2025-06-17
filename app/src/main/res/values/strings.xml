@@ -84,6 +84,14 @@
     <string name="setting_model_page_title_model">Title Summary Model</string>
     <string name="setting_model_page_suggestion_model">Chat Suggestion Model</string>
     <string name="setting_model_page_translate_model">Translation Model</string>
+    <string name="setting_model_page_translate_model_desc">The model used for translation features</string>
+    <string name="setting_model_page_prompt">Prompt</string>
+    <string name="setting_model_page_translate_prompt_vars">Variables: Source text: {source_text}, Target language: {target_lang}</string>
+    <string name="setting_model_page_reset_to_default">Reset to default</string>
+    <string name="setting_model_page_suggestion_model_desc">Model used to generate conversation suggestions, recommend using fast and inexpensive models</string>
+    <string name="setting_model_page_suggestion_prompt_vars">Variables: Conversation content: {content}, Language: {locale}</string>
+    <string name="setting_model_page_title_model_desc">Model used to summarize conversation titles, recommend using fast and inexpensive models</string>
+    <string name="setting_model_page_chat_model_desc">Global default chat model</string>
 
     <!-- Translator Page -->
     <string name="translator_page_title">Translator</string>

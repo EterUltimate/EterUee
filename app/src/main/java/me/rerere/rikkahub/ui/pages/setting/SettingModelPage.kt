@@ -110,7 +110,7 @@ private fun DefaultTranslationModelSetting(
             )
         },
         description = {
-            Text("用于翻译功能的模型")
+            Text(stringResource(R.string.setting_model_page_translate_model_desc))
         },
         icon = {
             Icon(Lucide.Earth, null)
@@ -163,10 +163,10 @@ private fun DefaultTranslationModelSetting(
             ) {
                 FormItem(
                     label = {
-                        Text("提示词")
+                        Text(stringResource(R.string.setting_model_page_prompt))
                     },
                     description = {
-                        Text("变量: 原始文本: {source_text}, 目标语言: {target_lang}")
+                        Text(stringResource(R.string.setting_model_page_translate_prompt_vars))
                     }
                 ) {
                     OutlinedTextField(
@@ -190,7 +190,7 @@ private fun DefaultTranslationModelSetting(
                             )
                         }
                     ) {
-                        Text("重置为默认")
+                        Text(stringResource(R.string.setting_model_page_reset_to_default))
                     }
                 }
             }
@@ -212,7 +212,7 @@ private fun DefaultSuggestionModelSetting(
             )
         },
         description = {
-            Text("用于生成对话建议的模型, 推荐使用快速且便宜的模型")
+            Text(stringResource(R.string.setting_model_page_suggestion_model_desc))
         },
         icon = {
             Icon(Lucide.MessageSquareMore, null)
@@ -266,10 +266,10 @@ private fun DefaultSuggestionModelSetting(
             ) {
                 FormItem(
                     label = {
-                        Text("提示词")
+                        Text(stringResource(R.string.setting_model_page_prompt))
                     },
                     description = {
-                        Text("变量: 对话内容: {content}, 语言: {locale}")
+                        Text(stringResource(R.string.setting_model_page_suggestion_prompt_vars))
                     }
                 ) {
                     OutlinedTextField(
@@ -293,7 +293,7 @@ private fun DefaultSuggestionModelSetting(
                             )
                         }
                     ) {
-                        Text("重置为默认")
+                        Text(stringResource(R.string.setting_model_page_reset_to_default))
                     }
                 }
             }
@@ -312,7 +312,7 @@ private fun DefaultTitleModelSetting(
             Text(stringResource(R.string.setting_model_page_title_model), maxLines = 1)
         },
         description = {
-            Text("用于总结对话标题的模型, 推荐使用快速且便宜的模型")
+            Text(stringResource(R.string.setting_model_page_title_model_desc))
         },
         icon = {
             Icon(Lucide.NotebookTabs, null)
@@ -365,10 +365,10 @@ private fun DefaultTitleModelSetting(
             ) {
                 FormItem(
                     label = {
-                        Text("提示词")
+                        Text(stringResource(R.string.setting_model_page_prompt))
                     },
                     description = {
-                        Text("变量: 对话内容: {content} 语言: {locale}")
+                        Text(stringResource(R.string.setting_model_page_suggestion_prompt_vars))
                     }
                 ) {
                     OutlinedTextField(
@@ -392,7 +392,7 @@ private fun DefaultTitleModelSetting(
                             )
                         }
                     ) {
-                        Text("重置为默认")
+                        Text(stringResource(R.string.setting_model_page_reset_to_default))
                     }
                 }
             }
@@ -413,7 +413,7 @@ private fun DefaultChatModelSetting(
             Text(stringResource(R.string.setting_model_page_chat_model), maxLines = 1)
         },
         description = {
-            Text("全局默认的聊天模型")
+            Text(stringResource(R.string.setting_model_page_chat_model_desc))
         },
         actions = {
             Box(modifier = Modifier.weight(1f)) {

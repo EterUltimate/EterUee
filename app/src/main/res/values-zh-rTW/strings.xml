@@ -83,6 +83,14 @@
     <string name="setting_model_page_title_model">標題摘要模型</string>
     <string name="setting_model_page_suggestion_model">聊天建議模型</string>
     <string name="setting_model_page_translate_model">翻譯模型</string>
+    <string name="setting_model_page_translate_model_desc">用於翻譯功能的模型</string>
+    <string name="setting_model_page_prompt">提示詞</string>
+    <string name="setting_model_page_translate_prompt_vars">變數: 原始文字: {source_text}, 目標語言: {target_lang}</string>
+    <string name="setting_model_page_reset_to_default">重置為預設值</string>
+    <string name="setting_model_page_suggestion_model_desc">用於生成對話建議的模型, 推薦使用快速且便宜的模型</string>
+    <string name="setting_model_page_suggestion_prompt_vars">變數: 對話內容: {content}, 語言: {locale}</string>
+    <string name="setting_model_page_title_model_desc">用於摘要對話標題的模型, 推薦使用快速且便宜的模型</string>
+    <string name="setting_model_page_chat_model_desc">全域預設聊天模型</string>
     
     <!-- Translator Page -->
     <string name="translator_page_title">翻譯</string>

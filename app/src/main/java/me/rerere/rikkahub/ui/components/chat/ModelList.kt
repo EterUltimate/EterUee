@@ -48,6 +48,7 @@ import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.HeartOff
 import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.X
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ModelType
@@ -68,6 +69,7 @@ fun ModelSelector(
     type: ModelType,
     modifier: Modifier = Modifier,
     onlyIcon: Boolean = false,
+    allowClear: Boolean = false,
     onUpdate: ((List<ProviderSetting>) -> Unit)? = null,
     onSelect: (Model) -> Unit
 ) {
@@ -77,25 +79,41 @@ fun ModelSelector(
     val model = providers.findModelById(modelId ?: Uuid.random())
 
     if (!onlyIcon) {
-        TextButton(
-            onClick = {
-                popup = true
-            },
-            modifier = modifier
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            model?.modelId?.let {
-                AutoAIIcon(
-                    it, Modifier
-                        .padding(end = 4.dp)
-                        .size(24.dp)
+            TextButton(
+                onClick = {
+                    popup = true
+                },
+                modifier = modifier
+            ) {
+                model?.modelId?.let {
+                    AutoAIIcon(
+                        it, Modifier
+                            .padding(end = 4.dp)
+                            .size(24.dp)
+                    )
+                }
+                Text(
+                    text = model?.displayName ?: stringResource(R.string.model_list_select_model),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
-            Text(
-                text = model?.displayName ?: stringResource(R.string.model_list_select_model),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.bodySmall
-            )
+            if (allowClear && model != null) {
+                IconButton(
+                    onClick = {
+                        onSelect(Model())
+                    }
+                ) {
+                    Icon(
+                        Lucide.X,
+                        contentDescription = "Clear"
+                    )
+                }
+             }
         }
     } else {
         IconButton(

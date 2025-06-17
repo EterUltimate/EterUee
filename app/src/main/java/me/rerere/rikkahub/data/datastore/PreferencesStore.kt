@@ -28,6 +28,7 @@ import me.rerere.search.SearchServiceOptions
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.component.inject
+import java.util.Locale
 import kotlin.uuid.Uuid
 
 private const val TAG = "PreferencesStore"
@@ -57,6 +58,9 @@ class SettingsStore(
         val TITLE_MODEL = stringPreferencesKey("title_model")
         val TRANSLATE_MODEL = stringPreferencesKey("translate_model")
         val SUGGESTION_MODEL = stringPreferencesKey("suggestion_model")
+        val TITLE_PROMPT = stringPreferencesKey("title_prompt")
+        val TRANSLATION_PROMPT = stringPreferencesKey("translation_prompt")
+        val SUGGESTION_PROMPT = stringPreferencesKey("suggestion_prompt")
 
         // 提供商
         val PROVIDERS = stringPreferencesKey("providers")
@@ -90,6 +94,9 @@ class SettingsStore(
                     ?: Uuid.random(),
                 suggestionModelId = preferences[SUGGESTION_MODEL]?.let { Uuid.parse(it) }
                     ?: Uuid.random(),
+                titlePrompt = preferences[TITLE_PROMPT] ?: DEFAULT_TITLE_PROMPT,
+                translatePrompt = preferences[TRANSLATION_PROMPT] ?: DEFAULT_TRANSLATION_PROMPT,
+                suggestionPrompt = preferences[SUGGESTION_PROMPT] ?: DEFAULT_SUGGESTION_PROMPT,
                 assistantId = preferences[SELECT_ASSISTANT]?.let { Uuid.parse(it) }
                     ?: DEFAULT_ASSISTANT_ID,
                 providers = JsonInstant.decodeFromString(preferences[PROVIDERS] ?: "[]"),
@@ -179,6 +186,9 @@ class SettingsStore(
             preferences[TITLE_MODEL] = settings.titleModelId.toString()
             preferences[TRANSLATE_MODEL] = settings.translateModeId.toString()
             preferences[SUGGESTION_MODEL] = settings.suggestionModelId.toString()
+            preferences[TITLE_PROMPT] = settings.titlePrompt
+            preferences[TRANSLATION_PROMPT] = settings.translatePrompt
+            preferences[SUGGESTION_PROMPT] = settings.suggestionPrompt
 
             preferences[PROVIDERS] = JsonInstant.encodeToString(settings.providers)
 
@@ -211,8 +221,11 @@ data class Settings(
     val displaySetting: DisplaySetting = DisplaySetting(),
     val chatModelId: Uuid = Uuid.random(),
     val titleModelId: Uuid = Uuid.random(),
+    val titlePrompt : String = DEFAULT_TITLE_PROMPT,
     val translateModeId: Uuid = Uuid.random(),
+    val translatePrompt: String = DEFAULT_TRANSLATION_PROMPT,
     val suggestionModelId: Uuid = Uuid.random(),
+    val suggestionPrompt: String = DEFAULT_SUGGESTION_PROMPT,
     val assistantId: Uuid = DEFAULT_ASSISTANT_ID,
     val providers: List<ProviderSetting> = DEFAULT_PROVIDERS,
     val assistants: List<Assistant> = DEFAULT_ASSISTANTS,
@@ -360,3 +373,42 @@ internal val DEFAULT_ASSISTANTS = listOf(
     ),
 )
 internal val DEFAULT_ASSISTANTS_IDS = DEFAULT_ASSISTANTS.map { it.id }
+
+internal val DEFAULT_TITLE_PROMPT = """
+    You are a conversational assistant I will give you some dialogue content in the `<content>` block and you need to summarize the user's conversation into a title of no more than 10 characters.
+    1. The title language should be consistent with the user's primary language
+    2. Do not use punctuation or other special symbols
+    3. Reply directly with the title
+    4. Summarize using {locale} language
+    
+    <content>
+    {content}
+    </content>
+""".trimIndent()
+
+internal val DEFAULT_SUGGESTION_PROMPT = """
+    You are a conversational assistant. I will provide you with some dialogue content in the `<content>` block, including conversations between the user and the assistant.
+    You need to generate 3-5 chat suggestions for the user based on the chat content, to facilitate quick replies for the user.
+    
+    Rules:
+    1. Reply directly with suggestions, do not use any formatting, and separate suggestions with newlines.
+    2. Use {locale} language.
+    3. Ensure each suggestion is valid.
+    4. Each suggestion should not exceed 10 characters.
+    5. Imitate the user's previous conversational style.
+    
+    <content>
+    {content}
+    </content>
+""".trimIndent()
+
+internal val DEFAULT_TRANSLATION_PROMPT = """
+    You are a translation expert, skilled in translating various languages, and maintaining accuracy, faithfulness, and elegance in translation.
+    Next, I will send you text. Please translate it into {target_lang}, and return the translation result directly, without adding any explanations or other content.
+                    
+    Please translate the <source_text> section:
+    
+    <source_text>
+    {source_text}
+    </source_text>
+""".trimIndent()

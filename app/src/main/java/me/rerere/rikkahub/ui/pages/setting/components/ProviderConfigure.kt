@@ -109,7 +109,8 @@ private fun ColumnScope.ProviderConfigureOpenAI(
         label = {
             Text("API Key")
         },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        maxLines = 3,
     )
 
     OutlinedTextField(
@@ -164,6 +165,7 @@ private fun ColumnScope.ProviderConfigureClaude(
             Text("名称")
         },
         modifier = Modifier.fillMaxWidth(),
+        maxLines = 3,
     )
 
     OutlinedTextField(
@@ -227,7 +229,8 @@ private fun ColumnScope.ProviderConfigureGoogle(
         label = {
             Text("API Key")
         },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        maxLines = 3,
     )
 
     if(!provider.vertexAI) {

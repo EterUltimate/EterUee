@@ -151,7 +151,7 @@ private fun exportToMarkdown(
     conversation: Conversation,
     messages: List<UIMessage>
 ) {
-    val filename = "chat-export.md"
+    val filename = "chat-export-${LocalDateTime.now().toLocalString()}.md"
 
     val sb = buildAnnotatedString {
         append("# ${conversation.title}\n\n")

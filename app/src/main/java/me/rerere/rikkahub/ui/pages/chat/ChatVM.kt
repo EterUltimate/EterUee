@@ -257,12 +257,9 @@ class ChatVM(
                 )
             },
         )
-        this.updateConversation(newConversation)
-        val node = newConversation.getMessageNodeByMessageId(messageId) ?: return
-        this.regenerateAtMessage(
-            message = node.currentMessage,
-            regenerateAssistantMsg = false
-        )
+        viewModelScope.launch {
+            saveConversation(newConversation)
+        }
     }
 
     fun handleMessageTruncate() {

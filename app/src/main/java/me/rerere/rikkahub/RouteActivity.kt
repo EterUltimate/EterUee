@@ -16,6 +16,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -154,22 +156,30 @@ class RouteActivity : ComponentActivity() {
                     navController = navController,
                     startDestination = rememberSaveable { "chat/${Uuid.random()}" },
                     enterTransition = {
-                        scaleIn(initialScale = 0.35f) + fadeIn(animationSpec = tween(300))
+                        slideInHorizontally(
+                            initialOffsetX = { it }
+                        )
                     },
                     exitTransition = {
-                        fadeOut(animationSpec = tween(300))
+                        slideOutHorizontally(
+                            targetOffsetX = {
+                                -it / 2
+                            }
+                        ) + fadeOut()
                     },
                     popExitTransition = {
-                        scaleOut(
-                            targetScale = 0.5f,
-                            transformOrigin = TransformOrigin(
-                                pivotFractionX = 0.5f,
-                                pivotFractionY = 0.5f
-                            )
+                        slideOutHorizontally(
+                            targetOffsetX = {
+                                it
+                            }
                         ) + fadeOut()
                     },
                     popEnterTransition = {
-                        EnterTransition.None
+                        slideInHorizontally(
+                            initialOffsetX = {
+                                -it / 2
+                            }
+                        )
                     },
                 ) {
                     composableHelper(
@@ -183,6 +193,8 @@ class RouteActivity : ComponentActivity() {
                                 nullable = true
                             }
                         ),
+                        enterTransition = { fadeIn() },
+                        exitTransition = { fadeOut() }
                     ) { entry ->
                         ChatPage(
                             id = Uuid.parse(entry.arguments?.getString("id")!!),

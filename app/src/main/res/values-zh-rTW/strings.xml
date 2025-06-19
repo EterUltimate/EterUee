@@ -221,12 +221,15 @@
     <!-- Assistant Detail Page -->
     <string name="assistant_page_tab_basic">基本設定</string>
     <string name="assistant_page_tab_prompt">提示詞</string>
+    <string name="assistant_page_tab_preset_messages">預設訊息</string>
     <string name="assistant_page_tab_memory">記憶</string>
     <string name="assistant_page_tab_request">自定義請求</string>
     <string name="assistant_page_stream_output">串流輸出</string>
     <string name="assistant_page_stream_output_desc">是否啟用訊息的串流輸出</string>
     <string name="assistant_page_chat_model">聊天模型</string>
     <string name="assistant_page_chat_model_desc">設定助手的預設聊天模型，如果不設定，則使用全域預設聊天模型</string>
+    <string name="assistant_page_preset_messages">預設聊天訊息</string>
+    <string name="assistant_page_preset_messages_desc">設定對話初始訊息</string>
 
     <!-- MCP Setting Page -->
     <string name="setting_mcp_page_title">MCP</string>

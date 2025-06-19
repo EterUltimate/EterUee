@@ -9,6 +9,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
@@ -121,6 +123,12 @@ class ChatVM(
                 // 更新当前助手到 conversation 所属的 assistant
                 // 这里不能用 updateSettings，因为 settings 可能还没加载
                 settingsStore.updateAssistant(conversation.assistantId)
+            } else {
+                // 新建对话, 并添加预设消息
+                settingsStore.settingsFlowRaw.first()
+                val assistant = settings.value.getCurrentAssistant()
+                this@ChatVM._conversation.value =
+                    this@ChatVM._conversation.value.updateCurrentMessages(assistant.presetMessages)
             }
         }
     }

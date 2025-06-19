@@ -4,16 +4,21 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -56,15 +61,18 @@ import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.LucideIcon
 import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.X
 import kotlinx.coroutines.launch
+import me.rerere.ai.core.MessageRole
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.ui.UIMessage
+import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.transformers.PlaceholderTransformer
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.ai.TemplateTransformer
@@ -77,6 +85,7 @@ import me.rerere.rikkahub.ui.components.chat.McpPicker
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.FormItem
+import me.rerere.rikkahub.ui.components.ui.Select
 import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
 import me.rerere.rikkahub.ui.hooks.EditStateContent
@@ -114,6 +123,7 @@ fun AssistantDetailPage(vm: AssistantDetailVM = koinViewModel()) {
     val tabs = listOf(
         stringResource(R.string.assistant_page_tab_basic),
         stringResource(R.string.assistant_page_tab_prompt),
+        stringResource(R.string.assistant_page_tab_preset_messages),
         stringResource(R.string.assistant_page_tab_memory),
         stringResource(R.string.assistant_page_tab_request),
         "MCP"
@@ -179,6 +189,12 @@ fun AssistantDetailPage(vm: AssistantDetailVM = koinViewModel()) {
                     }
 
                     2 -> {
+                        AssistantPresetMessageSettings(assistant = assistant) {
+                            onUpdate(it)
+                        }
+                    }
+
+                    3 -> {
                         AssistantMemorySettings(
                             assistant = assistant,
                             memories = memories,
@@ -189,13 +205,13 @@ fun AssistantDetailPage(vm: AssistantDetailVM = koinViewModel()) {
                         )
                     }
 
-                    3 -> {
+                    4 -> {
                         AssistantCustomRequestSettings(assistant = assistant) {
                             onUpdate(it)
                         }
                     }
 
-                    4 -> {
+                    5 -> {
                         AssistantMcpSettings(
                             assistant = assistant,
                             onUpdate = {
@@ -709,6 +725,120 @@ private fun AssistantPromptSettings(
                             onUpdate = {},
                         )
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AssistantPresetMessageSettings(
+    assistant: Assistant,
+    onUpdate: (Assistant) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
+            .imePadding(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Card {
+            FormItem(
+                modifier = Modifier.padding(16.dp),
+                label = {
+                    Text(stringResource(R.string.assistant_page_preset_messages))
+                },
+                description = {
+                    Text(stringResource(R.string.assistant_page_preset_messages_desc))
+                }
+            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(16.dp)
+            ) {
+                assistant.presetMessages.fastForEachIndexed { index, presetMessage ->
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Select(
+                                options = listOf(MessageRole.USER, MessageRole.ASSISTANT),
+                                selectedOption = presetMessage.role,
+                                onOptionSelected = { role ->
+                                    onUpdate(
+                                        assistant.copy(
+                                            presetMessages = assistant.presetMessages.mapIndexed { i, msg ->
+                                                if (i == index) {
+                                                    msg.copy(role = role)
+                                                } else {
+                                                    msg
+                                                }
+                                            }
+                                        )
+                                    )
+                                },
+                                modifier = Modifier.width(IntrinsicSize.Min)
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            IconButton(
+                                onClick = {
+                                    onUpdate(
+                                        assistant.copy(
+                                            presetMessages = assistant.presetMessages.filterIndexed { i, _ ->
+                                                i != index
+                                            }
+                                        )
+                                    )
+                                }
+                            ) {
+                                Icon(Lucide.X, null)
+                            }
+                        }
+                        OutlinedTextField(
+                            value = presetMessage.toText(),
+                            onValueChange = { text ->
+                                onUpdate(
+                                    assistant.copy(
+                                        presetMessages = assistant.presetMessages.mapIndexed { i, msg ->
+                                            if (i == index) {
+                                                msg.copy(parts = listOf(UIMessagePart.Text(text)))
+                                            } else {
+                                                msg
+                                            }
+                                        }
+                                    )
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+                Button(
+                    onClick = {
+                        val lastRole = assistant.presetMessages.lastOrNull()?.role ?: MessageRole.ASSISTANT
+                        val nextRole = when (lastRole) {
+                            MessageRole.USER -> MessageRole.ASSISTANT
+                            MessageRole.ASSISTANT -> MessageRole.USER
+                            else -> MessageRole.USER
+                        }
+                        onUpdate(
+                            assistant.copy(
+                                presetMessages = assistant.presetMessages + UIMessage(
+                                    role = nextRole,
+                                    parts = listOf(UIMessagePart.Text(""))
+                                )
+                            )
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Lucide.Plus, null)
                 }
             }
         }

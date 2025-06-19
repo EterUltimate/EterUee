@@ -3,6 +3,7 @@ package me.rerere.rikkahub.data.model
 import kotlinx.serialization.Serializable
 import me.rerere.ai.provider.CustomBody
 import me.rerere.ai.provider.CustomHeader
+import me.rerere.ai.ui.UIMessage
 import kotlin.uuid.Uuid
 
 @Serializable
@@ -17,6 +18,7 @@ data class Assistant(
     val streamOutput: Boolean = true,
     val enableMemory: Boolean = false,
     val messageTemplate: String = "{{ message }}",
+    val presetMessages: List<UIMessage> = emptyList(),
     val thinkingBudget: Int? = null,
     val customHeaders: List<CustomHeader> = emptyList(),
     val customBodies: List<CustomBody> = emptyList(),

@@ -96,6 +96,7 @@ import com.composables.icons.lucide.Fullscreen
 import com.composables.icons.lucide.Image
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
+import com.composables.icons.lucide.Search
 import com.composables.icons.lucide.X
 import com.meticha.permissions_compose.AppPermission
 import com.meticha.permissions_compose.rememberAppPermissionState
@@ -481,8 +482,8 @@ fun ChatInput(
                     onClick = {
                         onToggleSearch(!enableSearch)
                     },
-                    tonalElevation = if (enableSearch) 4.dp else 0.dp,
-                    shape = RoundedCornerShape(50)
+                    shape = RoundedCornerShape(50),
+                    color = if (enableSearch) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
                 ) {
                     Row(
                         modifier = Modifier
@@ -491,14 +492,11 @@ fun ChatInput(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
-                            Lucide.Earth,
+                            Lucide.Search,
                             contentDescription = stringResource(R.string.use_web_search),
                             modifier = Modifier
                                 .clip(CircleShape)
-                                .size(20.dp)
-                                .background(
-                                    if (enableSearch) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
-                                ),
+                                .size(20.dp),
                             tint = if (enableSearch) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }

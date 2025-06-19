@@ -3,6 +3,7 @@ package me.rerere.ai.util
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
+import android.util.Log
 import androidx.core.net.toUri
 import me.rerere.ai.ui.UIMessagePart
 import java.io.File
@@ -15,6 +16,8 @@ private val supportedTypes = setOf(
     "image/webp",
 )
 
+private const val TAG = "FileEncoder"
+
 fun UIMessagePart.Image.encodeBase64(withPrefix: Boolean = true): Result<String> = runCatching {
     when {
         this.url.startsWith("file://") -> {
@@ -24,8 +27,12 @@ fun UIMessagePart.Image.encodeBase64(withPrefix: Boolean = true): Result<String>
                 throw IllegalArgumentException("File does not exist: ${this.url}")
             }
             if (!file.isSupportedType()) {
-                convertToJpeg(file) // 转换为 JPEG 格式
-                println("File converted to JPEG format: ${file.absolutePath}")
+                convertToWebP(file) // 转换为 JPEG 格式
+                println("File converted to WebP format: ${file.absolutePath}")
+            }
+            if(file.guessMimeType().getOrNull() != "image/webp") {
+                convertToWebP(file) // 尝试转换为 WebP 格式
+                println("File converted to WebP format: ${file.absolutePath}")
             }
             val bytes = file.readBytes()
             val encoded = Base64.encodeToString(bytes, Base64.NO_WRAP)
@@ -37,10 +44,10 @@ fun UIMessagePart.Image.encodeBase64(withPrefix: Boolean = true): Result<String>
     }
 }
 
-private fun convertToJpeg(file: File) = runCatching {
+private fun convertToWebP(file: File) = runCatching {
     val bitmap = BitmapFactory.decodeFile(file.absolutePath)
     FileOutputStream(file).use { outputStream ->
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+        bitmap.compress(Bitmap.CompressFormat.WEBP, 80, outputStream)
     }
 }
 
@@ -76,12 +83,17 @@ private fun File.guessMimeType(): Result<String> = runCatching {
             return@runCatching "image/png"
         }
 
+        // 判断WebP格式：开头为 "RIFF" + 4字节长度 + "WEBP"
+        if(bytes.copyOfRange(0, 4).toString(Charsets.US_ASCII) == "RIFF" && bytes.copyOfRange(8, 12).toString(Charsets.US_ASCII) == "WEBP") {
+            return@runCatching "image/webp"
+        }
+
         // 判断 GIF 格式：开头为 "GIF89a" 或 "GIF87a"
         val header = bytes.copyOfRange(0, 6).toString(Charsets.US_ASCII)
         if (header == "GIF89a" || header == "GIF87a") {
             return@runCatching "image/gif"
         }
 
-        error("Failed to guess MIME type: $header")
+        error("Failed to guess MIME type: $header, ${bytes.joinToString(",") { it.toUByte().toString() }}")
     }
 }

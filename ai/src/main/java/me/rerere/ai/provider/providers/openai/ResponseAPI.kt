@@ -255,9 +255,7 @@ class ResponseAPI(private val client: OkHttpClient) : OpenAIImpl {
                                                     "type",
                                                     if (message.role == MessageRole.USER) "input_image" else "output_image"
                                                 )
-                                                put("image_url", buildJsonObject {
-                                                    put("url", it)
-                                                })
+                                                put("image_url", it)
                                             }.onFailure {
                                                 it.printStackTrace()
                                                 println("encode image failed: ${part.url}")

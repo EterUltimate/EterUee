@@ -54,6 +54,7 @@ class SettingsStore(
         val DISPLAY_SETTING = stringPreferencesKey("display_setting")
 
         // 模型选择
+        val ENABLE_WEB_SEARCH = booleanPreferencesKey("enable_web_search")
         val SELECT_MODEL = stringPreferencesKey("chat_model")
         val TITLE_MODEL = stringPreferencesKey("title_model")
         val TRANSLATE_MODEL = stringPreferencesKey("translate_model")
@@ -88,6 +89,7 @@ class SettingsStore(
             }
         }.map { preferences ->
             Settings(
+                enableWebSearch = preferences[ENABLE_WEB_SEARCH] == true,
                 chatModelId = preferences[SELECT_MODEL]?.let { Uuid.parse(it) } ?: Uuid.random(),
                 titleModelId = preferences[TITLE_MODEL]?.let { Uuid.parse(it) } ?: Uuid.random(),
                 translateModeId = preferences[TRANSLATE_MODEL]?.let { Uuid.parse(it) }
@@ -182,6 +184,7 @@ class SettingsStore(
             preferences[THEME_TYPE] = JsonInstant.encodeToString(settings.themeType)
             preferences[DISPLAY_SETTING] = JsonInstant.encodeToString(settings.displaySetting)
 
+            preferences[ENABLE_WEB_SEARCH] = settings.enableWebSearch
             preferences[SELECT_MODEL] = settings.chatModelId.toString()
             preferences[TITLE_MODEL] = settings.titleModelId.toString()
             preferences[TRANSLATE_MODEL] = settings.translateModeId.toString()
@@ -219,6 +222,7 @@ data class Settings(
     val themeId: String = PresetThemes[0].id,
     val themeType: PresetThemeType = PresetThemeType.STANDARD,
     val displaySetting: DisplaySetting = DisplaySetting(),
+    val enableWebSearch: Boolean = false,
     val chatModelId: Uuid = Uuid.random(),
     val titleModelId: Uuid = Uuid.random(),
     val titlePrompt : String = DEFAULT_TITLE_PROMPT,

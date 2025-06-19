@@ -2,21 +2,14 @@ package me.rerere.rikkahub.ui.pages.chat
 
 import android.app.Application
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -26,7 +19,6 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
-import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.json.buildJsonObject
@@ -63,7 +55,6 @@ import me.rerere.rikkahub.data.datastore.getCurrentChatModel
 import me.rerere.rikkahub.data.mcp.McpManager
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.Conversation
-import me.rerere.rikkahub.data.model.MessageNode
 import me.rerere.rikkahub.data.model.toMessageNode
 import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.data.repository.MemoryRepository
@@ -108,7 +99,6 @@ class ChatVM(
     private val _conversation = MutableStateFlow(Conversation.ofId(_conversationId))
     val conversation: StateFlow<Conversation>
         get() = _conversation
-    var useWebSearch by mutableStateOf(false)
 
     // 异步任务
     val conversationJob = MutableStateFlow<Job?>(null)
@@ -136,6 +126,13 @@ class ChatVM(
     // 用户设置
     val settings: StateFlow<Settings> = settingsStore.settingsFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, Settings())
+
+    // 网络搜索
+    val enableWebSearch = settings
+        .map {
+            it.enableWebSearch
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     // 聊天列表
     val conversations = settings
@@ -285,7 +282,7 @@ class ChatVM(
         val model = currentChatModel.value ?: return
         runCatching {
             if (!model.abilities.contains(ModelAbility.TOOL)) {
-                if (useWebSearch || mcpManager.getAllAvailableTools()
+                if (enableWebSearch.value || mcpManager.getAllAvailableTools()
                         .isNotEmpty() || settings.value.getCurrentAssistant().enableMemory
                 ) {
                     errorFlow.emit(IllegalStateException(context.getString(R.string.tools_warning)))
@@ -309,7 +306,7 @@ class ChatVM(
                 },
                 outputTransformers = outputTransformers,
                 tools = buildList {
-                    if (useWebSearch) {
+                    if (enableWebSearch.value) {
                         add(searchTool)
                     }
                     mcpManager.getAllAvailableTools().forEach { tool ->

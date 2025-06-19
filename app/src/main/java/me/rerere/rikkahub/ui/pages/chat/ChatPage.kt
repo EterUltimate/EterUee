@@ -107,6 +107,7 @@ fun ChatPage(id: Uuid, text: String?, vm: ChatVM = koinViewModel()) {
     val conversation by vm.conversation.collectAsStateWithLifecycle()
     val loadingJob by vm.conversationJob.collectAsStateWithLifecycle()
     val currentChatModel by vm.currentChatModel.collectAsStateWithLifecycle()
+    val enableWebSearch by vm.enableWebSearch.collectAsStateWithLifecycle()
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
@@ -156,9 +157,9 @@ fun ChatPage(id: Uuid, text: String?, vm: ChatVM = koinViewModel()) {
                     onCancelClick = {
                         loadingJob?.cancel()
                     },
-                    enableSearch = vm.useWebSearch,
+                    enableSearch = enableWebSearch,
                     onToggleSearch = {
-                        vm.useWebSearch = it
+                        vm.updateSettings(setting.copy(enableWebSearch = !enableWebSearch))
                     },
                     onSendClick = {
                         if (currentChatModel == null) {

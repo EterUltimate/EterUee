@@ -82,12 +82,17 @@ fun Context.createChatFilesByContents(uris: List<Uri>): List<Uri> {
         val newUri = dir
             .resolve("$fileName")
             .toUri()
-        this.contentResolver.openInputStream(uri)?.use { inputStream ->
-            this.contentResolver.openOutputStream(newUri)?.use { outputStream ->
-                inputStream.copyTo(outputStream)
+        runCatching {
+            this.contentResolver.openInputStream(uri)?.use { inputStream ->
+                this.contentResolver.openOutputStream(newUri)?.use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
             }
+            newUris.add(newUri)
+        }.onFailure {
+            it.printStackTrace()
+            Log.e(TAG, "saveMessageImage: Failed to save image from $uri", it)
         }
-        newUris.add(newUri)
     }
     return newUris
 }

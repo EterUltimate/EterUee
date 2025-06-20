@@ -14,6 +14,7 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
@@ -66,9 +67,10 @@ fun Context.writeClipboardText(text: String) {
  */
 fun Context.openUrl(url: String) {
     Log.i(TAG, "openUrl: $url")
-    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW)
-    intent.data = url.toUri()
-    startActivity(intent)
+    val intent = CustomTabsIntent.Builder()
+        .setShowTitle(true)
+        .build()
+    intent.launchUrl(this, url.toUri())
 }
 
 fun Context.getActivity(): Activity? {

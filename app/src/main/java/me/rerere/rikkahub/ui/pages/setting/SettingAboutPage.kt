@@ -216,10 +216,9 @@ fun SettingAboutPage() {
                     leadingContent = {
                         Icon(Lucide.FileText, null)
                     },
-                    modifier = Modifier
-                        .clickable {
-                            navController.navigate("webview?url=${"https://github.com/rikkahub/rikkahub/blob/master/LICENSE".urlEncode()}")
-                        }
+                    modifier = Modifier.clickable {
+                        context.openUrl("https://github.com/rikkahub/rikkahub/blob/master/LICENSE")
+                    }
                 )
             }
         }

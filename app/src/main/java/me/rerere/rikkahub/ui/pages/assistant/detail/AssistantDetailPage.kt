@@ -815,7 +815,8 @@ private fun AssistantPresetMessageSettings(
                                     )
                                 )
                             },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            maxLines = 6
                         )
                     }
                 }

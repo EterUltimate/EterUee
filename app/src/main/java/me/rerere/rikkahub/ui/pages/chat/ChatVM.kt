@@ -115,8 +115,8 @@ class ChatVM(
                 settingsStore.updateAssistant(conversation.assistantId)
             } else {
                 // 新建对话, 并添加预设消息
-                settingsStore.settingsFlowRaw.first()
-                val assistant = settings.value.getCurrentAssistant()
+                val currentSettings = settingsStore.settingsFlowRaw.first()
+                val assistant = currentSettings.getCurrentAssistant()
                 this@ChatVM._conversation.value =
                     this@ChatVM._conversation.value.updateCurrentMessages(assistant.presetMessages)
             }

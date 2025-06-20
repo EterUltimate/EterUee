@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.core.net.toUri
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.MapEntrySerializer
+import me.rerere.ai.core.MessageRole
 import me.rerere.ai.core.TokenUsage
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
@@ -43,10 +44,10 @@ data class Conversation(
             return images + documents
         }
 
+    /**
+     *  当前选中的 message
+     */
     val currentMessages
-        /**
-         *  获取当前选中的 message
-         */
         get(): List<UIMessage> {
             return messageNodes.map { node -> node.messages[node.selectIndex] }
         }
@@ -114,19 +115,7 @@ data class MessageNode(
 ) {
     val currentMessage get() = messages[selectIndex]
 
-    val role get() = messages.first().role
-
-    fun updateContent(parts: List<UIMessagePart>): MessageNode {
-        return copy(
-            messages = messages.mapIndexed { index, message ->
-                if (index == selectIndex) {
-                    message.copy(parts = parts)
-                } else {
-                    message
-                }
-            }
-        )
-    }
+    val role get() = messages.firstOrNull()?.role ?: MessageRole.USER
 
     companion object {
         fun of(message: UIMessage) = MessageNode(

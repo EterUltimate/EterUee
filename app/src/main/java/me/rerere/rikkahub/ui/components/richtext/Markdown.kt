@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
@@ -112,6 +113,10 @@ private fun MarkdownPreview() {
             .fillMaxWidth()
             .padding(16.dp)
     ) {
+        MarkdownBlock(
+            content = "Hi there!",
+            modifier = Modifier.background(Color.Red)
+        )
         MarkdownBlock(
             content = """
                 # 🌍 This is Markdown Test This is Markdown Test
@@ -598,6 +603,7 @@ private fun separateContentAndLists(listItemNode: ASTNode): Pair<List<ASTNode>, 
             MarkdownElementTypes.ORDERED_LIST -> {
                 nestedLists.add(child)
             }
+
             else -> {
                 directContent.add(child)
             }
@@ -634,34 +640,38 @@ private fun Paragraph(
 
     val textStyle = LocalTextStyle.current
     val density = LocalDensity.current
-    Box {
-        FlowRow(
-            modifier = Modifier.padding(bottom = 4.dp)
-        ) {
-            val annotatedString = remember(content) {
-                buildAnnotatedString {
-                    node.children.fastForEach { child ->
-                        appendMarkdownNodeContent(
-                            node = child,
-                            content = content,
-                            inlineContents = inlineContents,
-                            colorScheme = colorScheme,
-                            onClickCitation = onClickCitation,
-                            style = textStyle,
-                            density = density
-                        )
-                    }
+    FlowRow(
+        modifier = modifier
+            .then(
+                if (node.nextSibling() != null)
+                    Modifier
+                        .padding(bottom = 4.dp)
+                else Modifier
+            )
+    ) {
+        val annotatedString = remember(content) {
+            buildAnnotatedString {
+                node.children.fastForEach { child ->
+                    appendMarkdownNodeContent(
+                        node = child,
+                        content = content,
+                        inlineContents = inlineContents,
+                        colorScheme = colorScheme,
+                        onClickCitation = onClickCitation,
+                        style = textStyle,
+                        density = density
+                    )
                 }
             }
-            Text(
-                text = annotatedString,
-                modifier = Modifier,
-                style = LocalTextStyle.current,
-                inlineContent = inlineContents,
-                softWrap = true,
-                overflow = TextOverflow.Visible
-            )
         }
+        Text(
+            text = annotatedString,
+            modifier = Modifier,
+            style = LocalTextStyle.current,
+            inlineContent = inlineContents,
+            softWrap = true,
+            overflow = TextOverflow.Visible
+        )
     }
 }
 

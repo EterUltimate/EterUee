@@ -891,7 +891,7 @@ fun ReasoningCard(
         }
     }
 
-    var duration by remember(reasoning) {
+    var duration by remember(reasoning.finishedAt, reasoning.createdAt) {
         mutableStateOf(
             value = reasoning.finishedAt?.let { endTime ->
                 endTime - reasoning.createdAt

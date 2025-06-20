@@ -139,7 +139,7 @@ data class UIMessage(
                     .isEmpty()
             ) {
                 newParts = newParts.map { part ->
-                    if (part is UIMessagePart.Reasoning) {
+                    if (part is UIMessagePart.Reasoning && part.finishedAt == null) {
                         part.copy(finishedAt = Clock.System.now())
                     } else part
                 }

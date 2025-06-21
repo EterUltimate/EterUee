@@ -18,6 +18,8 @@ import org.koin.android.ext.koin.androidLogger
 import org.koin.androidx.workmanager.koin.workManagerFactory
 import org.koin.core.context.startKoin
 
+private const val TAG = "RikkaHubApp"
+
 const val CHAT_COMPLETED_NOTIFICATION_CHANNEL_ID = "chat_completed"
 
 class RikkaHubApp : Application() {
@@ -30,6 +32,8 @@ class RikkaHubApp : Application() {
             modules(appModule, viewModelModule, dataSourceModule, repositoryModule)
         }
         this.createNotificationChannel()
+
+        // set cursor window size
         DatabaseUtil.setCursorWindowSize(16 * 1024 * 1024)
     }
 

@@ -76,6 +76,9 @@ class SettingsStore(
 
         // MCP
         val MCP_SERVERS = stringPreferencesKey("mcp_servers")
+
+        // WebDAV
+        val WEBDAV_CONFIG = stringPreferencesKey("webdav_config")
     }
 
     private val dataStore = context.settingsStore
@@ -117,7 +120,10 @@ class SettingsStore(
                 } ?: SearchCommonOptions(),
                 mcpServers = preferences[MCP_SERVERS]?.let {
                     JsonInstant.decodeFromString(it)
-                } ?: emptyList()
+                } ?: emptyList(),
+                webDavConfig = preferences[WEBDAV_CONFIG]?.let {
+                    JsonInstant.decodeFromString(it)
+                } ?: WebDavConfig(),
             )
         }
         .map {
@@ -202,6 +208,7 @@ class SettingsStore(
             preferences[SEARCH_COMMON] = JsonInstant.encodeToString(settings.searchCommonOptions)
 
             preferences[MCP_SERVERS] = JsonInstant.encodeToString(settings.mcpServers)
+            preferences[WEBDAV_CONFIG] = JsonInstant.encodeToString(settings.webDavConfig)
         }
     }
 
@@ -225,7 +232,7 @@ data class Settings(
     val enableWebSearch: Boolean = false,
     val chatModelId: Uuid = Uuid.random(),
     val titleModelId: Uuid = Uuid.random(),
-    val titlePrompt : String = DEFAULT_TITLE_PROMPT,
+    val titlePrompt: String = DEFAULT_TITLE_PROMPT,
     val translateModeId: Uuid = Uuid.random(),
     val translatePrompt: String = DEFAULT_TRANSLATION_PROMPT,
     val suggestionModelId: Uuid = Uuid.random(),
@@ -236,6 +243,7 @@ data class Settings(
     val searchServiceOptions: SearchServiceOptions = SearchServiceOptions.DEFAULT,
     val searchCommonOptions: SearchCommonOptions = SearchCommonOptions(),
     val mcpServers: List<McpServerConfig> = emptyList(),
+    val webDavConfig: WebDavConfig = WebDavConfig()
 )
 
 @Serializable
@@ -246,6 +254,24 @@ data class DisplaySetting(
     val showUpdates: Boolean = true,
     val showMessageJumper: Boolean = true,
 )
+
+@Serializable
+data class WebDavConfig(
+    val url: String = "",
+    val username: String = "",
+    val password: String = "",
+    val path: String = "rikkahub_backups",
+    val items: List<BackupItem> = listOf(
+        BackupItem.DATABASE,
+        BackupItem.FILES
+    ),
+) {
+    @Serializable
+    enum class BackupItem {
+        DATABASE,
+        FILES,
+    }
+}
 
 fun Settings.isNotConfigured() = providers.all { it.models.isEmpty() }
 

@@ -14,6 +14,7 @@ import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.db.AppDatabase
 import me.rerere.rikkahub.data.db.Migration_6_7
 import me.rerere.rikkahub.data.mcp.McpManager
+import me.rerere.rikkahub.data.sync.DataSync
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import org.koin.dsl.module
@@ -24,7 +25,7 @@ import java.util.concurrent.TimeUnit
 
 val dataSourceModule = module {
     single {
-        SettingsStore(get(), get())
+        SettingsStore(context = get(), scope = get())
     }
 
     single {
@@ -34,7 +35,7 @@ val dataSourceModule = module {
     }
 
     single {
-        AssistantTemplateLoader(get())
+        AssistantTemplateLoader(settingsStore = get())
     }
 
     single {
@@ -44,7 +45,7 @@ val dataSourceModule = module {
             .build()
     }
 
-    single { TemplateTransformer(get(), get()) }
+    single { TemplateTransformer(engine = get(), settingsStore = get()) }
 
     single {
         get<AppDatabase>().conversationDao()
@@ -54,9 +55,9 @@ val dataSourceModule = module {
         get<AppDatabase>().memoryDao()
     }
 
-    single { McpManager(get(), get(), get()) }
+    single { McpManager(settingsStore = get(), appScope = get(), okHttpClient = get()) }
 
-    single { GenerationHandler(get(), get(), get()) }
+    single { GenerationHandler(context = get(), json = get(), memoryRepo = get()) }
 
     single<OkHttpClient> {
         OkHttpClient.Builder()
@@ -68,6 +69,10 @@ val dataSourceModule = module {
             .followRedirects(true)
             .retryOnConnectionFailure(true)
             .build()
+    }
+
+    single {
+        DataSync(settingsStore = get(), json = get(), context = get())
     }
 
     single<Retrofit> {

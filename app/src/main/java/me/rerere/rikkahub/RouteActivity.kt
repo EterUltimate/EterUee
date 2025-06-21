@@ -59,6 +59,7 @@ import me.rerere.rikkahub.ui.context.LocalSharedTransitionScope
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.ui.pages.assistant.AssistantPage
 import me.rerere.rikkahub.ui.pages.assistant.detail.AssistantDetailPage
+import me.rerere.rikkahub.ui.pages.backup.BackupPage
 import me.rerere.rikkahub.ui.pages.chat.ChatPage
 import me.rerere.rikkahub.ui.pages.debug.DebugPage
 import me.rerere.rikkahub.ui.pages.history.HistoryPage
@@ -242,6 +243,10 @@ class RouteActivity : ComponentActivity() {
 
                     composableHelper("setting") {
                         SettingPage()
+                    }
+
+                    composableHelper("backup") {
+                        BackupPage()
                     }
 
                     composableHelper(

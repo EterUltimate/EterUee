@@ -40,6 +40,7 @@ import com.composables.icons.lucide.BadgeInfo
 import com.composables.icons.lucide.Bot
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Compass
+import com.composables.icons.lucide.Database
 import com.composables.icons.lucide.HardDrive
 import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.Lucide
@@ -243,7 +244,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
 
             stickyHeader {
                 Text(
-                    text = stringResource(R.string.setting_page_about),
+                    text = "数据设置",
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary
@@ -253,10 +254,10 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
             item {
                 SettingItem(
                     navController = navController,
-                    title = { Text(stringResource(R.string.setting_page_about)) },
-                    description = { Text(stringResource(R.string.setting_page_about_desc)) },
-                    icon = { Icon(Lucide.BadgeInfo, "About") },
-                    link = "setting/about"
+                    title = { Text("数据备份") },
+                    description = { Text("备份和恢复应用数据") },
+                    icon = { Icon(Lucide.Database, "Backup")},
+                    link = "backup"
                 )
             }
 
@@ -284,6 +285,25 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                     icon = {
                         Icon(Lucide.HardDrive, "Storage")
                     },
+                )
+            }
+
+            stickyHeader {
+                Text(
+                    text = stringResource(R.string.setting_page_about),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            item {
+                SettingItem(
+                    navController = navController,
+                    title = { Text(stringResource(R.string.setting_page_about)) },
+                    description = { Text(stringResource(R.string.setting_page_about_desc)) },
+                    icon = { Icon(Lucide.BadgeInfo, "About") },
+                    link = "setting/about"
                 )
             }
 

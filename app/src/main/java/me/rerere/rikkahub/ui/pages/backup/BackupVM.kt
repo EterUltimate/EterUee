@@ -32,4 +32,8 @@ class BackupVM(
     suspend fun backup() {
         dataSync.backupToWebDav(settings.value.webDavConfig)
     }
+
+    suspend fun restore() {
+        dataSync.restoreFromWebDav(settings.value.webDavConfig)
+    }
 }

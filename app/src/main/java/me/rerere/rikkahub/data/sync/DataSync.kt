@@ -57,6 +57,12 @@ class DataSync(
         }
     }
 
+    suspend fun restoreFromWebDav(webDavConfig: WebDavConfig) = withContext(Dispatchers.IO) {
+        val collection = webDavConfig.requireCollection()
+        collection.ensureCollectionExists() // ensure collection exists
+
+    }
+
     private fun prepareBackupFile(webDavConfig: WebDavConfig): File {
         val timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
         val backupFile = File(

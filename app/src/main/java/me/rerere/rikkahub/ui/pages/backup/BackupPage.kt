@@ -1,10 +1,9 @@
 package me.rerere.rikkahub.ui.pages.backup
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,9 +21,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MultiChoiceSegmentedButtonRow
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -54,7 +51,6 @@ import com.composables.icons.lucide.EyeOff
 import com.composables.icons.lucide.File
 import com.composables.icons.lucide.Import
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.TestTube
 import com.composables.icons.lucide.Upload
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.launch
@@ -88,7 +84,7 @@ fun BackupPage(vm: BackupVM = koinViewModel()) {
                         Icon(Lucide.DatabaseBackup, null)
                     },
                     label = {
-                        Text("WebDav")
+                        Text("WebDav备份")
                     },
                     onClick = {
                         scope.launch { pagerState.scrollToPage(0) }
@@ -100,7 +96,7 @@ fun BackupPage(vm: BackupVM = koinViewModel()) {
                         Icon(Lucide.Import, null)
                     },
                     label = {
-                        Text("导入")
+                        Text("导入和导出")
                     },
                     onClick = {
                         scope.launch { pagerState.scrollToPage(1) }
@@ -120,7 +116,7 @@ fun BackupPage(vm: BackupVM = koinViewModel()) {
                 }
 
                 1 -> {
-                    ImportPage(vm)
+                    ImportExportPage(vm)
                 }
             }
         }
@@ -254,7 +250,7 @@ private fun WebDavPage(
             }
         }
 
-        Row(
+        FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
         ) {
@@ -271,15 +267,32 @@ private fun WebDavPage(
                     }
                 }
             ) {
-                Icon(Lucide.TestTube, null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
                 Text("测试连接")
+            }
+            OutlinedButton(
+                onClick = {
+                    scope.launch {
+                        runCatching {
+                            vm.restore()
+                            toaster.show("恢复成功", type = ToastType.Success)
+                        }
+                            .onFailure {
+                                it.printStackTrace()
+                                toaster.show(it.message ?: "未知错误", type = ToastType.Error)
+                            }
+                    }
+                }
+            ) {
+                Text("恢复")
             }
 
             Button(
                 onClick = {
                     scope.launch {
-                        runCatching { vm.backup() }
+                        runCatching {
+                            vm.backup()
+                            toaster.show("备份成功", type = ToastType.Success)
+                        }
                             .onFailure {
                                 it.printStackTrace()
                                 toaster.show(it.message ?: "未知错误", type = ToastType.Error)
@@ -296,7 +309,7 @@ private fun WebDavPage(
 }
 
 @Composable
-private fun ImportPage(
+private fun ImportExportPage(
     vm: BackupVM
 ) {
     LazyColumn(

@@ -20,6 +20,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularWavyProgressIndicator
@@ -44,13 +45,13 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -70,13 +71,13 @@ import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.StickyHeader
 import me.rerere.rikkahub.ui.context.LocalToaster
-import me.rerere.rikkahub.utils.UiState
 import me.rerere.rikkahub.utils.fileSizeToString
 import me.rerere.rikkahub.utils.onError
 import me.rerere.rikkahub.utils.onLoading
 import me.rerere.rikkahub.utils.onSuccess
 import me.rerere.rikkahub.utils.toLocalDateTime
 import org.koin.androidx.compose.koinViewModel
+import kotlin.system.exitProcess
 
 @Composable
 fun BackupPage(vm: BackupVM = koinViewModel()) {
@@ -146,9 +147,11 @@ private fun WebDavPage(
 ) {
     val settings by vm.settings.collectAsStateWithLifecycle()
     val webDavConfig = settings.webDavConfig
+    val context = LocalContext.current
     val toaster = LocalToaster.current
     val scope = rememberCoroutineScope()
     var showBackupFiles by remember { mutableStateOf(false) }
+    var showRestartDialog by remember { mutableStateOf(false) }
 
     fun updateWebDavConfig(newConfig: WebDavConfig) {
         vm.updateSettings(settings.copy(webDavConfig = newConfig))
@@ -334,8 +337,7 @@ private fun WebDavPage(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text("WebDav备份文件列表", modifier = Modifier.fillMaxWidth())
-                val backupItems by remember { vm.getWebDavBackupFiles() }
-                    .collectAsStateWithLifecycle(initialValue = UiState.Idle)
+                val backupItems by vm.backupFileItems.collectAsStateWithLifecycle()
                 backupItems.onSuccess {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
@@ -346,7 +348,19 @@ private fun WebDavPage(
                             BackupItemCard(
                                 item = item,
                                 onDelete = {
-
+                                    scope.launch {
+                                        runCatching {
+                                            vm.deleteWebDavBackupFile(item)
+                                            toaster.show("删除成功", type = ToastType.Success)
+                                            vm.loadBackupFileItems()
+                                        }.onFailure { err ->
+                                            err.printStackTrace()
+                                            toaster.show(
+                                                err.message ?: "未知错误",
+                                                type = ToastType.Error
+                                            )
+                                        }
+                                    }
                                 },
                                 onRestore = { item ->
                                     scope.launch {
@@ -354,6 +368,7 @@ private fun WebDavPage(
                                             vm.restore(item = item)
                                             toaster.show("恢复成功", type = ToastType.Success)
                                             showBackupFiles = false
+                                            showRestartDialog = true
                                         }.onFailure { err ->
                                             err.printStackTrace()
                                             toaster.show(
@@ -383,6 +398,24 @@ private fun WebDavPage(
                 }
             }
         }
+    }
+
+    if (showRestartDialog) {
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text("重启应用") },
+            text = { Text("应用需要重启以使设置生效。") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showRestartDialog = false
+                        exitProcess(0)
+                    }
+                ) {
+                    Text("重启")
+                }
+            },
+        )
     }
 }
 

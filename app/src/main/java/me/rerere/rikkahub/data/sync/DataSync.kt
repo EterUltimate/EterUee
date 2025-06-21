@@ -11,7 +11,6 @@ import at.bitfire.dav4jvm.property.GetContentLength
 import at.bitfire.dav4jvm.property.GetLastModified
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
@@ -28,7 +27,6 @@ import java.time.format.DateTimeFormatter
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
-import kotlin.coroutines.suspendCoroutine
 
 private const val TAG = "DataSync"
 
@@ -132,6 +130,16 @@ class DataSync(
                 backupFile.delete()
                 Log.i(TAG, "restoreFromWebDav: Cleaned up temporary backup file")
             }
+        }
+    }
+
+    suspend fun deleteWebDavBackupFile(webDavConfig: WebDavConfig, item: BackupFileItem) = withContext(Dispatchers.IO) {
+        val collection = DavCollection(
+            httpClient = webDavConfig.requireClient(),
+            location = item.href.toHttpUrl()
+        )
+        collection.delete { response ->
+            Log.i(TAG, "deleteWebDavBackupFile: $response")
         }
     }
 

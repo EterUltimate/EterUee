@@ -2,7 +2,8 @@
   <img src="docs/icon.png" alt="App Icon" width="100" />
   <h1>RikkaHub</h1>
 
-A native Android LLM chat client that supports switching between different providers for conversations 🤖💬
+A native Android LLM chat client that supports switching between different providers for
+conversations 🤖💬
 
 Click to join our Discord server 👉 [【RikkaHub】](https://discord.gg/9weBqxe5c4)
 
@@ -38,14 +39,16 @@ Click to join our Discord server 👉 [【RikkaHub】](https://discord.gg/9weBqx
 
 ## ✨ Contributing
 
-This project is developed using [Android Studio](https://developer.android.com/studio). PRs are welcome!
+This project is developed using [Android Studio](https://developer.android.com/studio). PRs are
+welcome!
 
 Technology stack documentation:
 
 - [Kotlin](https://kotlinlang.org/) (Development language)
 - [Koin](https://insert-koin.io/) (Dependency Injection)
 - [Jetpack Compose](https://developer.android.com/jetpack/compose) (UI framework)
-- [DataStore](https://developer.android.com/topic/libraries/architecture/datastore) (Preference data storage)
+- [DataStore](https://developer.android.com/topic/libraries/architecture/datastore) (Preference data
+  storage)
 - [Room](https://developer.android.com/training/data-storage/room) (Database)
 - [Coil](https://coil-kt.github.io/coil/) (Image loading)
 - [Material You](https://m3.material.io/) (UI design)

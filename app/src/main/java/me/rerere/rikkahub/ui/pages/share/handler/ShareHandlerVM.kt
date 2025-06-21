@@ -11,14 +11,14 @@ import me.rerere.rikkahub.utils.base64Decode
 import kotlin.uuid.Uuid
 
 class ShareHandlerVM(
-    savedStateHandle: SavedStateHandle,
-    private val settingsStore: SettingsStore
+  savedStateHandle: SavedStateHandle,
+  private val settingsStore: SettingsStore
 ) : ViewModel() {
-    val shareText = checkNotNull(savedStateHandle.get<String>("text")?.base64Decode())
-    val settings = settingsStore.settingsFlow
-        .stateIn(viewModelScope, SharingStarted.Eagerly, Settings())
+  val shareText = checkNotNull(savedStateHandle.get<String>("text")?.base64Decode())
+  val settings = settingsStore.settingsFlow
+    .stateIn(viewModelScope, SharingStarted.Eagerly, Settings())
 
-    suspend fun updateAssistant(assistantId: Uuid) {
-        settingsStore.updateAssistant(assistantId)
-    }
+  suspend fun updateAssistant(assistantId: Uuid) {
+    settingsStore.updateAssistant(assistantId)
+  }
 }

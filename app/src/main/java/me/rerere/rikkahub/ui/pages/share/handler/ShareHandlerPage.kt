@@ -33,68 +33,68 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun ShareHandlerPage(vm: ShareHandlerVM = koinViewModel()) {
-    val settings by vm.settings.collectAsStateWithLifecycle()
-    val scope = rememberCoroutineScope()
-    val navController = LocalNavController.current
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(stringResource(R.string.share_handler_page_title))
-                }
-            )
+  val settings by vm.settings.collectAsStateWithLifecycle()
+  val scope = rememberCoroutineScope()
+  val navController = LocalNavController.current
+  Scaffold(
+    topBar = {
+      TopAppBar(
+        title = {
+          Text(stringResource(R.string.share_handler_page_title))
         }
-    ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = it + PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            item {
-                Card {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                    ) {
-                        Text(
-                            text = vm.shareText,
-                            maxLines = 5,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
-            }
-
-            items(settings.assistants) { assistant ->
-                Surface(
-                    onClick = {
-                        scope.launch {
-                            vm.updateAssistant(assistant.id)
-                            navigateToChatPage(
-                                navController = navController,
-                                urlHandler = { url ->
-                                    "$url?text=${vm.shareText.base64Encode()}"
-                                }
-                            )
-                        }
-                    },
-                    tonalElevation = 4.dp,
-                    shape = MaterialTheme.shapes.medium
-                ) {
-                    ListItem(
-                        headlineContent = {
-                            Text(
-                                text = assistant.name.ifEmpty {
-                                    stringResource(R.string.assistant_page_default_assistant)
-                                },
-                                maxLines = 1
-                            )
-                        },
-                    )
-                }
-            }
-        }
+      )
     }
+  ) {
+    LazyColumn(
+      modifier = Modifier.fillMaxSize(),
+      contentPadding = it + PaddingValues(16.dp),
+      verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+      item {
+        Card {
+          Box(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(16.dp)
+          ) {
+            Text(
+              text = vm.shareText,
+              maxLines = 5,
+              overflow = TextOverflow.Ellipsis,
+              style = MaterialTheme.typography.bodySmall
+            )
+          }
+        }
+      }
+
+      items(settings.assistants) { assistant ->
+        Surface(
+          onClick = {
+            scope.launch {
+              vm.updateAssistant(assistant.id)
+              navigateToChatPage(
+                navController = navController,
+                urlHandler = { url ->
+                  "$url?text=${vm.shareText.base64Encode()}"
+                }
+              )
+            }
+          },
+          tonalElevation = 4.dp,
+          shape = MaterialTheme.shapes.medium
+        ) {
+          ListItem(
+            headlineContent = {
+              Text(
+                text = assistant.name.ifEmpty {
+                  stringResource(R.string.assistant_page_default_assistant)
+                },
+                maxLines = 1
+              )
+            },
+          )
+        }
+      }
+    }
+  }
 }

@@ -59,439 +59,439 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SettingModelPage(vm: SettingVM = koinViewModel()) {
-    val settings by vm.settings.collectAsStateWithLifecycle()
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(stringResource(R.string.setting_model_page_title))
-                },
-                navigationIcon = {
-                    BackButton()
-                }
-            )
+  val settings by vm.settings.collectAsStateWithLifecycle()
+  Scaffold(
+    topBar = {
+      TopAppBar(
+        title = {
+          Text(stringResource(R.string.setting_model_page_title))
+        },
+        navigationIcon = {
+          BackButton()
         }
-    ) { contentPadding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = contentPadding + PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            item {
-                DefaultChatModelSetting(settings = settings, vm = vm)
-            }
-
-            item {
-                DefaultTitleModelSetting(settings = settings, vm = vm)
-            }
-
-            item {
-                DefaultSuggestionModelSetting(settings = settings, vm = vm)
-            }
-
-            item {
-                DefaultTranslationModelSetting(settings = settings, vm = vm)
-            }
-        }
+      )
     }
+  ) { contentPadding ->
+    LazyColumn(
+      modifier = Modifier.fillMaxSize(),
+      contentPadding = contentPadding + PaddingValues(16.dp),
+      verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+      item {
+        DefaultChatModelSetting(settings = settings, vm = vm)
+      }
+
+      item {
+        DefaultTitleModelSetting(settings = settings, vm = vm)
+      }
+
+      item {
+        DefaultSuggestionModelSetting(settings = settings, vm = vm)
+      }
+
+      item {
+        DefaultTranslationModelSetting(settings = settings, vm = vm)
+      }
+    }
+  }
 }
 
 @Composable
 private fun DefaultTranslationModelSetting(
-    settings: Settings,
-    vm: SettingVM
+  settings: Settings,
+  vm: SettingVM
 ) {
-    var showModal by remember { mutableStateOf(false) }
-    ModelFeatureCard(
-        title = {
-            Text(
-                stringResource(R.string.setting_model_page_translate_model),
-                maxLines = 1
+  var showModal by remember { mutableStateOf(false) }
+  ModelFeatureCard(
+    title = {
+      Text(
+        stringResource(R.string.setting_model_page_translate_model),
+        maxLines = 1
+      )
+    },
+    description = {
+      Text(stringResource(R.string.setting_model_page_translate_model_desc))
+    },
+    icon = {
+      Icon(Lucide.Earth, null)
+    },
+    actions = {
+      Box(modifier = Modifier.weight(1f)) {
+        ModelSelector(
+          modelId = settings.translateModeId,
+          type = ModelType.CHAT,
+          onSelect = {
+            vm.updateSettings(
+              settings.copy(
+                translateModeId = it.id
+              )
             )
-        },
-        description = {
-            Text(stringResource(R.string.setting_model_page_translate_model_desc))
-        },
-        icon = {
-            Icon(Lucide.Earth, null)
-        },
-        actions = {
-            Box(modifier = Modifier.weight(1f)) {
-                ModelSelector(
-                    modelId = settings.translateModeId,
-                    type = ModelType.CHAT,
-                    onSelect = {
-                        vm.updateSettings(
-                            settings.copy(
-                                translateModeId = it.id
-                            )
-                        )
-                    },
-                    onUpdate = {
-                        vm.updateSettings(
-                            settings.copy(
-                                providers = it
-                            )
-                        )
-                    },
-                    providers = settings.providers,
-                    modifier = Modifier.wrapContentWidth()
-                )
-            }
-            IconButton(
-                onClick = {
-                    showModal = true
-                }
-            ) {
-                Icon(Lucide.Settings2, null)
-            }
+          },
+          onUpdate = {
+            vm.updateSettings(
+              settings.copy(
+                providers = it
+              )
+            )
+          },
+          providers = settings.providers,
+          modifier = Modifier.wrapContentWidth()
+        )
+      }
+      IconButton(
+        onClick = {
+          showModal = true
         }
-    )
-
-    if (showModal) {
-        ModalBottomSheet(
-            onDismissRequest = {
-                showModal = false
-            },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                FormItem(
-                    label = {
-                        Text(stringResource(R.string.setting_model_page_prompt))
-                    },
-                    description = {
-                        Text(stringResource(R.string.setting_model_page_translate_prompt_vars))
-                    }
-                ) {
-                    OutlinedTextField(
-                        value = settings.translatePrompt,
-                        onValueChange = {
-                            vm.updateSettings(
-                                settings.copy(
-                                    translatePrompt = it
-                                )
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        maxLines = 10,
-                    )
-                    TextButton(
-                        onClick = {
-                            vm.updateSettings(
-                                settings.copy(
-                                    translatePrompt = DEFAULT_TRANSLATION_PROMPT
-                                )
-                            )
-                        }
-                    ) {
-                        Text(stringResource(R.string.setting_model_page_reset_to_default))
-                    }
-                }
-            }
-        }
+      ) {
+        Icon(Lucide.Settings2, null)
+      }
     }
+  )
+
+  if (showModal) {
+    ModalBottomSheet(
+      onDismissRequest = {
+        showModal = false
+      },
+      sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ) {
+      Column(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        FormItem(
+          label = {
+            Text(stringResource(R.string.setting_model_page_prompt))
+          },
+          description = {
+            Text(stringResource(R.string.setting_model_page_translate_prompt_vars))
+          }
+        ) {
+          OutlinedTextField(
+            value = settings.translatePrompt,
+            onValueChange = {
+              vm.updateSettings(
+                settings.copy(
+                  translatePrompt = it
+                )
+              )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            maxLines = 10,
+          )
+          TextButton(
+            onClick = {
+              vm.updateSettings(
+                settings.copy(
+                  translatePrompt = DEFAULT_TRANSLATION_PROMPT
+                )
+              )
+            }
+          ) {
+            Text(stringResource(R.string.setting_model_page_reset_to_default))
+          }
+        }
+      }
+    }
+  }
 }
 
 @Composable
 private fun DefaultSuggestionModelSetting(
-    settings: Settings,
-    vm: SettingVM
+  settings: Settings,
+  vm: SettingVM
 ) {
-    var showModal by remember { mutableStateOf(false) }
-    ModelFeatureCard(
-        title = {
-            Text(
-                text = stringResource(R.string.setting_model_page_suggestion_model),
-                maxLines = 1
+  var showModal by remember { mutableStateOf(false) }
+  ModelFeatureCard(
+    title = {
+      Text(
+        text = stringResource(R.string.setting_model_page_suggestion_model),
+        maxLines = 1
+      )
+    },
+    description = {
+      Text(stringResource(R.string.setting_model_page_suggestion_model_desc))
+    },
+    icon = {
+      Icon(Lucide.MessageSquareMore, null)
+    },
+    actions = {
+      Box(modifier = Modifier.weight(1f)) {
+        ModelSelector(
+          modelId = settings.suggestionModelId,
+          type = ModelType.CHAT,
+          onSelect = {
+            vm.updateSettings(
+              settings.copy(
+                suggestionModelId = it.id
+              )
             )
-        },
-        description = {
-            Text(stringResource(R.string.setting_model_page_suggestion_model_desc))
-        },
-        icon = {
-            Icon(Lucide.MessageSquareMore, null)
-        },
-        actions = {
-            Box(modifier = Modifier.weight(1f)) {
-                ModelSelector(
-                    modelId = settings.suggestionModelId,
-                    type = ModelType.CHAT,
-                    onSelect = {
-                        vm.updateSettings(
-                            settings.copy(
-                                suggestionModelId = it.id
-                            )
-                        )
-                    },
-                    onUpdate = {
-                        vm.updateSettings(
-                            settings.copy(
-                                providers = it
-                            )
-                        )
-                    },
-                    providers = settings.providers,
-                    allowClear = true,
-                    modifier = Modifier.wrapContentWidth()
-                )
-            }
-            IconButton(
-                onClick = {
-                    showModal = true
-                }
-            ) {
-                Icon(Lucide.Settings2, null)
-            }
+          },
+          onUpdate = {
+            vm.updateSettings(
+              settings.copy(
+                providers = it
+              )
+            )
+          },
+          providers = settings.providers,
+          allowClear = true,
+          modifier = Modifier.wrapContentWidth()
+        )
+      }
+      IconButton(
+        onClick = {
+          showModal = true
         }
-    )
-
-    if (showModal) {
-        ModalBottomSheet(
-            onDismissRequest = {
-                showModal = false
-            },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                FormItem(
-                    label = {
-                        Text(stringResource(R.string.setting_model_page_prompt))
-                    },
-                    description = {
-                        Text(stringResource(R.string.setting_model_page_suggestion_prompt_vars))
-                    }
-                ) {
-                    OutlinedTextField(
-                        value = settings.suggestionPrompt,
-                        onValueChange = {
-                            vm.updateSettings(
-                                settings.copy(
-                                    suggestionPrompt = it
-                                )
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        maxLines = 8
-                    )
-                    TextButton(
-                        onClick = {
-                            vm.updateSettings(
-                                settings.copy(
-                                    suggestionPrompt = DEFAULT_SUGGESTION_PROMPT
-                                )
-                            )
-                        }
-                    ) {
-                        Text(stringResource(R.string.setting_model_page_reset_to_default))
-                    }
-                }
-            }
-        }
+      ) {
+        Icon(Lucide.Settings2, null)
+      }
     }
+  )
+
+  if (showModal) {
+    ModalBottomSheet(
+      onDismissRequest = {
+        showModal = false
+      },
+      sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ) {
+      Column(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        FormItem(
+          label = {
+            Text(stringResource(R.string.setting_model_page_prompt))
+          },
+          description = {
+            Text(stringResource(R.string.setting_model_page_suggestion_prompt_vars))
+          }
+        ) {
+          OutlinedTextField(
+            value = settings.suggestionPrompt,
+            onValueChange = {
+              vm.updateSettings(
+                settings.copy(
+                  suggestionPrompt = it
+                )
+              )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            maxLines = 8
+          )
+          TextButton(
+            onClick = {
+              vm.updateSettings(
+                settings.copy(
+                  suggestionPrompt = DEFAULT_SUGGESTION_PROMPT
+                )
+              )
+            }
+          ) {
+            Text(stringResource(R.string.setting_model_page_reset_to_default))
+          }
+        }
+      }
+    }
+  }
 }
 
 @Composable
 private fun DefaultTitleModelSetting(
-    settings: Settings,
-    vm: SettingVM
+  settings: Settings,
+  vm: SettingVM
 ) {
-    var showModal by remember { mutableStateOf(false) }
-    ModelFeatureCard(
-        title = {
-            Text(stringResource(R.string.setting_model_page_title_model), maxLines = 1)
-        },
-        description = {
-            Text(stringResource(R.string.setting_model_page_title_model_desc))
-        },
-        icon = {
-            Icon(Lucide.NotebookTabs, null)
-        },
-        actions = {
-            Box(modifier = Modifier.weight(1f)) {
-                ModelSelector(
-                    modelId = settings.titleModelId,
-                    type = ModelType.CHAT,
-                    onSelect = {
-                        vm.updateSettings(
-                            settings.copy(
-                                titleModelId = it.id
-                            )
-                        )
-                    },
-                    onUpdate = {
-                        vm.updateSettings(
-                            settings.copy(
-                                providers = it
-                            )
-                        )
-                    },
-                    providers = settings.providers,
-                    modifier = Modifier.wrapContentWidth()
-                )
-            }
-            IconButton(
-                onClick = {
-                    showModal = true
-                }
-            ) {
-                Icon(Lucide.Settings2, null)
-            }
+  var showModal by remember { mutableStateOf(false) }
+  ModelFeatureCard(
+    title = {
+      Text(stringResource(R.string.setting_model_page_title_model), maxLines = 1)
+    },
+    description = {
+      Text(stringResource(R.string.setting_model_page_title_model_desc))
+    },
+    icon = {
+      Icon(Lucide.NotebookTabs, null)
+    },
+    actions = {
+      Box(modifier = Modifier.weight(1f)) {
+        ModelSelector(
+          modelId = settings.titleModelId,
+          type = ModelType.CHAT,
+          onSelect = {
+            vm.updateSettings(
+              settings.copy(
+                titleModelId = it.id
+              )
+            )
+          },
+          onUpdate = {
+            vm.updateSettings(
+              settings.copy(
+                providers = it
+              )
+            )
+          },
+          providers = settings.providers,
+          modifier = Modifier.wrapContentWidth()
+        )
+      }
+      IconButton(
+        onClick = {
+          showModal = true
         }
-    )
-
-    if (showModal) {
-        ModalBottomSheet(
-            onDismissRequest = {
-                showModal = false
-            },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                FormItem(
-                    label = {
-                        Text(stringResource(R.string.setting_model_page_prompt))
-                    },
-                    description = {
-                        Text(stringResource(R.string.setting_model_page_suggestion_prompt_vars))
-                    }
-                ) {
-                    OutlinedTextField(
-                        value = settings.titlePrompt,
-                        onValueChange = {
-                            vm.updateSettings(
-                                settings.copy(
-                                    titlePrompt = it
-                                )
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        maxLines = 8
-                    )
-                    TextButton(
-                        onClick = {
-                            vm.updateSettings(
-                                settings.copy(
-                                    titlePrompt = DEFAULT_TITLE_PROMPT
-                                )
-                            )
-                        }
-                    ) {
-                        Text(stringResource(R.string.setting_model_page_reset_to_default))
-                    }
-                }
-            }
-        }
+      ) {
+        Icon(Lucide.Settings2, null)
+      }
     }
+  )
+
+  if (showModal) {
+    ModalBottomSheet(
+      onDismissRequest = {
+        showModal = false
+      },
+      sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ) {
+      Column(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        FormItem(
+          label = {
+            Text(stringResource(R.string.setting_model_page_prompt))
+          },
+          description = {
+            Text(stringResource(R.string.setting_model_page_suggestion_prompt_vars))
+          }
+        ) {
+          OutlinedTextField(
+            value = settings.titlePrompt,
+            onValueChange = {
+              vm.updateSettings(
+                settings.copy(
+                  titlePrompt = it
+                )
+              )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            maxLines = 8
+          )
+          TextButton(
+            onClick = {
+              vm.updateSettings(
+                settings.copy(
+                  titlePrompt = DEFAULT_TITLE_PROMPT
+                )
+              )
+            }
+          ) {
+            Text(stringResource(R.string.setting_model_page_reset_to_default))
+          }
+        }
+      }
+    }
+  }
 }
 
 @Composable
 private fun DefaultChatModelSetting(
-    settings: Settings,
-    vm: SettingVM
+  settings: Settings,
+  vm: SettingVM
 ) {
-    ModelFeatureCard(
-        icon = {
-            Icon(Lucide.MessageCircle, null)
-        },
-        title = {
-            Text(stringResource(R.string.setting_model_page_chat_model), maxLines = 1)
-        },
-        description = {
-            Text(stringResource(R.string.setting_model_page_chat_model_desc))
-        },
-        actions = {
-            Box(modifier = Modifier.weight(1f)) {
-                ModelSelector(
-                    modelId = settings.chatModelId,
-                    type = ModelType.CHAT,
-                    onSelect = {
-                        vm.updateSettings(
-                            settings.copy(
-                                chatModelId = it.id
-                            )
-                        )
-                    },
-                    onUpdate = {
-                        vm.updateSettings(
-                            settings.copy(
-                                providers = it
-                            )
-                        )
-                    },
-                    providers = settings.providers,
-                    modifier = Modifier.wrapContentWidth()
-                )
-            }
-        }
-    )
+  ModelFeatureCard(
+    icon = {
+      Icon(Lucide.MessageCircle, null)
+    },
+    title = {
+      Text(stringResource(R.string.setting_model_page_chat_model), maxLines = 1)
+    },
+    description = {
+      Text(stringResource(R.string.setting_model_page_chat_model_desc))
+    },
+    actions = {
+      Box(modifier = Modifier.weight(1f)) {
+        ModelSelector(
+          modelId = settings.chatModelId,
+          type = ModelType.CHAT,
+          onSelect = {
+            vm.updateSettings(
+              settings.copy(
+                chatModelId = it.id
+              )
+            )
+          },
+          onUpdate = {
+            vm.updateSettings(
+              settings.copy(
+                providers = it
+              )
+            )
+          },
+          providers = settings.providers,
+          modifier = Modifier.wrapContentWidth()
+        )
+      }
+    }
+  )
 }
 
 @Composable
 private fun ModelFeatureCard(
-    modifier: Modifier = Modifier,
-    description: @Composable () -> Unit = {},
-    icon: @Composable () -> Unit,
-    title: @Composable () -> Unit,
-    actions: @Composable RowScope.() -> Unit
+  modifier: Modifier = Modifier,
+  description: @Composable () -> Unit = {},
+  icon: @Composable () -> Unit,
+  title: @Composable () -> Unit,
+  actions: @Composable RowScope.() -> Unit
 ) {
-    Card(
-        modifier = modifier,
+  Card(
+    modifier = modifier,
+  ) {
+    Column(
+      verticalArrangement = Arrangement.spacedBy(16.dp),
+      modifier = Modifier.padding(16.dp)
     ) {
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(16.dp)
+          verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        icon()
-                        ProvideTextStyle(MaterialTheme.typography.titleLarge) {
-                            title()
-                        }
-                    }
-                    ProvideTextStyle(
-                        MaterialTheme.typography.bodySmall.copy(
-                            color = LocalContentColor.current.copy(
-                                alpha = 0.7f
-                            )
-                        )
-                    ) {
-                        description()
-                    }
-                }
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+          ) {
+            icon()
+            ProvideTextStyle(MaterialTheme.typography.titleLarge) {
+              title()
             }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                actions()
-            }
+          }
+          ProvideTextStyle(
+            MaterialTheme.typography.bodySmall.copy(
+              color = LocalContentColor.current.copy(
+                alpha = 0.7f
+              )
+            )
+          ) {
+            description()
+          }
         }
+      }
+
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        actions()
+      }
     }
+  }
 }

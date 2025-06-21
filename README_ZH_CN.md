@@ -46,7 +46,8 @@
 - [Kotlin](https://kotlinlang.org/) (开发语言)
 - [Koin](https://insert-koin.io/) (依赖注入)
 - [Jetpack Compose](https://developer.android.com/jetpack/compose) (UI 框架)
-- [DataStore](https://developer.android.com/topic/libraries/architecture/datastore?hl=zh-cn#preferences-datastore) (偏好数据存储)
+- [DataStore](https://developer.android.com/topic/libraries/architecture/datastore?hl=zh-cn#preferences-datastore) (
+  偏好数据存储)
 - [Room](https://developer.android.com/training/data-storage/room) (数据库)
 - [Coil](https://coil-kt.github.io/coil/) (图片加载)
 - [Material You](https://m3.material.io/) (UI 设计)

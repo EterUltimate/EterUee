@@ -13,13 +13,13 @@ import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val viewModelModule = module {
-    viewModelOf(::ChatVM)
-    viewModelOf(::SettingVM)
-    viewModelOf(::DebugVM)
-    viewModelOf(::HistoryVM)
-    viewModelOf(::AssistantVM)
-    viewModelOf(::AssistantDetailVM)
-    viewModelOf(::TranslatorVM)
-    viewModelOf(::ShareHandlerVM)
-    viewModelOf(::BackupVM)
+  viewModelOf(::ChatVM)
+  viewModelOf(::SettingVM)
+  viewModelOf(::DebugVM)
+  viewModelOf(::HistoryVM)
+  viewModelOf(::AssistantVM)
+  viewModelOf(::AssistantDetailVM)
+  viewModelOf(::TranslatorVM)
+  viewModelOf(::ShareHandlerVM)
+  viewModelOf(::BackupVM)
 }

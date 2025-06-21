@@ -23,36 +23,36 @@ private const val TAG = "RikkaHubApp"
 const val CHAT_COMPLETED_NOTIFICATION_CHANNEL_ID = "chat_completed"
 
 class RikkaHubApp : Application() {
-    override fun onCreate() {
-        super.onCreate()
-        startKoin {
-            androidLogger()
-            androidContext(this@RikkaHubApp)
-            workManagerFactory()
-            modules(appModule, viewModelModule, dataSourceModule, repositoryModule)
-        }
-        this.createNotificationChannel()
-
-        // set cursor window size
-        DatabaseUtil.setCursorWindowSize(16 * 1024 * 1024)
+  override fun onCreate() {
+    super.onCreate()
+    startKoin {
+      androidLogger()
+      androidContext(this@RikkaHubApp)
+      workManagerFactory()
+      modules(appModule, viewModelModule, dataSourceModule, repositoryModule)
     }
+    this.createNotificationChannel()
 
-    private fun createNotificationChannel() {
-        val notificationManager = NotificationManagerCompat.from(this)
-        val channel = NotificationChannelCompat
-            .Builder(
-                CHAT_COMPLETED_NOTIFICATION_CHANNEL_ID,
-                NotificationManagerCompat.IMPORTANCE_DEFAULT
-            )
-            .setName(getString(R.string.notification_channel_chat_completed))
-            .build()
-        notificationManager.createNotificationChannel(channel)
-    }
+    // set cursor window size
+    DatabaseUtil.setCursorWindowSize(16 * 1024 * 1024)
+  }
 
-    override fun onTerminate() {
-        super.onTerminate()
-        get<AppScope>().cancel()
-    }
+  private fun createNotificationChannel() {
+    val notificationManager = NotificationManagerCompat.from(this)
+    val channel = NotificationChannelCompat
+      .Builder(
+        CHAT_COMPLETED_NOTIFICATION_CHANNEL_ID,
+        NotificationManagerCompat.IMPORTANCE_DEFAULT
+      )
+      .setName(getString(R.string.notification_channel_chat_completed))
+      .build()
+    notificationManager.createNotificationChannel(channel)
+  }
+
+  override fun onTerminate() {
+    super.onTerminate()
+    get<AppScope>().cancel()
+  }
 }
 
 class AppScope : CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default)

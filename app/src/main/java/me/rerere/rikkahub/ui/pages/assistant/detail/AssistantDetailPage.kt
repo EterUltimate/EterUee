@@ -102,894 +102,894 @@ import kotlin.math.roundToInt
 
 @Composable
 fun AssistantDetailPage(vm: AssistantDetailVM = koinViewModel()) {
-    val scope = rememberCoroutineScope()
+  val scope = rememberCoroutineScope()
 
-    val mcpServerConfigs by vm.mcpServerConfigs.collectAsStateWithLifecycle()
-    val assistant by vm.assistant.collectAsStateWithLifecycle()
-    val memories by vm.memories.collectAsStateWithLifecycle()
-    val memoryDialogState = useEditState<AssistantMemory> {
-        if (it.id == 0) {
-            vm.addMemory(it)
-        } else {
-            vm.updateMemory(it)
-        }
+  val mcpServerConfigs by vm.mcpServerConfigs.collectAsStateWithLifecycle()
+  val assistant by vm.assistant.collectAsStateWithLifecycle()
+  val memories by vm.memories.collectAsStateWithLifecycle()
+  val memoryDialogState = useEditState<AssistantMemory> {
+    if (it.id == 0) {
+      vm.addMemory(it)
+    } else {
+      vm.updateMemory(it)
     }
-    val providers by vm.providers.collectAsStateWithLifecycle()
+  }
+  val providers by vm.providers.collectAsStateWithLifecycle()
 
-    fun onUpdate(assistant: Assistant) {
-        vm.update(assistant)
-    }
+  fun onUpdate(assistant: Assistant) {
+    vm.update(assistant)
+  }
 
-    val tabs = listOf(
-        stringResource(R.string.assistant_page_tab_basic),
-        stringResource(R.string.assistant_page_tab_prompt),
-        stringResource(R.string.assistant_page_tab_preset_messages),
-        stringResource(R.string.assistant_page_tab_memory),
-        stringResource(R.string.assistant_page_tab_request),
-        "MCP"
-    )
-    val pagerState = rememberPagerState { tabs.size }
+  val tabs = listOf(
+    stringResource(R.string.assistant_page_tab_basic),
+    stringResource(R.string.assistant_page_tab_prompt),
+    stringResource(R.string.assistant_page_tab_preset_messages),
+    stringResource(R.string.assistant_page_tab_memory),
+    stringResource(R.string.assistant_page_tab_request),
+    "MCP"
+  )
+  val pagerState = rememberPagerState { tabs.size }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = assistant.name.ifBlank {
-                            stringResource(R.string.assistant_page_default_assistant)
-                        }
-                    )
-                },
-                navigationIcon = {
-                    BackButton()
-                }
-            )
+  Scaffold(
+    topBar = {
+      TopAppBar(
+        title = {
+          Text(
+            text = assistant.name.ifBlank {
+              stringResource(R.string.assistant_page_default_assistant)
+            }
+          )
         },
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
-        ) {
-            SecondaryScrollableTabRow(
-                selectedTabIndex = pagerState.currentPage,
-                modifier = Modifier.fillMaxWidth(),
-                edgePadding = 24.dp,
-            ) {
-                tabs.fastForEachIndexed { index, tab ->
-                    Tab(
-                        selected = index == pagerState.currentPage,
-                        onClick = { scope.launch { pagerState.scrollToPage(index) } },
-                        text = {
-                            Text(tab)
-                        }
-                    )
-                }
-            }
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            ) { page ->
-                when (page) {
-                    0 -> {
-                        AssistantBasicSettings(
-                            assistant = assistant,
-                            providers = providers,
-                        ) {
-                            onUpdate(it)
-                        }
-                    }
-
-                    1 -> {
-                        AssistantPromptSettings(assistant = assistant) {
-                            onUpdate(it)
-                        }
-                    }
-
-                    2 -> {
-                        AssistantPresetMessageSettings(assistant = assistant) {
-                            onUpdate(it)
-                        }
-                    }
-
-                    3 -> {
-                        AssistantMemorySettings(
-                            assistant = assistant,
-                            memories = memories,
-                            onUpdate = { onUpdate(it) },
-                            onAddMemory = { memoryDialogState.open(AssistantMemory(0, "")) },
-                            onEditMemory = { memoryDialogState.open(it) },
-                            onDeleteMemory = { vm.deleteMemory(it) }
-                        )
-                    }
-
-                    4 -> {
-                        AssistantCustomRequestSettings(assistant = assistant) {
-                            onUpdate(it)
-                        }
-                    }
-
-                    5 -> {
-                        AssistantMcpSettings(
-                            assistant = assistant,
-                            onUpdate = {
-                                onUpdate(it)
-                            },
-                            mcpServerConfigs = mcpServerConfigs
-                        )
-                    }
-                }
-            }
+        navigationIcon = {
+          BackButton()
         }
-    }
-
-    // 记忆对话框
-    memoryDialogState.EditStateContent { memory, update ->
-        AlertDialog(
-            onDismissRequest = {
-                memoryDialogState.dismiss()
-            },
-            title = {
-                Text(stringResource(R.string.assistant_page_manage_memory_title))
-            },
+      )
+    },
+  ) { innerPadding ->
+    Column(
+      modifier = Modifier
+        .padding(innerPadding)
+        .fillMaxSize(),
+    ) {
+      SecondaryScrollableTabRow(
+        selectedTabIndex = pagerState.currentPage,
+        modifier = Modifier.fillMaxWidth(),
+        edgePadding = 24.dp,
+      ) {
+        tabs.fastForEachIndexed { index, tab ->
+          Tab(
+            selected = index == pagerState.currentPage,
+            onClick = { scope.launch { pagerState.scrollToPage(index) } },
             text = {
-                TextField(
-                    value = memory.content,
-                    onValueChange = {
-                        update(memory.copy(content = it))
-                    },
-                    label = {
-                        Text(stringResource(R.string.assistant_page_manage_memory_title))
-                    },
-                    minLines = 1,
-                    maxLines = 8
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        memoryDialogState.confirm()
-                    }
-                ) {
-                    Text(stringResource(R.string.assistant_page_save))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        memoryDialogState.dismiss()
-                    }
-                ) {
-                    Text(stringResource(R.string.assistant_page_cancel))
-                }
+              Text(tab)
             }
-        )
+          )
+        }
+      }
+      HorizontalPager(
+        state = pagerState,
+        modifier = Modifier
+          .fillMaxWidth()
+          .weight(1f)
+      ) { page ->
+        when (page) {
+          0 -> {
+            AssistantBasicSettings(
+              assistant = assistant,
+              providers = providers,
+            ) {
+              onUpdate(it)
+            }
+          }
+
+          1 -> {
+            AssistantPromptSettings(assistant = assistant) {
+              onUpdate(it)
+            }
+          }
+
+          2 -> {
+            AssistantPresetMessageSettings(assistant = assistant) {
+              onUpdate(it)
+            }
+          }
+
+          3 -> {
+            AssistantMemorySettings(
+              assistant = assistant,
+              memories = memories,
+              onUpdate = { onUpdate(it) },
+              onAddMemory = { memoryDialogState.open(AssistantMemory(0, "")) },
+              onEditMemory = { memoryDialogState.open(it) },
+              onDeleteMemory = { vm.deleteMemory(it) }
+            )
+          }
+
+          4 -> {
+            AssistantCustomRequestSettings(assistant = assistant) {
+              onUpdate(it)
+            }
+          }
+
+          5 -> {
+            AssistantMcpSettings(
+              assistant = assistant,
+              onUpdate = {
+                onUpdate(it)
+              },
+              mcpServerConfigs = mcpServerConfigs
+            )
+          }
+        }
+      }
     }
+  }
+
+  // 记忆对话框
+  memoryDialogState.EditStateContent { memory, update ->
+    AlertDialog(
+      onDismissRequest = {
+        memoryDialogState.dismiss()
+      },
+      title = {
+        Text(stringResource(R.string.assistant_page_manage_memory_title))
+      },
+      text = {
+        TextField(
+          value = memory.content,
+          onValueChange = {
+            update(memory.copy(content = it))
+          },
+          label = {
+            Text(stringResource(R.string.assistant_page_manage_memory_title))
+          },
+          minLines = 1,
+          maxLines = 8
+        )
+      },
+      confirmButton = {
+        TextButton(
+          onClick = {
+            memoryDialogState.confirm()
+          }
+        ) {
+          Text(stringResource(R.string.assistant_page_save))
+        }
+      },
+      dismissButton = {
+        TextButton(
+          onClick = {
+            memoryDialogState.dismiss()
+          }
+        ) {
+          Text(stringResource(R.string.assistant_page_cancel))
+        }
+      }
+    )
+  }
 }
 
 @Composable
 private fun AssistantBasicSettings(
-    assistant: Assistant,
-    providers: List<ProviderSetting>,
-    onUpdate: (Assistant) -> Unit,
+  assistant: Assistant,
+  providers: List<ProviderSetting>,
+  onUpdate: (Assistant) -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
-            .imePadding(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Card {
-            FormItem(
-                label = {
-                    Text(stringResource(R.string.assistant_page_name))
-                },
-                modifier = Modifier.padding(16.dp),
-            ) {
-                OutlinedTextField(
-                    value = assistant.name,
-                    onValueChange = {
-                        onUpdate(
-                            assistant.copy(
-                                name = it
-                            )
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }
-
-        Card {
-            FormItem(
-                modifier = Modifier.padding(16.dp),
-                label = {
-                    Text(stringResource(R.string.assistant_page_chat_model))
-                },
-                description = {
-                    Text(stringResource(R.string.assistant_page_chat_model_desc))
-                },
-                content = {
-                    ModelSelector(
-                        modelId = assistant.chatModelId,
-                        providers = providers,
-                        type = ModelType.CHAT,
-                        onSelect = {
-                            onUpdate(
-                                assistant.copy(
-                                    chatModelId = it.id
-                                )
-                            )
-                        },
-                    )
-                }
+  Column(
+    modifier = Modifier
+      .fillMaxSize()
+      .padding(16.dp)
+      .verticalScroll(rememberScrollState())
+      .imePadding(),
+    verticalArrangement = Arrangement.spacedBy(16.dp)
+  ) {
+    Card {
+      FormItem(
+        label = {
+          Text(stringResource(R.string.assistant_page_name))
+        },
+        modifier = Modifier.padding(16.dp),
+      ) {
+        OutlinedTextField(
+          value = assistant.name,
+          onValueChange = {
+            onUpdate(
+              assistant.copy(
+                name = it
+              )
             )
-        }
-
-        Card {
-            FormItem(
-                modifier = Modifier.padding(16.dp),
-                label = {
-                    Text(stringResource(R.string.assistant_page_temperature))
-                },
-            ) {
-                Slider(
-                    value = assistant.temperature,
-                    onValueChange = {
-                        onUpdate(
-                            assistant.copy(
-                                temperature = it.toFixed(2).toFloatOrNull() ?: 0.6f
-                            )
-                        )
-                    },
-                    valueRange = 0f..2f,
-                    steps = 19,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    val currentTemperature = assistant.temperature
-                    val tagType = when (currentTemperature) {
-                        in 0.0f..0.3f -> TagType.INFO
-                        in 0.3f..1.0f -> TagType.SUCCESS
-                        in 1.0f..1.5f -> TagType.WARNING
-                        in 1.5f..2.0f -> TagType.ERROR
-                        else -> TagType.ERROR
-                    }
-                    Tag(
-                        type = TagType.INFO
-                    ) {
-                        Text(
-                            text = "$currentTemperature"
-                        )
-                    }
-
-                    Tag(
-                        type = tagType
-                    ) {
-                        Text(
-                            text = when (currentTemperature) {
-                                in 0.0f..0.3f -> stringResource(R.string.assistant_page_strict)
-                                in 0.3f..1.0f -> stringResource(R.string.assistant_page_balanced)
-                                in 1.0f..1.5f -> stringResource(R.string.assistant_page_creative)
-                                in 1.5f..2.0f -> stringResource(R.string.assistant_page_chaotic)
-                                else -> "?"
-                            }
-                        )
-                    }
-                }
-            }
-        }
-
-        Card {
-            FormItem(
-                modifier = Modifier.padding(16.dp),
-                label = {
-                    Text(stringResource(R.string.assistant_page_top_p))
-                },
-                description = {
-                    Text(
-                        text = buildAnnotatedString {
-                            append(stringResource(R.string.assistant_page_top_p_warning))
-                        }
-                    )
-                }
-            ) {
-                Slider(
-                    value = assistant.topP,
-                    onValueChange = {
-                        onUpdate(
-                            assistant.copy(
-                                topP = it.toFixed(2).toFloatOrNull() ?: 1.0f
-                            )
-                        )
-                    },
-                    valueRange = 0f..1f,
-                    steps = 0,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Text(
-                    text = stringResource(
-                        R.string.assistant_page_top_p_value,
-                        assistant.topP.toString()
-                    ),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
-                )
-            }
-        }
-
-        Card {
-            FormItem(
-                modifier = Modifier.padding(16.dp),
-                label = {
-                    Text(stringResource(R.string.assistant_page_context_message_size))
-                },
-                description = {
-                    Text(
-                        text = stringResource(R.string.assistant_page_context_message_desc),
-                    )
-                }
-            ) {
-                Slider(
-                    value = assistant.contextMessageSize.toFloat(),
-                    onValueChange = {
-                        onUpdate(
-                            assistant.copy(
-                                contextMessageSize = it.roundToInt()
-                            )
-                        )
-                    },
-                    valueRange = 1f..512f,
-                    steps = 0,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Text(
-                    text = stringResource(
-                        R.string.assistant_page_context_message_count,
-                        assistant.contextMessageSize
-                    ),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
-                )
-            }
-        }
-
-        Card {
-            FormItem(
-                modifier = Modifier.padding(16.dp),
-                label = {
-                    Text(stringResource(R.string.assistant_page_stream_output))
-                },
-                description = {
-                    Text(stringResource(R.string.assistant_page_stream_output_desc))
-                },
-                tail = {
-                    Switch(
-                        checked = assistant.streamOutput,
-                        onCheckedChange = {
-                            onUpdate(
-                                assistant.copy(
-                                    streamOutput = it
-                                )
-                            )
-                        }
-                    )
-                }
-            )
-        }
-
-        Card {
-            FormItem(
-                modifier = Modifier.padding(16.dp),
-                label = {
-                    Text(stringResource(R.string.assistant_page_thinking_budget))
-                },
-                description = {
-                    Text(stringResource(R.string.assistant_page_thinking_budget_desc))
-                    Text(
-                        text = stringResource(R.string.assistant_page_thinking_budget_warning),
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-            ) {
-                var input by remember(assistant) {
-                    mutableStateOf(assistant.thinkingBudget?.toString() ?: "")
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = input,
-                        onValueChange = {
-                            input = it
-                            onUpdate(
-                                assistant.copy(
-                                    thinkingBudget = if (it.isBlank()) null else it.toIntOrNull()
-                                )
-                            )
-                        },
-                        trailingIcon = {
-                            IconButton(
-                                onClick = {
-                                    input = ""
-                                    onUpdate(
-                                        assistant.copy(
-                                            thinkingBudget = null
-                                        )
-                                    )
-                                }
-                            ) {
-                                Icon(
-                                    Lucide.X,
-                                    contentDescription = null
-                                )
-                            }
-                        },
-                        modifier = Modifier.weight(1f),
-                    )
-                    Text(
-                        text = stringResource(
-                            R.string.assistant_page_thinking_budget_tokens,
-                            assistant.thinkingBudget?.toString()
-                                ?: stringResource(R.string.assistant_page_thinking_budget_default)
-                        ),
-                    )
-                }
-            }
-        }
+          },
+          modifier = Modifier.fillMaxWidth()
+        )
+      }
     }
+
+    Card {
+      FormItem(
+        modifier = Modifier.padding(16.dp),
+        label = {
+          Text(stringResource(R.string.assistant_page_chat_model))
+        },
+        description = {
+          Text(stringResource(R.string.assistant_page_chat_model_desc))
+        },
+        content = {
+          ModelSelector(
+            modelId = assistant.chatModelId,
+            providers = providers,
+            type = ModelType.CHAT,
+            onSelect = {
+              onUpdate(
+                assistant.copy(
+                  chatModelId = it.id
+                )
+              )
+            },
+          )
+        }
+      )
+    }
+
+    Card {
+      FormItem(
+        modifier = Modifier.padding(16.dp),
+        label = {
+          Text(stringResource(R.string.assistant_page_temperature))
+        },
+      ) {
+        Slider(
+          value = assistant.temperature,
+          onValueChange = {
+            onUpdate(
+              assistant.copy(
+                temperature = it.toFixed(2).toFloatOrNull() ?: 0.6f
+              )
+            )
+          },
+          valueRange = 0f..2f,
+          steps = 19,
+          modifier = Modifier.fillMaxWidth()
+        )
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          val currentTemperature = assistant.temperature
+          val tagType = when (currentTemperature) {
+            in 0.0f..0.3f -> TagType.INFO
+            in 0.3f..1.0f -> TagType.SUCCESS
+            in 1.0f..1.5f -> TagType.WARNING
+            in 1.5f..2.0f -> TagType.ERROR
+            else -> TagType.ERROR
+          }
+          Tag(
+            type = TagType.INFO
+          ) {
+            Text(
+              text = "$currentTemperature"
+            )
+          }
+
+          Tag(
+            type = tagType
+          ) {
+            Text(
+              text = when (currentTemperature) {
+                in 0.0f..0.3f -> stringResource(R.string.assistant_page_strict)
+                in 0.3f..1.0f -> stringResource(R.string.assistant_page_balanced)
+                in 1.0f..1.5f -> stringResource(R.string.assistant_page_creative)
+                in 1.5f..2.0f -> stringResource(R.string.assistant_page_chaotic)
+                else -> "?"
+              }
+            )
+          }
+        }
+      }
+    }
+
+    Card {
+      FormItem(
+        modifier = Modifier.padding(16.dp),
+        label = {
+          Text(stringResource(R.string.assistant_page_top_p))
+        },
+        description = {
+          Text(
+            text = buildAnnotatedString {
+              append(stringResource(R.string.assistant_page_top_p_warning))
+            }
+          )
+        }
+      ) {
+        Slider(
+          value = assistant.topP,
+          onValueChange = {
+            onUpdate(
+              assistant.copy(
+                topP = it.toFixed(2).toFloatOrNull() ?: 1.0f
+              )
+            )
+          },
+          valueRange = 0f..1f,
+          steps = 0,
+          modifier = Modifier.fillMaxWidth()
+        )
+        Text(
+          text = stringResource(
+            R.string.assistant_page_top_p_value,
+            assistant.topP.toString()
+          ),
+          style = MaterialTheme.typography.labelSmall,
+          color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
+        )
+      }
+    }
+
+    Card {
+      FormItem(
+        modifier = Modifier.padding(16.dp),
+        label = {
+          Text(stringResource(R.string.assistant_page_context_message_size))
+        },
+        description = {
+          Text(
+            text = stringResource(R.string.assistant_page_context_message_desc),
+          )
+        }
+      ) {
+        Slider(
+          value = assistant.contextMessageSize.toFloat(),
+          onValueChange = {
+            onUpdate(
+              assistant.copy(
+                contextMessageSize = it.roundToInt()
+              )
+            )
+          },
+          valueRange = 1f..512f,
+          steps = 0,
+          modifier = Modifier.fillMaxWidth()
+        )
+        Text(
+          text = stringResource(
+            R.string.assistant_page_context_message_count,
+            assistant.contextMessageSize
+          ),
+          style = MaterialTheme.typography.labelSmall,
+          color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
+        )
+      }
+    }
+
+    Card {
+      FormItem(
+        modifier = Modifier.padding(16.dp),
+        label = {
+          Text(stringResource(R.string.assistant_page_stream_output))
+        },
+        description = {
+          Text(stringResource(R.string.assistant_page_stream_output_desc))
+        },
+        tail = {
+          Switch(
+            checked = assistant.streamOutput,
+            onCheckedChange = {
+              onUpdate(
+                assistant.copy(
+                  streamOutput = it
+                )
+              )
+            }
+          )
+        }
+      )
+    }
+
+    Card {
+      FormItem(
+        modifier = Modifier.padding(16.dp),
+        label = {
+          Text(stringResource(R.string.assistant_page_thinking_budget))
+        },
+        description = {
+          Text(stringResource(R.string.assistant_page_thinking_budget_desc))
+          Text(
+            text = stringResource(R.string.assistant_page_thinking_budget_warning),
+            color = MaterialTheme.colorScheme.error,
+          )
+        }
+      ) {
+        var input by remember(assistant) {
+          mutableStateOf(assistant.thinkingBudget?.toString() ?: "")
+        }
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          OutlinedTextField(
+            value = input,
+            onValueChange = {
+              input = it
+              onUpdate(
+                assistant.copy(
+                  thinkingBudget = if (it.isBlank()) null else it.toIntOrNull()
+                )
+              )
+            },
+            trailingIcon = {
+              IconButton(
+                onClick = {
+                  input = ""
+                  onUpdate(
+                    assistant.copy(
+                      thinkingBudget = null
+                    )
+                  )
+                }
+              ) {
+                Icon(
+                  Lucide.X,
+                  contentDescription = null
+                )
+              }
+            },
+            modifier = Modifier.weight(1f),
+          )
+          Text(
+            text = stringResource(
+              R.string.assistant_page_thinking_budget_tokens,
+              assistant.thinkingBudget?.toString()
+                ?: stringResource(R.string.assistant_page_thinking_budget_default)
+            ),
+          )
+        }
+      }
+    }
+  }
 }
 
 @Composable
 private fun AssistantPromptSettings(
-    assistant: Assistant,
-    onUpdate: (Assistant) -> Unit
+  assistant: Assistant,
+  onUpdate: (Assistant) -> Unit
 ) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val templateTransformer = koinInject<TemplateTransformer>()
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .imePadding()
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Card {
-            FormItem(
-                modifier = Modifier.padding(16.dp),
-                label = {
-                    Text(stringResource(R.string.assistant_page_system_prompt))
-                },
-            ) {
-                OutlinedTextField(
-                    value = assistant.systemPrompt,
-                    onValueChange = {
-                        onUpdate(
-                            assistant.copy(
-                                systemPrompt = it
-                            )
-                        )
-                    },
-                    minLines = 6,
-                    maxLines = 15,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Text(
-                    text = buildAnnotatedString {
-                        append(stringResource(R.string.assistant_page_available_variables))
-                        PlaceholderTransformer.Placeholders.entries.forEach { (k, v) ->
-                            append(v)
-                            append(": ")
-                            withLink(
-                                LinkAnnotation.Clickable(
-                                    tag = k,
-                                    linkInteractionListener = {
-                                        onUpdate(
-                                            assistant.copy(
-                                                systemPrompt = assistant.systemPrompt + k
-                                            )
-                                        )
-                                    }
-                                )) {
-                                withStyle(SpanStyle(color = MaterialTheme.extendColors.blue6)) {
-                                    append(k)
-                                }
-                            }
-                            append(", ")
-                        }
-                    },
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
-                )
-            }
-        }
-
-        Card {
-            FormItem(
-                modifier = Modifier.padding(16.dp),
-                label = {
-                    Text(stringResource(R.string.assistant_page_message_template))
-                },
-                content = {
-                    OutlinedTextField(
-                        value = assistant.messageTemplate,
-                        onValueChange = {
-                            onUpdate(
-                                assistant.copy(
-                                    messageTemplate = it
-                                )
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        minLines = 5,
-                        maxLines = 15,
-                        textStyle = LocalTextStyle.current.copy(
-                            fontSize = 12.sp,
-                            fontFamily = JetbrainsMono,
-                            lineHeight = 16.sp
-                        )
-                    )
-                },
-                description = {
-                    Text(stringResource(R.string.assistant_page_message_template_desc))
-                    Text(buildAnnotatedString {
-                        append(stringResource(R.string.assistant_page_template_variables_label))
-                        append(" ")
-                        append(stringResource(R.string.assistant_page_template_variable_role))
-                        append(": ")
-                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-                            append("{{ role }}")
-                        }
-                        append(", ")
-                        append(stringResource(R.string.assistant_page_template_variable_message))
-                        append(": ")
-                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-                            append("{{ message }}")
-                        }
-                        append(", ")
-                        append(stringResource(R.string.assistant_page_template_variable_time))
-                        append(": ")
-                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-                            append("{{ time }}")
-                        }
-                        append(", ")
-                        append(stringResource(R.string.assistant_page_template_variable_date))
-                        append(": ")
-                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-                            append("{{ date }}")
-                        }
-                    })
-                }
+  val context = LocalContext.current
+  val scope = rememberCoroutineScope()
+  val templateTransformer = koinInject<TemplateTransformer>()
+  Column(
+    modifier = Modifier
+      .fillMaxSize()
+      .padding(16.dp)
+      .imePadding()
+      .verticalScroll(rememberScrollState()),
+    verticalArrangement = Arrangement.spacedBy(12.dp)
+  ) {
+    Card {
+      FormItem(
+        modifier = Modifier.padding(16.dp),
+        label = {
+          Text(stringResource(R.string.assistant_page_system_prompt))
+        },
+      ) {
+        OutlinedTextField(
+          value = assistant.systemPrompt,
+          onValueChange = {
+            onUpdate(
+              assistant.copy(
+                systemPrompt = it
+              )
             )
-            Column(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .clip(MaterialTheme.shapes.small)
-                    .background(MaterialTheme.colorScheme.background)
-                    .padding(8.dp)
-                    .fillMaxWidth()
-            ) {
-                Text(
-                    text = stringResource(R.string.assistant_page_template_preview),
-                    style = MaterialTheme.typography.titleSmall
-                )
-                val rawMessages = listOf(
-                    UIMessage.user("你好啊"),
-                    UIMessage.assistant("你好，有什么我可以帮你的吗？"),
-                )
-                val preview by produceState<UiState<List<UIMessage>>>(
-                    UiState.Success(rawMessages),
-                    assistant
-                ) {
-                    value = runCatching {
-                        UiState.Success(
-                            templateTransformer.transform(
-                                context = context,
-                                messages = rawMessages,
-                                model = Model(modelId = "gpt-4o", displayName = "GPT-4o")
-                            )
-                        )
-                    }.getOrElse {
-                        UiState.Error(it)
-                    }
-                }
-                preview.onError {
-                    Text(
-                        text = it.message ?: it.javaClass.name,
-                        color = MaterialTheme.colorScheme.error
+          },
+          minLines = 6,
+          maxLines = 15,
+          modifier = Modifier.fillMaxWidth()
+        )
+
+        Text(
+          text = buildAnnotatedString {
+            append(stringResource(R.string.assistant_page_available_variables))
+            PlaceholderTransformer.Placeholders.entries.forEach { (k, v) ->
+              append(v)
+              append(": ")
+              withLink(
+                LinkAnnotation.Clickable(
+                  tag = k,
+                  linkInteractionListener = {
+                    onUpdate(
+                      assistant.copy(
+                        systemPrompt = assistant.systemPrompt + k
+                      )
                     )
+                  }
+                )) {
+                withStyle(SpanStyle(color = MaterialTheme.extendColors.blue6)) {
+                  append(k)
                 }
-                preview.onSuccess {
-                    it.fastForEach { message ->
-                        ChatMessage(
-                            node = message.toMessageNode(),
-                            showActions = true,
-                            onFork = {},
-                            onRegenerate = {},
-                            onEdit = {},
-                            onShare = {},
-                            onDelete = {},
-                            onUpdate = {},
-                        )
-                    }
-                }
+              }
+              append(", ")
             }
-        }
+          },
+          style = MaterialTheme.typography.labelSmall,
+          color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
+        )
+      }
     }
+
+    Card {
+      FormItem(
+        modifier = Modifier.padding(16.dp),
+        label = {
+          Text(stringResource(R.string.assistant_page_message_template))
+        },
+        content = {
+          OutlinedTextField(
+            value = assistant.messageTemplate,
+            onValueChange = {
+              onUpdate(
+                assistant.copy(
+                  messageTemplate = it
+                )
+              )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 5,
+            maxLines = 15,
+            textStyle = LocalTextStyle.current.copy(
+              fontSize = 12.sp,
+              fontFamily = JetbrainsMono,
+              lineHeight = 16.sp
+            )
+          )
+        },
+        description = {
+          Text(stringResource(R.string.assistant_page_message_template_desc))
+          Text(buildAnnotatedString {
+            append(stringResource(R.string.assistant_page_template_variables_label))
+            append(" ")
+            append(stringResource(R.string.assistant_page_template_variable_role))
+            append(": ")
+            withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+              append("{{ role }}")
+            }
+            append(", ")
+            append(stringResource(R.string.assistant_page_template_variable_message))
+            append(": ")
+            withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+              append("{{ message }}")
+            }
+            append(", ")
+            append(stringResource(R.string.assistant_page_template_variable_time))
+            append(": ")
+            withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+              append("{{ time }}")
+            }
+            append(", ")
+            append(stringResource(R.string.assistant_page_template_variable_date))
+            append(": ")
+            withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+              append("{{ date }}")
+            }
+          })
+        }
+      )
+      Column(
+        modifier = Modifier
+          .padding(16.dp)
+          .clip(MaterialTheme.shapes.small)
+          .background(MaterialTheme.colorScheme.background)
+          .padding(8.dp)
+          .fillMaxWidth()
+      ) {
+        Text(
+          text = stringResource(R.string.assistant_page_template_preview),
+          style = MaterialTheme.typography.titleSmall
+        )
+        val rawMessages = listOf(
+          UIMessage.user("你好啊"),
+          UIMessage.assistant("你好，有什么我可以帮你的吗？"),
+        )
+        val preview by produceState<UiState<List<UIMessage>>>(
+          UiState.Success(rawMessages),
+          assistant
+        ) {
+          value = runCatching {
+            UiState.Success(
+              templateTransformer.transform(
+                context = context,
+                messages = rawMessages,
+                model = Model(modelId = "gpt-4o", displayName = "GPT-4o")
+              )
+            )
+          }.getOrElse {
+            UiState.Error(it)
+          }
+        }
+        preview.onError {
+          Text(
+            text = it.message ?: it.javaClass.name,
+            color = MaterialTheme.colorScheme.error
+          )
+        }
+        preview.onSuccess {
+          it.fastForEach { message ->
+            ChatMessage(
+              node = message.toMessageNode(),
+              showActions = true,
+              onFork = {},
+              onRegenerate = {},
+              onEdit = {},
+              onShare = {},
+              onDelete = {},
+              onUpdate = {},
+            )
+          }
+        }
+      }
+    }
+  }
 }
 
 @Composable
 private fun AssistantPresetMessageSettings(
-    assistant: Assistant,
-    onUpdate: (Assistant) -> Unit
+  assistant: Assistant,
+  onUpdate: (Assistant) -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
-            .imePadding(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Card {
-            FormItem(
-                modifier = Modifier.padding(16.dp),
-                label = {
-                    Text(stringResource(R.string.assistant_page_preset_messages))
-                },
-                description = {
-                    Text(stringResource(R.string.assistant_page_preset_messages_desc))
-                }
-            )
-            Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.padding(16.dp)
-            ) {
-                assistant.presetMessages.fastForEachIndexed { index, presetMessage ->
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Select(
-                                options = listOf(MessageRole.USER, MessageRole.ASSISTANT),
-                                selectedOption = presetMessage.role,
-                                onOptionSelected = { role ->
-                                    onUpdate(
-                                        assistant.copy(
-                                            presetMessages = assistant.presetMessages.mapIndexed { i, msg ->
-                                                if (i == index) {
-                                                    msg.copy(role = role)
-                                                } else {
-                                                    msg
-                                                }
-                                            }
-                                        )
-                                    )
-                                },
-                                modifier = Modifier.width(IntrinsicSize.Min)
-                            )
-                            Spacer(modifier = Modifier.weight(1f))
-                            IconButton(
-                                onClick = {
-                                    onUpdate(
-                                        assistant.copy(
-                                            presetMessages = assistant.presetMessages.filterIndexed { i, _ ->
-                                                i != index
-                                            }
-                                        )
-                                    )
-                                }
-                            ) {
-                                Icon(Lucide.X, null)
-                            }
-                        }
-                        OutlinedTextField(
-                            value = presetMessage.toText(),
-                            onValueChange = { text ->
-                                onUpdate(
-                                    assistant.copy(
-                                        presetMessages = assistant.presetMessages.mapIndexed { i, msg ->
-                                            if (i == index) {
-                                                msg.copy(parts = listOf(UIMessagePart.Text(text)))
-                                            } else {
-                                                msg
-                                            }
-                                        }
-                                    )
-                                )
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            maxLines = 6
-                        )
-                    }
-                }
-                Button(
-                    onClick = {
-                        val lastRole = assistant.presetMessages.lastOrNull()?.role ?: MessageRole.ASSISTANT
-                        val nextRole = when (lastRole) {
-                            MessageRole.USER -> MessageRole.ASSISTANT
-                            MessageRole.ASSISTANT -> MessageRole.USER
-                            else -> MessageRole.USER
-                        }
-                        onUpdate(
-                            assistant.copy(
-                                presetMessages = assistant.presetMessages + UIMessage(
-                                    role = nextRole,
-                                    parts = listOf(UIMessagePart.Text(""))
-                                )
-                            )
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(Lucide.Plus, null)
-                }
-            }
+  Column(
+    modifier = Modifier
+      .fillMaxSize()
+      .padding(16.dp)
+      .verticalScroll(rememberScrollState())
+      .imePadding(),
+    verticalArrangement = Arrangement.spacedBy(12.dp)
+  ) {
+    Card {
+      FormItem(
+        modifier = Modifier.padding(16.dp),
+        label = {
+          Text(stringResource(R.string.assistant_page_preset_messages))
+        },
+        description = {
+          Text(stringResource(R.string.assistant_page_preset_messages_desc))
         }
+      )
+      Column(
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.padding(16.dp)
+      ) {
+        assistant.presetMessages.fastForEachIndexed { index, presetMessage ->
+          Column(
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+          ) {
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.spacedBy(8.dp),
+              verticalAlignment = Alignment.CenterVertically,
+            ) {
+              Select(
+                options = listOf(MessageRole.USER, MessageRole.ASSISTANT),
+                selectedOption = presetMessage.role,
+                onOptionSelected = { role ->
+                  onUpdate(
+                    assistant.copy(
+                      presetMessages = assistant.presetMessages.mapIndexed { i, msg ->
+                        if (i == index) {
+                          msg.copy(role = role)
+                        } else {
+                          msg
+                        }
+                      }
+                    )
+                  )
+                },
+                modifier = Modifier.width(IntrinsicSize.Min)
+              )
+              Spacer(modifier = Modifier.weight(1f))
+              IconButton(
+                onClick = {
+                  onUpdate(
+                    assistant.copy(
+                      presetMessages = assistant.presetMessages.filterIndexed { i, _ ->
+                        i != index
+                      }
+                    )
+                  )
+                }
+              ) {
+                Icon(Lucide.X, null)
+              }
+            }
+            OutlinedTextField(
+              value = presetMessage.toText(),
+              onValueChange = { text ->
+                onUpdate(
+                  assistant.copy(
+                    presetMessages = assistant.presetMessages.mapIndexed { i, msg ->
+                      if (i == index) {
+                        msg.copy(parts = listOf(UIMessagePart.Text(text)))
+                      } else {
+                        msg
+                      }
+                    }
+                  )
+                )
+              },
+              modifier = Modifier.fillMaxWidth(),
+              maxLines = 6
+            )
+          }
+        }
+        Button(
+          onClick = {
+            val lastRole = assistant.presetMessages.lastOrNull()?.role ?: MessageRole.ASSISTANT
+            val nextRole = when (lastRole) {
+              MessageRole.USER -> MessageRole.ASSISTANT
+              MessageRole.ASSISTANT -> MessageRole.USER
+              else -> MessageRole.USER
+            }
+            onUpdate(
+              assistant.copy(
+                presetMessages = assistant.presetMessages + UIMessage(
+                  role = nextRole,
+                  parts = listOf(UIMessagePart.Text(""))
+                )
+              )
+            )
+          },
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          Icon(Lucide.Plus, null)
+        }
+      }
     }
+  }
 }
 
 @Composable
 private fun AssistantMemorySettings(
-    assistant: Assistant,
-    memories: List<AssistantMemory>,
-    onUpdate: (Assistant) -> Unit,
-    onAddMemory: () -> Unit,
-    onEditMemory: (AssistantMemory) -> Unit,
-    onDeleteMemory: (AssistantMemory) -> Unit
+  assistant: Assistant,
+  memories: List<AssistantMemory>,
+  onUpdate: (Assistant) -> Unit,
+  onAddMemory: () -> Unit,
+  onEditMemory: (AssistantMemory) -> Unit,
+  onDeleteMemory: (AssistantMemory) -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
-            .imePadding(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Card {
-            FormItem(
-                modifier = Modifier.padding(16.dp),
-                label = {
-                    Text(stringResource(R.string.assistant_page_memory))
-                },
-                description = {
-                    Text(
-                        text = stringResource(R.string.assistant_page_memory_desc),
-                    )
-                },
-                tail = {
-                    Switch(
-                        checked = assistant.enableMemory,
-                        onCheckedChange = {
-                            onUpdate(
-                                assistant.copy(
-                                    enableMemory = it
-                                )
-                            )
-                        }
-                    )
-                }
-            )
-        }
-
-        Box(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                text = stringResource(R.string.assistant_page_manage_memory_title),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier
-                    .padding(bottom = 8.dp)
-                    .align(Alignment.CenterStart)
-            )
-
-            IconButton(
-                onClick = onAddMemory,
-                modifier = Modifier.align(Alignment.CenterEnd)
-            ) {
-                Icon(
-                    imageVector = Lucide.Plus,
-                    contentDescription = null
+  Column(
+    modifier = Modifier
+      .fillMaxSize()
+      .padding(16.dp)
+      .verticalScroll(rememberScrollState())
+      .imePadding(),
+    verticalArrangement = Arrangement.spacedBy(12.dp)
+  ) {
+    Card {
+      FormItem(
+        modifier = Modifier.padding(16.dp),
+        label = {
+          Text(stringResource(R.string.assistant_page_memory))
+        },
+        description = {
+          Text(
+            text = stringResource(R.string.assistant_page_memory_desc),
+          )
+        },
+        tail = {
+          Switch(
+            checked = assistant.enableMemory,
+            onCheckedChange = {
+              onUpdate(
+                assistant.copy(
+                  enableMemory = it
                 )
+              )
             }
+          )
         }
-
-        memories.forEach { memory ->
-            key(memory.id) {
-                MemoryItem(memory, onEditMemory, onDeleteMemory)
-            }
-        }
+      )
     }
+
+    Box(
+      modifier = Modifier.fillMaxWidth()
+    ) {
+      Text(
+        text = stringResource(R.string.assistant_page_manage_memory_title),
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier
+          .padding(bottom = 8.dp)
+          .align(Alignment.CenterStart)
+      )
+
+      IconButton(
+        onClick = onAddMemory,
+        modifier = Modifier.align(Alignment.CenterEnd)
+      ) {
+        Icon(
+          imageVector = Lucide.Plus,
+          contentDescription = null
+        )
+      }
+    }
+
+    memories.forEach { memory ->
+      key(memory.id) {
+        MemoryItem(memory, onEditMemory, onDeleteMemory)
+      }
+    }
+  }
 }
 
 @Composable
 private fun MemoryItem(
-    memory: AssistantMemory,
-    onEditMemory: (AssistantMemory) -> Unit,
-    onDeleteMemory: (AssistantMemory) -> Unit
+  memory: AssistantMemory,
+  onEditMemory: (AssistantMemory) -> Unit,
+  onDeleteMemory: (AssistantMemory) -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
+  Card(
+    modifier = Modifier.fillMaxWidth()
+  ) {
+    Row(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(8.dp),
+      horizontalArrangement = Arrangement.spacedBy(4.dp),
+      verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = memory.content,
-                modifier = Modifier.weight(1f),
-                maxLines = 5,
-                overflow = TextOverflow.Ellipsis
-            )
-            IconButton(
-                onClick = { onEditMemory(memory) }
-            ) {
-                Icon(Lucide.Pencil, null)
-            }
-            IconButton(
-                onClick = { onDeleteMemory(memory) }
-            ) {
-                Icon(
-                    Lucide.Trash2,
-                    stringResource(R.string.assistant_page_delete)
-                )
-            }
-        }
+      Text(
+        text = memory.content,
+        modifier = Modifier.weight(1f),
+        maxLines = 5,
+        overflow = TextOverflow.Ellipsis
+      )
+      IconButton(
+        onClick = { onEditMemory(memory) }
+      ) {
+        Icon(Lucide.Pencil, null)
+      }
+      IconButton(
+        onClick = { onDeleteMemory(memory) }
+      ) {
+        Icon(
+          Lucide.Trash2,
+          stringResource(R.string.assistant_page_delete)
+        )
+      }
     }
+  }
 }
 
 @Composable
 private fun AssistantCustomRequestSettings(
-    assistant: Assistant,
-    onUpdate: (Assistant) -> Unit
+  assistant: Assistant,
+  onUpdate: (Assistant) -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .imePadding(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        AssistantCustomHeaders(assistant = assistant, onUpdate = onUpdate)
+  Column(
+    modifier = Modifier
+      .fillMaxSize()
+      .verticalScroll(rememberScrollState())
+      .imePadding(),
+    verticalArrangement = Arrangement.spacedBy(12.dp)
+  ) {
+    AssistantCustomHeaders(assistant = assistant, onUpdate = onUpdate)
 
-        HorizontalDivider()
+    HorizontalDivider()
 
-        AssistantCustomBodies(assistant = assistant, onUpdate = onUpdate)
-    }
+    AssistantCustomBodies(assistant = assistant, onUpdate = onUpdate)
+  }
 }
 
 @Composable
 private fun AssistantMcpSettings(
-    assistant: Assistant,
-    onUpdate: (Assistant) -> Unit,
-    mcpServerConfigs: List<McpServerConfig>
+  assistant: Assistant,
+  onUpdate: (Assistant) -> Unit,
+  mcpServerConfigs: List<McpServerConfig>
 ) {
-    McpPicker(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        assistant = assistant,
-        servers = mcpServerConfigs,
-        onUpdateAssistant = onUpdate,
-    )
+  McpPicker(
+    modifier = Modifier
+      .fillMaxSize()
+      .padding(16.dp),
+    assistant = assistant,
+    servers = mcpServerConfigs,
+    onUpdateAssistant = onUpdate,
+  )
 }

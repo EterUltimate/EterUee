@@ -16,88 +16,88 @@ import me.rerere.rikkahub.utils.toCssHex
 
 @Composable
 fun AIIcon(
-    path: String,
-    name: String,
-    modifier: Modifier = Modifier,
+  path: String,
+  name: String,
+  modifier: Modifier = Modifier,
 ) {
-    val contentColor = LocalContentColor.current
-    val context = LocalContext.current
-    val model = remember(path, contentColor, context) {
-        ImageRequest.Builder(context)
-            .data("file:///android_asset/icons/$path.svg")
-            .css(
-                """
+  val contentColor = LocalContentColor.current
+  val context = LocalContext.current
+  val model = remember(path, contentColor, context) {
+    ImageRequest.Builder(context)
+      .data("file:///android_asset/icons/$path.svg")
+      .css(
+        """
                 svg {
                   fill: ${contentColor.toCssHex()};
                 }
             """.trimIndent()
-            )
-            .build()
-    }
-    AsyncImage(
-        model = model,
-        contentDescription = name,
-        modifier = modifier
-            .clip(CircleShape)
-            .size(24.dp),
-    )
+      )
+      .build()
+  }
+  AsyncImage(
+    model = model,
+    contentDescription = name,
+    modifier = modifier
+      .clip(CircleShape)
+      .size(24.dp),
+  )
 }
 
 @Composable
 fun AutoAIIcon(
-    name: String,
-    modifier: Modifier = Modifier,
+  name: String,
+  modifier: Modifier = Modifier,
 ) {
-    val path = remember(name) { computeAIIconByName(name) } ?: run {
-        TextAvatar(name, modifier)
-        return
-    }
-    AIIcon(
-        path = path,
-        name = name,
-        modifier = modifier,
-    )
+  val path = remember(name) { computeAIIconByName(name) } ?: run {
+    TextAvatar(name, modifier)
+    return
+  }
+  AIIcon(
+    path = path,
+    name = name,
+    modifier = modifier,
+  )
 }
 
 // https://lobehub.com/zh/icons
 private fun computeAIIconByName(name: String): String? {
-    // 检查缓存
-    ICON_CACHE[name]?.let { return it }
+  // 检查缓存
+  ICON_CACHE[name]?.let { return it }
 
-    val lowerName = name.lowercase()
-    val result = when {
-        PATTERN_OPENAI.containsMatchIn(lowerName) -> "openai"
-        PATTERN_GEMINI.containsMatchIn(lowerName) -> "gemini-color"
-        PATTERN_GOOGLE.containsMatchIn(lowerName) -> "google-color"
-        PATTERN_ANTHROPIC.containsMatchIn(lowerName) -> "anthropic"
-        PATTERN_CLAUDE.containsMatchIn(lowerName) -> "claude-color"
-        PATTERN_DEEPSEEK.containsMatchIn(lowerName) -> "deepseek-color"
-        PATTERN_GROK.containsMatchIn(lowerName) -> "grok"
-        PATTERN_QWEN.containsMatchIn(lowerName) -> "qwen-color"
-        PATTERN_DOUBAO.containsMatchIn(lowerName) -> "doubao-color"
-        PATTERN_OPENROUTER.containsMatchIn(lowerName) -> "openrouter"
-        PATTERN_ZHIPU.containsMatchIn(lowerName) -> "zhipu-color"
-        PATTERN_MISTRAL.containsMatchIn(lowerName) -> "mistral-color"
-        PATTERN_META.containsMatchIn(lowerName) -> "meta-color"
-        PATTERN_HUNYUAN.containsMatchIn(lowerName) -> "hunyuan-color"
-        PATTERN_GEMMA.containsMatchIn(lowerName) -> "gemma-color"
-        PATTERN_PERPLEXITY.containsMatchIn(lowerName) -> "perplexity-color"
-        PATTERN_ALIYUN.containsMatchIn(lowerName) -> "alibabacloud-color"
-        PATTERN_BYTEDANCE.containsMatchIn(lowerName) -> "bytedance-color"
-        PATTERN_SILLICON_CLOUD.containsMatchIn(lowerName) -> "siliconcloud-color"
-        PATTERN_AIHUBMIX.containsMatchIn(lowerName) -> "aihubmix-color"
-        PATTERN_OLLAMA.containsMatchIn(lowerName) -> "ollama"
-        PATTERN_GITHUB.containsMatchIn(lowerName) -> "github"
-        PATTERN_CLOUDFLARE.containsMatchIn(lowerName) -> "cloudflare-color"
-        PATTERN_MINIMAX.containsMatchIn(lowerName) -> "minimax-color"
-        PATTERN_XAI.containsMatchIn(lowerName) -> "xai"
-        else -> null
-    }
+  val lowerName = name.lowercase()
+  val result = when {
+    PATTERN_OPENAI.containsMatchIn(lowerName) -> "openai"
+    PATTERN_GEMINI.containsMatchIn(lowerName) -> "gemini-color"
+    PATTERN_GOOGLE.containsMatchIn(lowerName) -> "google-color"
+    PATTERN_ANTHROPIC.containsMatchIn(lowerName) -> "anthropic"
+    PATTERN_CLAUDE.containsMatchIn(lowerName) -> "claude-color"
+    PATTERN_DEEPSEEK.containsMatchIn(lowerName) -> "deepseek-color"
+    PATTERN_GROK.containsMatchIn(lowerName) -> "grok"
+    PATTERN_QWEN.containsMatchIn(lowerName) -> "qwen-color"
+    PATTERN_DOUBAO.containsMatchIn(lowerName) -> "doubao-color"
+    PATTERN_OPENROUTER.containsMatchIn(lowerName) -> "openrouter"
+    PATTERN_ZHIPU.containsMatchIn(lowerName) -> "zhipu-color"
+    PATTERN_MISTRAL.containsMatchIn(lowerName) -> "mistral-color"
+    PATTERN_META.containsMatchIn(lowerName) -> "meta-color"
+    PATTERN_HUNYUAN.containsMatchIn(lowerName) -> "hunyuan-color"
+    PATTERN_GEMMA.containsMatchIn(lowerName) -> "gemma-color"
+    PATTERN_PERPLEXITY.containsMatchIn(lowerName) -> "perplexity-color"
+    PATTERN_ALIYUN.containsMatchIn(lowerName) -> "alibabacloud-color"
+    PATTERN_BYTEDANCE.containsMatchIn(lowerName) -> "bytedance-color"
+    PATTERN_SILLICON_CLOUD.containsMatchIn(lowerName) -> "siliconcloud-color"
+    PATTERN_AIHUBMIX.containsMatchIn(lowerName) -> "aihubmix-color"
+    PATTERN_OLLAMA.containsMatchIn(lowerName) -> "ollama"
+    PATTERN_GITHUB.containsMatchIn(lowerName) -> "github"
+    PATTERN_CLOUDFLARE.containsMatchIn(lowerName) -> "cloudflare-color"
+    PATTERN_MINIMAX.containsMatchIn(lowerName) -> "minimax-color"
+    PATTERN_XAI.containsMatchIn(lowerName) -> "xai"
+    else -> null
+  }
 
-    // 保存到缓存
-    result?.let { ICON_CACHE[name] = it }
+  // 保存到缓存
+  result?.let { ICON_CACHE[name] = it }
 
-    return result
+  return result
 }
 
 // 静态缓存和正则模式

@@ -530,6 +530,9 @@ private fun ImportExportPage(
   var isExporting by remember { mutableStateOf(false) }
   var isRestoring by remember { mutableStateOf(false) }
   var showRestartDialog by remember { mutableStateOf(false) }
+  
+  // 导入类型：local 为本地备份，chatbox 为 Chatbox 导入
+  var importType by remember { mutableStateOf("local") }
 
   // 创建文件保存的launcher
   val createDocumentLauncher = rememberLauncherForActivityResult(
@@ -576,21 +579,42 @@ private fun ImportExportPage(
       scope.launch {
         isRestoring = true
         runCatching {
-          // 将选中的文件复制到临时位置
-          val tempFile =
-            File(context.cacheDir, "temp_restore_${System.currentTimeMillis()}.zip")
+          when (importType) {
+            "local" -> {
+              // 本地备份导入：处理zip文件
+              val tempFile =
+                File(context.cacheDir, "temp_restore_${System.currentTimeMillis()}.zip")
 
-          context.contentResolver.openInputStream(sourceUri)?.use { inputStream ->
-            FileOutputStream(tempFile).use { outputStream ->
-              inputStream.copyTo(outputStream)
+              context.contentResolver.openInputStream(sourceUri)?.use { inputStream ->
+                FileOutputStream(tempFile).use { outputStream ->
+                  inputStream.copyTo(outputStream)
+                }
+              }
+
+              // 从临时文件恢复
+              vm.restoreFromLocalFile(tempFile)
+
+              // 清理临时文件
+              tempFile.delete()
+            }
+            "chatbox" -> {
+              // Chatbox导入：处理json文件
+              val tempFile =
+                File(context.cacheDir, "temp_chatbox_${System.currentTimeMillis()}.json")
+
+              context.contentResolver.openInputStream(sourceUri)?.use { inputStream ->
+                FileOutputStream(tempFile).use { outputStream ->
+                  inputStream.copyTo(outputStream)
+                }
+              }
+
+              // 从Chatbox文件恢复
+              vm.restoreFromChatBox(tempFile)
+
+              // 清理临时文件
+              tempFile.delete()
             }
           }
-
-          // 从临时文件恢复
-          vm.restoreFromLocalFile(tempFile)
-
-          // 清理临时文件
-          tempFile.delete()
 
           toaster.show(
             context.getString(R.string.backup_page_restore_success),
@@ -659,6 +683,7 @@ private fun ImportExportPage(
       Card(
         onClick = {
           if (!isRestoring) {
+            importType = "local"
             openDocumentLauncher.launch(arrayOf("application/zip"))
           }
         }
@@ -690,13 +715,18 @@ private fun ImportExportPage(
 
     stickyHeader {
       StickyHeader {
-        Text(stringResource(R.string.backup_page_import_from_chatbox))
+        Text("从其他应用导入备份")
       }
     }
 
     item {
       Card(
-        onClick = {}
+        onClick = {
+          if (!isRestoring) {
+            importType = "chatbox"
+            openDocumentLauncher.launch(arrayOf("application/json"))
+          }
+        }
       ) {
         ListItem(
           headlineContent = {
@@ -707,7 +737,13 @@ private fun ImportExportPage(
           },
           colors = ListItemDefaults.colors(containerColor = Color.Transparent),
           leadingContent = {
-            Icon(Lucide.Import, null)
+            if (isRestoring && importType == "chatbox") {
+              CircularWavyProgressIndicator(
+                modifier = Modifier.size(24.dp)
+              )
+            } else {
+              Icon(Lucide.Import, null)
+            }
           }
         )
       }

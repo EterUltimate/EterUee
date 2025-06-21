@@ -273,6 +273,7 @@ class ChatVM(
             // 如果截断在最后一个索引，则取消截断，否则更新 truncateIndex 到最后一个截断位置
             val newConversation = conversation.value.copy(
                 truncateIndex = if (conversation.value.truncateIndex == lastTruncateIndex) -1 else lastTruncateIndex,
+                title = ""
             )
             saveConversation(newConversation)
         }
@@ -367,7 +368,12 @@ class ChatVM(
     }
 
     fun generateTitle(conversation: Conversation, force: Boolean = false) {
-        if (conversation.title.isNotBlank() && !force) return
+        val shouldGenerate = when {
+            force -> true
+            conversation.title.isBlank() -> true
+            else -> false
+        }
+        if (!shouldGenerate) return
 
         val model = settings.value.findModelById(settings.value.titleModelId) ?: let {
             // 如果没有标题模型，则使用聊天模型

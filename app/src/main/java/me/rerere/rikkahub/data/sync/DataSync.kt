@@ -4,11 +4,16 @@ import android.content.Context
 import android.util.Log
 import at.bitfire.dav4jvm.BasicDigestAuthHandler
 import at.bitfire.dav4jvm.DavCollection
+import at.bitfire.dav4jvm.Response
 import at.bitfire.dav4jvm.exception.NotFoundException
 import at.bitfire.dav4jvm.property.DisplayName
+import at.bitfire.dav4jvm.property.GetContentLength
+import at.bitfire.dav4jvm.property.GetLastModified
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.WebDavConfig
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -17,10 +22,13 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
+import kotlin.coroutines.suspendCoroutine
 
 private const val TAG = "DataSync"
 
@@ -57,10 +65,74 @@ class DataSync(
         }
     }
 
-    suspend fun restoreFromWebDav(webDavConfig: WebDavConfig) = withContext(Dispatchers.IO) {
-        val collection = webDavConfig.requireCollection()
-        collection.ensureCollectionExists() // ensure collection exists
+    suspend fun listBackupFiles(webDavConfig: WebDavConfig): List<BackupFileItem> =
+        withContext(Dispatchers.IO) {
+            val collection = webDavConfig.requireCollection()
+            val files = mutableListOf<BackupFileItem>()
+            collection.propfind(
+                depth = 1,
+                DisplayName.NAME,
+                GetContentLength.NAME,
+                GetLastModified.NAME
+            ) { response, relation ->
+                Log.i(TAG, "listBackupFiles: ${response.properties} ${response.href}")
+                if(relation == Response.HrefRelation.MEMBER) {
+                    val displayName = response.properties.filterIsInstance<DisplayName>().firstOrNull()?.displayName ?: "Unknown"
+                    val size = response.properties.filterIsInstance<GetContentLength>().firstOrNull()?.contentLength ?: 0L
+                    val lastModified = Instant.ofEpochMilli(response.properties.filterIsInstance<GetLastModified>().firstOrNull()?.lastModified ?: 0L)
+                    files.add(
+                        BackupFileItem(
+                            href = response.href.toString(),
+                            displayName = displayName,
+                            size = size,
+                            lastModified = lastModified
+                        )
+                    )
+                }
+            }
+            files
+        }
 
+    suspend fun restoreFromWebDav(webDavConfig: WebDavConfig, item: BackupFileItem) = withContext(Dispatchers.IO) {
+        val collection = DavCollection(
+            httpClient = webDavConfig.requireClient(),
+            location = item.href.toHttpUrl(),
+        )
+        val backupFile = File(context.cacheDir, item.displayName)
+        if (backupFile.exists()) {
+            backupFile.delete()
+        }
+        
+        // 下载备份文件
+        collection.get(
+            accept = "",
+            headers = null
+        ) { response ->
+            if(response.isSuccessful) {
+                Log.i(TAG, "restoreFromWebDav: Downloading ${item.displayName} to ${backupFile.absolutePath}")
+                response.body?.byteStream()?.use { inputStream ->
+                    FileOutputStream(backupFile).use { outputStream ->
+                        inputStream.copyTo(outputStream)
+                    }
+                }
+            } else {
+                Log.e(TAG, "restoreFromWebDav: Failed to download ${item.displayName}, response: $response")
+                throw Exception("Failed to download backup file: ${response.message}")
+            }
+        }
+        
+        Log.i(TAG, "restoreFromWebDav: Downloaded ${backupFile.length()} bytes")
+        
+        try {
+            // 解压并恢复备份文件
+            restoreFromBackupFile(backupFile, webDavConfig)
+        } finally {
+            // 清理临时文件
+            if (backupFile.exists()) {
+                backupFile.delete()
+                Log.i(TAG, "restoreFromWebDav: Cleaned up temporary backup file")
+            }
+        }
     }
 
     private fun prepareBackupFile(webDavConfig: WebDavConfig): File {
@@ -81,6 +153,7 @@ class DataSync(
                 content = json.encodeToString(settingsStore.settingsFlow.value)
             )
 
+            // 备份数据库
             if (webDavConfig.items.contains(WebDavConfig.BackupItem.DATABASE)) {
                 // 备份主数据库文件
                 val dbFile = context.getDatabasePath("rikka_hub")
@@ -101,12 +174,112 @@ class DataSync(
                 }
             }
 
+            // 备份聊天文件
             if (webDavConfig.items.contains(WebDavConfig.BackupItem.FILES)) {
-                // TODO: Save chat files to zip
+                val uploadFolder = File(context.filesDir, "upload")
+                if (uploadFolder.exists() && uploadFolder.isDirectory) {
+                    Log.i(TAG, "prepareBackupFile: Backing up files from ${uploadFolder.absolutePath}")
+                    uploadFolder.listFiles()?.forEach { file ->
+                        if (file.isFile) {
+                            addFileToZip(zipOut, file, "upload/${file.name}")
+                        }
+                    }
+                } else {
+                    Log.w(TAG, "prepareBackupFile: Upload folder does not exist or is not a directory")
+                }
             }
         }
 
         return backupFile
+    }
+
+    private suspend fun restoreFromBackupFile(backupFile: File, webDavConfig: WebDavConfig) = withContext(Dispatchers.IO) {
+        Log.i(TAG, "restoreFromBackupFile: Starting restore from ${backupFile.absolutePath}")
+        
+        ZipInputStream(FileInputStream(backupFile)).use { zipIn ->
+            var entry: ZipEntry?
+            while (zipIn.nextEntry.also { entry = it } != null) {
+                entry?.let { zipEntry ->
+                    Log.i(TAG, "restoreFromBackupFile: Processing entry ${zipEntry.name}")
+                    
+                    when (zipEntry.name) {
+                        "settings.json" -> {
+                            // 恢复设置
+                            val settingsJson = zipIn.readBytes().toString(Charsets.UTF_8)
+                            Log.i(TAG, "restoreFromBackupFile: Restoring settings")
+                            try {
+                                val settings = json.decodeFromString<Settings>(settingsJson)
+                                settingsStore.update(settings)
+                                Log.i(TAG, "restoreFromBackupFile: Settings restored successfully")
+                            } catch (e: Exception) {
+                                Log.e(TAG, "restoreFromBackupFile: Failed to restore settings", e)
+                                throw Exception("Failed to restore settings: ${e.message}")
+                            }
+                        }
+                        
+                        "rikka_hub.db", "rikka_hub-wal", "rikka_hub-shm" -> {
+                            if (webDavConfig.items.contains(WebDavConfig.BackupItem.DATABASE)) {
+                                // 恢复数据库文件
+                                val dbFile = when (zipEntry.name) {
+                                    "rikka_hub.db" -> context.getDatabasePath("rikka_hub")
+                                    "rikka_hub-wal" -> File(context.getDatabasePath("rikka_hub").parentFile, "rikka_hub-wal")
+                                    "rikka_hub-shm" -> File(context.getDatabasePath("rikka_hub").parentFile, "rikka_hub-shm")
+                                    else -> null
+                                }
+                                
+                                dbFile?.let { targetFile ->
+                                    Log.i(TAG, "restoreFromBackupFile: Restoring ${zipEntry.name} to ${targetFile.absolutePath}")
+                                    
+                                    // 确保父目录存在
+                                    targetFile.parentFile?.mkdirs()
+                                    
+                                    // 写入文件
+                                    FileOutputStream(targetFile).use { outputStream ->
+                                        zipIn.copyTo(outputStream)
+                                    }
+                                    
+                                    Log.i(TAG, "restoreFromBackupFile: Restored ${zipEntry.name} (${targetFile.length()} bytes)")
+                                }
+                            }
+                        }
+                        
+                        else -> {
+                            // 处理聊天文件
+                            if (webDavConfig.items.contains(WebDavConfig.BackupItem.FILES) && zipEntry.name.startsWith("upload/")) {
+                                val fileName = zipEntry.name.substringAfter("upload/")
+                                if (fileName.isNotEmpty()) {
+                                    val uploadFolder = File(context.filesDir, "upload")
+                                    // 确保upload文件夹存在
+                                    if (!uploadFolder.exists()) {
+                                        uploadFolder.mkdirs()
+                                        Log.i(TAG, "restoreFromBackupFile: Created upload directory")
+                                    }
+                                    
+                                    val targetFile = File(uploadFolder, fileName)
+                                    Log.i(TAG, "restoreFromBackupFile: Restoring file ${zipEntry.name} to ${targetFile.absolutePath}")
+                                    
+                                    try {
+                                        FileOutputStream(targetFile).use { outputStream ->
+                                            zipIn.copyTo(outputStream)
+                                        }
+                                        Log.i(TAG, "restoreFromBackupFile: Restored ${zipEntry.name} (${targetFile.length()} bytes)")
+                                    } catch (e: Exception) {
+                                        Log.e(TAG, "restoreFromBackupFile: Failed to restore file ${zipEntry.name}", e)
+                                        throw Exception("Failed to restore file ${zipEntry.name}: ${e.message}")
+                                    }
+                                }
+                            } else {
+                                Log.i(TAG, "restoreFromBackupFile: Skipping entry ${zipEntry.name}")
+                            }
+                        }
+                    }
+                    
+                    zipIn.closeEntry()
+                }
+            }
+        }
+        
+        Log.i(TAG, "restoreFromBackupFile: Restore completed successfully")
     }
 }
 
@@ -142,7 +315,7 @@ private fun WebDavConfig.requireClient(): OkHttpClient {
     return okHttpClient
 }
 
-private suspend fun WebDavConfig.requireCollection(path: String? = null): DavCollection {
+private fun WebDavConfig.requireCollection(path: String? = null): DavCollection {
     val location = buildString {
         append(this@requireCollection.url.trimEnd('/'))
         append("/")
@@ -170,3 +343,10 @@ private suspend fun DavCollection.ensureCollectionExists() = withContext(Dispatc
         }
     }
 }
+
+data class BackupFileItem(
+    val href: String,
+    val displayName: String,
+    val size: Long,
+    val lastModified: Instant,
+)

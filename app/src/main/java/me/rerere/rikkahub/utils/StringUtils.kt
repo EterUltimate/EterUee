@@ -43,3 +43,12 @@ fun String.applyPlaceholders(
     }
     return result
 }
+
+fun Long.fileSizeToString(): String {
+    return when {
+        this < 1024 -> "$this B"
+        this < 1024 * 1024 -> "${this / 1024} KB"
+        this < 1024 * 1024 * 1024 -> "${this / (1024 * 1024)} MB"
+        else -> "${this / (1024 * 1024 * 1024)} GB"
+    }
+}

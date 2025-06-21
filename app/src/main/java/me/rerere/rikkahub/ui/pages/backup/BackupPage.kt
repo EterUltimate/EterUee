@@ -1,10 +1,13 @@
 package me.rerere.rikkahub.ui.pages.backup
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -12,16 +15,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.MultiChoiceSegmentedButtonRow
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -31,10 +38,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -55,10 +65,17 @@ import com.composables.icons.lucide.Upload
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.launch
 import me.rerere.rikkahub.data.datastore.WebDavConfig
+import me.rerere.rikkahub.data.sync.BackupFileItem
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.StickyHeader
 import me.rerere.rikkahub.ui.context.LocalToaster
+import me.rerere.rikkahub.utils.UiState
+import me.rerere.rikkahub.utils.fileSizeToString
+import me.rerere.rikkahub.utils.onError
+import me.rerere.rikkahub.utils.onLoading
+import me.rerere.rikkahub.utils.onSuccess
+import me.rerere.rikkahub.utils.toLocalDateTime
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -131,6 +148,7 @@ private fun WebDavPage(
     val webDavConfig = settings.webDavConfig
     val toaster = LocalToaster.current
     val scope = rememberCoroutineScope()
+    var showBackupFiles by remember { mutableStateOf(false) }
 
     fun updateWebDavConfig(newConfig: WebDavConfig) {
         vm.updateSettings(settings.copy(webDavConfig = newConfig))
@@ -271,16 +289,7 @@ private fun WebDavPage(
             }
             OutlinedButton(
                 onClick = {
-                    scope.launch {
-                        runCatching {
-                            vm.restore()
-                            toaster.show("恢复成功", type = ToastType.Success)
-                        }
-                            .onFailure {
-                                it.printStackTrace()
-                                toaster.show(it.message ?: "未知错误", type = ToastType.Error)
-                            }
-                    }
+                    showBackupFiles = true
                 }
             ) {
                 Text("恢复")
@@ -303,6 +312,132 @@ private fun WebDavPage(
                 Icon(Lucide.Upload, null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
                 Text("立即备份")
+            }
+        }
+    }
+
+    if (showBackupFiles) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                showBackupFiles = false
+            },
+            sheetState = rememberModalBottomSheetState(
+                skipPartiallyExpanded = true
+            ),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.8f)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("WebDav备份文件列表", modifier = Modifier.fillMaxWidth())
+                val backupItems by remember { vm.getWebDavBackupFiles() }
+                    .collectAsStateWithLifecycle(initialValue = UiState.Idle)
+                backupItems.onSuccess {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(it) { item ->
+                            BackupItemCard(
+                                item = item,
+                                onDelete = {
+
+                                },
+                                onRestore = { item ->
+                                    scope.launch {
+                                        runCatching {
+                                            vm.restore(item = item)
+                                            toaster.show("恢复成功", type = ToastType.Success)
+                                            showBackupFiles = false
+                                        }.onFailure { err ->
+                                            err.printStackTrace()
+                                            toaster.show(
+                                                err.message ?: "未知错误",
+                                                type = ToastType.Error
+                                            )
+                                        }
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }.onError {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = "加载备份文件失败: ${it.message}", color = Color.Red)
+                    }
+                }.onLoading {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularWavyProgressIndicator()
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BackupItemCard(
+    item: BackupFileItem,
+    onDelete: (BackupFileItem) -> Unit = {},
+    onRestore: (BackupFileItem) -> Unit = {}
+) {
+    Card {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = item.displayName,
+                style = MaterialTheme.typography.titleMedium
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = item.lastModified.toLocalDateTime(),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Text(
+                    text = item.size.fileSizeToString(),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.End),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TextButton(
+                onClick = {
+                    onDelete(item)
+                }
+            ) {
+                Text("删除")
+            }
+            Button(
+                onClick = {
+                    onRestore(item)
+                }
+            ) {
+                Text("恢复")
             }
         }
     }

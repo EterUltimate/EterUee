@@ -167,10 +167,10 @@ private fun WebDavPage(
 
   Column(
     modifier = Modifier
-      .fillMaxSize()
-      .verticalScroll(rememberScrollState())
-      .padding(16.dp)
-      .imePadding(),
+        .fillMaxSize()
+        .verticalScroll(rememberScrollState())
+        .padding(16.dp)
+        .imePadding(),
     verticalArrangement = Arrangement.spacedBy(16.dp),
   ) {
     Card {
@@ -242,8 +242,8 @@ private fun WebDavPage(
     Card {
       FormItem(
         modifier = Modifier
-          .fillMaxWidth()
-          .padding(16.dp),
+            .fillMaxWidth()
+            .padding(16.dp),
         label = {
           Text("备份项目")
         }
@@ -347,9 +347,9 @@ private fun WebDavPage(
     ) {
       Column(
         modifier = Modifier
-          .fillMaxWidth()
-          .fillMaxHeight(0.8f)
-          .padding(16.dp),
+            .fillMaxWidth()
+            .fillMaxHeight(0.8f)
+            .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
       ) {
@@ -421,21 +421,7 @@ private fun WebDavPage(
   }
 
   if (showRestartDialog) {
-    AlertDialog(
-      onDismissRequest = {},
-      title = { Text("重启应用") },
-      text = { Text("应用需要重启以使设置生效。") },
-      confirmButton = {
-        Button(
-          onClick = {
-            showRestartDialog = false
-            exitProcess(0)
-          }
-        ) {
-          Text("重启")
-        }
-      },
-    )
+    BackupDialog()
   }
 }
 
@@ -449,8 +435,8 @@ private fun BackupItemCard(
   Card {
     Column(
       modifier = Modifier
-        .fillMaxWidth()
-        .padding(16.dp),
+          .fillMaxWidth()
+          .padding(16.dp),
       verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
       Text(
@@ -474,8 +460,8 @@ private fun BackupItemCard(
     }
     Row(
       modifier = Modifier
-        .fillMaxWidth()
-        .padding(8.dp),
+          .fillMaxWidth()
+          .padding(8.dp),
       horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.End),
       verticalAlignment = Alignment.CenterVertically
     ) {
@@ -681,20 +667,24 @@ private fun ImportExportPage(
 
   // 重启对话框
   if (showRestartDialog) {
-    AlertDialog(
-      onDismissRequest = {},
-      title = { Text("重启应用") },
-      text = { Text("应用需要重启以使设置生效。") },
-      confirmButton = {
-        Button(
-          onClick = {
-            showRestartDialog = false
-            exitProcess(0)
-          }
-        ) {
-          Text("重启")
-        }
-      },
-    )
+    BackupDialog()
   }
+}
+
+@Composable
+private fun BackupDialog() {
+  AlertDialog(
+    onDismissRequest = {},
+    title = { Text("重启应用") },
+    text = { Text("应用需要重启以使设置生效。") },
+    confirmButton = {
+      Button(
+        onClick = {
+          exitProcess(0)
+        }
+      ) {
+        Text("重启")
+      }
+    },
+  )
 }

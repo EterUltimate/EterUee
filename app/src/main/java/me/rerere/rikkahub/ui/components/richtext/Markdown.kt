@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.SpanStyle
@@ -40,12 +41,15 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.BaselineShift
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -111,7 +115,8 @@ private fun MarkdownPreview() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         MarkdownBlock(
             content = "Hi there!",
@@ -119,7 +124,7 @@ private fun MarkdownPreview() {
         )
         MarkdownBlock(
             content = """
-                # 🌍 This is Markdown Test This is Markdown Test
+                # 🌍 c
                 1. How many roads must a man walk down
                     * the slings and arrows of outrageous fortune, Or to take arms against a sea of troubles,
                     * by opposing end them.
@@ -667,10 +672,12 @@ private fun Paragraph(
         Text(
             text = annotatedString,
             modifier = Modifier,
-            style = LocalTextStyle.current,
+            style = LocalTextStyle.current.copy(
+                lineHeight = TextUnit.Unspecified, // 禁用行高限制，方便渲染latex
+            ),
             inlineContent = inlineContents,
             softWrap = true,
-            overflow = TextOverflow.Visible
+            overflow = TextOverflow.Visible,
         )
     }
 }

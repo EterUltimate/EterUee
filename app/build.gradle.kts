@@ -186,7 +186,7 @@ dependencies {
     implementation(libs.androidx.paging.compose)
 
     // WebDav
-    implementation("com.github.bitfireAT:dav4jvm:2.2.1")
+    implementation(libs.dav4jvm)
 
     // Apache Commons Text
     implementation(libs.commons.text)

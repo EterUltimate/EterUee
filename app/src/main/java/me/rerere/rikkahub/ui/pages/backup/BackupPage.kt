@@ -147,11 +147,12 @@ private fun WebDavPage(
 ) {
     val settings by vm.settings.collectAsStateWithLifecycle()
     val webDavConfig = settings.webDavConfig
-    val context = LocalContext.current
     val toaster = LocalToaster.current
     val scope = rememberCoroutineScope()
     var showBackupFiles by remember { mutableStateOf(false) }
     var showRestartDialog by remember { mutableStateOf(false) }
+    var restoringItemId by remember { mutableStateOf<String?>(null) }
+    var isBackingUp by remember { mutableStateOf(false) }
 
     fun updateWebDavConfig(newConfig: WebDavConfig) {
         vm.updateSettings(settings.copy(webDavConfig = newConfig))
@@ -301,20 +302,29 @@ private fun WebDavPage(
             Button(
                 onClick = {
                     scope.launch {
+                        isBackingUp = true
                         runCatching {
                             vm.backup()
+                            vm.loadBackupFileItems()
                             toaster.show("备份成功", type = ToastType.Success)
+                        }.onFailure {
+                            it.printStackTrace()
+                            toaster.show(it.message ?: "未知错误", type = ToastType.Error)
                         }
-                            .onFailure {
-                                it.printStackTrace()
-                                toaster.show(it.message ?: "未知错误", type = ToastType.Error)
-                            }
+                        isBackingUp = false
                     }
-                }
+                },
+                enabled = !isBackingUp
             ) {
-                Icon(Lucide.Upload, null, modifier = Modifier.size(18.dp))
+                if (isBackingUp) {
+                    CircularWavyProgressIndicator(
+                        modifier = Modifier.size(18.dp)
+                    )
+                } else {
+                    Icon(Lucide.Upload, null, modifier = Modifier.size(18.dp))
+                }
                 Spacer(Modifier.width(8.dp))
-                Text("立即备份")
+                Text(if (isBackingUp) "备份中..." else "立即备份")
             }
         }
     }
@@ -347,6 +357,7 @@ private fun WebDavPage(
                         items(it) { item ->
                             BackupItemCard(
                                 item = item,
+                                isRestoring = restoringItemId == item.displayName,
                                 onDelete = {
                                     scope.launch {
                                         runCatching {
@@ -364,6 +375,7 @@ private fun WebDavPage(
                                 },
                                 onRestore = { item ->
                                     scope.launch {
+                                        restoringItemId = item.displayName
                                         runCatching {
                                             vm.restore(item = item)
                                             toaster.show("恢复成功", type = ToastType.Success)
@@ -376,8 +388,9 @@ private fun WebDavPage(
                                                 type = ToastType.Error
                                             )
                                         }
+                                        restoringItemId = null
                                     }
-                                }
+                                },
                             )
                         }
                     }
@@ -422,8 +435,9 @@ private fun WebDavPage(
 @Composable
 private fun BackupItemCard(
     item: BackupFileItem,
+    isRestoring: Boolean = false,
     onDelete: (BackupFileItem) -> Unit = {},
-    onRestore: (BackupFileItem) -> Unit = {}
+    onRestore: (BackupFileItem) -> Unit = {},
 ) {
     Card {
         Column(
@@ -461,16 +475,24 @@ private fun BackupItemCard(
             TextButton(
                 onClick = {
                     onDelete(item)
-                }
+                },
+                enabled = !isRestoring
             ) {
                 Text("删除")
             }
             Button(
                 onClick = {
                     onRestore(item)
-                }
+                },
+                enabled = !isRestoring
             ) {
-                Text("恢复")
+                if (isRestoring) {
+                    CircularWavyProgressIndicator(
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                }
+                Text(if (isRestoring) "恢复中..." else "恢复")
             }
         }
     }

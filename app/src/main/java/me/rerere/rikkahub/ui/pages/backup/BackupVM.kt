@@ -42,8 +42,10 @@ class BackupVM(
             runCatching {
                 backupFileItems.emit(UiState.Loading)
                 backupFileItems.emit(
-                    UiState.Success(
-                        dataSync.listBackupFiles(settings.value.webDavConfig)
+                    value = UiState.Success(
+                        data = dataSync.listBackupFiles(
+                            webDavConfig = settings.value.webDavConfig
+                        ).sortedByDescending { it.lastModified }
                     )
                 )
             }.onFailure {

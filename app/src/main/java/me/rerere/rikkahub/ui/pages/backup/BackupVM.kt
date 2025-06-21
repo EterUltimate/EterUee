@@ -69,4 +69,12 @@ class BackupVM(
     suspend fun deleteWebDavBackupFile(item: BackupFileItem) {
         dataSync.deleteWebDavBackupFile(settings.value.webDavConfig, item)
     }
+
+    suspend fun exportToFile(): java.io.File {
+        return dataSync.prepareBackupFile(settings.value.webDavConfig.copy())
+    }
+
+    suspend fun restoreFromLocalFile(file: java.io.File) {
+        dataSync.restoreFromLocalFile(file, settings.value.webDavConfig)
+    }
 }

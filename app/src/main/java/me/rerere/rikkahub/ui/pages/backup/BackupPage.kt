@@ -56,6 +56,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import com.composables.icons.lucide.DatabaseBackup
 import com.composables.icons.lucide.Eye
 import com.composables.icons.lucide.EyeOff
@@ -77,6 +79,11 @@ import me.rerere.rikkahub.utils.onLoading
 import me.rerere.rikkahub.utils.onSuccess
 import me.rerere.rikkahub.utils.toLocalDateTime
 import org.koin.androidx.compose.koinViewModel
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import kotlin.system.exitProcess
 
 @Composable
@@ -502,6 +509,78 @@ private fun BackupItemCard(
 private fun ImportExportPage(
     vm: BackupVM
 ) {
+    val toaster = LocalToaster.current
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    var isExporting by remember { mutableStateOf(false) }
+    var isRestoring by remember { mutableStateOf(false) }
+    var showRestartDialog by remember { mutableStateOf(false) }
+
+    // 创建文件保存的launcher
+    val createDocumentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri ->
+        uri?.let { targetUri ->
+            scope.launch {
+                isExporting = true
+                runCatching {
+                    // 导出文件
+                    val exportFile = vm.exportToFile()
+
+                    // 复制到用户选择的位置
+                    context.contentResolver.openOutputStream(targetUri)?.use { outputStream ->
+                        FileInputStream(exportFile).use { inputStream ->
+                            inputStream.copyTo(outputStream)
+                        }
+                    }
+
+                    // 清理临时文件
+                    exportFile.delete()
+
+                    toaster.show("导出成功", type = ToastType.Success)
+                }.onFailure { e ->
+                    e.printStackTrace()
+                    toaster.show("导出失败: ${e.message}", type = ToastType.Error)
+                }
+                isExporting = false
+            }
+        }
+    }
+
+    // 创建文件选择的launcher
+    val openDocumentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let { sourceUri ->
+            scope.launch {
+                isRestoring = true
+                runCatching {
+                    // 将选中的文件复制到临时位置
+                    val tempFile = File(context.cacheDir, "temp_restore_${System.currentTimeMillis()}.zip")
+                    
+                    context.contentResolver.openInputStream(sourceUri)?.use { inputStream ->
+                        FileOutputStream(tempFile).use { outputStream ->
+                            inputStream.copyTo(outputStream)
+                        }
+                    }
+
+                    // 从临时文件恢复
+                    vm.restoreFromLocalFile(tempFile)
+                    
+                    // 清理临时文件
+                    tempFile.delete()
+
+                    toaster.show("恢复成功", type = ToastType.Success)
+                    showRestartDialog = true
+                }.onFailure { e ->
+                    e.printStackTrace()
+                    toaster.show("恢复失败: ${e.message}", type = ToastType.Error)
+                }
+                isRestoring = false
+            }
+        }
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -509,22 +588,65 @@ private fun ImportExportPage(
     ) {
         stickyHeader {
             StickyHeader {
-                Text("导出RikkaHub数据")
+                Text("本地备份导出和导入")
             }
         }
 
         item {
-            Card {
+            Card(
+                onClick = {
+                    if (!isExporting) {
+                        val timestamp = LocalDateTime.now()
+                            .format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
+                        createDocumentLauncher.launch("rikkahub_backup_$timestamp.zip")
+                    }
+                }
+            ) {
                 ListItem(
                     headlineContent = {
                         Text("导出为文件")
                     },
                     supportingContent = {
-                        Text("导出APP数据为文件")
+                        Text(if (isExporting) "正在导出..." else "导出APP数据为文件")
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                     leadingContent = {
-                        Icon(Lucide.File, null)
+                        if (isExporting) {
+                            CircularWavyProgressIndicator(
+                                modifier = Modifier.size(24.dp)
+                            )
+                        } else {
+                            Icon(Lucide.File, null)
+                        }
+                    }
+                )
+            }
+        }
+
+        item {
+            Card(
+                onClick = {
+                    if (!isRestoring) {
+                        openDocumentLauncher.launch(arrayOf("application/zip"))
+                    }
+                }
+            ) {
+                ListItem(
+                    headlineContent = {
+                        Text("备份文件导入")
+                    },
+                    supportingContent = {
+                        Text(if (isRestoring) "正在恢复..." else "导入本地备份文件")
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    leadingContent = {
+                        if (isRestoring) {
+                            CircularWavyProgressIndicator(
+                                modifier = Modifier.size(24.dp)
+                            )
+                        } else {
+                            Icon(Lucide.Import, null)
+                        }
                     }
                 )
             }
@@ -537,7 +659,9 @@ private fun ImportExportPage(
         }
 
         item {
-            Card {
+            Card(
+                onClick = {}
+            ) {
                 ListItem(
                     headlineContent = {
                         Text("从ChatBox导入")
@@ -552,5 +676,24 @@ private fun ImportExportPage(
                 )
             }
         }
+    }
+
+    // 重启对话框
+    if (showRestartDialog) {
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text("重启应用") },
+            text = { Text("应用需要重启以使设置生效。") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showRestartDialog = false
+                        exitProcess(0)
+                    }
+                ) {
+                    Text("重启")
+                }
+            },
+        )
     }
 }

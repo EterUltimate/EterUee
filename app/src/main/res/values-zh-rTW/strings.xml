@@ -317,4 +317,45 @@
   <string name="delete">刪除</string>
   <string name="setting_display_page_show_message_jumper_title">消息導航按鈕</string>
   <string name="setting_display_page_show_message_jumper_desc">在捲動聊天列表時，在右側顯示快速跳轉按鈕</string>
+
+  <!-- Backup and Restore Page -->
+  <string name="backup_page_title">備份與恢復</string>
+  <string name="backup_page_webdav_backup">WebDAV備份</string>
+  <string name="backup_page_import_export">導入和導出</string>
+  <string name="backup_page_webdav_server_address">WebDAV 伺服器地址</string>
+  <string name="backup_page_username">使用者名稱</string>
+  <string name="backup_page_password">密碼</string>
+  <string name="backup_page_path">路徑</string>
+  <string name="backup_page_backup_items">備份項目</string>
+  <string name="backup_page_chat_records">聊天記錄</string>
+  <string name="backup_page_files">檔案</string>
+  <string name="backup_page_test_connection">測試連線</string>
+  <string name="backup_page_restore">恢復</string>
+  <string name="backup_page_backup_now">立即備份</string>
+  <string name="backup_page_backing_up">備份中...</string>
+  <string name="backup_page_webdav_backup_files">WebDav備份檔案列表</string>
+  <string name="backup_page_last_modified">最後修改時間</string>
+  <string name="backup_page_size">大小</string>
+  <string name="backup_page_delete">刪除</string>
+  <string name="backup_page_restore_now">恢復</string>
+  <string name="backup_page_restoring">恢復中...</string>
+  <string name="backup_page_connection_success">連線成功</string>
+  <string name="backup_page_connection_failed">連線失敗: %s</string>
+  <string name="backup_page_backup_success">備份成功</string>
+  <string name="backup_page_unknown_error">未知錯誤</string>
+  <string name="backup_page_loading_failed">載入備份檔案失敗: %s</string>
+  <string name="backup_page_delete_success">刪除成功</string>
+  <string name="backup_page_delete_failed">刪除失敗: %s</string>
+  <string name="backup_page_restore_success">恢復成功</string>
+  <string name="backup_page_restore_failed">恢復失敗: %s</string>
+  <string name="backup_page_restart_app">重啟應用</string>
+  <string name="backup_page_restart_desc">應用需要重啟以使設置生效。</string>
+  <string name="backup_page_local_backup_export">導出為檔案</string>
+  <string name="backup_page_local_backup_import">備份檔案導入</string>
+  <string name="backup_page_exporting">正在導出...</string>
+  <string name="backup_page_export_desc">導出APP數據為檔案</string>
+  <string name="backup_page_importing">正在恢復...</string>
+  <string name="backup_page_import_desc">導入本地備份檔案</string>
+  <string name="backup_page_import_from_chatbox">從ChatBox導入</string>
+  <string name="backup_page_import_chatbox_desc">導入ChatBox數據</string>
 </resources> 

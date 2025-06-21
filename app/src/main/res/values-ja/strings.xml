@@ -319,4 +319,45 @@
   <string name="delete">削除</string>
   <string name="setting_display_page_show_message_jumper_title">メッセージナビゲーションボタン</string>
   <string name="setting_display_page_show_message_jumper_desc">チャットリストをスクロールすると、右側にクイックジャンプボタンが表示されます。</string>
+
+  <!-- Backup and Restore Page -->
+  <string name="backup_page_title">バックアップと復元</string>
+  <string name="backup_page_webdav_backup">WebDAVバックアップ</string>
+  <string name="backup_page_import_export">インポートとエクスポート</string>
+  <string name="backup_page_webdav_server_address">WebDAV サーバーアドレス</string>
+  <string name="backup_page_username">ユーザー名</string>
+  <string name="backup_page_password">パスワード</string>
+  <string name="backup_page_path">パス</string>
+  <string name="backup_page_backup_items">バックアップ項目</string>
+  <string name="backup_page_chat_records">チャット履歴</string>
+  <string name="backup_page_files">ファイル</string>
+  <string name="backup_page_test_connection">接続テスト</string>
+  <string name="backup_page_restore">復元</string>
+  <string name="backup_page_backup_now">今すぐバックアップ</string>
+  <string name="backup_page_backing_up">バックアップ中...</string>
+  <string name="backup_page_webdav_backup_files">WebDavバックアップファイル一覧</string>
+  <string name="backup_page_last_modified">最終更新日時</string>
+  <string name="backup_page_size">サイズ</string>
+  <string name="backup_page_delete">削除</string>
+  <string name="backup_page_restore_now">復元</string>
+  <string name="backup_page_restoring">復元中...</string>
+  <string name="backup_page_connection_success">接続成功</string>
+  <string name="backup_page_connection_failed">接続失敗: %s</string>
+  <string name="backup_page_backup_success">バックアップ成功</string>
+  <string name="backup_page_unknown_error">不明なエラー</string>
+  <string name="backup_page_loading_failed">バックアップファイルの読み込み失敗: %s</string>
+  <string name="backup_page_delete_success">削除成功</string>
+  <string name="backup_page_delete_failed">削除失敗: %s</string>
+  <string name="backup_page_restore_success">復元成功</string>
+  <string name="backup_page_restore_failed">復元失敗: %s</string>
+  <string name="backup_page_restart_app">アプリを再起動</string>
+  <string name="backup_page_restart_desc">設定を有効にするにはアプリを再起動する必要があります。</string>
+  <string name="backup_page_local_backup_export">ファイルにエクスポート</string>
+  <string name="backup_page_local_backup_import">ファイルからインポート</string>
+  <string name="backup_page_exporting">エクスポート中...</string>
+  <string name="backup_page_export_desc">アプリデータをファイルにエクスポート</string>
+  <string name="backup_page_importing">インポート中...</string>
+  <string name="backup_page_import_desc">ローカルバックアップファイルをインポート</string>
+  <string name="backup_page_import_from_chatbox">ChatBoxからインポート</string>
+  <string name="backup_page_import_chatbox_desc">ChatBoxデータをインポート</string>
 </resources> 

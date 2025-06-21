@@ -318,4 +318,45 @@
   <string name="chat_message_tool_call_title">工具调用</string>
   <string name="chat_message_tool_call_label">调用工具 %1$s</string>
   <string name="chat_message_tool_call_result">调用结果</string>
+
+  <!-- Backup and Restore Page -->
+  <string name="backup_page_title">备份与恢复</string>
+  <string name="backup_page_webdav_backup">WebDAV备份</string>
+  <string name="backup_page_import_export">导入和导出</string>
+  <string name="backup_page_webdav_server_address">WebDAV 服务器地址</string>
+  <string name="backup_page_username">用户名</string>
+  <string name="backup_page_password">密码</string>
+  <string name="backup_page_path">路径</string>
+  <string name="backup_page_backup_items">备份项目</string>
+  <string name="backup_page_chat_records">聊天记录</string>
+  <string name="backup_page_files">文件</string>
+  <string name="backup_page_test_connection">测试连接</string>
+  <string name="backup_page_restore">恢复</string>
+  <string name="backup_page_backup_now">立即备份</string>
+  <string name="backup_page_backing_up">备份中...</string>
+  <string name="backup_page_webdav_backup_files">WebDav备份文件列表</string>
+  <string name="backup_page_last_modified">最后修改时间</string>
+  <string name="backup_page_size">大小</string>
+  <string name="backup_page_delete">删除</string>
+  <string name="backup_page_restore_now">恢复</string>
+  <string name="backup_page_restoring">恢复中...</string>
+  <string name="backup_page_connection_success">连接成功</string>
+  <string name="backup_page_connection_failed">连接失败: %s</string>
+  <string name="backup_page_backup_success">备份成功</string>
+  <string name="backup_page_unknown_error">未知错误</string>
+  <string name="backup_page_loading_failed">加载备份文件失败: %s</string>
+  <string name="backup_page_delete_success">删除成功</string>
+  <string name="backup_page_delete_failed">删除失败: %s</string>
+  <string name="backup_page_restore_success">恢复成功</string>
+  <string name="backup_page_restore_failed">恢复失败: %s</string>
+  <string name="backup_page_restart_app">重启应用</string>
+  <string name="backup_page_restart_desc">应用需要重启以使设置生效。</string>
+  <string name="backup_page_local_backup_export">导出为文件</string>
+  <string name="backup_page_local_backup_import">备份文件导入</string>
+  <string name="backup_page_exporting">正在导出...</string>
+  <string name="backup_page_export_desc">导出APP数据为文件</string>
+  <string name="backup_page_importing">正在恢复...</string>
+  <string name="backup_page_import_desc">导入本地备份文件</string>
+  <string name="backup_page_import_from_chatbox">从ChatBox导入</string>
+  <string name="backup_page_import_chatbox_desc">导入ChatBox数据</string>
 </resources> 

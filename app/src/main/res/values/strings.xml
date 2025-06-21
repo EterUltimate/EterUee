@@ -317,4 +317,45 @@
   <string name="chat_message_tool_call_title">Tool Call</string>
   <string name="chat_message_tool_call_label">Called tool %1$s</string>
   <string name="chat_message_tool_call_result">Call result</string>
+
+  <!-- Backup and Restore Page -->
+  <string name="backup_page_title">Backup and Restore</string>
+  <string name="backup_page_webdav_backup">WebDAV Backup</string>
+  <string name="backup_page_import_export">Import and Export</string>
+  <string name="backup_page_webdav_server_address">WebDAV Server Address</string>
+  <string name="backup_page_username">Username</string>
+  <string name="backup_page_password">Password</string>
+  <string name="backup_page_path">Path</string>
+  <string name="backup_page_backup_items">Backup Items</string>
+  <string name="backup_page_chat_records">Chat Records</string>
+  <string name="backup_page_files">Files</string>
+  <string name="backup_page_test_connection">Test Connection</string>
+  <string name="backup_page_restore">Restore</string>
+  <string name="backup_page_backup_now">Backup Now</string>
+  <string name="backup_page_backing_up">Backing up...</string>
+  <string name="backup_page_webdav_backup_files">WebDAV Backup Files</string>
+  <string name="backup_page_last_modified">Last Modified</string>
+  <string name="backup_page_size">Size</string>
+  <string name="backup_page_delete">Delete</string>
+  <string name="backup_page_restore_now">Restore</string>
+  <string name="backup_page_restoring">Restoring...</string>
+  <string name="backup_page_connection_success">Connection successful</string>
+  <string name="backup_page_connection_failed">Connection failed: %s</string>
+  <string name="backup_page_backup_success">Backup successful</string>
+  <string name="backup_page_unknown_error">Unknown error</string>
+  <string name="backup_page_loading_failed">Failed to load backup files: %s</string>
+  <string name="backup_page_delete_success">Delete successful</string>
+  <string name="backup_page_delete_failed">Delete failed: %s</string>
+  <string name="backup_page_restore_success">Restore successful</string>
+  <string name="backup_page_restore_failed">Restore failed: %s</string>
+  <string name="backup_page_restart_app">Restart App</string>
+  <string name="backup_page_restart_desc">The app needs to restart for the changes to take effect.</string>
+  <string name="backup_page_local_backup_export">Export to File</string>
+  <string name="backup_page_local_backup_import">Import from File</string>
+  <string name="backup_page_exporting">Exporting...</string>
+  <string name="backup_page_export_desc">Export app data to a file</string>
+  <string name="backup_page_importing">Importing...</string>
+  <string name="backup_page_import_desc">Import local backup file</string>
+  <string name="backup_page_import_from_chatbox">Import from ChatBox</string>
+  <string name="backup_page_import_chatbox_desc">Import data from ChatBox</string>
 </resources>

@@ -52,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -67,6 +68,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Upload
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.launch
+import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.WebDavConfig
 import me.rerere.rikkahub.data.sync.BackupFileItem
 import me.rerere.rikkahub.ui.components.nav.BackButton
@@ -94,7 +96,7 @@ fun BackupPage(vm: BackupVM = koinViewModel()) {
     topBar = {
       TopAppBar(
         title = {
-          Text("备份与恢复")
+          Text(stringResource(R.string.backup_page_title))
         },
         navigationIcon = {
           BackButton()
@@ -109,7 +111,7 @@ fun BackupPage(vm: BackupVM = koinViewModel()) {
             Icon(Lucide.DatabaseBackup, null)
           },
           label = {
-            Text("WebDav备份")
+            Text(stringResource(R.string.backup_page_webdav_backup))
           },
           onClick = {
             scope.launch { pagerState.scrollToPage(0) }
@@ -121,7 +123,7 @@ fun BackupPage(vm: BackupVM = koinViewModel()) {
             Icon(Lucide.Import, null)
           },
           label = {
-            Text("导入和导出")
+            Text(stringResource(R.string.backup_page_import_export))
           },
           onClick = {
             scope.launch { pagerState.scrollToPage(1) }
@@ -155,6 +157,7 @@ private fun WebDavPage(
   val settings by vm.settings.collectAsStateWithLifecycle()
   val webDavConfig = settings.webDavConfig
   val toaster = LocalToaster.current
+  val context = LocalContext.current
   val scope = rememberCoroutineScope()
   var showBackupFiles by remember { mutableStateOf(false) }
   var showRestartDialog by remember { mutableStateOf(false) }
@@ -179,7 +182,7 @@ private fun WebDavPage(
         verticalArrangement = Arrangement.spacedBy(8.dp)
       ) {
         FormItem(
-          label = { Text("WebDAV 服务器地址") }
+          label = { Text(stringResource(R.string.backup_page_webdav_server_address)) }
         ) {
           OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
@@ -190,7 +193,7 @@ private fun WebDavPage(
           )
         }
         FormItem(
-          label = { Text("用户名") }
+          label = { Text(stringResource(R.string.backup_page_username)) }
         ) {
           OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
@@ -206,7 +209,7 @@ private fun WebDavPage(
           )
         }
         FormItem(
-          label = { Text("密码") }
+          label = { Text(stringResource(R.string.backup_page_password)) }
         ) {
           var passwordVisible by remember { mutableStateOf(false) }
           OutlinedTextField(
@@ -227,7 +230,7 @@ private fun WebDavPage(
           )
         }
         FormItem(
-          label = { Text("路径") }
+          label = { Text(stringResource(R.string.backup_page_path)) }
         ) {
           OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
@@ -245,7 +248,7 @@ private fun WebDavPage(
             .fillMaxWidth()
             .padding(16.dp),
         label = {
-          Text("备份项目")
+          Text(stringResource(R.string.backup_page_backup_items))
         }
       ) {
         MultiChoiceSegmentedButtonRow(
@@ -269,8 +272,8 @@ private fun WebDavPage(
             ) {
               Text(
                 when (item) {
-                  WebDavConfig.BackupItem.DATABASE -> "聊天记录"
-                  WebDavConfig.BackupItem.FILES -> "文件"
+                  WebDavConfig.BackupItem.DATABASE -> stringResource(R.string.backup_page_chat_records)
+                  WebDavConfig.BackupItem.FILES -> stringResource(R.string.backup_page_files)
                 }
               )
             }
@@ -288,22 +291,30 @@ private fun WebDavPage(
           scope.launch {
             try {
               vm.testWebDav()
-              toaster.show("连接成功", type = ToastType.Success)
+              toaster.show(
+                context.getString(R.string.backup_page_connection_success),
+                type = ToastType.Success
+              )
             } catch (e: Exception) {
               e.printStackTrace()
-              toaster.show("连接失败: ${e.message}", type = ToastType.Error)
+              toaster.show(
+                context.getString(
+                  R.string.backup_page_connection_failed,
+                  e.message ?: ""
+                ), type = ToastType.Error
+              )
             }
           }
         }
       ) {
-        Text("测试连接")
+        Text(stringResource(R.string.backup_page_test_connection))
       }
       OutlinedButton(
         onClick = {
           showBackupFiles = true
         }
       ) {
-        Text("恢复")
+        Text(stringResource(R.string.backup_page_restore))
       }
 
       Button(
@@ -313,10 +324,16 @@ private fun WebDavPage(
             runCatching {
               vm.backup()
               vm.loadBackupFileItems()
-              toaster.show("备份成功", type = ToastType.Success)
+              toaster.show(
+                context.getString(R.string.backup_page_backup_success),
+                type = ToastType.Success
+              )
             }.onFailure {
               it.printStackTrace()
-              toaster.show(it.message ?: "未知错误", type = ToastType.Error)
+              toaster.show(
+                it.message ?: context.getString(R.string.backup_page_unknown_error),
+                type = ToastType.Error
+              )
             }
             isBackingUp = false
           }
@@ -331,7 +348,7 @@ private fun WebDavPage(
           Icon(Lucide.Upload, null, modifier = Modifier.size(18.dp))
         }
         Spacer(Modifier.width(8.dp))
-        Text(if (isBackingUp) "备份中..." else "立即备份")
+        Text(if (isBackingUp) stringResource(R.string.backup_page_backing_up) else stringResource(R.string.backup_page_backup_now))
       }
     }
   }
@@ -353,7 +370,10 @@ private fun WebDavPage(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
       ) {
-        Text("WebDav备份文件列表", modifier = Modifier.fillMaxWidth())
+        Text(
+          stringResource(R.string.backup_page_webdav_backup_files),
+          modifier = Modifier.fillMaxWidth()
+        )
         val backupItems by vm.backupFileItems.collectAsStateWithLifecycle()
         backupItems.onSuccess {
           LazyColumn(
@@ -369,12 +389,15 @@ private fun WebDavPage(
                   scope.launch {
                     runCatching {
                       vm.deleteWebDavBackupFile(item)
-                      toaster.show("删除成功", type = ToastType.Success)
+                      toaster.show(
+                        context.getString(R.string.backup_page_delete_success),
+                        type = ToastType.Success
+                      )
                       vm.loadBackupFileItems()
                     }.onFailure { err ->
                       err.printStackTrace()
                       toaster.show(
-                        err.message ?: "未知错误",
+                        context.getString(R.string.backup_page_delete_failed, err.message ?: ""),
                         type = ToastType.Error
                       )
                     }
@@ -385,13 +408,16 @@ private fun WebDavPage(
                     restoringItemId = item.displayName
                     runCatching {
                       vm.restore(item = item)
-                      toaster.show("恢复成功", type = ToastType.Success)
+                      toaster.show(
+                        context.getString(R.string.backup_page_restore_success),
+                        type = ToastType.Success
+                      )
                       showBackupFiles = false
                       showRestartDialog = true
                     }.onFailure { err ->
                       err.printStackTrace()
                       toaster.show(
-                        err.message ?: "未知错误",
+                        context.getString(R.string.backup_page_restore_failed, err.message ?: ""),
                         type = ToastType.Error
                       )
                     }
@@ -406,7 +432,10 @@ private fun WebDavPage(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
           ) {
-            Text(text = "加载备份文件失败: ${it.message}", color = Color.Red)
+            Text(
+              text = stringResource(R.string.backup_page_loading_failed, it.message ?: ""),
+              color = Color.Red
+            )
           }
         }.onLoading {
           Box(
@@ -471,7 +500,7 @@ private fun BackupItemCard(
         },
         enabled = !isRestoring
       ) {
-        Text("删除")
+        Text(stringResource(R.string.backup_page_delete))
       }
       Button(
         onClick = {
@@ -485,7 +514,7 @@ private fun BackupItemCard(
           )
           Spacer(Modifier.width(8.dp))
         }
-        Text(if (isRestoring) "恢复中..." else "恢复")
+        Text(if (isRestoring) stringResource(R.string.backup_page_restoring) else stringResource(R.string.backup_page_restore_now))
       }
     }
   }
@@ -523,10 +552,16 @@ private fun ImportExportPage(
           // 清理临时文件
           exportFile.delete()
 
-          toaster.show("导出成功", type = ToastType.Success)
+          toaster.show(
+            context.getString(R.string.backup_page_backup_success),
+            type = ToastType.Success
+          )
         }.onFailure { e ->
           e.printStackTrace()
-          toaster.show("导出失败: ${e.message}", type = ToastType.Error)
+          toaster.show(
+            context.getString(R.string.backup_page_restore_failed, e.message ?: ""),
+            type = ToastType.Error
+          )
         }
         isExporting = false
       }
@@ -557,11 +592,17 @@ private fun ImportExportPage(
           // 清理临时文件
           tempFile.delete()
 
-          toaster.show("恢复成功", type = ToastType.Success)
+          toaster.show(
+            context.getString(R.string.backup_page_restore_success),
+            type = ToastType.Success
+          )
           showRestartDialog = true
         }.onFailure { e ->
           e.printStackTrace()
-          toaster.show("恢复失败: ${e.message}", type = ToastType.Error)
+          toaster.show(
+            context.getString(R.string.backup_page_restore_failed, e.message ?: ""),
+            type = ToastType.Error
+          )
         }
         isRestoring = false
       }
@@ -575,7 +616,7 @@ private fun ImportExportPage(
   ) {
     stickyHeader {
       StickyHeader {
-        Text("本地备份导出和导入")
+        Text(stringResource(R.string.backup_page_local_backup_export))
       }
     }
 
@@ -591,10 +632,14 @@ private fun ImportExportPage(
       ) {
         ListItem(
           headlineContent = {
-            Text("导出为文件")
+            Text(stringResource(R.string.backup_page_local_backup_export))
           },
           supportingContent = {
-            Text(if (isExporting) "正在导出..." else "导出APP数据为文件")
+            Text(
+              if (isExporting) stringResource(R.string.backup_page_exporting) else stringResource(
+                R.string.backup_page_export_desc
+              )
+            )
           },
           colors = ListItemDefaults.colors(containerColor = Color.Transparent),
           leadingContent = {
@@ -620,10 +665,14 @@ private fun ImportExportPage(
       ) {
         ListItem(
           headlineContent = {
-            Text("备份文件导入")
+            Text(stringResource(R.string.backup_page_local_backup_import))
           },
           supportingContent = {
-            Text(if (isRestoring) "正在恢复..." else "导入本地备份文件")
+            Text(
+              if (isRestoring) stringResource(R.string.backup_page_importing) else stringResource(
+                R.string.backup_page_import_desc
+              )
+            )
           },
           colors = ListItemDefaults.colors(containerColor = Color.Transparent),
           leadingContent = {
@@ -641,7 +690,7 @@ private fun ImportExportPage(
 
     stickyHeader {
       StickyHeader {
-        Text("导入其他应用数据")
+        Text(stringResource(R.string.backup_page_import_from_chatbox))
       }
     }
 
@@ -651,10 +700,10 @@ private fun ImportExportPage(
       ) {
         ListItem(
           headlineContent = {
-            Text("从ChatBox导入")
+            Text(stringResource(R.string.backup_page_import_from_chatbox))
           },
           supportingContent = {
-            Text("导入ChatBox数据")
+            Text(stringResource(R.string.backup_page_import_chatbox_desc))
           },
           colors = ListItemDefaults.colors(containerColor = Color.Transparent),
           leadingContent = {
@@ -675,15 +724,15 @@ private fun ImportExportPage(
 private fun BackupDialog() {
   AlertDialog(
     onDismissRequest = {},
-    title = { Text("重启应用") },
-    text = { Text("应用需要重启以使设置生效。") },
+    title = { Text(stringResource(R.string.backup_page_restart_app)) },
+    text = { Text(stringResource(R.string.backup_page_restart_desc)) },
     confirmButton = {
       Button(
         onClick = {
           exitProcess(0)
         }
       ) {
-        Text("重启")
+        Text(stringResource(R.string.backup_page_restart_app))
       }
     },
   )

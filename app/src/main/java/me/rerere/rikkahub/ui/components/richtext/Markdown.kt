@@ -3,6 +3,7 @@ package me.rerere.rikkahub.ui.components.richtext
 import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,7 +13,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material3.ColorScheme
@@ -114,8 +117,8 @@ private fun preProcess(content: String): String {
 private fun MarkdownPreview() {
   Column(
     modifier = Modifier
-      .fillMaxWidth()
-      .padding(16.dp),
+        .fillMaxWidth()
+        .padding(16.dp),
     verticalArrangement = Arrangement.spacedBy(16.dp)
   ) {
     MarkdownBlock(
@@ -319,18 +322,18 @@ fun MarkdownNode(
         val bgColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
         FlowRow(
           modifier = Modifier
-            .drawWithContent {
-              drawContent()
-              drawRect(
-                color = bgColor,
-                size = size
-              )
-              drawRect(
-                color = borderColor,
-                size = Size(10f, size.height)
-              )
-            }
-            .padding(8.dp)
+              .drawWithContent {
+                  drawContent()
+                  drawRect(
+                      color = bgColor,
+                      size = size
+                  )
+                  drawRect(
+                      color = borderColor,
+                      size = Size(10f, size.height)
+                  )
+              }
+              .padding(8.dp)
         ) {
           node.children.fastForEach { child ->
             MarkdownNode(
@@ -431,8 +434,8 @@ fun MarkdownNode(
       val formula = node.getTextInNode(content)
       MathBlock(
         formula, modifier = modifier
-          .fillMaxWidth()
-          .padding(vertical = 8.dp)
+              .fillMaxWidth()
+              .padding(vertical = 8.dp)
       )
     }
 
@@ -451,8 +454,8 @@ fun MarkdownNode(
         code = code,
         language = "plaintext",
         modifier = Modifier
-          .padding(bottom = 4.dp)
-          .fillMaxWidth(),
+            .padding(bottom = 4.dp)
+            .fillMaxWidth(),
         completeCodeBlock = true
       )
     }
@@ -469,8 +472,8 @@ fun MarkdownNode(
         code = code,
         language = language,
         modifier = Modifier
-          .padding(bottom = 4.dp)
-          .fillMaxWidth(),
+            .padding(bottom = 4.dp)
+            .fillMaxWidth(),
         completeCodeBlock = hasEnd
       )
     }
@@ -626,7 +629,7 @@ private fun Paragraph(
 ) {
   // dumpAst(node, content)
   if (node.findChildOfType(MarkdownElementTypes.IMAGE, GFMElementTypes.BLOCK_MATH) != null) {
-    Column(modifier = modifier) {
+    FlowRow(modifier = modifier) {
       node.children.fastForEach { child ->
         MarkdownNode(
           node = child,
@@ -672,9 +675,6 @@ private fun Paragraph(
     Text(
       text = annotatedString,
       modifier = Modifier,
-      style = LocalTextStyle.current.copy(
-        lineHeight = TextUnit.Unspecified, // 禁用行高限制，方便渲染latex
-      ),
       inlineContent = inlineContents,
       softWrap = true,
       overflow = TextOverflow.Visible,
@@ -729,8 +729,8 @@ private fun TableNode(node: ASTNode, content: String, modifier: Modifier = Modif
     columns = columns,
     data = rows,
     modifier = modifier
-      .padding(vertical = 8.dp)
-      .fillMaxWidth()
+        .padding(vertical = 8.dp)
+        .fillMaxWidth()
 
   )
 }
@@ -821,12 +821,12 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
             children = {
               Box(
                 modifier = Modifier
-                  .clickable {
-                    onClickCitation(linkDest.toIntOrNull() ?: 1)
-                    println(linkDest)
-                  }
-                  .fillMaxSize()
-                  .background(colorScheme.primary.copy(0.2f)),
+                    .clickable {
+                        onClickCitation(linkDest.toIntOrNull() ?: 1)
+                        println(linkDest)
+                    }
+                    .fillMaxSize()
+                    .background(colorScheme.primary.copy(0.2f)),
                 contentAlignment = Alignment.Center
               ) {
                 Text(
@@ -882,7 +882,8 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
         }
       }
       inlineContents.putIfAbsent(
-        formula, InlineTextContent(
+        /* key = */ formula,
+        /* value = */ InlineTextContent(
           placeholder = Placeholder(
             width = width,
             height = height,
@@ -894,7 +895,8 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
               modifier = Modifier
             )
           }
-        ))
+        )
+      )
     }
 
     // 其他类型继续递归处理

@@ -370,4 +370,9 @@
   <string name="backup_page_import_from_other_app">他のアプリからインポート</string>
   <string name="backup_page_import_from_chatbox">ChatBoxからインポート</string>
   <string name="backup_page_import_chatbox_desc">ChatBoxデータをインポート</string>
+
+  <!-- Data Settings -->
+  <string name="setting_page_data_settings">データ設定</string>
+  <string name="setting_page_data_backup">データバックアップ</string>
+  <string name="setting_page_data_backup_desc">アプリデータのバックアップと復元</string>
 </resources> 

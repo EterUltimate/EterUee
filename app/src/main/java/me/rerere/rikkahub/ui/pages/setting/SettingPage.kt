@@ -244,7 +244,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
 
       stickyHeader {
         Text(
-          text = "数据设置",
+          text = stringResource(R.string.setting_page_data_settings),
           modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
           style = MaterialTheme.typography.labelSmall,
           color = MaterialTheme.colorScheme.primary
@@ -254,8 +254,8 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
       item {
         SettingItem(
           navController = navController,
-          title = { Text("数据备份") },
-          description = { Text("备份和恢复应用数据") },
+          title = { Text(stringResource(R.string.setting_page_data_backup)) },
+          description = { Text(stringResource(R.string.setting_page_data_backup_desc)) },
           icon = { Icon(Lucide.Database, "Backup") },
           link = "backup"
         )

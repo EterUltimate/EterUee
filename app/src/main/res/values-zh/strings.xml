@@ -199,6 +199,11 @@
 
   <!-- Reasoning -->
   <string name="reasoning_set_budget">设置推理预算 (%1$d tokens)</string>
+
+  <!-- Data Settings -->
+  <string name="setting_page_data_settings">数据设置</string>
+  <string name="setting_page_data_backup">数据备份</string>
+  <string name="setting_page_data_backup_desc">备份和恢复应用数据</string>
   <string name="reasoning_off">关闭</string>
   <string name="reasoning_off_desc">关闭推理功能，模型将直接回答问题。</string>
   <string name="reasoning_light">轻度推理</string>

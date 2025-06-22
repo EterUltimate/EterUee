@@ -198,6 +198,11 @@
 
   <!-- Reasoning -->
   <string name="reasoning_set_budget">Set reasoning budget (%1$d tokens)</string>
+
+  <!-- Data Settings -->
+  <string name="setting_page_data_settings">Data Settings</string>
+  <string name="setting_page_data_backup">Data Backup</string>
+  <string name="setting_page_data_backup_desc">Backup and restore app data</string>
   <string name="reasoning_off">Off</string>
   <string name="reasoning_off_desc">Turn off reasoning functionality, the model will directly answer questions.</string>
   <string name="reasoning_light">Light reasoning</string>

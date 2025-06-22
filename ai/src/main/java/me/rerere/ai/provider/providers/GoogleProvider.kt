@@ -347,36 +347,11 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
       }
       if (params.model.abilities.contains(ModelAbility.REASONING)) {
         put("thinkingConfig", buildJsonObject {
-          if (params.thinkingBudget != null) {
-            put("thinkingBudget", params.thinkingBudget)
-          }
-          if (params.thinkingBudget == null || params.thinkingBudget > 0) {
-            put("includeThoughts", true)
-          }
+          put("thinkingBudget", params.thinkingBudget ?: 0)
+          put("includeThoughts", true)
         })
       }
     })
-
-
-    // Safety
-//        put("safetySettings", buildJsonArray {
-//            add(buildJsonObject {
-//                put("category", "HARM_CATEGORY_SEXUALLY_EXPLICIT")
-//                put("threshold", "BLOCK_NONE")
-//            })
-//            add(buildJsonObject {
-//                put("category", "HARM_CATEGORY_HATE_SPEECH")
-//                put("threshold", "BLOCK_NONE")
-//            })
-//            add(buildJsonObject {
-//                put("category", "HARM_CATEGORY_HATE_SPEECH")
-//                put("threshold", "BLOCK_NONE")
-//            })
-//            add(buildJsonObject {
-//                put("category", "HARM_CATEGORY_DANGEROUS_CONTENT")
-//                put("threshold", "BLOCK_NONE")
-//            })
-//        })
 
     // Contents (user messages)
     put(

@@ -133,10 +133,7 @@
   <string name="assistant_page_no_system_prompt">No system prompt</string>
   <string name="assistant_page_top_p_value">Top P: %s</string>
   <string name="assistant_page_thinking_budget">Thinking Budget</string>
-  <string name="assistant_page_thinking_budget_desc">The number of thoughts tokens that the model should generate. 0 means thinking will be disabled, and blank means using the default value of the model.</string>
-  <string name="assistant_page_thinking_budget_tokens">%s tokens</string>
   <string name="assistant_page_thinking_budget_default">Default</string>
-  <string name="assistant_page_thinking_budget_warning">Note: Different providers define various thinking budget API formats that the APP cannot accommodate for all, so this option may not work. If it doesn\'t work, we recommend using the custom body below to customize your request.</string>
   <string name="assistant_page_message_template">Message Content Template</string>
   <string name="assistant_page_message_template_desc">Controls the content format of chat messages before being sent to the LLM, usually no need to modify</string>
   <string name="assistant_page_template_preview">Preview:</string>
@@ -198,6 +195,18 @@
   <string name="mermaid_export">Export</string>
   <string name="mermaid_export_success">Export successful</string>
   <string name="mermaid_export_failed">Export failed</string>
+
+  <!-- Reasoning -->
+  <string name="reasoning_set_budget">Set reasoning budget (%1$d tokens)</string>
+  <string name="reasoning_off">Off</string>
+  <string name="reasoning_off_desc">Turn off reasoning functionality, the model will directly answer questions.</string>
+  <string name="reasoning_light">Light reasoning</string>
+  <string name="reasoning_light_desc">The model will use a small amount of reasoning to answer questions.</string>
+  <string name="reasoning_medium">Medium reasoning</string>
+  <string name="reasoning_medium_desc">The model will use more reasoning to answer questions.</string>
+  <string name="reasoning_heavy">Heavy reasoning</string>
+  <string name="reasoning_heavy_desc">The model will use a large amount of reasoning to answer questions.</string>
+  <string name="reasoning_custom">Custom reasoning budget</string>
 
   <!-- Setting Display Page -->
   <string name="setting_display_page_chat_list_model_icon_title">Chat List Model Icon</string>

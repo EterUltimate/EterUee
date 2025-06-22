@@ -132,10 +132,7 @@
   <string name="assistant_page_no_system_prompt">無系統提示詞</string>
   <string name="assistant_page_top_p_value">Top P: %s</string>
   <string name="assistant_page_thinking_budget">思考預算</string>
-  <string name="assistant_page_thinking_budget_desc">模型應該生成的思考內容的token數量。0表示將禁用思考，留空表示使用模型的預設值。</string>
-  <string name="assistant_page_thinking_budget_tokens">%s token</string>
   <string name="assistant_page_thinking_budget_default">預設</string>
-  <string name="assistant_page_thinking_budget_warning">注意，由於不同提供商定義了各種不同的思考預算API格式，APP無法考慮到，因此這個選項不一定起作用，如果不起作用，推薦使用下面的自定義body來自定義請求</string>
   <string name="assistant_page_message_template">聊天內容模板</string>
   <string name="assistant_page_message_template_desc">控制聊天訊息在發送給LLM之前的內容格式，通常不需要修改</string>
   <string name="assistant_page_template_preview">預覽:</string>
@@ -197,6 +194,18 @@
   <string name="mermaid_export">匯出</string>
   <string name="mermaid_export_success">匯出成功</string>
   <string name="mermaid_export_failed">匯出失敗</string>
+
+  <!-- Reasoning -->
+  <string name="reasoning_set_budget">設置推理預算 (%1$d tokens)</string>
+  <string name="reasoning_off">關閉</string>
+  <string name="reasoning_off_desc">關閉推理功能，模型將直接回答問題。</string>
+  <string name="reasoning_light">輕度推理</string>
+  <string name="reasoning_light_desc">模型將使用少量推理來回答問題。</string>
+  <string name="reasoning_medium">中度推理</string>
+  <string name="reasoning_medium_desc">模型將使用更多推理來回答問題。</string>
+  <string name="reasoning_heavy">重度推理</string>
+  <string name="reasoning_heavy_desc">模型將使用大量推理來回答問題。</string>
+  <string name="reasoning_custom">自定義推理預算</string>
 
   <!-- Setting Display Page -->
   <string name="setting_display_page_chat_list_model_icon_title">聊天列表模型圖標</string>

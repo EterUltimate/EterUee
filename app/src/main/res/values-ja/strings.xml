@@ -134,10 +134,7 @@
   <string name="assistant_page_no_system_prompt">システムプロンプトなし</string>
   <string name="assistant_page_top_p_value">Top P: %s</string>
   <string name="assistant_page_thinking_budget">思考バジェット</string>
-  <string name="assistant_page_thinking_budget_desc">モデルが生成すべき思考トークンの数。0は思考が無効になることを意味し、空白はモデルのデフォルト値を使用することを意味します。</string>
-  <string name="assistant_page_thinking_budget_tokens">%s トークン</string>
   <string name="assistant_page_thinking_budget_default">デフォルト</string>
-  <string name="assistant_page_thinking_budget_warning">注意：異なるプロバイダーは様々な思考バジェットAPIフォーマットを定義しており、アプリはすべてに対応できないため、このオプションが機能しない場合があります。機能しない場合は、下のカスタムボディを使用してリクエストをカスタマイズすることをお勧めします。</string>
   <string name="assistant_page_message_template">チャットコンテンツテンプレート</string>
   <string name="assistant_page_message_template_desc">チャットメッセージがLLMに送信される前のコンテンツ形式を制御します。通常は変更する必要がありません</string>
   <string name="assistant_page_template_preview">プレビュー:</string>
@@ -199,6 +196,18 @@
   <string name="mermaid_export">エクスポート</string>
   <string name="mermaid_export_success">エクスポートに成功しました</string>
   <string name="mermaid_export_failed">エクスポートに失敗しました</string>
+
+  <!-- Reasoning -->
+  <string name="reasoning_set_budget">推論予算を設定 (%1$d トークン)</string>
+  <string name="reasoning_off">オフ</string>
+  <string name="reasoning_off_desc">推論機能を無効にし、モデルは直接質問に答えます。</string>
+  <string name="reasoning_light">軽度推論</string>
+  <string name="reasoning_light_desc">モデルは少量の推論を使用して質問に答えます。</string>
+  <string name="reasoning_medium">中度推論</string>
+  <string name="reasoning_medium_desc">モデルはより多くの推論を使用して質問に答えます。</string>
+  <string name="reasoning_heavy">重度推論</string>
+  <string name="reasoning_heavy_desc">モデルは大量の推論を使用して質問に答えます。</string>
+  <string name="reasoning_custom">カスタム推論予算</string>
 
   <!-- Setting Display Page -->
   <string name="setting_display_page_title">表示設定</string>

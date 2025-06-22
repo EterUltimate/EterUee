@@ -108,6 +108,7 @@ import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import me.rerere.ai.provider.Model
+import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.ui.UIMessagePart
@@ -115,6 +116,7 @@ import me.rerere.ai.ui.isEmptyInputMessage
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.getCurrentAssistant
+import me.rerere.rikkahub.data.datastore.getCurrentChatModel
 import me.rerere.rikkahub.data.mcp.McpManager
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.ui.components.ui.KeepScreenOn
@@ -475,7 +477,7 @@ fun ChatInput(
           onlyIcon = true,
           modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .padding(4.dp),
         )
 
         Surface(
@@ -495,9 +497,8 @@ fun ChatInput(
               Lucide.Search,
               contentDescription = stringResource(R.string.use_web_search),
               modifier = Modifier
-                .clip(CircleShape)
-                .size(20.dp),
-              tint = if (enableSearch) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                .clip(CircleShape),
+              tint = if (enableSearch) MaterialTheme.colorScheme.onPrimaryContainer else LocalContentColor.current
             )
           }
         }
@@ -510,6 +511,18 @@ fun ChatInput(
             onUpdateAssistant = {
               onUpdateAssistant(it)
             }
+          )
+        }
+
+        val model = settings.getCurrentChatModel()
+        if(model?.abilities?.contains(ModelAbility.REASONING) == true) {
+          val assistant = settings.getCurrentAssistant()
+          ReasoningButton(
+            reasoningTokens = assistant.thinkingBudget ?: 0,
+            onUpdateReasoningTokens = {
+              onUpdateAssistant(assistant.copy(thinkingBudget = it))
+            },
+            onlyIcon = true,
           )
         }
 

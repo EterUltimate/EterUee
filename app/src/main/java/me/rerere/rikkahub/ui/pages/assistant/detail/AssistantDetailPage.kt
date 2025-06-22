@@ -83,6 +83,7 @@ import me.rerere.rikkahub.data.model.toMessageNode
 import me.rerere.rikkahub.ui.components.chat.ChatMessage
 import me.rerere.rikkahub.ui.components.chat.McpPicker
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
+import me.rerere.rikkahub.ui.components.chat.ReasoningButton
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.Select
@@ -148,8 +149,8 @@ fun AssistantDetailPage(vm: AssistantDetailVM = koinViewModel()) {
   ) { innerPadding ->
     Column(
       modifier = Modifier
-        .padding(innerPadding)
-        .fillMaxSize(),
+          .padding(innerPadding)
+          .fillMaxSize(),
     ) {
       SecondaryScrollableTabRow(
         selectedTabIndex = pagerState.currentPage,
@@ -169,8 +170,8 @@ fun AssistantDetailPage(vm: AssistantDetailVM = koinViewModel()) {
       HorizontalPager(
         state = pagerState,
         modifier = Modifier
-          .fillMaxWidth()
-          .weight(1f)
+            .fillMaxWidth()
+            .weight(1f)
       ) { page ->
         when (page) {
           0 -> {
@@ -277,10 +278,10 @@ private fun AssistantBasicSettings(
 ) {
   Column(
     modifier = Modifier
-      .fillMaxSize()
-      .padding(16.dp)
-      .verticalScroll(rememberScrollState())
-      .imePadding(),
+        .fillMaxSize()
+        .padding(16.dp)
+        .verticalScroll(rememberScrollState())
+        .imePadding(),
     verticalArrangement = Arrangement.spacedBy(16.dp)
   ) {
     Card {
@@ -492,59 +493,17 @@ private fun AssistantBasicSettings(
         label = {
           Text(stringResource(R.string.assistant_page_thinking_budget))
         },
-        description = {
-          Text(stringResource(R.string.assistant_page_thinking_budget_desc))
-          Text(
-            text = stringResource(R.string.assistant_page_thinking_budget_warning),
-            color = MaterialTheme.colorScheme.error,
-          )
-        }
       ) {
-        var input by remember(assistant) {
-          mutableStateOf(assistant.thinkingBudget?.toString() ?: "")
-        }
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-          verticalAlignment = Alignment.CenterVertically
-        ) {
-          OutlinedTextField(
-            value = input,
-            onValueChange = {
-              input = it
-              onUpdate(
-                assistant.copy(
-                  thinkingBudget = if (it.isBlank()) null else it.toIntOrNull()
-                )
+        ReasoningButton(
+          reasoningTokens = assistant.thinkingBudget ?: 0,
+          onUpdateReasoningTokens = { tokens ->
+            onUpdate(
+              assistant.copy(
+                thinkingBudget = tokens
               )
-            },
-            trailingIcon = {
-              IconButton(
-                onClick = {
-                  input = ""
-                  onUpdate(
-                    assistant.copy(
-                      thinkingBudget = null
-                    )
-                  )
-                }
-              ) {
-                Icon(
-                  Lucide.X,
-                  contentDescription = null
-                )
-              }
-            },
-            modifier = Modifier.weight(1f),
-          )
-          Text(
-            text = stringResource(
-              R.string.assistant_page_thinking_budget_tokens,
-              assistant.thinkingBudget?.toString()
-                ?: stringResource(R.string.assistant_page_thinking_budget_default)
-            ),
-          )
-        }
+            )
+          }
+        )
       }
     }
   }
@@ -560,10 +519,10 @@ private fun AssistantPromptSettings(
   val templateTransformer = koinInject<TemplateTransformer>()
   Column(
     modifier = Modifier
-      .fillMaxSize()
-      .padding(16.dp)
-      .imePadding()
-      .verticalScroll(rememberScrollState()),
+        .fillMaxSize()
+        .padding(16.dp)
+        .imePadding()
+        .verticalScroll(rememberScrollState()),
     verticalArrangement = Arrangement.spacedBy(12.dp)
   ) {
     Card {
@@ -676,11 +635,11 @@ private fun AssistantPromptSettings(
       )
       Column(
         modifier = Modifier
-          .padding(16.dp)
-          .clip(MaterialTheme.shapes.small)
-          .background(MaterialTheme.colorScheme.background)
-          .padding(8.dp)
-          .fillMaxWidth()
+            .padding(16.dp)
+            .clip(MaterialTheme.shapes.small)
+            .background(MaterialTheme.colorScheme.background)
+            .padding(8.dp)
+            .fillMaxWidth()
       ) {
         Text(
           text = stringResource(R.string.assistant_page_template_preview),
@@ -738,10 +697,10 @@ private fun AssistantPresetMessageSettings(
 ) {
   Column(
     modifier = Modifier
-      .fillMaxSize()
-      .padding(16.dp)
-      .verticalScroll(rememberScrollState())
-      .imePadding(),
+        .fillMaxSize()
+        .padding(16.dp)
+        .verticalScroll(rememberScrollState())
+        .imePadding(),
     verticalArrangement = Arrangement.spacedBy(12.dp)
   ) {
     Card {
@@ -857,10 +816,10 @@ private fun AssistantMemorySettings(
 ) {
   Column(
     modifier = Modifier
-      .fillMaxSize()
-      .padding(16.dp)
-      .verticalScroll(rememberScrollState())
-      .imePadding(),
+        .fillMaxSize()
+        .padding(16.dp)
+        .verticalScroll(rememberScrollState())
+        .imePadding(),
     verticalArrangement = Arrangement.spacedBy(12.dp)
   ) {
     Card {
@@ -896,8 +855,8 @@ private fun AssistantMemorySettings(
         text = stringResource(R.string.assistant_page_manage_memory_title),
         style = MaterialTheme.typography.titleMedium,
         modifier = Modifier
-          .padding(bottom = 8.dp)
-          .align(Alignment.CenterStart)
+            .padding(bottom = 8.dp)
+            .align(Alignment.CenterStart)
       )
 
       IconButton(
@@ -930,8 +889,8 @@ private fun MemoryItem(
   ) {
     Row(
       modifier = Modifier
-        .fillMaxWidth()
-        .padding(8.dp),
+          .fillMaxWidth()
+          .padding(8.dp),
       horizontalArrangement = Arrangement.spacedBy(4.dp),
       verticalAlignment = Alignment.CenterVertically
     ) {
@@ -965,9 +924,9 @@ private fun AssistantCustomRequestSettings(
 ) {
   Column(
     modifier = Modifier
-      .fillMaxSize()
-      .verticalScroll(rememberScrollState())
-      .imePadding(),
+        .fillMaxSize()
+        .verticalScroll(rememberScrollState())
+        .imePadding(),
     verticalArrangement = Arrangement.spacedBy(12.dp)
   ) {
     AssistantCustomHeaders(assistant = assistant, onUpdate = onUpdate)
@@ -986,8 +945,8 @@ private fun AssistantMcpSettings(
 ) {
   McpPicker(
     modifier = Modifier
-      .fillMaxSize()
-      .padding(16.dp),
+        .fillMaxSize()
+        .padding(16.dp),
     assistant = assistant,
     servers = mcpServerConfigs,
     onUpdateAssistant = onUpdate,

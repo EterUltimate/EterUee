@@ -58,6 +58,7 @@ fun McpPickerButton(
   assistant: Assistant,
   servers: List<McpServerConfig>,
   mcpManager: McpManager,
+  modifier: Modifier = Modifier,
   onUpdateAssistant: (Assistant) -> Unit
 ) {
   var showMcpPicker by remember { mutableStateOf(false) }
@@ -81,13 +82,13 @@ fun McpPickerButton(
       onClick = {
         showMcpPicker = true
       },
-      modifier = Modifier
+      modifier = modifier
     ) {
       Box {
         if (loading) {
           CircularProgressIndicator(modifier = Modifier.size(24.dp))
         } else {
-          Icon(Lucide.Terminal, null)
+          Icon(imageVector = Lucide.Terminal, contentDescription = null)
         }
       }
     }
@@ -99,9 +100,9 @@ fun McpPickerButton(
     ) {
       Column(
         modifier = Modifier.Companion
-          .fillMaxWidth()
-          .fillMaxHeight(0.7f)
-          .padding(16.dp),
+            .fillMaxWidth()
+            .fillMaxHeight(0.7f)
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
       ) {
@@ -131,8 +132,8 @@ fun McpPickerButton(
             onUpdateAssistant(it)
           },
           modifier = Modifier
-            .fillMaxWidth()
-            .weight(1f)
+              .fillMaxWidth()
+              .weight(1f)
         )
       }
     }
@@ -156,8 +157,8 @@ fun McpPicker(
       Card {
         Row(
           modifier = Modifier
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .fillMaxWidth(),
+              .padding(horizontal = 16.dp, vertical = 8.dp)
+              .fillMaxWidth(),
           horizontalArrangement = Arrangement.spacedBy(16.dp),
           verticalAlignment = Alignment.CenterVertically,
         ) {

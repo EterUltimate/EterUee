@@ -97,6 +97,7 @@ import com.composables.icons.lucide.Image
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Search
+import com.composables.icons.lucide.Wand
 import com.composables.icons.lucide.X
 import com.meticha.permissions_compose.AppPermission
 import com.meticha.permissions_compose.rememberAppPermissionState
@@ -220,7 +221,8 @@ fun rememberChatInputState(
 
 enum class ExpandState {
   Collapsed,
-  Files
+  Files,
+  Actions
 }
 
 @Composable
@@ -480,50 +482,12 @@ fun ChatInput(
             .padding(4.dp),
         )
 
-        Surface(
+        IconButton(
           onClick = {
-            onToggleSearch(!enableSearch)
-          },
-          shape = RoundedCornerShape(50),
-          color = if (enableSearch) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
-        ) {
-          Row(
-            modifier = Modifier
-              .animateContentSize()
-              .padding(vertical = 4.dp, horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-          ) {
-            Icon(
-              Lucide.Search,
-              contentDescription = stringResource(R.string.use_web_search),
-              modifier = Modifier
-                .clip(CircleShape),
-              tint = if (enableSearch) MaterialTheme.colorScheme.onPrimaryContainer else LocalContentColor.current
-            )
+            expandToggle(ExpandState.Actions)
           }
-        }
-
-        if (settings.mcpServers.fastFilter { it.commonOptions.enable }.isNotEmpty()) {
-          McpPickerButton(
-            assistant = settings.getCurrentAssistant(),
-            servers = settings.mcpServers,
-            mcpManager = mcpManager,
-            onUpdateAssistant = {
-              onUpdateAssistant(it)
-            }
-          )
-        }
-
-        val model = settings.getCurrentChatModel()
-        if(model?.abilities?.contains(ModelAbility.REASONING) == true) {
-          val assistant = settings.getCurrentAssistant()
-          ReasoningButton(
-            reasoningTokens = assistant.thinkingBudget ?: 0,
-            onUpdateReasoningTokens = {
-              onUpdateAssistant(assistant.copy(thinkingBudget = it))
-            },
-            onlyIcon = true,
-          )
+        ) {
+          Icon(Lucide.Wand, "Actions")
         }
 
         MoreOptionsButton(
@@ -564,15 +528,72 @@ fun ChatInput(
         }
       }
 
-      // Files
-      AnimatedVisibility(
-        expand != ExpandState.Collapsed
-      ) {
-        Surface {
+      // Expanded content
+      AnimatedVisibility(expand != ExpandState.Collapsed) {
+        Surface(
+          modifier = Modifier
+            .fillMaxWidth()
+        ) {
           when (expand) {
             ExpandState.Files -> {
               FilesPicker(state) {
                 dismissExpand()
+              }
+            }
+
+            ExpandState.Actions -> {
+              FlowRow(
+                itemVerticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(8.dp)
+              ) {
+                // Search
+                Surface(
+                  onClick = {
+                    onToggleSearch(!enableSearch)
+                  },
+                  shape = RoundedCornerShape(50),
+                  color = if (enableSearch) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+                ) {
+                  Row(
+                    modifier = Modifier
+                      .padding(vertical = 4.dp, horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                  ) {
+                    Icon(
+                      imageVector = Lucide.Search,
+                      contentDescription = stringResource(R.string.use_web_search),
+                      modifier = Modifier
+                        .clip(CircleShape),
+                      tint = if (enableSearch) MaterialTheme.colorScheme.onPrimaryContainer else LocalContentColor.current,
+                    )
+                  }
+                }
+
+                // MCP
+                if (settings.mcpServers.fastFilter { it.commonOptions.enable }.isNotEmpty()) {
+                  McpPickerButton(
+                    assistant = settings.getCurrentAssistant(),
+                    servers = settings.mcpServers,
+                    mcpManager = mcpManager,
+                    onUpdateAssistant = {
+                      onUpdateAssistant(it)
+                    }
+                  )
+                }
+
+                // Reasoning
+                val model = settings.getCurrentChatModel()
+                if (model?.abilities?.contains(ModelAbility.REASONING) == true) {
+                  val assistant = settings.getCurrentAssistant()
+                  ReasoningButton(
+                    reasoningTokens = assistant.thinkingBudget ?: 0,
+                    onUpdateReasoningTokens = {
+                      onUpdateAssistant(assistant.copy(thinkingBudget = it))
+                    },
+                    onlyIcon = true,
+                  )
+                }
               }
             }
 

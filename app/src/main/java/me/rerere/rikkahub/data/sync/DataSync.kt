@@ -408,8 +408,10 @@ private fun WebDavConfig.requireCollection(path: String? = null): DavCollection 
   val location = buildString {
     append(this@requireCollection.url.trimEnd('/'))
     append("/")
-    append(this@requireCollection.path.trim('/'))
-    append("/")
+    if(this@requireCollection.path.isNotBlank()) {
+      append(this@requireCollection.path.trim('/'))
+      append("/")
+    }
     if (path != null) {
       append(path.trim('/'))
     }
@@ -423,10 +425,12 @@ private fun WebDavConfig.requireCollection(path: String? = null): DavCollection 
 
 private suspend fun DavCollection.ensureCollectionExists() = withContext(Dispatchers.IO) {
   try {
-    propfind(depth = 0) { response, relation ->
+    propfind(depth = 0, DisplayName.NAME) { response, relation ->
       Log.i(TAG, "ensureCollectionExists: $response $relation")
     }
   } catch (e: NotFoundException) {
+    e.printStackTrace()
+    Log.i(TAG, "ensureCollectionExists: ${this@ensureCollectionExists.location}")
     mkCol(null) { res ->
       Log.i(TAG, "ensureCollectionExists: $res")
     }

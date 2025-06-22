@@ -11,6 +11,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -39,24 +40,31 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -94,9 +102,12 @@ import com.composables.icons.lucide.Eraser
 import com.composables.icons.lucide.Files
 import com.composables.icons.lucide.Fullscreen
 import com.composables.icons.lucide.Image
+import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.LucideIcon
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Search
+import com.composables.icons.lucide.Terminal
 import com.composables.icons.lucide.Wand
 import com.composables.icons.lucide.X
 import com.meticha.permissions_compose.AppPermission
@@ -485,6 +496,14 @@ fun ChatInput(
         IconButton(
           onClick = {
             expandToggle(ExpandState.Actions)
+          },
+          colors = if (expand == ExpandState.Actions) {
+            IconButtonDefaults.filledIconButtonColors(
+              containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp),
+              contentColor = MaterialTheme.colorScheme.onSurface
+            )
+          } else {
+            IconButtonDefaults.iconButtonColors()
           }
         ) {
           Icon(Lucide.Wand, "Actions")
@@ -542,65 +561,107 @@ fun ChatInput(
             }
 
             ExpandState.Actions -> {
-              FlowRow(
-                itemVerticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(8.dp)
-              ) {
-                // Search
-                Surface(
-                  onClick = {
-                    onToggleSearch(!enableSearch)
-                  },
-                  shape = RoundedCornerShape(50),
-                  color = if (enableSearch) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
-                ) {
-                  Row(
-                    modifier = Modifier
-                      .padding(vertical = 4.dp, horizontal = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                  ) {
-                    Icon(
-                      imageVector = Lucide.Search,
-                      contentDescription = stringResource(R.string.use_web_search),
-                      modifier = Modifier
-                        .clip(CircleShape),
-                      tint = if (enableSearch) MaterialTheme.colorScheme.onPrimaryContainer else LocalContentColor.current,
-                    )
-                  }
-                }
-
-                // MCP
-                if (settings.mcpServers.fastFilter { it.commonOptions.enable }.isNotEmpty()) {
-                  McpPickerButton(
-                    assistant = settings.getCurrentAssistant(),
-                    servers = settings.mcpServers,
-                    mcpManager = mcpManager,
-                    onUpdateAssistant = {
-                      onUpdateAssistant(it)
-                    }
-                  )
-                }
-
-                // Reasoning
-                val model = settings.getCurrentChatModel()
-                if (model?.abilities?.contains(ModelAbility.REASONING) == true) {
-                  val assistant = settings.getCurrentAssistant()
-                  ReasoningButton(
-                    reasoningTokens = assistant.thinkingBudget ?: 0,
-                    onUpdateReasoningTokens = {
-                      onUpdateAssistant(assistant.copy(thinkingBudget = it))
-                    },
-                    onlyIcon = true,
-                  )
-                }
-              }
+              ChatActions(
+                onToggleSearch = onToggleSearch,
+                enableSearch = enableSearch,
+                settings = settings,
+                mcpManager = mcpManager,
+                onUpdateAssistant = onUpdateAssistant
+              )
             }
 
             else -> {}
           }
         }
       }
+    }
+  }
+}
+
+@Composable
+private fun ChatActions(
+  onToggleSearch: (Boolean) -> Unit,
+  enableSearch: Boolean,
+  settings: Settings,
+  mcpManager: McpManager,
+  onUpdateAssistant: (Assistant) -> Unit
+) {
+  Column(
+    modifier = Modifier
+      .padding(16.dp)
+      .fillMaxWidth(),
+    verticalArrangement = Arrangement.spacedBy(6.dp)
+  ) {
+    // Search
+    ChatActionItem(
+      title = {
+        Text(stringResource(R.string.use_web_search))
+      },
+      icon = {
+        Icon(
+          imageVector = Lucide.Search,
+          contentDescription = stringResource(R.string.use_web_search),
+        )
+      },
+      action = {
+        Switch(
+          checked = enableSearch,
+          onCheckedChange = {
+            onToggleSearch(it)
+          },
+          enabled = true,
+        )
+      }
+    )
+
+    // MCP
+    if (settings.mcpServers.fastFilter { it.commonOptions.enable }.isNotEmpty()) {
+      ChatActionItem(
+        title = {
+          Text("MCP")
+        },
+        icon = {
+          Icon(
+            imageVector = Lucide.Terminal,
+            contentDescription = stringResource(R.string.mcp_picker_title),
+          )
+        },
+        action = {
+          McpPickerButton(
+            assistant = settings.getCurrentAssistant(),
+            servers = settings.mcpServers,
+            mcpManager = mcpManager,
+            onUpdateAssistant = {
+              onUpdateAssistant(it)
+            },
+          )
+        }
+      )
+    }
+    // Reasoning
+    val model = settings.getCurrentChatModel()
+    if (model?.abilities?.contains(ModelAbility.REASONING) == true) {
+      val assistant = settings.getCurrentAssistant()
+      ChatActionItem(
+        icon = {
+          Icon(
+            imageVector = Lucide.Lightbulb,
+            contentDescription = null,
+          )
+        },
+        title = {
+          Text(stringResource(R.string.assistant_page_thinking_budget))
+        },
+        action = {
+          ReasoningButton(
+            reasoningTokens = assistant.thinkingBudget ?: 0,
+            onUpdateReasoningTokens = {
+              onUpdateAssistant(assistant.copy(thinkingBudget = it))
+            },
+            onlyIcon = true
+          )
+        }
+      )
     }
   }
 }
@@ -867,9 +928,47 @@ private fun BigIconTextButton(
   }
 }
 
+@Composable
+private fun ChatActionItem(
+  modifier: Modifier = Modifier,
+  icon: @Composable () -> Unit,
+  title: @Composable () -> Unit,
+  action: @Composable () -> Unit,
+) {
+  OutlinedCard {
+    Row(
+      modifier = modifier
+        .fillMaxWidth()
+        .padding(vertical = 4.dp, horizontal = 8.dp),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+      Box(
+        modifier = Modifier.size(32.dp),
+        contentAlignment = Alignment.Center
+      ) {
+        icon()
+      }
+      Column(
+        modifier = Modifier.weight(1f),
+        verticalArrangement = Arrangement.spacedBy(2.dp)
+      ) {
+        title()
+      }
+      Box(
+        modifier = Modifier
+          .padding(horizontal = 8.dp),
+        contentAlignment = Alignment.Center
+      ) {
+        action()
+      }
+    }
+  }
+}
+
 @Preview(showBackground = true)
 @Composable
-fun BigIconTextButtonPreview() {
+private fun BigIconTextButtonPreview() {
   Row(
     modifier = Modifier.padding(16.dp)
   ) {

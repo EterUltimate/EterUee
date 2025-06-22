@@ -322,6 +322,14 @@
   <string name="setting_provider_page_image_read_failed">画像を読み取れません</string>
   <string name="setting_provider_page_no_qr_found">有効なQRコードが見つかりません</string>
   <string name="setting_provider_page_image_qr_decode_failed">画像からのQRコード解析に失敗しました：%s</string>
+  <string name="setting_provider_page_enable">有効にする</string>
+  <string name="setting_provider_page_name">名前</string>
+  <string name="setting_provider_page_api_key">API Key</string>
+  <string name="setting_provider_page_api_base_url">API Base Url</string>
+  <string name="setting_provider_page_response_api">Response API</string>
+  <string name="setting_provider_page_vertex_ai">Vertex AI</string>
+  <string name="setting_provider_page_location">場所（例：us-central1）</string>
+  <string name="setting_provider_page_project_id">プロジェクト ID</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">記憶を作成しました</string>

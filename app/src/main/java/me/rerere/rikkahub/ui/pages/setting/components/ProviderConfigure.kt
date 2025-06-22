@@ -14,8 +14,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import me.rerere.ai.provider.ProviderSetting
+import me.rerere.rikkahub.R
 import kotlin.reflect.full.primaryConstructor
 
 @Composable
@@ -81,7 +83,7 @@ private fun ColumnScope.ProviderConfigureOpenAI(
   Row(
     verticalAlignment = Alignment.CenterVertically
   ) {
-    Text("是否启用", modifier = Modifier.weight(1f))
+    Text(stringResource(id = R.string.setting_provider_page_enable), modifier = Modifier.weight(1f))
     Checkbox(
       checked = provider.enabled,
       onCheckedChange = {
@@ -96,7 +98,7 @@ private fun ColumnScope.ProviderConfigureOpenAI(
       onEdit(provider.copy(name = it.trim()))
     },
     label = {
-      Text("名称")
+      Text(stringResource(id = R.string.setting_provider_page_name))
     },
     modifier = Modifier.fillMaxWidth(),
   )
@@ -107,7 +109,7 @@ private fun ColumnScope.ProviderConfigureOpenAI(
       onEdit(provider.copy(apiKey = it.trim()))
     },
     label = {
-      Text("API Key")
+      Text(stringResource(id = R.string.setting_provider_page_api_key))
     },
     modifier = Modifier.fillMaxWidth(),
     maxLines = 3,
@@ -119,7 +121,7 @@ private fun ColumnScope.ProviderConfigureOpenAI(
       onEdit(provider.copy(baseUrl = it.trim()))
     },
     label = {
-      Text("API Base Url")
+      Text(stringResource(id = R.string.setting_provider_page_api_base_url))
     },
     modifier = Modifier.fillMaxWidth()
   )
@@ -127,7 +129,7 @@ private fun ColumnScope.ProviderConfigureOpenAI(
   Row(
     verticalAlignment = Alignment.CenterVertically
   ) {
-    Text("Response API", modifier = Modifier.weight(1f))
+    Text(stringResource(id = R.string.setting_provider_page_response_api), modifier = Modifier.weight(1f))
     Checkbox(
       checked = provider.useResponseApi,
       onCheckedChange = {
@@ -147,7 +149,7 @@ private fun ColumnScope.ProviderConfigureClaude(
   Row(
     verticalAlignment = Alignment.CenterVertically
   ) {
-    Text("是否启用", modifier = Modifier.weight(1f))
+    Text(stringResource(id = R.string.setting_provider_page_enable), modifier = Modifier.weight(1f))
     Checkbox(
       checked = provider.enabled,
       onCheckedChange = {
@@ -162,7 +164,7 @@ private fun ColumnScope.ProviderConfigureClaude(
       onEdit(provider.copy(name = it.trim()))
     },
     label = {
-      Text("名称")
+      Text(stringResource(id = R.string.setting_provider_page_name))
     },
     modifier = Modifier.fillMaxWidth(),
     maxLines = 3,
@@ -174,7 +176,7 @@ private fun ColumnScope.ProviderConfigureClaude(
       onEdit(provider.copy(apiKey = it.trim()))
     },
     label = {
-      Text("API Key")
+      Text(stringResource(id = R.string.setting_provider_page_api_key))
     },
     modifier = Modifier.fillMaxWidth()
   )
@@ -185,7 +187,7 @@ private fun ColumnScope.ProviderConfigureClaude(
       onEdit(provider.copy(baseUrl = it.trim()))
     },
     label = {
-      Text("API Base Url")
+      Text(stringResource(id = R.string.setting_provider_page_api_base_url))
     },
     modifier = Modifier.fillMaxWidth()
   )
@@ -201,7 +203,7 @@ private fun ColumnScope.ProviderConfigureGoogle(
   Row(
     verticalAlignment = Alignment.CenterVertically
   ) {
-    Text("是否启用", modifier = Modifier.weight(1f))
+    Text(stringResource(id = R.string.setting_provider_page_enable), modifier = Modifier.weight(1f))
     Checkbox(
       checked = provider.enabled,
       onCheckedChange = {
@@ -216,7 +218,7 @@ private fun ColumnScope.ProviderConfigureGoogle(
       onEdit(provider.copy(name = it.trim()))
     },
     label = {
-      Text("名称")
+      Text(stringResource(id = R.string.setting_provider_page_name))
     },
     modifier = Modifier.fillMaxWidth()
   )
@@ -227,7 +229,7 @@ private fun ColumnScope.ProviderConfigureGoogle(
       onEdit(provider.copy(apiKey = it.trim()))
     },
     label = {
-      Text("API Key")
+      Text(stringResource(id = R.string.setting_provider_page_api_key))
     },
     modifier = Modifier.fillMaxWidth(),
     maxLines = 3,
@@ -240,7 +242,7 @@ private fun ColumnScope.ProviderConfigureGoogle(
         onEdit(provider.copy(baseUrl = it.trim()))
       },
       label = {
-        Text("API Base Url")
+        Text(stringResource(id = R.string.setting_provider_page_api_base_url))
       },
       modifier = Modifier.fillMaxWidth()
     )
@@ -249,7 +251,7 @@ private fun ColumnScope.ProviderConfigureGoogle(
   Row(
     verticalAlignment = Alignment.CenterVertically
   ) {
-    Text("Vertex AI", modifier = Modifier.weight(1f))
+    Text(stringResource(id = R.string.setting_provider_page_vertex_ai), modifier = Modifier.weight(1f))
     Checkbox(
       checked = provider.vertexAI,
       onCheckedChange = {
@@ -266,7 +268,7 @@ private fun ColumnScope.ProviderConfigureGoogle(
       },
       label = {
         // https://cloud.google.com/vertex-ai/generative-ai/docs/learn/locations#available-regions
-        Text("Location (e.g. us-central1)")
+        Text(stringResource(id = R.string.setting_provider_page_location))
       },
       modifier = Modifier.fillMaxWidth()
     )
@@ -276,7 +278,7 @@ private fun ColumnScope.ProviderConfigureGoogle(
         onEdit(provider.copy(projectId = it.trim()))
       },
       label = {
-        Text("Project Id")
+        Text(stringResource(id = R.string.setting_provider_page_project_id))
       },
       modifier = Modifier.fillMaxWidth()
     )

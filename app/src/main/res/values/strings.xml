@@ -328,6 +328,14 @@
   <string name="setting_provider_page_image_read_failed">Unable to read image</string>
   <string name="setting_provider_page_no_qr_found">No valid QR code found</string>
   <string name="setting_provider_page_image_qr_decode_failed">Failed to parse QR code from image: %s</string>
+  <string name="setting_provider_page_enable">Enable</string>
+  <string name="setting_provider_page_name">Name</string>
+  <string name="setting_provider_page_api_key">API Key</string>
+  <string name="setting_provider_page_api_base_url">API Base Url</string>
+  <string name="setting_provider_page_response_api">Response API</string>
+  <string name="setting_provider_page_vertex_ai">Vertex AI</string>
+  <string name="setting_provider_page_location">Location (e.g. us-central1)</string>
+  <string name="setting_provider_page_project_id">Project Id</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">Created memory</string>

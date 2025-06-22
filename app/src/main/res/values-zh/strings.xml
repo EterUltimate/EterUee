@@ -329,6 +329,14 @@
   <string name="setting_provider_page_image_read_failed">无法读取图片</string>
   <string name="setting_provider_page_no_qr_found">未找到有效的二维码</string>
   <string name="setting_provider_page_image_qr_decode_failed">解析图片中的二维码失败：%s</string>
+  <string name="setting_provider_page_enable">是否启用</string>
+  <string name="setting_provider_page_name">名称</string>
+  <string name="setting_provider_page_api_key">API Key</string>
+  <string name="setting_provider_page_api_base_url">API Base Url</string>
+  <string name="setting_provider_page_response_api">Response API</string>
+  <string name="setting_provider_page_vertex_ai">Vertex AI</string>
+  <string name="setting_provider_page_location">位置（例如 us-central1）</string>
+  <string name="setting_provider_page_project_id">项目 ID</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">创建了记忆</string>

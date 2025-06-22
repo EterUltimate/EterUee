@@ -325,6 +325,14 @@
   <string name="setting_provider_page_image_read_failed">無法讀取圖片</string>
   <string name="setting_provider_page_no_qr_found">未找到有效的二維碼</string>
   <string name="setting_provider_page_image_qr_decode_failed">解析圖片中的二維碼失敗：%s</string>
+  <string name="setting_provider_page_enable">是否啟用</string>
+  <string name="setting_provider_page_name">名稱</string>
+  <string name="setting_provider_page_api_key">API Key</string>
+  <string name="setting_provider_page_api_base_url">API Base Url</string>
+  <string name="setting_provider_page_response_api">Response API</string>
+  <string name="setting_provider_page_vertex_ai">Vertex AI</string>
+  <string name="setting_provider_page_location">位置（例如 us-central1）</string>
+  <string name="setting_provider_page_project_id">專案 ID</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">創建了記憶</string>

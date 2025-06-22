@@ -317,6 +317,14 @@
   <string name="setting_provider_page_test_connection">測試連接</string>
   <string name="setting_provider_page_test_success">測試成功</string>
   <string name="setting_provider_page_test">測試</string>
+  <string name="setting_provider_page_import_dialog_title">匯入供應商配置</string>
+  <string name="setting_provider_page_import_dialog_message">請選擇匯入方式：</string>
+  <string name="setting_provider_page_scan_qr_code">掃描二維碼</string>
+  <string name="setting_provider_page_select_from_gallery">從相簿選擇</string>
+  <string name="setting_provider_page_qr_decode_failed">解析二維碼失敗：%s</string>
+  <string name="setting_provider_page_image_read_failed">無法讀取圖片</string>
+  <string name="setting_provider_page_no_qr_found">未找到有效的二維碼</string>
+  <string name="setting_provider_page_image_qr_decode_failed">解析圖片中的二維碼失敗：%s</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">創建了記憶</string>

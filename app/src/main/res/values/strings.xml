@@ -320,6 +320,14 @@
   <string name="setting_provider_page_test_connection">Test Connection</string>
   <string name="setting_provider_page_test_success">Test Successful</string>
   <string name="setting_provider_page_test">Test</string>
+  <string name="setting_provider_page_import_dialog_title">Import Provider Configuration</string>
+  <string name="setting_provider_page_import_dialog_message">Please select import method:</string>
+  <string name="setting_provider_page_scan_qr_code">Scan QR Code</string>
+  <string name="setting_provider_page_select_from_gallery">Select from Gallery</string>
+  <string name="setting_provider_page_qr_decode_failed">Failed to parse QR code: %s</string>
+  <string name="setting_provider_page_image_read_failed">Unable to read image</string>
+  <string name="setting_provider_page_no_qr_found">No valid QR code found</string>
+  <string name="setting_provider_page_image_qr_decode_failed">Failed to parse QR code from image: %s</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">Created memory</string>

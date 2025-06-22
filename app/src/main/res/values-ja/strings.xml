@@ -314,6 +314,14 @@
   <string name="setting_provider_page_test_connection">接続テスト</string>
   <string name="setting_provider_page_test_success">テスト成功</string>
   <string name="setting_provider_page_test">テスト</string>
+  <string name="setting_provider_page_import_dialog_title">プロバイダー設定をインポート</string>
+  <string name="setting_provider_page_import_dialog_message">インポート方法を選択してください：</string>
+  <string name="setting_provider_page_scan_qr_code">QRコードをスキャン</string>
+  <string name="setting_provider_page_select_from_gallery">ギャラリーから選択</string>
+  <string name="setting_provider_page_qr_decode_failed">QRコードの解析に失敗しました：%s</string>
+  <string name="setting_provider_page_image_read_failed">画像を読み取れません</string>
+  <string name="setting_provider_page_no_qr_found">有効なQRコードが見つかりません</string>
+  <string name="setting_provider_page_image_qr_decode_failed">画像からのQRコード解析に失敗しました：%s</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">記憶を作成しました</string>

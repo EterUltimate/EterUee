@@ -139,6 +139,7 @@ import me.rerere.rikkahub.utils.createChatFilesByContents
 import me.rerere.rikkahub.utils.deleteChatFiles
 import me.rerere.rikkahub.utils.getFileNameFromUri
 import java.io.File
+import kotlin.math.exp
 import kotlin.uuid.Uuid
 
 @Serializable
@@ -439,6 +440,9 @@ fun ChatInput(
               .contentReceiver(receiveContentListener)
               .onFocusChanged {
                 isFocused = it.isFocused
+                if(isFocused) {
+                  expand = ExpandState.Collapsed
+                }
               }
               .clearFocusOnKeyboardDismiss(),
             shape = RoundedCornerShape(32.dp),

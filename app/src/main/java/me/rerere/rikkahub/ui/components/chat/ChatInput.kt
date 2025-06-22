@@ -537,6 +537,7 @@ fun ChatInput(
 
         IconButton(
           onClick = {
+            expand = ExpandState.Collapsed
             sendMessage()
           },
           colors = IconButtonDefaults.filledIconButtonColors(

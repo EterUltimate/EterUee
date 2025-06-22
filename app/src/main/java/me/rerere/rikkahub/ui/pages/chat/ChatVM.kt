@@ -273,7 +273,8 @@ class ChatVM(
       // 如果截断在最后一个索引，则取消截断，否则更新 truncateIndex 到最后一个截断位置
       val newConversation = conversation.value.copy(
         truncateIndex = if (conversation.value.truncateIndex == lastTruncateIndex) -1 else lastTruncateIndex,
-        title = ""
+        title = "",
+        chatSuggestions = emptyList(), // 清空建议
       )
       saveConversation(newConversation)
     }

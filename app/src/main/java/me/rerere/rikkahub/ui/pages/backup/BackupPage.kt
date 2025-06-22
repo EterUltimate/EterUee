@@ -715,7 +715,7 @@ private fun ImportExportPage(
 
     stickyHeader {
       StickyHeader {
-        Text("从其他应用导入备份")
+        Text(stringResource(R.string.backup_page_import_from_other_app))
       }
     }
 

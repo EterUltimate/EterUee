@@ -30,9 +30,9 @@ class BackupVM(
   private val dataSync: DataSync,
 ) : ViewModel() {
   val settings = settingsStore.settingsFlow.stateIn(
-    viewModelScope,
-    SharingStarted.Eagerly,
-    Settings()
+    scope = viewModelScope,
+    started = SharingStarted.Eagerly,
+    initialValue = Settings()
   )
 
   val backupFileItems = MutableStateFlow<UiState<List<BackupFileItem>>>(UiState.Idle)

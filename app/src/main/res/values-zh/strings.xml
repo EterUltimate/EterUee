@@ -321,6 +321,14 @@
   <string name="setting_provider_page_test_connection">测试连接</string>
   <string name="setting_provider_page_test_success">测试成功</string>
   <string name="setting_provider_page_test">测试</string>
+  <string name="setting_provider_page_import_dialog_title">导入供应商配置</string>
+  <string name="setting_provider_page_import_dialog_message">请选择导入方式：</string>
+  <string name="setting_provider_page_scan_qr_code">扫描二维码</string>
+  <string name="setting_provider_page_select_from_gallery">从相册选择</string>
+  <string name="setting_provider_page_qr_decode_failed">解析二维码失败：%s</string>
+  <string name="setting_provider_page_image_read_failed">无法读取图片</string>
+  <string name="setting_provider_page_no_qr_found">未找到有效的二维码</string>
+  <string name="setting_provider_page_image_qr_decode_failed">解析图片中的二维码失败：%s</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">创建了记忆</string>

@@ -1,10 +1,13 @@
 package me.rerere.ai.core
 
-enum class ReasoningLevel(val budgetTokens: Int) {
-  OFF(0),
-  LOW(1024),
-  MEDIUM(16_000),
-  HIGH(32_000);
+enum class ReasoningLevel(
+  val budgetTokens: Int,
+  val effort: String
+) {
+  OFF(0, "low"),
+  LOW(1024, "low"),
+  MEDIUM(16_000, "medium"),
+  HIGH(32_000, "high");
 
   companion object {
     fun fromBudgetTokens(budgetTokens: Int): ReasoningLevel {

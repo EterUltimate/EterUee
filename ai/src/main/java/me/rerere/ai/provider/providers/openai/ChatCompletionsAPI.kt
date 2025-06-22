@@ -22,6 +22,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import me.rerere.ai.core.MessageRole
+import me.rerere.ai.core.ReasoningLevel
 import me.rerere.ai.core.TokenUsage
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
@@ -37,6 +38,7 @@ import me.rerere.ai.util.json
 import me.rerere.ai.util.mergeCustomBody
 import me.rerere.ai.util.parseErrorDetail
 import me.rerere.ai.util.toHeaders
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -55,7 +57,11 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
     params: TextGenerationParams,
   ): MessageChunk = withContext(Dispatchers.IO) {
     val requestBody =
-      buildChatCompletionRequest(messages, params)
+      buildChatCompletionRequest(
+        messages = messages,
+        params = params,
+        providerSetting = providerSetting
+      )
     val request = Request.Builder()
       .url("${providerSetting.baseUrl}/chat/completions")
       .headers(params.customHeaders.toHeaders())
@@ -106,8 +112,9 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
     params: TextGenerationParams,
   ): Flow<MessageChunk> = callbackFlow {
     val requestBody = buildChatCompletionRequest(
-      messages,
-      params,
+      messages = messages,
+      params = params,
+      providerSetting = providerSetting,
       stream = true,
     )
     val request = Request.Builder()
@@ -220,6 +227,7 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
   private fun buildChatCompletionRequest(
     messages: List<UIMessage>,
     params: TextGenerationParams,
+    providerSetting: ProviderSetting.OpenAI,
     stream: Boolean = false,
   ): JsonObject {
     return buildJsonObject {
@@ -237,6 +245,44 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
           put("include_usage", true)
         })
       }
+
+      if (params.model.abilities.contains(ModelAbility.REASONING)) {
+        val level = ReasoningLevel.fromBudgetTokens(params.thinkingBudget ?: 0)
+        val host = providerSetting.baseUrl.toHttpUrl().host
+        Log.i(TAG, "buildChatCompletionRequest: $host")
+        when(host) {
+          "openrouter.ai" -> {
+            // https://openrouter.ai/docs/use-cases/reasoning-tokens
+            put("reasoning", buildJsonObject {
+              put("max_tokens", params.thinkingBudget ?: 0)
+              if((params.thinkingBudget ?: 0) == 0) {
+                put("enabled", false)
+              }
+            })
+          }
+
+          "dashscope.aliyuncs.com" -> {
+            // 阿里云百炼
+            // https://bailian.console.aliyun.com/console?tab=doc#/doc/?type=model&url=https%3A%2F%2Fhelp.aliyun.com%2Fdocument_detail%2F2870973.html&renderType=iframe
+            put("enable_thinking", level != ReasoningLevel.OFF)
+            put("thinking_budget", params.thinkingBudget ?: 0)
+          }
+
+          "ark.cn-beijing.volces.com" -> {
+            // 豆包 (火山)
+            put("thinking", buildJsonObject {
+              put("type", if (level == ReasoningLevel.OFF) "disabled" else "enabled")
+            })
+          }
+
+          else -> {
+            // OpenAI 官方
+            // OpenAI 官方 文档中，只支持 "low", "medium", "high"
+            put("reasoning_effort", level.effort)
+          }
+        }
+      }
+
       if (params.model.abilities.contains(ModelAbility.TOOL) && params.tools.isNotEmpty()) {
         putJsonArray("tools") {
           params.tools.forEach { tool ->

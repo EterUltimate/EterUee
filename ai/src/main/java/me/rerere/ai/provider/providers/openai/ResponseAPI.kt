@@ -19,6 +19,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import me.rerere.ai.core.MessageRole
+import me.rerere.ai.core.ReasoningLevel
 import me.rerere.ai.core.TokenUsage
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
@@ -179,9 +180,10 @@ class ResponseAPI(private val client: OkHttpClient) : OpenAIImpl {
 
       // reasoning
       if (params.model.abilities.contains(ModelAbility.REASONING)) {
+        val level = ReasoningLevel.fromBudgetTokens(params.thinkingBudget ?: 0)
         put("reasoning", buildJsonObject {
           put("summary", "auto")
-          put("effort", "medium")
+          put("effort", level.effort)
         })
       }
 

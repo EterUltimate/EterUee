@@ -23,6 +23,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import me.rerere.ai.core.MessageRole
+import me.rerere.ai.core.ReasoningLevel
 import me.rerere.ai.core.TokenUsage
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
@@ -286,10 +287,15 @@ object ClaudeProvider : Provider<ProviderSetting.Claude> {
       }
 
       // 处理 thinking budget
-      if (params.thinkingBudget != null && params.thinkingBudget > 0) {
+      if (params.model.abilities.contains(ModelAbility.REASONING)) {
+        val level = ReasoningLevel.fromBudgetTokens(params.thinkingBudget ?: 0)
         put("thinking", buildJsonObject {
-          put("type", "enabled")
-          put("budget_tokens", params.thinkingBudget)
+          if(level == ReasoningLevel.OFF) {
+            put("type", "disabled")
+          } else {
+            put("type", "enabled")
+            put("budget_tokens", params.thinkingBudget)
+          }
         })
       }
 

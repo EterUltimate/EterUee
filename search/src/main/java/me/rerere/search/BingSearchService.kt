@@ -39,7 +39,7 @@ object BingSearchService : SearchService<SearchServiceOptions.BingLocalOptions> 
       val doc = Jsoup.connect(url)
         .userAgent("Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.15 (KHTML, like Gecko) Chrome/24.0.1295.0 Safari/537.15")
         .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
-        .header("Accept-Language", acceptLanguage) // 👈 Dynamic language header 动态语言头部
+        .header("Accept-Language", acceptLanguage) // Dynamic language header 动态语言头部
         .header("Accept-Encoding", "gzip, deflate, sdch")
         .header("Accept-Charset", "utf-8")
         .header("Connection", "keep-alive")
@@ -67,7 +67,6 @@ object BingSearchService : SearchService<SearchServiceOptions.BingLocalOptions> 
       require(results.isNotEmpty()) {
         "Search failed: no results found"
         // "搜索失败：没有找到结果"
-        //"Échec de la recherche : aucun résultat trouvé"
       }
 
       // Return the result list

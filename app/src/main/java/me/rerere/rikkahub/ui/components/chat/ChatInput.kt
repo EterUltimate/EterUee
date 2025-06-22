@@ -20,6 +20,7 @@ import androidx.compose.foundation.content.ReceiveContentListener
 import androidx.compose.foundation.content.consume
 import androidx.compose.foundation.content.contentReceiver
 import androidx.compose.foundation.content.hasMediaType
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -132,6 +133,7 @@ import me.rerere.rikkahub.data.datastore.getCurrentChatModel
 import me.rerere.rikkahub.data.mcp.McpManager
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.ui.components.ui.KeepScreenOn
+import me.rerere.rikkahub.ui.modifier.clearFocusOnKeyboardDismiss
 import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.createChatFilesByContents
 import me.rerere.rikkahub.utils.deleteChatFiles
@@ -437,7 +439,8 @@ fun ChatInput(
               .contentReceiver(receiveContentListener)
               .onFocusChanged {
                 isFocused = it.isFocused
-              },
+              }
+              .clearFocusOnKeyboardDismiss(),
             shape = RoundedCornerShape(32.dp),
             placeholder = {
               Text(stringResource(R.string.chat_input_placeholder))
@@ -548,30 +551,28 @@ fun ChatInput(
       }
 
       // Expanded content
-      AnimatedVisibility(expand != ExpandState.Collapsed) {
+      AnimatedVisibility(expand == ExpandState.Files) {
         Surface(
           modifier = Modifier
             .fillMaxWidth()
         ) {
-          when (expand) {
-            ExpandState.Files -> {
-              FilesPicker(state) {
-                dismissExpand()
-              }
-            }
-
-            ExpandState.Actions -> {
-              ChatActions(
-                onToggleSearch = onToggleSearch,
-                enableSearch = enableSearch,
-                settings = settings,
-                mcpManager = mcpManager,
-                onUpdateAssistant = onUpdateAssistant
-              )
-            }
-
-            else -> {}
+          FilesPicker(state) {
+            dismissExpand()
           }
+        }
+      }
+      AnimatedVisibility(expand == ExpandState.Actions) {
+        Surface(
+          modifier = Modifier
+            .fillMaxWidth()
+        ) {
+          ChatActions(
+            onToggleSearch = onToggleSearch,
+            enableSearch = enableSearch,
+            settings = settings,
+            mcpManager = mcpManager,
+            onUpdateAssistant = onUpdateAssistant,
+          )
         }
       }
     }

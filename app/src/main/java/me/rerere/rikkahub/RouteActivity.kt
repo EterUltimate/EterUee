@@ -69,6 +69,7 @@ import me.rerere.rikkahub.ui.pages.setting.SettingDisplayPage
 import me.rerere.rikkahub.ui.pages.setting.SettingMcpPage
 import me.rerere.rikkahub.ui.pages.setting.SettingModelPage
 import me.rerere.rikkahub.ui.pages.setting.SettingPage
+import me.rerere.rikkahub.ui.pages.setting.SettingProviderDetailPage
 import me.rerere.rikkahub.ui.pages.setting.SettingProviderPage
 import me.rerere.rikkahub.ui.pages.setting.SettingSearchPage
 import me.rerere.rikkahub.ui.pages.share.handler.ShareHandlerPage
@@ -273,6 +274,11 @@ class RouteActivity : ComponentActivity() {
 
           composableHelper("setting/provider") {
             SettingProviderPage()
+          }
+
+          composableHelper("setting/provider/{providerId}") {
+            val id = Uuid.parse(checkNotNull(it.arguments?.getString("providerId")))
+            SettingProviderDetailPage(id = id)
           }
 
           composableHelper("setting/models") {

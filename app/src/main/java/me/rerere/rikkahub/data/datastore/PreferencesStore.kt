@@ -1,6 +1,13 @@
 package me.rerere.rikkahub.data.datastore
 
 import android.content.Context
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.datastore.core.IOException
 import androidx.datastore.preferences.SharedPreferencesMigration
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -368,6 +375,26 @@ private val DEFAULT_PROVIDERS = listOf(
     apiKey = "",
     enabled = false,
     builtIn = true
+  ),
+  ProviderSetting.OpenAI(
+    id = Uuid.parse("89e67540-32fe-4c62-9970-2e9aed9bd59d"),
+    name = "JuheNext",
+    baseUrl = "https://api.juheai.top/v1",
+    apiKey = "",
+    enabled = false,
+    builtIn = true,
+    description = {
+      Text(
+        text = buildAnnotatedString {
+          append("一站式API中转平台, 官网：")
+          withLink(LinkAnnotation.Url("https://api.juheai.top")) {
+            withStyle(SpanStyle(MaterialTheme.colorScheme.primary)) {
+              append("https://api.juheai.top")
+            }
+          }
+        }
+      )
+    }
   ),
   ProviderSetting.OpenAI(
     id = Uuid.parse("ef5d149b-8e34-404b-818c-6ec242e5c3c5"),

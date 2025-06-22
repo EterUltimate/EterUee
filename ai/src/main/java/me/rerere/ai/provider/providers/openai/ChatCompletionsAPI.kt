@@ -230,6 +230,7 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
     providerSetting: ProviderSetting.OpenAI,
     stream: Boolean = false,
   ): JsonObject {
+    val host = providerSetting.baseUrl.toHttpUrl().host
     return buildJsonObject {
       put("model", params.model.modelId)
       put("messages", buildMessages(messages))
@@ -241,15 +242,15 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
 
       put("stream", stream)
       if (stream) {
-        put("stream_options", buildJsonObject {
-          put("include_usage", true)
-        })
+        if(host != "api.mistral.ai") { // mistral 不支持 stream_options
+          put("stream_options", buildJsonObject {
+            put("include_usage", true)
+          })
+        }
       }
 
       if (params.model.abilities.contains(ModelAbility.REASONING)) {
         val level = ReasoningLevel.fromBudgetTokens(params.thinkingBudget ?: 0)
-        val host = providerSetting.baseUrl.toHttpUrl().host
-        Log.i(TAG, "buildChatCompletionRequest: $host")
         when(host) {
           "openrouter.ai" -> {
             // https://openrouter.ai/docs/use-cases/reasoning-tokens
@@ -273,6 +274,10 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
             put("thinking", buildJsonObject {
               put("type", if (level == ReasoningLevel.OFF) "disabled" else "enabled")
             })
+          }
+
+          "api.mistral.ai" -> {
+            // Mistral 不支持
           }
 
           else -> {

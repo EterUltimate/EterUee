@@ -120,25 +120,24 @@ class RouteActivity : ComponentActivity() {
     }
   }
 
-    @Composable
-    private fun ShareHandler(navController: NavHostController) {
-        val shareIntent = remember {
-            Intent().apply {
-                action = intent?.action
-                putExtra(Intent.EXTRA_TEXT, intent?.getStringExtra(Intent.EXTRA_TEXT))
-            }
-        }
-
-        LaunchedEffect(navController) {
-            if (shareIntent.action == Intent.ACTION_SEND) {
-                val text = shareIntent.getStringExtra(Intent.EXTRA_TEXT)
-                if (text != null) {
-                    navController.navigate("share/handler?text=${text.base64Encode()}")
-                }
-            }
-        }
+  @Composable
+  private fun ShareHandler(navController: NavHostController) {
+    val shareIntent = remember {
+      Intent().apply {
+        action = intent?.action
+        putExtra(Intent.EXTRA_TEXT, intent?.getStringExtra(Intent.EXTRA_TEXT))
+      }
     }
 
+    LaunchedEffect(navController) {
+      if (shareIntent.action == Intent.ACTION_SEND) {
+        val text = shareIntent.getStringExtra(Intent.EXTRA_TEXT)
+        if (text != null) {
+          navController.navigate("share/handler?text=${text.base64Encode()}")
+        }
+      }
+    }
+  }
 
   @Composable
   fun AppRoutes(navController: NavHostController) {
@@ -160,8 +159,8 @@ class RouteActivity : ComponentActivity() {
         )
         NavHost(
           modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+              .fillMaxSize()
+              .background(MaterialTheme.colorScheme.background),
           navController = navController,
           startDestination = rememberSaveable { "chat/${Uuid.random()}" },
           enterTransition = {

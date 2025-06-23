@@ -24,7 +24,6 @@ object BingSearchService : SearchService<SearchServiceOptions.BingLocalOptions> 
     serviceOptions: SearchServiceOptions.BingLocalOptions
   ): Result<SearchResult> = withContext(Dispatchers.IO) {
     runCatching {
-      // jsoup
       val url = "https://www.bing.com/search?q=" + URLEncoder.encode(query, "UTF-8")
       val locale = Locale.getDefault()
       val acceptLanguage = "${locale.language}-${locale.country},${locale.language}"
@@ -48,7 +47,6 @@ object BingSearchService : SearchService<SearchServiceOptions.BingLocalOptions> 
         val title = element.select("h2").text()
         val link = element.select("h2 > a").attr("href")
         val snippet = element.select(".b_caption p").text()
-        // 你可以根据你的 SearchResult 结构体调整
         SearchResultItem(
           title = title,
           url = link,

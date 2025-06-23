@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
@@ -119,19 +120,25 @@ class RouteActivity : ComponentActivity() {
     }
   }
 
-  @Composable
-  private fun ShareHandler(navController: NavHostController) {
-    LaunchedEffect(navController) {
-      when (intent.action) {
-        Intent.ACTION_SEND -> {
-          val text = intent.getStringExtra(Intent.EXTRA_TEXT)
-          if (text != null) {
-            navController.navigate("share/handler?text=${text.base64Encode()}")
-          }
+    @Composable
+    private fun ShareHandler(navController: NavHostController) {
+        val shareIntent = remember {
+            Intent().apply {
+                action = intent?.action
+                putExtra(Intent.EXTRA_TEXT, intent?.getStringExtra(Intent.EXTRA_TEXT))
+            }
         }
-      }
+
+        LaunchedEffect(navController) {
+            if (shareIntent.action == Intent.ACTION_SEND) {
+                val text = shareIntent.getStringExtra(Intent.EXTRA_TEXT)
+                if (text != null) {
+                    navController.navigate("share/handler?text=${text.base64Encode()}")
+                }
+            }
+        }
     }
-  }
+
 
   @Composable
   fun AppRoutes(navController: NavHostController) {

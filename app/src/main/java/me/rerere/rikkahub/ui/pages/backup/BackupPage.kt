@@ -114,7 +114,7 @@ fun BackupPage(vm: BackupVM = koinViewModel()) {
             Text(stringResource(R.string.backup_page_webdav_backup))
           },
           onClick = {
-            scope.launch { pagerState.scrollToPage(0) }
+            scope.launch { pagerState.animateScrollToPage(0) }
           },
         )
         NavigationBarItem(
@@ -126,7 +126,7 @@ fun BackupPage(vm: BackupVM = koinViewModel()) {
             Text(stringResource(R.string.backup_page_import_export))
           },
           onClick = {
-            scope.launch { pagerState.scrollToPage(1) }
+            scope.launch { pagerState.animateScrollToPage(1) }
           },
         )
       }

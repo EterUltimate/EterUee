@@ -12,8 +12,11 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -34,6 +37,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.TextUnitType
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -46,6 +50,7 @@ fun ViewText(
   style: TextStyle = LocalTextStyle.current,
 ) {
   val density = LocalDensity.current
+  val mergedStyle = style.merge(LocalContentColor.current)
   AndroidView(
     factory = { context ->
       TextView(context).apply {
@@ -55,12 +60,13 @@ fun ViewText(
         )
         movementMethod = LinkMovementMethod.getInstance()
         setText(text)
-        setComposeTextStyle(density, style)
+        setComposeTextStyle(density, mergedStyle)
       }
     },
     modifier = modifier,
     update = { view ->
-      view.setComposeTextStyle(density, style)
+      view.setComposeTextStyle(density, mergedStyle)
+      view.text = text
     }
   )
 }
@@ -69,10 +75,10 @@ fun ViewText(
 @Composable
 private fun TextViewPreview() {
   MaterialTheme {
-    Column {
-      val style = MaterialTheme.typography.bodyMedium.merge(
-        color = Color.Red,
-      )
+    Column(
+      verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+      val style = MaterialTheme.typography.bodyMedium
       Text(
         text = buildAnnotatedString {
           append("How many roads must a man walk down How many roads must a man walk downHow many roads must a man walk down")
@@ -83,6 +89,8 @@ private fun TextViewPreview() {
         },
         style = style,
       )
+
+      HorizontalDivider()
 
       // AndroidView TextView 复刻版本
       // 创建 SpannableString 来复刻 AnnotatedString 的效果

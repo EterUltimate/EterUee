@@ -20,7 +20,7 @@ fun MathInline(
   modifier: Modifier = Modifier,
   fontSize: TextUnit = TextUnit.Unspecified
 ) {
-  val proceededLatex = processLatex(latex)
+  val proceededLatex = latex
   LatexText(
     latex = proceededLatex,
     color = LocalContentColor.current,
@@ -35,7 +35,7 @@ fun MathBlock(
   modifier: Modifier = Modifier,
   fontSize: TextUnit = TextUnit.Unspecified
 ) {
-  val proceededLatex = processLatex(latex)
+  val proceededLatex = latex
   Box(
     modifier = modifier.padding(8.dp)
   ) {
@@ -44,35 +44,10 @@ fun MathBlock(
       color = LocalContentColor.current,
       fontSize = fontSize.takeOrElse { MaterialTheme.typography.bodyLarge.fontSize },
       modifier = Modifier
-        .align(Alignment.Center)
-        .horizontalScroll(
-          rememberScrollState()
-        ),
+          .align(Alignment.Center)
+          .horizontalScroll(
+              rememberScrollState()
+          ),
     )
-  }
-}
-
-
-private val inlineDollarRegex = Regex("""^\$(.*?)\$""", RegexOption.DOT_MATCHES_ALL)
-private val displayDollarRegex = Regex("""^\$\$(.*?)\$\$""", RegexOption.DOT_MATCHES_ALL)
-private val inlineParenRegex = Regex("""^\\\((.*?)\\\)""", RegexOption.DOT_MATCHES_ALL)
-private val displayBracketRegex = Regex("""^\\\[(.*?)\\\]""", RegexOption.DOT_MATCHES_ALL)
-
-private fun processLatex(latex: String): String {
-  val trimmed = latex.trim()
-  return when {
-    displayDollarRegex.matches(trimmed) ->
-      displayDollarRegex.find(trimmed)?.groupValues?.get(1)?.trim() ?: trimmed
-
-    inlineDollarRegex.matches(trimmed) ->
-      inlineDollarRegex.find(trimmed)?.groupValues?.get(1)?.trim() ?: trimmed
-
-    displayBracketRegex.matches(trimmed) ->
-      displayBracketRegex.find(trimmed)?.groupValues?.get(1)?.trim() ?: trimmed
-
-    inlineParenRegex.matches(trimmed) ->
-      inlineParenRegex.find(trimmed)?.groupValues?.get(1)?.trim() ?: trimmed
-
-    else -> trimmed
   }
 }

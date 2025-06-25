@@ -43,13 +43,12 @@ fun LatexText(
   val drawable = remember(latex, fontSize, style) {
     runCatching {
       with(density) {
-        JLatexMathDrawable.builder(latex)
-          .textSize(style.fontSize.toPx())
-          .background(style.background.toArgb())
-          .padding(0)
-          .color(style.color.toArgb())
-          .align(JLatexMathDrawable.ALIGN_LEFT)
-          .build()
+        getLatexDrawable(
+            latex = processLatex(latex),
+            fontSize = fontSize.toPx(),
+            color = style.color.toArgb(),
+            background = style.background.toArgb()
+        )
       }
     }.onFailure {
       it.printStackTrace()
@@ -74,5 +73,48 @@ fun LatexText(
       style = style,
       modifier = modifier
     )
+  }
+}
+
+fun getLatexDrawable(
+  latex: String,
+  fontSize: Float,
+  color: Int,
+  background: Int
+): JLatexMathDrawable? {
+  return runCatching {
+    JLatexMathDrawable.builder(processLatex(latex))
+      .textSize(fontSize)
+      .color(color)
+      .background(background)
+      .padding(0)
+      .align(JLatexMathDrawable.ALIGN_LEFT)
+      .build()
+  }.onFailure {
+    it.printStackTrace()
+  }.getOrNull()
+}
+
+private val inlineDollarRegex = Regex("""^\$(.*?)\$""", RegexOption.DOT_MATCHES_ALL)
+private val displayDollarRegex = Regex("""^\$\$(.*?)\$\$""", RegexOption.DOT_MATCHES_ALL)
+private val inlineParenRegex = Regex("""^\\\((.*?)\\\)""", RegexOption.DOT_MATCHES_ALL)
+private val displayBracketRegex = Regex("""^\\\[(.*?)\\\]""", RegexOption.DOT_MATCHES_ALL)
+
+private fun processLatex(latex: String): String {
+  val trimmed = latex.trim()
+  return when {
+    displayDollarRegex.matches(trimmed) ->
+      displayDollarRegex.find(trimmed)?.groupValues?.get(1)?.trim() ?: trimmed
+
+    inlineDollarRegex.matches(trimmed) ->
+      inlineDollarRegex.find(trimmed)?.groupValues?.get(1)?.trim() ?: trimmed
+
+    displayBracketRegex.matches(trimmed) ->
+      displayBracketRegex.find(trimmed)?.groupValues?.get(1)?.trim() ?: trimmed
+
+    inlineParenRegex.matches(trimmed) ->
+      inlineParenRegex.find(trimmed)?.groupValues?.get(1)?.trim() ?: trimmed
+
+    else -> trimmed
   }
 }

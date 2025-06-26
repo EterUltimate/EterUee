@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">RikkaHub</string>
+  <string name="chat_input_placeholder">Digite uma mensagem para conversar com a IA</string>
+  <string name="editing">Editando</string>
+  <string name="cancel_edit">Cancelar edição</string>
+  <string name="stop">Parar</string>
+  <string name="send">Enviar</string>
+  <string name="more_options">Mais opções</string>
+  <string name="use_web_search">Usar pesquisa na web</string>
+  <string name="photo">Foto</string>
+  <string name="take_picture">Tirar foto</string>
+  <string name="copy">Copiar</string>
+  <string name="regenerate">Regenerar</string>
+  <string name="edit">Editar</string>
+  <string name="tts">Voz</string>
+  <string name="deep_thinking">Pensamento profundo</string>
+  <string name="citations_count">%1$d citações</string>
+  <string name="back">Voltar</string>
+  <string name="settings">Configurações</string>
+  <string name="confirm">Confirmar</string>
+  <string name="cancel">Cancelar</string>
+  <string name="confirm_delete">Confirmar exclusão</string>
+  <string name="delete">Excluir</string>
+  <string name="tools_warning">O modelo atual não tem chamada de ferramentas ativada, por favor, habilite a capacidade de ferramentas do modelo nas configurações antes de usar a pesquisa/MCP ou outras funcionalidades</string>
+
+  <!-- Chat Page -->
+  <string name="chat_page_no_conversations">Sem histórico de conversas</string>
+  <string name="chat_page_new_message">Nova mensagem</string>
+  <string name="chat_page_today">Hoje</string>
+  <string name="chat_page_yesterday">Ontem</string>
+  <string name="chat_page_date_format_same_year">%1$d de %2$d</string>
+  <string name="chat_page_date_format_different_year">%1$d/%2$d/%3$d</string>
+  <string name="chat_page_regenerate_title">Regenerar título</string>
+  <string name="chat_page_delete">Excluir</string>
+  <string name="chat_page_history">Histórico de bate-papo</string>
+  <string name="chat_page_scroll_to_bottom">Rolar até o final</string>
+  <string name="chat_page_edit_title">Editar título</string>
+  <string name="chat_page_save">Salvar</string>
+  <string name="chat_page_cancel">Cancelar</string>
+  <string name="chat_page_new_chat">Novo bate-papo</string>
+  <string name="chat_page_edit_title_warning">Por favor, converse antes de editar o título</string>
+  <string name="chat_page_search_placeholder">Pesquisar histórico de bate-papo</string>
+  <string name="chat_page_clear_context">Limpar contexto</string>
+
+  <!-- Export Chat -->
+  <string name="chat_page_export_format">Formato de exportação</string>
+  <string name="chat_page_export_markdown">Markdown</string>
+  <string name="chat_page_export_markdown_desc">Exportar conversa como arquivo markdown</string>
+  <string name="chat_page_export_success">Exportado como %1$s</string>
+  <string name="chat_page_export_share_via">Compartilhar via</string>
+
+  <string name="setting_page_display_setting">Configurações de exibição</string>
+  <string name="setting_page_display_setting_desc">Gerenciar configurações de exibição</string>
+  <string name="setting_page_dynamic_color">Cor dinâmica</string>
+  <string name="setting_page_dynamic_color_desc">Usar cor dinâmica</string>
+  <string name="setting_page_general_settings">Configurações gerais</string>
+  <string name="setting_page_model_and_services">Modelos e serviços</string>
+  <string name="setting_page_default_model">Modelo padrão</string>
+  <string name="setting_page_default_model_desc">Definir modelo padrão para cada funcionalidade</string>
+  <string name="setting_page_providers">Provedores</string>
+  <string name="setting_page_providers_desc">Configurar provedores de IA</string>
+  <string name="setting_page_search_service">Serviço de pesquisa</string>
+  <string name="setting_page_search_service_desc">Configurar serviço de pesquisa</string>
+  <string name="setting_page_mcp">MCP</string>
+  <string name="setting_page_mcp_desc">Configurar servidor MCP</string>
+  <string name="setting_page_assistant">Assistente</string>
+  <string name="setting_page_assistant_desc">Configurar assistente personalizado (agente)</string>
+  <string name="setting_page_about">Sobre</string>
+  <string name="setting_page_about_desc">Sobre este aplicativo</string>
+  <string name="setting_page_chat_storage">Armazenamento de histórico de bate-papo</string>
+  <string name="setting_page_chat_storage_desc">%1$d arquivos, %2$.2f MB</string>
+  <string name="calculating">Calculando...</string>
+  <string name="setting_page_share">Compartilhar</string>
+  <string name="setting_page_share_desc">Compartilhar este aplicativo com amigos</string>
+  <string name="setting_page_share_text">RikkaHub - Assistente de IA para Android de código aberto\n\nSite: https://rikka-ai.com/</string>
+  <string name="setting_page_no_share_app">Nenhum aplicativo de compartilhamento encontrado</string>
+  <string name="setting_page_config_api_title">Por favor, configure API e modelo</string>
+  <string name="setting_page_config_api_desc">Você ainda não configurou API e modelo, por favor, configure primeiro</string>
+  <string name="setting_page_config">Configurar</string>
+
+  <!-- Setting Model Page -->
+  <string name="setting_model_page_title">Configurações de modelo</string>
+  <string name="setting_model_page_chat_model">Modelo de bate-papo</string>
+  <string name="setting_model_page_title_model">Modelo de resumo de título</string>
+  <string name="setting_model_page_suggestion_model">Modelo de sugestões de bate-papo</string>
+  <string name="setting_model_page_translate_model">Modelo de tradução</string>
+  <string name="setting_model_page_translate_model_desc">Modelo usado para a função de tradução</string>
+  <string name="setting_model_page_prompt">Prompt</string>
+  <string name="setting_model_page_translate_prompt_vars">Variáveis: Texto original: {source_text}, Idioma de destino: {target_lang}</string>
+  <string name="setting_model_page_reset_to_default">Redefinir para padrão</string>
+  <string name="setting_model_page_suggestion_model_desc">Modelo usado para gerar sugestões de conversa, recomenda-se usar um modelo rápido e econômico</string>
+  <string name="setting_model_page_suggestion_prompt_vars">Variáveis: Conteúdo da conversa: {content}, Idioma: {locale}</string>
+  <string name="setting_model_page_title_model_desc">Modelo usado para resumir títulos de conversa, recomenda-se usar um modelo rápido e econômico</string>
+  <string name="setting_model_page_chat_model_desc">Modelo de bate-papo padrão global</string>
+
+  <!-- Translator Page -->
+  <string name="translator_page_title">Tradução</string>
+  <string name="translator_page_input_text">Texto de entrada</string>
+  <string name="translator_page_input_placeholder">Digite o texto a ser traduzido...</string>
+  <string name="translator_page_result">Resultado da tradução</string>
+  <string name="translator_page_result_placeholder">O resultado da tradução será exibido aqui</string>
+  <string name="translator_page_target_language">Idioma de destino:</string>
+  <string name="translator_page_translate">Traduzir</string>
+  <string name="translator_page_cancel">Cancelar</string>
+
+  <!-- Assistant Page -->
+  <string name="assistant_page_title">Configurações do assistente</string>
+  <string name="assistant_page_add">Adicionar</string>
+  <string name="assistant_page_name">Nome do assistente</string>
+  <string name="assistant_page_system_prompt">Prompt do sistema</string>
+  <string name="assistant_page_available_variables">"Variáveis disponíveis: "</string>
+  <string name="assistant_page_temperature">Temperatura</string>
+  <string name="assistant_page_strict">Rigoroso</string>
+  <string name="assistant_page_balanced">Equilibrado</string>
+  <string name="assistant_page_creative">Criativo</string>
+  <string name="assistant_page_chaotic">Caótico (perigoso)</string>
+  <string name="assistant_page_top_p">Top P</string>
+  <string name="assistant_page_top_p_warning">Por favor, não modifique este valor, a menos que você saiba o que está fazendo</string>
+  <string name="assistant_page_context_message_size">Quantidade de mensagens de contexto</string>
+  <string name="assistant_page_context_message_desc">Controla quantas mensagens históricas serão enviadas como contexto para o modelo, mensagens além desse número serão ignoradas, apenas as N mensagens mais recentes serão mantidas, pode economizar tokens</string>
+  <string name="assistant_page_context_message_count">Quantidade de mensagens de contexto: %d</string>
+  <string name="assistant_page_memory">Memória</string>
+  <string name="assistant_page_memory_desc">Ao ativar a memória, o modelo tenta registrar ativamente suas informações durante a conversa e usá-las em conversas subsequentes, esta funcionalidade requer suporte do modelo para chamadas de ferramentas para funcionar corretamente</string>
+  <string name="assistant_page_manage_memory">Gerenciar memória (%d itens)</string>
+  <string name="assistant_page_cancel">Cancelar</string>
+  <string name="assistant_page_save">Salvar</string>
+  <string name="assistant_page_manage_memory_title">Gerenciar memória</string>
+  <string name="assistant_page_delete">Excluir</string>
+  <string name="assistant_page_delete_dialog_text">Tem certeza de que deseja excluir este assistente? Esta ação não pode ser desfeita.</string>
+  <string name="assistant_page_default_assistant">Assistente padrão</string>
+  <string name="assistant_page_temperature_value">Temperatura: %s</string>
+  <string name="assistant_page_memory_count">Memória: %d</string>
+  <string name="assistant_page_no_system_prompt">Sem prompt do sistema</string>
+  <string name="assistant_page_top_p_value">Top P: %s</string>
+  <string name="assistant_page_thinking_budget">Orçamento de pensamento</string>
+  <string name="assistant_page_thinking_budget_default">Padrão</string>
+  <string name="assistant_page_message_template">Modelo de conteúdo de bate-papo</string>
+  <string name="assistant_page_message_template_desc">Controla o formato do conteúdo das mensagens de bate-papo antes de serem enviadas ao LLM, geralmente não precisa de modificação</string>
+  <string name="assistant_page_template_preview">Visualização:</string>
+  <string name="assistant_page_template_variable_role">Função</string>
+  <string name="assistant_page_template_variable_message">Conteúdo</string>
+  <string name="assistant_page_template_variable_time">Hora</string>
+  <string name="assistant_page_template_variable_date">Data</string>
+  <string name="assistant_page_template_variables_label">Variáveis:</string>
+
+  <!-- Custom Headers and Bodies -->
+  <string name="assistant_page_custom_headers">Cabeçalhos personalizados</string>
+  <string name="assistant_page_header_name">Nome do cabeçalho</string>
+  <string name="assistant_page_header_value">Valor do cabeçalho</string>
+  <string name="assistant_page_delete_header">Excluir cabeçalho</string>
+  <string name="assistant_page_add_header">Adicionar cabeçalho</string>
+  <string name="assistant_page_custom_bodies">Corpo personalizado</string>
+  <string name="assistant_page_body_key">Chave do corpo</string>
+  <string name="assistant_page_body_value">Valor do corpo (JSON)</string>
+  <string name="assistant_page_invalid_json">JSON inválido: %s</string>
+  <string name="assistant_page_delete_body">Excluir corpo</string>
+  <string name="assistant_page_add_body">Adicionar corpo</string>
+
+  <!-- Notification -->
+  <string name="notification_channel_chat_completed">Bate-papo concluído</string>
+
+  <!-- Theme Types -->
+  <string name="setting_page_theme_type_standard">Padrão</string>
+  <string name="setting_page_theme_type_medium_contrast">Contraste médio</string>
+  <string name="setting_page_theme_type_high_contrast">Alto contraste</string>
+
+  <!-- Theme Names -->
+  <string name="theme_name_black">Preto neutro</string>
+  <string name="theme_name_sakura">Rosa sakura</string>
+  <string name="theme_name_ocean">Azul baía</string>
+  <string name="theme_name_spring">Verde campestre</string>
+
+  <!-- Menu Page -->
+  <string name="menu_page_morning_greeting">Bom dia \uD83D\uDC4B</string>
+  <string name="menu_page_afternoon_greeting">Boa tarde \uD83D\uDC4B</string>
+  <string name="menu_page_evening_greeting">Boa noite \uD83D\uDC4B</string>
+  <string name="menu_page_night_greeting">Está tarde, descanse \uD83D\uDC4B</string>
+  <string name="menu_page_ai_translator">Tradutor de IA</string>
+  <string name="menu_page_knowledge_base">Base de conhecimento (em construção)</string>
+  <string name="menu_page_llm_leaderboard">Classificação de LLM</string>
+
+  <!-- ModelList Page -->
+  <string name="model_list_select_model">Selecionar modelo</string>
+  <string name="model_list_no_providers">Nenhum provedor de IA disponível, por favor, adicione nas configurações</string>
+  <string name="model_list_favorite">Favorito</string>
+  <string name="model_list_chat">Bate-papo</string>
+  <string name="model_list_embedding">Incorporação</string>
+  <string name="model_list_search_placeholder">Digite o nome do modelo para pesquisar</string>
+
+  <!-- Code Block -->
+  <string name="code_block_copy">Copiar código</string>
+  <string name="code_block_preview">Visualizar</string>
+
+  <!-- Mermaid Diagram -->
+  <string name="mermaid_export">Exportar</string>
+  <string name="mermaid_export_success">Exportação bem-sucedida</string>
+  <string name="mermaid_export_failed">Falha na exportação</string>
+
+  <!-- Reasoning -->
+  <string name="reasoning_set_budget">Definir orçamento de raciocínio (%1$d tokens)</string>
+
+  <!-- Data Settings -->
+  <string name="setting_page_data_settings">Configurações de dados</string>
+  <string name="setting_page_data_backup">Backup de dados</string>
+  <string name="setting_page_data_backup_desc">Fazer backup e restaurar dados do aplicativo</string>
+  <string name="reasoning_off">Desligado</string>
+  <string name="reasoning_off_desc">Desativa a função de raciocínio, o modelo responderá diretamente às perguntas.</string>
+  <string name="reasoning_light">Raciocínio leve</string>
+  <string name="reasoning_light_desc">O modelo usará um raciocínio mínimo para responder às perguntas.</string>
+  <string name="reasoning_medium">Raciocínio moderado</string>
+  <string name="reasoning_medium_desc">O modelo usará mais raciocínio para responder às perguntas.</string>
+  <string name="reasoning_heavy">Raciocínio pesado</string>
+  <string name="reasoning_heavy_desc">O modelo usará uma grande quantidade de raciocínio para responder às perguntas.</string>
+  <string name="reasoning_custom">Orçamento de raciocínio personalizado</string>
+
+  <!-- Setting Display Page -->
+  <string name="setting_display_page_chat_list_model_icon_title">Ícone de modelo na lista de bate-papo</string>
+  <string name="setting_display_page_chat_list_model_icon_desc">Exibir ícones de modelo nas mensagens da lista de bate-papo</string>
+  <string name="setting_display_page_show_token_usage_title">Exibir uso de tokens e estatísticas de contexto</string>
+  <string name="setting_display_page_show_token_usage_desc">Exibir consumo de tokens e quantidade de contexto na parte inferior da conversa</string>
+  <string name="setting_display_page_auto_collapse_thinking_title">Recolher pensamento automaticamente</string>
+  <string name="setting_display_page_auto_collapse_thinking_desc">Recolher automaticamente o conteúdo de pensamento ao concluir</string>
+  <string name="setting_display_page_show_updates_title">Exibir atualizações</string>
+  <string name="setting_display_page_show_updates_desc">Exibir notificações de atualização do aplicativo</string>
+  <string name="setting_display_page_show_message_jumper_title">Botão de navegação de mensagens</string>
+  <string name="setting_display_page_show_message_jumper_desc">Exibir botão de navegação rápida à direita ao rolar a lista de bate-papo</string>
+  <string name="setting_display_page_title">Configurações de exibição</string>
+
+  <!-- Share Handler Page -->
+  <string name="share_handler_page_title">Escolha um assistente para lidar com o compartilhamento</string>
+
+  <!-- Color Mode -->
+  <string name="setting_page_color_mode">Modo de cor</string>
+  <string name="setting_page_color_mode_system">Seguir o sistema</string>
+  <string name="setting_page_color_mode_light">Claro</string>
+  <string name="setting_page_color_mode_dark">Escuro</string>
+
+  <!-- Assistant Detail Page -->
+  <string name="assistant_page_tab_basic">Configurações básicas</string>
+  <string name="assistant_page_tab_prompt">Prompt</string>
+  <string name="assistant_page_tab_preset_messages">Mensagens predefinidas</string>
+  <string name="assistant_page_tab_memory">Memória</string>
+  <string name="assistant_page_tab_request">Requisição personalizada</string>
+  <string name="assistant_page_stream_output">Saída em fluxo</string>
+  <string name="assistant_page_stream_output_desc">Ativar saída em fluxo para mensagens</string>
+  <string name="assistant_page_chat_model">Modelo de bate-papo</string>
+  <string name="assistant_page_chat_model_desc">Definir o modelo de bate-papo padrão do assistente, se não definido, usa o modelo de bate-papo padrão global</string>
+  <string name="assistant_page_preset_messages">Mensagens de bate-papo predefinidas</string>
+  <string name="assistant_page_preset_messages_desc">Definir mensagens iniciais de conversa</string>
+
+  <!-- MCP Setting Page -->
+  <string name="setting_mcp_page_title">MCP</string>
+  <string name="setting_mcp_page_basic_settings">Configurações básicas</string>
+  <string name="setting_mcp_page_tools">Ferramentas</string>
+  <string name="setting_mcp_page_enable">Ativar</string>
+  <string name="setting_mcp_page_enable_desc">Ativar este servidor MCP</string>
+  <string name="setting_mcp_page_name">Nome</string>
+  <string name="setting_mcp_page_name_desc">Nome de exibição do servidor MCP</string>
+  <string name="setting_mcp_page_name_placeholder">Exemplo: Meu Servidor MCP</string>
+  <string name="setting_mcp_page_transport_type">Tipo de transporte</string>
+  <string name="setting_mcp_page_transport_type_desc">Escolha o tipo de protocolo de transporte do servidor MCP</string>
+  <string name="setting_mcp_page_server_url">Endereço do servidor</string>
+  <string name="setting_mcp_page_sse_url_desc">URL do servidor de transporte SSE</string>
+  <string name="setting_mcp_page_streamable_http_url_desc">URL do servidor HTTP de fluxo</string>
+  <string name="setting_mcp_page_sse_url_placeholder">https://exemplo.com/sse</string>
+  <string name="setting_mcp_page_streamable_http_url_placeholder">https://exemplo.com/mcp</string>
+  <string name="setting_mcp_page_custom_headers">Cabeçalhos de requisição personalizados</string>
+  <string name="setting_mcp_page_custom_headers_desc">Adicionar cabeçalhos HTTP personalizados para requisições ao servidor MCP</string>
+  <string name="setting_mcp_page_header_name">Nome do cabeçalho</string>
+  <string name="setting_mcp_page_header_name_placeholder">Exemplo: Authorization</string>
+  <string name="setting_mcp_page_header_value">Valor do cabeçalho</string>
+  <string name="setting_mcp_page_header_value_placeholder">Exemplo: Bearer token123</string>
+  <string name="setting_mcp_page_delete_header">Excluir cabeçalho</string>
+  <string name="setting_mcp_page_add_header">Adicionar cabeçalho</string>
+  <string name="setting_mcp_page_save">Salvar</string>
+  <string name="setting_mcp_page_url_label">URL</string>
+  <string name="setting_mcp_page_tools_unavailable_message">Não é possível visualizar a lista de ferramentas ao adicionar o servidor MCP, por favor, adicione o servidor primeiro</string>
+
+  <!-- MCP Picker -->
+  <string name="mcp_picker_title">Servidor MCP</string>
+  <string name="mcp_picker_syncing">Sincronizando servidor MCP...</string>
+
+  <!-- Setting Provider Page -->
+  <string name="setting_provider_page_title">Provedores</string>
+  <string name="setting_provider_page_scan_error">Erro: %s</string>
+  <string name="setting_provider_page_no_permission">Sem permissão</string>
+  <string name="setting_provider_page_import_success">Importação bem-sucedida</string>
+  <string name="setting_provider_page_add_provider">Adicionar provedor</string>
+  <string name="setting_provider_page_add">Adicionar</string>
+  <string name="setting_provider_page_enabled">Ativado</string>
+  <string name="setting_provider_page_disabled">Desativado</string>
+  <string name="setting_provider_page_model_count">%d modelos</string>
+  <string name="setting_provider_page_share">Compartilhar</string>
+  <string name="setting_provider_page_models">Modelos</string>
+  <string name="setting_provider_page_configuration">Configuração</string>
+  <string name="setting_provider_page_save_success">Salvo com sucesso</string>
+  <string name="setting_provider_page_save">Salvar</string>
+  <string name="setting_provider_page_no_models">Nenhum modelo disponível</string>
+  <string name="setting_provider_page_add_models_hint">Clique no botão abaixo para adicionar modelos</string>
+  <string name="setting_provider_page_add_new_model">Adicionar novo modelo</string>
+  <string name="setting_provider_page_add_model">Adicionar modelo</string>
+  <string name="setting_provider_page_model_id">ID do modelo</string>
+  <string name="setting_provider_page_model_id_placeholder">Exemplo: gpt-3.5-turbo</string>
+  <string name="setting_provider_page_model_display_name">Nome de exibição do modelo</string>
+  <string name="setting_provider_page_model_display_name_placeholder">Exemplo: GPT-3.5, usado para exibição na interface</string>
+  <string name="setting_provider_page_model_type">Tipo de modelo</string>
+  <string name="setting_provider_page_chat_model">Modelo de bate-papo</string>
+  <string name="setting_provider_page_embedding_model">Modelo de incorporação</string>
+  <string name="setting_provider_page_input_modality">Modalidade de entrada</string>
+  <string name="setting_provider_page_output_modality">Modalidade de saída</string>
+  <string name="setting_provider_page_text">Texto</string>
+  <string name="setting_provider_page_image">Imagem</string>
+  <string name="setting_provider_page_abilities">Habilidades</string>
+  <string name="setting_provider_page_tool">Ferramenta</string>
+  <string name="setting_provider_page_reasoning">Raciocínio</string>
+  <string name="setting_provider_page_filter_placeholder">Digite o nome do modelo para filtrar</string>
+  <string name="setting_provider_page_filter_example">Exemplo: GPT-3.5</string>
+  <string name="setting_provider_page_edit_model">Editar modelo</string>
+  <string name="setting_provider_page_model_name">Nome do modelo</string>
+  <string name="setting_provider_page_test_connection">Testar conexão</string>
+  <string name="setting_provider_page_test_success">Teste bem-sucedido</string>
+  <string name="setting_provider_page_test">Testar</string>
+  <string name="setting_provider_page_import_dialog_title">Importar configuração de provedor</string>
+  <string name="setting_provider_page_import_dialog_message">Por favor, escolha o método de importação:</string>
+  <string name="setting_provider_page_scan_qr_code">Escanear código QR</string>
+  <string name="setting_provider_page_select_from_gallery">Selecionar da galeria</string>
+  <string name="setting_provider_page_qr_decode_failed">Falha ao decodificar código QR: %s</string>
+  <string name="setting_provider_page_image_read_failed">Não foi possível ler a imagem</string>
+  <string name="setting_provider_page_no_qr_found">Nenhum código QR válido encontrado</string>
+  <string name="setting_provider_page_image_qr_decode_failed">Falha ao decodificar o código QR da imagem: %s</string>
+  <string name="setting_provider_page_enable">Ativar</string>
+  <string name="setting_provider_page_name">Nome</string>
+  <string name="setting_provider_page_api_key">Chave de API</string>
+  <string name="setting_provider_page_api_base_url">URL base da API</string>
+  <string name="setting_provider_page_response_api">API de resposta</string>
+  <string name="setting_provider_page_vertex_ai">Vertex AI</string>
+  <string name="setting_provider_page_location">Localização (exemplo: us-central1)</string>
+  <string name="setting_provider_page_project_id">ID do projeto</string>
+
+  <!-- Chat Message Tool Calls -->
+  <string name="chat_message_tool_create_memory">Memória criada</string>
+  <string name="chat_message_tool_edit_memory">Memória atualizada</string>
+  <string name="chat_message_tool_delete_memory">Memória excluída</string>
+  <string name="chat_message_tool_search_web">Pesquisa na web: %1$s</string>
+  <string name="chat_message_tool_call_generic">Chamada de ferramenta %1$s</string>
+  <string name="chat_message_tool_search_prefix">Pesquisa: %1$s</string>
+  <string name="chat_message_tool_call_title">Chamada de ferramenta</string>
+  <string name="chat_message_tool_call_label">Chamar ferramenta %1$s</string>
+  <string name="chat_message_tool_call_result">Resultado da chamada</string>
+
+  <!-- Backup and Restore Page -->
+  <string name="backup_page_title">Backup e restauração</string>
+  <string name="backup_page_webdav_backup">Backup WebDAV</string>
+  <string name="backup_page_import_export">Importar e exportar</string>
+  <string name="backup_page_webdav_server_address">Endereço do servidor WebDAV</string>
+  <string name="backup_page_username">Nome de usuário</string>
+  <string name="backup_page_password">Senha</string>
+  <string name="backup_page_path">Caminho</string>
+  <string name="backup_page_backup_items">Itens de backup</string>
+  <string name="backup_page_chat_records">Registros de bate-papo</string>
+  <string name="backup_page_files">Arquivos</string>
+  <string name="backup_page_test_connection">Testar conexão</string>
+  <string name="backup_page_restore">Restaurar</string>
+  <string name="backup_page_backup_now">Fazer backup agora</string>
+  <string name="backup_page_backing_up">Fazendo backup...</string>
+  <string name="backup_page_webdav_backup_files">Lista de arquivos de backup WebDAV</string>
+  <string name="backup_page_last_modified">Última modificação</string>
+  <string name="backup_page_size">Tamanho</string>
+  <string name="backup_page_delete">Excluir</string>
+  <string name="backup_page_restore_now">Restaurar agora</string>
+  <string name="backup_page_restoring">Restaurando...</string>
+  <string name="backup_page_connection_success">Conexão bem-sucedida</string>
+  <string name="backup_page_connection_failed">Falha na conexão: %s</string>
+  <string name="backup_page_backup_success">Backup bem-sucedido</string>
+  <string name="backup_page_unknown_error">Erro desconhecido</string>
+  <string name="backup_page_loading_failed">Falha ao carregar arquivo de backup: %s</string>
+  <string name="backup_page_delete_success">Exclusão bem-sucedida</string>
+  <string name="backup_page_delete_failed">Falha na exclusão: %s</string>
+  <string name="backup_page_restore_success">Restauração bem-sucedida</string>
+  <string name="backup_page_restore_failed">Falha na restauração: %s</string>
+  <string name="backup_page_restart_app">Reiniciar aplicativo</string>
+  <string name="backup_page_restart_desc">O aplicativo precisa ser reiniciado para que as configurações entrem em vigor.</string>
+  <string name="backup_page_local_backup_export">Exportar como arquivo</string>
+  <string name="backup_page_local_backup_import">Importar arquivo de backup</string>
+  <string name="backup_page_exporting">Exportando...</string>
+  <string name="backup_page_export_desc">Exportar dados do aplicativo como arquivo</string>
+  <string name="backup_page_importing">Restaurando...</string>
+  <string name="backup_page_import_desc">Importar arquivo de backup local</string>
+  <string name="backup_page_import_from_other_app">Importar de outro aplicativo</string>
+  <string name="backup_page_import_from_chatbox">Importar do ChatBox</string>
+  <string name="backup_page_import_chatbox_desc">Importar dados do ChatBox</string>
+</resources>

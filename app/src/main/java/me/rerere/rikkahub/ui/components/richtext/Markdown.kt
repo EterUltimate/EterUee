@@ -16,6 +16,7 @@ import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
@@ -120,7 +121,7 @@ private fun MarkdownPreview() {
     )
     MarkdownBlock(
       content = """
-                # 🌍 c
+                # 🌍 This is Markdown Test This is Markdown Test
                 1. How many roads must a man walk down
                     * the slings and arrows of outrageous fortune, Or to take arms against a sea of troubles,
                     * by opposing end them.
@@ -130,7 +131,7 @@ private fun MarkdownPreview() {
                 3. How many times must a man look up, Before he can see the sky?  
                 4. For in that sleep of death what dreams may come [citation](1)
                 This is Markdown Test, This is Markdown Test.
-                
+                ***
                 This is Markdown Test, This is Markdown Test.
 
                 | A | B |
@@ -399,7 +400,10 @@ fun MarkdownNode(
     }
 
     MarkdownTokenTypes.HORIZONTAL_RULE -> {
-        Divider(modifier = Modifier.padding(vertical = 8.dp))
+      HorizontalDivider(
+        modifier = Modifier.padding(vertical = 8.dp),
+        color = MaterialTheme.colorScheme.primary
+      )
     }
 
     // 图片

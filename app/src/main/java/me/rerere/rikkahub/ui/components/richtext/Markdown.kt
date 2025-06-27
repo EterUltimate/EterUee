@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.Divider
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
@@ -395,6 +396,10 @@ fun MarkdownNode(
 
     GFMElementTypes.TABLE -> {
       TableNode(node = node, content = content, modifier = modifier)
+    }
+
+    MarkdownTokenTypes.HORIZONTAL_RULE -> {
+        Divider(modifier = Modifier.padding(vertical = 8.dp))
     }
 
     // 图片

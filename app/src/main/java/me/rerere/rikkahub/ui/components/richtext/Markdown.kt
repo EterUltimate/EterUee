@@ -107,8 +107,8 @@ private fun MarkdownPreview() {
   MaterialTheme {
     Column(
       modifier = Modifier
-        .fillMaxWidth()
-        .padding(16.dp),
+          .fillMaxWidth()
+          .padding(16.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
       MarkdownBlock(
@@ -152,7 +152,7 @@ fun MarkdownBlock(
   content: String,
   modifier: Modifier = Modifier,
   style: TextStyle = LocalTextStyle.current,
-  onClickCitation: (Int) -> Unit = {}
+  onClickCitation: (String) -> Unit = {}
 ) {
   val preprocessed = remember(content) { preProcess(content) }
   val astTree = remember(preprocessed) {
@@ -228,7 +228,7 @@ fun MarkdownNode(
   node: ASTNode,
   content: String,
   modifier: Modifier = Modifier,
-  onClickCitation: (Int) -> Unit,
+  onClickCitation: (String) -> Unit = {},
   listLevel: Int = 0
 ) {
   when (node.type) {
@@ -307,18 +307,18 @@ fun MarkdownNode(
         val bgColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
         FlowRow(
           modifier = Modifier
-            .drawWithContent {
-              drawContent()
-              drawRect(
-                color = bgColor,
-                size = size
-              )
-              drawRect(
-                color = borderColor,
-                size = Size(10f, size.height)
-              )
-            }
-            .padding(8.dp)
+              .drawWithContent {
+                  drawContent()
+                  drawRect(
+                      color = bgColor,
+                      size = size
+                  )
+                  drawRect(
+                      color = borderColor,
+                      size = Size(10f, size.height)
+                  )
+              }
+              .padding(8.dp)
         ) {
           node.children.fastForEach { child ->
             MarkdownNode(
@@ -426,8 +426,8 @@ fun MarkdownNode(
       val formula = node.getTextInNode(content)
       MathBlock(
         formula, modifier = modifier
-          .fillMaxWidth()
-          .padding(vertical = 8.dp)
+              .fillMaxWidth()
+              .padding(vertical = 8.dp)
       )
     }
 
@@ -446,8 +446,8 @@ fun MarkdownNode(
         code = code,
         language = "plaintext",
         modifier = Modifier
-          .padding(bottom = 4.dp)
-          .fillMaxWidth(),
+            .padding(bottom = 4.dp)
+            .fillMaxWidth(),
         completeCodeBlock = true
       )
     }
@@ -464,8 +464,8 @@ fun MarkdownNode(
         code = code,
         language = language,
         modifier = Modifier
-          .padding(bottom = 4.dp)
-          .fillMaxWidth(),
+            .padding(bottom = 4.dp)
+            .fillMaxWidth(),
         completeCodeBlock = hasEnd
       )
     }
@@ -498,7 +498,7 @@ private fun UnorderedListNode(
   node: ASTNode,
   content: String,
   modifier: Modifier = Modifier,
-  onClickCitation: (Int) -> Unit,
+  onClickCitation: (String) -> Unit = {},
   level: Int = 0
 ) {
   val bulletStyle = when (level % 3) {
@@ -529,7 +529,7 @@ private fun OrderedListNode(
   node: ASTNode,
   content: String,
   modifier: Modifier = Modifier,
-  onClickCitation: (Int) -> Unit,
+  onClickCitation: (String) -> Unit = {},
   level: Int = 0
 ) {
   Column(modifier.padding(start = (level * 8).dp)) {
@@ -556,7 +556,7 @@ private fun ListItemNode(
   node: ASTNode,
   content: String,
   bulletText: String,
-  onClickCitation: (Int) -> Unit,
+  onClickCitation: (String) -> Unit = {},
   level: Int
 ) {
   Column {
@@ -616,7 +616,7 @@ private fun separateContentAndLists(listItemNode: ASTNode): Pair<List<ASTNode>, 
 private fun Paragraph(
   node: ASTNode,
   content: String,
-  onClickCitation: (Int) -> Unit,
+  onClickCitation: (String) -> Unit = {},
   modifier: Modifier,
 ) {
   // dumpAst(node, content)
@@ -721,8 +721,8 @@ private fun TableNode(node: ASTNode, content: String, modifier: Modifier = Modif
     columns = columns,
     data = rows,
     modifier = modifier
-      .padding(vertical = 8.dp)
-      .fillMaxWidth()
+        .padding(vertical = 8.dp)
+        .fillMaxWidth()
 
   )
 }
@@ -734,12 +734,13 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
   colorScheme: ColorScheme,
   density: Density,
   style: TextStyle,
-  onClickCitation: (Int) -> Unit
+  onClickCitation: (String) -> Unit = {},
 ) {
   when {
     node is LeafASTNode -> {
       append(node.getTextInNode(content).unescapeHtml())
     }
+
     node.type == MarkdownElementTypes.EMPH -> {
       withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
         node.children
@@ -802,38 +803,41 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
         node.findChildOfType(MarkdownTokenTypes.TEXT)?.getTextInNode(content) ?: linkDest
       if (linkText == "citation") {
         // 如果是引用，则特殊处理
-        inlineContents.putIfAbsent(
-          "citation:$linkDest", InlineTextContent(
-            placeholder = Placeholder(
-              width = 1.em,
-              height = 1.em,
-              placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter,
-            ),
-            children = {
-              Box(
-                modifier = Modifier
-                  .clickable {
-                    onClickCitation(linkDest.toIntOrNull() ?: 1)
-                    println(linkDest)
-                  }
-                  .fillMaxSize()
-                  .clip(RoundedCornerShape(20))
-                  .background(colorScheme.primary.copy(0.2f)),
-                contentAlignment = Alignment.Center
-              ) {
-                Text(
-                  text = linkDest,
-                  modifier = Modifier.wrapContentSize(),
-                  style = TextStyle(
-                    fontSize = 12.sp,
-                    lineHeight = 12.sp,
-                    fontWeight = FontWeight.SemiBold
-                  ),
-                )
+        val splits = linkDest.split(":")
+        if (splits.size == 2) {
+          val (index, id) = splits
+          inlineContents.putIfAbsent(
+            "citation:$linkDest", InlineTextContent(
+              placeholder = Placeholder(
+                width = 1.em,
+                height = 1.em,
+                placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter,
+              ),
+              children = {
+                Box(
+                  modifier = Modifier
+                      .clickable {
+                          onClickCitation(id.trim())
+                      }
+                      .fillMaxSize()
+                      .clip(RoundedCornerShape(20))
+                      .background(colorScheme.primary.copy(0.2f)),
+                  contentAlignment = Alignment.Center
+                ) {
+                  Text(
+                    text = index.toString(),
+                    modifier = Modifier.wrapContentSize(),
+                    style = TextStyle(
+                      fontSize = 12.sp,
+                      lineHeight = 12.sp,
+                      fontWeight = FontWeight.SemiBold
+                    ),
+                  )
+                }
               }
-            }
-          ))
-        appendInlineContent("citation:$linkDest")
+            ))
+          appendInlineContent("citation:$linkDest")
+        }
       } else {
         withLink(LinkAnnotation.Url(linkDest)) {
           withStyle(

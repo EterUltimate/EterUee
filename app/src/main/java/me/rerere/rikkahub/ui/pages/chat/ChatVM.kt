@@ -224,7 +224,8 @@ class ChatVM(
           val map = json.toMutableMap()
           map["items"] = JsonArray(map["items"]!!.jsonArray.mapIndexed { index, item ->
             JsonObject(item.jsonObject.toMutableMap().apply {
-              put("index", JsonPrimitive(index + 1)) // 添加索引
+              put("id", JsonPrimitive(Uuid.random().toString().take(6)))
+              put("index", JsonPrimitive(index + 1))
             })
           })
           JsonObject(map)
@@ -242,8 +243,10 @@ class ChatVM(
     - 每个关键信息点都要有对应的引用支撑
     
     ### 引用格式规范（重要）
+    - 搜索结果中会包含index(搜索结果序号)和id(搜索结果唯一标识符)，引用格式为：
+      `具体的引用内容 [citation](index:id)`
     - **引用必须紧跟在相关内容之后**，在标点符号后面，不得延后到回复结尾
-    - 正确格式：`具体的引用内容 [citation](1)`, `多个引用内容。 [citation](2) [citation](3)`
+    - 正确格式：`具体的引用内容 [citation](index:id)`, `多个引用内容。 [citation](index:id) [citation](index:id)`
     - 错误示例：把所有引用都放在回复最后
     
     ### 引用位置要求
@@ -254,12 +257,13 @@ class ChatVM(
     ### 引用示例
     ```
     ✅ 正确：
-    - 据报道，该技术可以提高效率30%。[citation](1)
-    - 另一项研究显示，成本降低了15%，专家认为这将改变行业格局。[citation](2) [citation](3)
+    - 据报道，该技术可以提高效率30%。[citation](1:0b16b0)
+    - 另一项研究显示，成本降低了15%，专家认为这将改变行业格局。[citation](2:06d59c) [citation](3:b18295)
     
     ❌ 错误：
-    据报道，该技术可以提高效率30%。另一项研究显示，成本降低了15%。专家认为这将改变行业格局。
-    [citation](1) [citation](2) [citation](3)
+    据报道，该技术可以提高效率30%。另一项研究显示，成本降低了15%。
+    专家认为这将改变行业格局。
+    [citation](1:b18295)
     ```
       """.trimIndent()
     }

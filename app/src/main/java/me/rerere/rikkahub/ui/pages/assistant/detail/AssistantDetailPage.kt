@@ -79,6 +79,7 @@ import me.rerere.rikkahub.data.ai.TemplateTransformer
 import me.rerere.rikkahub.data.mcp.McpServerConfig
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
+import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.model.toMessageNode
 import me.rerere.rikkahub.ui.components.chat.ChatMessage
 import me.rerere.rikkahub.ui.components.chat.McpPicker
@@ -100,6 +101,7 @@ import me.rerere.rikkahub.utils.toFixed
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import kotlin.math.roundToInt
+import kotlin.uuid.Uuid
 
 @Composable
 fun AssistantDetailPage(vm: AssistantDetailVM = koinViewModel()) {
@@ -682,6 +684,7 @@ private fun AssistantPromptSettings(
               onShare = {},
               onDelete = {},
               onUpdate = {},
+              conversation = Conversation.ofId(Uuid.random())
             )
           }
         }

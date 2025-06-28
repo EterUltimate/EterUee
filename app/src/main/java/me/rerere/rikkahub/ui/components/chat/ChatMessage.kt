@@ -113,6 +113,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.datetime.Clock
 import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -138,6 +139,7 @@ import me.rerere.rikkahub.ui.modifier.shimmer
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.JsonInstantPretty
 import me.rerere.rikkahub.utils.copyMessageToClipboard
+import me.rerere.rikkahub.utils.jsonPrimitiveOrNull
 import me.rerere.rikkahub.utils.toLocalString
 import me.rerere.rikkahub.utils.urlDecode
 import me.rerere.rikkahub.utils.urlEncode
@@ -583,7 +585,7 @@ fun MessagePartsBlock(
                 "delete_memory" -> stringResource(R.string.chat_message_tool_delete_memory)
                 "search_web" -> stringResource(
                   R.string.chat_message_tool_search_web,
-                  toolCall.arguments.jsonObject["query"]?.jsonPrimitive?.content
+                  toolCall.arguments.jsonObject["query"]?.jsonPrimitiveOrNull?.contentOrNull
                     ?: ""
                 )
 
@@ -750,7 +752,7 @@ private fun ToolCallPreviewDialog(
             Text(
               stringResource(
                 R.string.chat_message_tool_search_prefix,
-                toolCall.arguments.jsonObject["query"]?.jsonPrimitive?.content ?: ""
+                toolCall.arguments.jsonObject["query"]?.jsonPrimitiveOrNull?.contentOrNull ?: ""
               )
             )
             val items = toolCall.content.jsonObject["items"]?.jsonArray ?: emptyList()

@@ -532,10 +532,6 @@ fun ChatInput(
           Icon(Lucide.Wand, "Actions")
         }
 
-        MoreOptionsButton(
-          onClearContext = onClearContext
-        )
-
         Spacer(Modifier.weight(1f))
 
         IconButton(
@@ -579,6 +575,7 @@ fun ChatInput(
               settings = settings,
               mcpManager = mcpManager,
               onUpdateAssistant = onUpdateAssistant,
+              onClearContext = onClearContext
             )
           }
         }
@@ -593,7 +590,8 @@ private fun ChatActions(
   enableSearch: Boolean,
   settings: Settings,
   mcpManager: McpManager,
-  onUpdateAssistant: (Assistant) -> Unit
+  onUpdateAssistant: (Assistant) -> Unit,
+  onClearContext: () -> Unit
 ) {
   FlowRow(
     modifier = Modifier
@@ -642,43 +640,23 @@ private fun ChatActions(
         onUpdateAssistant(it)
       },
     )
-  }
-}
 
-@Composable
-private fun MoreOptionsButton(
-  onClearContext: () -> Unit = {},
-) {
-  var showMoreOptions by remember { mutableStateOf(false) }
-  ExposedDropdownMenuBox(
-    expanded = showMoreOptions,
-    onExpandedChange = { showMoreOptions = it },
-  ) {
-    IconButton(
-      onClick = { showMoreOptions = true },
-      modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-    ) {
-      Icon(Lucide.Ellipsis, "More Options")
-    }
-
-    ExposedDropdownMenu(
-      expanded = showMoreOptions,
-      onDismissRequest = { showMoreOptions = false },
-      modifier = Modifier.width(200.dp)
-    ) {
-      DropdownMenuItem(
-        text = {
-          Text(stringResource(R.string.chat_page_clear_context))
-        },
-        onClick = {
-          showMoreOptions = false
-          onClearContext()
-        },
-        leadingIcon = {
-          Icon(Lucide.Eraser, null)
-        }
-      )
-    }
+    // Clear Context
+    ChatActionItem(
+      checked = false,
+      onClick = {
+        onClearContext()
+      },
+      icon = {
+        Icon(
+          imageVector = Lucide.Eraser,
+          contentDescription = stringResource(R.string.chat_page_clear_context),
+        )
+      },
+      title = {
+        Text(stringResource(R.string.chat_page_clear_context))
+      }
+    )
   }
 }
 
@@ -930,7 +908,7 @@ private fun ChatActionItem(
       horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
       Box(
-        modifier = Modifier.size(32.dp),
+        modifier = Modifier.size(30.dp),
         contentAlignment = Alignment.Center
       ) {
         icon()

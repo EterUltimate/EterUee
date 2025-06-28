@@ -786,7 +786,7 @@ private fun FullScreenEditor(
 private fun ImagePickButton(onAddImages: (List<Uri>) -> Unit = {}) {
   val context = LocalContext.current
   val pickMedia =
-    rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { uris ->
+    rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
       if (uris.isNotEmpty()) {
         Log.d("PhotoPicker", "Selected URI: $uris")
         onAddImages(context.createChatFilesByContents(uris))
@@ -802,7 +802,7 @@ private fun ImagePickButton(onAddImages: (List<Uri>) -> Unit = {}) {
       Text(stringResource(R.string.photo))
     }
   ) {
-    pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+    pickMedia.launch("image/*")
   }
 }
 
@@ -854,7 +854,7 @@ fun TakePicButton(onAddImages: (List<Uri>) -> Unit = {}) {
 fun FilePickButton(onAddFiles: (List<Pair<Uri, String>>) -> Unit = {}) {
   val context = LocalContext.current
   val pickMedia =
-    rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+    rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
       if (uri != null) {
         val localUri = context.createChatFilesByContents(listOf(uri))[0]
         val fileName = context.getFileNameFromUri(uri) ?: "file"
@@ -873,7 +873,7 @@ fun FilePickButton(onAddFiles: (List<Pair<Uri, String>>) -> Unit = {}) {
       Text("上传文件")
     }
   ) {
-    pickMedia.launch(arrayOf("text/*"))
+    pickMedia.launch("text/*")
   }
 }
 

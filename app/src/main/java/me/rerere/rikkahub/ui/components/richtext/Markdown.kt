@@ -454,7 +454,20 @@ fun MarkdownNode(
 
     // 代码块
     MarkdownElementTypes.CODE_FENCE -> {
-      val code = node.getTextInNode(content, MarkdownTokenTypes.CODE_FENCE_CONTENT)
+      // 这里不能直接取CODE_FENCE_CONTENT的内容，因为首行indent没有包含在内
+      // 因此，需要往上找到最后一个EOL元素，用它来作为代码块的起始offset
+      val contentStartIndex =
+        node.children.indexOfFirst { it.type == MarkdownTokenTypes.CODE_FENCE_CONTENT }
+      val eolElement = node.children.subList(0, contentStartIndex)
+        .findLast { it.type == MarkdownTokenTypes.EOL } ?: return
+      val codeContentStartOffset = eolElement.endOffset
+      val codeContentEndOffset = node.children
+        .findLast { it.type == MarkdownTokenTypes.CODE_FENCE_CONTENT }?.endOffset ?: return
+      val code = content.substring(
+        codeContentStartOffset,
+        codeContentEndOffset
+      ).trimIndent()
+
       val language = node.findChildOfType(MarkdownTokenTypes.FENCE_LANG)
         ?.getTextInNode(content)
         ?: "plaintext"

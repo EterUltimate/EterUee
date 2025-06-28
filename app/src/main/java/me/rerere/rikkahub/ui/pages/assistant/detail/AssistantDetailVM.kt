@@ -1,5 +1,7 @@
 package me.rerere.rikkahub.ui.pages.assistant.detail
 
+import android.app.Application
+import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,12 +14,15 @@ import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
+import me.rerere.rikkahub.data.model.Avatar
 import me.rerere.rikkahub.data.repository.MemoryRepository
+import me.rerere.rikkahub.utils.deleteChatFiles
 import kotlin.uuid.Uuid
 
 class AssistantDetailVM(
   private val settingsStore: SettingsStore,
   private val memoryRepository: MemoryRepository,
+  private val context: Application,
   savedStateHandle: SavedStateHandle
 ) : ViewModel() {
   private val assistantId = Uuid.parse(checkNotNull(savedStateHandle.get<String>("id")))
@@ -60,6 +65,7 @@ class AssistantDetailVM(
         settings = settings.copy(
           assistants = settings.assistants.map {
             if (it.id == assistant.id) {
+              checkAvatarDelete(it) // 删除旧头像
               assistant
             } else {
               it
@@ -87,6 +93,12 @@ class AssistantDetailVM(
   fun deleteMemory(memory: AssistantMemory) {
     viewModelScope.launch {
       memoryRepository.deleteMemory(id = memory.id)
+    }
+  }
+
+  fun checkAvatarDelete(old: Assistant) {
+    if (old.avatar is Avatar.Image) {
+      context.deleteChatFiles(listOf(old.avatar.url.toUri()))
     }
   }
 }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.pager.HorizontalPager
@@ -81,6 +82,7 @@ import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.model.toMessageNode
+import me.rerere.rikkahub.ui.components.chat.Avatar
 import me.rerere.rikkahub.ui.components.chat.ChatMessage
 import me.rerere.rikkahub.ui.components.chat.McpPicker
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
@@ -286,6 +288,21 @@ private fun AssistantBasicSettings(
         .imePadding(),
     verticalArrangement = Arrangement.spacedBy(16.dp)
   ) {
+    Row {
+      Avatar(
+        value = assistant.avatar,
+        name = assistant.name.ifBlank { stringResource(R.string.assistant_page_default_assistant) },
+        onUpdate = { avatar ->
+          onUpdate(
+            assistant.copy(
+              avatar = avatar
+            )
+          )
+        },
+        modifier = Modifier.size(64.dp)
+      )
+    }
+
     Card {
       FormItem(
         label = {

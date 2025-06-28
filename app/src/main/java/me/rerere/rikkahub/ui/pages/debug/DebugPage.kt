@@ -67,7 +67,8 @@ fun DebugPage(vm: DebugVM = koinViewModel()) {
         onUpdate = {
           println("Avatar updated: $it")
           avatar = it
-        }
+        },
+        name = "A"
       )
       Mermaid(
         code = """

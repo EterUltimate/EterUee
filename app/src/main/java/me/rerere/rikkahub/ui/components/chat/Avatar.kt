@@ -37,29 +37,30 @@ import me.rerere.rikkahub.utils.createChatFilesByContents
 
 @Composable
 fun Avatar(
+  name: String,
   value: Avatar,
   modifier: Modifier = Modifier,
-  onUpdate: (Avatar) -> Unit = {},
+  onUpdate: ((Avatar) -> Unit)? = null,
 ) {
   val context = LocalContext.current
   var showPickOption by remember { mutableStateOf(false) }
   var showEmojiPicker by remember { mutableStateOf(false) }
-  
+
   // 图片选择launcher
   val imagePickerLauncher = rememberLauncherForActivityResult(
     contract = ActivityResultContracts.GetContent()
   ) { uri: Uri? ->
     uri?.let {
       val localUri = context.createChatFilesByContents(listOf(it))[0]
-      onUpdate(Avatar.Image(localUri.toString()))
+      onUpdate?.invoke(Avatar.Image(localUri.toString()))
     }
   }
-  
+
   Surface(
     shape = CircleShape,
     modifier = modifier.size(32.dp),
     onClick = {
-      showPickOption = true
+      if(onUpdate != null) showPickOption = true
     },
     tonalElevation = 2.dp,
   ) {
@@ -83,6 +84,14 @@ fun Avatar(
               minFontSize = 15.sp,
               maxFontSize = 30.sp,
             ),
+            modifier = Modifier.padding(4.dp)
+          )
+        }
+
+        is Avatar.Dummy -> {
+          Text(
+            text = name.takeIf { it.isNotEmpty() }?.firstOrNull()?.toString() ?: "A",
+            fontSize = 20.sp,
             modifier = Modifier.padding(4.dp)
           )
         }
@@ -120,6 +129,15 @@ fun Avatar(
           ) {
             Text(text = "Pick Emoji")
           }
+          Button(
+            onClick = {
+              showPickOption = false
+              onUpdate?.invoke(Avatar.Dummy)
+            },
+            modifier = Modifier.fillMaxWidth()
+          ) {
+            Text(text = "Reset")
+          }
         }
       },
       confirmButton = {
@@ -143,13 +161,13 @@ fun Avatar(
     ) {
       EmojiPicker(
         onEmojiSelected = { emoji ->
-          onUpdate(Avatar.Emoji(content = emoji.emoji))
+          onUpdate?.invoke(Avatar.Emoji(content = emoji.emoji))
           showEmojiPicker = false
         },
         modifier = Modifier
-          .fillMaxWidth()
-          .wrapContentHeight()
-          .padding(16.dp)
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .padding(16.dp)
       )
     }
   }

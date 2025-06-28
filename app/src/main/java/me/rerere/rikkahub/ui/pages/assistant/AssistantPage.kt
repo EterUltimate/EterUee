@@ -54,6 +54,7 @@ import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.DEFAULT_ASSISTANTS_IDS
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
+import me.rerere.rikkahub.ui.components.chat.Avatar
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.Tag
@@ -247,21 +248,15 @@ private fun AssistantItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
       ) {
-        Text(
-          text = assistant.name.ifBlank { stringResource(R.string.assistant_page_default_assistant) },
-          style = MaterialTheme.typography.titleMedium
+        Avatar(
+          name = assistant.name,
+          value = assistant.avatar,
         )
 
-        Tag(
-          type = TagType.INFO
-        ) {
-          Text(
-            stringResource(
-              R.string.assistant_page_temperature_value,
-              assistant.temperature.toFixed(1)
-            )
-          )
-        }
+        Text(
+          text = assistant.name.ifBlank { stringResource(R.string.assistant_page_default_assistant) },
+          style = MaterialTheme.typography.titleLarge
+        )
 
         if (assistant.enableMemory) {
           Tag(

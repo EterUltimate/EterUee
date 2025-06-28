@@ -37,6 +37,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -753,6 +754,7 @@ private fun ToolCallPreviewDialog(
               )
             )
             val items = toolCall.content.jsonObject["items"]?.jsonArray ?: emptyList()
+            val answer = toolCall.content.jsonObject["answer"]?.jsonPrimitive?.content
             if (items.isNotEmpty()) {
               LazyColumn(
                 modifier = Modifier
@@ -760,6 +762,22 @@ private fun ToolCallPreviewDialog(
                   .weight(1f),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
               ) {
+                if(answer != null) {
+                  item {
+                    Card(
+                      colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                      )
+                    ) {
+                      MarkdownBlock(
+                        content = answer,
+                        modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                        style = MaterialTheme.typography.bodySmall
+                      )
+                    }
+                  }
+                }
+
                 items(items) {
                   val url =
                     it.jsonObject["url"]?.jsonPrimitive?.content ?: return@items
@@ -772,7 +790,10 @@ private fun ToolCallPreviewDialog(
                   Card(
                     onClick = {
                       navController.navigate("webview?url=${url.urlEncode()}")
-                    }
+                    },
+                    colors = CardDefaults.cardColors(
+                      containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    )
                   ) {
                     Row(
                       modifier = Modifier

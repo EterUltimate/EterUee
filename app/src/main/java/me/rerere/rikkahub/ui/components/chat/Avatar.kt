@@ -28,9 +28,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.model.Avatar
 import me.rerere.rikkahub.ui.components.ui.EmojiPicker
 import me.rerere.rikkahub.utils.createChatFilesByContents
@@ -60,7 +62,7 @@ fun Avatar(
     shape = CircleShape,
     modifier = modifier.size(32.dp),
     onClick = {
-      if(onUpdate != null) showPickOption = true
+      if (onUpdate != null) showPickOption = true
     },
     tonalElevation = 2.dp,
   ) {
@@ -105,7 +107,7 @@ fun Avatar(
         showPickOption = false
       },
       title = {
-        Text(text = "Change Avatar")
+        Text(text = stringResource(id = R.string.avatar_change_avatar))
       },
       text = {
         Column(
@@ -118,7 +120,7 @@ fun Avatar(
             },
             modifier = Modifier.fillMaxWidth()
           ) {
-            Text(text = "Pick Image")
+            Text(text = stringResource(id = R.string.avatar_pick_image))
           }
           Button(
             onClick = {
@@ -127,7 +129,7 @@ fun Avatar(
             },
             modifier = Modifier.fillMaxWidth()
           ) {
-            Text(text = "Pick Emoji")
+            Text(text = stringResource(id = R.string.avatar_pick_emoji))
           }
           Button(
             onClick = {
@@ -136,7 +138,7 @@ fun Avatar(
             },
             modifier = Modifier.fillMaxWidth()
           ) {
-            Text(text = "Reset")
+            Text(text = stringResource(id = R.string.avatar_reset))
           }
         }
       },
@@ -146,7 +148,7 @@ fun Avatar(
             showPickOption = false
           }
         ) {
-          Text("关闭")
+          Text(stringResource(id = R.string.avatar_cancel))
         }
       }
     )

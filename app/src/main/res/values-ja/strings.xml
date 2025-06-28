@@ -197,6 +197,13 @@
   <string name="mermaid_export_success">エクスポートに成功しました</string>
   <string name="mermaid_export_failed">エクスポートに失敗しました</string>
 
+  <!-- Avatar Component -->
+  <string name="avatar_change_avatar">アバターを変更</string>
+  <string name="avatar_pick_image">画像を選択</string>
+  <string name="avatar_pick_emoji">絵文字を選択</string>
+  <string name="avatar_reset">リセット</string>
+  <string name="avatar_cancel">キャンセル</string>
+
   <!-- Emoji Picker -->
   <string name="emoji_picker_search_placeholder">絵文字を検索...</string>
   <string name="emoji_picker_select_skin_tone">肌の色を選択</string>

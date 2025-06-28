@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.ui.components.chat
 
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -15,8 +16,16 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Badge
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
@@ -28,10 +37,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -42,13 +54,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastForEach
+import kotlinx.coroutines.launch
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Hammer
 import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.HeartOff
 import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Settings
+import com.composables.icons.lucide.Settings2
 import com.composables.icons.lucide.X
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ModelType
@@ -59,6 +77,7 @@ import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
 import me.rerere.rikkahub.ui.components.ui.icons.HeartIcon
+import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.theme.extendColors
 import kotlin.uuid.Uuid
 
@@ -91,8 +110,8 @@ fun ModelSelector(
         model?.modelId?.let {
           AutoAIIcon(
             it, Modifier
-              .padding(end = 4.dp)
-              .size(24.dp)
+                  .padding(end = 4.dp)
+                  .size(24.dp)
           )
         }
         Text(
@@ -145,15 +164,16 @@ fun ModelSelector(
     ) {
       Column(
         modifier = Modifier
-          .padding(8.dp)
-          .fillMaxHeight(0.8f)
-          .imePadding(),
+            .padding(8.dp)
+            .fillMaxHeight(0.8f)
+            .imePadding(),
         verticalArrangement = Arrangement.spacedBy(4.dp)
       ) {
         val filteredProviderSettings = providers.fastFilter {
           it.enabled && it.models.fastAny { model -> model.type == type }
         }
         ModelList(
+          currentModel = modelId,
           providers = filteredProviderSettings,
           modelType = type,
           onSelect = {
@@ -180,8 +200,10 @@ fun ModelSelector(
   }
 }
 
+@OptIn(FlowPreview::class)
 @Composable
 private fun ColumnScope.ModelList(
+  currentModel: Uuid? = null,
   providers: List<ProviderSetting>,
   modelType: ModelType,
   allowFavorite: Boolean = true,
@@ -189,17 +211,42 @@ private fun ColumnScope.ModelList(
   onSelect: (Model) -> Unit,
 ) {
   val favoriteModels = providers
-    .flatMap { it.models }
-    .fastFilter {
-      it.favorite && it.type == modelType
+    .flatMap { provider ->
+      provider.models.map { model -> model to provider }
+    }
+    .fastFilter { (model, _) ->
+      model.favorite && model.type == modelType
     }
   var searchKeywords by remember { mutableStateOf("") }
+  val lazyListState = rememberLazyListState()
+  val coroutineScope = rememberCoroutineScope()
+  val providerPositions = remember(providers, favoriteModels, allowFavorite) {
+    var currentIndex = 0
+    if (providers.isEmpty()) {
+      currentIndex = 1 // no providers item
+    }
+    if (favoriteModels.isNotEmpty() && allowFavorite) {
+      currentIndex += 1 // favorite header
+      currentIndex += favoriteModels.size // favorite models
+    }
+
+    providers.mapIndexed { index, provider ->
+      val position = currentIndex
+      currentIndex += 1 // provider header
+      currentIndex += provider.models.fastFilter {
+        it.type == modelType && it.displayName.contains(searchKeywords, true)
+      }.size
+      provider.id to position
+    }.toMap()
+  }
+
   LazyColumn(
+    state = lazyListState,
     verticalArrangement = Arrangement.spacedBy(4.dp),
     contentPadding = PaddingValues(8.dp),
     modifier = Modifier
-      .weight(1f)
-      .fillMaxWidth(),
+        .weight(1f)
+        .fillMaxWidth(),
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     if (providers.isEmpty()) {
@@ -220,20 +267,22 @@ private fun ColumnScope.ModelList(
           style = MaterialTheme.typography.labelMedium,
           color = MaterialTheme.colorScheme.primary,
           modifier = Modifier
-            .padding(bottom = 4.dp, top = 8.dp)
-            .fillMaxWidth(),
+              .padding(bottom = 4.dp, top = 8.dp)
+              .fillMaxWidth(),
           textAlign = TextAlign.Center
         )
       }
 
       items(
         items = favoriteModels,
-        key = { "favorite:" + it.id.toString() }
-      ) { model ->
+        key = { "favorite:" + it.first.id.toString() }
+      ) { (model, provider) ->
         ModelItem(
           model = model,
           onSelect = onSelect,
-          modifier = Modifier.animateItem()
+          modifier = Modifier.animateItem(),
+          providerSetting = provider,
+          select = model.id == currentModel
         ) {
           IconButton(
             onClick = {
@@ -270,8 +319,8 @@ private fun ColumnScope.ModelList(
           style = MaterialTheme.typography.labelMedium,
           color = MaterialTheme.colorScheme.primary,
           modifier = Modifier
-            .padding(bottom = 4.dp, top = 8.dp)
-            .fillMaxWidth(),
+              .padding(bottom = 4.dp, top = 8.dp)
+              .fillMaxWidth(),
           textAlign = TextAlign.Center
         )
       }
@@ -289,6 +338,8 @@ private fun ColumnScope.ModelList(
           model = model,
           onSelect = onSelect,
           modifier = Modifier.animateItem(),
+          providerSetting = providerSetting,
+          select = currentModel == model.id,
           tail = {
             if (allowFavorite) {
               IconButton(
@@ -321,6 +372,56 @@ private fun ColumnScope.ModelList(
       }
     }
   }
+
+  // 供应商Badge行
+  val providerBadgeListState = rememberLazyListState()
+  LaunchedEffect(lazyListState) {
+    // 当LazyColumn滚动时，LazyRow也跟随滚动
+    snapshotFlow { lazyListState.firstVisibleItemIndex }
+      .distinctUntilChanged()
+      .debounce(100) // 防抖处理
+      .collect { index ->
+        if (index > 0) {
+          val currentProvider = providerPositions.entries.findLast {
+            index > it.value
+          }
+          val index = providers.indexOfFirst { it.id == currentProvider?.key }
+          if (index >= 0) {
+            providerBadgeListState.animateScrollToItem(index)
+          } else {
+            providerBadgeListState.requestScrollToItem(0)
+          }
+        } else {
+          providerBadgeListState.requestScrollToItem(0)
+        }
+      }
+  }
+  if (providers.isNotEmpty()) {
+    LazyRow(
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      modifier = Modifier.fillMaxWidth(),
+      contentPadding = PaddingValues(horizontal = 8.dp),
+      state = providerBadgeListState
+    ) {
+      items(providers) { provider ->
+        AssistChip(
+          onClick = {
+            val position = providerPositions[provider.id] ?: 0
+            coroutineScope.launch {
+              lazyListState.animateScrollToItem(position)
+            }
+          },
+          label = {
+            Text(provider.name)
+          },
+          leadingIcon = {
+            AutoAIIcon(name = provider.name, modifier = Modifier.size(16.dp))
+          },
+        )
+      }
+    }
+  }
+
   OutlinedTextField(
     value = searchKeywords,
     onValueChange = { searchKeywords = it },
@@ -335,41 +436,57 @@ private fun ColumnScope.ModelList(
 }
 
 @Composable
-fun ModelItem(
+private fun ModelItem(
   model: Model,
+  providerSetting: ProviderSetting,
+  select: Boolean,
   onSelect: (Model) -> Unit,
   modifier: Modifier = Modifier,
   tail: @Composable RowScope.() -> Unit = {}
 ) {
-  OutlinedCard(
+  Card(
     onClick = { onSelect(model) },
     modifier = modifier,
+    colors = CardDefaults.cardColors(
+      containerColor = if (select) {
+        MaterialTheme.colorScheme.tertiaryContainer
+      } else {
+        MaterialTheme.colorScheme.primaryContainer
+      }
+    )
   ) {
     Row(
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(8.dp),
       modifier = Modifier
-        .fillMaxWidth()
-        .padding(12.dp)
+          .fillMaxWidth()
+          .padding(vertical = 12.dp, horizontal = 16.dp)
     ) {
-      AutoAIIcon(model.modelId, modifier = Modifier.size(32.dp))
+      AutoAIIcon(
+        name = model.modelId,
+        modifier = Modifier.size(32.dp)
+      )
       Column(
-        modifier = Modifier.weight(1f)
+        modifier = Modifier.weight(1f),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
       ) {
         Text(
-          model.modelId,
+          text = providerSetting.name,
           style = MaterialTheme.typography.labelSmall,
           color = MaterialTheme.extendColors.gray4
         )
+
         Text(
           text = model.displayName,
           style = MaterialTheme.typography.labelMedium,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
         )
 
         Row(
           modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min),
+              .fillMaxWidth()
+              .height(IntrinsicSize.Min),
           horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
           Tag(type = TagType.INFO) {
@@ -406,8 +523,8 @@ fun ModelItem(
                     imageVector = Lucide.Hammer,
                     contentDescription = null,
                     modifier = Modifier
-                      .height(iconHeight)
-                      .aspectRatio(1f)
+                        .height(iconHeight)
+                        .aspectRatio(1f)
                   )
                 }
               }
@@ -421,8 +538,8 @@ fun ModelItem(
                     imageVector = Lucide.Lightbulb,
                     contentDescription = null,
                     modifier = Modifier
-                      .height(iconHeight)
-                      .aspectRatio(1f)
+                        .height(iconHeight)
+                        .aspectRatio(1f)
                   )
                 }
               }

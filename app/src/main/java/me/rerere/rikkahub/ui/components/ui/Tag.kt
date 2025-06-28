@@ -1,6 +1,7 @@
 package me.rerere.rikkahub.ui.components.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,6 +30,7 @@ enum class TagType {
 fun Tag(
   modifier: Modifier = Modifier,
   type: TagType = TagType.DEFAULT,
+  onClick: (() -> Unit)? = null,
   children: @Composable RowScope.() -> Unit
 ) {
   val background = when (type) {
@@ -50,6 +52,13 @@ fun Tag(
       modifier = modifier
         .clip(RoundedCornerShape(2.dp))
         .background(background)
+        .let { 
+          if (onClick != null) {
+            it.clickable { onClick() }
+          } else {
+            it
+          }
+        }
         .padding(horizontal = 4.dp, vertical = 1.dp)
     ) {
       children()

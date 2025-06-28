@@ -1,6 +1,8 @@
 package me.rerere.rikkahub.ui.components.chat
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -194,6 +196,9 @@ fun ModelSelector(
             })
           },
           allowFavorite = onUpdate != null,
+          onDismiss = {
+            popup = false
+          }
         )
       }
     }
@@ -209,6 +214,7 @@ private fun ColumnScope.ModelList(
   allowFavorite: Boolean = true,
   onUpdate: (Model) -> Unit,
   onSelect: (Model) -> Unit,
+  onDismiss: () -> Unit
 ) {
   val favoriteModels = providers
     .flatMap { provider ->
@@ -282,7 +288,10 @@ private fun ColumnScope.ModelList(
           onSelect = onSelect,
           modifier = Modifier.animateItem(),
           providerSetting = provider,
-          select = model.id == currentModel
+          select = model.id == currentModel,
+          onDismiss = {
+            onDismiss()
+          },
         ) {
           IconButton(
             onClick = {
@@ -340,6 +349,9 @@ private fun ColumnScope.ModelList(
           modifier = Modifier.animateItem(),
           providerSetting = providerSetting,
           select = currentModel == model.id,
+          onDismiss = {
+            onDismiss()
+          },
           tail = {
             if (allowFavorite) {
               IconButton(
@@ -441,19 +453,32 @@ private fun ModelItem(
   providerSetting: ProviderSetting,
   select: Boolean,
   onSelect: (Model) -> Unit,
+  onDismiss: () -> Unit,
   modifier: Modifier = Modifier,
   tail: @Composable RowScope.() -> Unit = {}
 ) {
+  val navController = LocalNavController.current
+  val interactionSource = remember { MutableInteractionSource() }
   Card(
-    onClick = { onSelect(model) },
-    modifier = modifier,
+    modifier = modifier.combinedClickable(
+      enabled = true,
+      onLongClick = {
+        onDismiss()
+        navController.navigate(
+          "setting/provider/${providerSetting.id}"
+        )
+      },
+      onClick = { onSelect(model) },
+      interactionSource = interactionSource,
+      indication = LocalIndication.current
+    ),
     colors = CardDefaults.cardColors(
       containerColor = if (select) {
         MaterialTheme.colorScheme.tertiaryContainer
       } else {
         MaterialTheme.colorScheme.primaryContainer
       }
-    )
+    ),
   ) {
     Row(
       verticalAlignment = Alignment.CenterVertically,

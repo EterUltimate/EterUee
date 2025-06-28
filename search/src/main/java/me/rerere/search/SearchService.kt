@@ -27,6 +27,7 @@ interface SearchService<T : SearchServiceOptions> {
         is SearchServiceOptions.ZhipuOptions -> ZhipuSearchService
         is SearchServiceOptions.BingLocalOptions -> BingSearchService
         is SearchServiceOptions.SearXNGOptions -> SearXNGService
+        is SearchServiceOptions.LinkUpOptions -> LinkUpService
       } as SearchService<T>
     }
 
@@ -51,6 +52,7 @@ data class SearchCommonOptions(
 
 @Serializable
 data class SearchResult(
+  val answer: String? = null,
   val items: List<SearchResultItem>,
 ) {
   @Serializable
@@ -71,7 +73,8 @@ sealed class SearchServiceOptions {
       ZhipuOptions::class to "智谱",
       TavilyOptions::class to "Tavily",
       ExaOptions::class to "Exa",
-      SearXNGOptions::class to "SearXNG"
+      SearXNGOptions::class to "SearXNG",
+      LinkUpOptions::class to "LinkUp"
     )
   }
 
@@ -101,5 +104,11 @@ sealed class SearchServiceOptions {
   @SerialName("searxng")
   data class SearXNGOptions(
     val url: String = ""
+  ) : SearchServiceOptions()
+
+  @Serializable
+  @SerialName("linkup")
+  data class LinkUpOptions(
+    val apiKey: String = "",
   ) : SearchServiceOptions()
 }

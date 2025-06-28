@@ -58,7 +58,7 @@ object BingSearchService : SearchService<SearchServiceOptions.BingLocalOptions> 
         "Search failed: no results found"
       }
 
-      SearchResult(results)
+      SearchResult(items = results)
     }
   }
 }

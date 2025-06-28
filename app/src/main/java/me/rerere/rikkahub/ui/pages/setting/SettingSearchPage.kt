@@ -150,6 +150,13 @@ private fun ProviderOptions(
           }
         }
 
+        is SearchServiceOptions.LinkUpOptions -> {
+          SearchLinkUpPage(options as SearchServiceOptions.LinkUpOptions) {
+            options = it
+            onUpdateOptions(options)
+          }
+        }
+
         is SearchServiceOptions.BingLocalOptions -> {}
       }
       ProvideTextStyle(MaterialTheme.typography.labelMedium) {
@@ -283,6 +290,30 @@ private fun SearXNGOptions(
         onUpdateOptions(
           options.copy(
             url = it
+          )
+        )
+      },
+      modifier = Modifier.fillMaxWidth()
+    )
+  }
+}
+
+@Composable
+private fun SearchLinkUpPage(
+  options: SearchServiceOptions.LinkUpOptions,
+  onUpdateOptions: (SearchServiceOptions.LinkUpOptions) -> Unit
+) {
+  FormItem(
+    label = {
+      Text("API Key")
+    }
+  ) {
+    OutlinedTextField(
+      value = options.apiKey,
+      onValueChange = {
+        onUpdateOptions(
+          options.copy(
+            apiKey = it
           )
         )
       },

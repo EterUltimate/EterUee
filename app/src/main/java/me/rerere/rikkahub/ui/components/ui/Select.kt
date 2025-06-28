@@ -92,7 +92,7 @@ fun <T> Select(
           text = {
             Text(text = optionToString(option))
           },
-          leadingIcon = {
+          trailingIcon = {
             if (option == selectedOption) {
               Icon(Lucide.Check, null)
             }

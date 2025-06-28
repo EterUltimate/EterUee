@@ -44,6 +44,12 @@ fun AssistantPicker(
       optionToString = {
         it.name.ifEmpty { defaultAssistantName }
       },
+      optionLeading = {
+        Avatar(
+          name = it.name.ifEmpty { defaultAssistantName },
+          value = it.avatar,
+        )
+      },
       modifier = Modifier.weight(1f),
     )
   }

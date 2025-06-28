@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -236,9 +237,9 @@ private fun SettingProviderConfigPage(
 
   Column(
     modifier = Modifier
-      .fillMaxSize()
-      .verticalScroll(rememberScrollState())
-      .padding(16.dp),
+        .fillMaxSize()
+        .verticalScroll(rememberScrollState())
+        .padding(16.dp),
     verticalArrangement = Arrangement.spacedBy(16.dp)
   ) {
     ProviderConfigure(
@@ -415,12 +416,12 @@ private fun ModelList(
   Box(modifier = Modifier.fillMaxSize()) {
     LazyColumn(
       modifier = Modifier
-        .fillMaxSize()
-        .floatingToolbarVerticalNestedScroll(
-          expanded = expanded,
-          onExpand = { expanded = true },
-          onCollapse = { expanded = false },
-        ),
+          .fillMaxSize()
+          .floatingToolbarVerticalNestedScroll(
+              expanded = expanded,
+              onExpand = { expanded = true },
+              onCollapse = { expanded = false },
+          ),
       contentPadding = PaddingValues(16.dp) + PaddingValues(bottom = 128.dp),
       horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -431,8 +432,8 @@ private fun ModelList(
         item {
           Column(
             modifier = Modifier
-              .fillParentMaxHeight(0.8f)
-              .fillMaxWidth(),
+                .fillParentMaxHeight(0.8f)
+                .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
           ) {
@@ -463,16 +464,16 @@ private fun ModelList(
                 onUpdateProvider(providerSetting.editModel(editedModel))
               },
               modifier = Modifier
-                .longPressDraggableHandle()
-                .graphicsLayer {
-                  if(isDragging) {
-                    scaleX = 1.05f
-                    scaleY = 1.05f
-                  } else {
-                    scaleX = 1f
-                    scaleY = 1f
-                  }
-                },
+                  .longPressDraggableHandle()
+                  .graphicsLayer {
+                      if (isDragging) {
+                          scaleX = 1.05f
+                          scaleY = 1.05f
+                      } else {
+                          scaleX = 1f
+                          scaleY = 1f
+                      }
+                  },
             )
           }
         }
@@ -481,8 +482,8 @@ private fun ModelList(
     HorizontalFloatingToolbar(
       expanded = expanded,
       modifier = Modifier
-        .align(Alignment.BottomCenter)
-        .offset(y = -ScreenOffset),
+          .align(Alignment.BottomCenter)
+          .offset(y = -ScreenOffset),
     ) {
       AddModelButton(
         models = modelList,
@@ -571,16 +572,29 @@ private fun AddModelButton(
 
   if (dialogState.isEditing) {
     dialogState.currentState?.let { modelState ->
-      AlertDialog(
+      ModalBottomSheet(
         onDismissRequest = {
           dialogState.dismiss()
         },
-        title = {
-          Text(stringResource(R.string.setting_provider_page_add_model))
-        },
-        text = {
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+      ) {
+        Column(
+          modifier = Modifier
+              .fillMaxWidth()
+              .fillMaxHeight(0.95f)
+              .padding(16.dp),
+          verticalArrangement = Arrangement.spacedBy(16.dp),
+          horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+          Text(
+            text = stringResource(R.string.setting_provider_page_add_model),
+            style = MaterialTheme.typography.titleLarge
+          )
           Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
           ) {
             OutlinedTextField(
               value = modelState.modelId,
@@ -642,28 +656,30 @@ private fun AddModelButton(
               }
             )
           }
-        },
-        confirmButton = {
-          TextButton(
-            onClick = {
-              if (modelState.modelId.isNotBlank() && modelState.displayName.isNotBlank()) {
-                dialogState.confirm()
-              }
-            },
+
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
           ) {
-            Text(stringResource(R.string.setting_provider_page_add))
-          }
-        },
-        dismissButton = {
-          TextButton(
-            onClick = {
-              dialogState.dismiss()
-            },
-          ) {
-            Text(stringResource(R.string.cancel))
+            TextButton(
+              onClick = {
+                dialogState.dismiss()
+              },
+            ) {
+              Text(stringResource(R.string.cancel))
+            }
+            TextButton(
+              onClick = {
+                if (modelState.modelId.isNotBlank() && modelState.displayName.isNotBlank()) {
+                  dialogState.confirm()
+                }
+              },
+            ) {
+              Text(stringResource(R.string.setting_provider_page_add))
+            }
           }
         }
-      )
+      }
     }
   }
 }
@@ -697,16 +713,16 @@ private fun ModelPicker(
       }
       Column(
         modifier = Modifier
-          .fillMaxWidth()
-          .height(500.dp)
-          .padding(8.dp)
-          .imePadding(),
+            .fillMaxWidth()
+            .height(500.dp)
+            .padding(8.dp)
+            .imePadding(),
         verticalArrangement = Arrangement.spacedBy(4.dp)
       ) {
         LazyColumn(
           modifier = Modifier
-            .fillMaxWidth()
-            .weight(1f),
+              .fillMaxWidth()
+              .weight(1f),
           verticalArrangement = Arrangement.spacedBy(8.dp),
           contentPadding = PaddingValues(8.dp),
         ) {
@@ -718,8 +734,8 @@ private fun ModelPicker(
                   8.dp
                 ),
                 modifier = Modifier
-                  .fillMaxWidth()
-                  .padding(8.dp),
+                    .fillMaxWidth()
+                    .padding(8.dp),
               ) {
                 AutoAIIcon(
                   it.modelId,
@@ -943,78 +959,97 @@ private fun ModelCard(
   val scope = rememberCoroutineScope()
 
 
-  dialogState.EditStateContent { editingModel, updateEditingModel ->
-    AlertDialog(
-      onDismissRequest = { dialogState.dismiss() },
-      title = {
-        Text(stringResource(R.string.setting_provider_page_edit_model))
-      },
-      text = {
+  if (dialogState.isEditing) {
+    dialogState.currentState?.let { editingModel ->
+      ModalBottomSheet(
+        onDismissRequest = {
+          dialogState.dismiss()
+        },
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+      ) {
         Column(
-          verticalArrangement = Arrangement.spacedBy(8.dp)
+          modifier = Modifier
+              .fillMaxWidth()
+              .fillMaxHeight(0.95f)
+              .padding(16.dp),
+          verticalArrangement = Arrangement.spacedBy(16.dp),
+          horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-          OutlinedTextField(
-            value = editingModel.modelId,
-            onValueChange = {},
-            label = { Text(stringResource(R.string.setting_provider_page_model_id)) },
+          Text(
+            text = stringResource(R.string.setting_provider_page_edit_model),
+            style = MaterialTheme.typography.titleLarge
+          )
+          Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+          ) {
+            OutlinedTextField(
+              value = editingModel.modelId,
+              onValueChange = {},
+              label = { Text(stringResource(R.string.setting_provider_page_model_id)) },
+              modifier = Modifier.fillMaxWidth(),
+              enabled = false
+            )
+
+            OutlinedTextField(
+              value = editingModel.displayName,
+              onValueChange = {
+                dialogState.currentState = editingModel.copy(displayName = it.trim())
+              },
+              label = { Text(stringResource(R.string.setting_provider_page_model_name)) },
+              modifier = Modifier.fillMaxWidth()
+            )
+
+            ModelTypeSelector(
+              selectedType = editingModel.type,
+              onTypeSelected = {
+                dialogState.currentState = editingModel.copy(type = it)
+              }
+            )
+            ModelModalitySelector(
+              inputModalities = editingModel.inputModalities,
+              onUpdateInputModalities = {
+                dialogState.currentState = editingModel.copy(inputModalities = it)
+              },
+              outputModalities = editingModel.outputModalities,
+              onUpdateOutputModalities = {
+                dialogState.currentState = editingModel.copy(outputModalities = it)
+              }
+            )
+            ModalAbilitySelector(
+              abilities = editingModel.abilities,
+              onUpdateAbilities = {
+                dialogState.currentState = editingModel.copy(abilities = it)
+              }
+            )
+          }
+
+          Row(
             modifier = Modifier.fillMaxWidth(),
-            enabled = false
-          )
-
-          OutlinedTextField(
-            value = editingModel.displayName,
-            onValueChange = {
-              updateEditingModel(editingModel.copy(displayName = it.trim()))
-            },
-            label = { Text(stringResource(R.string.setting_provider_page_model_name)) },
-            modifier = Modifier.fillMaxWidth()
-          )
-
-          ModelTypeSelector(
-            selectedType = editingModel.type,
-            onTypeSelected = {
-              updateEditingModel(editingModel.copy(type = it))
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+          ) {
+            TextButton(
+              onClick = {
+                dialogState.dismiss()
+              },
+            ) {
+              Text(stringResource(R.string.cancel))
             }
-          )
-          ModelModalitySelector(
-            inputModalities = editingModel.inputModalities,
-            onUpdateInputModalities = {
-              updateEditingModel(editingModel.copy(inputModalities = it))
-            },
-            outputModalities = editingModel.outputModalities,
-            onUpdateOutputModalities = {
-              updateEditingModel(editingModel.copy(outputModalities = it))
-            }
-          )
-          ModalAbilitySelector(
-            abilities = editingModel.abilities,
-            onUpdateAbilities = {
-              updateEditingModel(editingModel.copy(abilities = it))
-            }
-          )
-        }
-      },
-      confirmButton = {
-        TextButton(
-          onClick = {
-            if (editingModel.displayName.isNotBlank()) {
-              dialogState.confirm()
+            TextButton(
+              onClick = {
+                if (editingModel.displayName.isNotBlank()) {
+                  dialogState.confirm()
+                }
+              },
+            ) {
+              Text(stringResource(R.string.confirm))
             }
           }
-        ) {
-          Text(stringResource(R.string.confirm))
-        }
-      },
-      dismissButton = {
-        TextButton(
-          onClick = {
-            dialogState.dismiss()
-          }
-        ) {
-          Text(stringResource(R.string.cancel))
         }
       }
-    )
+    }
   }
 
   SwipeToDismissBox(
@@ -1022,8 +1057,8 @@ private fun ModelCard(
     backgroundContent = {
       Row(
         modifier = Modifier
-          .fillMaxSize()
-          .padding(8.dp),
+            .fillMaxSize()
+            .padding(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
         verticalAlignment = Alignment.CenterVertically
       ) {
@@ -1058,8 +1093,8 @@ private fun ModelCard(
     OutlinedCard {
       Row(
         modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 12.dp, vertical = 4.dp),
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
       ) {

@@ -1,5 +1,8 @@
 package me.rerere.rikkahub.ui.components.chat
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,11 +27,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import me.rerere.rikkahub.data.model.Avatar
 import me.rerere.rikkahub.ui.components.ui.EmojiPicker
+import me.rerere.rikkahub.utils.createChatFilesByContents
 
 @Composable
 fun Avatar(
@@ -36,8 +41,20 @@ fun Avatar(
   modifier: Modifier = Modifier,
   onUpdate: (Avatar) -> Unit = {},
 ) {
+  val context = LocalContext.current
   var showPickOption by remember { mutableStateOf(false) }
   var showEmojiPicker by remember { mutableStateOf(false) }
+  
+  // 图片选择launcher
+  val imagePickerLauncher = rememberLauncherForActivityResult(
+    contract = ActivityResultContracts.GetContent()
+  ) { uri: Uri? ->
+    uri?.let {
+      val localUri = context.createChatFilesByContents(listOf(it))[0]
+      onUpdate(Avatar.Image(localUri.toString()))
+    }
+  }
+  
   Surface(
     shape = CircleShape,
     modifier = modifier.size(32.dp),
@@ -88,6 +105,7 @@ fun Avatar(
           Button(
             onClick = {
               showPickOption = false
+              imagePickerLauncher.launch("image/*")
             },
             modifier = Modifier.fillMaxWidth()
           ) {
@@ -110,7 +128,7 @@ fun Avatar(
             showPickOption = false
           }
         ) {
-          Text("完成")
+          Text("关闭")
         }
       }
     )

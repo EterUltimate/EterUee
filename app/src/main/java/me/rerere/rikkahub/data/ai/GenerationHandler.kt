@@ -204,7 +204,14 @@ class GenerationHandler(
 
           // 记忆
           if (assistant.enableMemory) {
+            appendLine()
             append(buildMemoryPrompt(memories))
+          }
+
+          // 工具prompt
+          tools.forEach { tool ->
+            appendLine()
+            append(tool.systemPrompt())
           }
         }
         if (system.isNotBlank()) add(UIMessage.system(system))

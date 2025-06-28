@@ -21,8 +21,13 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
@@ -59,6 +64,7 @@ import me.rerere.rikkahub.data.model.toMessageNode
 import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.data.repository.MemoryRepository
 import me.rerere.rikkahub.utils.JsonInstant
+import me.rerere.rikkahub.utils.JsonInstantPretty
 import me.rerere.rikkahub.utils.UiState
 import me.rerere.rikkahub.utils.UpdateChecker
 import me.rerere.rikkahub.utils.applyPlaceholders
@@ -212,8 +218,51 @@ class ChatVM(
         commonOptions = settings.value.searchCommonOptions,
         serviceOptions = settings.value.searchServiceOptions,
       )
-      val results = result.getOrThrow()
-      JsonInstant.encodeToJsonElement(results)
+      val results = JsonInstantPretty.encodeToJsonElement(result.getOrThrow())
+        .jsonObject
+        .let { json ->
+          val map = json.toMutableMap()
+          map["items"] = JsonArray(map["items"]!!.jsonArray.mapIndexed { index, item ->
+            JsonObject(item.jsonObject.toMutableMap().apply {
+              put("index", JsonPrimitive(index + 1)) // 添加索引
+            })
+          })
+          JsonObject(map)
+        }
+      results
+    },
+    systemPrompt = {
+      """
+    ## search_web 工具使用说明
+    
+    ### 搜索与筛选
+    - 使用 `search_web` 工具(tool call)搜索互联网信息时，需要针对用户问题进行多角度、多关键词搜索
+    - 优先选择权威、可信的信息源，避免使用过时或不准确的内容，现在是 {cur_date}
+    - 基于**多个相关网页**综合回答，避免单一信息源
+    - 每个关键信息点都要有对应的引用支撑
+    
+    ### 引用格式规范（重要）
+    - **引用必须紧跟在相关内容之后**，不得延后到段落末尾或回复结尾
+    - 正确格式：`具体的引用内容 [citation](1)`, `多个引用内容。 [citation](2) [citation](3)`
+    - 错误示例：把所有引用都放在回复最后
+    - 每引用一个搜索结果的内容，立即添加对应的引用标记
+    
+    ### 引用位置要求
+    - **即时引用**：每当使用搜索结果中的信息时，立刻在该句话后添加引用
+    - **分散引用**：引用应分布在整个回答中，而不是集中在某处
+    - **精确对应**：引用标记必须紧跟其引用的具体内容
+    
+    ### 引用示例
+    ```
+    ✅ 正确：
+    - 据报道，该技术可以提高效率30%。[citation](1)
+    - 另一项研究显示，成本降低了15%，专家认为这将改变行业格局。[citation](2) [citation](3)
+    
+    ❌ 错误：
+    据报道，该技术可以提高效率30%。另一项研究显示，成本降低了15%。专家认为这将改变行业格局。
+    [citation](1) [citation](2) [citation](3)
+    ```
+      """.trimIndent()
     }
   )
 

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material3.ColorScheme
@@ -26,6 +27,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -76,7 +78,6 @@ private val parser by lazy {
 
 private val INLINE_LATEX_REGEX = Regex("\\\\\\((.+?)\\\\\\)")
 private val BLOCK_LATEX_REGEX = Regex("\\\\\\[(.+?)\\\\\\]", RegexOption.DOT_MATCHES_ALL)
-private val CITATION_REGEX = Regex("\\[citation:(\\w+)\\]")
 val THINKING_REGEX = Regex("<think>([\\s\\S]*?)(?:</think>|$)", RegexOption.DOT_MATCHES_ALL)
 
 // 预处理markdown内容
@@ -91,12 +92,6 @@ private fun preProcess(content: String): String {
     result.replace(BLOCK_LATEX_REGEX) { matchResult ->
       "$$" + matchResult.groupValues[1] + "$$"
     }
-
-  // 替换引用 [citation:xx] 为 <citation>xx</citation>
-  result = result.replace(CITATION_REGEX) { matchResult ->
-    " [citation](${matchResult.groupValues[1]})"
-  }
-  MarkdownElementTypes.SHORT_REFERENCE_LINK
 
   // 替换思考
   result = result.replace(THINKING_REGEX) { matchResult ->
@@ -822,6 +817,7 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
                     println(linkDest)
                   }
                   .fillMaxSize()
+                  .clip(RoundedCornerShape(20))
                   .background(colorScheme.primary.copy(0.2f)),
                 contentAlignment = Alignment.Center
               ) {

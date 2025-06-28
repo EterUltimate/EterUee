@@ -10,6 +10,7 @@ data class Tool(
   val name: String,
   val description: String,
   val parameters: InputSchema? = null,
+  val systemPrompt: () -> String = { "" },
   val execute: suspend (JsonElement) -> JsonElement
 )
 

@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -540,28 +541,34 @@ fun ChatInput(
       }
 
       // Expanded content
-      AnimatedVisibility(expand == ExpandState.Files) {
-        Surface(
-          modifier = Modifier
+      Box(
+        modifier = Modifier
+            .animateContentSize()
             .fillMaxWidth()
-        ) {
-          FilesPicker(state) {
-            dismissExpand()
+      ) {
+        if (expand == ExpandState.Files) {
+          Surface(
+            modifier = Modifier
+              .fillMaxWidth()
+          ) {
+            FilesPicker(state) {
+              dismissExpand()
+            }
           }
         }
-      }
-      AnimatedVisibility(expand == ExpandState.Actions) {
-        Surface(
-          modifier = Modifier
-            .fillMaxWidth()
-        ) {
-          ChatActions(
-            onToggleSearch = onToggleSearch,
-            enableSearch = enableSearch,
-            settings = settings,
-            mcpManager = mcpManager,
-            onUpdateAssistant = onUpdateAssistant,
-          )
+        if (expand == ExpandState.Actions) {
+          Surface(
+            modifier = Modifier
+              .fillMaxWidth()
+          ) {
+            ChatActions(
+              onToggleSearch = onToggleSearch,
+              enableSearch = enableSearch,
+              settings = settings,
+              mcpManager = mcpManager,
+              onUpdateAssistant = onUpdateAssistant,
+            )
+          }
         }
       }
     }

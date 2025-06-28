@@ -502,6 +502,9 @@ class ChatVM(
       )
     }
     updateConversation(newConversation)
+    viewModelScope.launch {
+      saveConversation(conversation)
+    }
   }
 
   fun regenerateAtMessage(

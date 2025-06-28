@@ -458,6 +458,7 @@ fun MarkdownNode(
       // 因此，需要往上找到最后一个EOL元素，用它来作为代码块的起始offset
       val contentStartIndex =
         node.children.indexOfFirst { it.type == MarkdownTokenTypes.CODE_FENCE_CONTENT }
+      if(contentStartIndex == -1) return
       val eolElement = node.children.subList(0, contentStartIndex)
         .findLast { it.type == MarkdownTokenTypes.EOL } ?: return
       val codeContentStartOffset = eolElement.endOffset

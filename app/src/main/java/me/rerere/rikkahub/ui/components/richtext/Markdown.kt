@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
@@ -107,45 +109,46 @@ private fun preProcess(content: String): String {
 @Preview(showBackground = true)
 @Composable
 private fun MarkdownPreview() {
-  Column(
-    modifier = Modifier
+  MaterialTheme {
+    Column(
+      modifier = Modifier
         .fillMaxWidth()
         .padding(16.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp)
-  ) {
-    MarkdownBlock(
-      content = "Hi there!",
-      modifier = Modifier.background(Color.Red)
-    )
-    MarkdownBlock(
-      content = """
-                # 🌍 c
-                1. How many roads must a man walk down
-                    * the slings and arrows of outrageous fortune, Or to take arms against a sea of troubles,
-                    * by opposing end them.
-                        * How many times must a man look up, Before he can see the sky?
-                2. How many times must a man look up, Before he can see the sky?  
-                * Before they're allowed to be free? Yes, 'n' how many times can a man turn his head  
-                3. How many times must a man look up, Before he can see the sky?  
-                4. For in that sleep of death what dreams may come [citation](1)
-                This is Markdown Test, This is Markdown Test.
-                
-                This is Markdown Test, This is Markdown Test.
+      verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+      MarkdownBlock(
+        content = "Hi there!",
+        modifier = Modifier.background(Color.Red)
+      )
+      MarkdownBlock(
+        content = """
+                    ### 🌍 This is Markdown Test This Markdown Test
+                    1. How many roads must a man walk down
+                        * the slings and arrows of outrageous fortune, Or to take arms against a sea of troubles,
+                        * by opposing end them.
+                            * How many times must a man look up, Before he can see the sky?
+                    2. How many times must a man look up, Before he can see the sky?  
+                    * Before they're allowed to be free? Yes, 'n' how many times can a man turn his head
+                    How many times $ f(x) = \sum_{n=0}^{\infty} \frac{f^{(n)}(a)}{n!}(x-a)^n$
 
-                | A | B |
-                | - | - |
-                | 1 | 2 |
-                
-                | Name | Age | Address | Email | Job | Homepage |
-                | ---- | --- | ------- | ----- | --- | -------- |
-                | John | 25  | New York | john@example.com | Software Engineer | john.com |
-                | Jane | 26  | London   | jane@example.com | Data Scientist | jane.com |
-                
-                ## HTML Escaping
-                This is a &gt;  test
-                
-            """.trimIndent()
-    )
+                    4. For in that sleep of death what dreams may come [citation](1)
+                    
+                    This is Markdown Test, This is Markdown Test.
+                    
+                    ***
+                    This is Markdown Test, This is Markdown Test.
+
+                    | Name | Age | Address | Email | Job | Homepage |
+                    | ---- | --- | ------- | ----- | --- | -------- |
+                    | John | 25  | New York | john@example.com | Software Engineer | john.com |
+                    | Jane | 26  | London   | jane@example.com | Data Scientist | jane.com |
+                    
+                    ## HTML Escaping
+                    This is a &gt;  test
+                    
+                """.trimIndent()
+      )
+    }
   }
 }
 
@@ -273,16 +276,11 @@ fun MarkdownNode(
         else -> throw IllegalArgumentException("Unknown header type")
       }
       ProvideTextStyle(value = style) {
-        FlowRow(modifier = modifier.padding(vertical = 16.dp)) {
-          node.children.forEach { child ->
-            Paragraph(
-              node = child,
-              content = content,
-              modifier = Modifier.align(Alignment.CenterVertically),
-              onClickCitation = onClickCitation
-            )
-          }
-        }
+        Text(
+          // content 使用正则过滤井号
+          text = node.getTextInNode(content).replace(Regex("^#+\\s*"), ""),
+          modifier = Modifier.fillMaxWidth()
+        )
       }
     }
 
@@ -314,18 +312,18 @@ fun MarkdownNode(
         val bgColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
         FlowRow(
           modifier = Modifier
-              .drawWithContent {
-                  drawContent()
-                  drawRect(
-                      color = bgColor,
-                      size = size
-                  )
-                  drawRect(
-                      color = borderColor,
-                      size = Size(10f, size.height)
-                  )
-              }
-              .padding(8.dp)
+            .drawWithContent {
+              drawContent()
+              drawRect(
+                color = bgColor,
+                size = size
+              )
+              drawRect(
+                color = borderColor,
+                size = Size(10f, size.height)
+              )
+            }
+            .padding(8.dp)
         ) {
           node.children.fastForEach { child ->
             MarkdownNode(
@@ -397,6 +395,13 @@ fun MarkdownNode(
       TableNode(node = node, content = content, modifier = modifier)
     }
 
+    MarkdownTokenTypes.HORIZONTAL_RULE -> {
+      HorizontalDivider(
+        modifier = Modifier.padding(vertical = 8.dp),
+        color = MaterialTheme.colorScheme.primary
+      )
+    }
+
     // 图片
     MarkdownElementTypes.IMAGE -> {
       val altText =
@@ -426,8 +431,8 @@ fun MarkdownNode(
       val formula = node.getTextInNode(content)
       MathBlock(
         formula, modifier = modifier
-              .fillMaxWidth()
-              .padding(vertical = 8.dp)
+          .fillMaxWidth()
+          .padding(vertical = 8.dp)
       )
     }
 
@@ -446,8 +451,8 @@ fun MarkdownNode(
         code = code,
         language = "plaintext",
         modifier = Modifier
-            .padding(bottom = 4.dp)
-            .fillMaxWidth(),
+          .padding(bottom = 4.dp)
+          .fillMaxWidth(),
         completeCodeBlock = true
       )
     }
@@ -464,8 +469,8 @@ fun MarkdownNode(
         code = code,
         language = language,
         modifier = Modifier
-            .padding(bottom = 4.dp)
-            .fillMaxWidth(),
+          .padding(bottom = 4.dp)
+          .fillMaxWidth(),
         completeCodeBlock = hasEnd
       )
     }
@@ -669,7 +674,7 @@ private fun Paragraph(
       modifier = Modifier,
       inlineContent = inlineContents,
       softWrap = true,
-      overflow = TextOverflow.Visible,
+      overflow = TextOverflow.Visible
     )
   }
 }
@@ -721,8 +726,8 @@ private fun TableNode(node: ASTNode, content: String, modifier: Modifier = Modif
     columns = columns,
     data = rows,
     modifier = modifier
-        .padding(vertical = 8.dp)
-        .fillMaxWidth()
+      .padding(vertical = 8.dp)
+      .fillMaxWidth()
 
   )
 }
@@ -740,7 +745,6 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
     node is LeafASTNode -> {
       append(node.getTextInNode(content).unescapeHtml())
     }
-
     node.type == MarkdownElementTypes.EMPH -> {
       withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
         node.children
@@ -813,12 +817,12 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
             children = {
               Box(
                 modifier = Modifier
-                    .clickable {
-                        onClickCitation(linkDest.toIntOrNull() ?: 1)
-                        println(linkDest)
-                    }
-                    .fillMaxSize()
-                    .background(colorScheme.primary.copy(0.2f)),
+                  .clickable {
+                    onClickCitation(linkDest.toIntOrNull() ?: 1)
+                    println(linkDest)
+                  }
+                  .fillMaxSize()
+                  .background(colorScheme.primary.copy(0.2f)),
                 contentAlignment = Alignment.Center
               ) {
                 Text(

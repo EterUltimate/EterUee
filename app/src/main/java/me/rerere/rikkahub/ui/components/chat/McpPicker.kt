@@ -13,11 +13,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -36,13 +35,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFilter
-import androidx.compose.ui.util.fastSumBy
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.CircleAlert
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.MessageSquareOff
-import com.composables.icons.lucide.MessageSquareX
 import com.composables.icons.lucide.Terminal
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.mcp.McpManager
@@ -51,6 +47,7 @@ import me.rerere.rikkahub.data.mcp.McpStatus
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
+import me.rerere.rikkahub.ui.components.ui.ToggleSurface
 import org.koin.compose.koinInject
 
 @Composable
@@ -64,31 +61,52 @@ fun McpPickerButton(
   var showMcpPicker by remember { mutableStateOf(false) }
   val status by mcpManager.syncingStatus.collectAsStateWithLifecycle()
   val loading = status.values.any { it == McpStatus.Connecting }
-  BadgedBox(
-    badge = {
-      val enabledServers = servers.fastFilter {
-        it.commonOptions.enable && assistant.mcpServers.contains(it.id)
-      }
-      if (enabledServers.isNotEmpty()) {
-        Badge(
-          containerColor = MaterialTheme.colorScheme.secondaryContainer
-        ) {
-          Text(text = enabledServers.size.toString())
-        }
-      }
+  val enabledServers = servers.fastFilter {
+    it.commonOptions.enable && assistant.mcpServers.contains(it.id)
+  }
+  ToggleSurface(
+    modifier = modifier,
+    checked = assistant.mcpServers.isNotEmpty(),
+    onClick = {
+      showMcpPicker = true
     }
   ) {
-    IconButton(
-      onClick = {
-        showMcpPicker = true
-      },
-      modifier = modifier
+    Row(
+      modifier = Modifier
+        .padding(vertical = 4.dp, horizontal = 8.dp),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-      Box {
-        if (loading) {
-          CircularProgressIndicator(modifier = Modifier.size(24.dp))
+      Box(
+        modifier = Modifier.size(32.dp),
+        contentAlignment = Alignment.Center
+      ) {
+        Icon(
+          imageVector = Lucide.Terminal,
+          contentDescription = stringResource(R.string.mcp_picker_title),
+        )
+      }
+      Column(
+        modifier = Modifier,
+        verticalArrangement = Arrangement.spacedBy(2.dp)
+      ) {
+        Text("MCP")
+      }
+      Box(
+        modifier = Modifier
+          .padding(horizontal = 8.dp),
+        contentAlignment = Alignment.Center
+      ) {
+        if(loading) {
+          CircularProgressIndicator(
+            modifier = Modifier.size(20.dp)
+          )
         } else {
-          Icon(imageVector = Lucide.Terminal, contentDescription = null)
+          Badge(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+          ) {
+            Text(text = enabledServers.size.toString())
+          }
         }
       }
     }

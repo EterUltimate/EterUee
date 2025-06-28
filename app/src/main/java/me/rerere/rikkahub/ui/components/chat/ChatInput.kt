@@ -89,6 +89,7 @@ import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import com.composables.icons.lucide.ArrowUp
 import com.composables.icons.lucide.Camera
+import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.Ellipsis
 import com.composables.icons.lucide.Eraser
 import com.composables.icons.lucide.Files
@@ -123,6 +124,7 @@ import me.rerere.rikkahub.data.datastore.getCurrentChatModel
 import me.rerere.rikkahub.data.mcp.McpManager
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.ui.components.ui.KeepScreenOn
+import me.rerere.rikkahub.ui.components.ui.ToggleSurface
 import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.createChatFilesByContents
 import me.rerere.rikkahub.utils.deleteChatFiles
@@ -373,8 +375,8 @@ fun ChatInput(
           shape = RoundedCornerShape(32.dp),
           tonalElevation = 4.dp,
           modifier = Modifier
-            .weight(1f)
-            .padding(horizontal = 8.dp)
+              .weight(1f)
+              .padding(horizontal = 8.dp)
         ) {
           Column {
             if (state.isEditing()) {
@@ -383,8 +385,8 @@ fun ChatInput(
               ) {
                 Row(
                   modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                      .fillMaxWidth()
+                      .padding(horizontal = 16.dp, vertical = 4.dp),
                   verticalAlignment = Alignment.CenterVertically
                 ) {
                   Text(
@@ -430,14 +432,14 @@ fun ChatInput(
               value = text.text,
               onValueChange = { state.setMessageText(it) },
               modifier = Modifier
-                .fillMaxWidth()
-                .contentReceiver(receiveContentListener)
-                .onFocusChanged {
-                  isFocused = it.isFocused
-                  if (isFocused) {
-                    expand = ExpandState.Collapsed
-                  }
-                },
+                  .fillMaxWidth()
+                  .contentReceiver(receiveContentListener)
+                  .onFocusChanged {
+                      isFocused = it.isFocused
+                      if (isFocused) {
+                          expand = ExpandState.Collapsed
+                      }
+                  },
               shape = RoundedCornerShape(32.dp),
               placeholder = {
                 Text(stringResource(R.string.chat_input_placeholder))
@@ -593,11 +595,13 @@ private fun ChatActions(
   mcpManager: McpManager,
   onUpdateAssistant: (Assistant) -> Unit
 ) {
-  Column(
+  FlowRow(
     modifier = Modifier
         .padding(16.dp)
         .fillMaxWidth(),
-    verticalArrangement = Arrangement.spacedBy(6.dp)
+    itemVerticalAlignment = Alignment.CenterVertically,
+    verticalArrangement = Arrangement.spacedBy(8.dp),
+    horizontalArrangement = Arrangement.spacedBy(8.dp)
   ) {
     // Search
     ChatActionItem(
@@ -606,70 +610,38 @@ private fun ChatActions(
       },
       icon = {
         Icon(
-          imageVector = Lucide.Search,
+          imageVector = Lucide.Earth,
           contentDescription = stringResource(R.string.use_web_search),
         )
       },
-      action = {
-        Switch(
-          checked = enableSearch,
-          onCheckedChange = {
-            onToggleSearch(it)
-          },
-          enabled = true,
-        )
-      }
+      onClick = {
+        onToggleSearch(!enableSearch)
+      },
+      checked = enableSearch,
     )
 
-    // MCP
-    if (settings.mcpServers.fastFilter { it.commonOptions.enable }.isNotEmpty()) {
-      ChatActionItem(
-        title = {
-          Text("MCP")
-        },
-        icon = {
-          Icon(
-            imageVector = Lucide.Terminal,
-            contentDescription = stringResource(R.string.mcp_picker_title),
-          )
-        },
-        action = {
-          McpPickerButton(
-            assistant = settings.getCurrentAssistant(),
-            servers = settings.mcpServers,
-            mcpManager = mcpManager,
-            onUpdateAssistant = {
-              onUpdateAssistant(it)
-            },
-          )
-        }
-      )
-    }
     // Reasoning
     val model = settings.getCurrentChatModel()
     if (model?.abilities?.contains(ModelAbility.REASONING) == true) {
       val assistant = settings.getCurrentAssistant()
-      ChatActionItem(
-        icon = {
-          Icon(
-            painter = painterResource(R.drawable.deepthink),
-            contentDescription = null,
-          )
+      ReasoningButton(
+        reasoningTokens = assistant.thinkingBudget ?: 0,
+        onUpdateReasoningTokens = {
+          onUpdateAssistant(assistant.copy(thinkingBudget = it))
         },
-        title = {
-          Text(stringResource(R.string.assistant_page_thinking_budget))
-        },
-        action = {
-          ReasoningButton(
-            reasoningTokens = assistant.thinkingBudget ?: 0,
-            onUpdateReasoningTokens = {
-              onUpdateAssistant(assistant.copy(thinkingBudget = it))
-            },
-            onlyIcon = true
-          )
-        }
+        onlyIcon = false
       )
     }
+
+    // MCP
+    McpPickerButton(
+      assistant = settings.getCurrentAssistant(),
+      servers = settings.mcpServers,
+      mcpManager = mcpManager,
+      onUpdateAssistant = {
+        onUpdateAssistant(it)
+      },
+    )
   }
 }
 
@@ -938,17 +910,24 @@ private fun BigIconTextButton(
 @Composable
 private fun ChatActionItem(
   modifier: Modifier = Modifier,
+  checked: Boolean,
   icon: @Composable () -> Unit,
   title: @Composable () -> Unit,
-  action: @Composable () -> Unit,
+  tail: @Composable (() -> Unit)? = null,
+  onClick: () -> Unit
 ) {
-  OutlinedCard {
+  ToggleSurface(
+    modifier = modifier,
+    checked = checked,
+    onClick = {
+      onClick()
+    }
+  ) {
     Row(
-      modifier = modifier
-          .fillMaxWidth()
-          .padding(vertical = 4.dp, horizontal = 8.dp),
+      modifier = Modifier
+        .padding(vertical = 4.dp, horizontal = 16.dp),
       verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(16.dp)
+      horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
       Box(
         modifier = Modifier.size(32.dp),
@@ -957,17 +936,19 @@ private fun ChatActionItem(
         icon()
       }
       Column(
-        modifier = Modifier.weight(1f),
+        modifier = Modifier,
         verticalArrangement = Arrangement.spacedBy(2.dp)
       ) {
         title()
       }
-      Box(
-        modifier = Modifier
-          .padding(horizontal = 8.dp),
-        contentAlignment = Alignment.Center
-      ) {
-        action()
+      tail?.let {
+        Box(
+          modifier = Modifier
+            .padding(horizontal = 8.dp),
+          contentAlignment = Alignment.Center
+        ) {
+          tail()
+        }
       }
     }
   }

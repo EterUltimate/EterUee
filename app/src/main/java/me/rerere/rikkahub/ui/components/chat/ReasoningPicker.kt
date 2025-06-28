@@ -1,11 +1,13 @@
 package me.rerere.rikkahub.ui.components.chat
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
@@ -27,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
@@ -36,6 +39,7 @@ import com.composables.icons.lucide.LightbulbOff
 import com.composables.icons.lucide.Lucide
 import me.rerere.ai.core.ReasoningLevel
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.ui.components.ui.ToggleSurface
 
 @Composable
 fun ReasoningButton(
@@ -67,18 +71,29 @@ fun ReasoningButton(
       )
     }
   } else {
-    TextButton(
+    ToggleSurface(
+      checked = reasoningTokens > 0,
       onClick = {
         showPicker = true
-      },
-      modifier = modifier
+      }
     ) {
-      Icon(Lucide.Lightbulb, null)
-      Text(
-        text = stringResource(id = R.string.reasoning_set_budget, reasoningTokens),
-        style = MaterialTheme.typography.labelLarge,
-        modifier = Modifier.padding(start = 8.dp)
-      )
+      Row(
+        modifier = Modifier
+          .padding(vertical = 4.dp, horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+      ) {
+        Box(
+          modifier = Modifier.size(32.dp),
+          contentAlignment = Alignment.Center
+        ) {
+          Icon(
+            painter = painterResource(R.drawable.deepthink),
+            contentDescription = null,
+          )
+        }
+        Text(stringResource(R.string.setting_provider_page_reasoning))
+      }
     }
   }
 }
@@ -98,9 +113,9 @@ fun ReasoningPicker(
   ) {
     Column(
       modifier = Modifier
-          .fillMaxWidth()
-          .padding(16.dp)
-          .verticalScroll(rememberScrollState()),
+        .fillMaxWidth()
+        .padding(16.dp)
+        .verticalScroll(rememberScrollState()),
       verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
       ReasoningLevelCard(
@@ -209,8 +224,8 @@ private fun ReasoningLevelCard(
   ) {
     Row(
       modifier = modifier
-          .fillMaxWidth()
-          .padding(16.dp),
+        .fillMaxWidth()
+        .padding(16.dp),
       horizontalArrangement = Arrangement.spacedBy(16.dp),
       verticalAlignment = Alignment.CenterVertically
     ) {

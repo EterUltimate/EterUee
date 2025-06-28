@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.launch
+import me.rerere.rikkahub.data.model.Avatar
+import me.rerere.rikkahub.ui.components.chat.Avatar
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.components.richtext.MathBlock
@@ -59,7 +61,14 @@ fun DebugPage(vm: DebugVM = koinViewModel()) {
         .imePadding(),
       verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-      EmojiPicker()
+      var avatar : Avatar by remember { mutableStateOf(Avatar.Emoji("😎")) }
+      Avatar(
+        value = avatar,
+        onUpdate = {
+          println("Avatar updated: $it")
+          avatar = it
+        }
+      )
       Mermaid(
         code = """
                 mindmap

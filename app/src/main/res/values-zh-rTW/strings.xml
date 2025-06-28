@@ -195,6 +195,10 @@
   <string name="mermaid_export_success">匯出成功</string>
   <string name="mermaid_export_failed">匯出失敗</string>
 
+  <!-- Emoji Picker -->
+  <string name="emoji_picker_search_placeholder">搜尋表情符號...</string>
+  <string name="emoji_picker_select_skin_tone">選擇膚色</string>
+
   <!-- Reasoning -->
   <string name="reasoning_set_budget">設置推理預算 (%1$d tokens)</string>
   <string name="reasoning_off">關閉</string>

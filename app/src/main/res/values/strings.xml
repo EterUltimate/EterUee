@@ -196,6 +196,10 @@
   <string name="mermaid_export_success">Export successful</string>
   <string name="mermaid_export_failed">Export failed</string>
 
+  <!-- Emoji Picker -->
+  <string name="emoji_picker_search_placeholder">Search emojis...</string>
+  <string name="emoji_picker_select_skin_tone">Select Skin Tone</string>
+
   <!-- Reasoning -->
   <string name="reasoning_set_budget">Set reasoning budget (%1$d tokens)</string>
 

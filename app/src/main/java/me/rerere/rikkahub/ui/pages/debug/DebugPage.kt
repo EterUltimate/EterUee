@@ -28,6 +28,7 @@ import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.components.richtext.MathBlock
 import me.rerere.rikkahub.ui.components.richtext.Mermaid
+import me.rerere.rikkahub.ui.components.ui.EmojiPicker
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.search.SearchService
 import org.koin.androidx.compose.koinViewModel
@@ -58,6 +59,7 @@ fun DebugPage(vm: DebugVM = koinViewModel()) {
         .imePadding(),
       verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
+      EmojiPicker()
       Mermaid(
         code = """
                 mindmap

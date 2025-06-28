@@ -69,6 +69,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -982,9 +983,9 @@ fun ReasoningCard(
         verticalAlignment = Alignment.CenterVertically,
       ) {
         Icon(
-          imageVector = Lucide.Lightbulb,
+          painter = painterResource(R.drawable.deepthink),
           contentDescription = null,
-          modifier = Modifier.size(14.dp),
+          modifier = Modifier.size(16.dp),
           tint = MaterialTheme.colorScheme.secondary
         )
         Text(

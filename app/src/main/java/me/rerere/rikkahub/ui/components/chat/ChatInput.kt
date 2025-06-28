@@ -73,6 +73,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -651,7 +652,7 @@ private fun ChatActions(
       ChatActionItem(
         icon = {
           Icon(
-            imageVector = Lucide.Lightbulb,
+            painter = painterResource(R.drawable.deepthink),
             contentDescription = null,
           )
         },

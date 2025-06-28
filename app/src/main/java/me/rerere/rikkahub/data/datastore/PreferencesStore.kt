@@ -255,7 +255,7 @@ data class Settings(
 
 @Serializable
 data class DisplaySetting(
-  val showModelIcon: Boolean = false,
+  val showModelIcon: Boolean = true,
   val showTokenUsage: Boolean = true,
   val autoCloseThinking: Boolean = true,
   val showUpdates: Boolean = true,

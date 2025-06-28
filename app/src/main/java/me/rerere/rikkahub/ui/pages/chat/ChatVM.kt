@@ -298,19 +298,15 @@ class ChatVM(
     if (parts.isEmptyInputMessage()) return
     val newConversation = conversation.value.copy(
       messageNodes = conversation.value.messageNodes.map { node ->
+        if(!node.messages.any{ it.id == messageId}) {
+          return@map node // 如果这个node没有这个消息，则不修改
+        }
         node.copy(
-          messages = node.messages.map { message ->
-            if (message.id == messageId) {
-              message.copy(
-                parts = parts,
-                createdAt = Clock.System.now().toLocalDateTime(
-                  TimeZone.currentSystemDefault()
-                )
-              )
-            } else {
-              message
-            }
-          }
+          messages = node.messages + UIMessage(
+            role = node.role,
+            parts = parts,
+          ),
+          selectIndex = node.messages.size
         )
       },
     )
@@ -555,7 +551,7 @@ class ChatVM(
     }
     updateConversation(newConversation)
     viewModelScope.launch {
-      saveConversation(conversation)
+      saveConversation(newConversation)
     }
   }
 

@@ -183,11 +183,11 @@ fun ChatMessage(
           showIcon = showIcon,
           message = message,
           model = model,
-          modifier = Modifier.weight(1f)
         )
+        Spacer(Modifier.weight(1f))
         MessageNodePagerButtons(
           node = node,
-          onUpdate = onUpdate
+          onUpdate = onUpdate,
         )
       }
     }
@@ -439,59 +439,66 @@ private fun ColumnScope.Actions(
 @Composable
 private fun MessageNodePagerButtons(
   node: MessageNode,
-  onUpdate: (MessageNode) -> Unit
+  modifier: Modifier = Modifier,
+  onUpdate: (MessageNode) -> Unit,
 ) {
-  if (node.messages.size > 1) {
-    Icon(
-      imageVector = Lucide.ChevronLeft,
-      contentDescription = "Prev",
-      modifier = Modifier
+  Row(
+    modifier = modifier,
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
+  ) {
+    if (node.messages.size > 1) {
+      Icon(
+        imageVector = Lucide.ChevronLeft,
+        contentDescription = "Prev",
+        modifier = Modifier
           .clip(CircleShape)
           .alpha(if (node.selectIndex == 0) 0.5f else 1f)
           .clickable(
-              interactionSource = remember { MutableInteractionSource() },
-              indication = LocalIndication.current,
-              onClick = {
-                  if (node.selectIndex > 0) {
-                      onUpdate(
-                          node.copy(
-                              selectIndex = node.selectIndex - 1
-                          )
-                      )
-                  }
+            interactionSource = remember { MutableInteractionSource() },
+            indication = LocalIndication.current,
+            onClick = {
+              if (node.selectIndex > 0) {
+                onUpdate(
+                  node.copy(
+                    selectIndex = node.selectIndex - 1
+                  )
+                )
               }
+            }
           )
           .padding(8.dp)
           .size(16.dp)
-    )
+      )
 
-    Text(
-      text = "${node.selectIndex + 1}/${node.messages.size}",
-      style = MaterialTheme.typography.bodySmall
-    )
+      Text(
+        text = "${node.selectIndex + 1}/${node.messages.size}",
+        style = MaterialTheme.typography.bodySmall
+      )
 
-    Icon(
-      imageVector = Lucide.ChevronRight,
-      contentDescription = "Next",
-      modifier = Modifier
+      Icon(
+        imageVector = Lucide.ChevronRight,
+        contentDescription = "Next",
+        modifier = Modifier
           .clip(CircleShape)
           .alpha(if (node.selectIndex == node.messages.lastIndex) 0.5f else 1f)
           .clickable(
-              interactionSource = remember { MutableInteractionSource() },
-              indication = LocalIndication.current,
-              onClick = {
-                  if (node.selectIndex < node.messages.lastIndex) {
-                      onUpdate(
-                          node.copy(
-                              selectIndex = node.selectIndex + 1
-                          )
-                      )
-                  }
+            interactionSource = remember { MutableInteractionSource() },
+            indication = LocalIndication.current,
+            onClick = {
+              if (node.selectIndex < node.messages.lastIndex) {
+                onUpdate(
+                  node.copy(
+                    selectIndex = node.selectIndex + 1
+                  )
+                )
               }
+            }
           )
           .padding(8.dp)
           .size(16.dp),
-    )
+      )
+    }
   }
 }
 

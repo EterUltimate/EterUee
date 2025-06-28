@@ -38,6 +38,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -360,103 +361,130 @@ fun ChatInput(
           }
       }
 
-      // TextField
-      Surface(
-        shape = RoundedCornerShape(32.dp),
-        tonalElevation = 4.dp,
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 8.dp),
       ) {
-        Column {
-          if (state.isEditing()) {
-            Surface(
-              tonalElevation = 8.dp
-            ) {
-              Row(
-                modifier = Modifier
+        // TextField
+        Surface(
+          shape = RoundedCornerShape(32.dp),
+          tonalElevation = 4.dp,
+          modifier = Modifier
+            .weight(1f)
+            .padding(horizontal = 8.dp)
+        ) {
+          Column {
+            if (state.isEditing()) {
+              Surface(
+                tonalElevation = 8.dp
+              ) {
+                Row(
+                  modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-              ) {
-                Text(
-                  text = stringResource(R.string.editing),
-                )
-                Spacer(Modifier.weight(1f))
-                Icon(
-                  Lucide.X, stringResource(R.string.cancel_edit),
-                  modifier = Modifier
-                    .clickable {
-                      state.clearInput()
-                    }
-                )
+                  verticalAlignment = Alignment.CenterVertically
+                ) {
+                  Text(
+                    text = stringResource(R.string.editing),
+                  )
+                  Spacer(Modifier.weight(1f))
+                  Icon(
+                    Lucide.X, stringResource(R.string.cancel_edit),
+                    modifier = Modifier
+                      .clickable {
+                        state.clearInput()
+                      }
+                  )
+                }
               }
             }
-          }
-          var isFocused by remember { mutableStateOf(false) }
-          var isFullScreen by remember { mutableStateOf(false) }
-          val receiveContentListener = remember {
-            ReceiveContentListener { transferableContent ->
-              when {
-                transferableContent.hasMediaType(MediaType.Image) -> {
-                  transferableContent.consume { item ->
-                    val uri = item.uri
-                    if (uri != null) {
-                      state.addImages(
-                        context.createChatFilesByContents(
-                          listOf(
-                            uri
+            var isFocused by remember { mutableStateOf(false) }
+            var isFullScreen by remember { mutableStateOf(false) }
+            val receiveContentListener = remember {
+              ReceiveContentListener { transferableContent ->
+                when {
+                  transferableContent.hasMediaType(MediaType.Image) -> {
+                    transferableContent.consume { item ->
+                      val uri = item.uri
+                      if (uri != null) {
+                        state.addImages(
+                          context.createChatFilesByContents(
+                            listOf(
+                              uri
+                            )
                           )
                         )
-                      )
+                      }
+                      uri != null
                     }
-                    uri != null
                   }
-                }
 
-                else -> transferableContent
+                  else -> transferableContent
+                }
               }
             }
-          }
-          TextField(
-            value = text.text,
-            onValueChange = { state.setMessageText(it) },
-            modifier = Modifier
+            TextField(
+              value = text.text,
+              onValueChange = { state.setMessageText(it) },
+              modifier = Modifier
                 .fillMaxWidth()
                 .contentReceiver(receiveContentListener)
                 .onFocusChanged {
-                    isFocused = it.isFocused
-                    if (isFocused) {
-                        expand = ExpandState.Collapsed
-                    }
-                },
-            shape = RoundedCornerShape(32.dp),
-            placeholder = {
-              Text(stringResource(R.string.chat_input_placeholder))
-            },
-            maxLines = 5,
-            colors = TextFieldDefaults.colors().copy(
-              unfocusedIndicatorColor = Color.Transparent,
-              focusedIndicatorColor = Color.Transparent,
-              focusedContainerColor = Color.Transparent,
-              unfocusedContainerColor = Color.Transparent,
-            ),
-            trailingIcon = {
-              if (isFocused) {
-                IconButton(
-                  onClick = {
-                    isFullScreen = !isFullScreen
+                  isFocused = it.isFocused
+                  if (isFocused) {
+                    expand = ExpandState.Collapsed
                   }
-                ) {
-                  Icon(Lucide.Fullscreen, null)
+                },
+              shape = RoundedCornerShape(32.dp),
+              placeholder = {
+                Text(stringResource(R.string.chat_input_placeholder))
+              },
+              maxLines = 5,
+              colors = TextFieldDefaults.colors().copy(
+                unfocusedIndicatorColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+              ),
+              trailingIcon = {
+                if (isFocused) {
+                  IconButton(
+                    onClick = {
+                      isFullScreen = !isFullScreen
+                    }
+                  ) {
+                    Icon(Lucide.Fullscreen, null)
+                  }
                 }
               }
+            )
+            if (isFullScreen) {
+              FullScreenEditor(text, state) {
+                isFullScreen = false
+              }
             }
-          )
-          if (isFullScreen) {
-            FullScreenEditor(text, state) {
-              isFullScreen = false
-            }
+          }
+        }
+
+        // Send Button
+        IconButton(
+          onClick = {
+            expand = ExpandState.Collapsed
+            sendMessage()
+          },
+          colors = IconButtonDefaults.filledIconButtonColors(
+            containerColor = if (state.loading) MaterialTheme.colorScheme.errorContainer else Color.Unspecified,
+            contentColor = if (state.loading) MaterialTheme.colorScheme.onErrorContainer else Color.Unspecified,
+          ),
+          enabled = state.loading || !state.messageContent.isEmptyInputMessage(),
+        ) {
+          if (state.loading) {
+            KeepScreenOn()
+            Icon(Lucide.X, stringResource(R.string.stop))
+          } else {
+            Icon(Lucide.ArrowUp, stringResource(R.string.send))
           }
         }
       }
@@ -519,25 +547,6 @@ fun ChatInput(
         }
 
         Spacer(Modifier.width(4.dp))
-
-        IconButton(
-          onClick = {
-            expand = ExpandState.Collapsed
-            sendMessage()
-          },
-          colors = IconButtonDefaults.filledIconButtonColors(
-            containerColor = if (state.loading) MaterialTheme.colorScheme.errorContainer else Color.Unspecified,
-            contentColor = if (state.loading) MaterialTheme.colorScheme.onErrorContainer else Color.Unspecified,
-          ),
-          enabled = state.loading || !state.messageContent.isEmptyInputMessage(),
-        ) {
-          if (state.loading) {
-            KeepScreenOn()
-            Icon(Lucide.X, stringResource(R.string.stop))
-          } else {
-            Icon(Lucide.ArrowUp, stringResource(R.string.send))
-          }
-        }
       }
 
       // Expanded content

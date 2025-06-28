@@ -501,6 +501,82 @@ private fun ModelList(
 }
 
 @Composable
+private fun ModelSettingsForm(
+  model: Model,
+  onModelChange: (Model) -> Unit,
+  isEdit: Boolean
+) {
+  fun setModelId(id: String) {
+    val modality = guessModalityFromModelId(id.lowercase())
+    val abilities = guessModelAbilityFromModelId(id.lowercase())
+    onModelChange(model.copy(
+      modelId = id,
+      displayName = id.uppercase(),
+      inputModalities = modality.first,
+      outputModalities = modality.second,
+      abilities = abilities
+    ))
+  }
+
+  OutlinedTextField(
+    value = model.modelId,
+    onValueChange = {
+      if (!isEdit) {
+        setModelId(it.trim())
+      }
+    },
+    label = { Text(stringResource(R.string.setting_provider_page_model_id)) },
+    modifier = Modifier.fillMaxWidth(),
+    placeholder = {
+      if(!isEdit) {
+        Text(stringResource(R.string.setting_provider_page_model_id_placeholder))
+      }
+    },
+    enabled = !isEdit
+  )
+
+  OutlinedTextField(
+    value = model.displayName,
+    onValueChange = {
+      onModelChange(model.copy(displayName = it.trim()))
+    },
+    label = { Text(stringResource(if(isEdit) R.string.setting_provider_page_model_name else R.string.setting_provider_page_model_display_name)) },
+    modifier = Modifier.fillMaxWidth(),
+    placeholder = {
+      if(!isEdit) {
+        Text(stringResource(R.string.setting_provider_page_model_display_name_placeholder))
+      }
+    }
+  )
+
+
+  ModelTypeSelector(
+    selectedType = model.type,
+    onTypeSelected = {
+      onModelChange(model.copy(type = it))
+    }
+  )
+
+  ModelModalitySelector(
+    inputModalities = model.inputModalities,
+    onUpdateInputModalities = {
+      onModelChange(model.copy(inputModalities = it))
+    },
+    outputModalities = model.outputModalities,
+    onUpdateOutputModalities = {
+      onModelChange(model.copy(outputModalities = it))
+    }
+  )
+
+  ModalAbilitySelector(
+    abilities = model.abilities,
+    onUpdateAbilities = {
+      onModelChange(model.copy(abilities = it))
+    }
+  )
+}
+
+@Composable
 private fun AddModelButton(
   models: List<Model>,
   selectedModels: List<Model>,
@@ -509,18 +585,6 @@ private fun AddModelButton(
   onRemoveModel: (Model) -> Unit
 ) {
   val dialogState = useEditState<Model> { onAddModel(it) }
-
-  fun setModelId(id: String) {
-    val modality = guessModalityFromModelId(id.lowercase())
-    val abilities = guessModelAbilityFromModelId(id.lowercase())
-    dialogState.currentState = dialogState.currentState?.copy(
-      modelId = id,
-      displayName = id.uppercase(),
-      inputModalities = modality.first,
-      outputModalities = modality.second,
-      abilities = abilities
-    )
-  }
 
   Row(
     horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -596,64 +660,10 @@ private fun AddModelButton(
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
           ) {
-            OutlinedTextField(
-              value = modelState.modelId,
-              onValueChange = {
-                setModelId(it.trim())
-              },
-              label = { Text(stringResource(R.string.setting_provider_page_model_id)) },
-              modifier = Modifier.fillMaxWidth(),
-              placeholder = {
-                Text(stringResource(R.string.setting_provider_page_model_id_placeholder))
-              },
-            )
-
-            OutlinedTextField(
-              value = modelState.displayName,
-              onValueChange = {
-                dialogState.currentState = dialogState.currentState?.copy(
-                  displayName = it.trim()
-                )
-              },
-              label = { Text(stringResource(R.string.setting_provider_page_model_display_name)) },
-              modifier = Modifier.fillMaxWidth(),
-              placeholder = {
-                Text(stringResource(R.string.setting_provider_page_model_display_name_placeholder))
-              }
-            )
-
-
-            ModelTypeSelector(
-              selectedType = modelState.type,
-              onTypeSelected = {
-                dialogState.currentState = dialogState.currentState?.copy(
-                  type = it
-                )
-              }
-            )
-
-            ModelModalitySelector(
-              inputModalities = modelState.inputModalities,
-              onUpdateInputModalities = {
-                dialogState.currentState = dialogState.currentState?.copy(
-                  inputModalities = it
-                )
-              },
-              outputModalities = modelState.outputModalities,
-              onUpdateOutputModalities = {
-                dialogState.currentState = dialogState.currentState?.copy(
-                  outputModalities = it
-                )
-              }
-            )
-
-            ModalAbilitySelector(
-              abilities = modelState.abilities,
-              onUpdateAbilities = {
-                dialogState.currentState = dialogState.currentState?.copy(
-                  abilities = it
-                )
-              }
+            ModelSettingsForm(
+              model = modelState,
+              onModelChange = { dialogState.currentState = it },
+              isEdit = false
             )
           }
 
@@ -985,44 +995,10 @@ private fun ModelCard(
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
           ) {
-            OutlinedTextField(
-              value = editingModel.modelId,
-              onValueChange = {},
-              label = { Text(stringResource(R.string.setting_provider_page_model_id)) },
-              modifier = Modifier.fillMaxWidth(),
-              enabled = false
-            )
-
-            OutlinedTextField(
-              value = editingModel.displayName,
-              onValueChange = {
-                dialogState.currentState = editingModel.copy(displayName = it.trim())
-              },
-              label = { Text(stringResource(R.string.setting_provider_page_model_name)) },
-              modifier = Modifier.fillMaxWidth()
-            )
-
-            ModelTypeSelector(
-              selectedType = editingModel.type,
-              onTypeSelected = {
-                dialogState.currentState = editingModel.copy(type = it)
-              }
-            )
-            ModelModalitySelector(
-              inputModalities = editingModel.inputModalities,
-              onUpdateInputModalities = {
-                dialogState.currentState = editingModel.copy(inputModalities = it)
-              },
-              outputModalities = editingModel.outputModalities,
-              onUpdateOutputModalities = {
-                dialogState.currentState = editingModel.copy(outputModalities = it)
-              }
-            )
-            ModalAbilitySelector(
-              abilities = editingModel.abilities,
-              onUpdateAbilities = {
-                dialogState.currentState = editingModel.copy(abilities = it)
-              }
+            ModelSettingsForm(
+              model = editingModel,
+              onModelChange = {  dialogState.currentState = it },
+              isEdit = true
             )
           }
 

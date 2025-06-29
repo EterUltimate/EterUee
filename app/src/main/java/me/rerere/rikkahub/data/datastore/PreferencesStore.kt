@@ -35,8 +35,6 @@ import me.rerere.search.SearchCommonOptions
 import me.rerere.search.SearchServiceOptions
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
-import org.koin.core.component.inject
-import java.util.Locale
 import kotlin.uuid.Uuid
 
 private const val TAG = "PreferencesStore"
@@ -63,6 +61,7 @@ class SettingsStore(
 
     // 模型选择
     val ENABLE_WEB_SEARCH = booleanPreferencesKey("enable_web_search")
+    val FAVORITE_MODELS = stringPreferencesKey("favorite_models")
     val SELECT_MODEL = stringPreferencesKey("chat_model")
     val TITLE_MODEL = stringPreferencesKey("title_model")
     val TRANSLATE_MODEL = stringPreferencesKey("translate_model")
@@ -102,6 +101,9 @@ class SettingsStore(
     }.map { preferences ->
       Settings(
         enableWebSearch = preferences[ENABLE_WEB_SEARCH] == true,
+        favoriteModels = preferences[FAVORITE_MODELS]?.let {
+          JsonInstant.decodeFromString(it)
+        } ?: emptyList(),
         chatModelId = preferences[SELECT_MODEL]?.let { Uuid.parse(it) } ?: Uuid.random(),
         titleModelId = preferences[TITLE_MODEL]?.let { Uuid.parse(it) } ?: Uuid.random(),
         translateModeId = preferences[TRANSLATE_MODEL]?.let { Uuid.parse(it) }
@@ -184,6 +186,9 @@ class SettingsStore(
           }
         },
         assistants = settings.assistants.distinctBy { it.id },
+        favoriteModels = settings.favoriteModels.filter { uuid ->
+          settings.providers.flatMap { it.models }.any { it.id == uuid }
+        }
       )
     }
     .onEach {
@@ -203,6 +208,7 @@ class SettingsStore(
       preferences[DISPLAY_SETTING] = JsonInstant.encodeToString(settings.displaySetting)
 
       preferences[ENABLE_WEB_SEARCH] = settings.enableWebSearch
+      preferences[FAVORITE_MODELS] = JsonInstant.encodeToString(settings.favoriteModels)
       preferences[SELECT_MODEL] = settings.chatModelId.toString()
       preferences[TITLE_MODEL] = settings.titleModelId.toString()
       preferences[TRANSLATE_MODEL] = settings.translateModeId.toString()
@@ -243,6 +249,7 @@ data class Settings(
   val themeType: PresetThemeType = PresetThemeType.STANDARD,
   val displaySetting: DisplaySetting = DisplaySetting(),
   val enableWebSearch: Boolean = false,
+  val favoriteModels: List<Uuid> = emptyList(),
   val chatModelId: Uuid = Uuid.random(),
   val titleModelId: Uuid = Uuid.random(),
   val titlePrompt: String = DEFAULT_TITLE_PROMPT,

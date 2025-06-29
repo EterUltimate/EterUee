@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastForEach
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Hammer
@@ -75,13 +76,16 @@ import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.findModelById
+import me.rerere.rikkahub.data.datastore.findProvider
 import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
 import me.rerere.rikkahub.ui.components.ui.icons.HeartIcon
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.theme.extendColors
+import org.koin.compose.koinInject
 import kotlin.uuid.Uuid
 
 @Composable
@@ -113,8 +117,8 @@ fun ModelSelector(
         model?.modelId?.let {
           AutoAIIcon(
             it, Modifier
-                  .padding(end = 4.dp)
-                  .size(24.dp)
+              .padding(end = 4.dp)
+              .size(24.dp)
           )
         }
         Text(
@@ -167,9 +171,9 @@ fun ModelSelector(
     ) {
       Column(
         modifier = Modifier
-            .padding(8.dp)
-            .fillMaxHeight(0.8f)
-            .imePadding(),
+          .padding(8.dp)
+          .fillMaxHeight(0.8f)
+          .imePadding(),
         verticalArrangement = Arrangement.spacedBy(4.dp)
       ) {
         val filteredProviderSettings = providers.fastFilter {
@@ -217,16 +221,21 @@ private fun ColumnScope.ModelList(
   onSelect: (Model) -> Unit,
   onDismiss: () -> Unit
 ) {
-  val favoriteModels = providers
-    .flatMap { provider ->
-      provider.models.map { model -> model to provider }
-    }
-    .fastFilter { (model, _) ->
-      model.favorite && model.type == modelType
-    }
-  var searchKeywords by remember { mutableStateOf("") }
-  val lazyListState = rememberLazyListState()
   val coroutineScope = rememberCoroutineScope()
+  val settingsStore = koinInject<SettingsStore>()
+  val settings = settingsStore.settingsFlow
+    .collectAsStateWithLifecycle()
+
+  val favoriteModels = settings.value.favoriteModels.mapNotNull { modelId ->
+    val model = settings.value.providers.findModelById(modelId) ?: return@mapNotNull null
+    val provider = model.findProvider(settings.value.providers) ?: return@mapNotNull null
+    model to provider
+  }
+
+  var searchKeywords by remember { mutableStateOf("") }
+
+  val lazyListState = rememberLazyListState()
+
   val providerPositions = remember(providers, favoriteModels, allowFavorite) {
     var currentIndex = 0
     if (providers.isEmpty()) {
@@ -252,8 +261,8 @@ private fun ColumnScope.ModelList(
     verticalArrangement = Arrangement.spacedBy(4.dp),
     contentPadding = PaddingValues(8.dp),
     modifier = Modifier
-        .weight(1f)
-        .fillMaxWidth(),
+      .weight(1f)
+      .fillMaxWidth(),
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     if (providers.isEmpty()) {
@@ -274,8 +283,8 @@ private fun ColumnScope.ModelList(
           style = MaterialTheme.typography.labelMedium,
           color = MaterialTheme.colorScheme.primary,
           modifier = Modifier
-              .padding(bottom = 4.dp, top = 8.dp)
-              .fillMaxWidth(),
+            .padding(bottom = 4.dp, top = 8.dp)
+            .fillMaxWidth(),
           textAlign = TextAlign.Center
         )
       }
@@ -296,27 +305,21 @@ private fun ColumnScope.ModelList(
         ) {
           IconButton(
             onClick = {
-              onUpdate(
-                model.copy(
-                  favorite = !model.favorite
-                )
-              )
+              coroutineScope.launch {
+                settingsStore.update { settings ->
+                  settings.copy(
+                    favoriteModels = settings.favoriteModels.filter { it != model.id }
+                  )
+                }
+              }
             }
           ) {
-            if (model.favorite) {
-              Icon(
-                HeartIcon,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.extendColors.red6
-              )
-            } else {
-              Icon(
-                Lucide.HeartOff,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-              )
-            }
+            Icon(
+              HeartIcon,
+              contentDescription = null,
+              modifier = Modifier.size(20.dp),
+              tint = MaterialTheme.extendColors.red6
+            )
           }
         }
       }
@@ -329,8 +332,8 @@ private fun ColumnScope.ModelList(
           style = MaterialTheme.typography.labelMedium,
           color = MaterialTheme.colorScheme.primary,
           modifier = Modifier
-              .padding(bottom = 4.dp, top = 8.dp)
-              .fillMaxWidth(),
+            .padding(bottom = 4.dp, top = 8.dp)
+            .fillMaxWidth(),
           textAlign = TextAlign.Center
         )
       }
@@ -344,6 +347,7 @@ private fun ColumnScope.ModelList(
         },
         key = { it.id }
       ) { model ->
+        val favorite = settings.value.favoriteModels.contains(model.id)
         ModelItem(
           model = model,
           onSelect = onSelect,
@@ -357,14 +361,23 @@ private fun ColumnScope.ModelList(
             if (allowFavorite) {
               IconButton(
                 onClick = {
-                  onUpdate(
-                    model.copy(
-                      favorite = !model.favorite
-                    )
-                  )
+                  coroutineScope.launch {
+                    settingsStore.update { settings ->
+                      if (favorite) {
+                        settings.copy(
+                          favoriteModels = settings.favoriteModels.filter { it != model.id }
+                        )
+
+                      } else {
+                        settings.copy(
+                          favoriteModels = settings.favoriteModels + model.id
+                        )
+                      }
+                    }
+                  }
                 }
               ) {
-                if (model.favorite) {
+                if (favorite) {
                   Icon(
                     HeartIcon,
                     contentDescription = null,
@@ -485,8 +498,8 @@ private fun ModelItem(
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(8.dp),
       modifier = Modifier
-          .fillMaxWidth()
-          .padding(vertical = 12.dp, horizontal = 16.dp)
+        .fillMaxWidth()
+        .padding(vertical = 12.dp, horizontal = 16.dp)
     ) {
       AutoAIIcon(
         name = model.modelId,
@@ -511,8 +524,8 @@ private fun ModelItem(
 
         Row(
           modifier = Modifier
-              .fillMaxWidth()
-              .height(IntrinsicSize.Min),
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min),
           horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
           Tag(type = TagType.INFO) {
@@ -549,8 +562,8 @@ private fun ModelItem(
                     imageVector = Lucide.Hammer,
                     contentDescription = null,
                     modifier = Modifier
-                        .height(iconHeight)
-                        .aspectRatio(1f)
+                      .height(iconHeight)
+                      .aspectRatio(1f)
                   )
                 }
               }
@@ -564,8 +577,8 @@ private fun ModelItem(
                     imageVector = Lucide.Lightbulb,
                     contentDescription = null,
                     modifier = Modifier
-                        .height(iconHeight)
-                        .aspectRatio(1f)
+                      .height(iconHeight)
+                      .aspectRatio(1f)
                   )
                 }
               }

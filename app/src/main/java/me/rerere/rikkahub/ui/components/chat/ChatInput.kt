@@ -125,6 +125,7 @@ import me.rerere.rikkahub.data.mcp.McpManager
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.ui.components.ui.KeepScreenOn
 import me.rerere.rikkahub.ui.components.ui.ToggleSurface
+import me.rerere.rikkahub.utils.GetContentWithMultiMime
 import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.createChatFilesByContents
 import me.rerere.rikkahub.utils.deleteChatFiles
@@ -821,7 +822,7 @@ fun TakePicButton(onAddImages: (List<Uri>) -> Unit = {}) {
 fun FilePickButton(onAddFiles: (List<Pair<Uri, String>>) -> Unit = {}) {
   val context = LocalContext.current
   val pickMedia =
-    rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    rememberLauncherForActivityResult(GetContentWithMultiMime()) { uri ->
       if (uri != null) {
         val localUri = context.createChatFilesByContents(listOf(uri))[0]
         val fileName = context.getFileNameFromUri(uri) ?: "file"
@@ -840,7 +841,7 @@ fun FilePickButton(onAddFiles: (List<Pair<Uri, String>>) -> Unit = {}) {
       Text("上传文件")
     }
   ) {
-    pickMedia.launch("text/*")
+    pickMedia.launch(listOf("text/*", "application/json", "application/javascript"))
   }
 }
 

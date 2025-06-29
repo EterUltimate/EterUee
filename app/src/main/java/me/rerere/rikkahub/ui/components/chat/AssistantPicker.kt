@@ -21,6 +21,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
@@ -34,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -104,8 +106,8 @@ fun AssistantPicker(
       settings = settings,
       currentAssistant = state.currentAssistant,
       onAssistantSelected = { assistant ->
-        state.setSelectAssistant(assistant)
         showPicker = false
+        state.setSelectAssistant(assistant)
       },
       onDismiss = { showPicker = false })
   }
@@ -142,12 +144,10 @@ private fun AssistantPickerSheet(
       IconButton(
         onClick = {
           onDismiss()
-        }
-      ) {
+        }) {
         Icon(Lucide.ChevronDown, null)
       }
-    }
-  ) {
+    }) {
     Column(
       modifier = Modifier
           .fillMaxWidth()
@@ -187,12 +187,15 @@ private fun AssistantPickerSheet(
 
       // 助手列表
       LazyColumn(
-        modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)
+        modifier = Modifier.weight(1f),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
       ) {
         items(filteredAssistants, key = { it.id }) { assistant ->
-          Card(
+          Surface(
             onClick = { onAssistantSelected(assistant) },
-            modifier = Modifier.animateItem()
+            modifier = Modifier.animateItem(),
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.tertiaryContainer,
           ) {
             ListItem(
               headlineContent = {
@@ -201,23 +204,24 @@ private fun AssistantPickerSheet(
                   maxLines = 1,
                   overflow = TextOverflow.Ellipsis
                 )
-              }, supportingContent = if (assistant.systemPrompt.isNotBlank()) {
-                {
-                  Text(
-                    text = assistant.systemPrompt,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                  )
-                }
-              } else null, leadingContent = {
+              },
+              supportingContent = {
+                Text(
+                  text = assistant.systemPrompt.ifBlank { stringResource(R.string.assistant_page_no_system_prompt) },
+                  maxLines = 1,
+                  overflow = TextOverflow.Ellipsis,
+                  style = MaterialTheme.typography.bodySmall,
+                  color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+              },
+              leadingContent = {
                 Avatar(
                   name = assistant.name.ifEmpty { defaultAssistantName },
                   value = assistant.avatar,
                   modifier = Modifier.size(32.dp)
                 )
-              }, trailingContent = if (assistant.id == currentAssistant.id) {
+              },
+              trailingContent = if (assistant.id == currentAssistant.id) {
                 {
                   Icon(
                     imageVector = Lucide.Check,
@@ -225,7 +229,9 @@ private fun AssistantPickerSheet(
                     tint = MaterialTheme.colorScheme.primary
                   )
                 }
-              } else null)
+              } else null,
+              colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+            )
           }
         }
       }

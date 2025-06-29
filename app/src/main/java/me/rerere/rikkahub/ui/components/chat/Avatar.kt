@@ -92,7 +92,7 @@ fun Avatar(
 
         is Avatar.Dummy -> {
           Text(
-            text = name.takeIf { it.isNotEmpty() }?.firstOrNull()?.toString() ?: "A",
+            text = name.takeIf { it.isNotEmpty() }?.firstOrNull()?.toString()?.uppercase() ?: "A",
             fontSize = 20.sp,
             modifier = Modifier.padding(4.dp)
           )

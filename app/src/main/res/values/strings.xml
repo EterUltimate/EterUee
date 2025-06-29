@@ -239,6 +239,8 @@
   <string name="setting_display_page_show_updates_desc">Whether to display app update notifications</string>
   <string name="setting_display_page_show_message_jumper_title">Show Message Jumper</string>
   <string name="setting_display_page_show_message_jumper_desc">Display quick jump buttons on the right when scrolling the chat list</string>
+  <string name="setting_display_page_font_size_title">Chat Font Size</string>
+  <string name="setting_display_page_font_size_preview">This is a **sample** chat text</string>
   <string name="setting_display_page_title">Display Settings</string>
 
   <!-- Share Handler Page -->

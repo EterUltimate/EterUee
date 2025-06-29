@@ -274,6 +274,7 @@ data class DisplaySetting(
   val autoCloseThinking: Boolean = true,
   val showUpdates: Boolean = true,
   val showMessageJumper: Boolean = true,
+  val fontSizeRatio: Float = 1.0f,
 )
 
 @Serializable

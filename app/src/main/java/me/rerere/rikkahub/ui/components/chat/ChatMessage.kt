@@ -40,6 +40,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
@@ -165,6 +166,11 @@ fun ChatMessage(
   onUpdate: (MessageNode) -> Unit
 ) {
   val message = node.messages[node.selectIndex]
+  val settings = LocalSettings.current.displaySetting
+  val textStyle = LocalTextStyle.current.copy(
+    fontSize = LocalTextStyle.current.fontSize * settings.fontSizeRatio,
+    lineHeight = LocalTextStyle.current.lineHeight * settings.fontSizeRatio
+  )
   Column(
     modifier = modifier
       .fillMaxWidth(),
@@ -191,12 +197,14 @@ fun ChatMessage(
         )
       }
     }
-    MessagePartsBlock(
-      role = message.role,
-      parts = message.parts,
-      annotations = message.annotations,
-      messages = conversation.currentMessages,
-    )
+    ProvideTextStyle(textStyle) {
+      MessagePartsBlock(
+        role = message.role,
+        parts = message.parts,
+        annotations = message.annotations,
+        messages = conversation.currentMessages,
+      )
+    }
     AnimatedVisibility(
       visible = showActions,
       enter = slideInVertically { it / 2 } + fadeIn(),
@@ -452,23 +460,23 @@ private fun MessageNodePagerButtons(
         imageVector = Lucide.ChevronLeft,
         contentDescription = "Prev",
         modifier = Modifier
-          .clip(CircleShape)
-          .alpha(if (node.selectIndex == 0) 0.5f else 1f)
-          .clickable(
-            interactionSource = remember { MutableInteractionSource() },
-            indication = LocalIndication.current,
-            onClick = {
-              if (node.selectIndex > 0) {
-                onUpdate(
-                  node.copy(
-                    selectIndex = node.selectIndex - 1
-                  )
-                )
-              }
-            }
-          )
-          .padding(8.dp)
-          .size(16.dp)
+            .clip(CircleShape)
+            .alpha(if (node.selectIndex == 0) 0.5f else 1f)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = LocalIndication.current,
+                onClick = {
+                    if (node.selectIndex > 0) {
+                        onUpdate(
+                            node.copy(
+                                selectIndex = node.selectIndex - 1
+                            )
+                        )
+                    }
+                }
+            )
+            .padding(8.dp)
+            .size(16.dp)
       )
 
       Text(
@@ -480,23 +488,23 @@ private fun MessageNodePagerButtons(
         imageVector = Lucide.ChevronRight,
         contentDescription = "Next",
         modifier = Modifier
-          .clip(CircleShape)
-          .alpha(if (node.selectIndex == node.messages.lastIndex) 0.5f else 1f)
-          .clickable(
-            interactionSource = remember { MutableInteractionSource() },
-            indication = LocalIndication.current,
-            onClick = {
-              if (node.selectIndex < node.messages.lastIndex) {
-                onUpdate(
-                  node.copy(
-                    selectIndex = node.selectIndex + 1
-                  )
-                )
-              }
-            }
-          )
-          .padding(8.dp)
-          .size(16.dp),
+            .clip(CircleShape)
+            .alpha(if (node.selectIndex == node.messages.lastIndex) 0.5f else 1f)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = LocalIndication.current,
+                onClick = {
+                    if (node.selectIndex < node.messages.lastIndex) {
+                        onUpdate(
+                            node.copy(
+                                selectIndex = node.selectIndex + 1
+                            )
+                        )
+                    }
+                }
+            )
+            .padding(8.dp)
+            .size(16.dp),
       )
     }
   }

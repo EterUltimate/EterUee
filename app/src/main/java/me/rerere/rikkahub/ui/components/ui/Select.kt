@@ -40,7 +40,7 @@ fun <T> Select(
   onOptionSelected: (T) -> Unit,
   modifier: Modifier = Modifier,
   optionToString: @Composable (T) -> String = { it.toString() },
-  optionLeading: @Composable (T) -> Unit = { _ -> },
+  optionLeading: @Composable ((T) -> Unit)? = null,
   leading: @Composable () -> Unit = {},
   trailing: @Composable () -> Unit = {}
 ) {
@@ -98,8 +98,8 @@ fun <T> Select(
               Icon(Lucide.Check, null)
             }
           },
-          leadingIcon = {
-            optionLeading(option)
+          leadingIcon = optionLeading?.let {
+            { it(option) }
           }
         )
       }

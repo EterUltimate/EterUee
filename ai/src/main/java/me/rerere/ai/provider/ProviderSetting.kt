@@ -20,15 +20,6 @@ sealed class ProviderProxy {
     val username: String? = null,
     val password: String? = null,
   ) : ProviderProxy()
-
-  @Serializable
-  @SerialName("socks")
-  data class Socks(
-    val address: String,
-    val port: Int,
-    val username: String? = null,
-    val password: String? = null,
-  ) : ProviderProxy()
 }
 
 @Serializable

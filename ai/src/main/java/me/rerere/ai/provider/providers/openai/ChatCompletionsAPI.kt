@@ -33,6 +33,8 @@ import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessageChoice
 import me.rerere.ai.ui.UIMessagePart
+import me.rerere.ai.util.await
+import me.rerere.ai.util.configureClientWithProxy
 import me.rerere.ai.util.encodeBase64
 import me.rerere.ai.util.json
 import me.rerere.ai.util.mergeCustomBody
@@ -62,6 +64,9 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
         params = params,
         providerSetting = providerSetting
       )
+
+    val proxyClient = client.configureClientWithProxy(providerSetting.proxy)
+
     val request = Request.Builder()
       .url("${providerSetting.baseUrl}/chat/completions")
       .headers(params.customHeaders.toHeaders())
@@ -71,7 +76,7 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
 
     Log.i(TAG, "generateText: ${json.encodeToString(requestBody)}")
 
-    val response = client.newCall(request).execute()
+    val response = proxyClient.newCall(request).await()
     if (!response.isSuccessful) {
       throw Exception("Failed to get response: ${response.code} ${response.body?.string()}")
     }
@@ -117,6 +122,9 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
       providerSetting = providerSetting,
       stream = true,
     )
+
+    val proxyClient = client.configureClientWithProxy(providerSetting.proxy)
+
     val request = Request.Builder()
       .url("${providerSetting.baseUrl}/chat/completions")
       .headers(params.customHeaders.toHeaders())
@@ -216,13 +224,14 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
       }
     }
 
-    val eventSource = EventSources.createFactory(client).newEventSource(request, listener)
+    val eventSource = EventSources.createFactory(proxyClient).newEventSource(request, listener)
 
     awaitClose {
       println("[awaitClose] 关闭eventSource ")
       eventSource.cancel()
     }
   }
+
 
   private fun buildChatCompletionRequest(
     messages: List<UIMessage>,
@@ -242,7 +251,7 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
 
       put("stream", stream)
       if (stream) {
-        if(host != "api.mistral.ai") { // mistral 不支持 stream_options
+        if (host != "api.mistral.ai") { // mistral 不支持 stream_options
           put("stream_options", buildJsonObject {
             put("include_usage", true)
           })
@@ -251,12 +260,12 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
 
       if (params.model.abilities.contains(ModelAbility.REASONING)) {
         val level = ReasoningLevel.fromBudgetTokens(params.thinkingBudget ?: 0)
-        when(host) {
+        when (host) {
           "openrouter.ai" -> {
             // https://openrouter.ai/docs/use-cases/reasoning-tokens
             put("reasoning", buildJsonObject {
               put("max_tokens", params.thinkingBudget ?: 0)
-              if((params.thinkingBudget ?: 0) == 0) {
+              if ((params.thinkingBudget ?: 0) == 0) {
                 put("enabled", false)
               }
             })
@@ -283,7 +292,7 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
           else -> {
             // OpenAI 官方
             // 文档中，只支持 "low", "medium", "high"
-            if(level != ReasoningLevel.OFF) put("reasoning_effort", level.effort)
+            if (level != ReasoningLevel.OFF) put("reasoning_effort", level.effort)
           }
         }
       }

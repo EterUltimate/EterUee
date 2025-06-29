@@ -328,7 +328,6 @@ private fun SettingProviderProxyPage(
   }
   val proxyType = when (editingProxy) {
     is ProviderProxy.Http -> "HTTP"
-    is ProviderProxy.Socks -> "SOCKS"
     is ProviderProxy.None -> "None"
   }
 
@@ -342,7 +341,7 @@ private fun SettingProviderProxyPage(
     SingleChoiceSegmentedButtonRow(
       modifier = Modifier.fillMaxWidth()
     ) {
-      val types = listOf("None", "HTTP", "SOCKS")
+      val types = listOf("None", "HTTP")
       types.forEachIndexed { index, type ->
         SegmentedButton(
           shape = SegmentedButtonDefaults.itemShape(index, types.size),
@@ -353,11 +352,6 @@ private fun SettingProviderProxyPage(
               "HTTP" -> ProviderProxy.Http(
                 address = "",
                 port = 8080
-              )
-
-              "SOCKS" -> ProviderProxy.Socks(
-                address = "",
-                port = 1080
               )
 
               else -> ProviderProxy.None
@@ -403,46 +397,6 @@ private fun SettingProviderProxyPage(
           value = (editingProxy as ProviderProxy.Http).password ?: "",
           onValueChange = {
             editingProxy = (editingProxy as ProviderProxy.Http).copy(password = it)
-          },
-          label = { Text("Password (Optional)") },
-          modifier = Modifier.fillMaxWidth(),
-        )
-      }
-
-      is ProviderProxy.Socks -> {
-        OutlinedTextField(
-          value = (editingProxy as ProviderProxy.Socks).address,
-          onValueChange = {
-            editingProxy = (editingProxy as ProviderProxy.Socks).copy(address = it)
-          },
-          label = { Text("Host") },
-          modifier = Modifier.fillMaxWidth()
-        )
-        var portStr by remember { mutableStateOf((editingProxy as ProviderProxy.Socks).port.toString()) }
-        OutlinedTextField(
-          value = portStr,
-          onValueChange = {
-            portStr = it
-            it.toIntOrNull()?.let { port ->
-              editingProxy = (editingProxy as ProviderProxy.Socks).copy(port = port)
-            }
-          },
-          label = { Text("Port") },
-          modifier = Modifier.fillMaxWidth(),
-          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-        )
-        OutlinedTextField(
-          value = (editingProxy as ProviderProxy.Socks).username ?: "",
-          onValueChange = {
-            editingProxy = (editingProxy as ProviderProxy.Socks).copy(username = it)
-          },
-          label = { Text("Username (Optional)") },
-          modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-          value = (editingProxy as ProviderProxy.Socks).password ?: "",
-          onValueChange = {
-            editingProxy = (editingProxy as ProviderProxy.Socks).copy(password = it)
           },
           label = { Text("Password (Optional)") },
           modifier = Modifier.fillMaxWidth(),

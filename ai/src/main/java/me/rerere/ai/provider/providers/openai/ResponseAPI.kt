@@ -30,6 +30,7 @@ import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageChoice
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.util.await
+import me.rerere.ai.util.configureClientWithProxy
 import me.rerere.ai.util.encodeBase64
 import me.rerere.ai.util.json
 import me.rerere.ai.util.mergeCustomBody
@@ -67,7 +68,7 @@ class ResponseAPI(private val client: OkHttpClient) : OpenAIImpl {
 
     Log.i(TAG, "generateText: ${json.encodeToString(requestBody)}")
 
-    val response = client.newCall(request).await()
+    val response = client.configureClientWithProxy(providerSetting.proxy).newCall(request).await()
     if (!response.isSuccessful) {
       throw Exception("Failed to get response: ${response.code} ${response.body?.string()}")
     }
@@ -145,7 +146,9 @@ class ResponseAPI(private val client: OkHttpClient) : OpenAIImpl {
       }
     }
 
-    val eventSource = EventSources.createFactory(client).newEventSource(request, listener)
+    val eventSource =
+      EventSources.createFactory(client.configureClientWithProxy(providerSetting.proxy))
+        .newEventSource(request, listener)
 
     awaitClose {
       println("[awaitClose] 关闭eventSource ")

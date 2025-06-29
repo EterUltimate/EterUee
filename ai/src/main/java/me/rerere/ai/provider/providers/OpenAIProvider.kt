@@ -15,6 +15,8 @@ import me.rerere.ai.provider.providers.openai.ChatCompletionsAPI
 import me.rerere.ai.provider.providers.openai.ResponseAPI
 import me.rerere.ai.ui.MessageChunk
 import me.rerere.ai.ui.UIMessage
+import me.rerere.ai.util.await
+import me.rerere.ai.util.configureClientWithProxy
 import me.rerere.ai.util.json
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -50,7 +52,8 @@ object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
         .get()
         .build()
 
-      val response = client.newCall(request).execute()
+      val response =
+        client.configureClientWithProxy(providerSetting.proxy).newCall(request).await()
       if (!response.isSuccessful) {
         error("Failed to get models: ${response.code} ${response.body?.string()}")
       }

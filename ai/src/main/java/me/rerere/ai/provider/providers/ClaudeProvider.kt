@@ -11,7 +11,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.addAll
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -35,6 +34,7 @@ import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageChoice
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.util.await
+import me.rerere.ai.util.configureClientWithProxy
 import me.rerere.ai.util.encodeBase64
 import me.rerere.ai.util.json
 import me.rerere.ai.util.mergeCustomBody
@@ -79,7 +79,8 @@ object ClaudeProvider : Provider<ProviderSetting.Claude> {
         .get()
         .build()
 
-      val response = client.newCall(request).execute()
+      val response =
+        client.configureClientWithProxy(providerSetting.proxy).newCall(request).execute()
       if (!response.isSuccessful) {
         error("Failed to get models: ${response.code} ${response.body?.string()}")
       }
@@ -116,7 +117,7 @@ object ClaudeProvider : Provider<ProviderSetting.Claude> {
 
     Log.i(TAG, "generateText: ${json.encodeToString(requestBody)}")
 
-    val response = client.newCall(request).execute()
+    val response = client.configureClientWithProxy(providerSetting.proxy).newCall(request).await()
     if (!response.isSuccessful) {
       throw Exception("Failed to get response: ${response.code} ${response.body?.string()}")
     }
@@ -247,7 +248,9 @@ object ClaudeProvider : Provider<ProviderSetting.Claude> {
       }
     }
 
-    val eventSource = EventSources.createFactory(client).newEventSource(request, listener)
+    val eventSource =
+      EventSources.createFactory(client.configureClientWithProxy(providerSetting.proxy))
+        .newEventSource(request, listener)
 
     awaitClose {
       Log.d(TAG, "Closing eventSource")
@@ -290,7 +293,7 @@ object ClaudeProvider : Provider<ProviderSetting.Claude> {
       if (params.model.abilities.contains(ModelAbility.REASONING)) {
         val level = ReasoningLevel.fromBudgetTokens(params.thinkingBudget ?: 0)
         put("thinking", buildJsonObject {
-          if(level == ReasoningLevel.OFF) {
+          if (level == ReasoningLevel.OFF) {
             put("type", "disabled")
           } else {
             put("type", "enabled")

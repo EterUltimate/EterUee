@@ -411,4 +411,8 @@
   <string name="tag_input_dialog_create_new">创建新标签</string>
   <string name="tag_input_dialog_tag_exists">该名称的标签已存在</string>
   <string name="assistant_page_tags">标签</string>
+
+  <!-- Assistant Picker -->
+  <string name="assistant_picker_expand">展开</string>
+  <string name="assistant_picker_selected">已选择</string>
 </resources> 

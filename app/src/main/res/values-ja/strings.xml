@@ -412,4 +412,8 @@
   <string name="tag_input_dialog_create_new">新しいタグを作成</string>
   <string name="tag_input_dialog_tag_exists">同じ名前のタグが既に存在します</string>
   <string name="assistant_page_tags">タグ</string>
+
+  <!-- Assistant Picker -->
+  <string name="assistant_picker_expand">展開</string>
+  <string name="assistant_picker_selected">選択済み</string>
 </resources> 

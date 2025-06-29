@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -64,7 +65,8 @@ fun Avatar(
     onClick = {
       if (onUpdate != null) showPickOption = true
     },
-    tonalElevation = 2.dp,
+    tonalElevation = 4.dp,
+    color = MaterialTheme.colorScheme.secondaryContainer,
   ) {
     Box(
       contentAlignment = Alignment.Center,

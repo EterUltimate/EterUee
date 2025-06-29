@@ -319,7 +319,7 @@ private fun AssistantItem(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
       ) {
         Avatar(
-          name = assistant.name,
+          name = assistant.name.ifBlank { stringResource(R.string.assistant_page_default_assistant) },
           value = assistant.avatar,
         )
 

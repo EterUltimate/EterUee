@@ -777,7 +777,7 @@ private fun ToolCallPreviewDialog(
               )
             )
             val items = toolCall.content.jsonObject["items"]?.jsonArray ?: emptyList()
-            val answer = toolCall.content.jsonObject["answer"]?.jsonPrimitive?.content
+            val answer = toolCall.content.jsonObject["answer"]?.jsonPrimitive?.contentOrNull
             if (items.isNotEmpty()) {
               LazyColumn(
                 modifier = Modifier

@@ -65,7 +65,7 @@ class AssistantDetailVM(
         settings = settings.copy(
           assistants = settings.assistants.map {
             if (it.id == assistant.id) {
-              checkAvatarDelete(it) // 删除旧头像
+              checkAvatarDelete(old = it, new = assistant) // 删除旧头像
               assistant
             } else {
               it
@@ -96,8 +96,8 @@ class AssistantDetailVM(
     }
   }
 
-  fun checkAvatarDelete(old: Assistant) {
-    if (old.avatar is Avatar.Image) {
+  fun checkAvatarDelete(old: Assistant, new: Assistant) {
+    if (old.avatar is Avatar.Image && old.avatar != new.avatar) {
       context.deleteChatFiles(listOf(old.avatar.url.toUri()))
     }
   }

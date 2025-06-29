@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateBounds
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
@@ -109,6 +110,7 @@ import me.rerere.rikkahub.data.mcp.McpManager
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.ui.components.ui.KeepScreenOn
 import me.rerere.rikkahub.ui.components.ui.ToggleSurface
+import me.rerere.rikkahub.ui.hooks.heroAnimation
 import me.rerere.rikkahub.utils.GetContentWithMultiMime
 import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.createChatFilesByContents
@@ -505,7 +507,7 @@ fun ChatInput(
           },
           type = ModelType.CHAT,
           onlyIcon = true,
-          modifier = Modifier.fillMaxWidth(),
+          modifier = Modifier,
         )
 
         Spacer(Modifier.weight(1f))
@@ -536,7 +538,8 @@ fun ChatInput(
             onUpdateReasoningTokens = {
               onUpdateAssistant(assistant.copy(thinkingBudget = it))
             },
-            onlyIcon = false
+            onlyIcon = false,
+            modifier = Modifier.heroAnimation("reasoning")
           )
         }
 
@@ -863,12 +866,14 @@ private fun ChatActionItem(
       ) {
         icon()
       }
-      title?.let {
-        Column(
-          modifier = Modifier,
-          verticalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
-          title()
+      if(checked) {
+        title?.let {
+          Column(
+            modifier = Modifier,
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+          ) {
+            title()
+          }
         }
       }
       tail?.let {

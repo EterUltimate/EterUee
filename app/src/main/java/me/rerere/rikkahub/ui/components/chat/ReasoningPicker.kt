@@ -79,12 +79,12 @@ fun ReasoningButton(
     ) {
       Row(
         modifier = Modifier
-          .padding(vertical = 4.dp, horizontal = 16.dp),
+          .padding(vertical = 8.dp, horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
       ) {
         Box(
-          modifier = Modifier.size(20.dp),
+          modifier = Modifier.size(24.dp),
           contentAlignment = Alignment.Center
         ) {
           Icon(
@@ -92,7 +92,7 @@ fun ReasoningButton(
             contentDescription = null,
           )
         }
-        Text(stringResource(R.string.setting_provider_page_reasoning))
+        if (reasoningTokens > 0) Text(stringResource(R.string.setting_provider_page_reasoning))
       }
     }
   }
@@ -113,9 +113,9 @@ fun ReasoningPicker(
   ) {
     Column(
       modifier = Modifier
-        .fillMaxWidth()
-        .padding(16.dp)
-        .verticalScroll(rememberScrollState()),
+          .fillMaxWidth()
+          .padding(16.dp)
+          .verticalScroll(rememberScrollState()),
       verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
       ReasoningLevelCard(
@@ -224,8 +224,8 @@ private fun ReasoningLevelCard(
   ) {
     Row(
       modifier = modifier
-        .fillMaxWidth()
-        .padding(16.dp),
+          .fillMaxWidth()
+          .padding(16.dp),
       horizontalArrangement = Arrangement.spacedBy(16.dp),
       verticalAlignment = Alignment.CenterVertically
     ) {

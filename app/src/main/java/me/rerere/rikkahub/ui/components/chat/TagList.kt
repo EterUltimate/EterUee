@@ -2,17 +2,13 @@ package me.rerere.rikkahub.ui.components.chat
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -28,49 +24,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.X
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.model.Tag
-import me.rerere.rikkahub.ui.components.ui.Tag as TagComponent
-import me.rerere.rikkahub.ui.components.ui.TagType
 import kotlin.uuid.Uuid
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun TagsPreview() {
-    var tags by remember {
-        mutableStateOf(
-            listOf(
-                Tag(id = Uuid.random(), name = "标签1"),
-                Tag(id = Uuid.random(), name = "标签2"),
-                Tag(id = Uuid.random(), name = "标签3")
-            )
-        )
-    }
-    var value by remember { mutableStateOf(tags.map { it.id }) }
-    Box(Modifier.safeContentPadding()) {
-        TagsInput(
-            value = tags.map { it.id },
-            tags = tags,
-            onValueChange = {},
-            onUpdateTags = {
-                tags = it
-            }
-        )
-    }
-}
 
 @Composable
 fun TagsInput(
     value: List<Uuid>,
     tags: List<Tag>,
     modifier: Modifier = Modifier,
-    onValueChange: (List<Uuid>) -> Unit,
-    onUpdateTags: (List<Tag>) -> Unit,
+    onValueChange: (value: List<Uuid>, tags: List<Tag>) -> Unit,
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
 
@@ -98,7 +65,10 @@ fun TagsInput(
                         modifier = Modifier
                             .size(16.dp)
                             .clickable {
-                                onValueChange(value.filter { it != tag.id })
+                                onValueChange(
+                                    value.filter { it != tag.id },
+                                    tags
+                                )
                             },
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -152,10 +122,7 @@ fun TagsInput(
                     onClick = {
                         if (tagName.isNotBlank()) {
                             val newTag = Tag(id = Uuid.random(), name = tagName.trim())
-                            // 添加新tag到tags列表
-                            onUpdateTags(tags + newTag)
-                            // 将新tag添加到选中列表
-                            onValueChange(value + newTag.id)
+                            onValueChange(value + newTag.id, tags + newTag)
                             showAddDialog = false
                             tagName = ""
                         }

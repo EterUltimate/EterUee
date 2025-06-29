@@ -187,7 +187,7 @@ fun AssistantDetailPage(vm: AssistantDetailVM = koinViewModel()) {
               providers = providers,
               tags = tags,
               onUpdate = { onUpdate(it) },
-              onUpdateTags = { vm.updateTags(it) }
+              vm = vm
             )
           }
 
@@ -284,7 +284,7 @@ private fun AssistantBasicSettings(
   providers: List<ProviderSetting>,
   tags: List<DataTag>,
   onUpdate: (Assistant) -> Unit,
-  onUpdateTags: (List<DataTag>) -> Unit
+  vm: AssistantDetailVM,
 ) {
   Column(
     modifier = Modifier
@@ -340,14 +340,9 @@ private fun AssistantBasicSettings(
         TagsInput(
           value = assistant.tags,
           tags = tags,
-          onValueChange = { tagIds ->
-            onUpdate(
-              assistant.copy(
-                tags = tagIds
-              )
-            )
+          onValueChange = { tagIds, tags ->
+            vm.updateTags(tagIds, tags)
           },
-          onUpdateTags = onUpdateTags
         )
       }
     }

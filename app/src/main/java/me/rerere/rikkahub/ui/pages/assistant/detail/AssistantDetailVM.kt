@@ -70,7 +70,7 @@ class AssistantDetailVM(
       scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList()
     )
 
-  fun updateTags(tags: List<Tag>) {
+  fun updateTags(tagIds: List<Uuid>, tags: List<Tag>) {
     viewModelScope.launch {
       val settings = settings.value
       settingsStore.update(
@@ -78,6 +78,13 @@ class AssistantDetailVM(
           assistantTags = tags
         )
       )
+      update(
+        assistant.value.copy(
+          tags = tagIds.toList()
+        )
+      )
+      Log.d(TAG, "updateTags: ${tagIds.joinToString(",")}")
+      cleanupUnusedTags()
     }
   }
 
@@ -85,7 +92,7 @@ class AssistantDetailVM(
     viewModelScope.launch {
       val settings = settings.value
       val validTagIds = settings.assistantTags.map { it.id }.toSet()
-      
+
       // 清理 assistant 中的无效 tag id
       val cleanedAssistants = settings.assistants.map { assistant ->
         val validTags = assistant.tags.filter { tagId ->
@@ -97,19 +104,19 @@ class AssistantDetailVM(
           assistant
         }
       }
-      
+
       // 获取清理后的 assistant 中使用的 tag id
       val usedTagIds = cleanedAssistants.flatMap { it.tags }.toSet()
-      
+
       // 清理未使用的 tags
       val cleanedTags = settings.assistantTags.filter { tag ->
         usedTagIds.contains(tag.id)
       }
-      
+
       // 检查是否需要更新
       val needUpdateAssistants = cleanedAssistants != settings.assistants
       val needUpdateTags = cleanedTags.size != settings.assistantTags.size
-      
+
       if (needUpdateAssistants || needUpdateTags) {
         settingsStore.update(
           settings = settings.copy(
@@ -135,8 +142,6 @@ class AssistantDetailVM(
             }
           })
       )
-      // 自动清理无用的tags
-      cleanupUnusedTags()
     }
   }
 

@@ -81,12 +81,14 @@ import me.rerere.rikkahub.data.mcp.McpServerConfig
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
 import me.rerere.rikkahub.data.model.Conversation
+import me.rerere.rikkahub.data.model.Tag as DataTag
 import me.rerere.rikkahub.data.model.toMessageNode
 import me.rerere.rikkahub.ui.components.chat.Avatar
 import me.rerere.rikkahub.ui.components.chat.ChatMessage
 import me.rerere.rikkahub.ui.components.chat.McpPicker
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
 import me.rerere.rikkahub.ui.components.chat.ReasoningButton
+import me.rerere.rikkahub.ui.components.chat.TagsInput
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.Select
@@ -120,6 +122,7 @@ fun AssistantDetailPage(vm: AssistantDetailVM = koinViewModel()) {
     }
   }
   val providers by vm.providers.collectAsStateWithLifecycle()
+  val tags by vm.tags.collectAsStateWithLifecycle()
 
   fun onUpdate(assistant: Assistant) {
     vm.update(assistant)
@@ -182,9 +185,10 @@ fun AssistantDetailPage(vm: AssistantDetailVM = koinViewModel()) {
             AssistantBasicSettings(
               assistant = assistant,
               providers = providers,
-            ) {
-              onUpdate(it)
-            }
+              tags = tags,
+              onUpdate = { onUpdate(it) },
+              onUpdateTags = { vm.updateTags(it) }
+            )
           }
 
           1 -> {
@@ -278,7 +282,9 @@ fun AssistantDetailPage(vm: AssistantDetailVM = koinViewModel()) {
 private fun AssistantBasicSettings(
   assistant: Assistant,
   providers: List<ProviderSetting>,
+  tags: List<DataTag>,
   onUpdate: (Assistant) -> Unit,
+  onUpdateTags: (List<DataTag>) -> Unit
 ) {
   Column(
     modifier = Modifier
@@ -320,6 +326,28 @@ private fun AssistantBasicSettings(
             )
           },
           modifier = Modifier.fillMaxWidth()
+        )
+      }
+    }
+
+    Card {
+      FormItem(
+        label = {
+          Text(stringResource(R.string.assistant_page_tags))
+        },
+        modifier = Modifier.padding(16.dp),
+      ) {
+        TagsInput(
+          value = assistant.tags,
+          tags = tags,
+          onValueChange = { tagIds ->
+            onUpdate(
+              assistant.copy(
+                tags = tagIds
+              )
+            )
+          },
+          onUpdateTags = onUpdateTags
         )
       }
     }

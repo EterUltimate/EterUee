@@ -401,4 +401,11 @@
   <string name="backup_page_import_from_other_app">从其他APP导入</string>
   <string name="backup_page_import_from_chatbox">从ChatBox导入</string>
   <string name="backup_page_import_chatbox_desc">导入ChatBox数据</string>
+
+  <!-- Tag Input -->
+  <string name="add">添加</string>
+  <string name="tag_input_dialog_title">添加标签</string>
+  <string name="tag_input_dialog_label">标签名称</string>
+  <string name="tag_input_dialog_placeholder">请输入标签名称...</string>
+  <string name="assistant_page_tags">标签</string>
 </resources> 

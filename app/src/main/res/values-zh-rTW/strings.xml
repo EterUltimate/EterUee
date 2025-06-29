@@ -400,4 +400,11 @@
   <string name="backup_page_import_from_other_app">從其他APP導入</string>
   <string name="backup_page_import_from_chatbox">從ChatBox導入</string>
   <string name="backup_page_import_chatbox_desc">導入ChatBox數據</string>
+
+  <!-- Tag Input -->
+  <string name="add">添加</string>
+  <string name="tag_input_dialog_title">添加標籤</string>
+  <string name="tag_input_dialog_label">標籤名稱</string>
+  <string name="tag_input_dialog_placeholder">請輸入標籤名稱...</string>
+  <string name="assistant_page_tags">標籤</string>
 </resources> 

@@ -400,4 +400,11 @@
   <string name="backup_page_import_from_other_app">Import from other APP</string>
   <string name="backup_page_import_from_chatbox">Import from ChatBox</string>
   <string name="backup_page_import_chatbox_desc">Import data from ChatBox</string>
+
+  <!-- Tag Input -->
+  <string name="add">Add</string>
+  <string name="tag_input_dialog_title">Add Tag</string>
+  <string name="tag_input_dialog_label">Tag Name</string>
+  <string name="tag_input_dialog_placeholder">Enter tag name...</string>
+  <string name="assistant_page_tags">Tags</string>
 </resources>

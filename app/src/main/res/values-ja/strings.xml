@@ -402,4 +402,11 @@
   <string name="setting_page_data_settings">データ設定</string>
   <string name="setting_page_data_backup">データバックアップ</string>
   <string name="setting_page_data_backup_desc">アプリデータのバックアップと復元</string>
+
+  <!-- Tag Input -->
+  <string name="add">追加</string>
+  <string name="tag_input_dialog_title">タグを追加</string>
+  <string name="tag_input_dialog_label">タグ名</string>
+  <string name="tag_input_dialog_placeholder">タグ名を入力...</string>
+  <string name="assistant_page_tags">タグ</string>
 </resources> 

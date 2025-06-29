@@ -26,6 +26,7 @@ import me.rerere.ai.provider.ProviderSetting
 import me.rerere.rikkahub.AppScope
 import me.rerere.rikkahub.data.mcp.McpServerConfig
 import me.rerere.rikkahub.data.model.Assistant
+import me.rerere.rikkahub.data.model.Tag
 import me.rerere.rikkahub.ui.theme.PresetThemeType
 import me.rerere.rikkahub.ui.theme.PresetThemes
 import me.rerere.rikkahub.utils.JsonInstant
@@ -76,6 +77,7 @@ class SettingsStore(
     // 助手
     val SELECT_ASSISTANT = stringPreferencesKey("select_assistant")
     val ASSISTANTS = stringPreferencesKey("assistants")
+    val ASSISTANT_TAGS = stringPreferencesKey("assistant_tags")
 
     // 搜索
     val SEARCH_SERVICE = stringPreferencesKey("search_service")
@@ -111,6 +113,9 @@ class SettingsStore(
         suggestionPrompt = preferences[SUGGESTION_PROMPT] ?: DEFAULT_SUGGESTION_PROMPT,
         assistantId = preferences[SELECT_ASSISTANT]?.let { Uuid.parse(it) }
           ?: DEFAULT_ASSISTANT_ID,
+        assistantTags = preferences[ASSISTANT_TAGS]?.let {
+          JsonInstant.decodeFromString(it)
+        } ?: emptyList(),
         providers = JsonInstant.decodeFromString(preferences[PROVIDERS] ?: "[]"),
         assistants = JsonInstant.decodeFromString(preferences[ASSISTANTS] ?: "[]"),
         dynamicColor = preferences[DYNAMIC_COLOR] != false,
@@ -210,6 +215,7 @@ class SettingsStore(
 
       preferences[ASSISTANTS] = JsonInstant.encodeToString(settings.assistants)
       preferences[SELECT_ASSISTANT] = settings.assistantId.toString()
+      preferences[ASSISTANT_TAGS] = JsonInstant.encodeToString(settings.assistantTags)
 
       preferences[SEARCH_SERVICE] = JsonInstant.encodeToString(settings.searchServiceOptions)
       preferences[SEARCH_COMMON] = JsonInstant.encodeToString(settings.searchCommonOptions)
@@ -247,6 +253,7 @@ data class Settings(
   val assistantId: Uuid = DEFAULT_ASSISTANT_ID,
   val providers: List<ProviderSetting> = DEFAULT_PROVIDERS,
   val assistants: List<Assistant> = DEFAULT_ASSISTANTS,
+  val assistantTags: List<Tag> = emptyList(),
   val searchServiceOptions: SearchServiceOptions = SearchServiceOptions.DEFAULT,
   val searchCommonOptions: SearchCommonOptions = SearchCommonOptions(),
   val mcpServers: List<McpServerConfig> = emptyList(),

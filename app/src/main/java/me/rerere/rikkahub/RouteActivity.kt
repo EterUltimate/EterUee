@@ -58,6 +58,7 @@ import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSettings
 import me.rerere.rikkahub.ui.context.LocalSharedTransitionScope
 import me.rerere.rikkahub.ui.context.LocalToaster
+import me.rerere.rikkahub.ui.hooks.readStringPreference
 import me.rerere.rikkahub.ui.pages.assistant.AssistantPage
 import me.rerere.rikkahub.ui.pages.assistant.detail.AssistantDetailPage
 import me.rerere.rikkahub.ui.pages.backup.BackupPage
@@ -162,7 +163,13 @@ class RouteActivity : ComponentActivity() {
               .fillMaxSize()
               .background(MaterialTheme.colorScheme.background),
           navController = navController,
-          startDestination = rememberSaveable { "chat/${Uuid.random()}" },
+          startDestination = rememberSaveable {
+            val id = readStringPreference(
+              "lastConversationId",
+              Uuid.random().toString()
+            ) ?: Uuid.random().toString()
+            "chat/$id"
+          },
           enterTransition = {
             slideInHorizontally(
               initialOffsetX = { it }

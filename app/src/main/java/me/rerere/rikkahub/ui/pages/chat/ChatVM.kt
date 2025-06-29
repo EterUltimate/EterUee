@@ -1,7 +1,9 @@
 package me.rerere.rikkahub.ui.pages.chat
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
+import androidx.core.content.edit
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -63,6 +65,7 @@ import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.model.toMessageNode
 import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.data.repository.MemoryRepository
+import me.rerere.rikkahub.ui.hooks.writeStringPreference
 import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.JsonInstantPretty
 import me.rerere.rikkahub.utils.UiState
@@ -127,6 +130,9 @@ class ChatVM(
           this@ChatVM._conversation.value.updateCurrentMessages(assistant.presetMessages)
       }
     }
+
+    // 记住对话ID, 方便下次启动恢复
+    context.writeStringPreference("lastConversationId", _conversationId.toString())
   }
 
   // 用户设置
@@ -298,7 +304,7 @@ class ChatVM(
     if (parts.isEmptyInputMessage()) return
     val newConversation = conversation.value.copy(
       messageNodes = conversation.value.messageNodes.map { node ->
-        if(!node.messages.any{ it.id == messageId}) {
+        if (!node.messages.any { it.id == messageId }) {
           return@map node // 如果这个node没有这个消息，则不修改
         }
         node.copy(

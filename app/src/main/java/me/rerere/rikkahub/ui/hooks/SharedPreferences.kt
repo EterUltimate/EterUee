@@ -40,6 +40,16 @@ fun rememberSharedPreferenceString(
   }
 }
 
+fun Context.writeStringPreference(key: String, value: String?) {
+  getSharedPreferences("rikkahub.preferences", Context.MODE_PRIVATE).edit {
+    putString(key, value)
+  }
+}
+
+fun Context.readStringPreference(key: String, defaultValue: String? = null): String? {
+  return getSharedPreferences("rikkahub.preferences", Context.MODE_PRIVATE).getString(key, defaultValue)
+}
+
 fun SharedPreferences.getStringFlowForKey(keyForString: String, defaultValue: String? = null) =
   callbackFlow {
     val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->

@@ -406,5 +406,8 @@
   <string name="tag_input_dialog_title">Add Tag</string>
   <string name="tag_input_dialog_label">Tag Name</string>
   <string name="tag_input_dialog_placeholder">Enter tag name...</string>
+  <string name="tag_input_dialog_existing_tags">Existing Tags</string>
+  <string name="tag_input_dialog_create_new">Create New Tag</string>
+  <string name="tag_input_dialog_tag_exists">Tag with this name already exists</string>
   <string name="assistant_page_tags">Tags</string>
 </resources>

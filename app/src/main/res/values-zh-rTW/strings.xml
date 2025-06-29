@@ -406,5 +406,8 @@
   <string name="tag_input_dialog_title">添加標籤</string>
   <string name="tag_input_dialog_label">標籤名稱</string>
   <string name="tag_input_dialog_placeholder">請輸入標籤名稱...</string>
+  <string name="tag_input_dialog_existing_tags">現有標籤</string>
+  <string name="tag_input_dialog_create_new">創建新標籤</string>
+  <string name="tag_input_dialog_tag_exists">該名稱的標籤已存在</string>
   <string name="assistant_page_tags">標籤</string>
 </resources> 

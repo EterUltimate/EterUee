@@ -408,5 +408,8 @@
   <string name="tag_input_dialog_title">タグを追加</string>
   <string name="tag_input_dialog_label">タグ名</string>
   <string name="tag_input_dialog_placeholder">タグ名を入力...</string>
+  <string name="tag_input_dialog_existing_tags">既存のタグ</string>
+  <string name="tag_input_dialog_create_new">新しいタグを作成</string>
+  <string name="tag_input_dialog_tag_exists">同じ名前のタグが既に存在します</string>
   <string name="assistant_page_tags">タグ</string>
 </resources> 

@@ -2,6 +2,7 @@ package me.rerere.rikkahub.ui.pages.assistant
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -23,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -44,6 +47,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.GripHorizontal
 import com.composables.icons.lucide.Lucide
@@ -52,6 +56,7 @@ import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Trash2
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.DEFAULT_ASSISTANTS_IDS
+import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
 import me.rerere.rikkahub.ui.components.chat.Avatar
@@ -65,7 +70,6 @@ import me.rerere.rikkahub.ui.hooks.EditStateContent
 import me.rerere.rikkahub.ui.hooks.useEditState
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.plus
-import me.rerere.rikkahub.utils.toFixed
 import org.koin.androidx.compose.koinViewModel
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -122,6 +126,7 @@ fun AssistantPage(vm: AssistantVM = koinViewModel()) {
           )
           AssistantItem(
             assistant = assistant,
+            settings = settings,
             memories = memories,
             onEdit = {
               navController.navigate("assistant/${assistant.id}")
@@ -229,6 +234,7 @@ private fun AssistantCreationSheet(
 @Composable
 private fun AssistantItem(
   assistant: Assistant,
+  settings: Settings,
   modifier: Modifier = Modifier,
   memories: List<AssistantMemory>,
   onEdit: () -> Unit,
@@ -241,8 +247,9 @@ private fun AssistantItem(
   ) {
     Column(
       modifier = Modifier.padding(16.dp),
-      verticalArrangement = Arrangement.spacedBy(8.dp),
+      verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+      // Basic Info
       Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -271,6 +278,32 @@ private fun AssistantItem(
         dragHandle()
       }
 
+      // Tags
+      if(assistant.tags.isNotEmpty()) {
+        FlowRow(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+          itemVerticalAlignment = Alignment.CenterVertically,
+          verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+          assistant.tags.fastForEach { tagId ->
+            val tag = settings.assistantTags.find { it.id == tagId }
+              ?: return@fastForEach // 如果找不到标签，则跳过
+            Surface(
+              shape = RoundedCornerShape(50),
+              color = MaterialTheme.colorScheme.tertiaryContainer,
+            ) {
+              Text(
+                text = tag.name,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                style = MaterialTheme.typography.labelMedium,
+              )
+            }
+          }
+        }
+      }
+
+      // System Prompt
       Text(
         text = buildAnnotatedString {
           if (assistant.systemPrompt.isNotBlank()) {

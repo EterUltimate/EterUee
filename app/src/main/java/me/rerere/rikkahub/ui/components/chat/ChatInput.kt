@@ -3,6 +3,8 @@ package me.rerere.rikkahub.ui.components.chat
 import android.Manifest
 import android.net.Uri
 import android.util.Log
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -555,6 +557,11 @@ fun ChatInput(
             .animateContentSize()
             .fillMaxWidth()
       ) {
+        BackHandler(
+          enabled = expand != ExpandState.Collapsed,
+        ) {
+            dismissExpand()
+        }
         if (expand == ExpandState.Files) {
           Surface(
             modifier = Modifier

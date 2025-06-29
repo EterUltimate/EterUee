@@ -45,7 +45,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,6 +58,7 @@ import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Boxes
+import com.composables.icons.lucide.GripHorizontal
 import com.composables.icons.lucide.Hammer
 import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.Lightbulb
@@ -79,6 +83,8 @@ import me.rerere.rikkahub.ui.components.ui.icons.HeartIcon
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.theme.extendColors
 import org.koin.compose.koinInject
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 import kotlin.uuid.Uuid
 
 @Composable
@@ -211,6 +217,34 @@ private fun ColumnScope.ModelList(
   var searchKeywords by remember { mutableStateOf("") }
 
   val lazyListState = rememberLazyListState()
+  val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
+    // 计算favorite models在列表中的位置偏移
+    var favoriteStartIndex = 0
+    if (providers.isEmpty()) {
+      favoriteStartIndex = 1 // no providers item
+    }
+    if (favoriteModels.isNotEmpty()) {
+      favoriteStartIndex += 1 // favorite header
+    }
+
+    val fromIndex = from.index - favoriteStartIndex
+    val toIndex = to.index - favoriteStartIndex
+
+    // 只处理favorite models范围内的拖拽
+    if (fromIndex >= 0 && toIndex >= 0 &&
+      fromIndex < favoriteModels.size && toIndex < favoriteModels.size
+    ) {
+      val newFavoriteModels = settings.value.favoriteModels.toMutableList().apply {
+        add(toIndex, removeAt(fromIndex))
+      }
+      coroutineScope.launch {
+        settingsStore.update { oldSettings ->
+          oldSettings.copy(favoriteModels = newFavoriteModels)
+        }
+      }
+    }
+  }
+  val haptic = LocalHapticFeedback.current
 
   val providerPositions = remember(providers, favoriteModels) {
     var currentIndex = 0
@@ -269,34 +303,56 @@ private fun ColumnScope.ModelList(
         items = favoriteModels,
         key = { "favorite:" + it.first.id.toString() }
       ) { (model, provider) ->
-        ModelItem(
-          model = model,
-          onSelect = onSelect,
-          modifier = Modifier.animateItem(),
-          providerSetting = provider,
-          select = model.id == currentModel,
-          onDismiss = {
-            onDismiss()
-          },
-        ) {
-          IconButton(
-            onClick = {
-              coroutineScope.launch {
-                settingsStore.update { settings ->
-                  settings.copy(
-                    favoriteModels = settings.favoriteModels.filter { it != model.id }
-                  )
+        ReorderableItem(
+          state = reorderableState,
+          key = "favorite:" + model.id.toString()
+        ) { isDragging ->
+          ModelItem(
+            model = model,
+            onSelect = onSelect,
+            modifier = Modifier
+                .scale(if (isDragging) 0.95f else 1f)
+                .animateItem(),
+            providerSetting = provider,
+            select = model.id == currentModel,
+            onDismiss = {
+              onDismiss()
+            },
+            tail = {
+              IconButton(
+                onClick = {
+                  coroutineScope.launch {
+                    settingsStore.update { settings ->
+                      settings.copy(
+                        favoriteModels = settings.favoriteModels.filter { it != model.id }
+                      )
+                    }
+                  }
                 }
+              ) {
+                Icon(
+                  HeartIcon,
+                  contentDescription = null,
+                  modifier = Modifier.size(20.dp),
+                  tint = MaterialTheme.extendColors.red6
+                )
               }
+            },
+            dragHandle = {
+              Icon(
+                imageVector = Lucide.GripHorizontal,
+                contentDescription = null,
+                modifier = Modifier.longPressDraggableHandle(
+                  onDragStarted = {
+                    haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
+                  },
+                  onDragStopped = {
+                    haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                  }
+                )
+              )
             }
-          ) {
-            Icon(
-              HeartIcon,
-              contentDescription = null,
-              modifier = Modifier.size(20.dp),
-              tint = MaterialTheme.extendColors.red6
-            )
-          }
+          )
         }
       }
     }
@@ -443,19 +499,22 @@ private fun ModelItem(
   onSelect: (Model) -> Unit,
   onDismiss: () -> Unit,
   modifier: Modifier = Modifier,
-  tail: @Composable RowScope.() -> Unit = {}
+  tail: @Composable RowScope.() -> Unit = {},
+  dragHandle: @Composable (RowScope.() -> Unit)? = null
 ) {
   val navController = LocalNavController.current
   val interactionSource = remember { MutableInteractionSource() }
   Card(
     modifier = modifier.combinedClickable(
       enabled = true,
-      onLongClick = {
-        onDismiss()
-        navController.navigate(
-          "setting/provider/${providerSetting.id}"
-        )
-      },
+      onLongClick = if (dragHandle == null) {
+        {
+          onDismiss()
+          navController.navigate(
+            "setting/provider/${providerSetting.id}"
+          )
+        }
+      } else null,
       onClick = { onSelect(model) },
       interactionSource = interactionSource,
       indication = LocalIndication.current
@@ -561,6 +620,7 @@ private fun ModelItem(
         }
       }
       tail()
+      dragHandle?.let { it() }
     }
   }
 }

@@ -520,17 +520,13 @@ private fun ModelItem(
       interactionSource = interactionSource,
       indication = LocalIndication.current
     ),
-    colors = CardDefaults.cardColors(
-      containerColor = if (select) {
-        MaterialTheme.colorScheme.tertiaryContainer
-      } else {
-        MaterialTheme.colorScheme.secondaryContainer
-      }
-    ),
+    colors = if(select) CardDefaults.cardColors() else CardDefaults.outlinedCardColors(),
+    elevation = if(select) CardDefaults.cardElevation() else CardDefaults.outlinedCardElevation(),
+    border = if(select) null else CardDefaults.outlinedCardBorder()
   ) {
     Row(
       verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      horizontalArrangement = Arrangement.spacedBy(12.dp),
       modifier = Modifier
           .fillMaxWidth()
           .padding(vertical = 12.dp, horizontal = 16.dp)

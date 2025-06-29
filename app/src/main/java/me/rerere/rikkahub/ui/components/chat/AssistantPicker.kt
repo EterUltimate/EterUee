@@ -72,7 +72,9 @@ fun AssistantPicker(
     }
 
     Surface(
-      tonalElevation = 4.dp, shape = RoundedCornerShape(50), modifier = Modifier.weight(1f)
+      tonalElevation = 4.dp,
+      shape = RoundedCornerShape(50),
+      modifier = Modifier.weight(1f)
     ) {
       Row(
         modifier = Modifier
@@ -195,7 +197,7 @@ private fun AssistantPickerSheet(
             onClick = { onAssistantSelected(assistant) },
             modifier = Modifier.animateItem(),
             shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.tertiaryContainer,
+            tonalElevation = 4.dp
           ) {
             ListItem(
               headlineContent = {

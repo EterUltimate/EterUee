@@ -62,6 +62,8 @@ import me.rerere.ai.ui.UIMessagePart
 import me.rerere.rikkahub.BuildConfig
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.Settings
+import me.rerere.rikkahub.data.datastore.findModelById
+import me.rerere.rikkahub.data.datastore.findProvider
 import me.rerere.rikkahub.data.datastore.getCurrentAssistant
 import me.rerere.rikkahub.data.datastore.getCurrentChatModel
 import me.rerere.rikkahub.data.model.Conversation
@@ -292,15 +294,16 @@ private fun TopBar(
         Column {
           val assistant = settings.getCurrentAssistant()
           val model = settings.getCurrentChatModel()
+          val provider = model?.findProvider(settings.providers)
           Text(
             text = conversation.title.ifBlank { stringResource(R.string.chat_page_new_chat) },
             maxLines = 1,
             style = MaterialTheme.typography.bodyMedium,
             overflow = TextOverflow.Ellipsis,
           )
-          if (model != null) {
+          if (model != null && provider != null) {
             Text(
-              text = "${assistant.name.ifBlank { stringResource(R.string.assistant_page_default_assistant) }} / ${model.displayName}",
+              text = "${assistant.name.ifBlank { stringResource(R.string.assistant_page_default_assistant) }} / ${model.displayName} (${provider.name})",
               overflow = TextOverflow.Ellipsis,
               maxLines = 1,
               color = LocalContentColor.current.copy(0.65f),

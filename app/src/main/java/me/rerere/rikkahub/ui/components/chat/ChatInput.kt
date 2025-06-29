@@ -4,11 +4,8 @@ import android.Manifest
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
@@ -34,26 +31,19 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BasicAlertDialog
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -75,7 +65,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -83,7 +72,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.FileProvider
@@ -92,16 +80,12 @@ import coil3.compose.AsyncImage
 import com.composables.icons.lucide.ArrowUp
 import com.composables.icons.lucide.Camera
 import com.composables.icons.lucide.Earth
-import com.composables.icons.lucide.Ellipsis
 import com.composables.icons.lucide.Eraser
 import com.composables.icons.lucide.Files
 import com.composables.icons.lucide.Fullscreen
 import com.composables.icons.lucide.Image
-import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
-import com.composables.icons.lucide.Search
-import com.composables.icons.lucide.Terminal
 import com.composables.icons.lucide.Wand
 import com.composables.icons.lucide.X
 import com.meticha.permissions_compose.AppPermission
@@ -519,6 +503,24 @@ fun ChatInput(
               .padding(4.dp),
         )
 
+        // Search
+        ChatActionItem(
+          title = {
+            Text(stringResource(R.string.use_web_search))
+          },
+          icon = {
+            Icon(
+              imageVector = Lucide.Earth,
+              contentDescription = stringResource(R.string.use_web_search),
+            )
+          },
+          onClick = {
+            onToggleSearch(!enableSearch)
+          },
+          checked = enableSearch,
+        )
+
+        // More options
         IconButton(
           onClick = {
             expandToggle(ExpandState.Actions)
@@ -547,8 +549,6 @@ fun ChatInput(
             stringResource(R.string.more_options)
           )
         }
-
-        Spacer(Modifier.width(4.dp))
       }
 
       // Expanded content
@@ -560,7 +560,7 @@ fun ChatInput(
         BackHandler(
           enabled = expand != ExpandState.Collapsed,
         ) {
-            dismissExpand()
+          dismissExpand()
         }
         if (expand == ExpandState.Files) {
           Surface(
@@ -578,8 +578,6 @@ fun ChatInput(
               .fillMaxWidth()
           ) {
             ChatActions(
-              onToggleSearch = onToggleSearch,
-              enableSearch = enableSearch,
               settings = settings,
               mcpManager = mcpManager,
               onUpdateAssistant = onUpdateAssistant,
@@ -594,8 +592,6 @@ fun ChatInput(
 
 @Composable
 private fun ChatActions(
-  onToggleSearch: (Boolean) -> Unit,
-  enableSearch: Boolean,
   settings: Settings,
   mcpManager: McpManager,
   onUpdateAssistant: (Assistant) -> Unit,
@@ -606,26 +602,9 @@ private fun ChatActions(
         .padding(16.dp)
         .fillMaxWidth(),
     itemVerticalAlignment = Alignment.CenterVertically,
-    verticalArrangement = Arrangement.spacedBy(8.dp),
+    verticalArrangement = Arrangement.spacedBy(4.dp),
     horizontalArrangement = Arrangement.spacedBy(8.dp)
   ) {
-    // Search
-    ChatActionItem(
-      title = {
-        Text(stringResource(R.string.use_web_search))
-      },
-      icon = {
-        Icon(
-          imageVector = Lucide.Earth,
-          contentDescription = stringResource(R.string.use_web_search),
-        )
-      },
-      onClick = {
-        onToggleSearch(!enableSearch)
-      },
-      checked = enableSearch,
-    )
-
     // Reasoning
     val model = settings.getCurrentChatModel()
     if (model?.abilities?.contains(ModelAbility.REASONING) == true) {
@@ -916,7 +895,7 @@ private fun ChatActionItem(
       horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
       Box(
-        modifier = Modifier.size(30.dp),
+        modifier = Modifier.size(20.dp),
         contentAlignment = Alignment.Center
       ) {
         icon()

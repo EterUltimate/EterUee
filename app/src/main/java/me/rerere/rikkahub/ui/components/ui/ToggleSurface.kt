@@ -3,6 +3,7 @@ package me.rerere.rikkahub.ui.components.ui
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -29,6 +30,8 @@ fun ToggleSurface(
     border = if (checked) null else CardDefaults.outlinedCardBorder(),
     tonalElevation = if(checked) 2.dp else 0.dp
   ) {
-    content()
+    ProvideTextStyle(MaterialTheme.typography.labelSmall) {
+      content()
+    }
   }
 }

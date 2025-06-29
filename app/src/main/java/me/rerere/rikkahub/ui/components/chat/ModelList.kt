@@ -184,7 +184,6 @@ fun ModelSelector(
           providers = filteredProviderSettings,
           modelType = type,
           onSelect = {
-            popup = false
             onSelect(it)
           },
           onDismiss = {
@@ -525,7 +524,7 @@ private fun ModelItem(
       containerColor = if (select) {
         MaterialTheme.colorScheme.tertiaryContainer
       } else {
-        MaterialTheme.colorScheme.primaryContainer
+        MaterialTheme.colorScheme.secondaryContainer
       }
     ),
   ) {

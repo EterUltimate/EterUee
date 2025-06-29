@@ -6,18 +6,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -26,7 +22,6 @@ import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -127,13 +122,6 @@ private fun DefaultTranslationModelSetting(
               )
             )
           },
-          onUpdate = {
-            vm.updateSettings(
-              settings.copy(
-                providers = it
-              )
-            )
-          },
           providers = settings.providers,
           modifier = Modifier.wrapContentWidth()
         )
@@ -226,13 +214,6 @@ private fun DefaultSuggestionModelSetting(
             vm.updateSettings(
               settings.copy(
                 suggestionModelId = it.id
-              )
-            )
-          },
-          onUpdate = {
-            vm.updateSettings(
-              settings.copy(
-                providers = it
               )
             )
           },
@@ -329,13 +310,6 @@ private fun DefaultTitleModelSetting(
               )
             )
           },
-          onUpdate = {
-            vm.updateSettings(
-              settings.copy(
-                providers = it
-              )
-            )
-          },
           providers = settings.providers,
           modifier = Modifier.wrapContentWidth()
         )
@@ -424,13 +398,6 @@ private fun DefaultChatModelSetting(
             vm.updateSettings(
               settings.copy(
                 chatModelId = it.id
-              )
-            )
-          },
-          onUpdate = {
-            vm.updateSettings(
-              settings.copy(
-                providers = it
               )
             )
           },

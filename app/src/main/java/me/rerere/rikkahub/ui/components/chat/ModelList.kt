@@ -18,15 +18,12 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -34,7 +31,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -58,19 +54,16 @@ import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.launch
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Hammer
 import com.composables.icons.lucide.Heart
-import com.composables.icons.lucide.HeartOff
 import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Settings
-import com.composables.icons.lucide.Settings2
 import com.composables.icons.lucide.X
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ModelType
@@ -96,7 +89,6 @@ fun ModelSelector(
   modifier: Modifier = Modifier,
   onlyIcon: Boolean = false,
   allowClear: Boolean = false,
-  onUpdate: ((List<ProviderSetting>) -> Unit)? = null,
   onSelect: (Model) -> Unit
 ) {
   var popup by remember {
@@ -117,8 +109,8 @@ fun ModelSelector(
         model?.modelId?.let {
           AutoAIIcon(
             it, Modifier
-              .padding(end = 4.dp)
-              .size(24.dp)
+                  .padding(end = 4.dp)
+                  .size(24.dp)
           )
         }
         Text(
@@ -171,9 +163,9 @@ fun ModelSelector(
     ) {
       Column(
         modifier = Modifier
-          .padding(8.dp)
-          .fillMaxHeight(0.8f)
-          .imePadding(),
+            .padding(8.dp)
+            .fillMaxHeight(0.8f)
+            .imePadding(),
         verticalArrangement = Arrangement.spacedBy(4.dp)
       ) {
         val filteredProviderSettings = providers.fastFilter {
@@ -187,20 +179,6 @@ fun ModelSelector(
             popup = false
             onSelect(it)
           },
-          onUpdate = { newModel ->
-            onUpdate?.invoke(providers.map { provider ->
-              provider.copyProvider(
-                models = provider.models.map {
-                  if (it.id == newModel.id) {
-                    newModel
-                  } else {
-                    it
-                  }
-                }
-              )
-            })
-          },
-          allowFavorite = onUpdate != null,
           onDismiss = {
             popup = false
           }
@@ -216,8 +194,6 @@ private fun ColumnScope.ModelList(
   currentModel: Uuid? = null,
   providers: List<ProviderSetting>,
   modelType: ModelType,
-  allowFavorite: Boolean = true,
-  onUpdate: (Model) -> Unit,
   onSelect: (Model) -> Unit,
   onDismiss: () -> Unit
 ) {
@@ -236,12 +212,12 @@ private fun ColumnScope.ModelList(
 
   val lazyListState = rememberLazyListState()
 
-  val providerPositions = remember(providers, favoriteModels, allowFavorite) {
+  val providerPositions = remember(providers, favoriteModels) {
     var currentIndex = 0
     if (providers.isEmpty()) {
       currentIndex = 1 // no providers item
     }
-    if (favoriteModels.isNotEmpty() && allowFavorite) {
+    if (favoriteModels.isNotEmpty()) {
       currentIndex += 1 // favorite header
       currentIndex += favoriteModels.size // favorite models
     }
@@ -261,8 +237,8 @@ private fun ColumnScope.ModelList(
     verticalArrangement = Arrangement.spacedBy(4.dp),
     contentPadding = PaddingValues(8.dp),
     modifier = Modifier
-      .weight(1f)
-      .fillMaxWidth(),
+        .weight(1f)
+        .fillMaxWidth(),
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     if (providers.isEmpty()) {
@@ -276,15 +252,15 @@ private fun ColumnScope.ModelList(
       }
     }
 
-    if (favoriteModels.isNotEmpty() && allowFavorite) {
+    if (favoriteModels.isNotEmpty()) {
       stickyHeader {
         Text(
           text = stringResource(R.string.model_list_favorite),
           style = MaterialTheme.typography.labelMedium,
           color = MaterialTheme.colorScheme.primary,
           modifier = Modifier
-            .padding(bottom = 4.dp, top = 8.dp)
-            .fillMaxWidth(),
+              .padding(bottom = 4.dp, top = 8.dp)
+              .fillMaxWidth(),
           textAlign = TextAlign.Center
         )
       }
@@ -332,8 +308,8 @@ private fun ColumnScope.ModelList(
           style = MaterialTheme.typography.labelMedium,
           color = MaterialTheme.colorScheme.primary,
           modifier = Modifier
-            .padding(bottom = 4.dp, top = 8.dp)
-            .fillMaxWidth(),
+              .padding(bottom = 4.dp, top = 8.dp)
+              .fillMaxWidth(),
           textAlign = TextAlign.Center
         )
       }
@@ -358,39 +334,37 @@ private fun ColumnScope.ModelList(
             onDismiss()
           },
           tail = {
-            if (allowFavorite) {
-              IconButton(
-                onClick = {
-                  coroutineScope.launch {
-                    settingsStore.update { settings ->
-                      if (favorite) {
-                        settings.copy(
-                          favoriteModels = settings.favoriteModels.filter { it != model.id }
-                        )
+            IconButton(
+              onClick = {
+                coroutineScope.launch {
+                  settingsStore.update { settings ->
+                    if (favorite) {
+                      settings.copy(
+                        favoriteModels = settings.favoriteModels.filter { it != model.id }
+                      )
 
-                      } else {
-                        settings.copy(
-                          favoriteModels = settings.favoriteModels + model.id
-                        )
-                      }
+                    } else {
+                      settings.copy(
+                        favoriteModels = settings.favoriteModels + model.id
+                      )
                     }
                   }
                 }
-              ) {
-                if (favorite) {
-                  Icon(
-                    HeartIcon,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.extendColors.red6
-                  )
-                } else {
-                  Icon(
-                    Lucide.Heart,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                  )
-                }
+              }
+            ) {
+              if (favorite) {
+                Icon(
+                  HeartIcon,
+                  contentDescription = null,
+                  modifier = Modifier.size(20.dp),
+                  tint = MaterialTheme.extendColors.red6
+                )
+              } else {
+                Icon(
+                  Lucide.Heart,
+                  contentDescription = null,
+                  modifier = Modifier.size(20.dp)
+                )
               }
             }
           }
@@ -498,8 +472,8 @@ private fun ModelItem(
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(8.dp),
       modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 12.dp, horizontal = 16.dp)
+          .fillMaxWidth()
+          .padding(vertical = 12.dp, horizontal = 16.dp)
     ) {
       AutoAIIcon(
         name = model.modelId,
@@ -524,8 +498,8 @@ private fun ModelItem(
 
         Row(
           modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min),
+              .fillMaxWidth()
+              .height(IntrinsicSize.Min),
           horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
           Tag(type = TagType.INFO) {
@@ -562,8 +536,8 @@ private fun ModelItem(
                     imageVector = Lucide.Hammer,
                     contentDescription = null,
                     modifier = Modifier
-                      .height(iconHeight)
-                      .aspectRatio(1f)
+                        .height(iconHeight)
+                        .aspectRatio(1f)
                   )
                 }
               }
@@ -577,8 +551,8 @@ private fun ModelItem(
                     imageVector = Lucide.Lightbulb,
                     contentDescription = null,
                     modifier = Modifier
-                      .height(iconHeight)
-                      .aspectRatio(1f)
+                        .height(iconHeight)
+                        .aspectRatio(1f)
                   )
                 }
               }

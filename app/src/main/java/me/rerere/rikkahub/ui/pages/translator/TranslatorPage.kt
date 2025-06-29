@@ -95,13 +95,6 @@ fun TranslatorPage(vm: TranslatorVM = koinViewModel()) {
             onSelect = {
               vm.updateSettings(settings.copy(translateModeId = it.id))
             },
-            onUpdate = {
-              vm.updateSettings(
-                settings.copy(
-                  providers = it
-                )
-              )
-            },
             providers = settings.providers,
             type = ModelType.CHAT
           )
@@ -126,10 +119,10 @@ fun TranslatorPage(vm: TranslatorVM = koinViewModel()) {
   ) { paddingValues ->
     Column(
       modifier = Modifier
-        .padding(paddingValues)
-        .fillMaxSize()
-        .padding(16.dp)
-        .verticalScroll(rememberScrollState()),
+          .padding(paddingValues)
+          .fillMaxSize()
+          .padding(16.dp)
+          .verticalScroll(rememberScrollState()),
       verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
       // 输入区域
@@ -167,8 +160,8 @@ fun TranslatorPage(vm: TranslatorVM = koinViewModel()) {
         if (isTranslating) {
           LinearWavyProgressIndicator(
             modifier = Modifier
-              .padding(8.dp)
-              .fillMaxWidth()
+                .padding(8.dp)
+                .fillMaxWidth()
           )
         } else {
           HorizontalDivider()
@@ -183,8 +176,8 @@ fun TranslatorPage(vm: TranslatorVM = koinViewModel()) {
           },
           style = MaterialTheme.typography.headlineSmall,
           modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
+              .fillMaxWidth()
+              .padding(8.dp)
         )
       }
 
@@ -243,8 +236,8 @@ private fun LanguageSelector(
         readOnly = true,
         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
         modifier = Modifier
-          .menuAnchor(MenuAnchorType.PrimaryEditable)
-          .fillMaxWidth(),
+            .menuAnchor(MenuAnchorType.PrimaryEditable)
+            .fillMaxWidth(),
         colors = OutlinedTextFieldDefaults.colors(
           focusedBorderColor = Color.Transparent,
           unfocusedBorderColor = Color.Transparent,

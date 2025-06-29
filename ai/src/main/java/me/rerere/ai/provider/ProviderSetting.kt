@@ -7,11 +7,38 @@ import kotlinx.serialization.Transient
 import kotlin.uuid.Uuid
 
 @Serializable
+sealed class ProviderProxy {
+  @Serializable
+  @SerialName("none")
+  object None : ProviderProxy()
+
+  @Serializable
+  @SerialName("http")
+  data class Http(
+    val address: String,
+    val port: Int,
+    val username: String? = null,
+    val password: String? = null,
+  ) : ProviderProxy()
+
+  @Serializable
+  @SerialName("socks")
+  data class Socks(
+    val address: String,
+    val port: Int,
+    val username: String? = null,
+    val password: String? = null,
+  ) : ProviderProxy()
+}
+
+@Serializable
 sealed class ProviderSetting {
   abstract val id: Uuid
   abstract val enabled: Boolean
   abstract val name: String
   abstract val models: List<Model>
+  abstract val proxy: ProviderProxy
+
   abstract val builtIn: Boolean
   abstract val description: @Composable() () -> Unit
 
@@ -24,6 +51,7 @@ sealed class ProviderSetting {
     enabled: Boolean = this.enabled,
     name: String = this.name,
     models: List<Model> = this.models,
+    proxy: ProviderProxy = this.proxy,
     builtIn: Boolean = this.builtIn,
     description: @Composable (() -> Unit) = this.description,
   ): ProviderSetting
@@ -35,6 +63,7 @@ sealed class ProviderSetting {
     override var enabled: Boolean = true,
     override var name: String = "OpenAI",
     override var models: List<Model> = emptyList(),
+    override var proxy: ProviderProxy = ProviderProxy.None,
     @Transient override val builtIn: Boolean = false,
     @Transient override val description: @Composable (() -> Unit) = {},
     var apiKey: String = "sk-",
@@ -68,6 +97,7 @@ sealed class ProviderSetting {
       enabled: Boolean,
       name: String,
       models: List<Model>,
+      proxy: ProviderProxy,
       builtIn: Boolean,
       description: @Composable (() -> Unit)
     ): ProviderSetting {
@@ -77,7 +107,8 @@ sealed class ProviderSetting {
         name = name,
         models = models,
         builtIn = builtIn,
-        description = description
+        description = description,
+        proxy = proxy
       )
     }
   }
@@ -89,6 +120,7 @@ sealed class ProviderSetting {
     override var enabled: Boolean = true,
     override var name: String = "Google",
     override var models: List<Model> = emptyList(),
+    override var proxy: ProviderProxy = ProviderProxy.None,
     @Transient override val builtIn: Boolean = false,
     @Transient override val description: @Composable (() -> Unit) = {},
     var apiKey: String = "",
@@ -124,6 +156,7 @@ sealed class ProviderSetting {
       enabled: Boolean,
       name: String,
       models: List<Model>,
+      proxy: ProviderProxy,
       builtIn: Boolean,
       description: @Composable (() -> Unit)
     ): ProviderSetting {
@@ -134,6 +167,7 @@ sealed class ProviderSetting {
         models = models,
         builtIn = builtIn,
         description = description,
+        proxy = proxy
       )
     }
   }
@@ -145,6 +179,7 @@ sealed class ProviderSetting {
     override var enabled: Boolean = true,
     override var name: String = "Claude",
     override var models: List<Model> = emptyList(),
+    override var proxy: ProviderProxy = ProviderProxy.None,
     @Transient override val builtIn: Boolean = false,
     @Transient override val description: @Composable (() -> Unit) = {},
     var apiKey: String = "",
@@ -177,6 +212,7 @@ sealed class ProviderSetting {
       enabled: Boolean,
       name: String,
       models: List<Model>,
+      proxy: ProviderProxy,
       builtIn: Boolean,
       description: @Composable (() -> Unit)
     ): ProviderSetting {
@@ -186,7 +222,8 @@ sealed class ProviderSetting {
         name = name,
         models = models,
         builtIn = builtIn,
-        description = description
+        description = description,
+        proxy = proxy
       )
     }
   }

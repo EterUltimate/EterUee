@@ -15,13 +15,13 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
@@ -65,6 +65,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFilter
@@ -75,6 +76,7 @@ import com.composables.icons.lucide.Cable
 import com.composables.icons.lucide.Hammer
 import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Network
 import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Settings2
@@ -89,6 +91,7 @@ import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.ProviderManager
+import me.rerere.ai.provider.ProviderProxy
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.provider.guessModalityFromModelId
@@ -104,7 +107,6 @@ import me.rerere.rikkahub.ui.components.ui.TagType
 import me.rerere.rikkahub.ui.components.ui.rememberShareSheetState
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalToaster
-import me.rerere.rikkahub.ui.hooks.EditStateContent
 import me.rerere.rikkahub.ui.hooks.useEditState
 import me.rerere.rikkahub.ui.pages.setting.components.ProviderConfigure
 import me.rerere.rikkahub.ui.theme.extendColors
@@ -120,7 +122,7 @@ fun SettingProviderDetailPage(id: Uuid, vm: SettingVM = koinViewModel()) {
   val settings by vm.settings.collectAsStateWithLifecycle()
   val navController = LocalNavController.current
   val provider = settings.providers.find { it.id == id } ?: return
-  val pager = rememberPagerState { 2 }
+  val pager = rememberPagerState { 3 }
   val scope = rememberCoroutineScope()
   val toaster = LocalToaster.current
   val context = LocalContext.current
@@ -195,6 +197,16 @@ fun SettingProviderDetailPage(id: Uuid, vm: SettingVM = koinViewModel()) {
             }
           }
         )
+        NavigationBarItem(
+          selected = pager.currentPage == 2,
+          label = { Text("网络代理") },
+          icon = { Icon(Lucide.Network, null) },
+          onClick = {
+            scope.launch {
+              pager.animateScrollToPage(2)
+            }
+          }
+        )
       }
     }
   ) {
@@ -203,24 +215,35 @@ fun SettingProviderDetailPage(id: Uuid, vm: SettingVM = koinViewModel()) {
       modifier = Modifier.padding(it)
     ) { page ->
       when (page) {
-        0 -> SettingProviderConfigPage(
-          provider = provider,
-          onEdit = {
-            onEdit(it)
-            toaster.show(
-              context.getString(R.string.setting_provider_page_save_success),
-              type = ToastType.Success
-            )
-          },
-          onDelete = {
-            onDelete()
-          }
-        )
+        0 -> {
+          SettingProviderConfigPage(
+            provider = provider,
+            onEdit = {
+              onEdit(it)
+              toaster.show(
+                context.getString(R.string.setting_provider_page_save_success),
+                type = ToastType.Success
+              )
+            },
+            onDelete = {
+              onDelete()
+            }
+          )
+        }
 
-        1 -> SettingProviderModelPage(
-          provider = provider,
-          onEdit = onEdit
-        )
+        1 -> {
+          SettingProviderModelPage(
+            provider = provider,
+            onEdit = onEdit
+          )
+        }
+
+        2 -> {
+          SettingProviderProxyPage(
+            provider = provider,
+            onEdit = onEdit
+          )
+        }
       }
     }
   }
@@ -292,6 +315,158 @@ private fun SettingProviderModelPage(
     providerSetting = provider,
     onUpdateProvider = onEdit
   )
+}
+
+@Composable
+private fun SettingProviderProxyPage(
+  provider: ProviderSetting,
+  onEdit: (ProviderSetting) -> Unit
+) {
+  val toaster = LocalToaster.current
+  var editingProxy by remember(provider.proxy) {
+    mutableStateOf(provider.proxy)
+  }
+  val proxyType = when (editingProxy) {
+    is ProviderProxy.Http -> "HTTP"
+    is ProviderProxy.Socks -> "SOCKS"
+    is ProviderProxy.None -> "None"
+  }
+
+  Column(
+    modifier = Modifier
+        .fillMaxSize()
+        .verticalScroll(rememberScrollState())
+        .padding(16.dp),
+    verticalArrangement = Arrangement.spacedBy(16.dp)
+  ) {
+    SingleChoiceSegmentedButtonRow(
+      modifier = Modifier.fillMaxWidth()
+    ) {
+      val types = listOf("None", "HTTP", "SOCKS")
+      types.forEachIndexed { index, type ->
+        SegmentedButton(
+          shape = SegmentedButtonDefaults.itemShape(index, types.size),
+          label = { Text(type) },
+          selected = proxyType == type,
+          onClick = {
+            editingProxy = when (type) {
+              "HTTP" -> ProviderProxy.Http(
+                address = "",
+                port = 8080
+              )
+
+              "SOCKS" -> ProviderProxy.Socks(
+                address = "",
+                port = 1080
+              )
+
+              else -> ProviderProxy.None
+            }
+          }
+        )
+      }
+    }
+
+    when (editingProxy) {
+      is ProviderProxy.None -> {}
+      is ProviderProxy.Http -> {
+        OutlinedTextField(
+          value = (editingProxy as ProviderProxy.Http).address,
+          onValueChange = {
+            editingProxy = (editingProxy as ProviderProxy.Http).copy(address = it)
+          },
+          label = { Text("Host") },
+          modifier = Modifier.fillMaxWidth()
+        )
+        var portStr by remember { mutableStateOf((editingProxy as ProviderProxy.Http).port.toString()) }
+        OutlinedTextField(
+          value = portStr,
+          onValueChange = {
+            portStr = it
+            it.toIntOrNull()?.let { port ->
+              editingProxy = (editingProxy as ProviderProxy.Http).copy(port = port)
+            }
+          },
+          label = { Text("Port") },
+          modifier = Modifier.fillMaxWidth(),
+          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+        OutlinedTextField(
+          value = (editingProxy as ProviderProxy.Http).username ?: "",
+          onValueChange = {
+            editingProxy = (editingProxy as ProviderProxy.Http).copy(username = it)
+          },
+          label = { Text("Username (Optional)") },
+          modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+          value = (editingProxy as ProviderProxy.Http).password ?: "",
+          onValueChange = {
+            editingProxy = (editingProxy as ProviderProxy.Http).copy(password = it)
+          },
+          label = { Text("Password (Optional)") },
+          modifier = Modifier.fillMaxWidth(),
+        )
+      }
+
+      is ProviderProxy.Socks -> {
+        OutlinedTextField(
+          value = (editingProxy as ProviderProxy.Socks).address,
+          onValueChange = {
+            editingProxy = (editingProxy as ProviderProxy.Socks).copy(address = it)
+          },
+          label = { Text("Host") },
+          modifier = Modifier.fillMaxWidth()
+        )
+        var portStr by remember { mutableStateOf((editingProxy as ProviderProxy.Socks).port.toString()) }
+        OutlinedTextField(
+          value = portStr,
+          onValueChange = {
+            portStr = it
+            it.toIntOrNull()?.let { port ->
+              editingProxy = (editingProxy as ProviderProxy.Socks).copy(port = port)
+            }
+          },
+          label = { Text("Port") },
+          modifier = Modifier.fillMaxWidth(),
+          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+        OutlinedTextField(
+          value = (editingProxy as ProviderProxy.Socks).username ?: "",
+          onValueChange = {
+            editingProxy = (editingProxy as ProviderProxy.Socks).copy(username = it)
+          },
+          label = { Text("Username (Optional)") },
+          modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+          value = (editingProxy as ProviderProxy.Socks).password ?: "",
+          onValueChange = {
+            editingProxy = (editingProxy as ProviderProxy.Socks).copy(password = it)
+          },
+          label = { Text("Password (Optional)") },
+          modifier = Modifier.fillMaxWidth(),
+        )
+      }
+    }
+
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.End
+    ) {
+      Button(
+        onClick = {
+          onEdit(provider.copyProvider(proxy = editingProxy))
+          toaster.show(
+            "保存成功",
+            type = ToastType.Success
+          )
+        }
+      ) {
+        Text("保存")
+      }
+    }
+  }
 }
 
 @Composable
@@ -509,13 +684,15 @@ private fun ModelSettingsForm(
   fun setModelId(id: String) {
     val modality = guessModalityFromModelId(id.lowercase())
     val abilities = guessModelAbilityFromModelId(id.lowercase())
-    onModelChange(model.copy(
-      modelId = id,
-      displayName = id.uppercase(),
-      inputModalities = modality.first,
-      outputModalities = modality.second,
-      abilities = abilities
-    ))
+    onModelChange(
+      model.copy(
+        modelId = id,
+        displayName = id.uppercase(),
+        inputModalities = modality.first,
+        outputModalities = modality.second,
+        abilities = abilities
+      )
+    )
   }
 
   OutlinedTextField(
@@ -528,7 +705,7 @@ private fun ModelSettingsForm(
     label = { Text(stringResource(R.string.setting_provider_page_model_id)) },
     modifier = Modifier.fillMaxWidth(),
     placeholder = {
-      if(!isEdit) {
+      if (!isEdit) {
         Text(stringResource(R.string.setting_provider_page_model_id_placeholder))
       }
     },
@@ -540,10 +717,10 @@ private fun ModelSettingsForm(
     onValueChange = {
       onModelChange(model.copy(displayName = it.trim()))
     },
-    label = { Text(stringResource(if(isEdit) R.string.setting_provider_page_model_name else R.string.setting_provider_page_model_display_name)) },
+    label = { Text(stringResource(if (isEdit) R.string.setting_provider_page_model_name else R.string.setting_provider_page_model_display_name)) },
     modifier = Modifier.fillMaxWidth(),
     placeholder = {
-      if(!isEdit) {
+      if (!isEdit) {
         Text(stringResource(R.string.setting_provider_page_model_display_name_placeholder))
       }
     }
@@ -997,7 +1174,7 @@ private fun ModelCard(
           ) {
             ModelSettingsForm(
               model = editingModel,
-              onModelChange = {  dialogState.currentState = it },
+              onModelChange = { dialogState.currentState = it },
               isEdit = true
             )
           }

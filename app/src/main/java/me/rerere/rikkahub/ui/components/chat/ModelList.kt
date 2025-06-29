@@ -28,6 +28,7 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
@@ -137,7 +138,7 @@ fun ModelSelector(
       }
     }
   } else {
-    IconButton(
+    FilledTonalButton(
       onClick = {
         popup = true
       }

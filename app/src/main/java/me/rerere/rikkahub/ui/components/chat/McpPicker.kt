@@ -73,12 +73,12 @@ fun McpPickerButton(
   ) {
     Row(
       modifier = Modifier
-        .padding(vertical = 4.dp, horizontal = 8.dp),
+        .padding(vertical = 8.dp, horizontal = 8.dp),
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
       Box(
-        modifier = Modifier.size(20.dp),
+        modifier = Modifier.size(24.dp),
         contentAlignment = Alignment.Center
       ) {
         Icon(

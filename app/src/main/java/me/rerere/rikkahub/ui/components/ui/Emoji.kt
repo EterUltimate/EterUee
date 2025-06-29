@@ -108,7 +108,8 @@ fun EmojiPicker(
             keyboardActions = KeyboardActions(
               onSearch = { /* Handle search */ }
             ),
-            singleLine = true
+            singleLine = true,
+            shape = RoundedCornerShape(50)
           )
         }
 

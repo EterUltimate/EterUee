@@ -18,7 +18,7 @@ class AssistantVM(
   private val conversationRepo: ConversationRepository
 ) : ViewModel() {
   val settings: StateFlow<Settings> = settingsStore.settingsFlow
-    .stateIn(viewModelScope, SharingStarted.Lazily, Settings())
+    .stateIn(viewModelScope, SharingStarted.Eagerly, Settings())
 
   fun updateSettings(settings: Settings) {
     viewModelScope.launch {

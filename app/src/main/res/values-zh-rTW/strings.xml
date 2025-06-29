@@ -344,6 +344,8 @@
   <string name="setting_provider_page_vertex_ai">Vertex AI</string>
   <string name="setting_provider_page_location">位置（例如 us-central1）</string>
   <string name="setting_provider_page_project_id">專案 ID</string>
+  <string name="setting_provider_page_basic_settings">基本設定</string>
+  <string name="setting_provider_page_advanced_settings">進階設定</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">創建了記憶</string>

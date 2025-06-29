@@ -43,10 +43,13 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -73,6 +76,7 @@ import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Cable
+import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.Hammer
 import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.Lucide
@@ -108,6 +112,8 @@ import me.rerere.rikkahub.ui.components.ui.rememberShareSheetState
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.ui.hooks.useEditState
+import me.rerere.rikkahub.ui.pages.assistant.detail.CustomBodies
+import me.rerere.rikkahub.ui.pages.assistant.detail.CustomHeaders
 import me.rerere.rikkahub.ui.pages.setting.components.ProviderConfigure
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.UiState
@@ -635,6 +641,9 @@ private fun ModelSettingsForm(
   onModelChange: (Model) -> Unit,
   isEdit: Boolean
 ) {
+  val pagerState = rememberPagerState { 2 }
+  val scope = rememberCoroutineScope()
+
   fun setModelId(id: String) {
     val modality = guessModalityFromModelId(id.lowercase())
     val abilities = guessModelAbilityFromModelId(id.lowercase())
@@ -649,62 +658,129 @@ private fun ModelSettingsForm(
     )
   }
 
-  OutlinedTextField(
-    value = model.modelId,
-    onValueChange = {
-      if (!isEdit) {
-        setModelId(it.trim())
+  Column {
+    SecondaryTabRow(
+      selectedTabIndex = pagerState.currentPage
+    ) {
+      Tab(
+        selected = pagerState.currentPage == 0,
+        onClick = {
+          scope.launch {
+            pagerState.animateScrollToPage(0)
+          }
+        },
+        text = { Text(stringResource(R.string.setting_provider_page_basic_settings)) }
+      )
+      Tab(
+        selected = pagerState.currentPage == 1,
+        onClick = {
+          scope.launch {
+            pagerState.animateScrollToPage(1)
+          }
+        },
+        text = { Text(stringResource(R.string.setting_provider_page_advanced_settings)) }
+      )
+    }
+
+    HorizontalPager(
+      state = pagerState,
+      modifier = Modifier.fillMaxWidth()
+    ) { page ->
+      when (page) {
+        0 -> {
+          // 基本设置页面
+          Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(vertical = 16.dp)
+                .verticalScroll(rememberScrollState())
+          ) {
+            OutlinedTextField(
+              value = model.modelId,
+              onValueChange = {
+                if (!isEdit) {
+                  setModelId(it.trim())
+                }
+              },
+              label = { Text(stringResource(R.string.setting_provider_page_model_id)) },
+              modifier = Modifier.fillMaxWidth(),
+              placeholder = {
+                if (!isEdit) {
+                  Text(stringResource(R.string.setting_provider_page_model_id_placeholder))
+                }
+              },
+              enabled = !isEdit
+            )
+
+            OutlinedTextField(
+              value = model.displayName,
+              onValueChange = {
+                onModelChange(model.copy(displayName = it.trim()))
+              },
+              label = { Text(stringResource(if (isEdit) R.string.setting_provider_page_model_name else R.string.setting_provider_page_model_display_name)) },
+              modifier = Modifier.fillMaxWidth(),
+              placeholder = {
+                if (!isEdit) {
+                  Text(stringResource(R.string.setting_provider_page_model_display_name_placeholder))
+                }
+              }
+            )
+
+            ModelTypeSelector(
+              selectedType = model.type,
+              onTypeSelected = {
+                onModelChange(model.copy(type = it))
+              }
+            )
+
+            ModelModalitySelector(
+              inputModalities = model.inputModalities,
+              onUpdateInputModalities = {
+                onModelChange(model.copy(inputModalities = it))
+              },
+              outputModalities = model.outputModalities,
+              onUpdateOutputModalities = {
+                onModelChange(model.copy(outputModalities = it))
+              }
+            )
+
+            ModalAbilitySelector(
+              abilities = model.abilities,
+              onUpdateAbilities = {
+                onModelChange(model.copy(abilities = it))
+              }
+            )
+          }
+        }
+
+        1 -> {
+          // 高级设置页面
+          Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+          ) {
+            CustomHeaders(
+              headers = model.customHeaders,
+              onUpdate = { headers ->
+                onModelChange(model.copy(customHeaders = headers))
+              }
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            CustomBodies(
+              customBodies = model.customBodies,
+              onUpdate = { bodies ->
+                onModelChange(model.copy(customBodies = bodies))
+              }
+            )
+          }
+        }
       }
-    },
-    label = { Text(stringResource(R.string.setting_provider_page_model_id)) },
-    modifier = Modifier.fillMaxWidth(),
-    placeholder = {
-      if (!isEdit) {
-        Text(stringResource(R.string.setting_provider_page_model_id_placeholder))
-      }
-    },
-    enabled = !isEdit
-  )
-
-  OutlinedTextField(
-    value = model.displayName,
-    onValueChange = {
-      onModelChange(model.copy(displayName = it.trim()))
-    },
-    label = { Text(stringResource(if (isEdit) R.string.setting_provider_page_model_name else R.string.setting_provider_page_model_display_name)) },
-    modifier = Modifier.fillMaxWidth(),
-    placeholder = {
-      if (!isEdit) {
-        Text(stringResource(R.string.setting_provider_page_model_display_name_placeholder))
-      }
     }
-  )
-
-
-  ModelTypeSelector(
-    selectedType = model.type,
-    onTypeSelected = {
-      onModelChange(model.copy(type = it))
-    }
-  )
-
-  ModelModalitySelector(
-    inputModalities = model.inputModalities,
-    onUpdateInputModalities = {
-      onModelChange(model.copy(inputModalities = it))
-    },
-    outputModalities = model.outputModalities,
-    onUpdateOutputModalities = {
-      onModelChange(model.copy(outputModalities = it))
-    }
-  )
-
-  ModalAbilitySelector(
-    abilities = model.abilities,
-    onUpdateAbilities = {
-      onModelChange(model.copy(abilities = it))
-    }
-  )
+  }
 }
 
 @Composable
@@ -771,7 +847,17 @@ private fun AddModelButton(
         onDismissRequest = {
           dialogState.dismiss()
         },
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        sheetGesturesEnabled = false,
+        dragHandle = {
+          IconButton(
+            onClick = {
+              dialogState.dismiss()
+            }
+          ) {
+            Icon(Lucide.ChevronDown, null)
+          }
+        }
       ) {
         Column(
           modifier = Modifier
@@ -789,7 +875,7 @@ private fun AddModelButton(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .weight(1f)
-                .verticalScroll(rememberScrollState())
+                .fillMaxWidth()
           ) {
             ModelSettingsForm(
               model = modelState,
@@ -1106,7 +1192,17 @@ private fun ModelCard(
         onDismissRequest = {
           dialogState.dismiss()
         },
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        sheetGesturesEnabled = false,
+        dragHandle = {
+          IconButton(
+            onClick = {
+              dialogState.dismiss()
+            }
+          ) {
+            Icon(Lucide.ChevronDown, null)
+          }
+        }
       ) {
         Column(
           modifier = Modifier
@@ -1124,7 +1220,7 @@ private fun ModelCard(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .weight(1f)
-                .verticalScroll(rememberScrollState())
+                .fillMaxWidth()
           ) {
             ModelSettingsForm(
               model = editingModel,

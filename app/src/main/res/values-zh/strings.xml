@@ -348,6 +348,8 @@
   <string name="setting_provider_page_vertex_ai">Vertex AI</string>
   <string name="setting_provider_page_location">位置（例如 us-central1）</string>
   <string name="setting_provider_page_project_id">项目 ID</string>
+  <string name="setting_provider_page_basic_settings">基本设置</string>
+  <string name="setting_provider_page_advanced_settings">高级设置</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">创建了记忆</string>

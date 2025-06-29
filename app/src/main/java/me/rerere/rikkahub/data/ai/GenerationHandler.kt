@@ -226,8 +226,14 @@ class GenerationHandler(
       topP = assistant?.topP,
       tools = tools,
       thinkingBudget = assistant?.thinkingBudget,
-      customHeaders = assistant?.customHeaders ?: emptyList(),
-      customBody = assistant?.customBodies ?: emptyList()
+      customHeaders = buildList {
+        assistant?.customHeaders?.let { addAll(it) }
+        addAll(model.customHeaders)
+      },
+      customBody = buildList {
+        assistant?.customBodies?.let { addAll(it) }
+        addAll(model.customBodies)
+      }
     )
     if (stream) {
       providerImpl.streamText(

@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
@@ -26,7 +25,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryScrollableTabRow
@@ -40,11 +38,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,7 +57,6 @@ import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.LucideIcon
 import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Trash2
@@ -972,11 +966,29 @@ private fun AssistantCustomRequestSettings(
         .imePadding(),
     verticalArrangement = Arrangement.spacedBy(12.dp)
   ) {
-    AssistantCustomHeaders(assistant = assistant, onUpdate = onUpdate)
+    CustomHeaders(
+      headers = assistant.customHeaders,
+      onUpdate = {
+        onUpdate(
+          assistant.copy(
+            customHeaders = it
+          )
+        )
+      }
+    )
 
     HorizontalDivider()
 
-    AssistantCustomBodies(assistant = assistant, onUpdate = onUpdate)
+    CustomBodies(
+      customBodies = assistant.customBodies,
+      onUpdate = {
+        onUpdate(
+          assistant.copy(
+            customBodies = it
+          )
+        )
+      }
+    )
   }
 }
 

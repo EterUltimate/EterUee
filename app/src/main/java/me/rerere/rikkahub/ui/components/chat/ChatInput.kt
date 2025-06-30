@@ -361,15 +361,13 @@ fun ChatInput(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 12.dp),
       ) {
         // TextField
         Surface(
           shape = RoundedCornerShape(32.dp),
           tonalElevation = 4.dp,
-          modifier = Modifier
-              .weight(1f)
-              .padding(horizontal = 8.dp)
+          modifier = Modifier.weight(1f)
         ) {
           Column {
             if (state.isEditing()) {
@@ -466,11 +464,14 @@ fun ChatInput(
       }
 
       // Actions Row
-      Row {
+      Row(
+        modifier = Modifier.padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
         Row(
           modifier = Modifier
               .weight(1f)
-              .padding(horizontal = 8.dp)
               .horizontalScroll(rememberScrollState()),
           horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {

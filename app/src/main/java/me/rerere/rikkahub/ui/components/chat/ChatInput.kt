@@ -539,14 +539,16 @@ fun ChatInput(
           }
 
           // MCP
-          McpPickerButton(
-            assistant = settings.getCurrentAssistant(),
-            servers = settings.mcpServers,
-            mcpManager = mcpManager,
-            onUpdateAssistant = {
-              onUpdateAssistant(it)
-            },
-          )
+          if(settings.mcpServers.isNotEmpty()) {
+            McpPickerButton(
+              assistant = settings.getCurrentAssistant(),
+              servers = settings.mcpServers,
+              mcpManager = mcpManager,
+              onUpdateAssistant = {
+                onUpdateAssistant(it)
+              },
+            )
+          }
 
           // Actions
           IconButton(

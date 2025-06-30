@@ -48,21 +48,21 @@ fun TextAvatar(text: String, modifier: Modifier = Modifier) {
   Box(
     modifier = modifier
         .clip(CircleShape)
-        .background(MaterialTheme.colorScheme.secondary)
-        .size(24.dp),
+        .background(MaterialTheme.colorScheme.secondary),
     contentAlignment = Alignment.Center
   ) {
-    val density = LocalDensity.current
-    with(density) {
-      Text(
-        text = text.take(1).uppercase(),
-        color = MaterialTheme.colorScheme.onSecondary,
-        maxLines = 1,
-        overflow = TextOverflow.Clip,
-        lineHeight = 1.em,
-        fontSize = 16.dp.toSp()
-      )
-    }
+    Text(
+      text = text.take(1).uppercase(),
+      color = MaterialTheme.colorScheme.onSecondary,
+      maxLines = 1,
+      overflow = TextOverflow.Clip,
+      autoSize = TextAutoSize.StepBased(
+        minFontSize = 8.sp,
+        maxFontSize = 32.sp,
+        stepSize = 1.sp
+      ),
+      lineHeight = 0.8.em
+    )
   }
 }
 

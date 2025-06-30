@@ -185,6 +185,7 @@ fun ModelSelector(
           modelType = type,
           onSelect = {
             onSelect(it)
+            popup = false
           },
           onDismiss = {
             popup = false

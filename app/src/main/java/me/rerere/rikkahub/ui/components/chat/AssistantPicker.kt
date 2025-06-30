@@ -141,15 +141,7 @@ private fun AssistantPickerSheet(
   ModalBottomSheet(
     onDismissRequest = onDismiss,
     sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-    sheetGesturesEnabled = false,
-    dragHandle = {
-      IconButton(
-        onClick = {
-          onDismiss()
-        }) {
-        Icon(Lucide.ChevronDown, null)
-      }
-    }) {
+  ) {
     Column(
       modifier = Modifier
           .fillMaxWidth()

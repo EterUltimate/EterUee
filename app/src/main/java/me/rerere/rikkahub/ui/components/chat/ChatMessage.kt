@@ -999,7 +999,7 @@ fun ReasoningCard(
         Icon(
           painter = painterResource(R.drawable.deepthink),
           contentDescription = null,
-          modifier = Modifier.size(16.dp),
+          modifier = Modifier.size(18.dp),
           tint = MaterialTheme.colorScheme.secondary
         )
         Text(

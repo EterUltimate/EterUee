@@ -6,7 +6,6 @@ import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.animateBounds
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
@@ -16,6 +15,7 @@ import androidx.compose.foundation.content.ReceiveContentListener
 import androidx.compose.foundation.content.consume
 import androidx.compose.foundation.content.contentReceiver
 import androidx.compose.foundation.content.hasMediaType
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -41,8 +41,10 @@ import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -80,6 +82,7 @@ import coil3.compose.AsyncImage
 import com.composables.icons.lucide.ArrowUp
 import com.composables.icons.lucide.Camera
 import com.composables.icons.lucide.Earth
+import com.composables.icons.lucide.Ellipsis
 import com.composables.icons.lucide.Eraser
 import com.composables.icons.lucide.Files
 import com.composables.icons.lucide.Fullscreen
@@ -87,6 +90,7 @@ import com.composables.icons.lucide.Image
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.X
+import com.dokar.sonner.ToastType
 import com.meticha.permissions_compose.AppPermission
 import com.meticha.permissions_compose.rememberAppPermissionState
 import kotlinx.serialization.Serializable
@@ -110,13 +114,14 @@ import me.rerere.rikkahub.data.mcp.McpManager
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.ui.components.ui.KeepScreenOn
 import me.rerere.rikkahub.ui.components.ui.ToggleSurface
-import me.rerere.rikkahub.ui.hooks.heroAnimation
+import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.utils.GetContentWithMultiMime
 import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.createChatFilesByContents
 import me.rerere.rikkahub.utils.deleteChatFiles
 import me.rerere.rikkahub.utils.getFileNameFromUri
 import java.io.File
+import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 
 @Serializable
@@ -213,6 +218,7 @@ fun rememberChatInputState(
 enum class ExpandState {
   Collapsed,
   Files,
+  Actions
 }
 
 @Composable
@@ -235,6 +241,7 @@ fun ChatInput(
       ?: UIMessagePart.Text("")
 
   val context = LocalContext.current
+  val toaster = LocalToaster.current
 
   val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -259,17 +266,17 @@ fun ChatInput(
   Surface {
     Column(
       modifier = modifier
-          .imePadding()
-          .navigationBarsPadding(),
+        .imePadding()
+        .navigationBarsPadding(),
       verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
       // Medias
       Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp)
-            .horizontalScroll(rememberScrollState())
+          .fillMaxWidth()
+          .padding(horizontal = 8.dp)
+          .horizontalScroll(rememberScrollState())
       ) {
         state.messageContent.filterIsInstance<UIMessagePart.Image>().fastForEach { image ->
           Box {
@@ -288,17 +295,17 @@ fun ChatInput(
               imageVector = Lucide.X,
               contentDescription = null,
               modifier = Modifier
-                  .clip(CircleShape)
-                  .size(20.dp)
-                  .clickable {
-                      // Remove image
-                      state.messageContent =
-                          state.messageContent.filterNot { it == image }
-                      // Delete image
-                      context.deleteChatFiles(listOf(image.url.toUri()))
-                  }
-                  .align(Alignment.TopEnd)
-                  .background(MaterialTheme.colorScheme.secondary),
+                .clip(CircleShape)
+                .size(20.dp)
+                .clickable {
+                  // Remove image
+                  state.messageContent =
+                    state.messageContent.filterNot { it == image }
+                  // Delete image
+                  context.deleteChatFiles(listOf(image.url.toUri()))
+                }
+                .align(Alignment.TopEnd)
+                .background(MaterialTheme.colorScheme.secondary),
               tint = MaterialTheme.colorScheme.onSecondary
             )
           }
@@ -356,18 +363,6 @@ fun ChatInput(
             .fillMaxWidth()
             .padding(horizontal = 8.dp),
       ) {
-        // Insert files
-        IconButton(
-          onClick = {
-            expandToggle(ExpandState.Files)
-          }
-        ) {
-          Icon(
-            if (expand == ExpandState.Files) Lucide.X else Lucide.Plus,
-            stringResource(R.string.more_options)
-          )
-        }
-
         // TextField
         Surface(
           shape = RoundedCornerShape(32.dp),
@@ -468,6 +463,99 @@ fun ChatInput(
             }
           }
         }
+      }
+
+      // Actions Row
+      Row {
+        Row(
+          modifier = Modifier
+              .weight(1f)
+              .padding(horizontal = 8.dp)
+              .horizontalScroll(rememberScrollState()),
+          horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+          // Model Picker
+          ModelSelector(
+            modelId = settings.getCurrentAssistant().chatModelId ?: settings.chatModelId,
+            providers = settings.providers,
+            onSelect = {
+              onUpdateChatModel(it)
+              dismissExpand()
+            },
+            type = ModelType.CHAT,
+            onlyIcon = true,
+            modifier = Modifier,
+          )
+
+          // Insert files
+          IconButton(
+            onClick = {
+              expandToggle(ExpandState.Files)
+            }
+          ) {
+            Icon(
+              if (expand == ExpandState.Files) Lucide.X else Lucide.Plus,
+              stringResource(R.string.more_options)
+            )
+          }
+
+          // Search
+          val enableSearchMsg = stringResource(R.string.web_search_enabled)
+          val disableSearchMsg = stringResource(R.string.web_search_disabled)
+          ChatActionItem(
+            icon = {
+              Icon(
+                imageVector = Lucide.Earth,
+                contentDescription = stringResource(R.string.use_web_search),
+              )
+            },
+            onClick = {
+              onToggleSearch(!enableSearch)
+              toaster.show(
+                message = if (!enableSearch) enableSearchMsg else disableSearchMsg,
+                duration = 1.seconds,
+                type = if (!enableSearch) {
+                  ToastType.Success
+                } else {
+                  ToastType.Normal
+                }
+              )
+            },
+            checked = enableSearch,
+          )
+
+          // Reasoning
+          val model = settings.getCurrentChatModel()
+          if (model?.abilities?.contains(ModelAbility.REASONING) == true) {
+            val assistant = settings.getCurrentAssistant()
+            ReasoningButton(
+              reasoningTokens = assistant.thinkingBudget ?: 0,
+              onUpdateReasoningTokens = {
+                onUpdateAssistant(assistant.copy(thinkingBudget = it))
+              },
+              onlyIcon = true,
+            )
+          }
+
+          // MCP
+          McpPickerButton(
+            assistant = settings.getCurrentAssistant(),
+            servers = settings.mcpServers,
+            mcpManager = mcpManager,
+            onUpdateAssistant = {
+              onUpdateAssistant(it)
+            },
+          )
+
+          // Actions
+          IconButton(
+            onClick = {
+              expandToggle(ExpandState.Actions)
+            }
+          ) {
+            Icon(Lucide.Ellipsis, null)
+          }
+        }
 
         // Send Button
         IconButton(
@@ -488,84 +576,6 @@ fun ChatInput(
             Icon(Lucide.ArrowUp, stringResource(R.string.send))
           }
         }
-      }
-
-      // Actions Row
-      FlowRow(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End)
-      ) {
-        // Model Picker
-        ModelSelector(
-          modelId = settings.getCurrentAssistant().chatModelId ?: settings.chatModelId,
-          providers = settings.providers,
-          onSelect = {
-            onUpdateChatModel(it)
-            dismissExpand()
-          },
-          type = ModelType.CHAT,
-          onlyIcon = true,
-          modifier = Modifier,
-        )
-
-        Spacer(Modifier.weight(1f))
-
-        // Search
-        ChatActionItem(
-          title = {
-            Text(stringResource(R.string.use_web_search))
-          },
-          icon = {
-            Icon(
-              imageVector = Lucide.Earth,
-              contentDescription = stringResource(R.string.use_web_search),
-            )
-          },
-          onClick = {
-            onToggleSearch(!enableSearch)
-          },
-          checked = enableSearch,
-        )
-
-        // Reasoning
-        val model = settings.getCurrentChatModel()
-        if (model?.abilities?.contains(ModelAbility.REASONING) == true) {
-          val assistant = settings.getCurrentAssistant()
-          ReasoningButton(
-            reasoningTokens = assistant.thinkingBudget ?: 0,
-            onUpdateReasoningTokens = {
-              onUpdateAssistant(assistant.copy(thinkingBudget = it))
-            },
-            onlyIcon = false,
-            modifier = Modifier.heroAnimation("reasoning")
-          )
-        }
-
-        // MCP
-        McpPickerButton(
-          assistant = settings.getCurrentAssistant(),
-          servers = settings.mcpServers,
-          mcpManager = mcpManager,
-          onUpdateAssistant = {
-            onUpdateAssistant(it)
-          },
-        )
-
-        // Clear Context
-        ChatActionItem(
-          checked = false,
-          onClick = {
-            onClearContext()
-          },
-          icon = {
-            Icon(
-              imageVector = Lucide.Eraser,
-              contentDescription = stringResource(R.string.chat_page_clear_context),
-            )
-          },
-        )
       }
 
       // Expanded content
@@ -589,27 +599,53 @@ fun ChatInput(
             }
           }
         }
+        if (expand == ExpandState.Actions) {
+          ChatActionsSheet(
+            onClearContext = onClearContext,
+            dismissExpand = { dismissExpand() }
+          )
+        }
       }
     }
   }
 }
 
 @Composable
-private fun ChatActions(
-  settings: Settings,
-  mcpManager: McpManager,
-  onUpdateAssistant: (Assistant) -> Unit,
-  onClearContext: () -> Unit
+private fun ChatActionsSheet(
+  onClearContext: () -> Unit,
+  dismissExpand: () -> Unit
 ) {
-  FlowRow(
-    modifier = Modifier
-        .padding(16.dp)
-        .fillMaxWidth(),
-    itemVerticalAlignment = Alignment.CenterVertically,
-    verticalArrangement = Arrangement.spacedBy(4.dp),
-    horizontalArrangement = Arrangement.spacedBy(8.dp)
+  ModalBottomSheet(
+    onDismissRequest = {
+      dismissExpand()
+    }
   ) {
-
+    Column(
+      modifier = Modifier
+          .fillMaxWidth()
+          .padding(8.dp),
+      verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+      ListItem(
+        leadingContent = {
+          Icon(
+            imageVector = Lucide.Eraser,
+            contentDescription = stringResource(R.string.chat_page_clear_context),
+          )
+        },
+        headlineContent = {
+          Text(stringResource(R.string.chat_page_clear_context))
+        },
+        tonalElevation = 4.dp,
+        modifier = Modifier
+            .clip(MaterialTheme.shapes.large)
+            .clickable(
+                onClick = {
+                    onClearContext()
+                }
+            ),
+      )
+    }
   }
 }
 
@@ -866,7 +902,7 @@ private fun ChatActionItem(
       ) {
         icon()
       }
-      if(checked) {
+      if (checked) {
         title?.let {
           Column(
             modifier = Modifier,

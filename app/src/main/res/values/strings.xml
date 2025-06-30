@@ -7,6 +7,8 @@
   <string name="send">Send</string>
   <string name="more_options">More options</string>
   <string name="use_web_search">Web Search</string>
+  <string name="web_search_enabled">Web search enabled</string>
+  <string name="web_search_disabled">Web search disabled</string>
   <string name="photo">Photo</string>
   <string name="take_picture">Take Picture</string>
   <string name="copy">Copy</string>

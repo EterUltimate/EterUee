@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,7 +16,6 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LocalContentColor
@@ -88,24 +86,23 @@ fun McpPickerButton(
             modifier = Modifier.size(20.dp)
           )
         } else {
-          Icon(
-            imageVector = Lucide.Terminal,
-            contentDescription = stringResource(R.string.mcp_picker_title),
-          )
-        }
-      }
-      if (enabledServers.isNotEmpty()) {
-        Column(
-          modifier = Modifier,
-          verticalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
-          Text("MCP")
-        }
+          BadgedBox(
+            badge = {
+              if(enabledServers.isNotEmpty()) {
+                Badge(
+                  containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                ) {
+                  Text(text = enabledServers.size.toString())
+                }
+              }
+            }
+          ) {
+            Icon(
+              imageVector = Lucide.Terminal,
+              contentDescription = stringResource(R.string.mcp_picker_title),
+            )
+          }
 
-        Badge(
-          containerColor = MaterialTheme.colorScheme.secondaryContainer
-        ) {
-          Text(text = enabledServers.size.toString())
         }
       }
     }

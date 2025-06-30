@@ -8,6 +8,8 @@
   <string name="send">發送</string>
   <string name="more_options">更多選項</string>
   <string name="use_web_search">網路搜尋</string>
+  <string name="web_search_enabled">已啟用網頁搜尋</string>
+  <string name="web_search_disabled">已禁用網頁搜尋</string>
   <string name="photo">照片</string>
   <string name="take_picture">拍照</string>
   <string name="copy">複製</string>

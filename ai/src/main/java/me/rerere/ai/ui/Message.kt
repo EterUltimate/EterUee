@@ -294,6 +294,7 @@ sealed class UIMessagePart {
   data class Document(
     val url: String,
     val fileName: String,
+    val mime: String = "text/*",
     override var metadata: JsonObject? = null
   ) : UIMessagePart() {
     override val priority: Int = 1

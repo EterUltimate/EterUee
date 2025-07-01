@@ -119,6 +119,7 @@ import me.rerere.rikkahub.utils.GetContentWithMultiMime
 import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.createChatFilesByContents
 import me.rerere.rikkahub.utils.deleteChatFiles
+import me.rerere.rikkahub.utils.getFileMimeType
 import me.rerere.rikkahub.utils.getFileNameFromUri
 import java.io.File
 import kotlin.time.Duration.Companion.seconds
@@ -164,15 +165,10 @@ class ChatInputState {
     messageContent = newMessage
   }
 
-  fun addFiles(uris: List<Pair<Uri, String>>) {
+  fun addFiles(uris: List<UIMessagePart.Document>) {
     val newMessage = messageContent.toMutableList()
-    uris.forEach { uri ->
-      newMessage.add(
-        UIMessagePart.Document(
-          url = uri.first.toString(),
-          fileName = uri.second
-        )
-      )
+    uris.forEach {
+      newMessage.add(it)
     }
     messageContent = newMessage
   }
@@ -810,16 +806,21 @@ fun TakePicButton(onAddImages: (List<Uri>) -> Unit = {}) {
 }
 
 @Composable
-fun FilePickButton(onAddFiles: (List<Pair<Uri, String>>) -> Unit = {}) {
+fun FilePickButton(onAddFiles: (List<UIMessagePart.Document>) -> Unit = {}) {
   val context = LocalContext.current
   val pickMedia =
     rememberLauncherForActivityResult(GetContentWithMultiMime()) { uri ->
       if (uri != null) {
         val localUri = context.createChatFilesByContents(listOf(uri))[0]
         val fileName = context.getFileNameFromUri(uri) ?: "file"
+        val mime = context.getFileMimeType(uri)
         onAddFiles(
           listOf(
-            localUri to fileName
+            UIMessagePart.Document(
+              url = localUri.toString(),
+              fileName = fileName,
+              mime = mime ?: "text/*"
+            )
           )
         )
       }

@@ -149,6 +149,11 @@ fun Context.getFileNameFromUri(uri: Uri): String? {
   return fileName
 }
 
+fun Context.getFileMimeType(uri: Uri): String? {
+  val mimeType = contentResolver.getType(uri)
+  return mimeType
+}
+
 @OptIn(ExperimentalEncodingApi::class)
 suspend fun Context.convertBase64ImagePartToLocalFile(message: UIMessage): UIMessage =
   withContext(Dispatchers.IO) {

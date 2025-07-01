@@ -26,9 +26,9 @@ object DocumentAsPromptTransformer : InputMessageTransformer {
             if (documents.isNotEmpty()) {
               documents.forEach { document ->
                 val file = document.url.toUri().toFile()
-                val content = when (document.fileName.substringAfterLast('.')) {
-                  "pdf" -> parsePdfAsText(file)
-                  "docx" -> parseDocxAsText(file)
+                val content = when (document.mime) {
+                  "application/pdf" -> parsePdfAsText(file)
+                  "application/vnd.openxmlformats-officedocument.wordprocessingml.document" -> parseDocxAsText(file)
                   else -> file.readText()
                 }
                 val prompt = """

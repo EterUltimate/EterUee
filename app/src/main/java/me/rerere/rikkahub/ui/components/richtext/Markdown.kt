@@ -107,8 +107,8 @@ private fun MarkdownPreview() {
   MaterialTheme {
     Column(
       modifier = Modifier
-          .fillMaxWidth()
-          .padding(16.dp),
+        .fillMaxWidth()
+        .padding(16.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
       MarkdownBlock(
@@ -271,11 +271,19 @@ fun MarkdownNode(
         else -> throw IllegalArgumentException("Unknown header type")
       }
       ProvideTextStyle(value = style) {
-        Text(
-          // content 使用正则过滤井号
-          text = node.getTextInNode(content).replace(Regex("^#+\\s*"), ""),
-          modifier = Modifier.fillMaxWidth()
-        )
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+          node.children.fastForEach { node ->
+            if (node.type == MarkdownTokenTypes.ATX_CONTENT) {
+              Paragraph(
+                node = node,
+                content = content,
+                onClickCitation = onClickCitation,
+                modifier = modifier,
+                trim = true,
+              )
+            }
+          }
+        }
       }
     }
 
@@ -307,18 +315,18 @@ fun MarkdownNode(
         val bgColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
         FlowRow(
           modifier = Modifier
-              .drawWithContent {
-                  drawContent()
-                  drawRect(
-                      color = bgColor,
-                      size = size
-                  )
-                  drawRect(
-                      color = borderColor,
-                      size = Size(10f, size.height)
-                  )
-              }
-              .padding(8.dp)
+            .drawWithContent {
+              drawContent()
+              drawRect(
+                color = bgColor,
+                size = size
+              )
+              drawRect(
+                color = borderColor,
+                size = Size(10f, size.height)
+              )
+            }
+            .padding(8.dp)
         ) {
           node.children.fastForEach { child ->
             MarkdownNode(
@@ -426,8 +434,8 @@ fun MarkdownNode(
       val formula = node.getTextInNode(content)
       MathBlock(
         formula, modifier = modifier
-              .fillMaxWidth()
-              .padding(vertical = 8.dp)
+          .fillMaxWidth()
+          .padding(vertical = 8.dp)
       )
     }
 
@@ -446,8 +454,8 @@ fun MarkdownNode(
         code = code,
         language = "plaintext",
         modifier = Modifier
-            .padding(bottom = 4.dp)
-            .fillMaxWidth(),
+          .padding(bottom = 4.dp)
+          .fillMaxWidth(),
         completeCodeBlock = true
       )
     }
@@ -458,7 +466,7 @@ fun MarkdownNode(
       // 因此，需要往上找到最后一个EOL元素，用它来作为代码块的起始offset
       val contentStartIndex =
         node.children.indexOfFirst { it.type == MarkdownTokenTypes.CODE_FENCE_CONTENT }
-      if(contentStartIndex == -1) return
+      if (contentStartIndex == -1) return
       val eolElement = node.children.subList(0, contentStartIndex)
         .findLast { it.type == MarkdownTokenTypes.EOL } ?: return
       val codeContentStartOffset = eolElement.endOffset
@@ -478,8 +486,8 @@ fun MarkdownNode(
         code = code,
         language = language,
         modifier = Modifier
-            .padding(bottom = 4.dp)
-            .fillMaxWidth(),
+          .padding(bottom = 4.dp)
+          .fillMaxWidth(),
         completeCodeBlock = hasEnd
       )
     }
@@ -630,6 +638,7 @@ private fun separateContentAndLists(listItemNode: ASTNode): Pair<List<ASTNode>, 
 private fun Paragraph(
   node: ASTNode,
   content: String,
+  trim: Boolean = false,
   onClickCitation: (String) -> Unit = {},
   modifier: Modifier,
 ) {
@@ -673,7 +682,8 @@ private fun Paragraph(
             colorScheme = colorScheme,
             onClickCitation = onClickCitation,
             style = textStyle,
-            density = density
+            density = density,
+            trim = trim,
           )
         }
       }
@@ -735,8 +745,8 @@ private fun TableNode(node: ASTNode, content: String, modifier: Modifier = Modif
     columns = columns,
     data = rows,
     modifier = modifier
-        .padding(vertical = 8.dp)
-        .fillMaxWidth()
+      .padding(vertical = 8.dp)
+      .fillMaxWidth()
 
   )
 }
@@ -744,6 +754,7 @@ private fun TableNode(node: ASTNode, content: String, modifier: Modifier = Modif
 private fun AnnotatedString.Builder.appendMarkdownNodeContent(
   node: ASTNode,
   content: String,
+  trim: Boolean = false,
   inlineContents: MutableMap<String, InlineTextContent>,
   colorScheme: ColorScheme,
   density: Density,
@@ -752,7 +763,12 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
 ) {
   when {
     node is LeafASTNode -> {
-      append(node.getTextInNode(content).unescapeHtml())
+      append(
+        node
+          .getTextInNode(content)
+          .unescapeHtml()
+          .let { if(trim) it.trim() else it }
+      )
     }
 
     node.type == MarkdownElementTypes.EMPH -> {
@@ -830,12 +846,12 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
               children = {
                 Box(
                   modifier = Modifier
-                      .clickable {
-                          onClickCitation(id.trim())
-                      }
-                      .fillMaxSize()
-                      .clip(RoundedCornerShape(20))
-                      .background(colorScheme.primary.copy(0.2f)),
+                    .clickable {
+                      onClickCitation(id.trim())
+                    }
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(20))
+                    .background(colorScheme.primary.copy(0.2f)),
                   contentAlignment = Alignment.Center
                 ) {
                   Text(

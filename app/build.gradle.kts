@@ -10,6 +10,7 @@ plugins {
   alias(libs.plugins.ksp)
   alias(libs.plugins.google.services)
   alias(libs.plugins.firebase.crashlytics)
+  alias(libs.plugins.chaquo.python)
 }
 
 android {
@@ -24,6 +25,12 @@ android {
     versionName = "1.1.2"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+    defaultConfig {
+      ndk {
+        abiFilters += listOf("arm64-v8a", "x86_64")
+      }
+    }
 
     splits {
       abi {
@@ -117,6 +124,15 @@ android {
 
 ksp {
   arg("room.schemaLocation", "$projectDir/schemas")
+}
+
+chaquopy {
+  defaultConfig {
+    version = "3.12"
+    pip {
+      install("pypdf")
+    }
+  }
 }
 
 dependencies {

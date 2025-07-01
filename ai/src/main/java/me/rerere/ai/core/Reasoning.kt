@@ -5,6 +5,7 @@ enum class ReasoningLevel(
   val effort: String
 ) {
   OFF(0, "low"),
+  AUTO(-1, "auto"),
   LOW(1024, "low"),
   MEDIUM(16_000, "medium"),
   HIGH(32_000, "high");

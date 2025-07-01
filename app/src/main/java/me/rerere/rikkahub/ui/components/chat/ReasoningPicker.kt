@@ -3,8 +3,12 @@ package me.rerere.rikkahub.ui.components.chat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -35,6 +39,7 @@ import com.composables.icons.lucide.Keyboard
 import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.LightbulbOff
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Sparkles
 import me.rerere.ai.core.ReasoningLevel
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.ui.ToggleSurface
@@ -179,7 +184,7 @@ fun ReasoningPicker(
             onValueChange = { newValue ->
               input = newValue
               val newTokens = newValue.toIntOrNull()
-              if (newTokens != null && newTokens >= 0) {
+              if (newTokens != null) {
                 onUpdateReasoningTokens(newTokens)
               }
             },
@@ -204,10 +209,11 @@ private fun ReasoningLevelCard(
 ) {
   Card(
     onClick = onClick,
-    colors = if (selected) CardDefaults.cardColors() else CardDefaults.outlinedCardColors()
+    colors = if (selected) CardDefaults.cardColors() else CardDefaults.outlinedCardColors(),
+    modifier = modifier,
   ) {
     Row(
-      modifier = modifier
+      modifier = Modifier
           .fillMaxWidth()
           .padding(16.dp),
       horizontalArrangement = Arrangement.spacedBy(16.dp),

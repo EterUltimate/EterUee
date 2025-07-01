@@ -240,7 +240,8 @@ private fun ModelIcon(
   ) {
     if (showIcon && message.role == MessageRole.ASSISTANT && !message.parts.isEmptyUIMessage() && model != null) {
       AutoAIIcon(
-        model.modelId,
+        name = model.modelId,
+        modifier = Modifier.size(28.dp)
       )
       Text(
         text = model.displayName,

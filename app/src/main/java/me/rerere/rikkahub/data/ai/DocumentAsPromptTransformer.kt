@@ -28,15 +28,18 @@ object DocumentAsPromptTransformer : InputMessageTransformer {
                 val file = document.url.toUri().toFile()
                 val content = when (document.fileName.substringAfterLast('.')) {
                   "pdf" -> parsePdfAsText(file)
+                  "docx" -> parseDocxAsText(file)
                   else -> file.readText()
                 }
                 val prompt = """
-                  ## file: ${document.fileName}
+                  ## user sent a file: ${document.fileName}
+                  <content>
                   ```
                   $content
                   ```
+                  </content>
                   """.trimMargin()
-                add(UIMessagePart.Text(prompt))
+                add(0, UIMessagePart.Text(prompt))
               }
             }
           }
@@ -48,6 +51,12 @@ object DocumentAsPromptTransformer : InputMessageTransformer {
   private fun parsePdfAsText(file: File): String {
     val module = Python.getInstance().getModule("pdf_util")
     val reader = module.callAttr("extract_text_from_pdf", file.absolutePath).toString()
+    return reader
+  }
+
+  private fun parseDocxAsText(file: File): String {
+    val module = Python.getInstance().getModule("docx_util")
+    val reader = module.callAttr("extract_text_from_docx", file.absolutePath).toString()
     return reader
   }
 }

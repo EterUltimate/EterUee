@@ -131,6 +131,7 @@ chaquopy {
     version = "3.12"
     pip {
       install("pypdf")
+      install("python-docx")
     }
   }
 }

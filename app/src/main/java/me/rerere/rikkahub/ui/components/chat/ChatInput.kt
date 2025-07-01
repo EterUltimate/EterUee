@@ -266,17 +266,17 @@ fun ChatInput(
   Surface {
     Column(
       modifier = modifier
-        .imePadding()
-        .navigationBarsPadding(),
+          .imePadding()
+          .navigationBarsPadding(),
       verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
       // Medias
       Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 8.dp)
-          .horizontalScroll(rememberScrollState())
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp)
+            .horizontalScroll(rememberScrollState())
       ) {
         state.messageContent.filterIsInstance<UIMessagePart.Image>().fastForEach { image ->
           Box {
@@ -295,17 +295,17 @@ fun ChatInput(
               imageVector = Lucide.X,
               contentDescription = null,
               modifier = Modifier
-                .clip(CircleShape)
-                .size(20.dp)
-                .clickable {
-                  // Remove image
-                  state.messageContent =
-                    state.messageContent.filterNot { it == image }
-                  // Delete image
-                  context.deleteChatFiles(listOf(image.url.toUri()))
-                }
-                .align(Alignment.TopEnd)
-                .background(MaterialTheme.colorScheme.secondary),
+                  .clip(CircleShape)
+                  .size(20.dp)
+                  .clickable {
+                      // Remove image
+                      state.messageContent =
+                          state.messageContent.filterNot { it == image }
+                      // Delete image
+                      context.deleteChatFiles(listOf(image.url.toUri()))
+                  }
+                  .align(Alignment.TopEnd)
+                  .background(MaterialTheme.colorScheme.secondary),
               tint = MaterialTheme.colorScheme.onSecondary
             )
           }
@@ -539,7 +539,7 @@ fun ChatInput(
           }
 
           // MCP
-          if(settings.mcpServers.isNotEmpty()) {
+          if (settings.mcpServers.isNotEmpty()) {
             McpPickerButton(
               assistant = settings.getCurrentAssistant(),
               servers = settings.mcpServers,
@@ -832,7 +832,15 @@ fun FilePickButton(onAddFiles: (List<Pair<Uri, String>>) -> Unit = {}) {
       Text("上传文件")
     }
   ) {
-    pickMedia.launch(listOf("text/*", "application/json", "application/javascript", "application/pdf"))
+    pickMedia.launch(
+      listOf(
+        "text/*",
+        "application/json",
+        "application/javascript",
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      )
+    )
   }
 }
 

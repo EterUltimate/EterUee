@@ -244,7 +244,8 @@ private fun ModelIcon(
       )
       Text(
         text = model.displayName,
-        style = MaterialTheme.typography.titleSmall
+        style = MaterialTheme.typography.titleSmall,
+        modifier = Modifier.weight(1f)
       )
     }
   }

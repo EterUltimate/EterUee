@@ -56,6 +56,7 @@ import androidx.compose.ui.util.fastForEach
 import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.ChevronUp
+import com.composables.icons.lucide.ChevronsUp
 import com.composables.icons.lucide.Lucide
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -432,6 +433,25 @@ private fun BoxScope.MessageJumper(
       modifier = Modifier.padding(8.dp),
       verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+      Surface(
+        onClick = {
+          scope.launch {
+            state.animateScrollToItem(0)
+          }
+        },
+        shape = CircleShape,
+        tonalElevation = 4.dp,
+        color = MaterialTheme.colorScheme.surfaceColorAtElevation(
+          4.dp
+        ).copy(alpha = 0.65f)
+      ) {
+        Icon(
+          imageVector = Lucide.ChevronsUp,
+          contentDescription = null,
+          modifier = Modifier
+            .padding(4.dp)
+        )
+      }
       Surface(
         onClick = {
           scope.launch {

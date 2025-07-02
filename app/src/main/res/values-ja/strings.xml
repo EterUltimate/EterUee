@@ -347,6 +347,11 @@
   <string name="setting_provider_page_project_id">プロジェクト ID</string>
   <string name="setting_provider_page_basic_settings">基本設定</string>
   <string name="setting_provider_page_advanced_settings">詳細設定</string>
+  <string name="setting_provider_page_network_proxy">ネットワークプロキシ</string>
+  <string name="setting_provider_page_proxy_host">ホスト</string>
+  <string name="setting_provider_page_proxy_port">ポート</string>
+  <string name="setting_provider_page_proxy_username">ユーザー名 (オプション)</string>
+  <string name="setting_provider_page_proxy_password">パスワード (オプション)</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">記憶を作成しました</string>

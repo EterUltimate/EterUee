@@ -354,6 +354,11 @@
   <string name="setting_provider_page_project_id">项目 ID</string>
   <string name="setting_provider_page_basic_settings">基本设置</string>
   <string name="setting_provider_page_advanced_settings">高级设置</string>
+  <string name="setting_provider_page_network_proxy">网络代理</string>
+  <string name="setting_provider_page_proxy_host">主机地址</string>
+  <string name="setting_provider_page_proxy_port">端口</string>
+  <string name="setting_provider_page_proxy_username">用户名 (可选)</string>
+  <string name="setting_provider_page_proxy_password">密码 (可选)</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">创建了记忆</string>

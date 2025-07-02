@@ -357,6 +357,11 @@
   <string name="setting_provider_page_project_id">Project Id</string>
   <string name="setting_provider_page_basic_settings">Basic Settings</string>
   <string name="setting_provider_page_advanced_settings">Advanced Settings</string>
+  <string name="setting_provider_page_network_proxy">Network Proxy</string>
+  <string name="setting_provider_page_proxy_host">Host</string>
+  <string name="setting_provider_page_proxy_port">Port</string>
+  <string name="setting_provider_page_proxy_username">Username (Optional)</string>
+  <string name="setting_provider_page_proxy_password">Password (Optional)</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">Created memory</string>

@@ -205,7 +205,7 @@ fun SettingProviderDetailPage(id: Uuid, vm: SettingVM = koinViewModel()) {
         )
         NavigationBarItem(
           selected = pager.currentPage == 2,
-          label = { Text("网络代理") },
+          label = { Text(stringResource(id = R.string.setting_provider_page_network_proxy)) },
           icon = { Icon(Lucide.Network, null) },
           onClick = {
             scope.launch {
@@ -329,6 +329,7 @@ private fun SettingProviderProxyPage(
   onEdit: (ProviderSetting) -> Unit
 ) {
   val toaster = LocalToaster.current
+  val context = LocalContext.current
   var editingProxy by remember(provider.proxy) {
     mutableStateOf(provider.proxy)
   }
@@ -375,7 +376,7 @@ private fun SettingProviderProxyPage(
           onValueChange = {
             editingProxy = (editingProxy as ProviderProxy.Http).copy(address = it)
           },
-          label = { Text("Host") },
+          label = { Text(stringResource(id = R.string.setting_provider_page_proxy_host)) },
           modifier = Modifier.fillMaxWidth()
         )
         var portStr by remember { mutableStateOf((editingProxy as ProviderProxy.Http).port.toString()) }
@@ -387,7 +388,7 @@ private fun SettingProviderProxyPage(
               editingProxy = (editingProxy as ProviderProxy.Http).copy(port = port)
             }
           },
-          label = { Text("Port") },
+          label = { Text(stringResource(id = R.string.setting_provider_page_proxy_port)) },
           modifier = Modifier.fillMaxWidth(),
           keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
@@ -396,7 +397,7 @@ private fun SettingProviderProxyPage(
           onValueChange = {
             editingProxy = (editingProxy as ProviderProxy.Http).copy(username = it)
           },
-          label = { Text("Username (Optional)") },
+          label = { Text(stringResource(id = R.string.setting_provider_page_proxy_username)) },
           modifier = Modifier.fillMaxWidth()
         )
         OutlinedTextField(
@@ -404,7 +405,7 @@ private fun SettingProviderProxyPage(
           onValueChange = {
             editingProxy = (editingProxy as ProviderProxy.Http).copy(password = it)
           },
-          label = { Text("Password (Optional)") },
+          label = { Text(stringResource(id = R.string.setting_provider_page_proxy_password)) },
           modifier = Modifier.fillMaxWidth(),
         )
       }
@@ -418,12 +419,12 @@ private fun SettingProviderProxyPage(
         onClick = {
           onEdit(provider.copyProvider(proxy = editingProxy))
           toaster.show(
-            "保存成功",
+            context.getString(R.string.setting_provider_page_save_success),
             type = ToastType.Success
           )
         }
       ) {
-        Text("保存")
+        Text(stringResource(id = R.string.setting_provider_page_save))
       }
     }
   }

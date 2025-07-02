@@ -809,20 +809,19 @@ fun TakePicButton(onAddImages: (List<Uri>) -> Unit = {}) {
 fun FilePickButton(onAddFiles: (List<UIMessagePart.Document>) -> Unit = {}) {
   val context = LocalContext.current
   val pickMedia =
-    rememberLauncherForActivityResult(GetContentWithMultiMime()) { uri ->
-      if (uri != null) {
-        val localUri = context.createChatFilesByContents(listOf(uri))[0]
-        val fileName = context.getFileNameFromUri(uri) ?: "file"
-        val mime = context.getFileMimeType(uri)
-        onAddFiles(
-          listOf(
-            UIMessagePart.Document(
-              url = localUri.toString(),
-              fileName = fileName,
-              mime = mime ?: "text/*"
-            )
+    rememberLauncherForActivityResult(GetContentWithMultiMime()) { uris ->
+      if (uris.isNotEmpty()) {
+        val documents = uris.map { uri ->
+          val fileName = context.getFileNameFromUri(uri) ?: "file"
+          val mime = context.getFileMimeType(uri)
+          val localUri = context.createChatFilesByContents(listOf(uri))[0]
+          UIMessagePart.Document(
+            url = localUri.toString(),
+            fileName = fileName,
+            mime = mime ?: "text/*"
           )
-        )
+        }
+        onAddFiles(documents)
       }
     }
   BigIconTextButton(

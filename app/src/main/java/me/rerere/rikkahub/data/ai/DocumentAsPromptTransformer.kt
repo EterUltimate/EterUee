@@ -25,7 +25,7 @@ object DocumentAsPromptTransformer : InputMessageTransformer {
             val documents = filterIsInstance<UIMessagePart.Document>()
             if (documents.isNotEmpty()) {
               documents.forEach { document ->
-                val file = document.url.toUri().toFile()
+                 val file = document.url.toUri().toFile()
                 val content = when (document.mime) {
                   "application/pdf" -> parsePdfAsText(file)
                   "application/vnd.openxmlformats-officedocument.wordprocessingml.document" -> parseDocxAsText(file)

@@ -62,7 +62,7 @@ fun <T> Select(
           .clip(RoundedCornerShape(4.dp))
           .clickable { expanded = true }
           .padding(vertical = 8.dp, horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically
       ) {
         leading()

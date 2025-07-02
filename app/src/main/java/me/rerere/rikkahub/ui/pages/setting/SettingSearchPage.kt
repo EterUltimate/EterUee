@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.ui.components.nav.BackButton
+import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.OutlinedNumberInput
 import me.rerere.rikkahub.ui.components.ui.Select
@@ -54,8 +56,8 @@ fun SettingSearchPage(vm: SettingVM = koinViewModel()) {
   ) {
     LazyColumn(
       modifier = Modifier
-        .fillMaxSize()
-        .imePadding(),
+          .fillMaxSize()
+          .imePadding(),
       contentPadding = it + PaddingValues(16.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -99,9 +101,9 @@ private fun ProviderOptions(
   Card {
     Column(
       modifier = Modifier
-        .animateContentSize()
-        .fillMaxWidth()
-        .padding(16.dp),
+          .animateContentSize()
+          .fillMaxWidth()
+          .padding(16.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
       FormItem(
@@ -116,6 +118,18 @@ private fun ProviderOptions(
           onOptionSelected = {
             options = it.primaryConstructor!!.callBy(mapOf())
             onUpdateOptions(options)
+          },
+          optionLeading = {
+            AutoAIIcon(
+              name = SearchServiceOptions.TYPES[it] ?: it.simpleName ?: "unknown",
+              modifier = Modifier.size(24.dp)
+            )
+          },
+          leading = {
+            AutoAIIcon(
+              name = SearchServiceOptions.TYPES[options::class] ?: "unknown",
+              modifier = Modifier.size(24.dp)
+            )
           },
           modifier = Modifier.fillMaxWidth()
         )
@@ -250,8 +264,8 @@ private fun CommonOptions(
   Card {
     Column(
       modifier = Modifier
-        .fillMaxWidth()
-        .padding(16.dp),
+          .fillMaxWidth()
+          .padding(16.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
       FormItem(

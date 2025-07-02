@@ -282,7 +282,7 @@ fun MarkdownNode(
                 node = node,
                 content = content,
                 onClickCitation = onClickCitation,
-                modifier = modifier,
+                modifier = modifier.padding(vertical = 16.dp),
                 trim = true,
               )
             }
@@ -404,8 +404,9 @@ fun MarkdownNode(
 
     MarkdownTokenTypes.HORIZONTAL_RULE -> {
       HorizontalDivider(
-        modifier = Modifier.padding(vertical = 8.dp),
-        color = MaterialTheme.colorScheme.primary
+        modifier = Modifier.padding(vertical = 16.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+        thickness = 0.5.dp
       )
     }
 

@@ -126,9 +126,9 @@ private fun MarkdownPreview() {
                         * the slings and arrows of outrageous fortune, Or to take arms against a sea of troubles,
                         * by opposing end them.
                             * How many times must a man look up, Before he can see the sky?
+                            * How many times $ f(x) = \sum_{n=0}^{\infty} \frac{f^{(n)}(a)}{n!}(x-a)^n$
                     2. How many times must a man look up, Before he can see the sky?  
                     * Before they're allowed to be free? Yes, 'n' how many times can a man turn his head
-                    How many times $ f(x) = \sum_{n=0}^{\infty} \frac{f^{(n)}(a)}{n!}(x-a)^n$
 
                     4. For in that sleep of death what dreams may come [citation](1)
                     

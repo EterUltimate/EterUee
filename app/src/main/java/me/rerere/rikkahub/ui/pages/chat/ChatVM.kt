@@ -52,6 +52,7 @@ import me.rerere.rikkahub.data.ai.Base64ImageToLocalFileTransformer
 import me.rerere.rikkahub.data.ai.DocumentAsPromptTransformer
 import me.rerere.rikkahub.data.ai.GenerationChunk
 import me.rerere.rikkahub.data.ai.GenerationHandler
+import me.rerere.rikkahub.data.ai.HtmlEscapeTransformer
 import me.rerere.rikkahub.data.ai.TemplateTransformer
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
@@ -90,6 +91,7 @@ private val outputTransformers by lazy {
   listOf(
     ThinkTagTransformer,
     Base64ImageToLocalFileTransformer,
+    HtmlEscapeTransformer,
   )
 }
 

@@ -68,12 +68,12 @@
   <string name="setting_page_assistant">Assistant</string>
   <string name="setting_page_assistant_desc">Set up personalized assistants (agents)</string>
   <string name="setting_page_about">About</string>
-  <string name="setting_page_about_desc">About this APP</string>
+  <string name="setting_page_about_desc">About this app</string>
   <string name="setting_page_chat_storage">Chat Storage</string>
   <string name="setting_page_chat_storage_desc">%1$d files, %2$.2f MB</string>
   <string name="calculating">Calculating...</string>
   <string name="setting_page_share">Share</string>
-  <string name="setting_page_share_desc">Share this APP with friends</string>
+  <string name="setting_page_share_desc">Share this app with friends</string>
   <string name="setting_page_share_text">RikkaHub - Open Source Android AI Assistant\n\nWebsite: https://rikka-ai.com/</string>
   <string name="setting_page_no_share_app">No sharing app found</string>
   <string name="setting_page_config_api_title">Please configure API and model</string>
@@ -412,7 +412,7 @@
   <string name="backup_page_export_desc">Export app data to a file</string>
   <string name="backup_page_importing">Importing...</string>
   <string name="backup_page_import_desc">Import local backup file</string>
-  <string name="backup_page_import_from_other_app">Import from other APP</string>
+  <string name="backup_page_import_from_other_app">Import from other app</string>
   <string name="backup_page_import_from_chatbox">Import from ChatBox</string>
   <string name="backup_page_import_chatbox_desc">Import data from ChatBox</string>
 

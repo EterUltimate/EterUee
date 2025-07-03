@@ -129,6 +129,7 @@
   <string name="assistant_page_delete">刪除</string>
   <string name="assistant_page_delete_dialog_text">確定要刪除這個助手嗎？此操作無法撤銷。</string>
   <string name="assistant_page_default_assistant">預設助手</string>
+  <string name="setting_provider_page_delete_dialog_text">確定要刪除這個提供商嗎？此操作無法撤銷。</string>
   <string name="assistant_page_temperature_value">溫度: %s</string>
   <string name="assistant_page_memory_count">記憶: %d</string>
   <string name="assistant_page_no_system_prompt">無系統提示詞</string>

@@ -263,6 +263,7 @@ private fun SettingProviderConfigPage(
 ) {
   var internalProvider by remember(provider) { mutableStateOf(provider) }
   val scope = rememberCoroutineScope()
+  var showDeleteDialog by remember { mutableStateOf(false) }
 
   Column(
     modifier = Modifier
@@ -294,7 +295,7 @@ private fun SettingProviderConfigPage(
       if (!internalProvider.builtIn) {
         IconButton(
           onClick = {
-            onDelete()
+            showDeleteDialog = true
           },
         ) {
           Icon(Lucide.Trash2, "Delete")
@@ -309,6 +310,34 @@ private fun SettingProviderConfigPage(
         Text(stringResource(R.string.setting_provider_page_save))
       }
     }
+  }
+
+  // Delete confirmation dialog
+  if (showDeleteDialog) {
+    AlertDialog(
+      onDismissRequest = { showDeleteDialog = false },
+      title = {
+        Text(stringResource(R.string.confirm_delete))
+      },
+      text = {
+        Text(stringResource(R.string.setting_provider_page_delete_dialog_text))
+      },
+      dismissButton = {
+        TextButton(onClick = { showDeleteDialog = false }) {
+          Text(stringResource(R.string.cancel))
+        }
+      },
+      confirmButton = {
+        TextButton(
+          onClick = {
+            showDeleteDialog = false
+            onDelete()
+          }
+        ) {
+          Text(stringResource(R.string.delete))
+        }
+      }
+    )
   }
 }
 

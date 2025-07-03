@@ -5,7 +5,6 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
@@ -28,7 +26,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
@@ -56,6 +53,7 @@ import androidx.compose.ui.util.fastForEach
 import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.ChevronUp
+import com.composables.icons.lucide.ChevronsDown
 import com.composables.icons.lucide.ChevronsUp
 import com.composables.icons.lucide.Lucide
 import kotlinx.coroutines.CoroutineScope
@@ -355,61 +353,12 @@ fun ChatList(
         .map { it.currentMessage }
     )
 
-    // 滚动到底部按钮
-    MessageQuickBottom(state = state, isAtBottom = isAtBottom, scrollToBottom = scrollToBottom)
-
     // 消息快速跳转
     MessageJumper(
       isRecentScroll = isRecentScroll && settings.displaySetting.showMessageJumper,
       scope = scope,
       state = state
     )
-  }
-}
-
-@Composable
-private fun BoxScope.MessageQuickBottom(
-  state: LazyListState,
-  isAtBottom: Boolean,
-  scrollToBottom: () -> Unit
-) {
-  AnimatedVisibility(
-    state.canScrollForward && isAtBottom,
-    modifier = Modifier.align(Alignment.BottomCenter),
-    enter = slideInVertically(
-      initialOffsetY = { it * 2 },
-    ),
-    exit = slideOutVertically(
-      targetOffsetY = { it * 2 },
-    ),
-  ) {
-    Surface(
-      shape = RoundedCornerShape(50),
-      modifier = Modifier.padding(8.dp),
-      onClick = {
-        scrollToBottom()
-      },
-      border = BorderStroke(
-        1.dp,
-        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-      )
-    ) {
-      Row(
-        modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-        Icon(
-          Lucide.ChevronDown,
-          contentDescription = "Scroll to bottom",
-          modifier = Modifier.size(16.dp)
-        )
-        Text(
-          stringResource(R.string.chat_page_scroll_to_bottom),
-          style = MaterialTheme.typography.bodySmall
-        )
-      }
-    }
   }
 }
 
@@ -489,6 +438,24 @@ private fun BoxScope.MessageJumper(
         Icon(
           imageVector = Lucide.ChevronDown,
           contentDescription = null,
+          modifier = Modifier
+            .padding(4.dp)
+        )
+      }
+      Surface(
+        onClick = {
+          scope.launch {
+            state.animateScrollToItem(state.layoutInfo.totalItemsCount - 1)
+          }
+        },
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.surfaceColorAtElevation(
+          4.dp
+        ).copy(alpha = 0.65f),
+      ) {
+        Icon(
+          imageVector = Lucide.ChevronsDown,
+          contentDescription = stringResource(R.string.chat_page_scroll_to_bottom),
           modifier = Modifier
             .padding(4.dp)
         )

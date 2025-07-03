@@ -92,43 +92,44 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
     }
   }
 
-  override suspend fun listModels(providerSetting: ProviderSetting.Google): List<Model> {
-    val url = buildUrl(providerSetting = providerSetting, path = "models")
-    val request = transformRequest(
-      providerSetting = providerSetting,
-      request = Request.Builder()
-        .url(url)
-        .get()
-        .build()
-    )
-    val response = client.configureClientWithProxy(providerSetting.proxy).newCall(request).await()
-    return if (response.isSuccessful) {
-      val body = response.body?.string() ?: error("empty body")
-      Log.d(TAG, "listModels: $body")
-      val bodyObject = json.parseToJsonElement(body).jsonObject
-      val models = bodyObject["models"]?.jsonArray ?: return emptyList()
+  override suspend fun listModels(providerSetting: ProviderSetting.Google): List<Model> =
+    withContext(Dispatchers.IO) {
+      val url = buildUrl(providerSetting = providerSetting, path = "models")
+      val request = transformRequest(
+        providerSetting = providerSetting,
+        request = Request.Builder()
+          .url(url)
+          .get()
+          .build()
+      )
+      val response = client.configureClientWithProxy(providerSetting.proxy).newCall(request).await()
+      if (response.isSuccessful) {
+        val body = response.body?.string() ?: error("empty body")
+        Log.d(TAG, "listModels: $body")
+        val bodyObject = json.parseToJsonElement(body).jsonObject
+        val models = bodyObject["models"]?.jsonArray ?: return@withContext emptyList()
 
-      models.mapNotNull {
-        val modelObject = it.jsonObject
+        models.mapNotNull {
+          val modelObject = it.jsonObject
 
-        // 忽略非chat/embedding模型
-        val supportedGenerationMethods =
-          modelObject["supportedGenerationMethods"]!!.jsonArray
-            .map { method -> method.jsonPrimitive.content }
-        if ("generateContent" !in supportedGenerationMethods && "embedContent" !in supportedGenerationMethods) {
-          return@mapNotNull null
+          // 忽略非chat/embedding模型
+          val supportedGenerationMethods =
+            modelObject["supportedGenerationMethods"]!!.jsonArray
+              .map { method -> method.jsonPrimitive.content }
+          if ("generateContent" !in supportedGenerationMethods && "embedContent" !in supportedGenerationMethods) {
+            return@mapNotNull null
+          }
+
+          Model(
+            modelId = modelObject["name"]!!.jsonPrimitive.content.substringAfter("/"),
+            displayName = modelObject["displayName"]!!.jsonPrimitive.content,
+            type = if ("generateContent" in supportedGenerationMethods) ModelType.CHAT else ModelType.EMBEDDING,
+          )
         }
-
-        Model(
-          modelId = modelObject["name"]!!.jsonPrimitive.content.substringAfter("/"),
-          displayName = modelObject["displayName"]!!.jsonPrimitive.content,
-          type = if ("generateContent" in supportedGenerationMethods) ModelType.CHAT else ModelType.EMBEDDING,
-        )
+      } else {
+        emptyList()
       }
-    } else {
-      emptyList()
     }
-  }
 
   override suspend fun generateText(
     providerSetting: ProviderSetting.Google,
@@ -350,10 +351,11 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
       }
       if (params.model.abilities.contains(ModelAbility.REASONING)) {
         put("thinkingConfig", buildJsonObject {
-          val isGeminiPro = params.model.modelId.contains(Regex("2\\.5.*pro", RegexOption.IGNORE_CASE))
-          val budget = if(isGeminiPro) {
+          val isGeminiPro =
+            params.model.modelId.contains(Regex("2\\.5.*pro", RegexOption.IGNORE_CASE))
+          val budget = if (isGeminiPro) {
             // https://github.com/rikkahub/rikkahub/issues/207
-            (params.thinkingBudget ?: -1).let { if(it == 0) -1 else it }
+            (params.thinkingBudget ?: -1).let { if (it == 0) -1 else it }
           } else {
             params.thinkingBudget ?: 0
           }

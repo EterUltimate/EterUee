@@ -102,10 +102,13 @@ class ConversationRepository(
   }
 
   fun conversationEntityToConversation(conversationEntity: ConversationEntity): Conversation {
+    val messageNodes = JsonInstant
+      .decodeFromString<List<MessageNode>>(conversationEntity.nodes)
+      .filter { it.messages.isNotEmpty() }
     return Conversation(
       id = Uuid.parse(conversationEntity.id),
       title = conversationEntity.title,
-      messageNodes = JsonInstant.decodeFromString<List<MessageNode>>(conversationEntity.nodes),
+      messageNodes = messageNodes,
       tokenUsage = conversationEntity.tokenUsage,
       createAt = Instant.ofEpochMilli(conversationEntity.createAt),
       updateAt = Instant.ofEpochMilli(conversationEntity.updateAt),

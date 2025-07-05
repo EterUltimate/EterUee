@@ -1,9 +1,11 @@
 package me.rerere.rikkahub.data.repository
 
 import android.content.Context
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import me.rerere.ai.ui.UIMessage
 import me.rerere.rikkahub.data.db.dao.ConversationDAO
 import me.rerere.rikkahub.data.db.entity.ConversationEntity
@@ -118,8 +120,10 @@ class ConversationRepository(
     )
   }
 
-  suspend fun deleteAllConversations() {
-    conversationDAO.deleteAll()
-    context.deleteAllChatFiles()
+  suspend fun deleteAllConversations() = withContext(Dispatchers.IO) {
+    conversationDAO.getAll().first().forEach { conversation ->
+      conversationDAO.delete(conversation)
+      context.deleteChatFiles(conversationEntityToConversation(conversation).files)
+    }
   }
 }

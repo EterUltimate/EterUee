@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -29,6 +31,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -49,6 +54,8 @@ import me.rerere.search.SearchCommonOptions
 import me.rerere.search.SearchService
 import me.rerere.search.SearchServiceOptions
 import org.koin.androidx.compose.koinViewModel
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 import kotlin.reflect.full.primaryConstructor
 
 @Composable
@@ -67,27 +74,117 @@ fun SettingSearchPage(vm: SettingVM = koinViewModel()) {
       )
     }
   ) {
+    val lazyListState = rememberLazyListState()
+    val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
+      // 需要考虑标题和按钮以及通用选项可能占用的位置
+      val offset = 1 // 第一个item是标题和按钮
+      val fromIndex = from.index - offset
+      val toIndex = to.index - offset
+      
+      if (fromIndex >= 0 && toIndex >= 0 && fromIndex < settings.searchServices.size && toIndex < settings.searchServices.size) {
+        val newServices = settings.searchServices.toMutableList().apply {
+          add(toIndex, removeAt(fromIndex))
+        }
+        vm.updateSettings(
+          settings.copy(
+            searchServices = newServices
+          )
+        )
+      }
+    }
+    val haptic = LocalHapticFeedback.current
+    
     LazyColumn(
       modifier = Modifier
           .fillMaxSize()
           .imePadding(),
       contentPadding = it + PaddingValues(16.dp),
-      verticalArrangement = Arrangement.spacedBy(16.dp)
+      verticalArrangement = Arrangement.spacedBy(16.dp),
+      state = lazyListState
     ) {
-      item {
-        SearchProvidersSection(
-          settings = settings,
-          onUpdateServices = { services ->
-            vm.updateSettings(
-              settings.copy(
-                searchServices = services
+      // 搜索提供商标题和添加按钮
+      item("providers_header") {
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Text(
+            text = stringResource(R.string.setting_page_search_providers),
+            style = MaterialTheme.typography.headlineMedium
+          )
+          OutlinedButton(
+            onClick = {
+              vm.updateSettings(
+                settings.copy(
+                  searchServices = settings.searchServices + SearchServiceOptions.DEFAULT
+                )
               )
+            }
+          ) {
+            Icon(
+              Lucide.Plus,
+              contentDescription = null,
+              modifier = Modifier.size(18.dp)
             )
+            Text(stringResource(R.string.setting_page_search_add_provider))
           }
-        )
+        }
       }
 
-      item {
+      // 搜索提供商列表
+      items(settings.searchServices, key = { service -> service.hashCode() }) { service ->
+        val index = settings.searchServices.indexOf(service)
+        ReorderableItem(
+          state = reorderableState,
+          key = service.hashCode()
+        ) { isDragging ->
+          SearchProviderCard(
+            service = service,
+            onUpdateService = { updatedService ->
+              val newServices = settings.searchServices.toMutableList()
+              newServices[index] = updatedService
+              vm.updateSettings(
+                settings.copy(
+                  searchServices = newServices
+                )
+              )
+            },
+            onDeleteService = {
+              if (settings.searchServices.size > 1) {
+                val newServices = settings.searchServices.toMutableList()
+                newServices.removeAt(index)
+                vm.updateSettings(
+                  settings.copy(
+                    searchServices = newServices
+                  )
+                )
+              }
+            },
+            canDelete = settings.searchServices.size > 1,
+            modifier = Modifier
+              .scale(if (isDragging) 0.95f else 1f)
+              .animateItem(),
+            dragHandle = {
+              Icon(
+                imageVector = Lucide.GripHorizontal,
+                contentDescription = null,
+                modifier = Modifier.longPressDraggableHandle(
+                  onDragStarted = {
+                    haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
+                  },
+                  onDragStopped = {
+                    haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                  }
+                )
+              )
+            }
+          )
+        }
+      }
+
+      // 通用选项
+      item("common_options") {
         CommonOptions(
           settings = settings,
           onUpdate = { options ->
@@ -103,72 +200,24 @@ fun SettingSearchPage(vm: SettingVM = koinViewModel()) {
   }
 }
 
-@Composable
-private fun SearchProvidersSection(
-  settings: Settings,
-  onUpdateServices: (List<SearchServiceOptions>) -> Unit,
-) {
-  Column(
-    modifier = Modifier
-      .fillMaxWidth(),
-    verticalArrangement = Arrangement.spacedBy(16.dp)
-  ) {
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.SpaceBetween,
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Text(
-        text = stringResource(R.string.setting_page_search_providers),
-        style = MaterialTheme.typography.headlineMedium
-      )
-      OutlinedButton(
-        onClick = {
-          onUpdateServices(settings.searchServices + SearchServiceOptions.DEFAULT)
-        }
-      ) {
-        Icon(
-          Lucide.Plus,
-          contentDescription = null,
-          modifier = Modifier.size(18.dp)
-        )
-        Text(stringResource(R.string.setting_page_search_add_provider))
-      }
-    }
 
-    settings.searchServices.forEachIndexed { index, service ->
-      SearchProviderCard(
-        service = service,
-        onUpdateService = { updatedService ->
-          val newServices = settings.searchServices.toMutableList()
-          newServices[index] = updatedService
-          onUpdateServices(newServices)
-        },
-        onDeleteService = {
-          if (settings.searchServices.size > 1) {
-            val newServices = settings.searchServices.toMutableList()
-            newServices.removeAt(index)
-            onUpdateServices(newServices)
-          }
-        },
-        canDelete = settings.searchServices.size > 1
-      )
-    }
-  }
-}
 
 @Composable
 private fun SearchProviderCard(
   service: SearchServiceOptions,
   onUpdateService: (SearchServiceOptions) -> Unit,
   onDeleteService: () -> Unit,
-  canDelete: Boolean
+  canDelete: Boolean,
+  modifier: Modifier = Modifier,
+  dragHandle: @Composable () -> Unit = {}
 ) {
   var options by remember(service) {
     mutableStateOf(service)
   }
 
-  Card {
+  Card(
+    modifier = modifier
+  ) {
     Column(
       modifier = Modifier
           .animateContentSize()
@@ -263,7 +312,7 @@ private fun SearchProviderCard(
         IconButton(
           onClick = {}
         ) {
-          Icon(Lucide.GripHorizontal, null)
+          dragHandle()
         }
       }
     }

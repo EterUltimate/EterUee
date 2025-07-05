@@ -38,6 +38,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
@@ -114,6 +115,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.datetime.Clock
 import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -139,6 +142,7 @@ import me.rerere.rikkahub.ui.context.LocalSettings
 import me.rerere.rikkahub.ui.hooks.tts.rememberTtsState
 import me.rerere.rikkahub.ui.modifier.shimmer
 import me.rerere.rikkahub.ui.theme.extendColors
+import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.JsonInstantPretty
 import me.rerere.rikkahub.utils.copyMessageToClipboard
 import me.rerere.rikkahub.utils.jsonPrimitiveOrNull
@@ -148,6 +152,8 @@ import me.rerere.rikkahub.utils.urlDecode
 import me.rerere.rikkahub.utils.urlEncode
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
+
+private val EmptyJson = JsonObject(emptyMap())
 
 @Composable
 fun ChatMessage(
@@ -202,6 +208,7 @@ fun ChatMessage(
         parts = message.parts,
         annotations = message.annotations,
         messages = conversation.currentMessages,
+        messageIndex = conversation.currentMessages.indexOf(message)
       )
     }
     AnimatedVisibility(
@@ -512,17 +519,17 @@ private fun MessageNodePagerButtons(
 }
 
 @Composable
-fun MessagePartsBlock(
+private fun MessagePartsBlock(
   role: MessageRole,
   parts: List<UIMessagePart>,
   annotations: List<UIMessageAnnotation>,
-  messages: List<UIMessage>
+  messages: List<UIMessage>,
+  messageIndex: Int,
 ) {
   val context = LocalContext.current
   val contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
 
   fun handleClickCitation(citationId: String) {
-    println(citationId)
     messages.forEach { message ->
       message.parts.forEach { part ->
         if (part is UIMessagePart.ToolResult && part.toolName == "search_web") {
@@ -578,65 +585,28 @@ fun MessagePartsBlock(
   }
 
   // Tool Calls
-  parts.filterIsInstance<UIMessagePart.ToolResult>().fastForEachIndexed { index, toolCall ->
-    key(index) {
-      var showResult by remember { mutableStateOf(false) }
-      Box(
-        modifier = Modifier
-            .clip(MaterialTheme.shapes.small)
-            .clickable {
-                showResult = true
-            }
-            .background(MaterialTheme.colorScheme.secondaryContainer)
-      ) {
-        Row(
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(8.dp),
-          modifier = Modifier
-              .padding(vertical = 4.dp, horizontal = 8.dp)
-              .height(IntrinsicSize.Min)
-        ) {
-          Icon(
-            imageVector = when (toolCall.toolName) {
-              "create_memory", "edit_memory" -> Lucide.BookHeart
-              "delete_memory" -> Lucide.BookDashed
-              "search_web" -> Lucide.Earth
-              else -> Lucide.Wrench
-            },
-            contentDescription = null,
-            modifier = Modifier.size(20.dp),
-            tint = contentColor.copy(alpha = 0.7f)
-          )
-          Column {
-            Text(
-              text = when (toolCall.toolName) {
-                "create_memory" -> stringResource(R.string.chat_message_tool_create_memory)
-                "edit_memory" -> stringResource(R.string.chat_message_tool_edit_memory)
-                "delete_memory" -> stringResource(R.string.chat_message_tool_delete_memory)
-                "search_web" -> stringResource(
-                  R.string.chat_message_tool_search_web,
-                  toolCall.arguments.jsonObject["query"]?.jsonPrimitiveOrNull?.contentOrNull
-                    ?: ""
-                )
-
-                else -> stringResource(
-                  R.string.chat_message_tool_call_generic,
-                  toolCall.toolName
-                )
-              },
-              style = MaterialTheme.typography.labelSmall,
-            )
-          }
-        }
-      }
-      if (showResult) {
-        ToolCallPreviewDialog(
-          toolCall = toolCall,
-          onDismissRequest = {
-            showResult = false
-          }
+  if (messageIndex == messages.lastIndex) {
+    parts.filterIsInstance<UIMessagePart.ToolCall>().fastForEachIndexed { index, toolCall ->
+      key(index) {
+        ToolCallItem(
+          toolName = toolCall.toolName,
+          arguments = runCatching { JsonInstant.parseToJsonElement(toolCall.arguments) }
+            .getOrElse { EmptyJson },
+          contentColor = contentColor,
+          content = null,
+          loading = true,
         )
       }
+    }
+  }
+  parts.filterIsInstance<UIMessagePart.ToolResult>().fastForEachIndexed { index, toolCall ->
+    key(index) {
+      ToolCallItem(
+        toolName = toolCall.toolName,
+        arguments = toolCall.arguments,
+        content = toolCall.content,
+        contentColor = contentColor,
+      )
     }
   }
 
@@ -783,8 +753,85 @@ fun MessagePartsBlock(
 }
 
 @Composable
+private fun ToolCallItem(
+  toolName: String,
+  arguments: JsonElement,
+  content: JsonElement?,
+  contentColor: Color,
+  loading: Boolean = false,
+) {
+  var showResult by remember { mutableStateOf(false) }
+  Box(
+    modifier = Modifier
+        .clip(MaterialTheme.shapes.small)
+        .clickable {
+            showResult = true
+        }
+        .background(MaterialTheme.colorScheme.secondaryContainer)
+  ) {
+    Row(
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      modifier = Modifier
+          .padding(vertical = 4.dp, horizontal = 8.dp)
+          .height(IntrinsicSize.Min)
+    ) {
+      if (loading) {
+        CircularProgressIndicator(
+          modifier = Modifier.size(16.dp),
+          strokeWidth = 4.dp,
+        )
+      }
+      Icon(
+        imageVector = when (toolName) {
+          "create_memory", "edit_memory" -> Lucide.BookHeart
+          "delete_memory" -> Lucide.BookDashed
+          "search_web" -> Lucide.Earth
+          else -> Lucide.Wrench
+        },
+        contentDescription = null,
+        modifier = Modifier.size(20.dp),
+        tint = contentColor.copy(alpha = 0.7f)
+      )
+      Column {
+        Text(
+          text = when (toolName) {
+            "create_memory" -> stringResource(R.string.chat_message_tool_create_memory)
+            "edit_memory" -> stringResource(R.string.chat_message_tool_edit_memory)
+            "delete_memory" -> stringResource(R.string.chat_message_tool_delete_memory)
+            "search_web" -> stringResource(
+              R.string.chat_message_tool_search_web,
+              arguments.jsonObject["query"]?.jsonPrimitiveOrNull?.contentOrNull
+                ?: ""
+            )
+
+            else -> stringResource(
+              R.string.chat_message_tool_call_generic,
+              toolName
+            )
+          },
+          style = MaterialTheme.typography.labelSmall,
+        )
+      }
+    }
+  }
+  if (showResult && content != null) {
+    ToolCallPreviewDialog(
+      toolName = toolName,
+      arguments = arguments,
+      content = content,
+      onDismissRequest = {
+        showResult = false
+      }
+    )
+  }
+}
+
+@Composable
 private fun ToolCallPreviewDialog(
-  toolCall: UIMessagePart.ToolResult,
+  toolName: String,
+  arguments: JsonElement,
+  content: JsonElement,
   onDismissRequest: () -> Unit = {}
 ) {
   val navController = LocalNavController.current
@@ -801,16 +848,16 @@ private fun ToolCallPreviewDialog(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(8.dp),
       ) {
-        when (toolCall.toolName) {
+        when (toolName) {
           "search_web" -> {
             Text(
               stringResource(
                 R.string.chat_message_tool_search_prefix,
-                toolCall.arguments.jsonObject["query"]?.jsonPrimitiveOrNull?.contentOrNull ?: ""
+                arguments.jsonObject["query"]?.jsonPrimitiveOrNull?.contentOrNull ?: ""
               )
             )
-            val items = toolCall.content.jsonObject["items"]?.jsonArray ?: emptyList()
-            val answer = toolCall.content.jsonObject["answer"]?.jsonPrimitive?.contentOrNull
+            val items = content.jsonObject["items"]?.jsonArray ?: emptyList()
+            val answer = content.jsonObject["answer"]?.jsonPrimitive?.contentOrNull
             if (items.isNotEmpty()) {
               LazyColumn(
                 modifier = Modifier
@@ -890,7 +937,7 @@ private fun ToolCallPreviewDialog(
               }
             } else {
               HighlightText(
-                code = JsonInstantPretty.encodeToString(toolCall.content),
+                code = JsonInstantPretty.encodeToString(content),
                 language = "json",
                 fontSize = 12.sp
               )
@@ -909,13 +956,13 @@ private fun ToolCallPreviewDialog(
                 Text(
                   stringResource(
                     R.string.chat_message_tool_call_label,
-                    toolCall.toolName
+                    toolName
                   )
                 )
               }
             ) {
               HighlightCodeBlock(
-                code = JsonInstantPretty.encodeToString(toolCall.arguments),
+                code = JsonInstantPretty.encodeToString(arguments),
                 language = "json",
                 style = TextStyle(fontSize = 10.sp, lineHeight = 12.sp)
               )
@@ -926,7 +973,7 @@ private fun ToolCallPreviewDialog(
               }
             ) {
               HighlightCodeBlock(
-                code = JsonInstantPretty.encodeToString(toolCall.content),
+                code = JsonInstantPretty.encodeToString(content),
                 language = "json",
                 style = TextStyle(fontSize = 10.sp, lineHeight = 12.sp)
               )

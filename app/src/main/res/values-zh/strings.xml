@@ -10,6 +10,7 @@
   <string name="use_web_search">网络搜索</string>
   <string name="web_search_enabled">已启用网页搜索</string>
   <string name="web_search_disabled">已禁用网页搜索</string>
+  <string name="search_picker_title">搜索设置</string>
   <string name="photo">照片</string>
   <string name="take_picture">拍照</string>
   <string name="copy">复制</string>

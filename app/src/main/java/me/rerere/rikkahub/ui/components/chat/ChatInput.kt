@@ -228,6 +228,7 @@ fun ChatInput(
   onUpdateChatModel: (Model) -> Unit,
   onUpdateProviders: (List<ProviderSetting>) -> Unit,
   onUpdateAssistant: (Assistant) -> Unit,
+  onUpdateSearchService: (Int) -> Unit,
   onClearContext: () -> Unit,
   onCancelClick: () -> Unit,
   onSendClick: () -> Unit,
@@ -499,26 +500,22 @@ fun ChatInput(
           // Search
           val enableSearchMsg = stringResource(R.string.web_search_enabled)
           val disableSearchMsg = stringResource(R.string.web_search_disabled)
-          ChatActionItem(
-            icon = {
-              Icon(
-                imageVector = Lucide.Earth,
-                contentDescription = stringResource(R.string.use_web_search),
-              )
-            },
-            onClick = {
-              onToggleSearch(!enableSearch)
+          SearchPickerButton(
+            enableSearch = enableSearch,
+            settings = settings,
+            onToggleSearch = { enabled ->
+              onToggleSearch(enabled)
               toaster.show(
-                message = if (!enableSearch) enableSearchMsg else disableSearchMsg,
+                message = if (enabled) enableSearchMsg else disableSearchMsg,
                 duration = 1.seconds,
-                type = if (!enableSearch) {
+                type = if (enabled) {
                   ToastType.Success
                 } else {
                   ToastType.Normal
                 }
               )
             },
-            checked = enableSearch,
+            onUpdateSearchService = onUpdateSearchService,
           )
 
           // Reasoning

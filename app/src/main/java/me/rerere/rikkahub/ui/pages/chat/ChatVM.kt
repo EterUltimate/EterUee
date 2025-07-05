@@ -75,6 +75,7 @@ import me.rerere.rikkahub.utils.UpdateChecker
 import me.rerere.rikkahub.utils.applyPlaceholders
 import me.rerere.rikkahub.utils.deleteChatFiles
 import me.rerere.search.SearchService
+import me.rerere.search.SearchServiceOptions
 import java.time.Instant
 import java.util.Locale
 import kotlin.uuid.Uuid
@@ -221,11 +222,15 @@ class ChatVM(
     ),
     execute = {
       val query = it.jsonObject["query"]!!.jsonPrimitive.content
-      val service = SearchService.getService(settings.value.searchServiceOptions)
+      val options = settings.value.searchServices.getOrElse(
+        index = settings.value.searchServiceSelected,
+        defaultValue = { SearchServiceOptions.DEFAULT }
+      )
+      val service = SearchService.getService(options)
       val result = service.search(
         query = query,
         commonOptions = settings.value.searchCommonOptions,
-        serviceOptions = settings.value.searchServiceOptions,
+        serviceOptions = options,
       )
       val results = JsonInstantPretty.encodeToJsonElement(result.getOrThrow())
         .jsonObject

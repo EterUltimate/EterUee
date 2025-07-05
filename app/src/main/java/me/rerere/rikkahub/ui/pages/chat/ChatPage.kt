@@ -201,6 +201,13 @@ fun ChatPage(id: Uuid, text: String?, vm: ChatVM = koinViewModel()) {
               )
             )
           },
+          onUpdateSearchService = { index ->
+            vm.updateSettings(
+              setting.copy(
+                searchServiceSelected = index
+              )
+            )
+          },
           onClearContext = {
             vm.handleMessageTruncate()
           }

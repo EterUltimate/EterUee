@@ -63,6 +63,13 @@
   <string name="setting_page_providers_desc">Configure AI providers</string>
   <string name="setting_page_search_service">Search Service</string>
   <string name="setting_page_search_service_desc">Set up search service</string>
+  <string name="setting_page_search_title">Search Service</string>
+  <string name="setting_page_search_providers">Search Providers</string>
+  <string name="setting_page_search_add_provider">Add Provider</string>
+  <string name="setting_page_search_provider_type">Provider Type</string>
+  <string name="setting_page_search_delete_provider">Delete Provider</string>
+  <string name="setting_page_search_common_options">Common Options</string>
+  <string name="setting_page_search_result_size">Result Size</string>
   <string name="setting_page_mcp">MCP</string>
   <string name="setting_page_mcp_desc">Configure MCP Servers</string>
   <string name="setting_page_assistant">Assistant</string>

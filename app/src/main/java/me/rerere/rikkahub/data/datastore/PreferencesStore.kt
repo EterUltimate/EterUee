@@ -13,6 +13,7 @@ import androidx.datastore.preferences.SharedPreferencesMigration
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import io.pebbletemplates.pebble.PebbleEngine
@@ -79,8 +80,9 @@ class SettingsStore(
     val ASSISTANT_TAGS = stringPreferencesKey("assistant_tags")
 
     // 搜索
-    val SEARCH_SERVICE = stringPreferencesKey("search_service")
+    val SEARCH_SERVICES = stringPreferencesKey("search_services")
     val SEARCH_COMMON = stringPreferencesKey("search_common")
+    val SEARCH_SELECTED = intPreferencesKey("search_selected")
 
     // MCP
     val MCP_SERVERS = stringPreferencesKey("mcp_servers")
@@ -126,12 +128,13 @@ class SettingsStore(
           JsonInstant.decodeFromString(it)
         } ?: PresetThemeType.STANDARD,
         displaySetting = JsonInstant.decodeFromString(preferences[DISPLAY_SETTING] ?: "{}"),
-        searchServiceOptions = preferences[SEARCH_SERVICE]?.let {
+        searchServices = preferences[SEARCH_SERVICES]?.let {
           JsonInstant.decodeFromString(it)
-        } ?: SearchServiceOptions.DEFAULT,
+        } ?: listOf(SearchServiceOptions.DEFAULT),
         searchCommonOptions = preferences[SEARCH_COMMON]?.let {
           JsonInstant.decodeFromString(it)
         } ?: SearchCommonOptions(),
+        searchServiceSelected = preferences[SEARCH_SELECTED] ?: 0,
         mcpServers = preferences[MCP_SERVERS]?.let {
           JsonInstant.decodeFromString(it)
         } ?: emptyList(),
@@ -223,8 +226,9 @@ class SettingsStore(
       preferences[SELECT_ASSISTANT] = settings.assistantId.toString()
       preferences[ASSISTANT_TAGS] = JsonInstant.encodeToString(settings.assistantTags)
 
-      preferences[SEARCH_SERVICE] = JsonInstant.encodeToString(settings.searchServiceOptions)
+      preferences[SEARCH_SERVICES] = JsonInstant.encodeToString(settings.searchServices)
       preferences[SEARCH_COMMON] = JsonInstant.encodeToString(settings.searchCommonOptions)
+      preferences[SEARCH_SELECTED] = settings.searchServiceSelected.coerceIn(0, settings.searchServices.size - 1)
 
       preferences[MCP_SERVERS] = JsonInstant.encodeToString(settings.mcpServers)
       preferences[WEBDAV_CONFIG] = JsonInstant.encodeToString(settings.webDavConfig)
@@ -261,8 +265,9 @@ data class Settings(
   val providers: List<ProviderSetting> = DEFAULT_PROVIDERS,
   val assistants: List<Assistant> = DEFAULT_ASSISTANTS,
   val assistantTags: List<Tag> = emptyList(),
-  val searchServiceOptions: SearchServiceOptions = SearchServiceOptions.DEFAULT,
+  val searchServices: List<SearchServiceOptions> = listOf(SearchServiceOptions.DEFAULT),
   val searchCommonOptions: SearchCommonOptions = SearchCommonOptions(),
+  val searchServiceSelected: Int = 0,
   val mcpServers: List<McpServerConfig> = emptyList(),
   val webDavConfig: WebDavConfig = WebDavConfig()
 )

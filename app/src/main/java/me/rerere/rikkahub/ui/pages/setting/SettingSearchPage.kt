@@ -4,6 +4,8 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -11,7 +13,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Scaffold
@@ -22,9 +27,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.composables.icons.lucide.GripHorizontal
+import com.composables.icons.lucide.GripVertical
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Plus
+import com.composables.icons.lucide.Trash2
+import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
@@ -46,7 +59,7 @@ fun SettingSearchPage(vm: SettingVM = koinViewModel()) {
     topBar = {
       TopAppBar(
         title = {
-          Text("搜索服务")
+          Text(stringResource(R.string.setting_page_search_title))
         },
         navigationIcon = {
           BackButton()
@@ -62,12 +75,12 @@ fun SettingSearchPage(vm: SettingVM = koinViewModel()) {
       verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
       item {
-        ProviderOptions(
+        SearchProvidersSection(
           settings = settings,
-          onUpdateOptions = { options ->
+          onUpdateServices = { services ->
             vm.updateSettings(
               settings.copy(
-                searchServiceOptions = options
+                searchServices = services
               )
             )
           }
@@ -91,13 +104,70 @@ fun SettingSearchPage(vm: SettingVM = koinViewModel()) {
 }
 
 @Composable
-private fun ProviderOptions(
+private fun SearchProvidersSection(
   settings: Settings,
-  onUpdateOptions: (SearchServiceOptions) -> Unit,
+  onUpdateServices: (List<SearchServiceOptions>) -> Unit,
 ) {
-  var options by remember(settings.searchServiceOptions) {
-    mutableStateOf(settings.searchServiceOptions)
+  Column(
+    modifier = Modifier
+      .fillMaxWidth(),
+    verticalArrangement = Arrangement.spacedBy(16.dp)
+  ) {
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Text(
+        text = stringResource(R.string.setting_page_search_providers),
+        style = MaterialTheme.typography.headlineMedium
+      )
+      OutlinedButton(
+        onClick = {
+          onUpdateServices(settings.searchServices + SearchServiceOptions.DEFAULT)
+        }
+      ) {
+        Icon(
+          Lucide.Plus,
+          contentDescription = null,
+          modifier = Modifier.size(18.dp)
+        )
+        Text(stringResource(R.string.setting_page_search_add_provider))
+      }
+    }
+
+    settings.searchServices.forEachIndexed { index, service ->
+      SearchProviderCard(
+        service = service,
+        onUpdateService = { updatedService ->
+          val newServices = settings.searchServices.toMutableList()
+          newServices[index] = updatedService
+          onUpdateServices(newServices)
+        },
+        onDeleteService = {
+          if (settings.searchServices.size > 1) {
+            val newServices = settings.searchServices.toMutableList()
+            newServices.removeAt(index)
+            onUpdateServices(newServices)
+          }
+        },
+        canDelete = settings.searchServices.size > 1
+      )
+    }
   }
+}
+
+@Composable
+private fun SearchProviderCard(
+  service: SearchServiceOptions,
+  onUpdateService: (SearchServiceOptions) -> Unit,
+  onDeleteService: () -> Unit,
+  canDelete: Boolean
+) {
+  var options by remember(service) {
+    mutableStateOf(service)
+  }
+
   Card {
     Column(
       modifier = Modifier
@@ -106,75 +176,95 @@ private fun ProviderOptions(
           .padding(16.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-      FormItem(
-        label = {
-          Text("搜索提供商")
-        }
-      ) {
-        Select(
-          options = SearchServiceOptions.TYPES.keys.toList(),
-          selectedOption = options::class,
-          optionToString = { SearchServiceOptions.TYPES[it] ?: "[Unknown]" },
-          onOptionSelected = {
-            options = it.primaryConstructor!!.callBy(mapOf())
-            onUpdateOptions(options)
-          },
-          optionLeading = {
-            AutoAIIcon(
-              name = SearchServiceOptions.TYPES[it] ?: it.simpleName ?: "unknown",
-              modifier = Modifier.size(24.dp)
-            )
-          },
-          leading = {
-            AutoAIIcon(
-              name = SearchServiceOptions.TYPES[options::class] ?: "unknown",
-              modifier = Modifier.size(24.dp)
-            )
-          },
-          modifier = Modifier.fillMaxWidth()
-        )
-      }
+      Select(
+        options = SearchServiceOptions.TYPES.keys.toList(),
+        selectedOption = options::class,
+        optionToString = { SearchServiceOptions.TYPES[it] ?: "[Unknown]" },
+        onOptionSelected = {
+          options = it.primaryConstructor!!.callBy(mapOf())
+          onUpdateService(options)
+        },
+        optionLeading = {
+          AutoAIIcon(
+            name = SearchServiceOptions.TYPES[it] ?: it.simpleName ?: "unknown",
+            modifier = Modifier.size(24.dp)
+          )
+        },
+        leading = {
+          AutoAIIcon(
+            name = SearchServiceOptions.TYPES[options::class] ?: "unknown",
+            modifier = Modifier.size(24.dp)
+          )
+        },
+        modifier = Modifier.fillMaxWidth()
+      )
 
       when (options) {
         is SearchServiceOptions.TavilyOptions -> {
           TavilyOptions(options as SearchServiceOptions.TavilyOptions) {
             options = it
-            onUpdateOptions(options)
+            onUpdateService(options)
           }
         }
 
         is SearchServiceOptions.ExaOptions -> {
           ExaOptions(options as SearchServiceOptions.ExaOptions) {
             options = it
-            onUpdateOptions(options)
+            onUpdateService(options)
           }
         }
 
         is SearchServiceOptions.ZhipuOptions -> {
           ZhipuOptions(options as SearchServiceOptions.ZhipuOptions) {
             options = it
-            onUpdateOptions(options)
+            onUpdateService(options)
           }
         }
 
         is SearchServiceOptions.SearXNGOptions -> {
           SearXNGOptions(options as SearchServiceOptions.SearXNGOptions) {
             options = it
-            onUpdateOptions(options)
+            onUpdateService(options)
           }
         }
 
         is SearchServiceOptions.LinkUpOptions -> {
           SearchLinkUpPage(options as SearchServiceOptions.LinkUpOptions) {
             options = it
-            onUpdateOptions(options)
+            onUpdateService(options)
           }
         }
 
         is SearchServiceOptions.BingLocalOptions -> {}
       }
+
       ProvideTextStyle(MaterialTheme.typography.labelMedium) {
         SearchService.getService(options).Description()
+      }
+
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        if (canDelete) {
+          IconButton(
+            onClick = onDeleteService
+          ) {
+            Icon(
+              Lucide.Trash2,
+              contentDescription = stringResource(R.string.setting_page_search_delete_provider)
+            )
+          }
+        }
+
+        Spacer(Modifier.weight(1f))
+
+        IconButton(
+          onClick = {}
+        ) {
+          Icon(Lucide.GripHorizontal, null)
+        }
       }
     }
   }
@@ -268,9 +358,14 @@ private fun CommonOptions(
           .padding(16.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+      Text(
+        text = stringResource(R.string.setting_page_search_common_options),
+        style = MaterialTheme.typography.titleMedium
+      )
+
       FormItem(
         label = {
-          Text("结果数量")
+          Text(stringResource(R.string.setting_page_search_result_size))
         }
       ) {
         OutlinedNumberInput(

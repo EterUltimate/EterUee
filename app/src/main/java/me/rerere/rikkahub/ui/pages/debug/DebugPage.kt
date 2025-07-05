@@ -128,27 +128,6 @@ fun DebugPage(vm: DebugVM = koinViewModel()) {
         Text("崩溃")
       }
 
-      val scope = rememberCoroutineScope()
-      Button(
-        onClick = {
-          scope.launch {
-            val service = SearchService.getService(settings.searchServiceOptions)
-            val result = service.search(
-              query = "mc 1.21.5更新内容",
-              commonOptions = settings.searchCommonOptions,
-              serviceOptions = settings.searchServiceOptions
-            )
-            result.onSuccess {
-              println(it)
-            }.onFailure {
-              it.printStackTrace()
-            }
-          }
-        }
-      ) {
-        Text("测试搜索")
-      }
-
       var markdown by remember { mutableStateOf("") }
       MarkdownBlock(markdown, modifier = Modifier.fillMaxWidth())
       MathBlock(markdown)

@@ -64,6 +64,13 @@
   <string name="setting_page_providers_desc">配置AI提供商</string>
   <string name="setting_page_search_service">搜索服务</string>
   <string name="setting_page_search_service_desc">设置搜索服务</string>
+  <string name="setting_page_search_title">搜索服务</string>
+  <string name="setting_page_search_providers">搜索提供商</string>
+  <string name="setting_page_search_add_provider">添加提供商</string>
+  <string name="setting_page_search_provider_type">提供商类型</string>
+  <string name="setting_page_search_delete_provider">删除提供商</string>
+  <string name="setting_page_search_common_options">通用选项</string>
+  <string name="setting_page_search_result_size">结果数量</string>
   <string name="setting_page_mcp">MCP</string>
   <string name="setting_page_mcp_desc">配置MCP服务器</string>
   <string name="setting_page_assistant">助手</string>

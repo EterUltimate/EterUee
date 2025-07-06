@@ -826,7 +826,7 @@ fun FilePickButton(onAddFiles: (List<UIMessagePart.Document>) -> Unit = {}) {
       Icon(Lucide.Files, null)
     },
     text = {
-      Text("上传文件")
+      Text(stringResource(R.string.upload_file))
     }
   ) {
     pickMedia.launch(

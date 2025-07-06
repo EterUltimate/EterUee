@@ -13,6 +13,7 @@
   <string name="search_picker_title">搜索设置</string>
   <string name="photo">照片</string>
   <string name="take_picture">拍照</string>
+  <string name="upload_file">上传文件</string>
   <string name="copy">复制</string>
   <string name="regenerate">重新生成</string>
   <string name="edit">编辑</string>
@@ -198,6 +199,14 @@
   <string name="model_list_chat">聊天</string>
   <string name="model_list_embedding">嵌入</string>
   <string name="model_list_search_placeholder">输入模型名称搜索</string>
+
+  <!-- About Page -->
+  <string name="about_page_title">关于</string>
+  <string name="about_page_version">版本</string>
+  <string name="about_page_system">系统</string>
+  <string name="about_page_website">官网</string>
+  <string name="about_page_github">Github</string>
+  <string name="about_page_license">License</string>
 
   <!-- Code Block -->
   <string name="code_block_copy">复制代码</string>
@@ -435,4 +444,11 @@
   <!-- Assistant Picker -->
   <string name="assistant_picker_expand">展开</string>
   <string name="assistant_picker_selected">已选择</string>
+
+  <!-- History Page -->
+  <string name="history_page_title">聊天历史</string>
+  <string name="history_page_reset_chat">重置聊天</string>
+  <string name="history_page_search_placeholder">输入关键词搜索聊天</string>
+  <string name="history_page_new_conversation">新对话</string>
+  <string name="history_page_clear">清除</string>
 </resources> 

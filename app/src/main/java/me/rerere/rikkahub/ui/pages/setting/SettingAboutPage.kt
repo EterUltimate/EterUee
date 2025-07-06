@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.composables.icons.lucide.Code
@@ -57,7 +58,7 @@ fun SettingAboutPage() {
     topBar = {
       LargeTopAppBar(
         title = {
-          Text("关于")
+          Text(stringResource(R.string.about_page_title))
         },
         navigationIcon = {
           BackButton()
@@ -130,7 +131,7 @@ fun SettingAboutPage() {
       item {
         ListItem(
           headlineContent = {
-            Text("版本")
+            Text(stringResource(R.string.about_page_version))
           },
           supportingContent = {
             Text(
@@ -154,7 +155,7 @@ fun SettingAboutPage() {
       item {
         ListItem(
           headlineContent = {
-            Text("系统")
+            Text(stringResource(R.string.about_page_system))
           },
           supportingContent = {
             Text(
@@ -170,7 +171,7 @@ fun SettingAboutPage() {
       item {
         ListItem(
           headlineContent = {
-            Text("官网")
+            Text(stringResource(R.string.about_page_website))
           },
           supportingContent = {
             Text(
@@ -189,7 +190,7 @@ fun SettingAboutPage() {
       item {
         ListItem(
           headlineContent = {
-            Text("Github")
+            Text(stringResource(R.string.about_page_github))
           },
           supportingContent = {
             Text(
@@ -208,7 +209,7 @@ fun SettingAboutPage() {
       item {
         ListItem(
           headlineContent = {
-            Text("License")
+            Text(stringResource(R.string.about_page_license))
           },
           supportingContent = {
             Text("https://github.com/rikkahub/rikkahub/blob/master/LICENSE")

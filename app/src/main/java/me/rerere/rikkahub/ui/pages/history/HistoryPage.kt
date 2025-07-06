@@ -26,10 +26,12 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.X
+import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.context.LocalNavController
@@ -63,7 +65,7 @@ fun HistoryPage(vm: HistoryVM = koinViewModel()) {
     topBar = {
       TopAppBar(
         title = {
-          Text("聊天历史")
+          Text(stringResource(R.string.history_page_title))
         },
         navigationIcon = {
           BackButton()
@@ -74,7 +76,7 @@ fun HistoryPage(vm: HistoryVM = koinViewModel()) {
               vm.deleteAllConversations()
             }
           ) {
-            Text("重置聊天")
+            Text(stringResource(R.string.history_page_reset_chat))
           }
         }
       )
@@ -126,7 +128,7 @@ private fun SearchInput(
         onValueChange = onValueChange,
         modifier = Modifier.fillMaxWidth(),
         placeholder = {
-          Text("输入关键词搜索聊天")
+          Text(stringResource(R.string.history_page_search_placeholder))
         },
         shape = RoundedCornerShape(50),
         singleLine = true,
@@ -135,7 +137,7 @@ private fun SearchInput(
             onClick = { onValueChange("") },
             modifier = Modifier
           ) {
-            Icon(Lucide.X, "Clear")
+            Icon(Lucide.X, stringResource(R.string.history_page_clear))
           }
         }
       )
@@ -158,7 +160,7 @@ private fun ConversationItem(
   ) {
     ListItem(
       headlineContent = {
-        Text(conversation.title.ifBlank { "新对话" }.trim())
+        Text(conversation.title.ifBlank { stringResource(R.string.history_page_new_conversation) }.trim())
       },
       supportingContent = {
         Text(conversation.createAt.toLocalDateTime())
@@ -167,7 +169,7 @@ private fun ConversationItem(
         IconButton(
           onClick = onDelete
         ) {
-          Icon(Lucide.X, "Delete")
+          Icon(Lucide.X, stringResource(R.string.delete))
         }
       }
     )

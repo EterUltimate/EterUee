@@ -13,6 +13,7 @@
   <string name="search_picker_title">搜尋設定</string>
   <string name="photo">照片</string>
   <string name="take_picture">拍照</string>
+  <string name="upload_file">上傳檔案</string>
   <string name="copy">複製</string>
   <string name="regenerate">重新生成</string>
   <string name="edit">編輯</string>
@@ -196,6 +197,14 @@
   <string name="model_list_chat">聊天</string>
   <string name="model_list_embedding">嵌入</string>
   <string name="model_list_search_placeholder">輸入模型名稱搜尋</string>
+
+  <!-- About Page -->
+  <string name="about_page_title">關於</string>
+  <string name="about_page_version">版本</string>
+  <string name="about_page_system">系統</string>
+  <string name="about_page_website">官網</string>
+  <string name="about_page_github">Github</string>
+  <string name="about_page_license">授權條款</string>
 
   <!-- Code Block -->
   <string name="code_block_copy">複製代碼</string>
@@ -434,4 +443,11 @@
   <!-- Assistant Picker -->
   <string name="assistant_picker_expand">展開</string>
   <string name="assistant_picker_selected">已選擇</string>
+
+  <!-- History Page -->
+  <string name="history_page_title">聊天歷史</string>
+  <string name="history_page_reset_chat">重置聊天</string>
+  <string name="history_page_search_placeholder">輸入關鍵詞搜尋聊天</string>
+  <string name="history_page_new_conversation">新對話</string>
+  <string name="history_page_clear">清除</string>
 </resources> 

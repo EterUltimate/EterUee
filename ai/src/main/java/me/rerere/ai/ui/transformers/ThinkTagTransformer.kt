@@ -1,7 +1,7 @@
 package me.rerere.ai.ui.transformers
 
 import android.content.Context
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.provider.Model
 import me.rerere.ai.ui.OutputMessageTransformer

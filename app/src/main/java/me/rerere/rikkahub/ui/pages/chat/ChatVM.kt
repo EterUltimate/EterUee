@@ -1,9 +1,7 @@
 package me.rerere.rikkahub.ui.pages.chat
 
 import android.app.Application
-import android.content.Context
 import android.util.Log
-import androidx.core.content.edit
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -20,13 +18,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonArray
@@ -68,7 +62,6 @@ import me.rerere.rikkahub.data.model.toMessageNode
 import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.data.repository.MemoryRepository
 import me.rerere.rikkahub.ui.hooks.writeStringPreference
-import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.JsonInstantPretty
 import me.rerere.rikkahub.utils.UiState
 import me.rerere.rikkahub.utils.UpdateChecker

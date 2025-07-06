@@ -39,6 +39,7 @@ android {
   }
   tasks.withType<KotlinCompile>().configureEach {
     compilerOptions.optIn.add("kotlin.uuid.ExperimentalUuidApi")
+    compilerOptions.optIn.add("kotlin.time.ExperimentalTime")
   }
 }
 

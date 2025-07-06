@@ -1,9 +1,8 @@
 package me.rerere.ai.ui
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.serializers.FormattedInstantSerializer
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -13,6 +12,8 @@ import me.rerere.ai.core.MessageRole
 import me.rerere.ai.core.TokenUsage
 import me.rerere.ai.provider.Model
 import me.rerere.ai.util.json
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 // 公共消息抽象, 具体的Provider实现会转换为API接口需要的DTO

@@ -216,11 +216,15 @@
   <string name="mermaid_export_failed">匯出失敗</string>
 
   <!-- Avatar Component -->
-  <string name="avatar_change_avatar">更換頭像</string>
-  <string name="avatar_pick_image">選擇圖片</string>
-  <string name="avatar_pick_emoji">選擇表情</string>
-  <string name="avatar_reset">重置</string>
-  <string name="avatar_cancel">取消</string>
+      <string name="avatar_change_avatar">更換頭像</string>
+    <string name="avatar_pick_image">選擇圖片</string>
+    <string name="avatar_pick_emoji">選擇表情</string>
+    <string name="avatar_input_url">輸入連結</string>
+    <string name="avatar_reset">重置</string>
+    <string name="avatar_cancel">取消</string>
+    <string name="avatar_url_dialog_title">輸入圖片連結</string>
+    <string name="avatar_url_hint">請輸入圖片連結</string>
+    <string name="avatar_url_confirm">確認</string>
 
   <!-- Emoji Picker -->
   <string name="emoji_picker_search_placeholder">搜尋表情符號...</string>

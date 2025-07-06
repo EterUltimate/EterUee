@@ -224,11 +224,15 @@
   <string name="mermaid_export_failed">Export failed</string>
 
   <!-- Avatar Component -->
-  <string name="avatar_change_avatar">Change Avatar</string>
-  <string name="avatar_pick_image">Pick Image</string>
-  <string name="avatar_pick_emoji">Pick Emoji</string>
-  <string name="avatar_reset">Reset</string>
-  <string name="avatar_cancel">Cancel</string>
+      <string name="avatar_change_avatar">Change Avatar</string>
+    <string name="avatar_pick_image">Pick Image</string>
+    <string name="avatar_pick_emoji">Pick Emoji</string>
+    <string name="avatar_input_url">Input URL</string>
+    <string name="avatar_reset">Reset</string>
+    <string name="avatar_cancel">Cancel</string>
+    <string name="avatar_url_dialog_title">Input Image URL</string>
+    <string name="avatar_url_hint">Enter image URL</string>
+    <string name="avatar_url_confirm">Confirm</string>
 
   <!-- Assistant Picker -->
   <string name="assistant_picker_expand">Expand</string>

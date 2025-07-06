@@ -19,6 +19,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -78,6 +79,8 @@ fun Avatar(
   val context = LocalContext.current
   var showPickOption by remember { mutableStateOf(false) }
   var showEmojiPicker by remember { mutableStateOf(false) }
+  var showUrlInput by remember { mutableStateOf(false) }
+  var urlInput by remember { mutableStateOf("") }
 
   // 图片选择launcher
   val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -166,6 +169,16 @@ fun Avatar(
           Button(
             onClick = {
               showPickOption = false
+              urlInput = ""
+              showUrlInput = true
+            },
+            modifier = Modifier.fillMaxWidth()
+          ) {
+            Text(text = stringResource(id = R.string.avatar_input_url))
+          }
+          Button(
+            onClick = {
+              showPickOption = false
               onUpdate?.invoke(Avatar.Dummy)
             },
             modifier = Modifier.fillMaxWidth()
@@ -204,5 +217,46 @@ fun Avatar(
             .padding(16.dp)
       )
     }
+  }
+
+  if (showUrlInput) {
+    AlertDialog(
+      onDismissRequest = {
+        showUrlInput = false
+      },
+      title = {
+        Text(text = stringResource(id = R.string.avatar_url_dialog_title))
+      },
+      text = {
+        OutlinedTextField(
+          value = urlInput,
+          onValueChange = { urlInput = it },
+          label = { Text(stringResource(id = R.string.avatar_url_hint)) },
+          modifier = Modifier.fillMaxWidth(),
+          singleLine = true
+        )
+      },
+      confirmButton = {
+        TextButton(
+          onClick = {
+            if (urlInput.isNotBlank()) {
+              onUpdate?.invoke(Avatar.Image(urlInput.trim()))
+              showUrlInput = false
+            }
+          }
+        ) {
+          Text(stringResource(id = R.string.avatar_url_confirm))
+        }
+      },
+      dismissButton = {
+        TextButton(
+          onClick = {
+            showUrlInput = false
+          }
+        ) {
+          Text(stringResource(id = R.string.avatar_cancel))
+        }
+      }
+    )
   }
 }

@@ -40,6 +40,7 @@ import me.rerere.ai.util.encodeBase64
 import me.rerere.ai.util.json
 import me.rerere.ai.util.mergeCustomBody
 import me.rerere.ai.util.removeElements
+import me.rerere.ai.util.stringSafe
 import me.rerere.ai.util.toHeaders
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -222,13 +223,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
         type: String?,
         data: String
       ) {
-        println("[onEvent] $data")
-        if (data == "[DONE]") {
-          println("[onEvent] (done) 结束流: $data")
-          eventSource.cancel()
-          close()
-          return
-        }
+        Log.i(TAG, "onEvent: $data")
 
         try {
           val jsonData = json.parseToJsonElement(data).jsonObject
@@ -283,7 +278,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
 
         try {
           if (t == null && response != null) {
-            val bodyStr = response.body?.string()
+            val bodyStr = response.body.stringSafe()
             if (!bodyStr.isNullOrEmpty()) {
               val bodyElement = json.parseToJsonElement(bodyStr)
               println(bodyElement)

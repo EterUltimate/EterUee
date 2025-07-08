@@ -55,11 +55,11 @@ object LinkUpService : SearchService<SearchServiceOptions.LinkUpOptions> {
 
       Log.i(TAG, "search: $query")
 
-      val response = httpClient.newCall(request).execute()
+      val response = httpClient.newCall(request).await()
       if (response.isSuccessful) {
-        val responseBody = response.body?.string()?.let {
+        val responseBody = response.body.string().let {
           json.decodeFromString<LinkUpSearchResponse>(it)
-        } ?: error("Failed to parse response")
+        }
 
         return@withContext Result.success(
           SearchResult(

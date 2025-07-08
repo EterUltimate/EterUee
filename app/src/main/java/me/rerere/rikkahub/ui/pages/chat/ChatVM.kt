@@ -338,7 +338,10 @@ class ChatVM(
   private suspend fun handleMessageComplete(messageRange: ClosedRange<Int>? = null) {
     val model = currentChatModel.value ?: return
     runCatching {
-      updateConversation(conversation.value.copy(chatSuggestions = emptyList())) // reset suggestions
+      // reset suggestions
+      updateConversation(conversation.value.copy(chatSuggestions = emptyList()))
+
+      // memory tool
       if (!model.abilities.contains(ModelAbility.TOOL)) {
         if (enableWebSearch.value || mcpManager.getAllAvailableTools()
             .isNotEmpty() || settings.value.getCurrentAssistant().enableMemory
@@ -346,6 +349,8 @@ class ChatVM(
           errorFlow.emit(IllegalStateException(context.getString(R.string.tools_warning)))
         }
       }
+
+      // start generating
       generationHandler.generateText(
         settings = settings.value,
         model = model,

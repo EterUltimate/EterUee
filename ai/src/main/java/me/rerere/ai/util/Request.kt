@@ -10,7 +10,9 @@ import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Headers
 import okhttp3.Response
+import okhttp3.ResponseBody
 import okhttp3.internal.closeQuietly
+import okhttp3.internal.http.RealResponseBody
 import okio.IOException
 import kotlin.coroutines.resumeWithException
 
@@ -40,6 +42,13 @@ fun List<CustomHeader>.toHeaders(): Headers {
         add(it.name, it.value)
       }
   }.build()
+}
+
+fun ResponseBody.stringSafe(): String? {
+  return when(this) {
+    is RealResponseBody -> string()
+    else -> null
+  }
 }
 
 fun JsonObject.mergeCustomBody(bodies: List<CustomBody>): JsonObject {

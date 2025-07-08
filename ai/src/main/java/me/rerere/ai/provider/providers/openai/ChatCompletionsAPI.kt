@@ -33,12 +33,14 @@ import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessageChoice
 import me.rerere.ai.ui.UIMessagePart
+import me.rerere.ai.util.SSEEventSource
 import me.rerere.ai.util.await
 import me.rerere.ai.util.configureClientWithProxy
 import me.rerere.ai.util.encodeBase64
 import me.rerere.ai.util.json
 import me.rerere.ai.util.mergeCustomBody
 import me.rerere.ai.util.parseErrorDetail
+import me.rerere.ai.util.stringSafe
 import me.rerere.ai.util.toHeaders
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
@@ -147,7 +149,6 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
       ) {
         if (data == "[DONE]") {
           println("[onEvent] (done) 结束流: $data")
-          eventSource.cancel()
           close()
           return
         }
@@ -203,7 +204,7 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
         t?.printStackTrace()
         println("[onFailure] 发生错误: ${t?.javaClass?.name} ${t?.message} / $response")
 
-        val bodyRaw = response?.body?.string()
+        val bodyRaw = response?.body?.stringSafe()
         try {
           if (!bodyRaw.isNullOrBlank()) {
             val bodyElement = Json.parseToJsonElement(bodyRaw)

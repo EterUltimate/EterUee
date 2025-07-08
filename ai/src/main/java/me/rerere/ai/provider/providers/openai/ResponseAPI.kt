@@ -35,6 +35,7 @@ import me.rerere.ai.util.encodeBase64
 import me.rerere.ai.util.json
 import me.rerere.ai.util.mergeCustomBody
 import me.rerere.ai.util.parseErrorDetail
+import me.rerere.ai.util.stringSafe
 import me.rerere.ai.util.toHeaders
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -70,7 +71,7 @@ class ResponseAPI(private val client: OkHttpClient) : OpenAIImpl {
 
     val response = client.configureClientWithProxy(providerSetting.proxy).newCall(request).await()
     if (!response.isSuccessful) {
-      throw Exception("Failed to get response: ${response.code} ${response.body?.string()}")
+      throw Exception("Failed to get response: ${response.code} ${response.body.string()}")
     }
 
     val bodyStr = response.body?.string() ?: ""
@@ -125,7 +126,7 @@ class ResponseAPI(private val client: OkHttpClient) : OpenAIImpl {
         t?.printStackTrace()
         println("[onFailure] 发生错误: ${t?.javaClass?.name} ${t?.message} / $response")
 
-        val bodyRaw = response?.body?.string()
+        val bodyRaw = response?.body?.stringSafe()
         try {
           if (!bodyRaw.isNullOrBlank()) {
             val bodyElement = Json.parseToJsonElement(bodyRaw)

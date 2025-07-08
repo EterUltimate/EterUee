@@ -38,6 +38,7 @@ import me.rerere.ai.util.encodeBase64
 import me.rerere.ai.util.json
 import me.rerere.ai.util.mergeCustomBody
 import me.rerere.ai.util.parseErrorDetail
+import me.rerere.ai.util.stringSafe
 import me.rerere.ai.util.toHeaders
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -208,7 +209,6 @@ object ClaudeProvider : Provider<ProviderSetting.Claude> {
         when (type) {
           "message_stop" -> {
             Log.d(TAG, "Stream ended")
-            eventSource.cancel()
             close()
           }
 
@@ -228,7 +228,7 @@ object ClaudeProvider : Provider<ProviderSetting.Claude> {
         t?.printStackTrace()
         Log.e(TAG, "onFailure: ${t?.javaClass?.name} ${t?.message} / $response")
 
-        val bodyRaw = response?.body?.string()
+        val bodyRaw = response?.body?.stringSafe()
         try {
           if (!bodyRaw.isNullOrBlank()) {
             val bodyElement = Json.parseToJsonElement(bodyRaw)

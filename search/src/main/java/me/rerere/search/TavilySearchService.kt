@@ -47,11 +47,11 @@ object TavilySearchService : SearchService<SearchServiceOptions.TavilyOptions> {
         .post(body.toString().toRequestBody())
         .addHeader("Authorization", "Bearer ${serviceOptions.apiKey}")
         .build()
-      val response = httpClient.newCall(request).execute()
+      val response = httpClient.newCall(request).await()
       if (response.isSuccessful) {
-        val response = response.body?.string()?.let {
+        val response = response.body.string().let {
           json.decodeFromString<SearchResponse>(it)
-        } ?: error("Failed to parse response")
+        }
 
         return@withContext Result.success(
           SearchResult(

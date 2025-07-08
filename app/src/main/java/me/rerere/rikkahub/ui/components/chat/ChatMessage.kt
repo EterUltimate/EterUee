@@ -778,21 +778,22 @@ private fun ToolCallItem(
     ) {
       if (loading) {
         CircularProgressIndicator(
-          modifier = Modifier.size(16.dp),
+          modifier = Modifier.size(20.dp),
           strokeWidth = 4.dp,
         )
+      } else {
+        Icon(
+          imageVector = when (toolName) {
+            "create_memory", "edit_memory" -> Lucide.BookHeart
+            "delete_memory" -> Lucide.BookDashed
+            "search_web" -> Lucide.Earth
+            else -> Lucide.Wrench
+          },
+          contentDescription = null,
+          modifier = Modifier.size(20.dp),
+          tint = contentColor.copy(alpha = 0.7f)
+        )
       }
-      Icon(
-        imageVector = when (toolName) {
-          "create_memory", "edit_memory" -> Lucide.BookHeart
-          "delete_memory" -> Lucide.BookDashed
-          "search_web" -> Lucide.Earth
-          else -> Lucide.Wrench
-        },
-        contentDescription = null,
-        modifier = Modifier.size(20.dp),
-        tint = contentColor.copy(alpha = 0.7f)
-      )
       Column {
         Text(
           text = when (toolName) {
@@ -811,6 +812,9 @@ private fun ToolCallItem(
             )
           },
           style = MaterialTheme.typography.labelSmall,
+          modifier = Modifier.shimmer(
+            isLoading = loading
+          )
         )
       }
     }
@@ -1136,7 +1140,7 @@ fun ReasoningCard(
                           )
                       }
                   }
-                    .heightIn(max = 100.dp)
+                    .heightIn(max = 120.dp)
                     .verticalScroll(scrollState)
               } else {
                 it

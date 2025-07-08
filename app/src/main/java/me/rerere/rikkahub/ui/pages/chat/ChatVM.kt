@@ -335,6 +335,22 @@ class ChatVM(
     }
   }
 
+  private fun checkInvalidMessages() {
+    val messages = conversation.value.currentMessages
+      .map { message ->
+        message.copy(
+          parts = message.parts.filter {
+            // 过滤掉空文本
+            it !is UIMessagePart.Text || it.text.isNotEmpty()
+          }
+        )
+      }
+      .filter { it.parts.isNotEmpty() } // 过滤没有parts的message
+    _conversation.value = _conversation.value.updateCurrentMessages(
+      messages = messages
+    )
+  }
+
   private suspend fun handleMessageComplete(messageRange: ClosedRange<Int>? = null) {
     val model = currentChatModel.value ?: return
     runCatching {
@@ -349,6 +365,9 @@ class ChatVM(
           errorFlow.emit(IllegalStateException(context.getString(R.string.tools_warning)))
         }
       }
+
+      // check invalid messages
+      checkInvalidMessages()
 
       // start generating
       generationHandler.generateText(

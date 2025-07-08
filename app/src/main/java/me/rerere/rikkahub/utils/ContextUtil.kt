@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.ActivityCompat
@@ -60,8 +61,13 @@ fun Context.joinQQGroup(key: String?): Boolean {
 fun Context.writeClipboardText(text: String) {
   val clipboardManager =
     getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-  clipboardManager.setPrimaryClip(android.content.ClipData.newPlainText("text", text))
-  Log.i(TAG, "writeClipboardText: $text")
+  runCatching {
+    clipboardManager.setPrimaryClip(android.content.ClipData.newPlainText("text", text))
+    Log.i(TAG, "writeClipboardText: $text")
+  }.onFailure {
+    Log.e(TAG, "writeClipboardText: $text", it)
+    Toast.makeText(this, "Failed to write text into clipboard", Toast.LENGTH_SHORT).show()
+  }
 }
 
 /**
@@ -69,10 +75,15 @@ fun Context.writeClipboardText(text: String) {
  */
 fun Context.openUrl(url: String) {
   Log.i(TAG, "openUrl: $url")
-  val intent = CustomTabsIntent.Builder()
-    .setShowTitle(true)
-    .build()
-  intent.launchUrl(this, url.toUri())
+  runCatching {
+    val intent = CustomTabsIntent.Builder()
+      .setShowTitle(true)
+      .build()
+    intent.launchUrl(this, url.toUri())
+  }.onFailure {
+    it.printStackTrace()
+    Toast.makeText(this, "Failed to open URL: $url", Toast.LENGTH_SHORT).show()
+  }
 }
 
 fun Context.getActivity(): Activity? {

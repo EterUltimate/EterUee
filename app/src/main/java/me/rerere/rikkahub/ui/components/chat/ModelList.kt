@@ -193,7 +193,6 @@ fun ModelSelector(
   }
 }
 
-@OptIn(FlowPreview::class)
 @Composable
 private fun ColumnScope.ModelList(
   currentModel: Uuid? = null,
@@ -518,7 +517,10 @@ private fun ModelItem(
       interactionSource = interactionSource,
       indication = LocalIndication.current
     ),
-    colors = if (select) CardDefaults.cardColors() else CardDefaults.outlinedCardColors(),
+    colors = if (select) CardDefaults.cardColors(
+      containerColor = MaterialTheme.colorScheme.primary,
+      contentColor = MaterialTheme.colorScheme.onPrimary
+    ) else CardDefaults.outlinedCardColors(),
     elevation = if (select) CardDefaults.cardElevation() else CardDefaults.outlinedCardElevation(),
     border = if (select) null else CardDefaults.outlinedCardBorder()
   ) {

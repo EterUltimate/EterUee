@@ -133,36 +133,28 @@ class ChatVM(
   }
 
   // 用户设置
-  val settings: StateFlow<Settings> = settingsStore.settingsFlow
-    .stateIn(viewModelScope, SharingStarted.Eagerly, Settings())
+  val settings: StateFlow<Settings> =
+    settingsStore.settingsFlow.stateIn(viewModelScope, SharingStarted.Eagerly, Settings())
 
   // 网络搜索
-  val enableWebSearch = settings
-    .map {
+  val enableWebSearch = settings.map {
       it.enableWebSearch
-    }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
   // 聊天列表
-  val conversations = settings
-    .map { it.assistantId }
-    .distinctUntilChanged()
-    .flatMapLatest { assistantId ->
-      conversationRepo.getConversationsOfAssistant(assistantId)
-        .catch {
-          Log.e(TAG, "conversationRepo.getAllConversations: ", it)
-          errorFlow.emit(it)
-          emit(emptyList())
-        }
-    }
-    .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+  val conversations =
+    settings.map { it.assistantId }.distinctUntilChanged().flatMapLatest { assistantId ->
+        conversationRepo.getConversationsOfAssistant(assistantId).catch {
+            Log.e(TAG, "conversationRepo.getAllConversations: ", it)
+            errorFlow.emit(it)
+            emit(emptyList())
+          }
+      }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
   // 当前模型
-  val currentChatModel = settings
-    .map { settings ->
+  val currentChatModel = settings.map { settings ->
       settings.getCurrentChatModel()
-    }
-    .stateIn(viewModelScope, SharingStarted.Lazily, null)
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
   // 错误流
   val errorFlow = MutableSharedFlow<Throwable>()
@@ -190,56 +182,48 @@ class ChatVM(
             } else {
               it
             }
-          }
-        )
+          })
       }
     }
   }
 
   // Update checker
-  val updateState = updateChecker.checkUpdate()
-    .stateIn(viewModelScope, SharingStarted.Eagerly, UiState.Loading)
+  val updateState =
+    updateChecker.checkUpdate().stateIn(viewModelScope, SharingStarted.Eagerly, UiState.Loading)
 
   // Search Tool
   private val searchTool = Tool(
-    name = "search_web",
-    description = "search web for information",
-    parameters = InputSchema.Obj(
+    name = "search_web", description = "search web for information", parameters = InputSchema.Obj(
       buildJsonObject {
         put("query", buildJsonObject {
           put("type", "string")
           put("description", "search keyword")
         })
-      },
-      required = listOf("query")
-    ),
-    execute = {
+      }, required = listOf("query")
+    ), execute = {
       val query = it.jsonObject["query"]!!.jsonPrimitive.content
       val options = settings.value.searchServices.getOrElse(
         index = settings.value.searchServiceSelected,
-        defaultValue = { SearchServiceOptions.DEFAULT }
-      )
+        defaultValue = { SearchServiceOptions.DEFAULT })
       val service = SearchService.getService(options)
       val result = service.search(
         query = query,
         commonOptions = settings.value.searchCommonOptions,
         serviceOptions = options,
       )
-      val results = JsonInstantPretty.encodeToJsonElement(result.getOrThrow())
-        .jsonObject
-        .let { json ->
-          val map = json.toMutableMap()
-          map["items"] = JsonArray(map["items"]!!.jsonArray.mapIndexed { index, item ->
-            JsonObject(item.jsonObject.toMutableMap().apply {
-              put("id", JsonPrimitive(Uuid.random().toString().take(6)))
-              put("index", JsonPrimitive(index + 1))
+      val results =
+        JsonInstantPretty.encodeToJsonElement(result.getOrThrow()).jsonObject.let { json ->
+            val map = json.toMutableMap()
+            map["items"] = JsonArray(map["items"]!!.jsonArray.mapIndexed { index, item ->
+              JsonObject(item.jsonObject.toMutableMap().apply {
+                put("id", JsonPrimitive(Uuid.random().toString().take(6)))
+                put("index", JsonPrimitive(index + 1))
+              })
             })
-          })
-          JsonObject(map)
-        }
+            JsonObject(map)
+          }
       results
-    },
-    systemPrompt = {
+    }, systemPrompt = {
       """
     ## search_web 工具使用说明
     
@@ -273,8 +257,7 @@ class ChatVM(
     [citation](1:b18295)
     ```
       """.trimIndent()
-    }
-  )
+    })
 
   fun handleMessageSend(content: List<UIMessagePart>) {
     if (content.isEmptyInputMessage()) return
@@ -312,8 +295,7 @@ class ChatVM(
           messages = node.messages + UIMessage(
             role = node.role,
             parts = parts,
-          ),
-          selectIndex = node.messages.size
+          ), selectIndex = node.messages.size
         )
       },
     )
@@ -336,18 +318,38 @@ class ChatVM(
   }
 
   private fun checkInvalidMessages() {
-    val messages = conversation.value.currentMessages
-      .map { message ->
-        message.copy(
-          parts = message.parts.filter {
-            // 过滤掉空文本
-            it !is UIMessagePart.Text || it.text.isNotEmpty()
-          }
-        )
+    var messagesNodes = conversation.value.messageNodes
+
+    // 移除无效tool call
+    messagesNodes = messagesNodes.mapIndexed { index, node ->
+      val next = if (index < messagesNodes.size - 1) messagesNodes[index + 1] else null
+      if (node.currentMessage.hasPart<UIMessagePart.ToolCall>()) {
+        if (next?.currentMessage?.hasPart<UIMessagePart.ToolResult>() != true) {
+          return@mapIndexed node.copy(
+            messages = node.messages.filter { it.id != node.currentMessage.id },
+            selectIndex = node.selectIndex - 1
+          )
+        }
       }
-      .filter { it.parts.isNotEmpty() } // 过滤没有parts的message
-    _conversation.value = _conversation.value.updateCurrentMessages(
-      messages = messages
+      node
+    }
+
+    // 更新index
+    messagesNodes = messagesNodes.map { node ->
+      if(node.messages.isNotEmpty() && node.selectIndex !in node.messages.indices) {
+        node.copy(
+          selectIndex = 0
+        )
+      } else {
+        node
+      }
+    }
+
+    // 移除无效消息
+    messagesNodes = messagesNodes.filter { it.messages.isNotEmpty() }
+
+    _conversation.value = _conversation.value.copy(
+      messageNodes = messagesNodes
     )
   }
 
@@ -394,13 +396,12 @@ class ChatVM(
           mcpManager.getAllAvailableTools().forEach { tool ->
             add(
               Tool(
-                name = tool.name,
-                description = tool.description ?: "",
-                parameters = tool.inputSchema,
-                execute = {
-                  mcpManager.callTool(tool.name, it.jsonObject)
-                }
-              ))
+              name = tool.name,
+              description = tool.description ?: "",
+              parameters = tool.inputSchema,
+              execute = {
+                mcpManager.callTool(tool.name, it.jsonObject)
+              }))
           }
         },
         truncateIndex = conversation.value.truncateIndex,
@@ -408,13 +409,10 @@ class ChatVM(
         // 可能被取消了，或者意外结束，兜底更新
         updateConversation(
           conversation = conversation.value.copy(
-            messageNodes = conversation.value.messageNodes.map { node ->
-              node.copy(
-                messages = node.messages.map { it.finishReasoning() } // 结束思考
-              )
-            }
-          )
-        )
+          messageNodes = conversation.value.messageNodes.map { node ->
+            node.copy(messages = node.messages.map { it.finishReasoning() } // 结束思考
+            )
+          }))
       }.collect { chunk ->
         when (chunk) {
           is GenerationChunk.Messages -> {
@@ -424,8 +422,7 @@ class ChatVM(
           is GenerationChunk.TokenUsage -> {
             var tokenUsage = conversation.value.tokenUsage ?: TokenUsage()
             tokenUsage = tokenUsage.copy(
-              promptTokens = chunk.usage.promptTokens.takeIf { it > 0 }
-                ?: tokenUsage.promptTokens,
+              promptTokens = chunk.usage.promptTokens.takeIf { it > 0 } ?: tokenUsage.promptTokens,
               completionTokens = chunk.usage.completionTokens.takeIf { it > 0 }
                 ?: tokenUsage.completionTokens,
             )
@@ -469,17 +466,12 @@ class ChatVM(
           messages = listOf(
             UIMessage.user(
               prompt = settings.value.titlePrompt.applyPlaceholders(
-                "locale" to Locale.getDefault().displayName,
-                "content" to conversation.currentMessages
-                  .truncate(conversation.truncateIndex)
-                  .joinToString("\n\n") { it.summaryAsText() }
-              )
-            ),
+              "locale" to Locale.getDefault().displayName,
+              "content" to conversation.currentMessages.truncate(conversation.truncateIndex)
+                .joinToString("\n\n") { it.summaryAsText() })),
           ),
           params = TextGenerationParams(
-            model = model,
-            temperature = 0.3f,
-            thinkingBudget = 0
+            model = model, temperature = 0.3f, thinkingBudget = 0
           ),
         )
         Log.i(TAG, "generateTitle: ${result.choices[0].message?.toText()}")
@@ -508,27 +500,19 @@ class ChatVM(
           providerSetting = provider,
           messages = listOf(
             UIMessage.user(
-              settings.value.suggestionPrompt.applyPlaceholders(
-                "locale" to Locale.getDefault().displayName,
-                "content" to conversation.currentMessages
-                  .truncate(conversation.truncateIndex)
-                  .takeLast(8)
-                  .joinToString("\n\n") { it.summaryAsText() }
-              ),
-            )
-          ),
+            settings.value.suggestionPrompt.applyPlaceholders(
+              "locale" to Locale.getDefault().displayName,
+              "content" to conversation.currentMessages.truncate(conversation.truncateIndex)
+                .takeLast(8).joinToString("\n\n") { it.summaryAsText() }),
+          )),
           params = TextGenerationParams(
             model = model,
             temperature = 1.0f,
             thinkingBudget = 0,
           ),
         )
-        val suggestions =
-          result.choices[0].message?.toText()
-            ?.split("\n")
-            ?.map { it.trim() }
-            ?.filter { it.isNotBlank() }
-            ?: emptyList()
+        val suggestions = result.choices[0].message?.toText()?.split("\n")?.map { it.trim() }
+          ?.filter { it.isNotBlank() } ?: emptyList()
         Log.i(TAG, "generateSuggestion: ${result.choices[0]}")
         saveConversation(
           _conversation.value.copy(
@@ -545,15 +529,11 @@ class ChatVM(
     message: UIMessage
   ): Conversation {
     val node = conversation.value.getMessageNodeByMessage(message)
-    val nodes =
-      conversation.value.messageNodes.subList(
-        0,
-        conversation.value.messageNodes.indexOf(node) + 1
-      )
+    val nodes = conversation.value.messageNodes.subList(
+      0, conversation.value.messageNodes.indexOf(node) + 1
+    )
     val newConversation = Conversation(
-      id = Uuid.random(),
-      assistantId = settings.value.assistantId,
-      messageNodes = nodes
+      id = Uuid.random(), assistantId = settings.value.assistantId, messageNodes = nodes
     )
     saveConversation(newConversation)
     return newConversation
@@ -569,20 +549,17 @@ class ChatVM(
     val newConversation = if (node.messages.size == 1) {
       // 删除这个Node，因为这个node只有一个消息，那么这个node就是这个消息
       conversation.copy(
-        messageNodes = conversation.messageNodes.filterIndexed { index, node -> index != nodeIndex }
-      )
+        messageNodes = conversation.messageNodes.filterIndexed { index, node -> index != nodeIndex })
     } else {
       // 更新node，删除这个消息
       conversation.copy(
         messageNodes = conversation.messageNodes.map { node ->
           val newNode = node.copy(
-            messages = node.messages.filter { it.id != message.id }
-          )
+            messages = node.messages.filter { it.id != message.id })
           newNode.copy(
             selectIndex = newNode.messages.lastIndex // 更新selectIndex
           )
-        }
-      )
+        })
     }
     updateConversation(newConversation)
     viewModelScope.launch {
@@ -591,8 +568,7 @@ class ChatVM(
   }
 
   fun regenerateAtMessage(
-    message: UIMessage,
-    regenerateAssistantMsg: Boolean = true
+    message: UIMessage, regenerateAssistantMsg: Boolean = true
   ) {
     viewModelScope.launch {
       if (message.role == MessageRole.USER) {
@@ -656,8 +632,7 @@ class ChatVM(
 
   suspend fun saveConversation(conversation: Conversation) {
     val conversation = conversation.copy(
-      assistantId = settings.value.assistantId,
-      updateAt = Instant.now()
+      assistantId = settings.value.assistantId, updateAt = Instant.now()
     )
     this.updateConversation(conversation)
     try {

@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
@@ -31,8 +32,10 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,11 +48,11 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastAny
@@ -62,8 +65,8 @@ import com.composables.icons.lucide.Hammer
 import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Search
 import com.composables.icons.lucide.X
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
@@ -264,14 +267,42 @@ private fun ColumnScope.ModelList(
     }.toMap()
   }
 
+  Surface(
+    shape = RoundedCornerShape(50),
+    modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 8.dp),
+  ) {
+    OutlinedTextField(
+      value = searchKeywords,
+      onValueChange = { searchKeywords = it },
+      modifier = Modifier.fillMaxWidth(),
+      placeholder = {
+        Text(
+          text = stringResource(R.string.model_list_search_placeholder),
+        )
+      },
+      shape = RoundedCornerShape(50),
+      colors = TextFieldDefaults.colors(
+        unfocusedIndicatorColor = Color.Transparent,
+        focusedIndicatorColor = Color.Transparent,
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = Color.Transparent,
+      ),
+      leadingIcon = {
+        Icon(Lucide.Search, null)
+      },
+      maxLines = 1,
+    )
+  }
+
   LazyColumn(
     state = lazyListState,
-    verticalArrangement = Arrangement.spacedBy(4.dp),
+    verticalArrangement = Arrangement.spacedBy(8.dp),
     contentPadding = PaddingValues(8.dp),
     modifier = Modifier
         .weight(1f)
         .fillMaxWidth(),
-    horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     if (providers.isEmpty()) {
       item {
@@ -291,9 +322,7 @@ private fun ColumnScope.ModelList(
           style = MaterialTheme.typography.labelMedium,
           color = MaterialTheme.colorScheme.primary,
           modifier = Modifier
-              .padding(bottom = 4.dp, top = 8.dp)
-              .fillMaxWidth(),
-          textAlign = TextAlign.Center
+            .padding(bottom = 4.dp, top = 8.dp)
         )
       }
 
@@ -332,7 +361,7 @@ private fun ColumnScope.ModelList(
                   HeartIcon,
                   contentDescription = null,
                   modifier = Modifier.size(20.dp),
-                  tint = MaterialTheme.extendColors.red6
+                  tint = MaterialTheme.colorScheme.primary,
                 )
               }
             },
@@ -362,9 +391,7 @@ private fun ColumnScope.ModelList(
           style = MaterialTheme.typography.labelMedium,
           color = MaterialTheme.colorScheme.primary,
           modifier = Modifier
-              .padding(bottom = 4.dp, top = 8.dp)
-              .fillMaxWidth(),
-          textAlign = TextAlign.Center
+            .padding(bottom = 4.dp, top = 8.dp),
         )
       }
 
@@ -411,7 +438,7 @@ private fun ColumnScope.ModelList(
                   HeartIcon,
                   contentDescription = null,
                   modifier = Modifier.size(20.dp),
-                  tint = MaterialTheme.extendColors.red6
+                  tint = MaterialTheme.colorScheme.primary,
                 )
               } else {
                 Icon(
@@ -475,18 +502,6 @@ private fun ColumnScope.ModelList(
       }
     }
   }
-
-  OutlinedTextField(
-    value = searchKeywords,
-    onValueChange = { searchKeywords = it },
-    modifier = Modifier.fillMaxWidth(),
-    placeholder = {
-      Text(
-        text = stringResource(R.string.model_list_search_placeholder),
-      )
-    },
-    shape = RoundedCornerShape(50)
-  )
 }
 
 @Composable
@@ -517,12 +532,6 @@ private fun ModelItem(
       interactionSource = interactionSource,
       indication = LocalIndication.current
     ),
-    colors = if (select) CardDefaults.cardColors(
-      containerColor = MaterialTheme.colorScheme.primary,
-      contentColor = MaterialTheme.colorScheme.onPrimary
-    ) else CardDefaults.outlinedCardColors(),
-    elevation = if (select) CardDefaults.cardElevation() else CardDefaults.outlinedCardElevation(),
-    border = if (select) null else CardDefaults.outlinedCardBorder()
   ) {
     Row(
       verticalAlignment = Alignment.CenterVertically,
@@ -531,23 +540,24 @@ private fun ModelItem(
           .fillMaxWidth()
           .padding(vertical = 12.dp, horizontal = 16.dp)
     ) {
-      AutoAIIcon(
-        name = model.modelId,
-        modifier = Modifier.size(32.dp)
-      )
+      Surface(
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        shape = MaterialTheme.shapes.small,
+      ) {
+        AutoAIIcon(
+          name = model.modelId,
+          modifier = Modifier
+              .padding(4.dp)
+              .size(32.dp)
+        )
+      }
       Column(
         modifier = Modifier.weight(1f),
         verticalArrangement = Arrangement.spacedBy(2.dp),
       ) {
         Text(
-          text = providerSetting.name,
-          style = MaterialTheme.typography.labelSmall,
-          color = MaterialTheme.extendColors.gray4
-        )
-
-        Text(
           text = model.displayName,
-          style = MaterialTheme.typography.labelMedium,
+          style = MaterialTheme.typography.titleSmall,
           maxLines = 1,
           overflow = TextOverflow.Ellipsis,
         )

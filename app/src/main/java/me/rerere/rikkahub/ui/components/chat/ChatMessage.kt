@@ -19,9 +19,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -41,6 +43,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -101,6 +104,7 @@ import com.composables.icons.lucide.Expand
 import com.composables.icons.lucide.File
 import com.composables.icons.lucide.GitFork
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.LucideIcon
 import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.Share
@@ -108,6 +112,7 @@ import com.composables.icons.lucide.TextSelect
 import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.Volume2
 import com.composables.icons.lucide.Wrench
+import com.composables.icons.lucide.X
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.datetime.toJavaLocalDateTime
@@ -174,6 +179,7 @@ fun ChatMessage(
     lineHeight = LocalTextStyle.current.lineHeight * settings.fontSizeRatio
   )
   var showActionsSheet by remember { mutableStateOf(false) }
+  var showSelectCopySheet by remember { mutableStateOf(false) }
   Column(
     modifier = modifier.fillMaxWidth(),
     horizontalAlignment = if (message.role == MessageRole.USER) Alignment.End else Alignment.Start,
@@ -246,8 +252,20 @@ fun ChatMessage(
       onShare = onShare,
       onFork = onFork,
       model = model,
+      onSelectAndCopy = {
+        showSelectCopySheet = true
+      },
       onDismissRequest = {
         showActionsSheet = false
+      }
+    )
+  }
+
+  if (showSelectCopySheet) {
+    SelectAndCopySheet(
+      message = message,
+      onDismissRequest = {
+        showSelectCopySheet = false
       }
     )
   }
@@ -261,6 +279,7 @@ private fun LongPressActionsSheet(
   onEdit: () -> Unit,
   onShare: () -> Unit,
   onFork: () -> Unit,
+  onSelectAndCopy: () -> Unit,
   onDismissRequest: () -> Unit
 ) {
   ModalBottomSheet(
@@ -278,7 +297,7 @@ private fun LongPressActionsSheet(
       Card(
         onClick = {
           onDismissRequest()
-          // TODO: open a new bottom sheet for selecting and copying
+          onSelectAndCopy()
         },
         shape = MaterialTheme.shapes.medium
       ) {
@@ -418,6 +437,100 @@ private fun LongPressActionsSheet(
         Text(message.createdAt.toJavaLocalDateTime().toLocalString())
         if (model != null) {
           Text(model.displayName)
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun SelectAndCopySheet(
+  message: UIMessage,
+  onDismissRequest: () -> Unit
+) {
+  val context = LocalContext.current
+  ModalBottomSheet(
+    onDismissRequest = onDismissRequest,
+    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    sheetGesturesEnabled = false,
+    dragHandle = null,
+  ) {
+    Column(
+      modifier = Modifier
+          .fillMaxSize()
+          .padding(16.dp),
+      verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+      // Header
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        IconButton(
+          onClick = {
+            onDismissRequest()
+          }
+        ) {
+          Icon(Lucide.X, null)
+        }
+
+        Text(
+          text = "选择复制",
+          style = MaterialTheme.typography.headlineSmall,
+        )
+
+        TextButton(
+          onClick = {
+            context.copyMessageToClipboard(message)
+            onDismissRequest()
+          }
+        ) {
+          Icon(
+            imageVector = Lucide.Copy,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp)
+          )
+          Spacer(modifier = Modifier.width(8.dp))
+          Text("复制全部")
+        }
+      }
+
+      // Content
+      val textParts =
+        message.parts.filterIsInstance<UIMessagePart.Text>().filter { it.text.isNotBlank() }
+
+      if (textParts.isEmpty()) {
+        // No text content available
+        Column(
+          modifier = Modifier
+              .weight(1f)
+              .fillMaxWidth(),
+          horizontalAlignment = Alignment.CenterHorizontally,
+          verticalArrangement = Arrangement.Center
+        ) {
+          Text(
+            text = "暂无可复制的文本内容",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            textAlign = TextAlign.Center
+          )
+        }
+      } else {
+        SelectionContainer {
+          Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+          ) {
+            textParts.fastForEach { textPart ->
+              Text(
+                text = textPart.text,
+                style = MaterialTheme.typography.bodyMedium,
+              )
+            }
+          }
         }
       }
     }
@@ -1210,7 +1323,7 @@ fun ReasoningCard(
             MarkdownBlock(
               content = reasoning.reasoning,
               style = MaterialTheme.typography.bodySmall,
-              modifier = Modifier
+              modifier = Modifier.fillMaxSize(),
             )
           }
         }

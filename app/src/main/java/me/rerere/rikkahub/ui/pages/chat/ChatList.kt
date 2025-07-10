@@ -42,7 +42,9 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -92,21 +94,17 @@ fun ChatList(
 ) {
   val state = rememberLazyListState()
   val scope = rememberCoroutineScope()
+  val loadingState by rememberUpdatedState(loading)
 
   val viewPortSize by remember { derivedStateOf { state.layoutInfo.viewportSize } }
   var isRecentScroll by remember { mutableStateOf(false) }
 
-  var isAtBottom by remember { mutableStateOf(false) }
-  val scrollToBottom = { state.requestScrollToItem(conversation.messageNodes.lastIndex + 5) }
   fun List<LazyListItemInfo>.isAtBottom(): Boolean {
     val lastItem = lastOrNull() ?: return false
     if (lastItem.key == LoadingIndicatorKey || lastItem.key == ScrollBottomKey || lastItem.key == TokenUsageItemKey) {
       return true
     }
     return lastItem.key == conversation.messageNodes.lastOrNull()?.id && (lastItem.offset + lastItem.size <= state.layoutInfo.viewportEndOffset + lastItem.size * 0.15 + 32)
-  }
-  LaunchedEffect(state, conversation) {
-    isAtBottom = state.layoutInfo.visibleItemsInfo.isAtBottom()
   }
 
   // 聊天选择
@@ -120,10 +118,13 @@ fun ChatList(
       .fillMaxSize(),
   ) {
     // 自动滚动到底部
-    LaunchedEffect(loading, conversation.messageNodes, viewPortSize, loading) {
-      if (!state.isScrollInProgress && state.canScrollForward && loading) {
-        if (state.layoutInfo.visibleItemsInfo.isAtBottom()) {
-          state.requestScrollToItem(conversation.messageNodes.lastIndex + 10)
+    LaunchedEffect(state) {
+      snapshotFlow { state.layoutInfo.visibleItemsInfo }.collect { visibleItemsInfo ->
+        // println("is bottom = ${visibleItemsInfo.isAtBottom()}, scroll = ${state.isScrollInProgress}, can_scroll = ${state.canScrollForward}, loading = $loading")
+        if (!state.isScrollInProgress  && loadingState) {
+          if (visibleItemsInfo.isAtBottom()) {
+            state.requestScrollToItem(conversation.messageNodes.lastIndex + 10)
+          }
         }
       }
     }

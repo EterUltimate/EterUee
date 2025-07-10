@@ -3,7 +3,6 @@ package me.rerere.ai.util
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
-import android.util.Log
 import androidx.core.net.toUri
 import me.rerere.ai.ui.UIMessagePart
 import java.io.File
@@ -28,11 +27,11 @@ fun UIMessagePart.Image.encodeBase64(withPrefix: Boolean = true): Result<String>
         throw IllegalArgumentException("File does not exist: ${this.url}")
       }
       if (!file.isSupportedType()) {
-        convertToWebP(file) // 转换为 JPEG 格式
+        convertToJpeg(file) // 转换为 JPEG 格式
         println("File converted to WebP format: ${file.absolutePath}")
       }
       if (file.guessMimeType().getOrNull() != "image/webp") {
-        convertToWebP(file) // 尝试转换为 WebP 格式
+        convertToJpeg(file) // 尝试转换为 WebP 格式
         println("File converted to WebP format: ${file.absolutePath}")
       }
       val bytes = file.readBytes()
@@ -46,10 +45,10 @@ fun UIMessagePart.Image.encodeBase64(withPrefix: Boolean = true): Result<String>
   }
 }
 
-private fun convertToWebP(file: File) = runCatching {
+private fun convertToJpeg(file: File) = runCatching {
   val bitmap = BitmapFactory.decodeFile(file.absolutePath)
   FileOutputStream(file).use { outputStream ->
-    bitmap.compress(Bitmap.CompressFormat.WEBP, 80, outputStream)
+    bitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
   }
 }
 

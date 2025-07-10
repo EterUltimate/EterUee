@@ -58,6 +58,7 @@ import com.composables.icons.lucide.Settings
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.rikkahub.BuildConfig
 import me.rerere.rikkahub.R
@@ -248,12 +249,11 @@ fun ChatPage(id: Uuid, text: String?, vm: ChatVM = koinViewModel()) {
             ))
           vm.saveConversationAsync()
         },
-        onClickSuggestion = {
-          vm.handleMessageSend(
-            listOf(
-              UIMessagePart.Text(
-                text = it,
-              )
+        onClickSuggestion = { suggestion ->
+          inputState.editingMessage = null
+          inputState.messageContent = listOf(
+            UIMessagePart.Text(
+              text = suggestion
             )
           )
         }
@@ -403,8 +403,8 @@ private fun DrawerContent(
         conversations = conversations,
         loadings = if (loading) listOf(current.id) else emptyList(),
         modifier = Modifier
-          .fillMaxWidth()
-          .weight(1f),
+            .fillMaxWidth()
+            .weight(1f),
         onClick = {
           navController.navigate("chat/${it.id}") {
             popUpTo("chat/${current.id}") {
@@ -483,8 +483,8 @@ private fun UpdateCard(vm: ChatVM) {
     Card {
       Column(
         modifier = Modifier
-          .padding(8.dp)
-          .fillMaxWidth(),
+            .padding(8.dp)
+            .fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
       ) {
         Text(
@@ -512,8 +512,8 @@ private fun UpdateCard(vm: ChatVM) {
       ) {
         Column(
           modifier = Modifier
-            .padding(8.dp)
-            .fillMaxWidth(),
+              .padding(8.dp)
+              .fillMaxWidth(),
           verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
           Text(
@@ -541,8 +541,8 @@ private fun UpdateCard(vm: ChatVM) {
       ) {
         Column(
           modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 32.dp),
+              .fillMaxWidth()
+              .padding(horizontal = 16.dp, vertical = 32.dp),
           verticalArrangement = Arrangement.spacedBy(8.dp),
           horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -559,9 +559,9 @@ private fun UpdateCard(vm: ChatVM) {
           MarkdownBlock(
             content = info.changelog,
             modifier = Modifier
-              .fillMaxWidth()
-              .height(300.dp)
-              .verticalScroll(rememberScrollState()),
+                .fillMaxWidth()
+                .height(300.dp)
+                .verticalScroll(rememberScrollState()),
             style = MaterialTheme.typography.bodyMedium
           )
           info.downloads.fastForEach { downloadItem ->

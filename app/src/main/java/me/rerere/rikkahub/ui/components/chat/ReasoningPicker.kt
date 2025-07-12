@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.ui.components.chat
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -167,15 +168,14 @@ fun ReasoningPicker(
           onUpdateReasoningTokens(32_000)
         }
       )
-      ReasoningLevelCard(
+
+      Card(
         modifier = Modifier.imePadding(),
-        icon = {
-          Icon(Lucide.Keyboard, null)
-        },
-        title = {
+      ) {
+        Column(
+          modifier = Modifier.padding(16.dp),
+        ) {
           Text(stringResource(id = R.string.reasoning_custom))
-        },
-        description = {
           var input by remember(reasoningTokens) {
             mutableStateOf(reasoningTokens.toString())
           }
@@ -191,9 +191,8 @@ fun ReasoningPicker(
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
           )
-        },
-        onClick = {}
-      )
+        }
+      }
     }
   }
 }
@@ -207,9 +206,26 @@ private fun ReasoningLevelCard(
   description: @Composable () -> Unit = {},
   onClick: () -> Unit,
 ) {
+  val containerColor = animateColorAsState(
+    if (selected) {
+      MaterialTheme.colorScheme.primary
+    } else {
+      MaterialTheme.colorScheme.primaryContainer
+    }
+  )
+  val textColor = animateColorAsState(
+    if (selected) {
+      MaterialTheme.colorScheme.onPrimary
+    } else {
+      MaterialTheme.colorScheme.onPrimaryContainer
+    }
+  )
   Card(
     onClick = onClick,
-    colors = if (selected) CardDefaults.cardColors() else CardDefaults.outlinedCardColors(),
+    colors = CardDefaults.cardColors(
+      containerColor = containerColor.value,
+      contentColor = textColor.value,
+    ),
     modifier = modifier,
   ) {
     Row(

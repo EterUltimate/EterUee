@@ -195,6 +195,7 @@ fun ChatList(
               model = node.currentMessage.modelId?.let { settings.findModelById(it) },
               assistant = settings.getAssistantById(conversation.assistantId),
               showActions = showActionsForThisMessage,
+              loading = loading && index == conversation.messageNodes.lastIndex,
               onRegenerate = {
                 onRegenerate(node.currentMessage)
               },

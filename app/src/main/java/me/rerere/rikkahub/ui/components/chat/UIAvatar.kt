@@ -3,11 +3,16 @@ package me.rerere.rikkahub.ui.components.chat
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,6 +22,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -24,6 +31,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,9 +41,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -43,13 +51,19 @@ import coil3.compose.AsyncImage
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.model.Avatar
 import me.rerere.rikkahub.ui.components.ui.EmojiPicker
+import me.rerere.rikkahub.ui.hooks.rememberAvatarShape
 import me.rerere.rikkahub.utils.createChatFilesByContents
+import kotlin.math.roundToInt
 
 @Composable
-fun TextAvatar(text: String, modifier: Modifier = Modifier) {
+fun TextAvatar(
+  text: String,
+  modifier: Modifier = Modifier,
+  loading: Boolean = false,
+) {
   Box(
     modifier = modifier
-        .clip(CircleShape)
+        .clip(shape = rememberAvatarShape(loading))
         .background(MaterialTheme.colorScheme.secondary)
         .size(32.dp),
     contentAlignment = Alignment.Center
@@ -70,10 +84,11 @@ fun TextAvatar(text: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun Avatar(
+fun UIAvatar(
   name: String,
   value: Avatar,
   modifier: Modifier = Modifier,
+  loading: Boolean = false,
   onUpdate: ((Avatar) -> Unit)? = null,
 ) {
   val context = LocalContext.current
@@ -93,7 +108,7 @@ fun Avatar(
   }
 
   Surface(
-    shape = CircleShape,
+    shape = rememberAvatarShape(loading),
     modifier = modifier.size(32.dp),
     onClick = {
       if (onUpdate != null) showPickOption = true
@@ -258,5 +273,35 @@ fun Avatar(
         }
       }
     )
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PreviewUIAvatar() {
+  var loading by remember { mutableStateOf(true) }
+  Column(
+    modifier = Modifier.padding(16.dp),
+    verticalArrangement = Arrangement.spacedBy(16.dp)
+  ) {
+    UIAvatar(
+      name = "John Doe",
+      value = Avatar.Dummy,
+      loading = false
+    )
+
+    UIAvatar(
+      name = "John Doe",
+      value = Avatar.Dummy,
+      loading = loading,
+    )
+
+    Button(
+      onClick = {
+        loading = !loading
+      }
+    ) {
+      Text("Toggle Loading")
+    }
   }
 }

@@ -61,7 +61,6 @@ import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.X
-import io.ktor.http.parametersOf
 import kotlinx.coroutines.launch
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.provider.Model
@@ -78,7 +77,7 @@ import me.rerere.rikkahub.data.model.AssistantMemory
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.model.Tag as DataTag
 import me.rerere.rikkahub.data.model.toMessageNode
-import me.rerere.rikkahub.ui.components.chat.Avatar
+import me.rerere.rikkahub.ui.components.chat.UIAvatar
 import me.rerere.rikkahub.ui.components.chat.ChatMessage
 import me.rerere.rikkahub.ui.components.chat.McpPicker
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
@@ -296,7 +295,7 @@ private fun AssistantBasicSettings(
     verticalArrangement = Arrangement.spacedBy(16.dp)
   ) {
     Row {
-      Avatar(
+      UIAvatar(
         value = assistant.avatar,
         name = assistant.name.ifBlank { stringResource(R.string.assistant_page_default_assistant) },
         onUpdate = { avatar ->

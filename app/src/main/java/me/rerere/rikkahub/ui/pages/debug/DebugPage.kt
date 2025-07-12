@@ -17,22 +17,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.sonner.ToastType
-import kotlinx.coroutines.launch
 import me.rerere.rikkahub.data.model.Avatar
-import me.rerere.rikkahub.ui.components.chat.Avatar
+import me.rerere.rikkahub.ui.components.chat.UIAvatar
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.components.richtext.MathBlock
 import me.rerere.rikkahub.ui.components.richtext.Mermaid
-import me.rerere.rikkahub.ui.components.ui.EmojiPicker
 import me.rerere.rikkahub.ui.context.LocalToaster
-import me.rerere.search.SearchService
 import org.koin.androidx.compose.koinViewModel
 import kotlin.random.Random
 import kotlin.random.nextInt
@@ -62,7 +58,7 @@ fun DebugPage(vm: DebugVM = koinViewModel()) {
       verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
       var avatar : Avatar by remember { mutableStateOf(Avatar.Emoji("😎")) }
-      Avatar(
+      UIAvatar(
         value = avatar,
         onUpdate = {
           println("Avatar updated: $it")

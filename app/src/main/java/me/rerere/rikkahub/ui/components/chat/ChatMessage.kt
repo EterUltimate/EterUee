@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -44,6 +43,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -104,7 +104,6 @@ import com.composables.icons.lucide.Expand
 import com.composables.icons.lucide.File
 import com.composables.icons.lucide.GitFork
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.LucideIcon
 import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.Share
@@ -153,7 +152,6 @@ import me.rerere.rikkahub.utils.jsonPrimitiveOrNull
 import me.rerere.rikkahub.utils.openUrl
 import me.rerere.rikkahub.utils.toLocalString
 import me.rerere.rikkahub.utils.urlDecode
-import me.rerere.rikkahub.utils.urlEncode
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
@@ -165,6 +163,7 @@ fun ChatMessage(
   node: MessageNode,
   conversation: Conversation,
   modifier: Modifier = Modifier,
+  loading: Boolean = false,
   showIcon: Boolean = true,
   model: Model? = null,
   assistant: Assistant? = null,
@@ -192,8 +191,8 @@ fun ChatMessage(
     if (!message.parts.isEmptyUIMessage()) {
       Row(
         modifier = Modifier
-          .fillMaxWidth()
-          .padding(vertical = 8.dp),
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
       ) {
@@ -202,6 +201,7 @@ fun ChatMessage(
           message = message,
           model = model,
           assistant = assistant,
+          loading = loading,
           modifier = Modifier.weight(1f)
         )
         MessageNodePagerButtons(
@@ -212,16 +212,16 @@ fun ChatMessage(
     }
     Column(
       modifier = Modifier
-        .clip(MaterialTheme.shapes.small)
-        .combinedClickable(
-          enabled = true,
-          indication = LocalIndication.current,
-          interactionSource = remember { MutableInteractionSource() },
-          onClick = {},
-          onLongClick = {
-            showActionsSheet = true
-          }
-        ),
+          .clip(MaterialTheme.shapes.small)
+          .combinedClickable(
+              enabled = true,
+              indication = LocalIndication.current,
+              interactionSource = remember { MutableInteractionSource() },
+              onClick = {},
+              onLongClick = {
+                  showActionsSheet = true
+              }
+          ),
       verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
       ProvideTextStyle(textStyle) {
@@ -293,8 +293,8 @@ private fun LongPressActionsSheet(
   ) {
     Column(
       modifier = Modifier
-        .fillMaxWidth()
-        .padding(16.dp),
+          .fillMaxWidth()
+          .padding(16.dp),
       verticalArrangement = Arrangement.spacedBy(8.dp),
       horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -310,8 +310,8 @@ private fun LongPressActionsSheet(
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(16.dp),
           modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
+              .padding(16.dp)
+              .fillMaxWidth()
         ) {
           Icon(
             imageVector = Lucide.TextSelect,
@@ -338,8 +338,8 @@ private fun LongPressActionsSheet(
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(16.dp),
           modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
+              .padding(16.dp)
+              .fillMaxWidth()
         ) {
           Icon(
             imageVector = Lucide.Pencil,
@@ -365,8 +365,8 @@ private fun LongPressActionsSheet(
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(16.dp),
           modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
+              .padding(16.dp)
+              .fillMaxWidth()
         ) {
           Icon(
             imageVector = Lucide.Share,
@@ -392,8 +392,8 @@ private fun LongPressActionsSheet(
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(16.dp),
           modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
+              .padding(16.dp)
+              .fillMaxWidth()
         ) {
           Icon(
             imageVector = Lucide.GitFork,
@@ -422,8 +422,8 @@ private fun LongPressActionsSheet(
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(16.dp),
           modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
+              .padding(16.dp)
+              .fillMaxWidth()
         ) {
           Icon(
             imageVector = Lucide.Trash2,
@@ -462,8 +462,8 @@ private fun SelectAndCopySheet(
   ) {
     Column(
       modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp),
+          .fillMaxSize()
+          .padding(16.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
       // Header
@@ -509,8 +509,8 @@ private fun SelectAndCopySheet(
         // No text content available
         Column(
           modifier = Modifier
-            .weight(1f)
-            .fillMaxWidth(),
+              .weight(1f)
+              .fillMaxWidth(),
           horizontalAlignment = Alignment.CenterHorizontally,
           verticalArrangement = Arrangement.Center
         ) {
@@ -525,9 +525,9 @@ private fun SelectAndCopySheet(
         SelectionContainer {
           Column(
             modifier = Modifier
-              .weight(1f)
-              .fillMaxWidth()
-              .verticalScroll(rememberScrollState())
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
           ) {
             textParts.fastForEach { textPart ->
               Text(
@@ -546,6 +546,7 @@ private fun SelectAndCopySheet(
 private fun ModelIcon(
   showIcon: Boolean,
   message: UIMessage,
+  loading: Boolean,
   model: Model?,
   assistant: Assistant?,
   modifier: Modifier = Modifier,
@@ -557,26 +558,46 @@ private fun ModelIcon(
   ) {
     if (showIcon && message.role == MessageRole.ASSISTANT && !message.parts.isEmptyUIMessage() && model != null) {
       if (assistant?.useAssistantAvatar == true) {
-        Avatar(
+        UIAvatar(
           name = assistant.name,
-          modifier = Modifier.size(28.dp),
+          modifier = Modifier.size(36.dp),
           value = assistant.avatar,
+          loading = loading,
         )
-        Text(
-          text = assistant.name.ifEmpty { stringResource(R.string.assistant_page_default_assistant) },
-          style = MaterialTheme.typography.titleMedium,
+        Column(
           modifier = Modifier.weight(1f)
-        )
+        ) {
+          Text(
+            text = assistant.name.ifEmpty { stringResource(R.string.assistant_page_default_assistant) },
+            style = MaterialTheme.typography.titleMedium,
+            maxLines = 1,
+          )
+          Text(
+            text = message.createdAt.toJavaLocalDateTime().toLocalString(),
+            style = MaterialTheme.typography.labelSmall,
+            color = LocalContentColor.current.copy(alpha = 0.8f),
+            maxLines = 1,
+          )
+        }
       } else {
         AutoAIIcon(
           name = model.modelId,
-          modifier = Modifier.size(28.dp)
+          modifier = Modifier.size(36.dp),
+          loading = loading
         )
-        Text(
-          text = model.displayName,
-          style = MaterialTheme.typography.titleSmall,
+        Column(
           modifier = Modifier.weight(1f)
-        )
+        ) {
+          Text(
+            text = model.displayName,
+            style = MaterialTheme.typography.titleSmall,
+          )
+          Text(
+            text = message.createdAt.toJavaLocalDateTime().toLocalString(),
+            style = MaterialTheme.typography.labelSmall,
+            color = LocalContentColor.current.copy(alpha = 0.8f)
+          )
+        }
       }
     }
   }
@@ -604,18 +625,18 @@ private fun ColumnScope.Actions(
   ) {
     Icon(
       Lucide.Copy, stringResource(R.string.copy), modifier = Modifier
-        .clip(CircleShape)
-        .clickable { context.copyMessageToClipboard(message) }
-        .padding(8.dp)
-        .size(16.dp)
+            .clip(CircleShape)
+            .clickable { context.copyMessageToClipboard(message) }
+            .padding(8.dp)
+            .size(16.dp)
     )
 
     Icon(
       Lucide.RefreshCw, stringResource(R.string.regenerate), modifier = Modifier
-        .clip(CircleShape)
-        .clickable { onRegenerate() }
-        .padding(8.dp)
-        .size(16.dp)
+            .clip(CircleShape)
+            .clickable { onRegenerate() }
+            .padding(8.dp)
+            .size(16.dp)
     )
 
     if (message.role == MessageRole.ASSISTANT) {
@@ -625,20 +646,20 @@ private fun ColumnScope.Actions(
         imageVector = if (isSpeaking) Lucide.CircleStop else Lucide.Volume2,
         contentDescription = stringResource(R.string.tts),
         modifier = Modifier
-          .clip(CircleShape)
-          .clickable(
-            interactionSource = remember { MutableInteractionSource() },
-            indication = LocalIndication.current,
-            onClick = {
-              if (!isSpeaking) {
-                tts.speak(message.toText(), TextToSpeech.QUEUE_FLUSH)
-              } else {
-                tts.stop()
-              }
-            }
-          )
-          .padding(8.dp)
-          .size(16.dp)
+            .clip(CircleShape)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = LocalIndication.current,
+                onClick = {
+                    if (!isSpeaking) {
+                        tts.speak(message.toText(), TextToSpeech.QUEUE_FLUSH)
+                    } else {
+                        tts.stop()
+                    }
+                }
+            )
+            .padding(8.dp)
+            .size(16.dp)
       )
     }
   }
@@ -660,23 +681,23 @@ private fun MessageNodePagerButtons(
         imageVector = Lucide.ChevronLeft,
         contentDescription = "Prev",
         modifier = Modifier
-          .clip(CircleShape)
-          .alpha(if (node.selectIndex == 0) 0.5f else 1f)
-          .clickable(
-            interactionSource = remember { MutableInteractionSource() },
-            indication = LocalIndication.current,
-            onClick = {
-              if (node.selectIndex > 0) {
-                onUpdate(
-                  node.copy(
-                    selectIndex = node.selectIndex - 1
-                  )
-                )
-              }
-            }
-          )
-          .padding(8.dp)
-          .size(16.dp)
+            .clip(CircleShape)
+            .alpha(if (node.selectIndex == 0) 0.5f else 1f)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = LocalIndication.current,
+                onClick = {
+                    if (node.selectIndex > 0) {
+                        onUpdate(
+                            node.copy(
+                                selectIndex = node.selectIndex - 1
+                            )
+                        )
+                    }
+                }
+            )
+            .padding(8.dp)
+            .size(16.dp)
       )
 
       Text(
@@ -688,23 +709,23 @@ private fun MessageNodePagerButtons(
         imageVector = Lucide.ChevronRight,
         contentDescription = "Next",
         modifier = Modifier
-          .clip(CircleShape)
-          .alpha(if (node.selectIndex == node.messages.lastIndex) 0.5f else 1f)
-          .clickable(
-            interactionSource = remember { MutableInteractionSource() },
-            indication = LocalIndication.current,
-            onClick = {
-              if (node.selectIndex < node.messages.lastIndex) {
-                onUpdate(
-                  node.copy(
-                    selectIndex = node.selectIndex + 1
-                  )
-                )
-              }
-            }
-          )
-          .padding(8.dp)
-          .size(16.dp),
+            .clip(CircleShape)
+            .alpha(if (node.selectIndex == node.messages.lastIndex) 0.5f else 1f)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = LocalIndication.current,
+                onClick = {
+                    if (node.selectIndex < node.messages.lastIndex) {
+                        onUpdate(
+                            node.copy(
+                                selectIndex = node.selectIndex + 1
+                            )
+                        )
+                    }
+                }
+            )
+            .padding(8.dp)
+            .size(16.dp),
       )
     }
   }
@@ -752,7 +773,7 @@ private fun MessagePartsBlock(
       Card(
         modifier = Modifier
           .animateContentSize(),
-        shape = RoundedCornerShape(8.dp),
+        shape = MaterialTheme.shapes.medium,
       ) {
         Column(modifier = Modifier.padding(8.dp)) {
           MarkdownBlock(
@@ -814,15 +835,15 @@ private fun MessagePartsBlock(
         ) {
           Column(
             modifier = Modifier
-              .drawWithContent {
-                drawContent()
-                drawRoundRect(
-                  color = contentColor.copy(alpha = 0.2f),
-                  size = Size(width = 10f, height = size.height),
-                )
-              }
-              .padding(start = 16.dp)
-              .padding(4.dp),
+                .drawWithContent {
+                    drawContent()
+                    drawRoundRect(
+                        color = contentColor.copy(alpha = 0.2f),
+                        size = Size(width = 10f, height = size.height),
+                    )
+                }
+                .padding(start = 16.dp)
+                .padding(4.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
           ) {
             annotations.fastForEachIndexed { index, annotation ->
@@ -867,8 +888,8 @@ private fun MessagePartsBlock(
         model = it.url,
         contentDescription = null,
         modifier = Modifier
-          .clip(RoundedCornerShape(8.dp))
-          .height(72.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .height(72.dp)
       )
     }
   }
@@ -953,18 +974,18 @@ private fun ToolCallItem(
   var showResult by remember { mutableStateOf(false) }
   Box(
     modifier = Modifier
-      .clip(MaterialTheme.shapes.small)
-      .clickable {
-        showResult = true
-      }
-      .background(MaterialTheme.colorScheme.secondaryContainer)
+        .clip(MaterialTheme.shapes.small)
+        .clickable {
+            showResult = true
+        }
+        .background(MaterialTheme.colorScheme.secondaryContainer)
   ) {
     Row(
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(8.dp),
       modifier = Modifier
-        .padding(vertical = 4.dp, horizontal = 8.dp)
-        .height(IntrinsicSize.Min)
+          .padding(vertical = 4.dp, horizontal = 8.dp)
+          .height(IntrinsicSize.Min)
     ) {
       if (loading) {
         CircularProgressIndicator(
@@ -1037,9 +1058,9 @@ private fun ToolCallPreviewDialog(
     content = {
       Column(
         modifier = Modifier
-          .fillMaxHeight(0.8f)
-          .padding(16.dp)
-          .verticalScroll(rememberScrollState()),
+            .fillMaxHeight(0.8f)
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(8.dp),
       ) {
         when (toolName) {
@@ -1055,8 +1076,8 @@ private fun ToolCallPreviewDialog(
             if (items.isNotEmpty()) {
               LazyColumn(
                 modifier = Modifier
-                  .fillMaxWidth()
-                  .weight(1f),
+                    .fillMaxWidth()
+                    .weight(1f),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
               ) {
                 if (answer != null) {
@@ -1069,8 +1090,8 @@ private fun ToolCallPreviewDialog(
                       MarkdownBlock(
                         content = answer,
                         modifier = Modifier
-                          .padding(16.dp)
-                          .fillMaxWidth(),
+                            .padding(16.dp)
+                            .fillMaxWidth(),
                         style = MaterialTheme.typography.bodySmall
                       )
                     }
@@ -1096,8 +1117,8 @@ private fun ToolCallPreviewDialog(
                   ) {
                     Row(
                       modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp, horizontal = 16.dp),
+                          .fillMaxWidth()
+                          .padding(vertical = 8.dp, horizontal = 16.dp),
                       horizontalArrangement = Arrangement.spacedBy(16.dp),
                       verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -1241,25 +1262,25 @@ fun ReasoningCard(
   ) {
     Column(
       modifier = Modifier
-        .padding(8.dp)
-        .animateContentSize(),
+          .padding(8.dp)
+          .animateContentSize(),
       verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
       Row(
         modifier = Modifier
-          .clip(MaterialTheme.shapes.small)
-          .let { if (expandState.expanded) it.fillMaxWidth() else it.wrapContentWidth() }
-          .clickable(
-            onClick = {
-              toggle()
+            .clip(MaterialTheme.shapes.small)
+            .let { if (expandState.expanded) it.fillMaxWidth() else it.wrapContentWidth() }
+            .clickable(
+                onClick = {
+                    toggle()
+                },
+                indication = LocalIndication.current,
+                interactionSource = remember { MutableInteractionSource() }
+            )
+            .padding(horizontal = 8.dp)
+            .semantics {
+                role = Role.Button
             },
-            indication = LocalIndication.current,
-            interactionSource = remember { MutableInteractionSource() }
-          )
-          .padding(horizontal = 8.dp)
-          .semantics {
-            role = Role.Button
-          },
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
       ) {
@@ -1308,30 +1329,30 @@ fun ReasoningCard(
             .let {
               if (expandState == ReasoningCardState.Preview) {
                 it
-                  .graphicsLayer { alpha = 0.99f } // 触发离屏渲染，保证蒙版生效
+                    .graphicsLayer { alpha = 0.99f } // 触发离屏渲染，保证蒙版生效
                   .drawWithCache {
-                    // 创建顶部和底部的渐变蒙版
-                    val brush = Brush.verticalGradient(
-                      startY = 0f,
-                      endY = size.height,
-                      colorStops = arrayOf(
-                        0.0f to Color.Transparent,
-                        (fadeHeight / size.height) to Color.Black,
-                        (1 - fadeHeight / size.height) to Color.Black,
-                        1.0f to Color.Transparent
+                      // 创建顶部和底部的渐变蒙版
+                      val brush = Brush.verticalGradient(
+                          startY = 0f,
+                          endY = size.height,
+                          colorStops = arrayOf(
+                              0.0f to Color.Transparent,
+                              (fadeHeight / size.height) to Color.Black,
+                              (1 - fadeHeight / size.height) to Color.Black,
+                              1.0f to Color.Transparent
+                          )
                       )
-                    )
-                    onDrawWithContent {
-                      drawContent()
-                      drawRect(
-                        brush = brush,
-                        size = Size(size.width, size.height),
-                        blendMode = androidx.compose.ui.graphics.BlendMode.DstIn // 用蒙版做透明渐变
-                      )
-                    }
+                      onDrawWithContent {
+                          drawContent()
+                          drawRect(
+                              brush = brush,
+                              size = Size(size.width, size.height),
+                              blendMode = androidx.compose.ui.graphics.BlendMode.DstIn // 用蒙版做透明渐变
+                          )
+                      }
                   }
-                  .heightIn(max = 120.dp)
-                  .verticalScroll(scrollState)
+                    .heightIn(max = 120.dp)
+                    .verticalScroll(scrollState)
               } else {
                 it
               }
@@ -1357,8 +1378,8 @@ private fun ReasoningCardPreview() {
   Column(
     verticalArrangement = Arrangement.spacedBy(8.dp),
     modifier = Modifier
-      .fillMaxWidth()
-      .padding(8.dp)
+        .fillMaxWidth()
+        .padding(8.dp)
   ) {
     ReasoningCard(
       reasoning = UIMessagePart.Reasoning(

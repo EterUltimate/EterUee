@@ -120,7 +120,7 @@ fun ModelSelector(
           AutoAIIcon(
             it, Modifier
               .padding(end = 4.dp)
-              .size(24.dp)
+              .size(36.dp)
           )
         }
         Text(
@@ -151,7 +151,7 @@ fun ModelSelector(
     ) {
       if (model != null) {
         AutoAIIcon(
-          modifier = Modifier.size(24.dp),
+          modifier = Modifier.size(36.dp),
           name = model.modelId
         )
       } else {

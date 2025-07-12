@@ -6,39 +6,42 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.layout.PaneScaffoldDirective
+import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
+import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NamedNavArgument
-import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavHostController
-import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entry
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSavedStateNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
+import androidx.navigation3.ui.rememberSceneSetupNavEntryDecorator
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
@@ -49,15 +52,16 @@ import com.dokar.sonner.rememberToasterState
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
+import kotlinx.serialization.Serializable
 import me.rerere.highlight.Highlighter
 import me.rerere.highlight.LocalHighlighter
 import me.rerere.rikkahub.data.datastore.SettingsStore
-import me.rerere.rikkahub.ui.context.LocalAnimatedVisibilityScope
 import me.rerere.rikkahub.ui.context.LocalFirebaseAnalytics
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSettings
 import me.rerere.rikkahub.ui.context.LocalSharedTransitionScope
 import me.rerere.rikkahub.ui.context.LocalToaster
+import me.rerere.rikkahub.ui.context.popBack
 import me.rerere.rikkahub.ui.hooks.readStringPreference
 import me.rerere.rikkahub.ui.pages.assistant.AssistantPage
 import me.rerere.rikkahub.ui.pages.assistant.detail.AssistantDetailPage
@@ -82,6 +86,7 @@ import me.rerere.rikkahub.ui.theme.RikkahubTheme
 import me.rerere.rikkahub.utils.base64Encode
 import okhttp3.OkHttpClient
 import org.koin.android.ext.android.inject
+import org.koin.androidx.compose.koinViewModel
 import kotlin.uuid.Uuid
 
 private const val TAG = "RouteActivity"
@@ -97,8 +102,15 @@ class RouteActivity : ComponentActivity() {
     disableNavigationBarContrast()
     super.onCreate(savedInstanceState)
     setContent {
-      val navController = rememberNavController()
-      ShareHandler(navController)
+      val navStack = rememberNavBackStack(
+        Screen.Chat(
+          id = readStringPreference(
+            "lastConversationId",
+            Uuid.random().toString()
+          ) ?: Uuid.random().toString(),
+        )
+      )
+      ShareHandler(navStack)
       RikkahubTheme {
         setSingletonImageLoaderFactory { context ->
           ImageLoader.Builder(context)
@@ -109,7 +121,7 @@ class RouteActivity : ComponentActivity() {
             }
             .build()
         }
-        AppRoutes(navController)
+        AppRoutes(navStack)
       }
     }
     firebaseAnalytics = Firebase.analytics
@@ -122,7 +134,7 @@ class RouteActivity : ComponentActivity() {
   }
 
   @Composable
-  private fun ShareHandler(navController: NavHostController) {
+  private fun ShareHandler(navBackStack: NavBackStack) {
     val shareIntent = remember {
       Intent().apply {
         action = intent?.action
@@ -130,23 +142,41 @@ class RouteActivity : ComponentActivity() {
       }
     }
 
-    LaunchedEffect(navController) {
+    LaunchedEffect(navBackStack) {
       if (shareIntent.action == Intent.ACTION_SEND) {
         val text = shareIntent.getStringExtra(Intent.EXTRA_TEXT)
         if (text != null) {
-          navController.navigate("share/handler?text=${text.base64Encode()}")
+          navBackStack.add(Screen.ShareHandler(text))
         }
       }
     }
   }
 
+  private val enterTransition: AnimatedContentTransitionScope<*>.() -> ContentTransform = {
+    // Slide in from right when navigating forward
+    slideInHorizontally(initialOffsetX = { it }) togetherWith
+      slideOutHorizontally(targetOffsetX = { -it })
+  }
+  private val popTransition: AnimatedContentTransitionScope<*>.() -> ContentTransform = {
+    // Slide in from left when navigating back
+    slideInHorizontally(initialOffsetX = { -it / 3 }) + fadeIn() + scaleIn(initialScale = 1.1f) togetherWith
+      slideOutHorizontally(targetOffsetX = { it }) + scaleOut(targetScale = 0.75f) + fadeOut()
+  }
+  private val noneTransition: AnimatedContentTransitionScope<*>.() -> ContentTransform = {
+    ContentTransform(
+      targetContentEnter = EnterTransition.None,
+      initialContentExit = ExitTransition.None
+    )
+  }
+
+  @OptIn(ExperimentalMaterial3AdaptiveApi::class)
   @Composable
-  fun AppRoutes(navController: NavHostController) {
+  fun AppRoutes(navBackStack: NavBackStack) {
     val toastState = rememberToasterState()
     val settings by settingsStore.settingsFlow.collectAsStateWithLifecycle()
     SharedTransitionLayout {
       CompositionLocalProvider(
-        LocalNavController provides navController,
+        LocalNavController provides navBackStack,
         LocalSharedTransitionScope provides this,
         LocalSettings provides settings,
         LocalHighlighter provides highlighter,
@@ -158,187 +188,159 @@ class RouteActivity : ComponentActivity() {
           darkTheme = LocalDarkMode.current,
           richColors = true,
         )
-        NavHost(
+        NavDisplay(
           modifier = Modifier
               .fillMaxSize()
               .background(MaterialTheme.colorScheme.background),
-          navController = navController,
-          startDestination = rememberSaveable {
-            val id = readStringPreference(
-              "lastConversationId",
-              Uuid.random().toString()
-            ) ?: Uuid.random().toString()
-            "chat/$id"
+          backStack = navBackStack,
+          onBack = { navBackStack.popBack() },
+          entryDecorators = listOf(
+            // Add the default decorators for managing scenes and saving state
+            rememberSceneSetupNavEntryDecorator(),
+            rememberSavedStateNavEntryDecorator(),
+            // Then add the view model store decorator
+            rememberViewModelStoreNavEntryDecorator()
+          ),
+          transitionSpec = enterTransition,
+          popTransitionSpec = popTransition,
+          predictivePopTransitionSpec = popTransition,
+          entryProvider = entryProvider {
+            entry<Screen.Chat>(
+              metadata = NavDisplay.transitionSpec(noneTransition)
+            ) {
+              ChatPage(
+                id = Uuid.parse(it.id),
+                text = it.text,
+              )
+            }
+
+            entry<Screen.ShareHandler> {
+              ShareHandlerPage(it.text)
+            }
+
+            entry<Screen.History> {
+              HistoryPage()
+            }
+
+            entry<Screen.Assistant> {
+              AssistantPage()
+            }
+
+            entry<Screen.AssistantDetail> {
+              AssistantDetailPage(it.id)
+            }
+
+            entry<Screen.Menu> {
+              MenuPage()
+            }
+
+            entry<Screen.Translator> {
+              TranslatorPage()
+            }
+
+            entry<Screen.Setting> {
+              SettingPage()
+            }
+
+            entry<Screen.Backup> {
+              BackupPage()
+            }
+
+            entry<Screen.WebView> {
+              WebViewPage(it.url, it.content)
+            }
+
+            entry<Screen.SettingDisplay> {
+              SettingDisplayPage()
+            }
+
+            entry<Screen.SettingProvider> {
+              SettingProviderPage()
+            }
+
+            entry<Screen.SettingProviderDetail> {
+              val id = Uuid.parse(it.providerId)
+              SettingProviderDetailPage(id = id)
+            }
+
+            entry<Screen.SettingModels> {
+              SettingModelPage()
+            }
+
+            entry<Screen.SettingAbout> {
+              SettingAboutPage()
+            }
+
+            entry<Screen.SettingSearch> {
+              SettingSearchPage()
+            }
+
+            entry<Screen.SettingMcp> {
+              SettingMcpPage()
+            }
+
+            entry<Screen.Debug> {
+              DebugPage()
+            }
           },
-          enterTransition = {
-            slideInHorizontally(
-              initialOffsetX = { it }
-            )
-          },
-          exitTransition = {
-            slideOutHorizontally(
-              targetOffsetX = {
-                -it / 2
-              }
-            ) + fadeOut()
-          },
-          popExitTransition = {
-            slideOutHorizontally(
-              targetOffsetX = {
-                it
-              }
-            ) + fadeOut()
-          },
-          popEnterTransition = {
-            slideInHorizontally(
-              initialOffsetX = {
-                -it / 2
-              }
-            )
-          },
-        ) {
-          composableHelper(
-            route = "chat/{id}?text={text}",
-            args = listOf(
-              navArgument("id") {
-                type = NavType.StringType
-              },
-              navArgument("text") {
-                type = NavType.StringType
-                nullable = true
-              }
-            ),
-            enterTransition = { fadeIn() },
-            exitTransition = { fadeOut() }
-          ) { entry ->
-            ChatPage(
-              id = Uuid.parse(entry.arguments?.getString("id")!!),
-              text = entry.arguments?.getString("text")
-            )
-          }
-
-          composableHelper(
-            route = "share/handler?text={text}",
-            args = listOf(
-              navArgument("text") {
-                type = NavType.StringType
-              }
-            )
-          ) {
-            ShareHandlerPage()
-          }
-
-          composableHelper("history") {
-            HistoryPage()
-          }
-
-          composableHelper("assistant") {
-            AssistantPage()
-          }
-
-          composableHelper(
-            route = "assistant/{id}",
-            args = listOf(
-              navArgument("id") {
-                type = NavType.StringType
-              }
-            ),
-          ) {
-            AssistantDetailPage()
-          }
-
-          composableHelper("menu") {
-            MenuPage()
-          }
-
-          composableHelper("translator") {
-            TranslatorPage()
-          }
-
-          composableHelper("setting") {
-            SettingPage()
-          }
-
-          composableHelper("backup") {
-            BackupPage()
-          }
-
-          composableHelper(
-            route = "webview?url={url}&content={content}",
-            args = listOf(
-              navArgument("url") {
-                type = NavType.StringType
-                defaultValue = ""
-              },
-              navArgument("content") {
-                type = NavType.StringType
-                defaultValue = ""
-              }
-            ),
-          ) {
-            val url = it.arguments?.getString("url") ?: ""
-            val content = it.arguments?.getString("content") ?: ""
-            WebViewPage(url, content)
-          }
-
-          composableHelper("setting/display") {
-            SettingDisplayPage()
-          }
-
-          composableHelper("setting/provider") {
-            SettingProviderPage()
-          }
-
-          composableHelper("setting/provider/{providerId}") {
-            val id = Uuid.parse(checkNotNull(it.arguments?.getString("providerId")))
-            SettingProviderDetailPage(id = id)
-          }
-
-          composableHelper("setting/models") {
-            SettingModelPage()
-          }
-
-          composableHelper("setting/about") {
-            SettingAboutPage()
-          }
-
-          composableHelper("setting/search") {
-            SettingSearchPage()
-          }
-
-          composableHelper("setting/mcp") {
-            SettingMcpPage()
-          }
-
-          composableHelper("debug") {
-            DebugPage()
-          }
-        }
+        )
       }
     }
   }
 }
 
+sealed interface Screen {
+  @Serializable
+  data class Chat(val id: String, val text: String? = null) : NavKey
 
-private fun NavGraphBuilder.composableHelper(
-  route: String,
-  args: List<NamedNavArgument> = emptyList(),
-  enterTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?)? = null,
-  exitTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?)? = null,
-  popEnterTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?)? = null,
-  popExitTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?)? = null,
-  content: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit
-) {
-  this.composable(
-    route = route,
-    arguments = args,
-    enterTransition = enterTransition,
-    exitTransition = exitTransition,
-    popEnterTransition = popEnterTransition,
-    popExitTransition = popExitTransition,
-  ) { entry ->
-    CompositionLocalProvider(LocalAnimatedVisibilityScope provides this) {
-      content(entry)
-    }
-  }
+  @Serializable
+  data class ShareHandler(val text: String) : NavKey
+
+  @Serializable
+  data object History : NavKey
+
+  @Serializable
+  data object Assistant : NavKey
+
+  @Serializable
+  data class AssistantDetail(val id: String) : NavKey
+
+  @Serializable
+  data object Menu : NavKey
+
+  @Serializable
+  data object Translator : NavKey
+
+  @Serializable
+  data object Setting : NavKey
+
+  @Serializable
+  data object Backup : NavKey
+
+  @Serializable
+  data class WebView(val url: String = "", val content: String = "") : NavKey
+
+  @Serializable
+  data object SettingDisplay : NavKey
+
+  @Serializable
+  data object SettingProvider : NavKey
+
+  @Serializable
+  data class SettingProviderDetail(val providerId: String) : NavKey
+
+  @Serializable
+  data object SettingModels : NavKey
+
+  @Serializable
+  data object SettingAbout : NavKey
+
+  @Serializable
+  data object SettingSearch : NavKey
+
+  @Serializable
+  data object SettingMcp : NavKey
+
+  @Serializable
+  data object Debug : NavKey
 }

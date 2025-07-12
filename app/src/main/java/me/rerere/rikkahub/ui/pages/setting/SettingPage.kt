@@ -35,11 +35,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
 import com.composables.icons.lucide.BadgeInfo
 import com.composables.icons.lucide.Bot
 import com.composables.icons.lucide.Boxes
-import com.composables.icons.lucide.Compass
 import com.composables.icons.lucide.Database
 import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.HardDrive
@@ -52,10 +52,13 @@ import com.composables.icons.lucide.Share2
 import com.composables.icons.lucide.SunMoon
 import com.composables.icons.lucide.Terminal
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.Screen
 import me.rerere.rikkahub.data.datastore.isNotConfigured
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.Select
 import me.rerere.rikkahub.ui.context.LocalNavController
+import me.rerere.rikkahub.ui.context.push
+import me.rerere.rikkahub.ui.context.replace
 import me.rerere.rikkahub.ui.hooks.rememberColorMode
 import me.rerere.rikkahub.ui.pages.setting.components.PresetThemeButtonGroup
 import me.rerere.rikkahub.ui.theme.ColorMode
@@ -117,11 +120,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
               onOptionSelected = {
                 colorMode = it
 
-                navController.navigate("setting") {
-                  popUpTo("setting") {
-                    inclusive = true
-                  }
-                }
+                navController.replace(Screen.Setting)
               },
               optionToString = {
                 when (it) {
@@ -180,7 +179,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
           title = { Text(stringResource(R.string.setting_page_display_setting)) },
           description = { Text(stringResource(R.string.setting_page_display_setting_desc)) },
           icon = { Icon(Lucide.Monitor, "Display Setting") },
-          link = "setting/display"
+          link = Screen.SettingDisplay
         )
       }
 
@@ -190,7 +189,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
           title = { Text(stringResource(R.string.setting_page_assistant)) },
           description = { Text(stringResource(R.string.setting_page_assistant_desc)) },
           icon = { Icon(Lucide.Bot, "Assistant") },
-          link = "assistant"
+          link = Screen.Assistant
         )
       }
 
@@ -209,7 +208,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
           title = { Text(stringResource(R.string.setting_page_default_model)) },
           description = { Text(stringResource(R.string.setting_page_default_model_desc)) },
           icon = { Icon(Lucide.Heart, "Default Model") },
-          link = "setting/models"
+          link = Screen.SettingModels
         )
       }
 
@@ -219,7 +218,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
           title = { Text(stringResource(R.string.setting_page_providers)) },
           description = { Text(stringResource(R.string.setting_page_providers_desc)) },
           icon = { Icon(Lucide.Boxes, "Models") },
-          link = "setting/provider"
+          link = Screen.SettingProvider
         )
       }
 
@@ -229,7 +228,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
           title = { Text(stringResource(R.string.setting_page_search_service)) },
           description = { Text(stringResource(R.string.setting_page_search_service_desc)) },
           icon = { Icon(Lucide.Earth, "Search") },
-          link = "setting/search"
+          link = Screen.SettingSearch
         )
       }
 
@@ -239,7 +238,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
           title = { Text(stringResource(R.string.setting_page_mcp)) },
           description = { Text(stringResource(R.string.setting_page_mcp_desc)) },
           icon = { Icon(Lucide.Terminal, "MCP") },
-          link = "setting/mcp"
+          link = Screen.SettingMcp
         )
       }
 
@@ -258,7 +257,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
           title = { Text(stringResource(R.string.setting_page_data_backup)) },
           description = { Text(stringResource(R.string.setting_page_data_backup_desc)) },
           icon = { Icon(Lucide.Database, "Backup") },
-          link = "backup"
+          link = Screen.Backup
         )
       }
 
@@ -304,7 +303,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
           title = { Text(stringResource(R.string.setting_page_about)) },
           description = { Text(stringResource(R.string.setting_page_about_desc)) },
           icon = { Icon(Lucide.BadgeInfo, "About") },
-          link = "setting/about"
+          link = Screen.SettingAbout
         )
       }
 
@@ -339,7 +338,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
 }
 
 @Composable
-private fun ProviderConfigWarningCard(navController: NavController) {
+private fun ProviderConfigWarningCard(navController: NavBackStack) {
   Card(
     modifier = Modifier.padding(8.dp),
     colors = CardDefaults.cardColors(
@@ -369,7 +368,7 @@ private fun ProviderConfigWarningCard(navController: NavController) {
 
       TextButton(
         onClick = {
-          navController.navigate("setting/provider")
+          navController.push(Screen.SettingProvider)
         }
       ) {
         Text(stringResource(R.string.setting_page_config))
@@ -380,16 +379,16 @@ private fun ProviderConfigWarningCard(navController: NavController) {
 
 @Composable
 fun SettingItem(
-  navController: NavController,
+  navController: NavBackStack,
   title: @Composable () -> Unit,
   description: @Composable () -> Unit,
   icon: @Composable () -> Unit,
-  link: String? = null,
+  link: NavKey? = null,
   onClick: () -> Unit = {}
 ) {
   Surface(
     onClick = {
-      if (link != null) navController.navigate(link)
+      if (link != null) navController.push(link)
       onClick()
     }
   ) {

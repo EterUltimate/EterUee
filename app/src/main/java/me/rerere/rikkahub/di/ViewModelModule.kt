@@ -9,17 +9,42 @@ import me.rerere.rikkahub.ui.pages.history.HistoryVM
 import me.rerere.rikkahub.ui.pages.setting.SettingVM
 import me.rerere.rikkahub.ui.pages.share.handler.ShareHandlerVM
 import me.rerere.rikkahub.ui.pages.translator.TranslatorVM
+import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val viewModelModule = module {
-  viewModelOf(::ChatVM)
+  viewModel<ChatVM> { params ->
+    ChatVM(
+      id = params.get(),
+      context = get(),
+      settingsStore = get(),
+      conversationRepo = get(),
+      memoryRepository = get(),
+      generationHandler = get(),
+      templateTransformer = get(),
+      mcpManager = get(),
+      updateChecker = get(),
+    )
+  }
   viewModelOf(::SettingVM)
   viewModelOf(::DebugVM)
   viewModelOf(::HistoryVM)
   viewModelOf(::AssistantVM)
-  viewModelOf(::AssistantDetailVM)
+  viewModel<AssistantDetailVM> {
+    AssistantDetailVM(
+      id = it.get(),
+      settingsStore = get(),
+      memoryRepository = get(),
+      context = get(),
+    )
+  }
   viewModelOf(::TranslatorVM)
-  viewModelOf(::ShareHandlerVM)
+  viewModel<ShareHandlerVM> {
+    ShareHandlerVM(
+      text = it.get(),
+      settingsStore = get(),
+    )
+  }
   viewModelOf(::BackupVM)
 }

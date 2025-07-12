@@ -1,8 +1,27 @@
 package me.rerere.rikkahub.ui.context
 
 import androidx.compose.runtime.compositionLocalOf
-import androidx.navigation.NavController
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
 
-val LocalNavController = compositionLocalOf<NavController> {
+val LocalNavController = compositionLocalOf<NavBackStack> {
   error("No NavController provided")
+}
+
+fun NavBackStack.popBack() {
+  this.removeLastOrNull()
+}
+
+fun NavBackStack.push(key: NavKey) {
+  this.add(key)
+}
+
+fun NavBackStack.replace(key: NavKey) {
+  this.removeLastOrNull()
+  this.add(key)
+}
+
+fun NavBackStack.pushSingleTop(key: NavKey) {
+  this.clear()
+  this.add(key)
 }

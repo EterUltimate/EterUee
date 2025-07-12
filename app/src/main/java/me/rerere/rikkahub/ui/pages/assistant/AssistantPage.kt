@@ -57,6 +57,7 @@ import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Trash2
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.Screen
 import me.rerere.rikkahub.data.datastore.DEFAULT_ASSISTANTS_IDS
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.model.Assistant
@@ -67,6 +68,7 @@ import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
 import me.rerere.rikkahub.ui.context.LocalNavController
+import me.rerere.rikkahub.ui.context.push
 import me.rerere.rikkahub.ui.hooks.EditState
 import me.rerere.rikkahub.ui.hooks.EditStateContent
 import me.rerere.rikkahub.ui.hooks.useEditState
@@ -189,7 +191,7 @@ fun AssistantPage(vm: AssistantVM = koinViewModel()) {
             settings = settings,
             memories = memories,
             onEdit = {
-              navController.navigate("assistant/${assistant.id}")
+              navController.push(Screen.AssistantDetail(id = assistant.id.toString()))
             },
             onDelete = {
               vm.removeAssistant(assistant)

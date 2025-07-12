@@ -31,9 +31,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.Screen
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.Favicon
 import me.rerere.rikkahub.ui.context.LocalNavController
+import me.rerere.rikkahub.ui.context.push
 import me.rerere.rikkahub.utils.plus
 import me.rerere.rikkahub.utils.urlEncode
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -144,7 +146,7 @@ private fun FeaturesSection() {
             )
           },
         ) {
-          navController.navigate("translator")
+          navController.push(Screen.Translator)
         }
       }
 
@@ -162,7 +164,7 @@ private fun FeaturesSection() {
             )
           },
         ) {
-          // navController.navigate("library")
+          // navController.push(Screen.Library)
         }
       }
     }
@@ -180,7 +182,7 @@ private fun LeaderBoard() {
   ) {
     Card(
       onClick = {
-        navController.navigate("webview?url=${url.urlEncode()}")
+        navController.push(Screen.WebView(url = url))
       },
       modifier = Modifier.widthIn(min = 150.dp)
     ) {

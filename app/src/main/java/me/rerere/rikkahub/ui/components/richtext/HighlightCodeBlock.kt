@@ -39,7 +39,9 @@ import me.rerere.highlight.HighlightText
 import me.rerere.highlight.Highlighter
 import me.rerere.highlight.buildHighlightText
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.Screen
 import me.rerere.rikkahub.ui.context.LocalNavController
+import me.rerere.rikkahub.ui.context.push
 import me.rerere.rikkahub.ui.theme.AtomOneDarkPalette
 import me.rerere.rikkahub.ui.theme.AtomOneLightPalette
 import me.rerere.rikkahub.ui.theme.JetbrainsMono
@@ -66,9 +68,9 @@ fun HighlightCodeBlock(
 
   Column(
     modifier = modifier
-      .clip(RoundedCornerShape(4.dp))
-      .background(MaterialTheme.colorScheme.surfaceContainer)
-      .padding(8.dp),
+        .clip(RoundedCornerShape(4.dp))
+        .background(MaterialTheme.colorScheme.surfaceContainer)
+        .padding(8.dp),
   ) {
     Row(
       modifier = Modifier.fillMaxWidth(),
@@ -83,17 +85,17 @@ fun HighlightCodeBlock(
       Spacer(Modifier.weight(1f))
       Row(
         modifier = Modifier
-          .clip(RoundedCornerShape(4.dp))
-          .clickable {
-            scope.launch {
-              clipboardManager.setClipEntry(
-                ClipEntry(
-                  ClipData.newPlainText("code", code),
-                )
-              )
+            .clip(RoundedCornerShape(4.dp))
+            .clickable {
+                scope.launch {
+                    clipboardManager.setClipEntry(
+                        ClipEntry(
+                            ClipData.newPlainText("code", code),
+                        )
+                    )
+                }
             }
-          }
-          .padding(1.dp),
+            .padding(1.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
       ) {
         Text(
@@ -109,7 +111,7 @@ fun HighlightCodeBlock(
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             modifier = Modifier
               .clickable {
-                navController.navigate("webview?content=" + code.base64Encode())
+                navController.push(Screen.WebView(content = code.base64Encode()))
               }
           )
         }

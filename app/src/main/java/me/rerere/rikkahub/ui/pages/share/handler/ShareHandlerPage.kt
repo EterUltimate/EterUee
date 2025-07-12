@@ -30,9 +30,11 @@ import me.rerere.rikkahub.utils.base64Encode
 import me.rerere.rikkahub.utils.navigateToChatPage
 import me.rerere.rikkahub.utils.plus
 import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Composable
-fun ShareHandlerPage(vm: ShareHandlerVM = koinViewModel()) {
+fun ShareHandlerPage(text: String) {
+  val vm: ShareHandlerVM = koinViewModel(parameters = { parametersOf(text) })
   val settings by vm.settings.collectAsStateWithLifecycle()
   val scope = rememberCoroutineScope()
   val navController = LocalNavController.current
@@ -74,9 +76,7 @@ fun ShareHandlerPage(vm: ShareHandlerVM = koinViewModel()) {
               vm.updateAssistant(assistant.id)
               navigateToChatPage(
                 navController = navController,
-                urlHandler = { url ->
-                  "$url?text=${vm.shareText.base64Encode()}"
-                }
+                initText = vm.shareText.base64Encode(),
               )
             }
           },

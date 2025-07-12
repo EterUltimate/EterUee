@@ -91,7 +91,7 @@ private val outputTransformers by lazy {
 }
 
 class ChatVM(
-  savedStateHandle: SavedStateHandle,
+  id: String,
   private val context: Application,
   private val settingsStore: SettingsStore,
   private val conversationRepo: ConversationRepository,
@@ -101,7 +101,7 @@ class ChatVM(
   val mcpManager: McpManager,
   val updateChecker: UpdateChecker,
 ) : ViewModel() {
-  private val _conversationId: Uuid = Uuid.parse(checkNotNull(savedStateHandle["id"]))
+  private val _conversationId: Uuid = Uuid.parse(id)
   private val _conversation = MutableStateFlow(Conversation.ofId(_conversationId))
   val conversation: StateFlow<Conversation>
     get() = _conversation

@@ -24,12 +24,12 @@ import kotlin.uuid.Uuid
 private const val TAG = "AssistantDetailVM"
 
 class AssistantDetailVM(
+  private val id: String,
   private val settingsStore: SettingsStore,
   private val memoryRepository: MemoryRepository,
   private val context: Application,
-  savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-  private val assistantId = Uuid.parse(checkNotNull(savedStateHandle.get<String>("id")))
+  private val assistantId = Uuid.parse(id)
 
   val settings: StateFlow<Settings> =
     settingsStore.settingsFlow.stateIn(viewModelScope, SharingStarted.Eagerly, Settings())

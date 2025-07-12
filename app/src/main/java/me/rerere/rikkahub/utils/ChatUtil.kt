@@ -9,11 +9,13 @@ import android.provider.OpenableColumns
 import android.util.Log
 import androidx.core.net.toFile
 import androidx.core.net.toUri
-import androidx.navigation.NavController
+import androidx.navigation3.runtime.NavBackStack
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
+import me.rerere.rikkahub.Screen
+import me.rerere.rikkahub.ui.context.pushSingleTop
 import java.io.ByteArrayOutputStream
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
@@ -21,19 +23,16 @@ import kotlin.uuid.Uuid
 
 private const val TAG = "ChatUtil"
 
-
 fun navigateToChatPage(
-  navController: NavController,
+  navController: NavBackStack,
   chatId: Uuid = Uuid.random(),
-  urlHandler: (String) -> String = { it }
+  initText: String? = null,
 ) {
   Log.i(TAG, "navigateToChatPage: navigate to $chatId")
-  navController.navigate(urlHandler("chat/${chatId}")) {
-    popUpTo(0) {
-      inclusive = true
-    }
-    launchSingleTop = true
-  }
+  navController.pushSingleTop(Screen.Chat(
+    id = chatId.toString(),
+    text = initText
+  ))
 }
 
 fun Context.copyMessageToClipboard(message: UIMessage) {

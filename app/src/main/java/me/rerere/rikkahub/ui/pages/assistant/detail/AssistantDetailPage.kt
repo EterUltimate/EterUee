@@ -61,6 +61,7 @@ import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.X
+import io.ktor.http.parametersOf
 import kotlinx.coroutines.launch
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.provider.Model
@@ -98,11 +99,17 @@ import me.rerere.rikkahub.utils.onSuccess
 import me.rerere.rikkahub.utils.toFixed
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+import org.koin.core.parameter.parametersOf
 import kotlin.math.roundToInt
 import kotlin.uuid.Uuid
 
 @Composable
-fun AssistantDetailPage(vm: AssistantDetailVM = koinViewModel()) {
+fun AssistantDetailPage(id: String) {
+  val vm: AssistantDetailVM = koinViewModel(
+    parameters = {
+      parametersOf(id)
+    }
+  )
   val scope = rememberCoroutineScope()
 
   val mcpServerConfigs by vm.mcpServerConfigs.collectAsStateWithLifecycle()

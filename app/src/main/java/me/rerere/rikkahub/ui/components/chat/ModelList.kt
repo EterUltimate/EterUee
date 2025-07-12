@@ -75,6 +75,7 @@ import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.Screen
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.findProvider
@@ -83,6 +84,7 @@ import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
 import me.rerere.rikkahub.ui.components.ui.icons.HeartIcon
 import me.rerere.rikkahub.ui.context.LocalNavController
+import me.rerere.rikkahub.ui.context.push
 import me.rerere.rikkahub.ui.theme.extendColors
 import org.koin.compose.koinInject
 import sh.calvin.reorderable.ReorderableItem
@@ -117,8 +119,8 @@ fun ModelSelector(
         model?.modelId?.let {
           AutoAIIcon(
             it, Modifier
-                  .padding(end = 4.dp)
-                  .size(24.dp)
+              .padding(end = 4.dp)
+              .size(24.dp)
           )
         }
         Text(
@@ -171,9 +173,9 @@ fun ModelSelector(
     ) {
       Column(
         modifier = Modifier
-            .padding(8.dp)
-            .fillMaxHeight(0.8f)
-            .imePadding(),
+          .padding(8.dp)
+          .fillMaxHeight(0.8f)
+          .imePadding(),
         verticalArrangement = Arrangement.spacedBy(4.dp)
       ) {
         val filteredProviderSettings = providers.fastFilter {
@@ -270,8 +272,8 @@ private fun ColumnScope.ModelList(
   Surface(
     shape = RoundedCornerShape(50),
     modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 8.dp),
+      .fillMaxWidth()
+      .padding(horizontal = 8.dp),
   ) {
     OutlinedTextField(
       value = searchKeywords,
@@ -301,8 +303,8 @@ private fun ColumnScope.ModelList(
     verticalArrangement = Arrangement.spacedBy(8.dp),
     contentPadding = PaddingValues(8.dp),
     modifier = Modifier
-        .weight(1f)
-        .fillMaxWidth(),
+      .weight(1f)
+      .fillMaxWidth(),
   ) {
     if (providers.isEmpty()) {
       item {
@@ -338,8 +340,8 @@ private fun ColumnScope.ModelList(
             model = model,
             onSelect = onSelect,
             modifier = Modifier
-                .scale(if (isDragging) 0.95f else 1f)
-                .animateItem(),
+              .scale(if (isDragging) 0.95f else 1f)
+              .animateItem(),
             providerSetting = provider,
             select = model.id == currentModel,
             onDismiss = {
@@ -523,8 +525,10 @@ private fun ModelItem(
       onLongClick = if (dragHandle == null) {
         {
           onDismiss()
-          navController.navigate(
-            "setting/provider/${providerSetting.id}"
+          navController.push(
+            Screen.SettingProviderDetail(
+              providerSetting.id.toString()
+            )
           )
         }
       } else null,
@@ -537,8 +541,8 @@ private fun ModelItem(
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(12.dp),
       modifier = Modifier
-          .fillMaxWidth()
-          .padding(vertical = 12.dp, horizontal = 16.dp)
+        .fillMaxWidth()
+        .padding(vertical = 12.dp, horizontal = 16.dp)
     ) {
       Surface(
         color = MaterialTheme.colorScheme.secondaryContainer,
@@ -547,8 +551,8 @@ private fun ModelItem(
         AutoAIIcon(
           name = model.modelId,
           modifier = Modifier
-              .padding(4.dp)
-              .size(32.dp)
+            .padding(4.dp)
+            .size(32.dp)
         )
       }
       Column(
@@ -564,8 +568,8 @@ private fun ModelItem(
 
         Row(
           modifier = Modifier
-              .fillMaxWidth()
-              .height(IntrinsicSize.Min),
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min),
           horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
           Tag(type = TagType.INFO) {
@@ -602,8 +606,8 @@ private fun ModelItem(
                     imageVector = Lucide.Hammer,
                     contentDescription = null,
                     modifier = Modifier
-                        .height(iconHeight)
-                        .aspectRatio(1f)
+                      .height(iconHeight)
+                      .aspectRatio(1f)
                   )
                 }
               }
@@ -617,8 +621,8 @@ private fun ModelItem(
                     imageVector = Lucide.Lightbulb,
                     contentDescription = null,
                     modifier = Modifier
-                        .height(iconHeight)
-                        .aspectRatio(1f)
+                      .height(iconHeight)
+                      .aspectRatio(1f)
                   )
                 }
               }

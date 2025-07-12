@@ -275,6 +275,8 @@
   <string name="assistant_page_tab_request">自定義請求</string>
   <string name="assistant_page_stream_output">串流輸出</string>
   <string name="assistant_page_stream_output_desc">是否啟用訊息的串流輸出</string>
+  <string name="assistant_page_use_assistant_avatar">使用助手頭像</string>
+  <string name="assistant_page_use_assistant_avatar_desc">在聊天中使用助手頭像和名字而不是模型頭像和名字</string>
   <string name="assistant_page_chat_model">聊天模型</string>
   <string name="assistant_page_chat_model_desc">設定助手的預設聊天模型，如果不設定，則使用全域預設聊天模型</string>
   <string name="assistant_page_preset_messages">預設聊天訊息</string>

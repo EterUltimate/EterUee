@@ -130,6 +130,7 @@ import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyUIMessage
 import me.rerere.highlight.HighlightText
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.model.MessageNode
 import me.rerere.rikkahub.ui.components.richtext.HighlightCodeBlock
@@ -164,6 +165,7 @@ fun ChatMessage(
   modifier: Modifier = Modifier,
   showIcon: Boolean = true,
   model: Model? = null,
+  assistant: Assistant? = null,
   showActions: Boolean,
   onFork: () -> Unit,
   onRegenerate: () -> Unit,
@@ -197,6 +199,7 @@ fun ChatMessage(
           showIcon = showIcon,
           message = message,
           model = model,
+          assistant = assistant,
           modifier = Modifier.weight(1f)
         )
         MessageNodePagerButtons(
@@ -542,6 +545,7 @@ private fun ModelIcon(
   showIcon: Boolean,
   message: UIMessage,
   model: Model?,
+  assistant: Assistant?,
   modifier: Modifier = Modifier,
 ) {
   Row(
@@ -550,15 +554,28 @@ private fun ModelIcon(
     verticalAlignment = Alignment.CenterVertically,
   ) {
     if (showIcon && message.role == MessageRole.ASSISTANT && !message.parts.isEmptyUIMessage() && model != null) {
-      AutoAIIcon(
-        name = model.modelId,
-        modifier = Modifier.size(28.dp)
-      )
-      Text(
-        text = model.displayName,
-        style = MaterialTheme.typography.titleSmall,
-        modifier = Modifier.weight(1f)
-      )
+      if(assistant?.useAssistantAvatar == true) {
+        Avatar(
+          name = assistant.name,
+          modifier = Modifier.size(28.dp),
+          value = assistant.avatar,
+        )
+        Text(
+          text = assistant.name.ifEmpty { stringResource(R.string.assistant_page_default_assistant) },
+          style = MaterialTheme.typography.titleMedium,
+          modifier = Modifier.weight(1f)
+        )
+      } else {
+        AutoAIIcon(
+          name = model.modelId,
+          modifier = Modifier.size(28.dp)
+        )
+        Text(
+          text = model.displayName,
+          style = MaterialTheme.typography.titleSmall,
+          modifier = Modifier.weight(1f)
+        )
+      }
     }
   }
 }

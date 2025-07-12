@@ -281,6 +281,8 @@
   <string name="assistant_page_tab_request">自定义请求</string>
   <string name="assistant_page_stream_output">流式输出</string>
   <string name="assistant_page_stream_output_desc">是否启用消息的流式输出</string>
+  <string name="assistant_page_use_assistant_avatar">使用助手头像</string>
+  <string name="assistant_page_use_assistant_avatar_desc">在聊天中使用助手头像和名字而不是模型头像和名字</string>
   <string name="assistant_page_chat_model">聊天模型</string>
   <string name="assistant_page_chat_model_desc">设置助手的默认聊天模型，如果不设置，则使用全局默认聊天模型</string>
   <string name="assistant_page_preset_messages">预设聊天消息</string>

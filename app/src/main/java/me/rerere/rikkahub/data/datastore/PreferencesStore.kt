@@ -325,6 +325,10 @@ fun Settings.getCurrentAssistant(): Assistant {
   return this.assistants.find { it.id == assistantId } ?: this.assistants.first()
 }
 
+fun Settings.getAssistantById(id: Uuid): Assistant? {
+  return this.assistants.find { it.id == id }
+}
+
 fun Model.findProvider(providers: List<ProviderSetting>): ProviderSetting? {
   providers.forEach { setting ->
     setting.models.forEach { model ->

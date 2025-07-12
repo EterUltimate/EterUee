@@ -66,6 +66,7 @@ import me.rerere.ai.ui.UIMessage
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.findModelById
+import me.rerere.rikkahub.data.datastore.getAssistantById
 import me.rerere.rikkahub.data.datastore.getCurrentAssistant
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.model.MessageNode
@@ -192,6 +193,7 @@ fun ChatList(
               conversation = conversation,
               showIcon = settings.displaySetting.showModelIcon,
               model = node.currentMessage.modelId?.let { settings.findModelById(it) },
+              assistant = settings.getAssistantById(conversation.assistantId),
               showActions = showActionsForThisMessage,
               onRegenerate = {
                 onRegenerate(node.currentMessage)

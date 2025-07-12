@@ -291,6 +291,8 @@
   <string name="assistant_page_tab_request">Custom Request</string>
   <string name="assistant_page_stream_output">Stream Output</string>
   <string name="assistant_page_stream_output_desc">Whether to enable streaming output for messages</string>
+  <string name="assistant_page_use_assistant_avatar">Use Assistant Avatar</string>
+  <string name="assistant_page_use_assistant_avatar_desc">Use assistant avatar and name instead of model avatar and name in chats</string>
   <string name="assistant_page_chat_model">Chat Model</string>
   <string name="assistant_page_chat_model_desc">Set the default chat model for the assistant. If not set, the global default chat model will be used</string>
   <string name="assistant_page_preset_messages">Preset Chat Messages</string>

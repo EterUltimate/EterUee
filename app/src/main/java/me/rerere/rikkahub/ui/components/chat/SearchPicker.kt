@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.ui.components.chat
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,17 +10,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -33,12 +34,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.graphics.shapes.Morph
 import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Settings2
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.Screen
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.ToggleSurface
+import me.rerere.rikkahub.ui.context.LocalNavController
+import me.rerere.rikkahub.ui.context.push
 import me.rerere.search.SearchService
 import me.rerere.search.SearchServiceOptions
 
@@ -114,7 +120,10 @@ fun SearchPickerButton(
           },
           modifier = Modifier
               .fillMaxWidth()
-              .weight(1f)
+              .weight(1f),
+          onDismiss = {
+            showSearchPicker = false
+          }
         )
       }
     }
@@ -128,60 +137,82 @@ fun SearchPicker(
   modifier: Modifier = Modifier,
   onToggleSearch: (Boolean) -> Unit,
   onUpdateSearchService: (Int) -> Unit,
+  onDismiss: () -> Unit
 ) {
-  LazyColumn(
-    modifier = modifier.fillMaxSize(),
-    verticalArrangement = Arrangement.spacedBy(8.dp),
-  ) {
-    // 搜索开关
-    item {
-      Card {
-        Row(
-          modifier = Modifier
-              .padding(horizontal = 16.dp, vertical = 12.dp)
-              .fillMaxWidth(),
-          horizontalArrangement = Arrangement.spacedBy(16.dp),
-          verticalAlignment = Alignment.CenterVertically,
-        ) {
-          Icon(Lucide.Earth, null)
-          Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-          ) {
-            Text(
-              text = stringResource(R.string.use_web_search),
-              style = MaterialTheme.typography.titleMedium,
-            )
-            Text(
-              text = if (enableSearch) {
-                stringResource(R.string.web_search_enabled)
-              } else {
-                stringResource(R.string.web_search_disabled)
-              },
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalContentColor.current.copy(alpha = 0.8f)
-            )
-          }
-          Switch(
-            checked = enableSearch,
-            onCheckedChange = onToggleSearch
-          )
-        }
-      }
-    }
+  val navBackStack = LocalNavController.current
 
+  Card {
+    Row(
+      modifier = Modifier
+          .padding(horizontal = 16.dp, vertical = 12.dp)
+          .fillMaxWidth(),
+      horizontalArrangement = Arrangement.spacedBy(16.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Icon(Lucide.Earth, null)
+      Column(
+        modifier = Modifier.weight(1f),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+      ) {
+        Text(
+          text = stringResource(R.string.use_web_search),
+          style = MaterialTheme.typography.titleMedium,
+        )
+        Text(
+          text = if (enableSearch) {
+            stringResource(R.string.web_search_enabled)
+          } else {
+            stringResource(R.string.web_search_disabled)
+          },
+          style = MaterialTheme.typography.bodySmall,
+          color = LocalContentColor.current.copy(alpha = 0.8f)
+        )
+      }
+      IconButton(
+        onClick = {
+          onDismiss()
+          navBackStack.push(Screen.SettingSearch)
+        }
+      ) {
+        Icon(Lucide.Settings2, null)
+      }
+      Switch(
+        checked = enableSearch,
+        onCheckedChange = onToggleSearch
+      )
+    }
+  }
+
+  LazyVerticalGrid(
+    modifier = modifier.fillMaxSize(),
+    columns = GridCells.Adaptive(150.dp),
+    verticalArrangement = Arrangement.spacedBy(16.dp),
+    horizontalArrangement = Arrangement.spacedBy(16.dp),
+  ) {
     itemsIndexed(settings.searchServices) { index, service ->
+      val containerColor = animateColorAsState(
+        if (settings.searchServiceSelected == index) {
+          MaterialTheme.colorScheme.primary
+        } else {
+          MaterialTheme.colorScheme.primaryContainer
+        }
+      )
+      val textColor = animateColorAsState(
+        if (settings.searchServiceSelected == index) {
+          MaterialTheme.colorScheme.onPrimary
+        } else {
+          MaterialTheme.colorScheme.onPrimaryContainer
+        }
+      )
       Card(
         colors = CardDefaults.cardColors(
-          containerColor = if (settings.searchServiceSelected == index) {
-            MaterialTheme.colorScheme.primary
-          } else {
-            MaterialTheme.colorScheme.primaryContainer
-          }
+          containerColor = containerColor.value,
+          contentColor = textColor.value,
         ),
         onClick = {
           onUpdateSearchService(index)
-        }
+        },
+        shape = RoundedCornerShape(50),
       ) {
         Row(
           modifier = Modifier
@@ -192,11 +223,10 @@ fun SearchPicker(
         ) {
           AutoAIIcon(
             name = SearchServiceOptions.TYPES[service::class] ?: "Search",
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(32.dp)
           )
           Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
           ) {
             Text(
               text = SearchServiceOptions.TYPES[service::class] ?: "Unknown",

@@ -235,7 +235,7 @@ private fun ChatPageContent(
         },
         enableSearch = enableWebSearch,
         onToggleSearch = {
-          vm.updateSettings(Settings(enableWebSearch = !enableWebSearch))
+          vm.updateSettings(setting.copy(enableWebSearch = !enableWebSearch))
         },
         onSendClick = {
           if (currentChatModel == null) {
@@ -257,14 +257,14 @@ private fun ChatPageContent(
         },
         onUpdateProviders = {
           vm.updateSettings(
-            Settings(
+            setting.copy(
               providers = it
             )
           )
         },
         onUpdateAssistant = {
           vm.updateSettings(
-            Settings(
+            setting.copy(
               assistants = setting.assistants.map { assistant ->
                 if (assistant.id == it.id) {
                   it
@@ -277,7 +277,7 @@ private fun ChatPageContent(
         },
         onUpdateSearchService = { index ->
           vm.updateSettings(
-            Settings(
+            setting.copy(
               searchServiceSelected = index
             )
           )

@@ -345,6 +345,30 @@ private fun AssistantBasicSettings(
       FormItem(
         modifier = Modifier.padding(16.dp),
         label = {
+          Text(stringResource(R.string.assistant_page_use_assistant_avatar))
+        },
+        description = {
+          Text(stringResource(R.string.assistant_page_use_assistant_avatar_desc))
+        },
+        tail = {
+          Switch(
+            checked = assistant.useAssistantAvatar,
+            onCheckedChange = {
+              onUpdate(
+                assistant.copy(
+                  useAssistantAvatar = it
+                )
+              )
+            }
+          )
+        }
+      )
+    }
+
+    Card {
+      FormItem(
+        modifier = Modifier.padding(16.dp),
+        label = {
           Text(stringResource(R.string.assistant_page_chat_model))
         },
         description = {
@@ -515,30 +539,6 @@ private fun AssistantBasicSettings(
               onUpdate(
                 assistant.copy(
                   streamOutput = it
-                )
-              )
-            }
-          )
-        }
-      )
-    }
-
-    Card {
-      FormItem(
-        modifier = Modifier.padding(16.dp),
-        label = {
-          Text(stringResource(R.string.assistant_page_use_assistant_avatar))
-        },
-        description = {
-          Text(stringResource(R.string.assistant_page_use_assistant_avatar_desc))
-        },
-        tail = {
-          Switch(
-            checked = assistant.useAssistantAvatar,
-            onCheckedChange = {
-              onUpdate(
-                assistant.copy(
-                  useAssistantAvatar = it
                 )
               )
             }

@@ -265,7 +265,7 @@ private fun ChatPageContent(
           }
           inputState.clearInput()
           scope.launch {
-            chatListState.scrollToItem(conversation.currentMessages.size + 1)
+            chatListState.requestScrollToItem(conversation.currentMessages.size + 5)
           }
         },
         onUpdateChatModel = {

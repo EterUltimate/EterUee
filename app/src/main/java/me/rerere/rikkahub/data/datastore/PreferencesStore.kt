@@ -425,6 +425,26 @@ private val DEFAULT_PROVIDERS = listOf(
     }
   ),
   ProviderSetting.OpenAI(
+    id = Uuid.parse("1b1395ed-b702-4aeb-8bc1-b681c4456953"),
+    name = "AiHubMix",
+    baseUrl = "https://aihubmix.com/v1",
+    apiKey = "",
+    enabled = false,
+    builtIn = true,
+    description = {
+      Text(
+        text = buildAnnotatedString {
+          append("提供 OpenAI、Claude、Google Gemini 等主流模型的高并发和稳定服务, 官网：")
+          withLink(LinkAnnotation.Url("https://aihubmix.com?aff=pG7r")) {
+            withStyle(SpanStyle(MaterialTheme.colorScheme.primary)) {
+              append("https://aihubmix.com")
+            }
+          }
+        }
+      )
+    }
+  ),
+  ProviderSetting.OpenAI(
     id = Uuid.parse("ef5d149b-8e34-404b-818c-6ec242e5c3c5"),
     name = "腾讯Hunyuan",
     baseUrl = "https://api.hunyuan.cloud.tencent.com/v1",

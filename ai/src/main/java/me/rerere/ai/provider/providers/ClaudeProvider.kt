@@ -34,6 +34,7 @@ import me.rerere.ai.ui.UIMessageChoice
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.util.await
 import me.rerere.ai.util.configureClientWithProxy
+import me.rerere.ai.util.configureReferHeaders
 import me.rerere.ai.util.encodeBase64
 import me.rerere.ai.util.json
 import me.rerere.ai.util.mergeCustomBody
@@ -114,6 +115,7 @@ object ClaudeProvider : Provider<ProviderSetting.Claude> {
       .post(json.encodeToString(requestBody).toRequestBody("application/json".toMediaType()))
       .addHeader("x-api-key", providerSetting.apiKey)
       .addHeader("anthropic-version", ANTHROPIC_VERSION)
+      .configureReferHeaders(providerSetting.baseUrl)
       .build()
 
     Log.i(TAG, "generateText: ${json.encodeToString(requestBody)}")
@@ -161,6 +163,7 @@ object ClaudeProvider : Provider<ProviderSetting.Claude> {
       .addHeader("x-api-key", providerSetting.apiKey)
       .addHeader("anthropic-version", ANTHROPIC_VERSION)
       .addHeader("Content-Type", "application/json")
+      .configureReferHeaders(providerSetting.baseUrl)
       .build()
 
     Log.i(TAG, "streamText: ${json.encodeToString(requestBody)}")

@@ -36,6 +36,7 @@ import me.rerere.ai.ui.UIMessageChoice
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.util.await
 import me.rerere.ai.util.configureClientWithProxy
+import me.rerere.ai.util.configureReferHeaders
 import me.rerere.ai.util.encodeBase64
 import me.rerere.ai.util.json
 import me.rerere.ai.util.mergeCustomBody
@@ -157,6 +158,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
         .post(
           json.encodeToString(requestBody).toRequestBody("application/json".toMediaType())
         )
+        .configureReferHeaders(providerSetting.baseUrl)
         .build()
     )
 
@@ -212,6 +214,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
         .post(
           json.encodeToString(requestBody).toRequestBody("application/json".toMediaType())
         )
+        .configureReferHeaders(providerSetting.baseUrl)
         .build()
     )
 

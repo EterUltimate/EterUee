@@ -31,6 +31,7 @@ import me.rerere.ai.ui.UIMessageChoice
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.util.await
 import me.rerere.ai.util.configureClientWithProxy
+import me.rerere.ai.util.configureReferHeaders
 import me.rerere.ai.util.encodeBase64
 import me.rerere.ai.util.json
 import me.rerere.ai.util.mergeCustomBody
@@ -65,6 +66,7 @@ class ResponseAPI(private val client: OkHttpClient) : OpenAIImpl {
       .post(json.encodeToString(requestBody).toRequestBody("application/json".toMediaType()))
       .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
       .addHeader("Content-Type", "application/json")
+      .configureReferHeaders(providerSetting.baseUrl)
       .build()
 
     Log.i(TAG, "generateText: ${json.encodeToString(requestBody)}")
@@ -98,6 +100,7 @@ class ResponseAPI(private val client: OkHttpClient) : OpenAIImpl {
       .post(json.encodeToString(requestBody).toRequestBody("application/json".toMediaType()))
       .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
       .addHeader("Content-Type", "application/json")
+      .configureReferHeaders(providerSetting.baseUrl)
       .build()
 
     Log.i(TAG, "streamText: ${json.encodeToString(requestBody)}")

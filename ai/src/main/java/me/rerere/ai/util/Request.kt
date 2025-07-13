@@ -9,6 +9,8 @@ import me.rerere.ai.provider.CustomHeader
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Headers
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.Request
 import okhttp3.Response
 import okhttp3.ResponseBody
 import okhttp3.internal.closeQuietly
@@ -44,8 +46,25 @@ fun List<CustomHeader>.toHeaders(): Headers {
   }.build()
 }
 
+fun Request.Builder.configureReferHeaders(url: String): Request.Builder {
+  val httpUrl = url.toHttpUrl()
+  return when (httpUrl.host) {
+    "aihubmix.com" -> {
+      addHeader("APP-Code", "DKHA9468")
+    }
+
+    "openrouter.ai" -> {
+      this
+        .addHeader("X-Title", "RikkaHub")
+        .addHeader("HTTP-Referer", "https://rikka-ai.com")
+    }
+
+    else -> this
+  }
+}
+
 fun ResponseBody.stringSafe(): String? {
-  return when(this) {
+  return when (this) {
     is RealResponseBody -> string()
     else -> null
   }

@@ -15,7 +15,6 @@ import androidx.compose.foundation.content.ReceiveContentListener
 import androidx.compose.foundation.content.consume
 import androidx.compose.foundation.content.contentReceiver
 import androidx.compose.foundation.content.hasMediaType
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -45,7 +44,6 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -82,14 +80,11 @@ import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import com.composables.icons.lucide.ArrowUp
 import com.composables.icons.lucide.Camera
-import com.composables.icons.lucide.Earth
-import com.composables.icons.lucide.Ellipsis
 import com.composables.icons.lucide.Eraser
 import com.composables.icons.lucide.Files
 import com.composables.icons.lucide.Fullscreen
 import com.composables.icons.lucide.Image
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Paperclip
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.X
 import com.dokar.sonner.ToastType
@@ -105,7 +100,6 @@ import kotlinx.serialization.json.jsonPrimitive
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ModelType
-import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyInputMessage
 import me.rerere.rikkahub.R
@@ -542,7 +536,7 @@ fun ChatInput(
           }
         ) {
           Icon(
-            if (expand == ExpandState.Files) Lucide.X else Lucide.Paperclip,
+            if (expand == ExpandState.Files) Lucide.X else Lucide.Plus,
             stringResource(R.string.more_options)
           )
         }

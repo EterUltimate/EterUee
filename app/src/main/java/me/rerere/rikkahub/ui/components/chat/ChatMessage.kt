@@ -553,6 +553,7 @@ private fun ModelIcon(
   assistant: Assistant?,
   modifier: Modifier = Modifier,
 ) {
+  val settings = LocalSettings.current
   Row(
     modifier = modifier,
     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -583,13 +584,15 @@ private fun ModelIcon(
               color = LocalContentColor.current.copy(alpha = 0.8f),
               maxLines = 1,
             )
-            message.usage?.let { usage ->
-              Text(
-                text = "${usage.completionTokens.formatNumber()} tokens",
-                style = MaterialTheme.typography.labelSmall,
-                color = LocalContentColor.current.copy(alpha = 0.8f),
-                maxLines = 1,
-              )
+            if(settings.displaySetting.showTokenUsage) {
+              message.usage?.let { usage ->
+                Text(
+                  text = "${usage.completionTokens.formatNumber()} tokens",
+                  style = MaterialTheme.typography.labelSmall,
+                  color = LocalContentColor.current.copy(alpha = 0.8f),
+                  maxLines = 1,
+                )
+              }
             }
           }
         }
@@ -614,13 +617,15 @@ private fun ModelIcon(
               style = MaterialTheme.typography.labelSmall,
               color = LocalContentColor.current.copy(alpha = 0.8f)
             )
-            message.usage?.let { usage ->
-              Text(
-                text = "${usage.promptTokens}/${usage.completionTokens} tokens",
-                style = MaterialTheme.typography.labelSmall,
-                color = LocalContentColor.current.copy(alpha = 0.8f),
-                maxLines = 1,
-              )
+            if(settings.displaySetting.showTokenUsage) {
+              message.usage?.let { usage ->
+                Text(
+                  text = "${usage.completionTokens} tokens",
+                  style = MaterialTheme.typography.labelSmall,
+                  color = LocalContentColor.current.copy(alpha = 0.8f),
+                  maxLines = 1,
+                )
+              }
             }
           }
         }

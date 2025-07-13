@@ -319,7 +319,7 @@ private fun LongPressActionsSheet(
             modifier = Modifier.padding(4.dp)
           )
           Text(
-            text = "选择复制",
+            text = stringResource(R.string.select_and_copy),
             style = MaterialTheme.typography.titleMedium,
           )
         }
@@ -374,7 +374,7 @@ private fun LongPressActionsSheet(
             modifier = Modifier.padding(4.dp)
           )
           Text(
-            text = "Share",
+            text = stringResource(R.string.share),
             style = MaterialTheme.typography.titleMedium,
           )
         }
@@ -401,7 +401,7 @@ private fun LongPressActionsSheet(
             modifier = Modifier.padding(4.dp)
           )
           Text(
-            text = "Create a fork",
+            text = stringResource(R.string.create_fork),
             style = MaterialTheme.typography.titleMedium,
           )
         }
@@ -481,7 +481,7 @@ private fun SelectAndCopySheet(
         }
 
         Text(
-          text = "选择复制",
+          text = stringResource(R.string.select_and_copy),
           style = MaterialTheme.typography.headlineSmall,
         )
 
@@ -497,7 +497,7 @@ private fun SelectAndCopySheet(
             modifier = Modifier.size(16.dp)
           )
           Spacer(modifier = Modifier.width(8.dp))
-          Text("复制全部")
+          Text(stringResource(R.string.copy_all))
         }
       }
 
@@ -515,7 +515,7 @@ private fun SelectAndCopySheet(
           verticalArrangement = Arrangement.Center
         ) {
           Text(
-            text = "暂无可复制的文本内容",
+            text = stringResource(R.string.no_text_content_to_copy),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             textAlign = TextAlign.Center

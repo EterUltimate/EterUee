@@ -229,6 +229,7 @@ private fun ChatPageContent(
       ChatInput(
         state = inputState,
         settings = setting,
+        conversation = conversation,
         mcpManager = vm.mcpManager,
         onCancelClick = {
           loadingJob?.cancel()
@@ -255,13 +256,6 @@ private fun ChatPageContent(
         onUpdateChatModel = {
           vm.setChatModel(assistant = setting.getCurrentAssistant(), model = it)
         },
-        onUpdateProviders = {
-          vm.updateSettings(
-            setting.copy(
-              providers = it
-            )
-          )
-        },
         onUpdateAssistant = {
           vm.updateSettings(
             setting.copy(
@@ -284,7 +278,7 @@ private fun ChatPageContent(
         },
         onClearContext = {
           vm.handleMessageTruncate()
-        }
+        },
       )
     }
   ) { innerPadding ->

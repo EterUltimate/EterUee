@@ -456,4 +456,11 @@
   <string name="tag_input_dialog_create_new">Create New Tag</string>
   <string name="tag_input_dialog_tag_exists">Tag with this name already exists</string>
   <string name="assistant_page_tags">Tags</string>
+
+  <!-- Long Press Actions -->
+  <string name="select_and_copy">Select and Copy</string>
+  <string name="copy_all">Copy All</string>
+  <string name="no_text_content_to_copy">No text content available to copy</string>
+  <string name="share">Share</string>
+  <string name="create_fork">Create a fork</string>
 </resources>

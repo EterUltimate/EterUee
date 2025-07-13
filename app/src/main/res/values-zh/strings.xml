@@ -447,6 +447,13 @@
   <string name="tag_input_dialog_tag_exists">该名称的标签已存在</string>
   <string name="assistant_page_tags">标签</string>
 
+  <!-- Long Press Actions -->
+  <string name="select_and_copy">选择复制</string>
+  <string name="copy_all">复制全部</string>
+  <string name="no_text_content_to_copy">暂无可复制的文本内容</string>
+  <string name="share">分享</string>
+  <string name="create_fork">创建分支</string>
+
   <!-- Assistant Picker -->
   <string name="assistant_picker_expand">展开</string>
   <string name="assistant_picker_selected">已选择</string>

@@ -114,8 +114,10 @@ import me.rerere.rikkahub.data.datastore.getCurrentAssistant
 import me.rerere.rikkahub.data.datastore.getCurrentChatModel
 import me.rerere.rikkahub.data.mcp.McpManager
 import me.rerere.rikkahub.data.model.Assistant
+import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.ui.components.ui.KeepScreenOn
 import me.rerere.rikkahub.ui.components.ui.ToggleSurface
+import me.rerere.rikkahub.ui.context.LocalSettings
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.utils.GetContentWithMultiMime
 import me.rerere.rikkahub.utils.JsonInstant
@@ -221,13 +223,13 @@ enum class ExpandState {
 @Composable
 fun ChatInput(
   state: ChatInputState,
+  conversation: Conversation,
   settings: Settings,
   mcpManager: McpManager,
   enableSearch: Boolean,
   onToggleSearch: (Boolean) -> Unit,
   modifier: Modifier = Modifier,
   onUpdateChatModel: (Model) -> Unit,
-  onUpdateProviders: (List<ProviderSetting>) -> Unit,
   onUpdateAssistant: (Assistant) -> Unit,
   onUpdateSearchService: (Int) -> Unit,
   onClearContext: () -> Unit,
@@ -583,6 +585,7 @@ fun ChatInput(
               .fillMaxWidth()
           ) {
             FilesPicker(
+              conversation = conversation,
               state = state,
               onClearContext = onClearContext,
               onDismiss = { dismissExpand() }
@@ -596,6 +599,7 @@ fun ChatInput(
 
 @Composable
 private fun FilesPicker(
+  conversation: Conversation,
   state: ChatInputState,
   onClearContext: () -> Unit,
   onDismiss: () -> Unit
@@ -640,6 +644,22 @@ private fun FilesPicker(
       },
       headlineContent = {
         Text(stringResource(R.string.chat_page_clear_context))
+      },
+      trailingContent = {
+        // Context Size
+        val settings = LocalSettings.current
+        if (settings.displaySetting.showTokenUsage && conversation.messageNodes.isNotEmpty()) {
+          val configuredContextSize = settings.getCurrentAssistant().contextMessageSize
+          val effectiveMessagesAfterTruncation =
+            conversation.messageNodes.size - conversation.truncateIndex.coerceAtLeast(0)
+          val actualContextMessageCount =
+            minOf(effectiveMessagesAfterTruncation, configuredContextSize)
+          Text(
+            text = "$actualContextMessageCount/$configuredContextSize",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.outlineVariant,
+          )
+        }
       },
       modifier = Modifier
         .clip(MaterialTheme.shapes.large)

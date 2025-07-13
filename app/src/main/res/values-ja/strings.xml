@@ -448,6 +448,13 @@
   <string name="tag_input_dialog_tag_exists">同じ名前のタグが既に存在します</string>
   <string name="assistant_page_tags">タグ</string>
 
+  <!-- Long Press Actions -->
+  <string name="select_and_copy">選択コピー</string>
+  <string name="copy_all">全てコピー</string>
+  <string name="no_text_content_to_copy">コピーできるテキストコンテンツがありません</string>
+  <string name="share">共有</string>
+  <string name="create_fork">フォークを作成</string>
+
   <!-- Assistant Picker -->
   <string name="assistant_picker_expand">展開</string>
   <string name="assistant_picker_selected">選択済み</string>

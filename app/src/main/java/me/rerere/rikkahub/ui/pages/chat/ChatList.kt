@@ -78,8 +78,6 @@ import kotlin.uuid.Uuid
 
 private const val LoadingIndicatorKey = "LoadingIndicator"
 private const val ScrollBottomKey = "ScrollBottomKey"
-private const val TokenUsageItemKey = "TokenUsageItemKey"
-private const val ContextUsageItemKey = "ContextUsageItemKey"
 
 @Composable
 fun ChatList(
@@ -103,7 +101,7 @@ fun ChatList(
 
   fun List<LazyListItemInfo>.isAtBottom(): Boolean {
     val lastItem = lastOrNull() ?: return false
-    if (lastItem.key == LoadingIndicatorKey || lastItem.key == ScrollBottomKey || lastItem.key == TokenUsageItemKey) {
+    if (lastItem.key == LoadingIndicatorKey || lastItem.key == ScrollBottomKey) {
       return true
     }
     return lastItem.key == conversation.messageNodes.lastOrNull()?.id && (lastItem.offset + lastItem.size <= state.layoutInfo.viewportEndOffset + lastItem.size * 0.15 + 32)
@@ -243,43 +241,6 @@ fun ChatList(
       if (loading) {
         item(LoadingIndicatorKey) {
           LoadingIndicator()
-        }
-      }
-
-      item(ContextUsageItemKey) {
-        // 当设置允许显示统计信息，并且聊天记录不为空时才显示
-        if (settings.displaySetting.showTokenUsage && conversation.messageNodes.isNotEmpty()) {
-          val configuredContextSize = settings.getCurrentAssistant().contextMessageSize
-          val effectiveMessagesAfterTruncation =
-            conversation.messageNodes.size - conversation.truncateIndex.coerceAtLeast(0)
-          val actualContextMessageCount =
-            minOf(effectiveMessagesAfterTruncation, configuredContextSize)
-
-          Row(
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(
-              8.dp,
-              Alignment.CenterHorizontally
-            ),
-          ) {
-            // Token使用量统计 (仅当有数据时)
-            if (conversation.tokenUsage != null) {
-              Text(
-                text = "Tokens: ${conversation.tokenUsage.totalTokens} (${conversation.tokenUsage.promptTokens} -> ${conversation.tokenUsage.completionTokens})",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.outlineVariant,
-              )
-            }
-            // 上下文消息数量统计
-            Text(
-              text = "Context: $actualContextMessageCount/$configuredContextSize",
-              style = MaterialTheme.typography.labelSmall,
-              color = MaterialTheme.colorScheme.outlineVariant,
-            )
-          }
         }
       }
 

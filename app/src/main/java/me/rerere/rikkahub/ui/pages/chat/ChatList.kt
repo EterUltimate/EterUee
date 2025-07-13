@@ -22,6 +22,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -78,7 +80,6 @@ private const val LoadingIndicatorKey = "LoadingIndicator"
 private const val ScrollBottomKey = "ScrollBottomKey"
 private const val TokenUsageItemKey = "TokenUsageItemKey"
 private const val ContextUsageItemKey = "ContextUsageItemKey"
-private const val SuggestionItemKey = "SuggestionItemKey"
 
 @Composable
 fun ChatList(
@@ -122,7 +123,7 @@ fun ChatList(
     LaunchedEffect(state) {
       snapshotFlow { state.layoutInfo.visibleItemsInfo }.collect { visibleItemsInfo ->
         // println("is bottom = ${visibleItemsInfo.isAtBottom()}, scroll = ${state.isScrollInProgress}, can_scroll = ${state.canScrollForward}, loading = $loading")
-        if (!state.isScrollInProgress  && loadingState) {
+        if (!state.isScrollInProgress && loadingState) {
           if (visibleItemsInfo.isAtBottom()) {
             state.requestScrollToItem(conversation.messageNodes.lastIndex + 10)
           }
@@ -164,7 +165,8 @@ fun ChatList(
     ) {
       itemsIndexed(
         items = conversation.messageNodes,
-        key = { index, item -> item.id }) { index, node ->
+        key = { index, item -> item.id },
+      ) { index, node ->
         Column {
           ListSelectableItem(
             key = node.id,
@@ -241,33 +243,6 @@ fun ChatList(
       if (loading) {
         item(LoadingIndicatorKey) {
           LoadingIndicator()
-        }
-      } else if (conversation.chatSuggestions.isNotEmpty()) {
-        item(SuggestionItemKey) {
-          FlowRow(
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-          ) {
-            conversation.chatSuggestions.fastForEach { suggestion ->
-              Box(
-                modifier = Modifier
-                  .clip(RoundedCornerShape(50))
-                  .clickable {
-                    onClickSuggestion(suggestion)
-                  }
-                  .background(MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp))
-                  .padding(vertical = 4.dp, horizontal = 8.dp),
-              ) {
-                Text(
-                  text = suggestion,
-                  style = MaterialTheme.typography.bodySmall
-                )
-              }
-            }
-          }
         }
       }
 
@@ -363,6 +338,35 @@ fun ChatList(
       scope = scope,
       state = state
     )
+
+    // Suggestion
+    if (conversation.chatSuggestions.isNotEmpty()) {
+      LazyRow(
+        modifier = Modifier
+          .align(Alignment.BottomCenter)
+          .fillMaxWidth()
+          .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        items(conversation.chatSuggestions) { suggestion ->
+          Box(
+            modifier = Modifier
+              .clip(RoundedCornerShape(50))
+              .clickable {
+                onClickSuggestion(suggestion)
+              }
+              .background(MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp))
+              .padding(vertical = 4.dp, horizontal = 8.dp),
+          ) {
+            Text(
+              text = suggestion,
+              style = MaterialTheme.typography.bodySmall
+            )
+          }
+        }
+      }
+    }
   }
 }
 

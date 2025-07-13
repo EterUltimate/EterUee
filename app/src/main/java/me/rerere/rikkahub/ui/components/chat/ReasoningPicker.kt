@@ -208,16 +208,16 @@ private fun ReasoningLevelCard(
 ) {
   val containerColor = animateColorAsState(
     if (selected) {
-      MaterialTheme.colorScheme.primary
-    } else {
       MaterialTheme.colorScheme.primaryContainer
+    } else {
+      MaterialTheme.colorScheme.surface
     }
   )
   val textColor = animateColorAsState(
     if (selected) {
-      MaterialTheme.colorScheme.onPrimary
-    } else {
       MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+      MaterialTheme.colorScheme.onSurface
     }
   )
   Card(

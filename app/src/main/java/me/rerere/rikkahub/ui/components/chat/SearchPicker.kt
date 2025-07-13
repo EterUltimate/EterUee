@@ -192,16 +192,16 @@ fun SearchPicker(
     itemsIndexed(settings.searchServices) { index, service ->
       val containerColor = animateColorAsState(
         if (settings.searchServiceSelected == index) {
-          MaterialTheme.colorScheme.primary
-        } else {
           MaterialTheme.colorScheme.primaryContainer
+        } else {
+          MaterialTheme.colorScheme.surface
         }
       )
       val textColor = animateColorAsState(
         if (settings.searchServiceSelected == index) {
-          MaterialTheme.colorScheme.onPrimary
-        } else {
           MaterialTheme.colorScheme.onPrimaryContainer
+        } else {
+          MaterialTheme.colorScheme.onSurface
         }
       )
       Card(

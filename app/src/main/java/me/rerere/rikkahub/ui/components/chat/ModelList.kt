@@ -119,8 +119,8 @@ fun ModelSelector(
         model?.modelId?.let {
           AutoAIIcon(
             it, Modifier
-              .padding(end = 4.dp)
-              .size(36.dp)
+                  .padding(end = 4.dp)
+                  .size(36.dp)
           )
         }
         Text(
@@ -173,9 +173,9 @@ fun ModelSelector(
     ) {
       Column(
         modifier = Modifier
-          .padding(8.dp)
-          .fillMaxHeight(0.8f)
-          .imePadding(),
+            .padding(8.dp)
+            .fillMaxHeight(0.8f)
+            .imePadding(),
         verticalArrangement = Arrangement.spacedBy(4.dp)
       ) {
         val filteredProviderSettings = providers.fastFilter {
@@ -272,8 +272,8 @@ private fun ColumnScope.ModelList(
   Surface(
     shape = RoundedCornerShape(50),
     modifier = Modifier
-      .fillMaxWidth()
-      .padding(horizontal = 8.dp),
+        .fillMaxWidth()
+        .padding(horizontal = 8.dp),
   ) {
     OutlinedTextField(
       value = searchKeywords,
@@ -303,8 +303,8 @@ private fun ColumnScope.ModelList(
     verticalArrangement = Arrangement.spacedBy(8.dp),
     contentPadding = PaddingValues(8.dp),
     modifier = Modifier
-      .weight(1f)
-      .fillMaxWidth(),
+        .weight(1f)
+        .fillMaxWidth(),
   ) {
     if (providers.isEmpty()) {
       item {
@@ -340,8 +340,8 @@ private fun ColumnScope.ModelList(
             model = model,
             onSelect = onSelect,
             modifier = Modifier
-              .scale(if (isDragging) 0.95f else 1f)
-              .animateItem(),
+                .scale(if (isDragging) 0.95f else 1f)
+                .animateItem(),
             providerSetting = provider,
             select = model.id == currentModel,
             onDismiss = {
@@ -536,13 +536,17 @@ private fun ModelItem(
       interactionSource = interactionSource,
       indication = LocalIndication.current
     ),
+    colors = CardDefaults.cardColors(
+      containerColor = if (select) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+      contentColor = if (select) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+    )
   ) {
     Row(
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(12.dp),
       modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 12.dp, horizontal = 16.dp)
+          .fillMaxWidth()
+          .padding(vertical = 12.dp, horizontal = 16.dp)
     ) {
       Surface(
         color = MaterialTheme.colorScheme.secondaryContainer,
@@ -551,8 +555,8 @@ private fun ModelItem(
         AutoAIIcon(
           name = model.modelId,
           modifier = Modifier
-            .padding(4.dp)
-            .size(32.dp)
+              .padding(4.dp)
+              .size(32.dp)
         )
       }
       Column(
@@ -568,8 +572,8 @@ private fun ModelItem(
 
         Row(
           modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min),
+              .fillMaxWidth()
+              .height(IntrinsicSize.Min),
           horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
           Tag(type = TagType.INFO) {
@@ -606,8 +610,8 @@ private fun ModelItem(
                     imageVector = Lucide.Hammer,
                     contentDescription = null,
                     modifier = Modifier
-                      .height(iconHeight)
-                      .aspectRatio(1f)
+                        .height(iconHeight)
+                        .aspectRatio(1f)
                   )
                 }
               }
@@ -621,8 +625,8 @@ private fun ModelItem(
                     imageVector = Lucide.Lightbulb,
                     contentDescription = null,
                     modifier = Modifier
-                      .height(iconHeight)
-                      .aspectRatio(1f)
+                        .height(iconHeight)
+                        .aspectRatio(1f)
                   )
                 }
               }

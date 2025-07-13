@@ -248,6 +248,9 @@
 
   <!-- Reasoning -->
   <string name="reasoning_set_budget">Set reasoning budget (%1$d tokens)</string>
+  
+  <!-- User -->
+  <string name="user_default_name">User</string>
 
   <!-- Data Settings -->
   <string name="setting_page_data_settings">Data Settings</string>

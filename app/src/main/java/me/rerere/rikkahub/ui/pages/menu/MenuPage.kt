@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.Screen
+import me.rerere.rikkahub.ui.components.chat.Greeting
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.Favicon
 import me.rerere.rikkahub.ui.context.LocalNavController
@@ -58,7 +59,7 @@ fun MenuPage() {
       contentPadding = it + PaddingValues(16.dp)
     ) {
       item {
-        Greeting()
+        Greeting(modifier = Modifier.padding(vertical = 32.dp))
       }
 
       item {
@@ -69,28 +70,6 @@ fun MenuPage() {
         LeaderBoard()
       }
     }
-  }
-}
-
-@Composable
-private fun Greeting() {
-  @Composable
-  fun getGreetingMessage(): String {
-    val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-    return when (hour) {
-      in 5..11 -> stringResource(id = R.string.menu_page_morning_greeting)
-      in 12..17 -> stringResource(id = R.string.menu_page_afternoon_greeting)
-      in 18..22 -> stringResource(id = R.string.menu_page_evening_greeting)
-      else -> stringResource(id = R.string.menu_page_night_greeting)
-    }
-  }
-
-  Column {
-    Text(
-      text = getGreetingMessage(),
-      style = MaterialTheme.typography.headlineMedium,
-      modifier = Modifier.padding(vertical = 24.dp)
-    )
   }
 }
 

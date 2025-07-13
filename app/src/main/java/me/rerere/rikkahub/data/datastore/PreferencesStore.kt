@@ -27,6 +27,7 @@ import me.rerere.ai.provider.ProviderSetting
 import me.rerere.rikkahub.AppScope
 import me.rerere.rikkahub.data.mcp.McpServerConfig
 import me.rerere.rikkahub.data.model.Assistant
+import me.rerere.rikkahub.data.model.Avatar
 import me.rerere.rikkahub.data.model.Tag
 import me.rerere.rikkahub.ui.theme.PresetThemeType
 import me.rerere.rikkahub.ui.theme.PresetThemes
@@ -274,6 +275,8 @@ data class Settings(
 
 @Serializable
 data class DisplaySetting(
+  val userAvatar: Avatar = Avatar.Dummy,
+  val userNickname: String = "",
   val showModelIcon: Boolean = true,
   val showTokenUsage: Boolean = true,
   val autoCloseThinking: Boolean = true,

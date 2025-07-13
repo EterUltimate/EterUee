@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.ui.pages.chat
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -76,7 +78,9 @@ import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.ui.components.chat.AssistantPicker
 import me.rerere.rikkahub.ui.components.chat.ChatInput
+import me.rerere.rikkahub.ui.components.chat.Greeting
 import me.rerere.rikkahub.ui.components.chat.rememberChatInputState
+import me.rerere.rikkahub.ui.components.chat.UIAvatar
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalToaster
@@ -463,6 +467,18 @@ private fun DrawerContent(
   loading: Boolean,
 ) {
   val scope = rememberCoroutineScope()
+
+  // 昵称编辑状态
+  val nicknameEditState = useEditState<String> { newNickname ->
+    vm.updateSettings(
+      settings.copy(
+        displaySetting = settings.displaySetting.copy(
+          userNickname = newNickname
+        )
+      )
+    )
+  }
+
   ModalDrawerSheet(
     modifier = Modifier.width(300.dp)
   ) {
@@ -470,6 +486,48 @@ private fun DrawerContent(
       modifier = Modifier.padding(8.dp),
       verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+      // 用户头像和昵称自定义区域
+      Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+      ) {
+        UIAvatar(
+          name = settings.displaySetting.userNickname.ifBlank { stringResource(R.string.user_default_name) },
+          value = settings.displaySetting.userAvatar,
+          onUpdate = { newAvatar ->
+            vm.updateSettings(
+              settings.copy(
+                displaySetting = settings.displaySetting.copy(
+                  userAvatar = newAvatar
+                )
+              )
+            )
+          },
+          modifier = Modifier.size(64.dp),
+        )
+
+        Column(
+          modifier = Modifier.weight(1f),
+          verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+          Text(
+            text = settings.displaySetting.userNickname.ifBlank { stringResource(R.string.user_default_name) },
+            style = MaterialTheme.typography.titleLarge,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.clickable {
+              nicknameEditState.open(settings.displaySetting.userNickname)
+            }
+          )
+          Greeting(
+            style = MaterialTheme.typography.labelMedium,
+          )
+        }
+      }
+
       if (settings.displaySetting.showUpdates) {
         UpdateCard(vm)
       }
@@ -540,6 +598,45 @@ private fun DrawerContent(
         }
       }
     }
+  }
+
+  // 昵称编辑对话框
+  nicknameEditState.EditStateContent { nickname, onUpdate ->
+    AlertDialog(
+      onDismissRequest = {
+        nicknameEditState.dismiss()
+      },
+      title = {
+        Text("编辑昵称")
+      },
+      text = {
+        OutlinedTextField(
+          value = nickname,
+          onValueChange = onUpdate,
+          modifier = Modifier.fillMaxWidth(),
+          singleLine = true,
+          placeholder = { Text("请输入昵称") }
+        )
+      },
+      confirmButton = {
+        TextButton(
+          onClick = {
+            nicknameEditState.confirm()
+          }
+        ) {
+          Text("保存")
+        }
+      },
+      dismissButton = {
+        TextButton(
+          onClick = {
+            nicknameEditState.dismiss()
+          }
+        ) {
+          Text("取消")
+        }
+      }
+    )
   }
 }
 

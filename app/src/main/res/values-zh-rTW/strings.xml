@@ -236,6 +236,9 @@
 
   <!-- Reasoning -->
   <string name="reasoning_set_budget">設置推理預算 (%1$d tokens)</string>
+  
+  <!-- User -->
+  <string name="user_default_name">用戶</string>
   <string name="reasoning_off">關閉</string>
 
   <!-- Data Settings -->

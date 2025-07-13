@@ -238,6 +238,9 @@
 
   <!-- Reasoning -->
   <string name="reasoning_set_budget">推論予算を設定 (%1$d トークン)</string>
+  
+  <!-- User -->
+  <string name="user_default_name">ユーザー</string>
   <string name="reasoning_off">オフ</string>
   <string name="reasoning_off_desc">推論機能を無効にし、モデルは直接質問に答えます。</string>
   <string name="reasoning_light">軽度推論</string>

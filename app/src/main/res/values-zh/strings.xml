@@ -238,6 +238,9 @@
 
   <!-- Reasoning -->
   <string name="reasoning_set_budget">设置推理预算 (%1$d tokens)</string>
+  
+  <!-- User -->
+  <string name="user_default_name">用户</string>
 
   <!-- Data Settings -->
   <string name="setting_page_data_settings">数据设置</string>

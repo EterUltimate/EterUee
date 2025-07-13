@@ -2,6 +2,7 @@ package me.rerere.rikkahub.ui.pages.chat
 
 import android.app.Application
 import android.util.Log
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
@@ -55,6 +56,7 @@ import me.rerere.rikkahub.data.datastore.getCurrentAssistant
 import me.rerere.rikkahub.data.datastore.getCurrentChatModel
 import me.rerere.rikkahub.data.mcp.McpManager
 import me.rerere.rikkahub.data.model.Assistant
+import me.rerere.rikkahub.data.model.Avatar
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.model.toMessageNode
 import me.rerere.rikkahub.data.repository.ConversationRepository
@@ -161,9 +163,22 @@ class ChatVM(
   val generationDoneFlow = MutableSharedFlow<Uuid>()
 
   // 更新设置
-  fun updateSettings(settings: Settings) {
+  fun updateSettings(newSettings: Settings) {
     viewModelScope.launch {
-      settingsStore.update(settings)
+      val oldSettings = settings.value
+      // 检查用户头像是否有变化，如果有则删除旧头像
+      checkUserAvatarDelete(oldSettings, newSettings)
+      settingsStore.update(newSettings)
+    }
+  }
+
+  // 检查用户头像删除
+  private fun checkUserAvatarDelete(oldSettings: Settings, newSettings: Settings) {
+    val oldAvatar = oldSettings.displaySetting.userAvatar
+    val newAvatar = newSettings.displaySetting.userAvatar
+    
+    if (oldAvatar is Avatar.Image && oldAvatar != newAvatar) {
+      context.deleteChatFiles(listOf(oldAvatar.url.toUri()))
     }
   }
 

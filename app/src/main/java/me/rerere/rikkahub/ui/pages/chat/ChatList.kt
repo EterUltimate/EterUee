@@ -126,7 +126,7 @@ fun ChatList(
         if (!state.isScrollInProgress && loadingState) {
           if (visibleItemsInfo.isAtBottom()) {
             state.requestScrollToItem(conversationUpdated.messageNodes.lastIndex + 10)
-            Log.i(TAG, "ChatList: scroll to ${conversationUpdated.messageNodes.lastIndex}")
+            // Log.i(TAG, "ChatList: scroll to ${conversationUpdated.messageNodes.lastIndex}")
           }
         }
       }

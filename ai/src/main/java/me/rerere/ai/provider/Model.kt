@@ -106,6 +106,10 @@ fun guessModelAbilityFromModelId(modelId: String): List<ModelAbility> {
       listOf(ModelAbility.TOOL, ModelAbility.REASONING)
     }
 
+    KIMI_V2.containsMatchIn(modelId) -> {
+      listOf(ModelAbility.TOOL)
+    }
+
     else -> {
       emptyList()
     }
@@ -124,3 +128,4 @@ private val CLAUDE_4 = Regex("claude.*-4")
 private val QWEN_3 = Regex("qwen-?3")
 private val DOUBAO_1_6 = Regex("doubao.+1([-.])6")
 private val GROK_4 = Regex("grok-4")
+private val KIMI_V2 = Regex("kimi-k2")

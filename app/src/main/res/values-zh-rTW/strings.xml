@@ -49,6 +49,8 @@
   <string name="chat_page_export_format">匯出格式</string>
   <string name="chat_page_export_markdown">Markdown</string>
   <string name="chat_page_export_markdown_desc">將對話匯出為markdown檔案</string>
+  <string name="chat_page_export_image">匯出為圖片</string>
+  <string name="chat_page_export_image_desc">將對話匯出為PNG圖片</string>
   <string name="chat_page_export_success">已匯出為%1$s</string>
   <string name="chat_page_export_share_via">分享方式</string>
 

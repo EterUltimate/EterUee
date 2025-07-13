@@ -4,9 +4,13 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.RectF
 import android.graphics.Typeface
 import android.net.Uri
-import androidx.compose.foundation.background
+import android.text.Layout
+import android.text.StaticLayout
+import android.text.TextPaint
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,10 +29,11 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.drawable.toBitmap
 import com.composables.icons.lucide.FileText
 import com.composables.icons.lucide.Image
 import com.composables.icons.lucide.Lucide
@@ -45,11 +50,6 @@ import me.rerere.rikkahub.utils.toLocalString
 import java.io.File
 import java.io.FileOutputStream
 import java.time.LocalDateTime
-import androidx.core.graphics.createBitmap
-import android.graphics.RectF
-import android.text.Layout
-import android.text.StaticLayout
-import android.text.TextPaint
 
 @Composable
 fun ChatExportSheet(
@@ -116,10 +116,10 @@ fun ChatExportSheet(
         ) {
           ListItem(
             headlineContent = {
-              Text("Export as Image")
+              Text(stringResource(id = R.string.chat_page_export_image))
             },
             supportingContent = {
-              Text("Export conversation as PNG image")
+              Text(stringResource(id = R.string.chat_page_export_image_desc))
             },
             leadingContent = {
               Icon(Lucide.Image, contentDescription = null)
@@ -178,7 +178,7 @@ private fun exportToMarkdown(
   }
 
   try {
-    val file = File(context.getExternalFilesDir(null), filename)
+    val file = File(context.getDir("temp", Context.MODE_PRIVATE), filename)
     if (!file.exists()) {
       file.createNewFile()
     } else {
@@ -291,6 +291,19 @@ private fun exportToImage(
   // Background
   canvas.drawColor(android.graphics.Color.WHITE)
 
+  // Draw App Logo
+  try {
+    ContextCompat.getDrawable(context, R.mipmap.ic_launcher_foreground)?.let { logoDrawable ->
+      val logoSize = 120
+      val logoBitmap = logoDrawable.toBitmap(logoSize, logoSize)
+      val logoLeft = canvasWidth - padding - logoSize
+      canvas.drawBitmap(logoBitmap, logoLeft, padding, null)
+    }
+  } catch (e: Exception) {
+    // Some devices may not have a foreground launcher icon (e.g. Android TV)
+    e.printStackTrace()
+  }
+
   var currentY = padding
 
   // Draw title
@@ -340,7 +353,11 @@ private fun exportToImage(
   }
 
   try {
-    val file = File(context.getExternalFilesDir(null), filename)
+    val dir = context.filesDir.resolve("temp")
+    if (!dir.exists()) {
+      dir.mkdirs()
+    }
+    val file = dir.resolve(filename)
     if (!file.exists()) {
       file.createNewFile()
     } else {
@@ -359,7 +376,7 @@ private fun exportToImage(
       file
     )
     shareFile(context, uri, "image/png")
-
+    Toast.makeText(context, "Exported", Toast.LENGTH_SHORT).show()
   } catch (e: Exception) {
     e.printStackTrace()
   } finally {

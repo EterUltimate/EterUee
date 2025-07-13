@@ -8,5 +8,5 @@
     path="." />
   <files-path
     name="upload"
-    path="upload" />
+    path="." />
 </paths>

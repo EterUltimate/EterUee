@@ -2,52 +2,81 @@ package me.rerere.rikkahub.ui.pages.chat
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.RectF
-import android.graphics.Typeface
 import android.net.Uri
-import android.text.Layout
-import android.text.StaticLayout
-import android.text.TextPaint
 import android.widget.Toast
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import androidx.core.graphics.createBitmap
-import androidx.core.graphics.drawable.toBitmap
+import androidx.navigation3.runtime.rememberNavBackStack
+import coil3.compose.AsyncImage
+import com.composables.icons.lucide.BookDashed
+import com.composables.icons.lucide.BookHeart
+import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.FileText
 import com.composables.icons.lucide.Image
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Wrench
 import com.dokar.sonner.ToastType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
+import me.rerere.ai.ui.isEmptyUIMessage
 import me.rerere.ai.ui.toSortedMessageParts
 import me.rerere.ai.util.encodeBase64
+import me.rerere.highlight.Highlighter
+import me.rerere.highlight.LocalHighlighter
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.Screen
 import me.rerere.rikkahub.data.model.Conversation
+import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
+import me.rerere.rikkahub.ui.components.ui.BitmapComposer
+import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalToaster
+import me.rerere.rikkahub.utils.JsonInstant
+import me.rerere.rikkahub.utils.getActivity
+import me.rerere.rikkahub.utils.jsonPrimitiveOrNull
 import me.rerere.rikkahub.utils.toLocalString
-import java.io.File
+import org.koin.compose.koinInject
 import java.io.FileOutputStream
 import java.time.LocalDateTime
 
@@ -60,6 +89,8 @@ fun ChatExportSheet(
 ) {
   val context = LocalContext.current
   val toaster = LocalToaster.current
+  val scope = rememberCoroutineScope()
+  val density = LocalDensity.current
 
   if (visible) {
     ModalBottomSheet(
@@ -68,8 +99,8 @@ fun ChatExportSheet(
     ) {
       Column(
         modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 16.dp, vertical = 32.dp),
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 32.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
       ) {
@@ -105,7 +136,7 @@ fun ChatExportSheet(
           stringResource(id = R.string.chat_page_export_success, "Image")
         OutlinedCard(
           onClick = {
-            exportToImage(context, conversation, selectedMessages)
+            scope.launch { exportToImage(context, scope, density, conversation, selectedMessages) }
             toaster.show(
               imageSuccessMessage,
               type = ToastType.Success
@@ -206,155 +237,34 @@ private fun exportToMarkdown(
   }
 }
 
-private fun exportToImage(
+private suspend fun exportToImage(
   context: Context,
+  scope: CoroutineScope,
+  density: Density,
   conversation: Conversation,
   messages: List<UIMessage>
 ) {
   val filename = "chat-export-${LocalDateTime.now().toLocalString()}.png"
-
-  // Canvas settings
-  val canvasWidth = 1080
-  val padding = 60f
-  val bubbleCornerRadius = 40f
-  val bubblePaddingHorizontal = 30f
-  val bubblePaddingVertical = 20f
-  val messageSpacing = 30f
-
-  val titleFontSize = 48f
-  val contentFontSize = 32f
-  val smallFontSize = 24f
-
-  // Paint objects
-  val titlePaint = Paint().apply {
-    color = android.graphics.Color.BLACK
-    textSize = titleFontSize
-    typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-    isAntiAlias = true
-  }
-
-  val contentPaint = TextPaint().apply {
-    color = android.graphics.Color.BLACK
-    textSize = contentFontSize
-    typeface = Typeface.DEFAULT
-    isAntiAlias = true
-  }
-
-  val smallPaint = Paint().apply {
-    color = android.graphics.Color.GRAY
-    textSize = smallFontSize
-    typeface = Typeface.DEFAULT
-    isAntiAlias = true
-  }
-
-  val userBubblePaint = Paint().apply {
-    color = Color(0xFFE3F2FD).toArgb() // Light Blue
-    isAntiAlias = true
-    style = Paint.Style.FILL
-  }
-
-  val assistantBubblePaint = Paint().apply {
-    color = Color(0xFFF5F5F5).toArgb() // Light Grey
-    isAntiAlias = true
-    style = Paint.Style.FILL
-  }
-
-  // --- Pass 1: Calculate height and prepare layouts ---
-  val bubbleMaxWidth = (canvasWidth * 0.8f).toInt()
-
-  val layouts = messages.map { message ->
-    val text = message.parts.toSortedMessageParts().joinToString("\n") { part ->
-      when (part) {
-        is UIMessagePart.Text -> part.text
-        is UIMessagePart.Image -> "[Image]"
-        is UIMessagePart.Reasoning -> part.reasoning.lines().joinToString("\n") { "> $it" }
-        else -> ""
-      }
-    }.ifBlank { " " }
-
-    StaticLayout.Builder.obtain(text, 0, text.length, contentPaint, bubbleMaxWidth)
-      .setAlignment(Layout.Alignment.ALIGN_NORMAL)
-      .setLineSpacing(0f, 1.2f) // Increased line spacing for readability
-      .setIncludePad(true)
-      .build()
-  }
-
-  var totalHeight = padding * 2
-  totalHeight += titleFontSize + 40
-  totalHeight += smallFontSize + 60
-
-  layouts.forEach { layout ->
-    totalHeight += layout.height + bubblePaddingVertical * 2 + messageSpacing
-  }
-  totalHeight -= messageSpacing // No spacing after last message
-
-  // Create bitmap and canvas
-  val bitmap = createBitmap(canvasWidth, totalHeight.toInt())
-  val canvas = Canvas(bitmap)
-
-  // Background
-  canvas.drawColor(android.graphics.Color.WHITE)
-
-  // Draw App Logo
-  try {
-    ContextCompat.getDrawable(context, R.mipmap.ic_launcher_foreground)?.let { logoDrawable ->
-      val logoSize = 120
-      val logoBitmap = logoDrawable.toBitmap(logoSize, logoSize)
-      val logoLeft = canvasWidth - padding - logoSize
-      canvas.drawBitmap(logoBitmap, logoLeft, padding, null)
+  val composer = BitmapComposer(scope)
+  val activity = context.getActivity()
+  if (activity == null) {
+    withContext(Dispatchers.Main) {
+      Toast.makeText(context, "Failed to get activity", Toast.LENGTH_SHORT).show()
     }
-  } catch (e: Exception) {
-    // Some devices may not have a foreground launcher icon (e.g. Android TV)
-    e.printStackTrace()
+    return
   }
 
-  var currentY = padding
-
-  // Draw title
-  canvas.drawText(conversation.title, padding, currentY + titleFontSize, titlePaint)
-  currentY += titleFontSize + 40
-
-  // Draw export info
-  val exportInfo = "${LocalDateTime.now().toLocalString()}  rikka-ai.com"
-  canvas.drawText(exportInfo, padding, currentY + smallFontSize, smallPaint)
-  currentY += smallFontSize + 60
-
-  // --- Pass 2: Draw messages ---
-  messages.forEachIndexed { index, message ->
-    val layout = layouts[index]
-    val bubbleHeight = layout.height + bubblePaddingVertical * 2
-
-    var textMaxWidth = 0f
-    for (i in 0 until layout.lineCount) {
-      textMaxWidth = maxOf(textMaxWidth, layout.getLineWidth(i))
-    }
-    val bubbleWidth = textMaxWidth + bubblePaddingHorizontal * 2
-
-    val bubbleRect: RectF
-    if (message.role == MessageRole.USER) {
-      val bubbleRight = canvasWidth - padding
-      val bubbleLeft = bubbleRight - bubbleWidth
-      bubbleRect = RectF(bubbleLeft, currentY, bubbleRight, currentY + bubbleHeight)
-      canvas.drawRoundRect(bubbleRect, bubbleCornerRadius, bubbleCornerRadius, userBubblePaint)
-    } else { // ASSISTANT, SYSTEM, TOOL
-      val bubbleLeft = padding
-      val bubbleRight = bubbleLeft + bubbleWidth
-      bubbleRect = RectF(bubbleLeft, currentY, bubbleRight, currentY + bubbleHeight)
-      canvas.drawRoundRect(
-        bubbleRect,
-        bubbleCornerRadius,
-        bubbleCornerRadius,
-        assistantBubblePaint
+  val bitmap = composer.composableToBitmap(
+    activity = activity,
+    width = 540.dp,
+    screenDensity = density,
+    content = {
+      ExportedChatImage(
+        conversation = conversation,
+        messages = messages
       )
     }
-
-    canvas.save()
-    canvas.translate(bubbleRect.left + bubblePaddingHorizontal, currentY + bubblePaddingVertical)
-    layout.draw(canvas)
-    canvas.restore()
-
-    currentY += bubbleHeight + messageSpacing
-  }
+  )
 
   try {
     val dir = context.filesDir.resolve("temp")
@@ -380,11 +290,278 @@ private fun exportToImage(
       file
     )
     shareFile(context, uri, "image/png")
-    Toast.makeText(context, "Exported", Toast.LENGTH_SHORT).show()
   } catch (e: Exception) {
     e.printStackTrace()
+    withContext(Dispatchers.Main) {
+      Toast.makeText(context, "Failed to export image", Toast.LENGTH_SHORT).show()
+    }
   } finally {
     bitmap.recycle()
+  }
+}
+
+@Composable
+private fun ExportedChatImage(
+  conversation: Conversation,
+  messages: List<UIMessage>
+) {
+  val navBackStack = rememberNavBackStack(Screen.Chat("export"))
+  val highlighter = koinInject<Highlighter>()
+  MaterialTheme {
+    CompositionLocalProvider(
+      LocalNavController provides navBackStack,
+      LocalHighlighter provides highlighter
+    ) {
+      Surface(
+        modifier = Modifier.width(540.dp) // like 1080p but with density independence
+      ) {
+        Column(
+          modifier = Modifier
+              .fillMaxWidth()
+              .background(MaterialTheme.colorScheme.surface)
+              .padding(16.dp),
+          verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+          ) {
+            Column(modifier = Modifier.weight(1f, fill = false)) {
+              Text(
+                text = conversation.title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+              )
+              Text(
+                text = "${LocalDateTime.now().toLocalString()}  rikka-ai.com",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+              )
+            }
+            // Use painterResource for the logo
+            val painter =
+              androidx.compose.ui.res.painterResource(id = R.mipmap.ic_launcher_foreground)
+            Image(
+              painter = painter,
+              contentDescription = "Logo",
+              modifier = Modifier.size(60.dp)
+            )
+          }
+
+          messages.forEach { message ->
+            ExportedChatMessage(message = message)
+          }
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun ExportedChatMessage(message: UIMessage) {
+  if (message.parts.isEmptyUIMessage()) return
+
+  val arrangement = if (message.role == MessageRole.USER) Arrangement.End else Arrangement.Start
+  Row(
+    modifier = Modifier.fillMaxWidth(),
+    horizontalArrangement = arrangement
+  ) {
+    Column(
+      modifier = Modifier.widthIn(max = (540 * 0.9).dp),
+      verticalArrangement = Arrangement.spacedBy(8.dp),
+      horizontalAlignment = if (message.role == MessageRole.USER) Alignment.End else Alignment.Start
+    ) {
+      message.parts.toSortedMessageParts().forEach { part ->
+        when (part) {
+          is UIMessagePart.Text -> {
+            if (part.text.isNotBlank()) {
+              Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                  containerColor = when (message.role) {
+                    MessageRole.USER -> MaterialTheme.colorScheme.primaryContainer
+                    else -> MaterialTheme.colorScheme.surfaceVariant
+                  }
+                )
+              ) {
+                ProvideTextStyle(MaterialTheme.typography.bodyMedium) {
+                  MarkdownBlock(
+                    content = part.text,
+                    modifier = Modifier.padding(12.dp)
+                  )
+                }
+              }
+            }
+          }
+
+          is UIMessagePart.Image -> {
+            AsyncImage(
+              model = part.url,
+              contentDescription = "Image",
+              modifier = Modifier
+                  .sizeIn(maxHeight = 300.dp)
+                  .clip(RoundedCornerShape(12.dp))
+            )
+          }
+
+          is UIMessagePart.Reasoning -> {
+            ExportedReasoningCard(reasoning = part)
+          }
+
+          is UIMessagePart.ToolCall -> {
+            ExportedToolCall(toolCall = part)
+          }
+
+          is UIMessagePart.ToolResult -> {
+            ExportedToolResult(toolResult = part)
+          }
+
+          else -> {
+            // Other parts are not rendered in image export for now
+          }
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun ExportedReasoningCard(reasoning: UIMessagePart.Reasoning) {
+  Card(
+    colors = CardDefaults.cardColors(
+      containerColor = MaterialTheme.colorScheme.primaryContainer,
+      contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    ),
+    shape = MaterialTheme.shapes.medium,
+  ) {
+    Column(
+      modifier = Modifier
+        .padding(8.dp),
+      verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+      Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Icon(
+          painter = painterResource(R.drawable.deepthink),
+          contentDescription = null,
+          modifier = Modifier.size(18.dp),
+          tint = MaterialTheme.colorScheme.secondary
+        )
+        Text(
+          text = stringResource(R.string.deep_thinking), // Let's use Chinese directly as per rule
+          style = MaterialTheme.typography.titleSmall,
+          color = MaterialTheme.colorScheme.secondary
+        )
+      }
+      MarkdownBlock(
+        content = reasoning.reasoning,
+        style = MaterialTheme.typography.bodySmall,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp),
+      )
+    }
+  }
+}
+
+@Composable
+private fun ExportedToolCall(
+  toolCall: UIMessagePart.ToolCall
+) {
+  Surface(
+    shape = MaterialTheme.shapes.medium,
+    color = MaterialTheme.colorScheme.primaryContainer,
+    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+  ) {
+    Row(
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
+    ) {
+      Icon(
+        imageVector = when (toolCall.toolName) {
+          "create_memory", "edit_memory" -> Lucide.BookHeart
+          "delete_memory" -> Lucide.BookDashed
+          "search_web" -> Lucide.Earth
+          else -> Lucide.Wrench
+        },
+        contentDescription = null,
+        modifier = Modifier.size(20.dp),
+        tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+      )
+      Column {
+        Text(
+          text = when (toolCall.toolName) {
+            "create_memory" -> stringResource(R.string.chat_message_tool_create_memory)
+            "edit_memory" -> stringResource(R.string.chat_message_tool_edit_memory)
+            "delete_memory" -> stringResource(R.string.chat_message_tool_delete_memory)
+            "search_web" -> {
+              val query = runCatching {
+                JsonInstant.parseToJsonElement(toolCall.arguments).jsonObject["query"]?.jsonPrimitiveOrNull?.contentOrNull
+                  ?: ""
+              }.getOrDefault("")
+              stringResource(R.string.chat_message_tool_search_web, query)
+            }
+
+            else -> stringResource(R.string.chat_message_tool_call_generic, toolCall.toolName)
+          },
+          style = MaterialTheme.typography.titleSmall,
+          color = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+      }
+    }
+  }
+}
+
+@Composable
+private fun ExportedToolResult(toolResult: UIMessagePart.ToolResult) {
+  Surface(
+    shape = MaterialTheme.shapes.medium,
+    color = MaterialTheme.colorScheme.primaryContainer,
+    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+  ) {
+    Row(
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
+    ) {
+      Icon(
+        imageVector = when (toolResult.toolName) {
+          "create_memory", "edit_memory" -> Lucide.BookHeart
+          "delete_memory" -> Lucide.BookDashed
+          "search_web" -> Lucide.Earth
+          else -> Lucide.Wrench
+        },
+        contentDescription = null,
+        modifier = Modifier.size(20.dp),
+        tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+      )
+      Column {
+        Text(
+          text = when (toolResult.toolName) {
+            "create_memory" -> stringResource(R.string.chat_message_tool_create_memory)
+            "edit_memory" -> stringResource(R.string.chat_message_tool_edit_memory)
+            "delete_memory" -> stringResource(R.string.chat_message_tool_delete_memory)
+            "search_web" -> {
+              val query =
+                toolResult.arguments.jsonObject["query"]?.jsonPrimitiveOrNull?.contentOrNull
+                  ?: ""
+              stringResource(R.string.chat_message_tool_search_web, query)
+            }
+
+            else -> stringResource(R.string.chat_message_tool_call_generic, toolResult.toolName)
+          },
+          style = MaterialTheme.typography.titleSmall,
+          color = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+      }
+    }
   }
 }
 

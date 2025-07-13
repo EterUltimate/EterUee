@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -908,6 +907,32 @@ private fun AssistantMemorySettings(
               onUpdate(
                 assistant.copy(
                   enableMemory = it
+                )
+              )
+            }
+          )
+        }
+      )
+    }
+
+    Card {
+      FormItem(
+        modifier = Modifier.padding(16.dp),
+        label = {
+          Text(stringResource(R.string.assistant_page_recent_chats))
+        },
+        description = {
+          Text(
+            text = stringResource(R.string.assistant_page_recent_chats_desc),
+          )
+        },
+        tail = {
+          Switch(
+            checked = assistant.enableRecentChatsReference,
+            onCheckedChange = {
+              onUpdate(
+                assistant.copy(
+                  enableRecentChatsReference = it
                 )
               )
             }

@@ -57,7 +57,14 @@ val dataSourceModule = module {
 
   single { McpManager(settingsStore = get(), appScope = get(), okHttpClient = get()) }
 
-  single { GenerationHandler(context = get(), json = get(), memoryRepo = get()) }
+  single {
+    GenerationHandler(
+      context = get(),
+      json = get(),
+      memoryRepo = get(),
+      conversationRepo = get()
+    )
+  }
 
   single<OkHttpClient> {
     OkHttpClient.Builder()

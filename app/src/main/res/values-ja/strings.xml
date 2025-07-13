@@ -135,6 +135,8 @@
   <string name="assistant_page_context_message_count">コンテキストメッセージサイズ: %d</string>
   <string name="assistant_page_memory">記憶</string>
   <string name="assistant_page_memory_desc">記憶を有効にすると、モデルは会話中にあなたの情報を積極的に記録し、後続の会話で使用しようとします。この機能が正常に動作するには、モデルがツール呼び出しをサポートしている必要があります</string>
+  <string name="assistant_page_recent_chats">最近のチャット履歴を参照</string>
+  <string name="assistant_page_recent_chats_desc">有効にすると、アシスタントは最近のチャット履歴を参照して、より文脈に沿った応答を提供します</string>
   <string name="assistant_page_manage_memory">記憶を管理 (%d項目)</string>
   <string name="assistant_page_cancel">キャンセル</string>
   <string name="assistant_page_save">保存</string>

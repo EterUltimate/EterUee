@@ -6,13 +6,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import me.rerere.ai.ui.UIMessage
 import me.rerere.rikkahub.data.db.dao.ConversationDAO
 import me.rerere.rikkahub.data.db.entity.ConversationEntity
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.model.MessageNode
 import me.rerere.rikkahub.utils.JsonInstant
-import me.rerere.rikkahub.utils.deleteAllChatFiles
 import me.rerere.rikkahub.utils.deleteChatFiles
 import java.time.Instant
 import kotlin.uuid.Uuid
@@ -28,6 +26,13 @@ class ConversationRepository(
         conversationEntityToConversation(entity)
       }
     }
+
+  suspend fun getRecentConversations(assistantId: Uuid, limit: Int = 10): List<Conversation> {
+    return conversationDAO.getRecentConversationsOfAssistant(
+      assistantId = assistantId.toString(),
+      limit = limit
+    ).map { conversationEntityToConversation(it) }
+  }
 
   fun getConversationsOfAssistant(assistantId: Uuid): Flow<List<Conversation>> {
     return conversationDAO

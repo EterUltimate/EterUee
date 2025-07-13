@@ -20,6 +20,7 @@ data class Assistant(
   val contextMessageSize: Int = 32,
   val streamOutput: Boolean = true,
   val enableMemory: Boolean = false,
+  val enableRecentChatsReference: Boolean = false,
   val messageTemplate: String = "{{ message }}",
   val presetMessages: List<UIMessage> = emptyList(),
   val thinkingBudget: Int? = 1024,

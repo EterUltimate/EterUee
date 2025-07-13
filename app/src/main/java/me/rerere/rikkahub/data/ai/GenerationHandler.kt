@@ -18,7 +18,6 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import me.rerere.ai.core.InputSchema
 import me.rerere.ai.core.MessageRole
-import me.rerere.ai.core.TokenUsage
 import me.rerere.ai.core.Tool
 import me.rerere.ai.core.merge
 import me.rerere.ai.provider.Model
@@ -40,6 +39,7 @@ import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.findProvider
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
+import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.data.repository.MemoryRepository
 
 private const val TAG = "GenerationHandler"
@@ -55,6 +55,7 @@ class GenerationHandler(
   private val context: Context,
   private val json: Json,
   private val memoryRepo: MemoryRepository,
+  private val conversationRepo: ConversationRepository
 ) {
   fun generateText(
     settings: Settings,
@@ -199,6 +200,10 @@ class GenerationHandler(
           if (assistant.enableMemory) {
             appendLine()
             append(buildMemoryPrompt(memories))
+          }
+          if(assistant.enableRecentChatsReference) {
+            appendLine()
+            append(buildRecentChatsPrompt(assistant))
           }
 
           // 工具prompt
@@ -376,4 +381,25 @@ class GenerationHandler(
       }
       append("</memories>\n")
     }
+
+  private suspend fun buildRecentChatsPrompt(assistant: Assistant): String {
+    val recentConversations = conversationRepo.getRecentConversations(
+      assistantId = assistant.id,
+      limit = 10,
+    )
+    if (recentConversations.isNotEmpty()) {
+      return buildString {
+        append("## 最近的对话\n")
+        append("这是用户最近的一些对话，你可以参考这些对话了解用户偏好:\n")
+        append("\n<recent_chats>\n")
+        recentConversations.forEach { conversation ->
+          append("<conversation>\n")
+          append("  <title>${conversation.title}</title>")
+          append("</conversation>\n")
+        }
+        append("</recent_chats>\n")
+      }
+    }
+    return ""
+  }
 }

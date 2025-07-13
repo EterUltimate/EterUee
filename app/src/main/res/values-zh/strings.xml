@@ -135,6 +135,8 @@
   <string name="assistant_page_context_message_count">上下文消息数量: %d</string>
   <string name="assistant_page_memory">记忆</string>
   <string name="assistant_page_memory_desc">启用记忆后，模型在与你对话时尝试主动记录你的信息，并在后续其他对话中使用，此功能需要模型支持工具调用才能正常工作</string>
+  <string name="assistant_page_recent_chats">参考历史聊天记录</string>
+  <string name="assistant_page_recent_chats_desc">启用后，助手将参考最近的聊天历史记录来提供更有上下文的回应</string>
   <string name="assistant_page_manage_memory">管理记忆 (%d条)</string>
   <string name="assistant_page_cancel">取消</string>
   <string name="assistant_page_save">保存</string>

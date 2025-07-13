@@ -29,8 +29,11 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
@@ -62,6 +65,7 @@ import com.composables.icons.lucide.ChevronUp
 import com.composables.icons.lucide.ChevronsDown
 import com.composables.icons.lucide.ChevronsUp
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.X
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -116,8 +120,8 @@ fun ChatList(
 
   Box(
     modifier = Modifier
-        .padding(innerPadding)
-        .fillMaxSize(),
+      .padding(innerPadding)
+      .fillMaxSize(),
   ) {
     // 自动滚动到底部
     LaunchedEffect(state) {
@@ -214,8 +218,8 @@ fun ChatList(
               verticalAlignment = Alignment.CenterVertically,
               horizontalArrangement = Arrangement.spacedBy(8.dp),
               modifier = Modifier
-                  .padding(vertical = 8.dp)
-                  .fillMaxWidth()
+                .padding(vertical = 8.dp)
+                .fillMaxWidth()
             ) {
               HorizontalDivider(modifier = Modifier.weight(1f))
               Text(
@@ -238,8 +242,8 @@ fun ChatList(
       item(ScrollBottomKey) {
         Spacer(
           Modifier
-              .fillMaxWidth()
-              .height(5.dp)
+            .fillMaxWidth()
+            .height(5.dp)
         )
       }
     }
@@ -248,9 +252,8 @@ fun ChatList(
     AnimatedVisibility(
       visible = selecting,
       modifier = Modifier
-          .align(Alignment.BottomEnd)
-          .padding(bottom = 32.dp)
-          .padding(end = 16.dp),
+        .align(Alignment.BottomCenter)
+        .padding(bottom = 48.dp),
       enter = slideInVertically(
         initialOffsetY = { it * 2 },
       ),
@@ -258,17 +261,29 @@ fun ChatList(
         targetOffsetY = { it * 2 },
       ),
     ) {
-      SmallFloatingActionButton(
-        onClick = {
-          selecting = false
-          val messages =
-            conversation.messageNodes.filter { it.id in selectedItems && it.currentMessage.isValidToShowActions() }
-          if (messages.isNotEmpty()) {
-            showExportSheet = true
-          }
-        }
+      HorizontalFloatingToolbar(
+        expanded = true,
       ) {
-        Icon(Lucide.Check, null)
+        IconButton(
+          onClick = {
+            selecting = false
+            selectedItems.clear()
+          }
+        ) {
+          Icon(Lucide.X, null)
+        }
+        FilledIconButton(
+          onClick = {
+            selecting = false
+            val messages =
+              conversation.messageNodes.filter { it.id in selectedItems && it.currentMessage.isValidToShowActions() }
+            if (messages.isNotEmpty()) {
+              showExportSheet = true
+            }
+          }
+        ) {
+          Icon(Lucide.Check, null)
+        }
       }
     }
 
@@ -295,21 +310,21 @@ fun ChatList(
     if (conversation.chatSuggestions.isNotEmpty()) {
       LazyRow(
         modifier = Modifier
-            .align(Alignment.BottomCenter)
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+          .align(Alignment.BottomCenter)
+          .fillMaxWidth()
+          .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
       ) {
         items(conversation.chatSuggestions) { suggestion ->
           Box(
             modifier = Modifier
-                .clip(RoundedCornerShape(50))
-                .clickable {
-                    onClickSuggestion(suggestion)
-                }
-                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp))
-                .padding(vertical = 4.dp, horizontal = 8.dp),
+              .clip(RoundedCornerShape(50))
+              .clickable {
+                onClickSuggestion(suggestion)
+              }
+              .background(MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp))
+              .padding(vertical = 4.dp, horizontal = 8.dp),
           ) {
             Text(
               text = suggestion,

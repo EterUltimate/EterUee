@@ -178,7 +178,11 @@ private fun exportToMarkdown(
   }
 
   try {
-    val file = File(context.getDir("temp", Context.MODE_PRIVATE), filename)
+    val dir = context.filesDir.resolve("temp")
+    if (!dir.exists()) {
+      dir.mkdirs()
+    }
+    val file = dir.resolve(filename)
     if (!file.exists()) {
       file.createNewFile()
     } else {

@@ -42,6 +42,16 @@ class RikkaHubApp : Application() {
     if (!Python.isStarted()) {
       Python.start(AndroidPlatform(this))
     }
+
+    // delete temp files
+    deleteTempFiles()
+  }
+
+  private fun deleteTempFiles() {
+    val dir = filesDir.resolve("temp")
+    if (dir.exists()) {
+      dir.deleteRecursively()
+    }
   }
 
   private fun createNotificationChannel() {

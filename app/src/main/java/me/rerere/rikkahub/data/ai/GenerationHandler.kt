@@ -20,6 +20,7 @@ import me.rerere.ai.core.InputSchema
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.core.TokenUsage
 import me.rerere.ai.core.Tool
+import me.rerere.ai.core.merge
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.Provider
 import me.rerere.ai.provider.ProviderManager
@@ -237,7 +238,7 @@ class GenerationHandler(
         it.usage?.let { usage ->
           messages = messages.mapIndexed { index, message ->
             if (index == messages.lastIndex) {
-              message.copy(usage = usage)
+              message.copy(usage = message.usage.merge(usage))
             } else {
               message
             }
@@ -256,7 +257,7 @@ class GenerationHandler(
         messages = messages.mapIndexed { index, message ->
           if (index == messages.lastIndex) {
             message.copy(
-              usage = usage
+              usage = message.usage.merge(usage)
             )
           } else {
             message

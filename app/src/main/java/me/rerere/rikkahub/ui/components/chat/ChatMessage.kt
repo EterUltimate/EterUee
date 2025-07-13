@@ -587,7 +587,7 @@ private fun ModelIcon(
             if(settings.displaySetting.showTokenUsage) {
               message.usage?.let { usage ->
                 Text(
-                  text = "${usage.completionTokens.formatNumber()} tokens",
+                  text = "${usage.totalTokens.formatNumber()} tokens",
                   style = MaterialTheme.typography.labelSmall,
                   color = LocalContentColor.current.copy(alpha = 0.8f),
                   maxLines = 1,
@@ -620,7 +620,7 @@ private fun ModelIcon(
             if(settings.displaySetting.showTokenUsage) {
               message.usage?.let { usage ->
                 Text(
-                  text = "${usage.completionTokens} tokens",
+                  text = "${usage.totalTokens} tokens",
                   style = MaterialTheme.typography.labelSmall,
                   color = LocalContentColor.current.copy(alpha = 0.8f),
                   maxLines = 1,

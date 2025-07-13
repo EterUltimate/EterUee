@@ -810,7 +810,7 @@ private fun AssistantPresetMessageSettings(
                     )
                   )
                 },
-                modifier = Modifier.width(IntrinsicSize.Min)
+                modifier = Modifier.width(160.dp)
               )
               Spacer(modifier = Modifier.weight(1f))
               IconButton(

@@ -91,12 +91,7 @@ fun <T> Select(
             expanded = false
           },
           text = {
-            Text(text = optionToString(option))
-          },
-          trailingIcon = {
-            if (option == selectedOption) {
-              Icon(Lucide.Check, null)
-            }
+            Text(text = optionToString(option), maxLines = 1)
           },
           leadingIcon = optionLeading?.let {
             { it(option) }

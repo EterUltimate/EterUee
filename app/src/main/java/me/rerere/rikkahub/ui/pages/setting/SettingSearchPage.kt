@@ -454,6 +454,42 @@ private fun SearXNGOptions(
       modifier = Modifier.fillMaxWidth()
     )
   }
+
+  FormItem(
+    label = {
+      Text("Engines")
+    }
+  ) {
+    OutlinedTextField(
+      value = options.engines,
+      onValueChange = {
+        onUpdateOptions(
+          options.copy(
+            engines = it
+          )
+        )
+      },
+      modifier = Modifier.fillMaxWidth()
+    )
+  }
+
+  FormItem(
+    label = {
+      Text("Language")
+    }
+  ) {
+    OutlinedTextField(
+      value = options.language,
+      onValueChange = {
+        onUpdateOptions(
+          options.copy(
+            language = it
+          )
+        )
+      },
+      modifier = Modifier.fillMaxWidth()
+    )
+  }
 }
 
 @Composable

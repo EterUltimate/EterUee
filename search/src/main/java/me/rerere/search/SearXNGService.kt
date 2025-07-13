@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
 import me.rerere.search.SearchResult.SearchResultItem
 import me.rerere.search.SearchService.Companion.httpClient
 import me.rerere.search.SearchService.Companion.json
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
 import java.net.URLEncoder
 
@@ -45,6 +46,17 @@ object SearXNGService : SearchService<SearchServiceOptions.SearXNGOptions> {
       val baseUrl = serviceOptions.url.trimEnd('/')
       val encodedQuery = URLEncoder.encode(query, "UTF-8")
       val url = "$baseUrl/search?q=$encodedQuery&format=json"
+        .toHttpUrl()
+        .newBuilder()
+        .apply {
+          if(serviceOptions.engines.isNotBlank()) {
+            addQueryParameter("engines", serviceOptions.engines)
+          }
+          if(serviceOptions.language.isNotBlank()) {
+            addQueryParameter("language", serviceOptions.language)
+          }
+        }
+        .build()
 
       // 发送请求
       val request = Request.Builder()
@@ -54,9 +66,9 @@ object SearXNGService : SearchService<SearchServiceOptions.SearXNGOptions> {
 
       Log.i(TAG, "search: $url")
 
-      val response = httpClient.newCall(request).execute()
+      val response = httpClient.newCall(request).await()
       if (response.isSuccessful) {
-        val bodyRaw = response.body?.string() ?: error("Failed to get response body")
+        val bodyRaw = response.body.string()
         val searchResponse = runCatching {
           json.decodeFromString<SearXNGResponse>(bodyRaw)
         }.onFailure {

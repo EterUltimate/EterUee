@@ -110,7 +110,9 @@ sealed class SearchServiceOptions {
   @Serializable
   @SerialName("searxng")
   data class SearXNGOptions(
-    val url: String = ""
+    val url: String = "",
+    val engines: String = "",
+    val language: String = "",
   ) : SearchServiceOptions()
 
   @Serializable

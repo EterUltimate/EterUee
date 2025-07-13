@@ -26,6 +26,7 @@ data class UIMessage(
   val createdAt: LocalDateTime = Clock.System.now()
     .toLocalDateTime(TimeZone.currentSystemDefault()),
   val modelId: Uuid? = null,
+  val usage: TokenUsage? = null,
 ) {
   private fun appendChunk(chunk: MessageChunk): UIMessage {
     val choice = chunk.choices.getOrNull(0)

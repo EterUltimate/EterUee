@@ -3,9 +3,12 @@ package me.rerere.rikkahub.data.db
 import android.util.Log
 import androidx.room.AutoMigration
 import androidx.room.Database
+import androidx.room.DeleteColumn
+import androidx.room.DeleteTable
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import androidx.room.migration.AutoMigrationSpec
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.serialization.encodeToString
@@ -23,14 +26,15 @@ private const val TAG = "AppDatabase"
 
 @Database(
   entities = [ConversationEntity::class, MemoryEntity::class],
-  version = 8,
+  version = 9,
   autoMigrations = [
     AutoMigration(from = 1, to = 2),
     AutoMigration(from = 2, to = 3),
     AutoMigration(from = 3, to = 4),
     AutoMigration(from = 4, to = 5),
     AutoMigration(from = 5, to = 6),
-    AutoMigration(from = 7, to = 8)
+    AutoMigration(from = 7, to = 8),
+    AutoMigration(from = 8, to = 9, spec = Migration_8_9::class),
   ]
 )
 @TypeConverters(TokenUsageConverter::class)
@@ -140,3 +144,6 @@ val Migration_6_7 = object : Migration(6, 7) {
     }
   }
 }
+
+@DeleteColumn(tableName = "ConversationEntity", columnName = "usage")
+class Migration_8_9 : AutoMigrationSpec

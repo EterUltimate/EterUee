@@ -3,7 +3,6 @@ package me.rerere.rikkahub.data.db.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import me.rerere.ai.core.TokenUsage
 
 @Entity
 data class ConversationEntity(
@@ -15,8 +14,6 @@ data class ConversationEntity(
   val title: String,
   @ColumnInfo("nodes")
   val nodes: String,
-  @ColumnInfo("usage")
-  val tokenUsage: TokenUsage?,
   @ColumnInfo("create_at")
   val createAt: Long,
   @ColumnInfo("update_at")

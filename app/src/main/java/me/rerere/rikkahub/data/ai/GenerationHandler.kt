@@ -48,10 +48,6 @@ sealed interface GenerationChunk {
   data class Messages(
     val messages: List<UIMessage>
   ) : GenerationChunk
-
-  data class TokenUsage(
-    val usage: me.rerere.ai.core.TokenUsage,
-  ) : GenerationChunk
 }
 
 class GenerationHandler(
@@ -111,9 +107,6 @@ class GenerationHandler(
               messages.visualTransforms(outputTransformers, context, model)
             )
           )
-        },
-        onUpdateTokenUsage = {
-          emit(GenerationChunk.TokenUsage(it))
         },
         transformers = inputTransformers,
         model = model,
@@ -183,7 +176,6 @@ class GenerationHandler(
     assistant: Assistant?,
     messages: List<UIMessage>,
     onUpdateMessages: suspend (List<UIMessage>) -> Unit,
-    onUpdateTokenUsage: suspend (TokenUsage) -> Unit,
     transformers: List<MessageTransformer>,
     model: Model,
     providerImpl: Provider<ProviderSetting>,
@@ -241,8 +233,16 @@ class GenerationHandler(
         messages = internalMessages,
         params = params
       ).collect {
-        it.usage?.let { onUpdateTokenUsage(it) }
-        messages = messages.handleMessageChunk(it, model)
+        messages = messages.handleMessageChunk(chunk = it, model = model)
+        it.usage?.let { usage ->
+          messages = messages.mapIndexed { index, message ->
+            if (index == messages.lastIndex) {
+              message.copy(usage = usage)
+            } else {
+              message
+            }
+          }
+        }
         onUpdateMessages(messages)
       }
     } else {
@@ -251,9 +251,19 @@ class GenerationHandler(
         messages = internalMessages,
         params = params,
       )
-      messages = messages.handleMessageChunk(chunk, model)
+      messages = messages.handleMessageChunk(chunk = chunk, model = model)
+      chunk.usage?.let { usage ->
+        messages = messages.mapIndexed { index, message ->
+          if (index == messages.lastIndex) {
+            message.copy(
+              usage = usage
+            )
+          } else {
+            message
+          }
+        }
+      }
       onUpdateMessages(messages)
-      chunk.usage?.let { onUpdateTokenUsage(it) }
     }
   }
 

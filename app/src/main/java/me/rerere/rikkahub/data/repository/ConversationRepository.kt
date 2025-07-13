@@ -96,7 +96,6 @@ class ConversationRepository(
       nodes = JsonInstant.encodeToString(conversation.messageNodes),
       createAt = conversation.createAt.toEpochMilli(),
       updateAt = conversation.updateAt.toEpochMilli(),
-      tokenUsage = conversation.tokenUsage,
       assistantId = conversation.assistantId.toString(),
       truncateIndex = conversation.truncateIndex,
       chatSuggestions = JsonInstant.encodeToString(conversation.chatSuggestions)
@@ -111,7 +110,6 @@ class ConversationRepository(
       id = Uuid.parse(conversationEntity.id),
       title = conversationEntity.title,
       messageNodes = messageNodes,
-      tokenUsage = conversationEntity.tokenUsage,
       createAt = Instant.ofEpochMilli(conversationEntity.createAt),
       updateAt = Instant.ofEpochMilli(conversationEntity.updateAt),
       assistantId = Uuid.parse(conversationEntity.assistantId),

@@ -2,7 +2,6 @@ package me.rerere.rikkahub.ui.pages.chat
 
 import android.app.Application
 import android.util.Log
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
@@ -29,7 +28,6 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import me.rerere.ai.core.InputSchema
 import me.rerere.ai.core.MessageRole
-import me.rerere.ai.core.TokenUsage
 import me.rerere.ai.core.Tool
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
@@ -418,20 +416,6 @@ class ChatVM(
         when (chunk) {
           is GenerationChunk.Messages -> {
             updateConversation(conversation.value.updateCurrentMessages(chunk.messages))
-          }
-
-          is GenerationChunk.TokenUsage -> {
-            var tokenUsage = conversation.value.tokenUsage ?: TokenUsage()
-            tokenUsage = tokenUsage.copy(
-              promptTokens = chunk.usage.promptTokens.takeIf { it > 0 } ?: tokenUsage.promptTokens,
-              completionTokens = chunk.usage.completionTokens.takeIf { it > 0 }
-                ?: tokenUsage.completionTokens,
-            )
-            tokenUsage = tokenUsage.copy(
-              totalTokens = tokenUsage.promptTokens + tokenUsage.completionTokens,
-            )
-            updateConversation(conversation.value.copy(tokenUsage = tokenUsage))
-            Log.i(TAG, "handleMessageComplete: usage = ${chunk.usage}")
           }
         }
       }

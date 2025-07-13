@@ -148,6 +148,7 @@ import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.JsonInstantPretty
 import me.rerere.rikkahub.utils.copyMessageToClipboard
+import me.rerere.rikkahub.utils.formatNumber
 import me.rerere.rikkahub.utils.jsonPrimitiveOrNull
 import me.rerere.rikkahub.utils.openUrl
 import me.rerere.rikkahub.utils.toLocalString
@@ -573,12 +574,24 @@ private fun ModelIcon(
             style = MaterialTheme.typography.titleMedium,
             maxLines = 1,
           )
-          Text(
-            text = message.createdAt.toJavaLocalDateTime().toLocalString(),
-            style = MaterialTheme.typography.labelSmall,
-            color = LocalContentColor.current.copy(alpha = 0.8f),
-            maxLines = 1,
-          )
+          Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+          ) {
+            Text(
+              text = message.createdAt.toJavaLocalDateTime().toLocalString(),
+              style = MaterialTheme.typography.labelSmall,
+              color = LocalContentColor.current.copy(alpha = 0.8f),
+              maxLines = 1,
+            )
+            message.usage?.let { usage ->
+              Text(
+                text = "${usage.completionTokens.formatNumber()} tokens",
+                style = MaterialTheme.typography.labelSmall,
+                color = LocalContentColor.current.copy(alpha = 0.8f),
+                maxLines = 1,
+              )
+            }
+          }
         }
       } else {
         AutoAIIcon(
@@ -593,11 +606,23 @@ private fun ModelIcon(
             text = model.displayName,
             style = MaterialTheme.typography.titleSmall,
           )
-          Text(
-            text = message.createdAt.toJavaLocalDateTime().toLocalString(),
-            style = MaterialTheme.typography.labelSmall,
-            color = LocalContentColor.current.copy(alpha = 0.8f)
-          )
+          Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+          ) {
+            Text(
+              text = message.createdAt.toJavaLocalDateTime().toLocalString(),
+              style = MaterialTheme.typography.labelSmall,
+              color = LocalContentColor.current.copy(alpha = 0.8f)
+            )
+            message.usage?.let { usage ->
+              Text(
+                text = "${usage.promptTokens}/${usage.completionTokens} tokens",
+                style = MaterialTheme.typography.labelSmall,
+                color = LocalContentColor.current.copy(alpha = 0.8f),
+                maxLines = 1,
+              )
+            }
+          }
         }
       }
     }

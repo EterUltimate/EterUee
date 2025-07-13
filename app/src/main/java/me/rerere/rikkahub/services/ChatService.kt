@@ -135,12 +135,6 @@ class ChatService : Service() {
                 chunk.messages
               )
             }
-
-            is GenerationChunk.TokenUsage -> {
-              currentConv.copy(
-                tokenUsage = chunk.usage
-              )
-            }
           }
           Log.i(TAG, "startGeneration: $chunk")
         }

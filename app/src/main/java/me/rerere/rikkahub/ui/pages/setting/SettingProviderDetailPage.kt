@@ -1334,7 +1334,7 @@ private fun ModelCard(
       ) {
         AutoAIIcon(
           name = model.modelId,
-          modifier = Modifier.size(28.dp),
+          modifier = Modifier.size(32.dp),
         )
         Column(modifier = Modifier.weight(1f)) {
           Text(

@@ -70,10 +70,11 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
     .build()
 
   private fun buildUrl(providerSetting: ProviderSetting.Google, path: String): HttpUrl {
+    val keys = providerSetting.apiKey.split(",")
     return if (!providerSetting.vertexAI) {
       "${providerSetting.baseUrl}/$path".toHttpUrl()
         .newBuilder()
-        .addQueryParameter("key", providerSetting.apiKey)
+        .addQueryParameter("key", keys.random())
         .build()
     } else {
       "https://${providerSetting.location}-aiplatform.googleapis.com/v1/projects/${providerSetting.projectId}/locations/${providerSetting.location}/$path".toHttpUrl()

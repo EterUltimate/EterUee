@@ -138,13 +138,17 @@ fun UIAvatar(
               minFontSize = 15.sp,
               maxFontSize = 30.sp,
             ),
-            lineHeight = 1.em
+            lineHeight = 1.em,
+            modifier = Modifier.padding(2.dp)
           )
         }
 
         is Avatar.Dummy -> {
           Text(
-            text = name.takeIf { it.isNotEmpty() }?.firstOrNull()?.toString()?.uppercase() ?: "A",
+            text = name
+              .ifBlank { stringResource(R.string.user_default_name) }
+              .takeIf { it.isNotEmpty() }
+              ?.firstOrNull()?.toString()?.uppercase() ?: "A",
             fontSize = 20.sp,
             lineHeight = 1.em
           )

@@ -131,6 +131,7 @@ import me.rerere.highlight.HighlightText
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.Screen
 import me.rerere.rikkahub.data.model.Assistant
+import me.rerere.rikkahub.data.model.Avatar
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.model.MessageNode
 import me.rerere.rikkahub.ui.components.richtext.HighlightCodeBlock
@@ -153,6 +154,7 @@ import me.rerere.rikkahub.utils.jsonPrimitiveOrNull
 import me.rerere.rikkahub.utils.openUrl
 import me.rerere.rikkahub.utils.toLocalString
 import me.rerere.rikkahub.utils.urlDecode
+import kotlin.text.ifEmpty
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
@@ -192,8 +194,8 @@ fun ChatMessage(
     if (!message.parts.isEmptyUIMessage()) {
       Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+          .fillMaxWidth()
+          .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
       ) {
@@ -205,24 +207,26 @@ fun ChatMessage(
           loading = loading,
           modifier = Modifier.weight(1f)
         )
-        MessageNodePagerButtons(
-          node = node,
-          onUpdate = onUpdate,
+        UserAvatar(
+          message = message,
+          avatar = settings.userAvatar,
+          nickname = settings.userNickname,
+          modifier = Modifier.weight(1f)
         )
       }
     }
     Column(
       modifier = Modifier
-          .clip(MaterialTheme.shapes.small)
-          .combinedClickable(
-              enabled = true,
-              indication = LocalIndication.current,
-              interactionSource = remember { MutableInteractionSource() },
-              onClick = {},
-              onLongClick = {
-                  showActionsSheet = true
-              }
-          ),
+        .clip(MaterialTheme.shapes.small)
+        .combinedClickable(
+          enabled = true,
+          indication = LocalIndication.current,
+          interactionSource = remember { MutableInteractionSource() },
+          onClick = {},
+          onLongClick = {
+            showActionsSheet = true
+          }
+        ),
       verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
       ProvideTextStyle(textStyle) {
@@ -247,6 +251,8 @@ fun ChatMessage(
         Actions(
           message = message,
           onRegenerate = onRegenerate,
+          node = node,
+          onUpdate = onUpdate,
         )
       }
     }
@@ -295,8 +301,8 @@ private fun LongPressActionsSheet(
   ) {
     Column(
       modifier = Modifier
-          .fillMaxWidth()
-          .padding(16.dp),
+        .fillMaxWidth()
+        .padding(16.dp),
       verticalArrangement = Arrangement.spacedBy(8.dp),
       horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -312,8 +318,8 @@ private fun LongPressActionsSheet(
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(16.dp),
           modifier = Modifier
-              .padding(16.dp)
-              .fillMaxWidth()
+            .padding(16.dp)
+            .fillMaxWidth()
         ) {
           Icon(
             imageVector = Lucide.TextSelect,
@@ -340,8 +346,8 @@ private fun LongPressActionsSheet(
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(16.dp),
           modifier = Modifier
-              .padding(16.dp)
-              .fillMaxWidth()
+            .padding(16.dp)
+            .fillMaxWidth()
         ) {
           Icon(
             imageVector = Lucide.Pencil,
@@ -367,8 +373,8 @@ private fun LongPressActionsSheet(
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(16.dp),
           modifier = Modifier
-              .padding(16.dp)
-              .fillMaxWidth()
+            .padding(16.dp)
+            .fillMaxWidth()
         ) {
           Icon(
             imageVector = Lucide.Share,
@@ -394,8 +400,8 @@ private fun LongPressActionsSheet(
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(16.dp),
           modifier = Modifier
-              .padding(16.dp)
-              .fillMaxWidth()
+            .padding(16.dp)
+            .fillMaxWidth()
         ) {
           Icon(
             imageVector = Lucide.GitFork,
@@ -545,6 +551,45 @@ private fun SelectAndCopySheet(
 }
 
 @Composable
+private fun UserAvatar(
+  message: UIMessage,
+  avatar: Avatar,
+  nickname: String,
+  modifier: Modifier = Modifier,
+) {
+  if(message.role == MessageRole.USER && !message.parts.isEmptyUIMessage()) {
+    Row(
+      modifier = modifier,
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Column(
+        modifier = Modifier,
+        horizontalAlignment = Alignment.End,
+      ) {
+        Text(
+          text = nickname.ifEmpty { stringResource(R.string.user_default_name) },
+          style = MaterialTheme.typography.titleMedium,
+          maxLines = 1,
+        )
+        Text(
+          text = message.createdAt.toJavaLocalDateTime().toLocalString(),
+          style = MaterialTheme.typography.labelSmall,
+          color = LocalContentColor.current.copy(alpha = 0.8f),
+          maxLines = 1,
+        )
+      }
+      UIAvatar(
+        name = nickname,
+        modifier = Modifier.size(36.dp),
+        value = avatar,
+        loading = false,
+      )
+    }
+  }
+}
+
+@Composable
 private fun ModelIcon(
   showIcon: Boolean,
   message: UIMessage,
@@ -637,6 +682,8 @@ private fun ModelIcon(
 @Composable
 private fun ColumnScope.Actions(
   message: UIMessage,
+  node: MessageNode,
+  onUpdate: (MessageNode) -> Unit,
   onRegenerate: () -> Unit,
 ) {
   val context = LocalContext.current
@@ -693,6 +740,11 @@ private fun ColumnScope.Actions(
             .size(16.dp)
       )
     }
+
+    MessageNodePagerButtons(
+      node = node,
+      onUpdate = onUpdate,
+    )
   }
 }
 

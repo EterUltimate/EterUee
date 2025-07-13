@@ -65,6 +65,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -691,7 +692,8 @@ private fun ModelSettingsForm(
 
   Column {
     SecondaryTabRow(
-      selectedTabIndex = pagerState.currentPage
+      selectedTabIndex = pagerState.currentPage,
+      containerColor = Color.Transparent,
     ) {
       Tab(
         selected = pagerState.currentPage == 0,
@@ -823,6 +825,7 @@ private fun AddModelButton(
   onRemoveModel: (Model) -> Unit
 ) {
   val dialogState = useEditState<Model> { onAddModel(it) }
+  val scope = rememberCoroutineScope()
 
   Row(
     horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -874,16 +877,20 @@ private fun AddModelButton(
 
   if (dialogState.isEditing) {
     dialogState.currentState?.let { modelState ->
+      val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
       ModalBottomSheet(
         onDismissRequest = {
           dialogState.dismiss()
         },
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        sheetState = sheetState,
         sheetGesturesEnabled = false,
         dragHandle = {
           IconButton(
             onClick = {
-              dialogState.dismiss()
+              scope.launch {
+                sheetState.hide()
+                dialogState.dismiss()
+              }
             }
           ) {
             Icon(Lucide.ChevronDown, null)

@@ -1,6 +1,10 @@
 package me.rerere.rikkahub.ui.pages.chat
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Typeface
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
@@ -25,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import com.composables.icons.lucide.FileText
+import com.composables.icons.lucide.Image
 import com.composables.icons.lucide.Lucide
 import com.dokar.sonner.ToastType
 import me.rerere.ai.core.MessageRole
@@ -39,6 +45,11 @@ import me.rerere.rikkahub.utils.toLocalString
 import java.io.File
 import java.io.FileOutputStream
 import java.time.LocalDateTime
+import androidx.core.graphics.createBitmap
+import android.graphics.RectF
+import android.text.Layout
+import android.text.StaticLayout
+import android.text.TextPaint
 
 @Composable
 fun ChatExportSheet(
@@ -64,13 +75,13 @@ fun ChatExportSheet(
       ) {
         Text(text = stringResource(id = R.string.chat_page_export_format))
 
-        val successMessage =
+        val markdownSuccessMessage =
           stringResource(id = R.string.chat_page_export_success, "Markdown")
         OutlinedCard(
           onClick = {
             exportToMarkdown(context, conversation, selectedMessages)
             toaster.show(
-              successMessage,
+              markdownSuccessMessage,
               type = ToastType.Success
             )
             onDismissRequest()
@@ -89,58 +100,32 @@ fun ChatExportSheet(
             }
           )
         }
-      }
-    }
-  }
-}
 
-@Composable
-private fun ChatImageContent(conversation: Conversation, messages: List<UIMessage>) {
-  Column(
-    modifier = Modifier
-      .background(Color.White)
-      .padding(16.dp)
-      .fillMaxWidth()
-  ) {
-    Text(
-      text = conversation.title,
-      fontSize = 20.sp,
-      fontWeight = FontWeight.Bold,
-      modifier = Modifier.padding(bottom = 8.dp)
-    )
-    Text(
-      text = "Exported on ${LocalDateTime.now().toLocalString()}",
-      fontSize = 12.sp,
-      color = Color.Gray,
-      modifier = Modifier.padding(bottom = 16.dp)
-    )
-
-    messages.forEachIndexed { index, message ->
-      val roleName = when (message.role) {
-        MessageRole.USER -> "User"
-        MessageRole.ASSISTANT -> "Assistant"
-        MessageRole.SYSTEM -> "System"
-        MessageRole.TOOL -> "Tool"
-      }
-      Text(
-        text = "$roleName:",
-        fontSize = 16.sp,
-        fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.padding(top = 8.dp)
-      )
-      Text(
-        text = message.toText(),
-        fontSize = 14.sp,
-        modifier = Modifier.padding(bottom = 8.dp)
-      )
-      if (index < messages.size - 1) {
-        Text(
-          text = "---",
-          modifier = Modifier
-            .align(Alignment.CenterHorizontally)
-            .padding(vertical = 4.dp),
-          color = Color.LightGray
-        )
+        val imageSuccessMessage =
+          stringResource(id = R.string.chat_page_export_success, "Image")
+        OutlinedCard(
+          onClick = {
+            exportToImage(context, conversation, selectedMessages)
+            toaster.show(
+              imageSuccessMessage,
+              type = ToastType.Success
+            )
+            onDismissRequest()
+          },
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          ListItem(
+            headlineContent = {
+              Text("Export as Image")
+            },
+            supportingContent = {
+              Text("Export conversation as PNG image")
+            },
+            leadingContent = {
+              Icon(Lucide.Image, contentDescription = null)
+            }
+          )
+        }
       }
     }
   }
@@ -214,6 +199,171 @@ private fun exportToMarkdown(
 
   } catch (e: Exception) {
     e.printStackTrace()
+  }
+}
+
+private fun exportToImage(
+  context: Context,
+  conversation: Conversation,
+  messages: List<UIMessage>
+) {
+  val filename = "chat-export-${LocalDateTime.now().toLocalString()}.png"
+
+  // Canvas settings
+  val canvasWidth = 1080
+  val padding = 60f
+  val bubbleCornerRadius = 40f
+  val bubblePaddingHorizontal = 30f
+  val bubblePaddingVertical = 20f
+  val messageSpacing = 30f
+
+  val titleFontSize = 48f
+  val contentFontSize = 32f
+  val smallFontSize = 24f
+
+  // Paint objects
+  val titlePaint = Paint().apply {
+    color = android.graphics.Color.BLACK
+    textSize = titleFontSize
+    typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+    isAntiAlias = true
+  }
+
+  val contentPaint = TextPaint().apply {
+    color = android.graphics.Color.BLACK
+    textSize = contentFontSize
+    typeface = Typeface.DEFAULT
+    isAntiAlias = true
+  }
+
+  val smallPaint = Paint().apply {
+    color = android.graphics.Color.GRAY
+    textSize = smallFontSize
+    typeface = Typeface.DEFAULT
+    isAntiAlias = true
+  }
+
+  val userBubblePaint = Paint().apply {
+    color = Color(0xFFE3F2FD).toArgb() // Light Blue
+    isAntiAlias = true
+    style = Paint.Style.FILL
+  }
+
+  val assistantBubblePaint = Paint().apply {
+    color = Color(0xFFF5F5F5).toArgb() // Light Grey
+    isAntiAlias = true
+    style = Paint.Style.FILL
+  }
+
+  // --- Pass 1: Calculate height and prepare layouts ---
+  val bubbleMaxWidth = (canvasWidth * 0.8f).toInt()
+
+  val layouts = messages.map { message ->
+    val text = message.parts.toSortedMessageParts().joinToString("\n") { part ->
+      when (part) {
+        is UIMessagePart.Text -> part.text
+        is UIMessagePart.Image -> "[Image]"
+        is UIMessagePart.Reasoning -> part.reasoning.lines().joinToString("\n") { "> $it" }
+        else -> ""
+      }
+    }.ifBlank { " " }
+
+    StaticLayout.Builder.obtain(text, 0, text.length, contentPaint, bubbleMaxWidth)
+      .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+      .setLineSpacing(0f, 1.2f) // Increased line spacing for readability
+      .setIncludePad(true)
+      .build()
+  }
+
+  var totalHeight = padding * 2
+  totalHeight += titleFontSize + 40
+  totalHeight += smallFontSize + 60
+
+  layouts.forEach { layout ->
+    totalHeight += layout.height + bubblePaddingVertical * 2 + messageSpacing
+  }
+  totalHeight -= messageSpacing // No spacing after last message
+
+  // Create bitmap and canvas
+  val bitmap = createBitmap(canvasWidth, totalHeight.toInt())
+  val canvas = Canvas(bitmap)
+
+  // Background
+  canvas.drawColor(android.graphics.Color.WHITE)
+
+  var currentY = padding
+
+  // Draw title
+  canvas.drawText(conversation.title, padding, currentY + titleFontSize, titlePaint)
+  currentY += titleFontSize + 40
+
+  // Draw export info
+  val exportInfo = "${LocalDateTime.now().toLocalString()}  rikka-ai.com"
+  canvas.drawText(exportInfo, padding, currentY + smallFontSize, smallPaint)
+  currentY += smallFontSize + 60
+
+  // --- Pass 2: Draw messages ---
+  messages.forEachIndexed { index, message ->
+    val layout = layouts[index]
+    val bubbleHeight = layout.height + bubblePaddingVertical * 2
+
+    var textMaxWidth = 0f
+    for (i in 0 until layout.lineCount) {
+      textMaxWidth = maxOf(textMaxWidth, layout.getLineWidth(i))
+    }
+    val bubbleWidth = textMaxWidth + bubblePaddingHorizontal * 2
+
+    val bubbleRect: RectF
+    if (message.role == MessageRole.USER) {
+      val bubbleRight = canvasWidth - padding
+      val bubbleLeft = bubbleRight - bubbleWidth
+      bubbleRect = RectF(bubbleLeft, currentY, bubbleRight, currentY + bubbleHeight)
+      canvas.drawRoundRect(bubbleRect, bubbleCornerRadius, bubbleCornerRadius, userBubblePaint)
+    } else { // ASSISTANT, SYSTEM, TOOL
+      val bubbleLeft = padding
+      val bubbleRight = bubbleLeft + bubbleWidth
+      bubbleRect = RectF(bubbleLeft, currentY, bubbleRight, currentY + bubbleHeight)
+      canvas.drawRoundRect(
+        bubbleRect,
+        bubbleCornerRadius,
+        bubbleCornerRadius,
+        assistantBubblePaint
+      )
+    }
+
+    canvas.save()
+    canvas.translate(bubbleRect.left + bubblePaddingHorizontal, currentY + bubblePaddingVertical)
+    layout.draw(canvas)
+    canvas.restore()
+
+    currentY += bubbleHeight + messageSpacing
+  }
+
+  try {
+    val file = File(context.getExternalFilesDir(null), filename)
+    if (!file.exists()) {
+      file.createNewFile()
+    } else {
+      file.delete()
+      file.createNewFile()
+    }
+
+    FileOutputStream(file).use { fos ->
+      bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)
+    }
+
+    // Share the file
+    val uri = FileProvider.getUriForFile(
+      context,
+      "${context.packageName}.fileprovider",
+      file
+    )
+    shareFile(context, uri, "image/png")
+
+  } catch (e: Exception) {
+    e.printStackTrace()
+  } finally {
+    bitmap.recycle()
   }
 }
 

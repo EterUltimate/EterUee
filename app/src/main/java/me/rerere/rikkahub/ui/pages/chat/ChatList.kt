@@ -54,6 +54,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtLeast
 import androidx.compose.ui.util.fastForEach
+import androidx.compose.ui.zIndex
 import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.ChevronUp
@@ -259,7 +260,8 @@ fun ChatList(
       visible = selecting,
       modifier = Modifier
         .align(Alignment.BottomEnd)
-        .padding(16.dp),
+        .padding(bottom = 32.dp)
+        .padding(end = 16.dp),
       enter = slideInVertically(
         initialOffsetY = { it * 2 },
       ),

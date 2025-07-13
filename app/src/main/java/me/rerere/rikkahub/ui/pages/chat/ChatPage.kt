@@ -131,10 +131,12 @@ fun ChatPage(id: Uuid, text: String?) {
   val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
   val windowAdaptiveInfo = currentWindowAdaptiveInfo()
+  val isBigScreen = windowAdaptiveInfo.windowSizeClass
+    .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) &&
+    windowAdaptiveInfo.windowSizeClass.minWidthDp > windowAdaptiveInfo.windowSizeClass.minHeightDp
 
   when {
-    windowAdaptiveInfo.windowSizeClass
-      .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) -> {
+    isBigScreen -> {
       PermanentNavigationDrawer(
         drawerContent = {
           DrawerContent(
@@ -157,6 +159,7 @@ fun ChatPage(id: Uuid, text: String?) {
           vm = vm,
           enableWebSearch = enableWebSearch,
           currentChatModel = currentChatModel,
+          bigScreen = true
         )
       }
     }
@@ -185,6 +188,7 @@ fun ChatPage(id: Uuid, text: String?) {
           vm = vm,
           enableWebSearch = enableWebSearch,
           currentChatModel = currentChatModel,
+          bigScreen = false
         )
       }
     }
@@ -196,6 +200,7 @@ private fun ChatPageContent(
   text: String?,
   loadingJob: Job?,
   setting: Settings,
+  bigScreen: Boolean,
   conversation: Conversation,
   drawerState: DrawerState,
   navController: NavBackStack,
@@ -219,6 +224,7 @@ private fun ChatPageContent(
       TopBar(
         settings = setting,
         conversation = conversation,
+        bigScreen = bigScreen,
         drawerState = drawerState,
         onNewChat = {
           navigateToChatPage(navController)
@@ -343,6 +349,7 @@ private fun TopBar(
   settings: Settings,
   conversation: Conversation,
   drawerState: DrawerState,
+  bigScreen: Boolean,
   onClickMenu: () -> Unit,
   onNewChat: () -> Unit,
   onUpdateTitle: (String) -> Unit
@@ -352,11 +359,10 @@ private fun TopBar(
   val titleState = useEditState<String> {
     onUpdateTitle(it)
   }
-  val windowAdaptiveInfo = currentWindowAdaptiveInfo().windowSizeClass
 
   TopAppBar(
     navigationIcon = {
-      if (!windowAdaptiveInfo.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)) {
+      if (!bigScreen) {
         IconButton(
           onClick = {
             scope.launch { drawerState.open() }

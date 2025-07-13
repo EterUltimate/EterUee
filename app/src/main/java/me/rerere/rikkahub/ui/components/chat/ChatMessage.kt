@@ -230,7 +230,8 @@ fun ChatMessage(
           parts = message.parts,
           annotations = message.annotations,
           messages = conversation.currentMessages,
-          messageIndex = conversation.currentMessages.indexOf(message)
+          messageIndex = conversation.currentMessages.indexOf(message),
+          loading = loading
         )
       }
     }
@@ -738,6 +739,7 @@ private fun MessagePartsBlock(
   annotations: List<UIMessageAnnotation>,
   messages: List<UIMessage>,
   messageIndex: Int,
+  loading: Boolean
 ) {
   val context = LocalContext.current
   val contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
@@ -803,9 +805,8 @@ private fun MessagePartsBlock(
           toolName = toolCall.toolName,
           arguments = runCatching { JsonInstant.parseToJsonElement(toolCall.arguments) }
             .getOrElse { EmptyJson },
-          contentColor = contentColor,
           content = null,
-          loading = true,
+          loading = loading,
         )
       }
     }
@@ -816,7 +817,6 @@ private fun MessagePartsBlock(
         toolName = toolCall.toolName,
         arguments = toolCall.arguments,
         content = toolCall.content,
-        contentColor = contentColor,
       )
     }
   }
@@ -968,23 +968,23 @@ private fun ToolCallItem(
   toolName: String,
   arguments: JsonElement,
   content: JsonElement?,
-  contentColor: Color,
   loading: Boolean = false,
 ) {
   var showResult by remember { mutableStateOf(false) }
-  Box(
-    modifier = Modifier
-        .clip(MaterialTheme.shapes.small)
-        .clickable {
-            showResult = true
-        }
-        .background(MaterialTheme.colorScheme.secondaryContainer)
+  Surface(
+    modifier = Modifier,
+    onClick = {
+      showResult = true
+    },
+    shape = MaterialTheme.shapes.medium,
+    color = MaterialTheme.colorScheme.primaryContainer,
+    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
   ) {
     Row(
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(8.dp),
       modifier = Modifier
-          .padding(vertical = 4.dp, horizontal = 8.dp)
+          .padding(vertical = 8.dp, horizontal = 16.dp)
           .height(IntrinsicSize.Min)
     ) {
       if (loading) {
@@ -1002,7 +1002,7 @@ private fun ToolCallItem(
           },
           contentDescription = null,
           modifier = Modifier.size(20.dp),
-          tint = contentColor.copy(alpha = 0.7f)
+          tint = LocalContentColor.current.copy(alpha = 0.7f)
         )
       }
       Column {
@@ -1022,10 +1022,9 @@ private fun ToolCallItem(
               toolName
             )
           },
-          style = MaterialTheme.typography.labelSmall,
-          modifier = Modifier.shimmer(
-            isLoading = loading
-          )
+          style = MaterialTheme.typography.titleSmall,
+          color = MaterialTheme.colorScheme.secondary,
+          modifier = Modifier.shimmer(isLoading = loading),
         )
       }
     }
@@ -1257,8 +1256,13 @@ fun ReasoningCard(
     }
   }
 
-  OutlinedCard(
+  Card(
     modifier = modifier,
+    colors = CardDefaults.cardColors(
+      containerColor = MaterialTheme.colorScheme.primaryContainer,
+      contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    ),
+    shape = MaterialTheme.shapes.medium,
   ) {
     Column(
       modifier = Modifier

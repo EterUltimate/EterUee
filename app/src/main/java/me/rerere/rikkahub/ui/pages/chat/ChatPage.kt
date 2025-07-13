@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -208,6 +209,7 @@ private fun ChatPageContent(
   LaunchedEffect(loadingJob) {
     inputState.loading = loadingJob != null
   }
+  val chatListState = rememberLazyListState()
   Scaffold(
     topBar = {
       TopBar(
@@ -252,6 +254,9 @@ private fun ChatPageContent(
             vm.handleMessageSend(inputState.messageContent)
           }
           inputState.clearInput()
+          scope.launch {
+            chatListState.scrollToItem(conversation.currentMessages.size + 1)
+          }
         },
         onUpdateChatModel = {
           vm.setChatModel(assistant = setting.getCurrentAssistant(), model = it)
@@ -285,6 +290,7 @@ private fun ChatPageContent(
     ChatList(
       innerPadding = innerPadding,
       conversation = conversation,
+      state = chatListState,
       loading = loadingJob != null,
       settings = setting,
       onRegenerate = {
@@ -472,8 +478,8 @@ private fun DrawerContent(
         conversations = conversations,
         loadings = if (loading) listOf(current.id) else emptyList(),
         modifier = Modifier
-          .fillMaxWidth()
-          .weight(1f),
+            .fillMaxWidth()
+            .weight(1f),
         onClick = {
           navigateToChatPage(navController, it.id)
         },
@@ -547,8 +553,8 @@ private fun UpdateCard(vm: ChatVM) {
     Card {
       Column(
         modifier = Modifier
-          .padding(8.dp)
-          .fillMaxWidth(),
+            .padding(8.dp)
+            .fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
       ) {
         Text(
@@ -576,8 +582,8 @@ private fun UpdateCard(vm: ChatVM) {
       ) {
         Column(
           modifier = Modifier
-            .padding(8.dp)
-            .fillMaxWidth(),
+              .padding(8.dp)
+              .fillMaxWidth(),
           verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
           Text(
@@ -605,8 +611,8 @@ private fun UpdateCard(vm: ChatVM) {
       ) {
         Column(
           modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 32.dp),
+              .fillMaxWidth()
+              .padding(horizontal = 16.dp, vertical = 32.dp),
           verticalArrangement = Arrangement.spacedBy(8.dp),
           horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -623,9 +629,9 @@ private fun UpdateCard(vm: ChatVM) {
           MarkdownBlock(
             content = info.changelog,
             modifier = Modifier
-              .fillMaxWidth()
-              .height(300.dp)
-              .verticalScroll(rememberScrollState()),
+                .fillMaxWidth()
+                .height(300.dp)
+                .verticalScroll(rememberScrollState()),
             style = MaterialTheme.typography.bodyMedium
           )
           info.downloads.fastForEach { downloadItem ->

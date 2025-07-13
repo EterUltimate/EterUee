@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.ui.pages.chat
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
@@ -77,6 +78,7 @@ import me.rerere.rikkahub.ui.components.chat.ChatMessage
 import me.rerere.rikkahub.ui.components.ui.ListSelectableItem
 import kotlin.uuid.Uuid
 
+private const val TAG = "ChatList"
 private const val LoadingIndicatorKey = "LoadingIndicator"
 private const val ScrollBottomKey = "ScrollBottomKey"
 
@@ -84,6 +86,7 @@ private const val ScrollBottomKey = "ScrollBottomKey"
 fun ChatList(
   innerPadding: PaddingValues,
   conversation: Conversation,
+  state: LazyListState,
   loading: Boolean,
   settings: Settings,
   onRegenerate: (UIMessage) -> Unit = {},
@@ -93,12 +96,10 @@ fun ChatList(
   onUpdateMessage: (MessageNode) -> Unit = {},
   onClickSuggestion: (String) -> Unit = {},
 ) {
-  val state = rememberLazyListState()
   val scope = rememberCoroutineScope()
   val loadingState by rememberUpdatedState(loading)
-
-  val viewPortSize by remember { derivedStateOf { state.layoutInfo.viewportSize } }
   var isRecentScroll by remember { mutableStateOf(false) }
+  val conversationUpdated by rememberUpdatedState(conversation)
 
   fun List<LazyListItemInfo>.isAtBottom(): Boolean {
     val lastItem = lastOrNull() ?: return false
@@ -115,8 +116,8 @@ fun ChatList(
 
   Box(
     modifier = Modifier
-      .padding(innerPadding)
-      .fillMaxSize(),
+        .padding(innerPadding)
+        .fillMaxSize(),
   ) {
     // 自动滚动到底部
     LaunchedEffect(state) {
@@ -124,20 +125,8 @@ fun ChatList(
         // println("is bottom = ${visibleItemsInfo.isAtBottom()}, scroll = ${state.isScrollInProgress}, can_scroll = ${state.canScrollForward}, loading = $loading")
         if (!state.isScrollInProgress && loadingState) {
           if (visibleItemsInfo.isAtBottom()) {
-            state.requestScrollToItem(conversation.messageNodes.lastIndex + 10)
-          }
-        }
-      }
-    }
-
-    // 用户发送消息后滚动到底部
-    LaunchedEffect(conversation.messageNodes.lastOrNull()?.id) {
-      val lastNode = conversation.messageNodes.lastOrNull()
-      // 检查最后一条消息是否是用户发送的
-      if (lastNode?.currentMessage?.role == MessageRole.USER) {
-        if (conversation.messageNodes.isNotEmpty()) {
-          scope.launch {
-            state.animateScrollToItem(conversation.messageNodes.lastIndex)
+            state.requestScrollToItem(conversationUpdated.messageNodes.lastIndex + 10)
+            Log.i(TAG, "ChatList: scroll to ${conversationUpdated.messageNodes.lastIndex}")
           }
         }
       }
@@ -225,8 +214,8 @@ fun ChatList(
               verticalAlignment = Alignment.CenterVertically,
               horizontalArrangement = Arrangement.spacedBy(8.dp),
               modifier = Modifier
-                .padding(vertical = 8.dp)
-                .fillMaxWidth()
+                  .padding(vertical = 8.dp)
+                  .fillMaxWidth()
             ) {
               HorizontalDivider(modifier = Modifier.weight(1f))
               Text(
@@ -249,8 +238,8 @@ fun ChatList(
       item(ScrollBottomKey) {
         Spacer(
           Modifier
-            .fillMaxWidth()
-            .height(5.dp)
+              .fillMaxWidth()
+              .height(5.dp)
         )
       }
     }
@@ -259,9 +248,9 @@ fun ChatList(
     AnimatedVisibility(
       visible = selecting,
       modifier = Modifier
-        .align(Alignment.BottomEnd)
-        .padding(bottom = 32.dp)
-        .padding(end = 16.dp),
+          .align(Alignment.BottomEnd)
+          .padding(bottom = 32.dp)
+          .padding(end = 16.dp),
       enter = slideInVertically(
         initialOffsetY = { it * 2 },
       ),
@@ -306,21 +295,21 @@ fun ChatList(
     if (conversation.chatSuggestions.isNotEmpty()) {
       LazyRow(
         modifier = Modifier
-          .align(Alignment.BottomCenter)
-          .fillMaxWidth()
-          .padding(horizontal = 16.dp, vertical = 8.dp),
+            .align(Alignment.BottomCenter)
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
       ) {
         items(conversation.chatSuggestions) { suggestion ->
           Box(
             modifier = Modifier
-              .clip(RoundedCornerShape(50))
-              .clickable {
-                onClickSuggestion(suggestion)
-              }
-              .background(MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp))
-              .padding(vertical = 4.dp, horizontal = 8.dp),
+                .clip(RoundedCornerShape(50))
+                .clickable {
+                    onClickSuggestion(suggestion)
+                }
+                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp))
+                .padding(vertical = 4.dp, horizontal = 8.dp),
           ) {
             Text(
               text = suggestion,

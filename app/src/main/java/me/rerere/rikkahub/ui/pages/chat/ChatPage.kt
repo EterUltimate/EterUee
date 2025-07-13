@@ -512,16 +512,16 @@ private fun DrawerContent(
               )
             )
           },
-          modifier = Modifier.size(64.dp),
+          modifier = Modifier.size(50.dp),
         )
 
         Column(
           modifier = Modifier.weight(1f),
-          verticalArrangement = Arrangement.spacedBy(4.dp),
+          verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
           Text(
             text = settings.displaySetting.userNickname.ifBlank { stringResource(R.string.user_default_name) },
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleMedium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.clickable {

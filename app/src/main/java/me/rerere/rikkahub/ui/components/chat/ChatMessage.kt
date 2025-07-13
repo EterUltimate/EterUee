@@ -194,8 +194,8 @@ fun ChatMessage(
     if (!message.parts.isEmptyUIMessage()) {
       Row(
         modifier = Modifier
-          .fillMaxWidth()
-          .padding(vertical = 8.dp),
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
       ) {
@@ -217,16 +217,16 @@ fun ChatMessage(
     }
     Column(
       modifier = Modifier
-        .clip(MaterialTheme.shapes.small)
-        .combinedClickable(
-          enabled = true,
-          indication = LocalIndication.current,
-          interactionSource = remember { MutableInteractionSource() },
-          onClick = {},
-          onLongClick = {
-            showActionsSheet = true
-          }
-        ),
+          .clip(MaterialTheme.shapes.small)
+          .combinedClickable(
+              enabled = true,
+              indication = LocalIndication.current,
+              interactionSource = remember { MutableInteractionSource() },
+              onClick = {},
+              onLongClick = {
+                  showActionsSheet = true
+              }
+          ),
       verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
       ProvideTextStyle(textStyle) {
@@ -301,8 +301,8 @@ private fun LongPressActionsSheet(
   ) {
     Column(
       modifier = Modifier
-        .fillMaxWidth()
-        .padding(16.dp),
+          .fillMaxWidth()
+          .padding(16.dp),
       verticalArrangement = Arrangement.spacedBy(8.dp),
       horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -318,8 +318,8 @@ private fun LongPressActionsSheet(
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(16.dp),
           modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
+              .padding(16.dp)
+              .fillMaxWidth()
         ) {
           Icon(
             imageVector = Lucide.TextSelect,
@@ -346,8 +346,8 @@ private fun LongPressActionsSheet(
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(16.dp),
           modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
+              .padding(16.dp)
+              .fillMaxWidth()
         ) {
           Icon(
             imageVector = Lucide.Pencil,
@@ -373,8 +373,8 @@ private fun LongPressActionsSheet(
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(16.dp),
           modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
+              .padding(16.dp)
+              .fillMaxWidth()
         ) {
           Icon(
             imageVector = Lucide.Share,
@@ -400,8 +400,8 @@ private fun LongPressActionsSheet(
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(16.dp),
           modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
+              .padding(16.dp)
+              .fillMaxWidth()
         ) {
           Icon(
             imageVector = Lucide.GitFork,
@@ -557,10 +557,11 @@ private fun UserAvatar(
   nickname: String,
   modifier: Modifier = Modifier,
 ) {
-  if(message.role == MessageRole.USER && !message.parts.isEmptyUIMessage()) {
+  val settings = LocalSettings.current
+  if (message.role == MessageRole.USER && !message.parts.isEmptyUIMessage() && settings.displaySetting.showUserAvatar) {
     Row(
       modifier = modifier,
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
       verticalAlignment = Alignment.CenterVertically,
     ) {
       Column(
@@ -599,12 +600,12 @@ private fun ModelIcon(
   modifier: Modifier = Modifier,
 ) {
   val settings = LocalSettings.current
-  Row(
-    modifier = modifier,
-    horizontalArrangement = Arrangement.spacedBy(8.dp),
-    verticalAlignment = Alignment.CenterVertically,
-  ) {
-    if (showIcon && message.role == MessageRole.ASSISTANT && !message.parts.isEmptyUIMessage() && model != null) {
+  if (showIcon && message.role == MessageRole.ASSISTANT && !message.parts.isEmptyUIMessage() && model != null) {
+    Row(
+      modifier = modifier,
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
       if (assistant?.useAssistantAvatar == true) {
         UIAvatar(
           name = assistant.name,
@@ -629,7 +630,7 @@ private fun ModelIcon(
               color = LocalContentColor.current.copy(alpha = 0.8f),
               maxLines = 1,
             )
-            if(settings.displaySetting.showTokenUsage) {
+            if (settings.displaySetting.showTokenUsage) {
               message.usage?.let { usage ->
                 Text(
                   text = "${usage.totalTokens.formatNumber()} tokens",
@@ -662,7 +663,7 @@ private fun ModelIcon(
               style = MaterialTheme.typography.labelSmall,
               color = LocalContentColor.current.copy(alpha = 0.8f)
             )
-            if(settings.displaySetting.showTokenUsage) {
+            if (settings.displaySetting.showTokenUsage) {
               message.usage?.let { usage ->
                 Text(
                   text = "${usage.totalTokens} tokens",

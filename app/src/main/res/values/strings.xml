@@ -267,6 +267,8 @@
   <string name="reasoning_custom">Custom reasoning budget</string>
 
   <!-- Setting Display Page -->
+  <string name="setting_display_page_show_user_avatar_title">Show User Avatar</string>
+  <string name="setting_display_page_show_user_avatar_desc">Whether to display user avatar in chat messages</string>
   <string name="setting_display_page_chat_list_model_icon_title">Chat List Model Icon</string>
   <string name="setting_display_page_chat_list_model_icon_desc">Whether to display model icons in chat list messages</string>
   <string name="setting_display_page_show_token_usage_title">Show Token &amp; Context Stats</string>

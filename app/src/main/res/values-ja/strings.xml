@@ -253,6 +253,8 @@
 
   <!-- Setting Display Page -->
   <string name="setting_display_page_title">表示設定</string>
+  <string name="setting_display_page_show_user_avatar_title">ユーザーアバターを表示</string>
+  <string name="setting_display_page_show_user_avatar_desc">チャットメッセージにユーザーアバターを表示するかどうか</string>
   <string name="setting_display_page_chat_list_model_icon_title">チャットリストのモデルアイコン</string>
   <string name="setting_display_page_chat_list_model_icon_desc">チャットリストのメッセージにモデルアイコンを表示するかどうか</string>
   <string name="setting_display_page_show_token_usage_title">トークンとコンテキスト統計を表示</string>

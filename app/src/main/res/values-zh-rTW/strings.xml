@@ -255,6 +255,8 @@
   <string name="reasoning_custom">自定義推理預算</string>
 
   <!-- Setting Display Page -->
+  <string name="setting_display_page_show_user_avatar_title">顯示用戶頭像</string>
+  <string name="setting_display_page_show_user_avatar_desc">是否在聊天消息中顯示用戶頭像</string>
   <string name="setting_display_page_chat_list_model_icon_title">聊天列表模型圖標</string>
   <string name="setting_display_page_chat_list_model_icon_desc">是否在聊天列表消息中顯示模型圖標</string>
   <string name="setting_display_page_show_token_usage_title">顯示Token和上下文統計</string>

@@ -70,6 +70,28 @@ fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
           ListItem(
             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
             headlineContent = {
+              Text(stringResource(R.string.setting_display_page_show_user_avatar_title))
+            },
+            supportingContent = {
+              Text(stringResource(R.string.setting_display_page_show_user_avatar_desc))
+            },
+            trailingContent = {
+              Switch(
+                checked = displaySetting.showUserAvatar,
+                onCheckedChange = {
+                  updateDisplaySetting(displaySetting.copy(showUserAvatar = it))
+                }
+              )
+            },
+          )
+        }
+      }
+
+      item {
+        Card {
+          ListItem(
+            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+            headlineContent = {
               Text(stringResource(R.string.setting_display_page_chat_list_model_icon_title))
             },
             supportingContent = {

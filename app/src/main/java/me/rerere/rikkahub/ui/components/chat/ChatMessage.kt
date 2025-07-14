@@ -12,6 +12,7 @@ import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -71,6 +72,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -100,6 +102,7 @@ import com.composables.icons.lucide.ChevronUp
 import com.composables.icons.lucide.CircleStop
 import com.composables.icons.lucide.Copy
 import com.composables.icons.lucide.Earth
+import com.composables.icons.lucide.Ellipsis
 import com.composables.icons.lucide.Expand
 import com.composables.icons.lucide.File
 import com.composables.icons.lucide.GitFork
@@ -215,30 +218,15 @@ fun ChatMessage(
         )
       }
     }
-    Column(
-      modifier = Modifier
-          .clip(MaterialTheme.shapes.small)
-          .combinedClickable(
-              enabled = true,
-              indication = LocalIndication.current,
-              interactionSource = remember { MutableInteractionSource() },
-              onClick = {},
-              onLongClick = {
-                  showActionsSheet = true
-              }
-          ),
-      verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-      ProvideTextStyle(textStyle) {
-        MessagePartsBlock(
-          role = message.role,
-          parts = message.parts,
-          annotations = message.annotations,
-          messages = conversation.currentMessages,
-          messageIndex = conversation.currentMessages.indexOf(message),
-          loading = loading
-        )
-      }
+    ProvideTextStyle(textStyle) {
+      MessagePartsBlock(
+        role = message.role,
+        parts = message.parts,
+        annotations = message.annotations,
+        messages = conversation.currentMessages,
+        messageIndex = conversation.currentMessages.indexOf(message),
+        loading = loading
+      )
     }
     AnimatedVisibility(
       visible = showActions,
@@ -253,6 +241,9 @@ fun ChatMessage(
           onRegenerate = onRegenerate,
           node = node,
           onUpdate = onUpdate,
+          onOpenActionSheet = {
+            showActionsSheet = true
+          }
         )
       }
     }
@@ -686,6 +677,7 @@ private fun ColumnScope.Actions(
   node: MessageNode,
   onUpdate: (MessageNode) -> Unit,
   onRegenerate: () -> Unit,
+  onOpenActionSheet: () -> Unit,
 ) {
   val context = LocalContext.current
   var showInformation by remember { mutableStateOf(false) }
@@ -741,6 +733,22 @@ private fun ColumnScope.Actions(
             .size(16.dp)
       )
     }
+
+    Icon(
+      imageVector = Lucide.Ellipsis,
+      contentDescription = "More Options",
+      modifier = Modifier
+        .clip(CircleShape)
+        .clickable(
+          interactionSource = remember { MutableInteractionSource() },
+          indication = LocalIndication.current,
+          onClick = {
+            onOpenActionSheet()
+          }
+        )
+        .padding(8.dp)
+        .size(16.dp)
+    )
 
     MessageNodePagerButtons(
       node = node,
@@ -854,29 +862,31 @@ private fun MessagePartsBlock(
 
   // Text
   parts.filterIsInstance<UIMessagePart.Text>().fastForEach { part ->
-    if (role == MessageRole.USER) {
-      Card(
-        modifier = Modifier
-          .animateContentSize(),
-        shape = MaterialTheme.shapes.medium,
-      ) {
-        Column(modifier = Modifier.padding(8.dp)) {
-          MarkdownBlock(
-            content = part.text,
-            onClickCitation = { id ->
-              handleClickCitation(id)
-            }
-          )
+    SelectionContainer {
+      if (role == MessageRole.USER) {
+        Card(
+          modifier = Modifier
+            .animateContentSize(),
+          shape = MaterialTheme.shapes.medium,
+        ) {
+          Column(modifier = Modifier.padding(8.dp)) {
+            MarkdownBlock(
+              content = part.text,
+              onClickCitation = { id ->
+                handleClickCitation(id)
+              }
+            )
+          }
         }
+      } else {
+        MarkdownBlock(
+          content = part.text,
+          onClickCitation = { id ->
+            handleClickCitation(id)
+          },
+          modifier = Modifier.animateContentSize()
+        )
       }
-    } else {
-      MarkdownBlock(
-        content = part.text,
-        onClickCitation = { id ->
-          handleClickCitation(id)
-        },
-        modifier = Modifier.animateContentSize()
-      )
     }
   }
 

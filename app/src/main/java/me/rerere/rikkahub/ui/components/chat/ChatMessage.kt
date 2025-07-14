@@ -142,6 +142,7 @@ import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.components.richtext.ZoomableAsyncImage
 import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.Favicon
+import me.rerere.rikkahub.ui.components.ui.FaviconRow
 import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSettings
@@ -738,16 +739,16 @@ private fun ColumnScope.Actions(
       imageVector = Lucide.Ellipsis,
       contentDescription = "More Options",
       modifier = Modifier
-        .clip(CircleShape)
-        .clickable(
-          interactionSource = remember { MutableInteractionSource() },
-          indication = LocalIndication.current,
-          onClick = {
-            onOpenActionSheet()
-          }
-        )
-        .padding(8.dp)
-        .size(16.dp)
+          .clip(CircleShape)
+          .clickable(
+              interactionSource = remember { MutableInteractionSource() },
+              indication = LocalIndication.current,
+              onClick = {
+                  onOpenActionSheet()
+              }
+          )
+          .padding(8.dp)
+          .size(16.dp)
     )
 
     MessageNodePagerButtons(
@@ -1065,11 +1066,11 @@ private fun ToolCallItem(
 ) {
   var showResult by remember { mutableStateOf(false) }
   Surface(
-    modifier = Modifier,
+    modifier = Modifier.animateContentSize(),
     onClick = {
       showResult = true
     },
-    shape = MaterialTheme.shapes.medium,
+    shape = MaterialTheme.shapes.large,
     color = MaterialTheme.colorScheme.primaryContainer,
     contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
   ) {
@@ -1098,7 +1099,9 @@ private fun ToolCallItem(
           tint = LocalContentColor.current.copy(alpha = 0.7f)
         )
       }
-      Column {
+      Column(
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+      ) {
         Text(
           text = when (toolName) {
             "create_memory" -> stringResource(R.string.chat_message_tool_create_memory)
@@ -1109,7 +1112,6 @@ private fun ToolCallItem(
               arguments.jsonObject["query"]?.jsonPrimitiveOrNull?.contentOrNull
                 ?: ""
             )
-
             else -> stringResource(
               R.string.chat_message_tool_call_generic,
               toolName
@@ -1119,6 +1121,41 @@ private fun ToolCallItem(
           color = MaterialTheme.colorScheme.secondary,
           modifier = Modifier.shimmer(isLoading = loading),
         )
+        if(toolName == "create_memory" || toolName == "edit_memory") {
+          val content = content?.jsonObject["content"]?.jsonPrimitiveOrNull?.contentOrNull
+          if(content != null) {
+            Text(
+              text = content,
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onPrimaryContainer,
+              modifier = Modifier.shimmer(isLoading = loading),
+              maxLines = 3,
+              overflow = TextOverflow.Ellipsis,
+            )
+          }
+        }
+        if (toolName == "search_web") {
+          val answer = content?.jsonObject["answer"]?.jsonPrimitiveOrNull?.contentOrNull
+          if(answer != null) {
+            Text(
+              text = answer,
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onPrimaryContainer,
+              modifier = Modifier.shimmer(isLoading = loading),
+              maxLines = 3,
+              overflow = TextOverflow.Ellipsis,
+            )
+          }
+          val items = content?.jsonObject["items"]?.jsonArray ?: emptyList()
+          if (items.isNotEmpty()) {
+            FaviconRow(
+              urls = items.mapNotNull {
+                it.jsonObject["url"]?.jsonPrimitiveOrNull?.contentOrNull
+              },
+              size = 14.dp,
+            )
+          }
+        }
       }
     }
   }
@@ -1355,7 +1392,7 @@ fun ReasoningCard(
       containerColor = MaterialTheme.colorScheme.primaryContainer,
       contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     ),
-    shape = MaterialTheme.shapes.medium,
+    shape = MaterialTheme.shapes.large,
   ) {
     Column(
       modifier = Modifier

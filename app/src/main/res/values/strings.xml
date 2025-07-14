@@ -248,6 +248,10 @@
 
   <!-- Reasoning -->
   <string name="reasoning_set_budget">Set reasoning budget (%1$d tokens)</string>
+
+  <!-- Chat Page - Nickname Edit -->
+  <string name="chat_page_edit_nickname">Edit Nickname</string>
+  <string name="chat_page_nickname_placeholder">Please enter nickname</string>
   
   <!-- User -->
   <string name="user_default_name">User</string>

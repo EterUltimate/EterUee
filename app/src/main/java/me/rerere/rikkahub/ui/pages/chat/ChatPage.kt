@@ -613,7 +613,7 @@ private fun DrawerContent(
         nicknameEditState.dismiss()
       },
       title = {
-        Text("编辑昵称")
+        Text(stringResource(R.string.chat_page_edit_nickname))
       },
       text = {
         OutlinedTextField(
@@ -621,7 +621,7 @@ private fun DrawerContent(
           onValueChange = onUpdate,
           modifier = Modifier.fillMaxWidth(),
           singleLine = true,
-          placeholder = { Text("请输入昵称") }
+          placeholder = { Text(stringResource(R.string.chat_page_nickname_placeholder)) }
         )
       },
       confirmButton = {
@@ -630,7 +630,7 @@ private fun DrawerContent(
             nicknameEditState.confirm()
           }
         ) {
-          Text("保存")
+          Text(stringResource(R.string.chat_page_save))
         }
       },
       dismissButton = {
@@ -639,7 +639,7 @@ private fun DrawerContent(
             nicknameEditState.dismiss()
           }
         ) {
-          Text("取消")
+          Text(stringResource(R.string.chat_page_cancel))
         }
       }
     )

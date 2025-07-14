@@ -248,6 +248,10 @@
   <string name="reasoning_medium">中度推論</string>
   <string name="reasoning_medium_desc">モデルはより多くの推論を使用して質問に答えます。</string>
   <string name="reasoning_heavy">重度推論</string>
+
+  <!-- Chat Page - Nickname Edit -->
+  <string name="chat_page_edit_nickname">ニックネームを編集</string>
+  <string name="chat_page_nickname_placeholder">ニックネームを入力してください</string>
   <string name="reasoning_heavy_desc">モデルは大量の推論を使用して質問に答えます。</string>
   <string name="reasoning_custom">カスタム推論予算</string>
 

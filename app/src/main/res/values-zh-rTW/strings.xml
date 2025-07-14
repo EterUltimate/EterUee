@@ -248,6 +248,10 @@
   <string name="reasoning_off_desc">關閉推理功能，模型將直接回答問題。</string>
   <string name="reasoning_light">輕度推理</string>
   <string name="reasoning_light_desc">模型將使用少量推理來回答問題。</string>
+
+  <!-- Chat Page - Nickname Edit -->
+  <string name="chat_page_edit_nickname">編輯暱稱</string>
+  <string name="chat_page_nickname_placeholder">請輸入暱稱</string>
   <string name="reasoning_medium">中度推理</string>
   <string name="reasoning_medium_desc">模型將使用更多推理來回答問題。</string>
   <string name="reasoning_heavy">重度推理</string>

@@ -20,6 +20,9 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.math.roundToInt
 
+private val MAX_HEIGHT = 10000.dp
+private val MAX_WIDTH = 10000.dp
+
 /**
  * Draws an arbitrary composable into a bitmap
  * mainScope has to be Dispatcher.Main because it has to perform
@@ -47,8 +50,8 @@ class BitmapComposer(private val mainScope: CoroutineScope) {
   ): Bitmap = suspendCancellableCoroutine { continuation ->
     mainScope.launch {
       // Step 1: Interpret the pixels while taking into account the screen density
-      val contentWidthInPixels = (screenDensity.density * (width ?: 3000.dp).value).roundToInt()
-      val contentHeightInPixels = (screenDensity.density * (height ?: 3000.dp).value).roundToInt()
+      val contentWidthInPixels = (screenDensity.density * (width ?: MAX_WIDTH).value).roundToInt()
+      val contentHeightInPixels = (screenDensity.density * (height ?: MAX_HEIGHT).value).roundToInt()
 
       // Step 2: Create a container to hold the ComposeView temporarily
       val composeViewContainer = FrameLayout(activity).apply {

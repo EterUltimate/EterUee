@@ -1100,7 +1100,7 @@ private fun ToolCallItem(
         )
       }
       Column(
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
       ) {
         Text(
           text = when (toolName) {
@@ -1126,7 +1126,7 @@ private fun ToolCallItem(
           if(content != null) {
             Text(
               text = content,
-              style = MaterialTheme.typography.bodySmall,
+              style = MaterialTheme.typography.labelSmall,
               color = MaterialTheme.colorScheme.onPrimaryContainer,
               modifier = Modifier.shimmer(isLoading = loading),
               maxLines = 3,
@@ -1139,7 +1139,7 @@ private fun ToolCallItem(
           if(answer != null) {
             Text(
               text = answer,
-              style = MaterialTheme.typography.bodySmall,
+              style = MaterialTheme.typography.labelSmall,
               color = MaterialTheme.colorScheme.onPrimaryContainer,
               modifier = Modifier.shimmer(isLoading = loading),
               maxLines = 3,

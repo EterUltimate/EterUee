@@ -9,6 +9,7 @@ val LocalNavController = compositionLocalOf<NavBackStack> {
 }
 
 fun NavBackStack.popBack() {
+  if (this.size <= 1) return
   this.removeLastOrNull()
 }
 

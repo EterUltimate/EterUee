@@ -459,7 +459,28 @@ private val DEFAULT_PROVIDERS = listOf(
     apiKey = "",
     enabled = false,
     builtIn = true
-  )
+  ),
+  ProviderSetting.OpenAI(
+    id = Uuid.parse("53027b08-1b58-43d5-90ed-29173203e3d8"),
+    name = "AckAI",
+    baseUrl = "https://ackai.fun/v1",
+    apiKey = "",
+    enabled = false,
+    builtIn = true,
+    description = {
+      Text(
+        text = buildAnnotatedString {
+          append("所有AI大模型全都可以用！无需翻墙！价格是官方5折！\n" +
+            "官网：")
+          withLink(LinkAnnotation.Url("https://ackai.fun/register?aff=jxpP")) {
+            withStyle(SpanStyle(MaterialTheme.colorScheme.primary)) {
+              append("https://ackai.fun")
+            }
+          }
+        }
+      )
+    }
+  ),
 )
 
 internal val DEFAULT_ASSISTANT_ID = Uuid.parse("0950e2dc-9bd5-4801-afa3-aa887aa36b4e")

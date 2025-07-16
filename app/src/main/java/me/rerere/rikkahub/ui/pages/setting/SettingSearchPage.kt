@@ -117,7 +117,7 @@ fun SettingSearchPage(vm: SettingVM = koinViewModel()) {
             onClick = {
               vm.updateSettings(
                 settings.copy(
-                  searchServices = settings.searchServices + SearchServiceOptions.DEFAULT
+                  searchServices = settings.searchServices + SearchServiceOptions.BingLocalOptions()
                 )
               )
             }
@@ -133,11 +133,11 @@ fun SettingSearchPage(vm: SettingVM = koinViewModel()) {
       }
 
       // 搜索提供商列表
-      items(settings.searchServices, key = { service -> service.hashCode() }) { service ->
+      items(settings.searchServices, key = { it.id } ) { service ->
         val index = settings.searchServices.indexOf(service)
         ReorderableItem(
           state = reorderableState,
-          key = service.hashCode()
+          key = service.id
         ) { isDragging ->
           SearchProviderCard(
             service = service,

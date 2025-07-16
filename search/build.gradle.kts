@@ -1,3 +1,6 @@
+import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
   alias(libs.plugins.android.library)
   alias(libs.plugins.kotlin.android)
@@ -34,6 +37,17 @@ android {
   }
   kotlinOptions {
     jvmTarget = "11"
+  }
+  tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions.optIn.add("androidx.compose.material3.ExperimentalMaterial3Api")
+    compilerOptions.optIn.add("androidx.compose.material3.ExperimentalMaterial3ExpressiveApi")
+    compilerOptions.optIn.add("androidx.compose.animation.ExperimentalAnimationApi")
+    compilerOptions.optIn.add("androidx.compose.animation.ExperimentalSharedTransitionApi")
+    compilerOptions.optIn.add("androidx.compose.foundation.ExperimentalFoundationApi")
+    compilerOptions.optIn.add("androidx.compose.foundation.layout.ExperimentalLayoutApi")
+    compilerOptions.optIn.add("kotlin.uuid.ExperimentalUuidApi")
+    compilerOptions.optIn.add("kotlin.time.ExperimentalTime")
+    compilerOptions.optIn.add("kotlinx.coroutines.ExperimentalCoroutinesApi")
   }
 }
 

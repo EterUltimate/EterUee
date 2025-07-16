@@ -12,6 +12,7 @@ import okhttp3.Response
 import okhttp3.internal.closeQuietly
 import okio.IOException
 import kotlin.coroutines.resumeWithException
+import kotlin.uuid.Uuid
 
 interface SearchService<T : SearchServiceOptions> {
   val name: String
@@ -72,6 +73,8 @@ data class SearchResult(
 
 @Serializable
 sealed class SearchServiceOptions {
+  abstract val id: Uuid
+
   companion object {
     val DEFAULT = BingLocalOptions()
 
@@ -87,29 +90,35 @@ sealed class SearchServiceOptions {
 
   @Serializable
   @SerialName("bing_local")
-  class BingLocalOptions : SearchServiceOptions()
+  class BingLocalOptions(
+    override val id: Uuid = Uuid.random()
+  ) : SearchServiceOptions()
 
   @Serializable
   @SerialName("zhipu")
   data class ZhipuOptions(
-    val apiKey: String = ""
+    override val id: Uuid = Uuid.random(),
+    val apiKey: String = "",
   ) : SearchServiceOptions()
 
   @Serializable
   @SerialName("tavily")
   data class TavilyOptions(
-    val apiKey: String = ""
+    override val id: Uuid = Uuid.random(),
+    val apiKey: String = "",
   ) : SearchServiceOptions()
 
   @Serializable
   @SerialName("exa")
   data class ExaOptions(
+    override val id: Uuid = Uuid.random(),
     val apiKey: String = ""
   ) : SearchServiceOptions()
 
   @Serializable
   @SerialName("searxng")
   data class SearXNGOptions(
+    override val id: Uuid = Uuid.random(),
     val url: String = "",
     val engines: String = "",
     val language: String = "",
@@ -118,6 +127,7 @@ sealed class SearchServiceOptions {
   @Serializable
   @SerialName("linkup")
   data class LinkUpOptions(
+    override val id: Uuid = Uuid.random(),
     val apiKey: String = "",
   ) : SearchServiceOptions()
 }

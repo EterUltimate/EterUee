@@ -79,6 +79,7 @@ import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.components.ui.BitmapComposer
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalToaster
+import me.rerere.rikkahub.ui.theme.RikkahubTheme
 import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.getActivity
 import me.rerere.rikkahub.utils.jsonPrimitiveOrNull
@@ -357,7 +358,7 @@ private fun ExportedChatImage(
 ) {
   val navBackStack = rememberNavBackStack(Screen.Chat("export"))
   val highlighter = koinInject<Highlighter>()
-  MaterialTheme {
+  RikkahubTheme {
     CompositionLocalProvider(
       LocalNavController provides navBackStack,
       LocalHighlighter provides highlighter

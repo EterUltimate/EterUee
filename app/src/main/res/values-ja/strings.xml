@@ -52,6 +52,7 @@
   <string name="chat_page_export_markdown_desc">会話をmarkdownファイルとしてエクスポート</string>
   <string name="chat_page_export_image">画像としてエクスポート</string>
   <string name="chat_page_export_image_desc">会話をPNG画像としてエクスポート</string>
+  <string name="chat_page_export_image_expand_reasoning">思考過程を展開</string>
   <string name="chat_page_export_success">%1$sにエクスポートしました</string>
   <string name="chat_page_export_share_via">共有方法</string>
 

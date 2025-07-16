@@ -16,8 +16,10 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -25,11 +27,16 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -91,6 +98,7 @@ fun ChatExportSheet(
   val toaster = LocalToaster.current
   val scope = rememberCoroutineScope()
   val density = LocalDensity.current
+  var imageExportOptions by remember { mutableStateOf(ImageExportOptions()) }
 
   if (visible) {
     ModalBottomSheet(
@@ -135,27 +143,64 @@ fun ChatExportSheet(
         val imageSuccessMessage =
           stringResource(id = R.string.chat_page_export_success, "Image")
         OutlinedCard(
-          onClick = {
-            scope.launch { exportToImage(context, scope, density, conversation, selectedMessages) }
-            toaster.show(
-              imageSuccessMessage,
-              type = ToastType.Success
-            )
-            onDismissRequest()
-          },
           modifier = Modifier.fillMaxWidth()
         ) {
-          ListItem(
-            headlineContent = {
-              Text(stringResource(id = R.string.chat_page_export_image))
-            },
-            supportingContent = {
-              Text(stringResource(id = R.string.chat_page_export_image_desc))
-            },
-            leadingContent = {
-              Icon(Lucide.Image, contentDescription = null)
+          Column {
+            ListItem(
+              headlineContent = {
+                Text(stringResource(id = R.string.chat_page_export_image))
+              },
+              supportingContent = {
+                Text(stringResource(id = R.string.chat_page_export_image_desc))
+              },
+              leadingContent = {
+                Icon(Lucide.Image, contentDescription = null)
+              }
+            )
+
+            HorizontalDivider()
+
+            ListItem(
+              headlineContent = { Text(stringResource(R.string.chat_page_export_image_expand_reasoning)) },
+              trailingContent = {
+                Switch(
+                  checked = imageExportOptions.expandReasoning,
+                  onCheckedChange = {
+                    imageExportOptions = imageExportOptions.copy(expandReasoning = it)
+                  }
+                )
+              }
+            )
+
+            Row(
+              modifier = Modifier
+                  .fillMaxWidth()
+                  .padding(horizontal = 16.dp, vertical = 8.dp),
+              horizontalArrangement = Arrangement.End
+            ) {
+              Button(
+                onClick = {
+                  scope.launch {
+                    exportToImage(
+                      context,
+                      scope,
+                      density,
+                      conversation,
+                      selectedMessages,
+                      imageExportOptions
+                    )
+                  }
+                  toaster.show(
+                    imageSuccessMessage,
+                    type = ToastType.Success
+                  )
+                  onDismissRequest()
+                }
+              ) {
+                Text(stringResource(R.string.mermaid_export))
+              }
             }
-          )
+          }
         }
       }
     }
@@ -242,7 +287,8 @@ private suspend fun exportToImage(
   scope: CoroutineScope,
   density: Density,
   conversation: Conversation,
-  messages: List<UIMessage>
+  messages: List<UIMessage>,
+  options: ImageExportOptions = ImageExportOptions()
 ) {
   val filename = "chat-export-${LocalDateTime.now().toLocalString()}.png"
   val composer = BitmapComposer(scope)
@@ -261,7 +307,8 @@ private suspend fun exportToImage(
     content = {
       ExportedChatImage(
         conversation = conversation,
-        messages = messages
+        messages = messages,
+        options = options
       )
     }
   )
@@ -300,10 +347,13 @@ private suspend fun exportToImage(
   }
 }
 
+data class ImageExportOptions(val expandReasoning: Boolean = true)
+
 @Composable
 private fun ExportedChatImage(
   conversation: Conversation,
-  messages: List<UIMessage>
+  messages: List<UIMessage>,
+  options: ImageExportOptions = ImageExportOptions()
 ) {
   val navBackStack = rememberNavBackStack(Screen.Chat("export"))
   val highlighter = koinInject<Highlighter>()
@@ -350,7 +400,7 @@ private fun ExportedChatImage(
           }
 
           messages.forEach { message ->
-            ExportedChatMessage(message = message)
+            ExportedChatMessage(message = message, options = options)
           }
         }
       }
@@ -359,7 +409,10 @@ private fun ExportedChatImage(
 }
 
 @Composable
-private fun ExportedChatMessage(message: UIMessage) {
+private fun ExportedChatMessage(
+  message: UIMessage,
+  options: ImageExportOptions = ImageExportOptions()
+) {
   if (message.parts.isEmptyUIMessage()) return
 
   val arrangement = if (message.role == MessageRole.USER) Arrangement.End else Arrangement.Start
@@ -406,7 +459,7 @@ private fun ExportedChatMessage(message: UIMessage) {
           }
 
           is UIMessagePart.Reasoning -> {
-            ExportedReasoningCard(reasoning = part)
+            ExportedReasoningCard(reasoning = part, expanded = options.expandReasoning)
           }
 
           is UIMessagePart.ToolCall -> {
@@ -427,7 +480,7 @@ private fun ExportedChatMessage(message: UIMessage) {
 }
 
 @Composable
-private fun ExportedReasoningCard(reasoning: UIMessagePart.Reasoning) {
+private fun ExportedReasoningCard(reasoning: UIMessagePart.Reasoning, expanded: Boolean) {
   Card(
     colors = CardDefaults.cardColors(
       containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -442,7 +495,6 @@ private fun ExportedReasoningCard(reasoning: UIMessagePart.Reasoning) {
     ) {
       Row(
         modifier = Modifier
-            .fillMaxWidth()
             .padding(horizontal = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -456,16 +508,18 @@ private fun ExportedReasoningCard(reasoning: UIMessagePart.Reasoning) {
         Text(
           text = stringResource(R.string.deep_thinking), // Let's use Chinese directly as per rule
           style = MaterialTheme.typography.titleSmall,
-          color = MaterialTheme.colorScheme.secondary
+          color = MaterialTheme.colorScheme.onPrimaryContainer
         )
       }
-      MarkdownBlock(
-        content = reasoning.reasoning,
-        style = MaterialTheme.typography.bodySmall,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp),
-      )
+      if (expanded) {
+        MarkdownBlock(
+          content = reasoning.reasoning,
+          style = MaterialTheme.typography.bodySmall,
+          modifier = Modifier
+              .fillMaxWidth()
+              .padding(horizontal = 8.dp),
+        )
+      }
     }
   }
 }

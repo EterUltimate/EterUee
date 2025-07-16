@@ -98,13 +98,14 @@ fun UIAvatar(
   var showUrlInput by remember { mutableStateOf(false) }
   var urlInput by remember { mutableStateOf("") }
 
-  // 图片选择launcher
   val imagePickerLauncher = rememberLauncherForActivityResult(
     contract = ActivityResultContracts.GetContent()
   ) { uri: Uri? ->
     uri?.let {
-      val localUri = context.createChatFilesByContents(listOf(it))[0]
-      onUpdate?.invoke(Avatar.Image(localUri.toString()))
+      val localUris = context.createChatFilesByContents(listOf(it))
+      localUris.firstOrNull()?.let { localUri ->
+        onUpdate?.invoke(Avatar.Image(localUri.toString()))
+      }
     }
   }
 

@@ -347,7 +347,7 @@ private suspend fun exportToImage(
   }
 }
 
-data class ImageExportOptions(val expandReasoning: Boolean = true)
+data class ImageExportOptions(val expandReasoning: Boolean = false)
 
 @Composable
 private fun ExportedChatImage(

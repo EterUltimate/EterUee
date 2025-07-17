@@ -262,11 +262,11 @@ private fun ChatPageContent(
             )
           } else {
             vm.handleMessageSend(inputState.messageContent)
+            scope.launch {
+              chatListState.requestScrollToItem(conversation.currentMessages.size + 5)
+            }
           }
           inputState.clearInput()
-          scope.launch {
-            chatListState.requestScrollToItem(conversation.currentMessages.size + 5)
-          }
         },
         onUpdateChatModel = {
           vm.setChatModel(assistant = setting.getCurrentAssistant(), model = it)

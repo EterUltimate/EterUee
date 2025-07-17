@@ -78,9 +78,10 @@ import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.ui.components.chat.AssistantPicker
 import me.rerere.rikkahub.ui.components.chat.ChatInput
+import me.rerere.rikkahub.ui.components.chat.ChatInputState
 import me.rerere.rikkahub.ui.components.chat.Greeting
-import me.rerere.rikkahub.ui.components.chat.rememberChatInputState
 import me.rerere.rikkahub.ui.components.chat.UIAvatar
+import me.rerere.rikkahub.ui.components.chat.rememberChatInputState
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalToaster
@@ -135,6 +136,12 @@ fun ChatPage(id: Uuid, text: String?) {
     .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) &&
     windowAdaptiveInfo.windowSizeClass.minWidthDp > windowAdaptiveInfo.windowSizeClass.minHeightDp
 
+  val inputState = rememberChatInputState(
+    message = text?.let {
+      listOf(UIMessagePart.Text(it.base64Decode()))
+    } ?: emptyList(),
+  )
+
   when {
     isBigScreen -> {
       PermanentNavigationDrawer(
@@ -150,7 +157,7 @@ fun ChatPage(id: Uuid, text: String?) {
         }
       ) {
         ChatPageContent(
-          text = text,
+          inputState = inputState,
           loadingJob = loadingJob,
           setting = setting,
           conversation = conversation,
@@ -179,7 +186,7 @@ fun ChatPage(id: Uuid, text: String?) {
         }
       ) {
         ChatPageContent(
-          text = text,
+          inputState = inputState,
           loadingJob = loadingJob,
           setting = setting,
           conversation = conversation,
@@ -197,7 +204,7 @@ fun ChatPage(id: Uuid, text: String?) {
 
 @Composable
 private fun ChatPageContent(
-  text: String?,
+  inputState: ChatInputState,
   loadingJob: Job?,
   setting: Settings,
   bigScreen: Boolean,
@@ -208,11 +215,6 @@ private fun ChatPageContent(
   enableWebSearch: Boolean,
   currentChatModel: Model?,
 ) {
-  val inputState = rememberChatInputState(
-    message = text?.let {
-      listOf(UIMessagePart.Text(it.base64Decode()))
-    } ?: emptyList(),
-  )
   val scope = rememberCoroutineScope()
   val toaster = LocalToaster.current
   LaunchedEffect(loadingJob) {

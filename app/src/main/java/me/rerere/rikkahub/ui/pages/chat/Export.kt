@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -87,6 +88,8 @@ import me.rerere.rikkahub.utils.toLocalString
 import org.koin.compose.koinInject
 import java.io.FileOutputStream
 import java.time.LocalDateTime
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
 
 @Composable
 fun ChatExportSheet(
@@ -482,6 +485,10 @@ private fun ExportedChatMessage(
 
 @Composable
 private fun ExportedReasoningCard(reasoning: UIMessagePart.Reasoning, expanded: Boolean) {
+  val duration = reasoning.finishedAt?.let { endTime ->
+    endTime - reasoning.createdAt
+  } ?: (kotlin.time.Clock.System.now() - reasoning.createdAt)
+  
   Card(
     colors = CardDefaults.cardColors(
       containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -507,10 +514,17 @@ private fun ExportedReasoningCard(reasoning: UIMessagePart.Reasoning, expanded: 
           tint = MaterialTheme.colorScheme.secondary
         )
         Text(
-          text = stringResource(R.string.deep_thinking), // Let's use Chinese directly as per rule
+          text = stringResource(R.string.deep_thinking),
           style = MaterialTheme.typography.titleSmall,
-          color = MaterialTheme.colorScheme.onPrimaryContainer
+          color = MaterialTheme.colorScheme.secondary
         )
+        if (duration > 0.seconds) {
+          Text(
+            text = "(${duration.toString(DurationUnit.SECONDS, 1)})",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.secondary
+          )
+        }
       }
       if (expanded) {
         MarkdownBlock(

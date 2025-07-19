@@ -64,11 +64,35 @@ sealed class TTSProviderSetting {
     }
   }
 
+  @Serializable
+  @SerialName("system")
+  data class SystemTTS(
+    override var id: Uuid = Uuid.random(),
+    override var enabled: Boolean = true,
+    override var name: String = "System TTS",
+    val speechRate: Float = 1.0f,
+    val pitch: Float = 1.0f,
+    val language: String = "en-US"
+  ) : TTSProviderSetting() {
+    override fun copyProvider(
+      id: Uuid,
+      enabled: Boolean,
+      name: String,
+    ): TTSProviderSetting {
+      return this.copy(
+        id = id,
+        enabled = enabled,
+        name = name,
+      )
+    }
+  }
+
   companion object {
     val Types by lazy {
       listOf(
         OpenAI::class,
         Gemini::class,
+        SystemTTS::class,
       )
     }
   }

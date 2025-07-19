@@ -52,6 +52,7 @@ fun TTSProviderConfigure(
           value = when (setting) {
             is TTSProviderSetting.OpenAI -> "OpenAI"
             is TTSProviderSetting.Gemini -> "Gemini"
+            is TTSProviderSetting.SystemTTS -> "System TTS"
           },
           onValueChange = {},
           readOnly = true,
@@ -73,6 +74,7 @@ fun TTSProviderConfigure(
                   when (providerClass) {
                     TTSProviderSetting.OpenAI::class -> "OpenAI"
                     TTSProviderSetting.Gemini::class -> "Gemini"
+                    TTSProviderSetting.SystemTTS::class -> "System TTS"
                     else -> providerClass.simpleName ?: "Unknown"
                   }
                 )
@@ -90,6 +92,12 @@ fun TTSProviderConfigure(
                     id = setting.id,
                     enabled = setting.enabled,
                     name = "Gemini TTS"
+                  )
+
+                  TTSProviderSetting.SystemTTS::class -> TTSProviderSetting.SystemTTS(
+                    id = setting.id,
+                    enabled = setting.enabled,
+                    name = "System TTS"
                   )
 
                   else -> setting
@@ -121,6 +129,7 @@ fun TTSProviderConfigure(
     when (setting) {
       is TTSProviderSetting.OpenAI -> OpenAITTSConfiguration(setting, onValueChange)
       is TTSProviderSetting.Gemini -> GeminiTTSConfiguration(setting, onValueChange)
+      is TTSProviderSetting.SystemTTS -> SystemTTSConfiguration(setting, onValueChange)
     }
   }
 }
@@ -288,6 +297,67 @@ private fun GeminiTTSConfiguration(
       },
       modifier = Modifier.fillMaxWidth(),
       placeholder = { Text("Kore") }
+    )
+  }
+}
+
+@Composable
+private fun SystemTTSConfiguration(
+  setting: TTSProviderSetting.SystemTTS,
+  onValueChange: (TTSProviderSetting) -> Unit
+) {
+  // Speech Rate
+  FormItem(
+    label = { Text(stringResource(R.string.setting_tts_page_speech_rate)) },
+    description = { Text(stringResource(R.string.setting_tts_page_speech_rate_description)) }
+  ) {
+    OutlinedTextField(
+      value = setting.speechRate.toString(),
+      onValueChange = { newRate ->
+        newRate.toFloatOrNull()?.let { rate ->
+          if (rate in 0.1f..3.0f) {
+            onValueChange(setting.copy(speechRate = rate))
+          }
+        }
+      },
+      modifier = Modifier.fillMaxWidth(),
+      placeholder = { Text("1.0") },
+      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+    )
+  }
+
+  // Pitch
+  FormItem(
+    label = { Text(stringResource(R.string.setting_tts_page_pitch)) },
+    description = { Text(stringResource(R.string.setting_tts_page_pitch_description)) }
+  ) {
+    OutlinedTextField(
+      value = setting.pitch.toString(),
+      onValueChange = { newPitch ->
+        newPitch.toFloatOrNull()?.let { pitch ->
+          if (pitch in 0.1f..2.0f) {
+            onValueChange(setting.copy(pitch = pitch))
+          }
+        }
+      },
+      modifier = Modifier.fillMaxWidth(),
+      placeholder = { Text("1.0") },
+      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+    )
+  }
+
+  // Language
+  FormItem(
+    label = { Text(stringResource(R.string.setting_tts_page_language)) },
+    description = { Text(stringResource(R.string.setting_tts_page_language_description)) }
+  ) {
+    OutlinedTextField(
+      value = setting.language,
+      onValueChange = { newLanguage ->
+        onValueChange(setting.copy(language = newLanguage))
+      },
+      modifier = Modifier.fillMaxWidth(),
+      placeholder = { Text("en-US") }
     )
   }
 }

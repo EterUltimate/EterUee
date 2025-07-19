@@ -173,7 +173,7 @@ fun SettingTTSPage(vm: SettingVM = koinViewModel()) {
         verticalArrangement = Arrangement.spacedBy(16.dp)
       ) {
         Text(
-          text = "编辑提供商",
+          text = stringResource(R.string.setting_tts_page_edit_provider),
           style = MaterialTheme.typography.headlineSmall
         )
 
@@ -208,7 +208,7 @@ fun SettingTTSPage(vm: SettingVM = koinViewModel()) {
             },
             modifier = Modifier.weight(1f)
           ) {
-            Text("保存")
+            Text(stringResource(R.string.chat_page_save))
           }
         }
       }
@@ -219,11 +219,11 @@ fun SettingTTSPage(vm: SettingVM = koinViewModel()) {
 @Composable
 private fun AddTTSProviderButton(onAdd: (TTSProviderSetting) -> Unit) {
   var showBottomSheet by remember { mutableStateOf(false) }
-  var currentProvider: TTSProviderSetting by remember { mutableStateOf(TTSProviderSetting.OpenAI()) }
+  var currentProvider: TTSProviderSetting by remember { mutableStateOf(TTSProviderSetting.SystemTTS()) }
 
   IconButton(
     onClick = {
-      currentProvider = TTSProviderSetting.OpenAI()
+      currentProvider = TTSProviderSetting.SystemTTS()
       showBottomSheet = true
     }
   ) {
@@ -342,6 +342,7 @@ private fun TTSProviderItem(
                 when (provider) {
                   is TTSProviderSetting.OpenAI -> "OpenAI"
                   is TTSProviderSetting.Gemini -> "Gemini"
+                  is TTSProviderSetting.SystemTTS -> "System TTS"
                 }
               )
             }
@@ -359,7 +360,7 @@ private fun TTSProviderItem(
             onDismissRequest = { showDropdownMenu = false }
           ) {
             DropdownMenuItem(
-              text = { Text("Edit") },
+              text = { Text(stringResource(R.string.edit)) },
               onClick = {
                 showDropdownMenu = false
                 onEdit()
@@ -369,7 +370,7 @@ private fun TTSProviderItem(
               }
             )
             DropdownMenuItem(
-              text = { Text("Delete") },
+              text = { Text(stringResource(R.string.delete)) },
               onClick = {
                 showDropdownMenu = false
                 onDelete()

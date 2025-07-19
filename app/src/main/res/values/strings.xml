@@ -431,6 +431,13 @@
   <string name="setting_tts_page_voice_name_description">Name of the voice</string>
   <string name="setting_tts_page_speed">Speed</string>
   <string name="setting_tts_page_speed_description">Speech speed (0.25 - 4.0)</string>
+  <string name="setting_tts_page_speech_rate">Speech Rate</string>
+  <string name="setting_tts_page_speech_rate_description">Control the speed of speech (0.1 - 3.0, 1.0 is normal)</string>
+  <string name="setting_tts_page_pitch">Pitch</string>
+  <string name="setting_tts_page_pitch_description">Control the pitch of speech (0.1 - 2.0, 1.0 is normal)</string>
+  <string name="setting_tts_page_language">Language</string>
+  <string name="setting_tts_page_language_description">Language code for TTS (e.g., en-US, zh-CN, ja-JP)</string>
+  <string name="setting_tts_page_edit_provider">Edit Provider</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">Created memory</string>

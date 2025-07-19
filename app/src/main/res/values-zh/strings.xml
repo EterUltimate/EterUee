@@ -478,4 +478,13 @@
   <string name="history_page_search_placeholder">输入关键词搜索聊天</string>
   <string name="history_page_new_conversation">新对话</string>
   <string name="history_page_clear">清除</string>
+  <string name="setting_tts_page_speed">语速</string>
+  <string name="setting_tts_page_speed_description">语音合成速度 (0.25 - 4.0)</string>
+  <string name="setting_tts_page_speech_rate">语音速度</string>
+  <string name="setting_tts_page_speech_rate_description">控制语音播放速度 (0.1 - 3.0，1.0为正常速度)</string>
+  <string name="setting_tts_page_pitch">音调</string>
+  <string name="setting_tts_page_pitch_description">控制语音音调高低 (0.1 - 2.0，1.0为正常音调)</string>
+  <string name="setting_tts_page_language">语言</string>
+  <string name="setting_tts_page_language_description">TTS语言代码 (例如 en-US, zh-CN, ja-JP)</string>
+  <string name="setting_tts_page_edit_provider">编辑提供商</string>
 </resources> 

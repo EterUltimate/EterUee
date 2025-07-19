@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowDpSize
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -131,10 +132,9 @@ fun ChatPage(id: Uuid, text: String?) {
 
   val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
-  val windowAdaptiveInfo = currentWindowAdaptiveInfo()
-  val isBigScreen = windowAdaptiveInfo.windowSizeClass
-    .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) &&
-    windowAdaptiveInfo.windowSizeClass.minWidthDp > windowAdaptiveInfo.windowSizeClass.minHeightDp
+  val windowAdaptiveInfo = currentWindowDpSize()
+  val isBigScreen =
+    windowAdaptiveInfo.width > windowAdaptiveInfo.height && windowAdaptiveInfo.width >= 1100.dp
 
   val inputState = rememberChatInputState(
     message = text?.let {

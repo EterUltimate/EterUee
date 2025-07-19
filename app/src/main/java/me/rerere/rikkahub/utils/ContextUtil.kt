@@ -29,7 +29,13 @@ import java.io.OutputStream
 
 private const val TAG = "ContextUtil"
 
-fun Context.playSound(sound: ByteArray, format: AudioFormat) {
+fun Context.playSound(
+  sound: ByteArray, 
+  format: AudioFormat,
+  onStart: (() -> Unit)? = null,
+  onComplete: (() -> Unit)? = null,
+  onError: ((String) -> Unit)? = null
+) {
   runCatching {
     val tempFile = File.createTempFile("audio_temp", getFileExtension(format), cacheDir)
     tempFile.writeBytes(sound)
@@ -39,29 +45,38 @@ fun Context.playSound(sound: ByteArray, format: AudioFormat) {
       setOnCompletionListener { player ->
         player.release()
         tempFile.delete()
+        onComplete?.invoke()
       }
       setOnErrorListener { player, what, extra ->
-        Log.e(TAG, "MediaPlayer error occurred $what  $extra")
+        val errorMsg = "MediaPlayer error occurred $what  $extra"
+        Log.e(TAG, errorMsg)
         player.release()
         tempFile.delete()
+        onError?.invoke(errorMsg)
         true
       }
       prepareAsync()
       setOnPreparedListener { player ->
         player.start()
+        onStart?.invoke()
       }
     }
 
     Log.i(TAG, "Playing audio with format: $format")
   }.onFailure { e ->
-    Log.e(TAG, "Failed to play sound", e)
+    val errorMsg = "Failed to play sound: ${e.message}"
+    Log.e(TAG, errorMsg, e)
     Toast.makeText(this, "Failed to play audio", Toast.LENGTH_SHORT).show()
+    onError?.invoke(errorMsg)
   }
 }
 
 fun Context.playPcmSound(
   pcmData: ByteArray,
   sampleRate: Int = 24000,
+  onStart: (() -> Unit)? = null,
+  onComplete: (() -> Unit)? = null,
+  onError: ((String) -> Unit)? = null
 ) {
   runCatching {
     val minBufferSize = AudioTrack.getMinBufferSize(
@@ -80,14 +95,18 @@ fun Context.playPcmSound(
     )
 
     audioTrack.play()
+    onStart?.invoke()
     audioTrack.write(pcmData, 0, pcmData.size)
     audioTrack.stop()
     audioTrack.release()
+    onComplete?.invoke()
 
     Log.i(TAG, "PCM 播放完成")
   }.onFailure { e ->
-    Log.e(TAG, "PCM 播放失败", e)
+    val errorMsg = "PCM 播放失败: ${e.message}"
+    Log.e(TAG, errorMsg, e)
     Toast.makeText(this, "无法播放 PCM 音频", Toast.LENGTH_SHORT).show()
+    onError?.invoke(errorMsg)
   }
 }
 

@@ -14,11 +14,12 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
+import java.util.concurrent.TimeUnit
 
 class OpenAITTSProvider : TTSProvider<TTSProviderSetting.OpenAI> {
-
-    private val httpClient = OkHttpClient()
-
+  private val httpClient = OkHttpClient.Builder()
+    .readTimeout(30, TimeUnit.SECONDS)
+    .build()
     override suspend fun generateSpeech(
         providerSetting: TTSProviderSetting.OpenAI,
         request: TTSRequest

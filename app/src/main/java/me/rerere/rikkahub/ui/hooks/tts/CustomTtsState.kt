@@ -145,22 +145,51 @@ private class CustomTtsStateImpl(
           ttsManager.generateSpeech(provider, request)
         }
         
-        // Play the audio based on format
+        // Play the audio based on format with callbacks
         when (response.format) {
           AudioFormat.PCM -> {
             val sampleRate = response.sampleRate ?: 24000
-            context.playPcmSound(response.audioData, sampleRate)
+            context.playPcmSound(
+              pcmData = response.audioData,
+              sampleRate = sampleRate,
+              onStart = {
+                Log.d("CustomTtsState", "PCM playback started")
+              },
+              onComplete = {
+                Log.d("CustomTtsState", "PCM playback completed")
+                _isSpeaking.update { false }
+              },
+              onError = { error ->
+                Log.e("CustomTtsState", "PCM playback error: $error")
+                _error.update { "PCM playback error: $error" }
+                _isSpeaking.update { false }
+              }
+            )
           }
           else -> {
-            context.playSound(response.audioData, response.format)
+            context.playSound(
+              sound = response.audioData,
+              format = response.format,
+              onStart = {
+                Log.d("CustomTtsState", "Audio playback started")
+              },
+              onComplete = {
+                Log.d("CustomTtsState", "Audio playback completed")
+                _isSpeaking.update { false }
+              },
+              onError = { error ->
+                Log.e("CustomTtsState", "Audio playback error: $error")
+                _error.update { "Audio playback error: $error" }
+                _isSpeaking.update { false }
+              }
+            )
           }
         }
         
-        Log.d("CustomTtsState", "TTS playback completed")
+        Log.d("CustomTtsState", "TTS synthesis completed, playback started")
       } catch (e: Exception) {
         Log.e("CustomTtsState", "TTS error", e)
         _error.update { "TTS error: ${e.message}" }
-      } finally {
         _isSpeaking.update { false }
       }
     }

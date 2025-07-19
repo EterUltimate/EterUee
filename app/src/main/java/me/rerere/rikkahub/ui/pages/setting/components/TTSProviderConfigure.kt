@@ -20,7 +20,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.ui.FormItem
@@ -151,8 +150,6 @@ private fun OpenAITTSConfiguration(
       },
       modifier = Modifier.fillMaxWidth(),
       placeholder = { Text("sk-...") },
-      visualTransformation = PasswordVisualTransformation(),
-      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
     )
   }
 
@@ -265,8 +262,6 @@ private fun GeminiTTSConfiguration(
       },
       modifier = Modifier.fillMaxWidth(),
       placeholder = { Text("AIza...") },
-      visualTransformation = PasswordVisualTransformation(),
-      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
     )
   }
 

@@ -175,9 +175,16 @@ class SettingsStore(
           assistants.add(defaultAssistant.copy())
         }
       }
+      val ttsProviders = it.ttsProviders.ifEmpty { DEFAULT_TTS_PROVIDERS }.toMutableList()
+      DEFAULT_TTS_PROVIDERS.forEach { defaultTTSProvider ->
+        if (ttsProviders.none { it.id == defaultTTSProvider.id }) {
+          ttsProviders.add(defaultTTSProvider.copyProvider())
+        }
+      }
       it.copy(
         providers = providers,
-        assistants = assistants
+        assistants = assistants,
+        ttsProviders = ttsProviders
       )
     }
     .map { settings ->
@@ -199,6 +206,7 @@ class SettingsStore(
           }
         },
         assistants = settings.assistants.distinctBy { it.id },
+        ttsProviders = settings.ttsProviders.distinctBy { it.id },
         favoriteModels = settings.favoriteModels.filter { uuid ->
           settings.providers.flatMap { it.models }.any { it.id == uuid }
         }
@@ -284,8 +292,8 @@ data class Settings(
   val searchServiceSelected: Int = 0,
   val mcpServers: List<McpServerConfig> = emptyList(),
   val webDavConfig: WebDavConfig = WebDavConfig(),
-  val ttsProviders: List<TTSProviderSetting> = emptyList(),
-  val selectedTTSProviderId: Uuid? = null
+  val ttsProviders: List<TTSProviderSetting> = DEFAULT_TTS_PROVIDERS,
+  val selectedTTSProviderId: Uuid? = DEFAULT_SYSTEM_TTS_ID
 )
 
 @Serializable
@@ -519,6 +527,20 @@ internal val DEFAULT_ASSISTANTS = listOf(
     systemPrompt = "你是{model_name}, 一个人工智能助手，乐意为用户提供准确，有益的帮助。现在时间是{cur_datetime}，用户设备语言为\"{locale}\"，时区为{timezone}，用户正在使用{device_info}，版本{system_version}。如果用户没有明确说明，请使用用户设备语言和用户对话。"
   ),
 )
+
+private val DEFAULT_SYSTEM_TTS_ID = Uuid.parse("026a01a2-c3a0-4fd5-8075-80e03bdef200")
+
+private val DEFAULT_TTS_PROVIDERS = listOf(
+  TTSProviderSetting.SystemTTS(
+    id = DEFAULT_SYSTEM_TTS_ID,
+    name = "",
+    enabled = true,
+    speechRate = 1.0f,
+    pitch = 1.0f,
+    language = "zh-CN"  // 默认使用中文，符合项目的中文用户群体
+  )
+)
+
 internal val DEFAULT_ASSISTANTS_IDS = DEFAULT_ASSISTANTS.map { it.id }
 
 internal val DEFAULT_TITLE_PROMPT = """

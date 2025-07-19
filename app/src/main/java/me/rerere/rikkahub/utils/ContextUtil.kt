@@ -8,6 +8,9 @@ import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.media.AudioManager
+import android.media.AudioTrack
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -19,11 +22,85 @@ import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import me.rerere.tts.model.AudioFormat
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
 
 private const val TAG = "ContextUtil"
+
+fun Context.playSound(sound: ByteArray, format: AudioFormat) {
+  runCatching {
+    val tempFile = File.createTempFile("audio_temp", getFileExtension(format), cacheDir)
+    tempFile.writeBytes(sound)
+
+    val mediaPlayer = MediaPlayer().apply {
+      setDataSource(tempFile.absolutePath)
+      setOnCompletionListener { player ->
+        player.release()
+        tempFile.delete()
+      }
+      setOnErrorListener { player, what, extra ->
+        Log.e(TAG, "MediaPlayer error occurred $what  $extra")
+        player.release()
+        tempFile.delete()
+        true
+      }
+      prepareAsync()
+      setOnPreparedListener { player ->
+        player.start()
+      }
+    }
+
+    Log.i(TAG, "Playing audio with format: $format")
+  }.onFailure { e ->
+    Log.e(TAG, "Failed to play sound", e)
+    Toast.makeText(this, "Failed to play audio", Toast.LENGTH_SHORT).show()
+  }
+}
+
+fun Context.playPcmSound(
+  pcmData: ByteArray,
+  sampleRate: Int = 24000,
+) {
+  runCatching {
+    val minBufferSize = AudioTrack.getMinBufferSize(
+      sampleRate,
+      android.media.AudioFormat.CHANNEL_OUT_MONO,
+      android.media.AudioFormat.ENCODING_PCM_16BIT
+    )
+
+    val audioTrack = AudioTrack(
+      AudioManager.STREAM_MUSIC,
+      sampleRate,
+      android.media.AudioFormat.CHANNEL_OUT_MONO,
+      android.media.AudioFormat.ENCODING_PCM_16BIT,
+      minBufferSize,
+      AudioTrack.MODE_STREAM
+    )
+
+    audioTrack.play()
+    audioTrack.write(pcmData, 0, pcmData.size)
+    audioTrack.stop()
+    audioTrack.release()
+
+    Log.i(TAG, "PCM 播放完成")
+  }.onFailure { e ->
+    Log.e(TAG, "PCM 播放失败", e)
+    Toast.makeText(this, "无法播放 PCM 音频", Toast.LENGTH_SHORT).show()
+  }
+}
+
+private fun getFileExtension(format: AudioFormat): String {
+  return when (format) {
+    AudioFormat.MP3 -> ".mp3"
+    AudioFormat.WAV -> ".wav"
+    AudioFormat.OGG -> ".ogg"
+    AudioFormat.AAC -> ".aac"
+    AudioFormat.OPUS -> ".opus"
+    AudioFormat.PCM -> ".pcm"
+  }
+}
 
 /**
  * Read clipboard data as text

@@ -19,7 +19,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,10 +42,9 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.composables.icons.lucide.EllipsisVertical
+import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.GripHorizontal
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Option
 import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Settings2
@@ -64,7 +62,6 @@ import org.koin.androidx.compose.koinViewModel
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingTTSPage(vm: SettingVM = koinViewModel()) {
   val settings by vm.settings.collectAsStateWithLifecycle()
@@ -138,12 +135,23 @@ fun SettingTTSPage(vm: SettingVM = koinViewModel()) {
                 )
               }
             },
+            isSelected = settings.selectedTTSProviderId == provider.id,
+            onSelect = {
+              vm.updateSettings(settings.copy(selectedTTSProviderId = provider.id))
+            },
             onEdit = {
               editingProvider = provider
             },
             onDelete = {
               val newProviders = settings.ttsProviders - provider
-              vm.updateSettings(settings.copy(ttsProviders = newProviders))
+              val newSelectedId =
+                if (settings.selectedTTSProviderId == provider.id) null else settings.selectedTTSProviderId
+              vm.updateSettings(
+                settings.copy(
+                  ttsProviders = newProviders,
+                  selectedTTSProviderId = newSelectedId
+                )
+              )
             }
           )
         }
@@ -155,7 +163,7 @@ fun SettingTTSPage(vm: SettingVM = koinViewModel()) {
   editingProvider?.let { provider ->
     val bottomSheetState = rememberModalBottomSheetState()
     var currentProvider by remember(provider) { mutableStateOf(provider) }
-    
+
     ModalBottomSheet(
       onDismissRequest = {
         editingProvider = null
@@ -200,8 +208,8 @@ fun SettingTTSPage(vm: SettingVM = koinViewModel()) {
 
           TextButton(
             onClick = {
-              val newProviders = settings.ttsProviders.map { 
-                if (it.id == provider.id) currentProvider else it 
+              val newProviders = settings.ttsProviders.map {
+                if (it.id == provider.id) currentProvider else it
               }
               vm.updateSettings(settings.copy(ttsProviders = newProviders))
               editingProvider = null
@@ -293,7 +301,9 @@ private fun AddTTSProviderButton(onAdd: (TTSProviderSetting) -> Unit) {
 private fun TTSProviderItem(
   provider: TTSProviderSetting,
   modifier: Modifier = Modifier,
+  isSelected: Boolean = false,
   dragHandle: @Composable () -> Unit,
+  onSelect: () -> Unit,
   onEdit: () -> Unit,
   onDelete: () -> Unit
 ) {
@@ -333,6 +343,11 @@ private fun TTSProviderItem(
           Row(
             horizontalArrangement = Arrangement.spacedBy(4.dp)
           ) {
+            if (isSelected) {
+              Tag(type = TagType.SUCCESS) {
+                Text(stringResource(R.string.setting_tts_page_selected))
+              }
+            }
             Tag(type = if (provider.enabled) TagType.SUCCESS else TagType.WARNING) {
               Text(stringResource(if (provider.enabled) R.string.setting_tts_page_enabled else R.string.setting_tts_page_disabled))
             }
@@ -359,6 +374,18 @@ private fun TTSProviderItem(
             expanded = showDropdownMenu,
             onDismissRequest = { showDropdownMenu = false }
           ) {
+            if (!isSelected && provider.enabled) {
+              DropdownMenuItem(
+                text = { Text(stringResource(R.string.setting_tts_page_select)) },
+                onClick = {
+                  showDropdownMenu = false
+                  onSelect()
+                },
+                leadingIcon = {
+                  Icon(Lucide.Check, contentDescription = null)
+                }
+              )
+            }
             DropdownMenuItem(
               text = { Text(stringResource(R.string.edit)) },
               onClick = {

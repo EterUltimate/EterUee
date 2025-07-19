@@ -94,6 +94,7 @@ class SettingsStore(
     
     // TTS
     val TTS_PROVIDERS = stringPreferencesKey("tts_providers")
+    val SELECTED_TTS_PROVIDER = stringPreferencesKey("selected_tts_provider")
   }
 
   private val dataStore = context.settingsStore
@@ -149,6 +150,7 @@ class SettingsStore(
         ttsProviders = preferences[TTS_PROVIDERS]?.let {
           JsonInstant.decodeFromString(it)
         } ?: emptyList(),
+        selectedTTSProviderId = preferences[SELECTED_TTS_PROVIDER]?.let { Uuid.parse(it) },
       )
     }
     .map {
@@ -241,6 +243,9 @@ class SettingsStore(
       preferences[MCP_SERVERS] = JsonInstant.encodeToString(settings.mcpServers)
       preferences[WEBDAV_CONFIG] = JsonInstant.encodeToString(settings.webDavConfig)
       preferences[TTS_PROVIDERS] = JsonInstant.encodeToString(settings.ttsProviders)
+      settings.selectedTTSProviderId?.let { 
+        preferences[SELECTED_TTS_PROVIDER] = it.toString() 
+      } ?: preferences.remove(SELECTED_TTS_PROVIDER)
     }
   }
 
@@ -279,7 +284,8 @@ data class Settings(
   val searchServiceSelected: Int = 0,
   val mcpServers: List<McpServerConfig> = emptyList(),
   val webDavConfig: WebDavConfig = WebDavConfig(),
-  val ttsProviders: List<TTSProviderSetting> = emptyList()
+  val ttsProviders: List<TTSProviderSetting> = emptyList(),
+  val selectedTTSProviderId: Uuid? = null
 )
 
 @Serializable
@@ -340,6 +346,12 @@ fun Settings.getCurrentAssistant(): Assistant {
 
 fun Settings.getAssistantById(id: Uuid): Assistant? {
   return this.assistants.find { it.id == id }
+}
+
+fun Settings.getSelectedTTSProvider(): TTSProviderSetting? {
+  return selectedTTSProviderId?.let { id ->
+    ttsProviders.find { it.id == id && it.enabled }
+  } ?: ttsProviders.firstOrNull { it.enabled }
 }
 
 fun Model.findProvider(providers: List<ProviderSetting>): ProviderSetting? {

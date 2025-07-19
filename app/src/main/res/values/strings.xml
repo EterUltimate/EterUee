@@ -438,6 +438,8 @@
   <string name="setting_tts_page_language">Language</string>
   <string name="setting_tts_page_language_description">Language code for TTS (e.g., en-US, zh-CN, ja-JP)</string>
   <string name="setting_tts_page_edit_provider">Edit Provider</string>
+  <string name="setting_tts_page_select">Select</string>
+  <string name="setting_tts_page_selected">Selected</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">Created memory</string>

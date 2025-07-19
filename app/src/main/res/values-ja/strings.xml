@@ -488,4 +488,6 @@
   <string name="setting_tts_page_language">言語</string>
   <string name="setting_tts_page_language_description">TTS言語コード (例: en-US, zh-CN, ja-JP)</string>
   <string name="setting_tts_page_edit_provider">プロバイダーを編集</string>
+  <string name="setting_tts_page_select">選択</string>
+  <string name="setting_tts_page_selected">選択済み</string>
 </resources> 

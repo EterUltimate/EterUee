@@ -1,7 +1,7 @@
 package me.rerere.rikkahub.ui.components.chat
 
 import android.content.Intent
-import android.speech.tts.TextToSpeech
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
@@ -147,7 +147,7 @@ import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSettings
 import me.rerere.rikkahub.ui.context.push
-import me.rerere.rikkahub.ui.hooks.tts.rememberTtsState
+import me.rerere.rikkahub.ui.hooks.tts.rememberCustomTtsState
 import me.rerere.rikkahub.ui.modifier.shimmer
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.JsonInstant
@@ -712,26 +712,29 @@ private fun ColumnScope.Actions(
     )
 
     if (message.role == MessageRole.ASSISTANT) {
-      val tts = rememberTtsState()
+      val tts = rememberCustomTtsState()
       val isSpeaking by tts.isSpeaking.collectAsState()
+      val isAvailable by tts.isAvailable.collectAsState()
       Icon(
         imageVector = if (isSpeaking) Lucide.CircleStop else Lucide.Volume2,
         contentDescription = stringResource(R.string.tts),
         modifier = Modifier
             .clip(CircleShape)
             .clickable(
+                enabled = isAvailable,
                 interactionSource = remember { MutableInteractionSource() },
                 indication = LocalIndication.current,
                 onClick = {
                     if (!isSpeaking) {
-                        tts.speak(message.toText(), TextToSpeech.QUEUE_FLUSH)
+                        tts.speak(message.toText())
                     } else {
                         tts.stop()
                     }
                 }
             )
             .padding(8.dp)
-            .size(16.dp)
+            .size(16.dp),
+        tint = if (isAvailable) LocalContentColor.current else LocalContentColor.current.copy(alpha = 0.38f)
       )
     }
 

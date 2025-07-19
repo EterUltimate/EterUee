@@ -41,7 +41,7 @@ RikkaHub is a native Android LLM chat client that supports switching between dif
 - Implement proper state management with ViewModels
 
 ### Internationalization
-- Support for English (default), Chinese, Japanese, and Traditional Chinese
+- Support for English (default), Chinese(zh), Japanese(ja), and Traditional Chinese(zh-rTW)
 - String resources located in `app/src/main/res/values-*/strings.xml`
 - Use `stringResource(R.string.key_name)` in Compose
 - Page-specific strings should use page prefix (e.g., `setting_page_`)

@@ -408,6 +408,30 @@
   <string name="setting_provider_page_proxy_username">Username (Optional)</string>
   <string name="setting_provider_page_proxy_password">Password (Optional)</string>
 
+  <!-- TTS Settings -->
+  <string name="setting_tts_page_title">Text-to-Speech</string>
+  <string name="setting_tts_page_add_provider">Add TTS Provider</string>
+  <string name="setting_tts_page_add">Add</string>
+  <string name="setting_tts_page_enabled">Enabled</string>
+  <string name="setting_tts_page_disabled">Disabled</string>
+  <string name="setting_tts_page_provider_type">Provider Type</string>
+  <string name="setting_tts_page_provider_type_description">Select the TTS provider type</string>
+  <string name="setting_tts_page_name">Name</string>
+  <string name="setting_tts_page_name_description">Custom name for this TTS provider</string>
+  <string name="setting_tts_page_name_placeholder">Enter provider name</string>
+  <string name="setting_tts_page_api_key">API Key</string>
+  <string name="setting_tts_page_api_key_description">Your provider API key</string>
+  <string name="setting_tts_page_base_url">Base URL</string>
+  <string name="setting_tts_page_base_url_description">API base URL endpoint</string>
+  <string name="setting_tts_page_model">Model</string>
+  <string name="setting_tts_page_model_description">TTS model to use</string>
+  <string name="setting_tts_page_voice">Voice</string>
+  <string name="setting_tts_page_voice_description">Voice to use for speech synthesis</string>
+  <string name="setting_tts_page_voice_name">Voice Name</string>
+  <string name="setting_tts_page_voice_name_description">Name of the voice</string>
+  <string name="setting_tts_page_speed">Speed</string>
+  <string name="setting_tts_page_speed_description">Speech speed (0.25 - 4.0)</string>
+
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">Created memory</string>
   <string name="chat_message_tool_edit_memory">Updated memory</string>

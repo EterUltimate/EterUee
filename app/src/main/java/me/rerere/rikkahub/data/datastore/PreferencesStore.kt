@@ -35,6 +35,7 @@ import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.toMutableStateFlow
 import me.rerere.search.SearchCommonOptions
 import me.rerere.search.SearchServiceOptions
+import me.rerere.tts.provider.TTSProviderSetting
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import kotlin.uuid.Uuid
@@ -90,6 +91,9 @@ class SettingsStore(
 
     // WebDAV
     val WEBDAV_CONFIG = stringPreferencesKey("webdav_config")
+    
+    // TTS
+    val TTS_PROVIDERS = stringPreferencesKey("tts_providers")
   }
 
   private val dataStore = context.settingsStore
@@ -142,6 +146,9 @@ class SettingsStore(
         webDavConfig = preferences[WEBDAV_CONFIG]?.let {
           JsonInstant.decodeFromString(it)
         } ?: WebDavConfig(),
+        ttsProviders = preferences[TTS_PROVIDERS]?.let {
+          JsonInstant.decodeFromString(it)
+        } ?: emptyList(),
       )
     }
     .map {
@@ -233,6 +240,7 @@ class SettingsStore(
 
       preferences[MCP_SERVERS] = JsonInstant.encodeToString(settings.mcpServers)
       preferences[WEBDAV_CONFIG] = JsonInstant.encodeToString(settings.webDavConfig)
+      preferences[TTS_PROVIDERS] = JsonInstant.encodeToString(settings.ttsProviders)
     }
   }
 
@@ -270,7 +278,8 @@ data class Settings(
   val searchCommonOptions: SearchCommonOptions = SearchCommonOptions(),
   val searchServiceSelected: Int = 0,
   val mcpServers: List<McpServerConfig> = emptyList(),
-  val webDavConfig: WebDavConfig = WebDavConfig()
+  val webDavConfig: WebDavConfig = WebDavConfig(),
+  val ttsProviders: List<TTSProviderSetting> = emptyList()
 )
 
 @Serializable

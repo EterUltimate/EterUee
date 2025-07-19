@@ -49,6 +49,7 @@ import com.composables.icons.lucide.MessageCircleWarning
 import com.composables.icons.lucide.Monitor
 import com.composables.icons.lucide.Palette
 import com.composables.icons.lucide.Share2
+import com.composables.icons.lucide.Speaker
 import com.composables.icons.lucide.SunMoon
 import com.composables.icons.lucide.Terminal
 import me.rerere.rikkahub.R
@@ -229,6 +230,16 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
           description = { Text(stringResource(R.string.setting_page_search_service_desc)) },
           icon = { Icon(Lucide.Earth, "Search") },
           link = Screen.SettingSearch
+        )
+      }
+
+      item {
+        SettingItem(
+          navController = navController,
+          title = { Text("语言合成服务") },
+          description = { Text("配置语言合成服务提供商") },
+          icon = { Icon(Lucide.Speaker, "TTS") },
+          link = Screen.SettingTTS
         )
       }
 

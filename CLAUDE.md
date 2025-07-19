@@ -45,7 +45,7 @@ RikkaHub is a native Android LLM chat client that supports switching between dif
 - String resources located in `app/src/main/res/values-*/strings.xml`
 - Use `stringResource(R.string.key_name)` in Compose
 - Page-specific strings should use page prefix (e.g., `setting_page_`)
-- If the user does not explicitly request localization, prioritize implementing functionality without considering localization.
+- If the user does not explicitly request localization, prioritize implementing functionality without considering localization. (e.g `Text("Hello world")`)
 
 ### Database
 - Room database with migration support

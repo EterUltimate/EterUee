@@ -1,11 +1,15 @@
-package me.rerere.ai.ui.transformers
+package me.rerere.rikkahub.data.ai
 
 import android.content.Context
+import android.os.BatteryManager
 import android.os.Build
 import me.rerere.ai.provider.Model
 import me.rerere.ai.ui.InputMessageTransformer
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
+import me.rerere.rikkahub.data.datastore.SettingsStore
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -15,7 +19,7 @@ import java.time.temporal.Temporal
 import java.util.Locale
 import java.util.TimeZone
 
-object PlaceholderTransformer : InputMessageTransformer {
+object PlaceholderTransformer : InputMessageTransformer, KoinComponent {
   val Placeholders = mapOf(
     "{cur_date}" to "日期",
     "{cur_time}" to "时间",
@@ -26,7 +30,8 @@ object PlaceholderTransformer : InputMessageTransformer {
     "{timezone}" to "时区",
     "{system_version}" to "系统版本",
     "{device_info}" to "设备信息",
-    "{battery_level}" to "电池电量"
+    "{battery_level}" to "电池电量",
+    "{nickname}" to "用户昵称"
   )
 
   override suspend fun transform(
@@ -34,6 +39,7 @@ object PlaceholderTransformer : InputMessageTransformer {
     messages: List<UIMessage>,
     model: Model
   ): List<UIMessage> {
+    val settings = get<SettingsStore>().settingsFlow.value
     return messages.map {
       it.copy(
         parts = it.parts.map { part ->
@@ -53,6 +59,7 @@ object PlaceholderTransformer : InputMessageTransformer {
                 )
                 .replace("{device_info}", "${Build.BRAND} ${Build.MODEL}")
                 .replace("{battery_level}", context.batteryLevel().toString())
+                .replace("{nickname}", settings.displaySetting.userNickname)
             )
           } else {
             part
@@ -78,7 +85,7 @@ object PlaceholderTransformer : InputMessageTransformer {
     .format(this)
 
   private fun Context.batteryLevel(): Int {
-    val batteryManager = getSystemService(Context.BATTERY_SERVICE) as android.os.BatteryManager
-    return batteryManager.getIntProperty(android.os.BatteryManager.BATTERY_PROPERTY_CAPACITY)
+    val batteryManager = getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+    return batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
   }
 }

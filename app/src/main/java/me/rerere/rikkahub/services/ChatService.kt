@@ -18,8 +18,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import me.rerere.ai.provider.Model
-import me.rerere.ai.ui.transformers.PlaceholderTransformer
-import me.rerere.ai.ui.transformers.ThinkTagTransformer
+import me.rerere.rikkahub.data.ai.PlaceholderTransformer
+import me.rerere.rikkahub.data.ai.ThinkTagTransformer
 import me.rerere.rikkahub.CHAT_COMPLETED_NOTIFICATION_CHANNEL_ID
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.ai.Base64ImageToLocalFileTransformer

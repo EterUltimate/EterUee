@@ -38,8 +38,8 @@ import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.finishReasoning
 import me.rerere.ai.ui.isEmptyInputMessage
-import me.rerere.ai.ui.transformers.PlaceholderTransformer
-import me.rerere.ai.ui.transformers.ThinkTagTransformer
+import me.rerere.rikkahub.data.ai.PlaceholderTransformer
+import me.rerere.rikkahub.data.ai.ThinkTagTransformer
 import me.rerere.ai.ui.truncate
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.ai.Base64ImageToLocalFileTransformer

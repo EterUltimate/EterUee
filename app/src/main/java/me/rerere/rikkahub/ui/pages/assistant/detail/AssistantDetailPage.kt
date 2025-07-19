@@ -67,7 +67,7 @@ import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
-import me.rerere.ai.ui.transformers.PlaceholderTransformer
+import me.rerere.rikkahub.data.ai.PlaceholderTransformer
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.ai.TemplateTransformer
 import me.rerere.rikkahub.data.mcp.McpServerConfig

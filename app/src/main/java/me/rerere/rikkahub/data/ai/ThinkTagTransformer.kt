@@ -1,4 +1,4 @@
-package me.rerere.ai.ui.transformers
+package me.rerere.rikkahub.data.ai
 
 import android.content.Context
 import kotlin.time.Clock

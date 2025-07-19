@@ -67,6 +67,8 @@
   <string name="setting_page_providers_desc">配置AI提供商</string>
   <string name="setting_page_search_service">搜尋服務</string>
   <string name="setting_page_search_service_desc">設定搜尋服務</string>
+  <string name="setting_page_tts_service">語音服務</string>
+  <string name="setting_page_tts_service_desc">配置語音合成服務提供商</string>
   <string name="setting_page_search_title">搜尋服務</string>
   <string name="setting_page_search_providers">搜尋提供商</string>
   <string name="setting_page_search_add_provider">新增提供商</string>
@@ -488,4 +490,5 @@
   <string name="setting_tts_page_edit_provider">編輯提供商</string>
   <string name="setting_tts_page_select">選擇</string>
   <string name="setting_tts_page_selected">已選擇</string>
+  <string name="setting_tts_page_default_name">系統TTS</string>
 </resources> 

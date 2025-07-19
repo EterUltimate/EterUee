@@ -52,6 +52,7 @@ import com.composables.icons.lucide.Share2
 import com.composables.icons.lucide.Speaker
 import com.composables.icons.lucide.SunMoon
 import com.composables.icons.lucide.Terminal
+import com.composables.icons.lucide.Volume2
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.Screen
 import me.rerere.rikkahub.data.datastore.isNotConfigured
@@ -236,9 +237,9 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
       item {
         SettingItem(
           navController = navController,
-          title = { Text("语言合成服务") },
-          description = { Text("配置语言合成服务提供商") },
-          icon = { Icon(Lucide.Speaker, "TTS") },
+          title = { Text(stringResource(R.string.setting_page_tts_service)) },
+          description = { Text(stringResource(R.string.setting_page_tts_service_desc)) },
+          icon = { Icon(Lucide.Volume2, "TTS") },
           link = Screen.SettingTTS
         )
       }

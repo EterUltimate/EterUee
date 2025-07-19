@@ -68,6 +68,8 @@
   <string name="setting_page_providers_desc">AIプロバイダーを設定</string>
   <string name="setting_page_search_service">検索サービス</string>
   <string name="setting_page_search_service_desc">検索サービスを設定</string>
+  <string name="setting_page_tts_service">音声サービス</string>
+  <string name="setting_page_tts_service_desc">音声合成サービスプロバイダーを設定</string>
   <string name="setting_page_search_title">検索サービス</string>
   <string name="setting_page_search_providers">検索プロバイダー</string>
   <string name="setting_page_search_add_provider">プロバイダー追加</string>
@@ -490,4 +492,5 @@
   <string name="setting_tts_page_edit_provider">プロバイダーを編集</string>
   <string name="setting_tts_page_select">選択</string>
   <string name="setting_tts_page_selected">選択済み</string>
+  <string name="setting_tts_page_default_name">システムTTS</string>
 </resources> 

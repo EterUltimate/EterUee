@@ -68,6 +68,8 @@
   <string name="setting_page_providers_desc">Configure AI providers</string>
   <string name="setting_page_search_service">Search Service</string>
   <string name="setting_page_search_service_desc">Set up search service</string>
+  <string name="setting_page_tts_service">Text-to-Speech Service</string>
+  <string name="setting_page_tts_service_desc">Configure text-to-speech service providers</string>
   <string name="setting_page_search_title">Search Service</string>
   <string name="setting_page_search_providers">Search Providers</string>
   <string name="setting_page_search_add_provider">Add Provider</string>
@@ -440,6 +442,7 @@
   <string name="setting_tts_page_edit_provider">Edit Provider</string>
   <string name="setting_tts_page_select">Select</string>
   <string name="setting_tts_page_selected">Selected</string>
+  <string name="setting_tts_page_default_name">System TTS</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">Created memory</string>

@@ -325,7 +325,7 @@ private fun TTSProviderItem(
         verticalAlignment = Alignment.CenterVertically,
       ) {
         AutoAIIcon(
-          name = provider.name,
+          name = provider.name.ifEmpty { stringResource(R.string.setting_tts_page_default_name) },
           modifier = Modifier.size(32.dp)
         )
         Spacer(modifier = Modifier.weight(1f))
@@ -337,7 +337,7 @@ private fun TTSProviderItem(
           verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
           Text(
-            text = provider.name,
+            text = provider.name.ifEmpty { stringResource(R.string.setting_tts_page_default_name) },
             style = MaterialTheme.typography.titleLarge
           )
           Row(

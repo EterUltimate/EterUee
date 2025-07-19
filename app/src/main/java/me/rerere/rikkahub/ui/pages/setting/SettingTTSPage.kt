@@ -69,6 +69,7 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 fun SettingTTSPage(vm: SettingVM = koinViewModel()) {
   val settings by vm.settings.collectAsStateWithLifecycle()
   val navController = LocalNavController.current
+  var editingProvider by remember { mutableStateOf<TTSProviderSetting?>(null) }
 
   Scaffold(
     topBar = {
@@ -138,13 +139,77 @@ fun SettingTTSPage(vm: SettingVM = koinViewModel()) {
               }
             },
             onEdit = {
-              // TODO: Implement TTS provider edit
+              editingProvider = provider
             },
             onDelete = {
               val newProviders = settings.ttsProviders - provider
               vm.updateSettings(settings.copy(ttsProviders = newProviders))
             }
           )
+        }
+      }
+    }
+  }
+
+  // Edit TTS Provider Bottom Sheet
+  editingProvider?.let { provider ->
+    val bottomSheetState = rememberModalBottomSheetState()
+    var currentProvider by remember(provider) { mutableStateOf(provider) }
+    
+    ModalBottomSheet(
+      onDismissRequest = {
+        editingProvider = null
+      },
+      sheetState = bottomSheetState,
+      dragHandle = {
+        BottomSheetDefaults.DragHandle()
+      }
+    ) {
+      Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .fillMaxHeight(0.8f),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+      ) {
+        Text(
+          text = "编辑提供商",
+          style = MaterialTheme.typography.headlineSmall
+        )
+
+        TTSProviderConfigure(
+          setting = currentProvider,
+          onValueChange = { newState ->
+            currentProvider = newState
+          },
+          modifier = Modifier.weight(1f)
+        )
+
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+          TextButton(
+            onClick = {
+              editingProvider = null
+            },
+            modifier = Modifier.weight(1f)
+          ) {
+            Text(stringResource(R.string.cancel))
+          }
+
+          TextButton(
+            onClick = {
+              val newProviders = settings.ttsProviders.map { 
+                if (it.id == provider.id) currentProvider else it 
+              }
+              vm.updateSettings(settings.copy(ttsProviders = newProviders))
+              editingProvider = null
+            },
+            modifier = Modifier.weight(1f)
+          ) {
+            Text("保存")
+          }
         }
       }
     }

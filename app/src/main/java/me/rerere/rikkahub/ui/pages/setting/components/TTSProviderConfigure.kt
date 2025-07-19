@@ -83,13 +83,13 @@ fun TTSProviderConfigure(
                   TTSProviderSetting.OpenAI::class -> TTSProviderSetting.OpenAI(
                     id = setting.id,
                     enabled = setting.enabled,
-                    name = setting.name
+                    name = "OpenAI TTS"
                   )
 
                   TTSProviderSetting.Gemini::class -> TTSProviderSetting.Gemini(
                     id = setting.id,
                     enabled = setting.enabled,
-                    name = setting.name
+                    name = "Gemini TTS"
                   )
 
                   else -> setting

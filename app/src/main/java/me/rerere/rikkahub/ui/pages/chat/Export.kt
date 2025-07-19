@@ -82,6 +82,7 @@ import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.ui.theme.RikkahubTheme
 import me.rerere.rikkahub.utils.JsonInstant
+import me.rerere.rikkahub.utils.exportImage
 import me.rerere.rikkahub.utils.getActivity
 import me.rerere.rikkahub.utils.jsonPrimitiveOrNull
 import me.rerere.rikkahub.utils.toLocalString
@@ -333,6 +334,9 @@ private suspend fun exportToImage(
     FileOutputStream(file).use { fos ->
       bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)
     }
+
+    // Save to gallery
+    context.exportImage(activity, bitmap, filename)
 
     // Share the file
     val uri = FileProvider.getUriForFile(

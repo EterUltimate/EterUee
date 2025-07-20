@@ -52,6 +52,7 @@ import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Settings2
 import com.composables.icons.lucide.Trash2
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.data.datastore.DEFAULT_SYSTEM_TTS_ID
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.Tag
@@ -144,26 +145,10 @@ fun SettingTTSPage(vm: SettingVM = koinViewModel()) {
                         onEdit = {
                             editingProvider = provider
                         },
-                        onToggleEnabled = { enabled ->
-                            val newProviders = settings.ttsProviders.map {
-                                if (it.id == provider.id) it.copyProvider(enabled = enabled) else it
-                            }
-                            val newSelectedId = if (!enabled && settings.selectedTTSProviderId == provider.id) {
-                                null
-                            } else {
-                                settings.selectedTTSProviderId
-                            }
-                            vm.updateSettings(
-                                settings.copy(
-                                    ttsProviders = newProviders,
-                                    selectedTTSProviderId = newSelectedId
-                                )
-                            )
-                        },
                         onDelete = {
                             val newProviders = settings.ttsProviders - provider
                             val newSelectedId =
-                                if (settings.selectedTTSProviderId == provider.id) null else settings.selectedTTSProviderId
+                                if (settings.selectedTTSProviderId == provider.id) DEFAULT_SYSTEM_TTS_ID else settings.selectedTTSProviderId
                             vm.updateSettings(
                                 settings.copy(
                                     ttsProviders = newProviders,
@@ -323,25 +308,24 @@ private fun TTSProviderItem(
     dragHandle: @Composable () -> Unit,
     onSelect: () -> Unit,
     onEdit: () -> Unit,
-    onToggleEnabled: (Boolean) -> Unit,
     onDelete: () -> Unit
 ) {
     var showDropdownMenu by remember { mutableStateOf(false) }
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
-            containerColor = when {
-                isSelected && provider.enabled -> MaterialTheme.colorScheme.primaryContainer
-                provider.enabled -> MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
-                else -> MaterialTheme.colorScheme.errorContainer
-            },
+            containerColor = if (isSelected) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
+            }
         )
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-                        Row(
+            Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -356,7 +340,7 @@ private fun TTSProviderItem(
                     Text(
                         text = provider.name.ifEmpty { stringResource(R.string.setting_tts_page_default_name) },
                         style = MaterialTheme.typography.titleMedium,
-                        color = if (isSelected && provider.enabled) {
+                        color = if (isSelected) {
                             MaterialTheme.colorScheme.onPrimaryContainer
                         } else {
                             MaterialTheme.colorScheme.onSurface
@@ -374,19 +358,10 @@ private fun TTSProviderItem(
                     )
                 }
 
-                // 启用/禁用开关
-                Switch(
-                    checked = provider.enabled,
-                    onCheckedChange = onToggleEnabled
+                RadioButton(
+                    selected = isSelected,
+                    onClick = onSelect
                 )
-
-                // 只有启用的提供商才显示单选按钮
-                if (provider.enabled) {
-                    RadioButton(
-                        selected = isSelected,
-                        onClick = onSelect
-                    )
-                }
 
                 dragHandle()
             }
@@ -396,7 +371,7 @@ private fun TTSProviderItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // 状态标签
-                if (isSelected && provider.enabled) {
+                if (isSelected) {
                     Tag(type = TagType.SUCCESS) {
                         Text(stringResource(R.string.setting_tts_page_selected))
                     }

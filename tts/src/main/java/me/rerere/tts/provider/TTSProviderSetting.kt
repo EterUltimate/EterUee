@@ -7,12 +7,10 @@ import kotlin.uuid.Uuid
 @Serializable
 sealed class TTSProviderSetting {
     abstract val id: Uuid
-    abstract val enabled: Boolean
     abstract val name: String
 
     abstract fun copyProvider(
         id: Uuid = this.id,
-        enabled: Boolean = this.enabled,
         name: String = this.name,
     ): TTSProviderSetting
 
@@ -20,7 +18,6 @@ sealed class TTSProviderSetting {
     @SerialName("openai")
     data class OpenAI(
         override var id: Uuid = Uuid.random(),
-        override var enabled: Boolean = true,
         override var name: String = "OpenAI TTS",
         val apiKey: String = "",
         val baseUrl: String = "https://api.openai.com/v1",
@@ -30,12 +27,10 @@ sealed class TTSProviderSetting {
     ) : TTSProviderSetting() {
         override fun copyProvider(
             id: Uuid,
-            enabled: Boolean,
             name: String,
         ): TTSProviderSetting {
             return this.copy(
                 id = id,
-                enabled = enabled,
                 name = name,
             )
         }
@@ -45,7 +40,6 @@ sealed class TTSProviderSetting {
     @SerialName("gemini")
     data class Gemini(
         override var id: Uuid = Uuid.random(),
-        override var enabled: Boolean = true,
         override var name: String = "Gemini TTS",
         val apiKey: String = "",
         val model: String = "gemini-2.5-flash-preview-tts",
@@ -53,12 +47,10 @@ sealed class TTSProviderSetting {
     ) : TTSProviderSetting() {
         override fun copyProvider(
             id: Uuid,
-            enabled: Boolean,
             name: String,
         ): TTSProviderSetting {
             return this.copy(
                 id = id,
-                enabled = enabled,
                 name = name,
             )
         }
@@ -68,7 +60,6 @@ sealed class TTSProviderSetting {
     @SerialName("system")
     data class SystemTTS(
         override var id: Uuid = Uuid.random(),
-        override var enabled: Boolean = true,
         override var name: String = "System TTS",
         val speechRate: Float = 1.0f,
         val pitch: Float = 1.0f,
@@ -76,12 +67,10 @@ sealed class TTSProviderSetting {
     ) : TTSProviderSetting() {
         override fun copyProvider(
             id: Uuid,
-            enabled: Boolean,
             name: String,
         ): TTSProviderSetting {
             return this.copy(
                 id = id,
-                enabled = enabled,
                 name = name,
             )
         }

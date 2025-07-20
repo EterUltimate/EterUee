@@ -156,7 +156,7 @@ private class CustomTtsStateImpl(
 
     fun updateProvider(provider: TTSProviderSetting?) {
         currentProvider = provider
-        _isAvailable.update { provider != null && provider.enabled }
+        _isAvailable.update { provider != null }
         _error.update { null }
 
         if (provider == null) {
@@ -272,8 +272,8 @@ private class CustomTtsStateImpl(
 
     override fun speak(text: String, flushCalled: Boolean) {
         val provider = currentProvider
-        if (provider == null || !provider.enabled) {
-            _error.update { "No TTS provider selected or provider is disabled" }
+        if (provider == null) {
+            _error.update { "No TTS provider selected" }
             return
         }
 

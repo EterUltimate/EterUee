@@ -83,19 +83,16 @@ fun TTSProviderConfigure(
                                 val newSetting = when (providerClass) {
                                     TTSProviderSetting.OpenAI::class -> TTSProviderSetting.OpenAI(
                                         id = setting.id,
-                                        enabled = setting.enabled,
                                         name = "OpenAI TTS"
                                     )
 
                                     TTSProviderSetting.Gemini::class -> TTSProviderSetting.Gemini(
                                         id = setting.id,
-                                        enabled = setting.enabled,
                                         name = "Gemini TTS"
                                     )
 
                                     TTSProviderSetting.SystemTTS::class -> TTSProviderSetting.SystemTTS(
                                         id = setting.id,
-                                        enabled = setting.enabled,
                                         name = "System TTS"
                                     )
 

@@ -1,4 +1,4 @@
-package me.rerere.rikkahub.ui.hooks.tts
+package me.rerere.rikkahub.ui.hooks
 
 import android.content.Context
 import android.util.Log
@@ -32,7 +32,6 @@ import me.rerere.tts.provider.TTSManager
 import me.rerere.tts.provider.TTSProviderSetting
 import org.koin.compose.koinInject
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
 import org.koin.core.component.inject
 
 /**

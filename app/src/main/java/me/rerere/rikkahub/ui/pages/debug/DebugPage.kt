@@ -93,8 +93,6 @@ fun DebugPage(vm: DebugVM = koinViewModel()) {
         modifier = Modifier.fillMaxWidth(),
       )
 
-      DebugTtsDemoComponent()
-
       var counter by remember {
         mutableIntStateOf(0)
       }

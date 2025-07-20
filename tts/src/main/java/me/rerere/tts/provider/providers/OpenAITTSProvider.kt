@@ -1,8 +1,5 @@
 package me.rerere.tts.provider.providers
 
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import me.rerere.tts.model.AudioChunk
 import me.rerere.tts.model.AudioFormat
 import me.rerere.tts.model.TTSRequest
 import me.rerere.tts.model.TTSResponse
@@ -58,35 +55,4 @@ class OpenAITTSProvider : TTSProvider<TTSProviderSetting.OpenAI> {
             )
         )
     }
-
-    override suspend fun streamSpeech(
-        providerSetting: TTSProviderSetting.OpenAI,
-        request: TTSRequest
-    ): Flow<AudioChunk> = flow {
-        // OpenAI currently doesn't support streaming TTS
-        // We'll implement it as a single chunk
-        val response = generateSpeech(providerSetting, request)
-        emit(
-            AudioChunk(
-                data = response.audioData,
-                isLast = true,
-                metadata = response.metadata
-            )
-        )
-    }
-
-    override suspend fun testConnection(providerSetting: TTSProviderSetting.OpenAI): Boolean {
-        return try {
-            val request = Request.Builder()
-                .url("${providerSetting.baseUrl}/models")
-                .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
-                .build()
-
-            val response = httpClient.newCall(request).execute()
-            response.isSuccessful
-        } catch (e: Exception) {
-            false
-        }
-    }
-
 }

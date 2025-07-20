@@ -177,7 +177,7 @@ class SettingsStore(
             }
             val ttsProviders = it.ttsProviders.ifEmpty { DEFAULT_TTS_PROVIDERS }.toMutableList()
             DEFAULT_TTS_PROVIDERS.forEach { defaultTTSProvider ->
-                if (ttsProviders.none { it.id == defaultTTSProvider.id }) {
+                if (ttsProviders.none { provider -> provider.id == defaultTTSProvider.id }) {
                     ttsProviders.add(defaultTTSProvider.copyProvider())
                 }
             }
@@ -531,14 +531,10 @@ internal val DEFAULT_ASSISTANTS = listOf(
 )
 
 val DEFAULT_SYSTEM_TTS_ID = Uuid.parse("026a01a2-c3a0-4fd5-8075-80e03bdef200")
-
 private val DEFAULT_TTS_PROVIDERS = listOf(
     TTSProviderSetting.SystemTTS(
         id = DEFAULT_SYSTEM_TTS_ID,
         name = "",
-        speechRate = 1.0f,
-        pitch = 1.0f,
-        language = "zh-CN"  // 默认使用中文，符合项目的中文用户群体
     )
 )
 

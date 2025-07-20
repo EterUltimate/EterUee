@@ -3,10 +3,7 @@ package me.rerere.tts.provider.providers
 import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.suspendCancellableCoroutine
-import me.rerere.tts.model.AudioChunk
 import me.rerere.tts.model.TTSRequest
 import me.rerere.tts.model.TTSResponse
 import me.rerere.tts.provider.TTSProvider
@@ -18,7 +15,6 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 class SystemTTSProvider(private val context: Context) : TTSProvider<TTSProviderSetting.SystemTTS> {
-
     private var textToSpeech: TextToSpeech? = null
 
     override suspend fun generateSpeech(
@@ -31,15 +27,15 @@ class SystemTTSProvider(private val context: Context) : TTSProvider<TTSProviderS
                 val tts = textToSpeech!!
 
                 // Set language
-                val locale = Locale.forLanguageTag(providerSetting.language)
+                val locale = Locale.getDefault()
                 val langResult = tts.setLanguage(locale)
 
                 if (langResult == TextToSpeech.LANG_MISSING_DATA ||
                     langResult == TextToSpeech.LANG_NOT_SUPPORTED
                 ) {
-                    continuation.resumeWithException(
-                        Exception("Language ${providerSetting.language} not supported")
-                    )
+//                    continuation.resumeWithException(
+//                        Exception("Language $locale not supported")
+//                    )
                     return@TextToSpeech
                 }
 
@@ -66,7 +62,6 @@ class SystemTTSProvider(private val context: Context) : TTSProvider<TTSProviderS
                                     format = me.rerere.tts.model.AudioFormat.WAV,
                                     metadata = mapOf(
                                         "provider" to "system",
-                                        "language" to providerSetting.language,
                                         "speechRate" to providerSetting.speechRate.toString(),
                                         "pitch" to providerSetting.pitch.toString()
                                     )
@@ -116,47 +111,6 @@ class SystemTTSProvider(private val context: Context) : TTSProvider<TTSProviderS
 
         continuation.invokeOnCancellation {
             textToSpeech?.shutdown()
-        }
-    }
-
-    override suspend fun streamSpeech(
-        providerSetting: TTSProviderSetting.SystemTTS,
-        request: TTSRequest
-    ): Flow<AudioChunk> = flow {
-        // System TTS doesn't support streaming, so we'll implement it as a single chunk
-        val response = generateSpeech(providerSetting, request)
-        emit(
-            AudioChunk(
-                data = response.audioData,
-                isLast = true,
-                metadata = response.metadata
-            )
-        )
-    }
-
-    override suspend fun testConnection(providerSetting: TTSProviderSetting.SystemTTS): Boolean {
-        return suspendCancellableCoroutine { continuation ->
-            var testTts: TextToSpeech? = null
-            try {
-                testTts = TextToSpeech(context) { status ->
-                    if (status == TextToSpeech.SUCCESS) {
-                        val locale = Locale.forLanguageTag(providerSetting.language)
-                        val langResult = testTts!!.setLanguage(locale)
-                        val isSupported = langResult != TextToSpeech.LANG_MISSING_DATA &&
-                            langResult != TextToSpeech.LANG_NOT_SUPPORTED
-                        continuation.resume(isSupported)
-                    } else {
-                        continuation.resume(false)
-                    }
-                    testTts!!.shutdown()
-                }
-
-                continuation.invokeOnCancellation {
-                    testTts?.shutdown()
-                }
-            } catch (e: Exception) {
-                continuation.resume(false)
-            }
         }
     }
 }

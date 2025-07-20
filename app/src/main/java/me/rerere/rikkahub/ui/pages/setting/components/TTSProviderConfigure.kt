@@ -337,19 +337,4 @@ private fun SystemTTSConfiguration(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
         )
     }
-
-    // Language
-    FormItem(
-        label = { Text(stringResource(R.string.setting_tts_page_language)) },
-        description = { Text(stringResource(R.string.setting_tts_page_language_description)) }
-    ) {
-        OutlinedTextField(
-            value = setting.language,
-            onValueChange = { newLanguage ->
-                onValueChange(setting.copy(language = newLanguage))
-            },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("en-US") }
-        )
-    }
 }

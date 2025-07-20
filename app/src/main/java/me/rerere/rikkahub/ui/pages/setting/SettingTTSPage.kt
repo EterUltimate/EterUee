@@ -64,351 +64,351 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @Composable
 fun SettingTTSPage(vm: SettingVM = koinViewModel()) {
-  val settings by vm.settings.collectAsStateWithLifecycle()
-  val navController = LocalNavController.current
-  var editingProvider by remember { mutableStateOf<TTSProviderSetting?>(null) }
+    val settings by vm.settings.collectAsStateWithLifecycle()
+    val navController = LocalNavController.current
+    var editingProvider by remember { mutableStateOf<TTSProviderSetting?>(null) }
 
-  Scaffold(
-    topBar = {
-      TopAppBar(
-        title = {
-          Text(text = stringResource(R.string.setting_tts_page_title))
-        },
-        navigationIcon = {
-          BackButton()
-        },
-        actions = {
-          AddTTSProviderButton {
-            vm.updateSettings(
-              settings.copy(
-                ttsProviders = listOf(it) + settings.ttsProviders
-              )
-            )
-          }
-        }
-      )
-    },
-  ) { innerPadding ->
-    val lazyListState = rememberLazyListState()
-    val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
-      val newProviders = settings.ttsProviders.toMutableList().apply {
-        add(to.index, removeAt(from.index))
-      }
-      vm.updateSettings(settings.copy(ttsProviders = newProviders))
-    }
-
-    LazyColumn(
-      modifier = Modifier
-          .fillMaxSize()
-          .imePadding(),
-      contentPadding = innerPadding + PaddingValues(16.dp),
-      verticalArrangement = Arrangement.spacedBy(8.dp),
-      state = lazyListState
-    ) {
-      items(settings.ttsProviders, key = { it.id }) { provider ->
-        ReorderableItem(
-          state = reorderableState,
-          key = provider.id
-        ) { isDragging ->
-          TTSProviderItem(
-            modifier = Modifier
-                .scale(if (isDragging) 0.95f else 1f)
-                .fillMaxWidth(),
-            provider = provider,
-            dragHandle = {
-              val haptic = LocalHapticFeedback.current
-              IconButton(
-                onClick = {},
-                modifier = Modifier
-                  .longPressDraggableHandle(
-                    onDragStarted = {
-                      haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
-                    },
-                    onDragStopped = {
-                      haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(text = stringResource(R.string.setting_tts_page_title))
+                },
+                navigationIcon = {
+                    BackButton()
+                },
+                actions = {
+                    AddTTSProviderButton {
+                        vm.updateSettings(
+                            settings.copy(
+                                ttsProviders = listOf(it) + settings.ttsProviders
+                            )
+                        )
                     }
-                  )
-              ) {
-                Icon(
-                  imageVector = Lucide.GripHorizontal,
-                  contentDescription = null
-                )
-              }
-            },
-            isSelected = settings.selectedTTSProviderId == provider.id,
-            onSelect = {
-              vm.updateSettings(settings.copy(selectedTTSProviderId = provider.id))
-            },
-            onEdit = {
-              editingProvider = provider
-            },
-            onDelete = {
-              val newProviders = settings.ttsProviders - provider
-              val newSelectedId =
-                if (settings.selectedTTSProviderId == provider.id) null else settings.selectedTTSProviderId
-              vm.updateSettings(
-                settings.copy(
-                  ttsProviders = newProviders,
-                  selectedTTSProviderId = newSelectedId
-                )
-              )
+                }
+            )
+        },
+    ) { innerPadding ->
+        val lazyListState = rememberLazyListState()
+        val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
+            val newProviders = settings.ttsProviders.toMutableList().apply {
+                add(to.index, removeAt(from.index))
             }
-          )
+            vm.updateSettings(settings.copy(ttsProviders = newProviders))
         }
-      }
-    }
-  }
 
-  // Edit TTS Provider Bottom Sheet
-  editingProvider?.let { provider ->
-    val bottomSheetState = rememberModalBottomSheetState()
-    var currentProvider by remember(provider) { mutableStateOf(provider) }
-
-    ModalBottomSheet(
-      onDismissRequest = {
-        editingProvider = null
-      },
-      sheetState = bottomSheetState,
-      dragHandle = {
-        BottomSheetDefaults.DragHandle()
-      }
-    ) {
-      Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .fillMaxHeight(0.8f),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-      ) {
-        Text(
-          text = stringResource(R.string.setting_tts_page_edit_provider),
-          style = MaterialTheme.typography.headlineSmall
-        )
-
-        TTSProviderConfigure(
-          setting = currentProvider,
-          onValueChange = { newState ->
-            currentProvider = newState
-          },
-          modifier = Modifier.weight(1f)
-        )
-
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.spacedBy(8.dp)
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding(),
+            contentPadding = innerPadding + PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            state = lazyListState
         ) {
-          TextButton(
-            onClick = {
-              editingProvider = null
-            },
-            modifier = Modifier.weight(1f)
-          ) {
-            Text(stringResource(R.string.cancel))
-          }
-
-          TextButton(
-            onClick = {
-              val newProviders = settings.ttsProviders.map {
-                if (it.id == provider.id) currentProvider else it
-              }
-              vm.updateSettings(settings.copy(ttsProviders = newProviders))
-              editingProvider = null
-            },
-            modifier = Modifier.weight(1f)
-          ) {
-            Text(stringResource(R.string.chat_page_save))
-          }
+            items(settings.ttsProviders, key = { it.id }) { provider ->
+                ReorderableItem(
+                    state = reorderableState,
+                    key = provider.id
+                ) { isDragging ->
+                    TTSProviderItem(
+                        modifier = Modifier
+                            .scale(if (isDragging) 0.95f else 1f)
+                            .fillMaxWidth(),
+                        provider = provider,
+                        dragHandle = {
+                            val haptic = LocalHapticFeedback.current
+                            IconButton(
+                                onClick = {},
+                                modifier = Modifier
+                                    .longPressDraggableHandle(
+                                        onDragStarted = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
+                                        },
+                                        onDragStopped = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                                        }
+                                    )
+                            ) {
+                                Icon(
+                                    imageVector = Lucide.GripHorizontal,
+                                    contentDescription = null
+                                )
+                            }
+                        },
+                        isSelected = settings.selectedTTSProviderId == provider.id,
+                        onSelect = {
+                            vm.updateSettings(settings.copy(selectedTTSProviderId = provider.id))
+                        },
+                        onEdit = {
+                            editingProvider = provider
+                        },
+                        onDelete = {
+                            val newProviders = settings.ttsProviders - provider
+                            val newSelectedId =
+                                if (settings.selectedTTSProviderId == provider.id) null else settings.selectedTTSProviderId
+                            vm.updateSettings(
+                                settings.copy(
+                                    ttsProviders = newProviders,
+                                    selectedTTSProviderId = newSelectedId
+                                )
+                            )
+                        }
+                    )
+                }
+            }
         }
-      }
     }
-  }
+
+    // Edit TTS Provider Bottom Sheet
+    editingProvider?.let { provider ->
+        val bottomSheetState = rememberModalBottomSheetState()
+        var currentProvider by remember(provider) { mutableStateOf(provider) }
+
+        ModalBottomSheet(
+            onDismissRequest = {
+                editingProvider = null
+            },
+            sheetState = bottomSheetState,
+            dragHandle = {
+                BottomSheetDefaults.DragHandle()
+            }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .fillMaxHeight(0.8f),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.setting_tts_page_edit_provider),
+                    style = MaterialTheme.typography.headlineSmall
+                )
+
+                TTSProviderConfigure(
+                    setting = currentProvider,
+                    onValueChange = { newState ->
+                        currentProvider = newState
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    TextButton(
+                        onClick = {
+                            editingProvider = null
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(stringResource(R.string.cancel))
+                    }
+
+                    TextButton(
+                        onClick = {
+                            val newProviders = settings.ttsProviders.map {
+                                if (it.id == provider.id) currentProvider else it
+                            }
+                            vm.updateSettings(settings.copy(ttsProviders = newProviders))
+                            editingProvider = null
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(stringResource(R.string.chat_page_save))
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable
 private fun AddTTSProviderButton(onAdd: (TTSProviderSetting) -> Unit) {
-  var showBottomSheet by remember { mutableStateOf(false) }
-  var currentProvider: TTSProviderSetting by remember { mutableStateOf(TTSProviderSetting.SystemTTS()) }
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var currentProvider: TTSProviderSetting by remember { mutableStateOf(TTSProviderSetting.SystemTTS()) }
 
-  IconButton(
-    onClick = {
-      currentProvider = TTSProviderSetting.SystemTTS()
-      showBottomSheet = true
-    }
-  ) {
-    Icon(Lucide.Plus, "Add TTS Provider")
-  }
-
-  if (showBottomSheet) {
-    val bottomSheetState = rememberModalBottomSheetState()
-    ModalBottomSheet(
-      onDismissRequest = {
-        showBottomSheet = false
-      },
-      sheetState = bottomSheetState,
-      dragHandle = {
-        BottomSheetDefaults.DragHandle()
-      }
-    ) {
-      Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .fillMaxHeight(0.8f),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-      ) {
-        Text(
-          text = stringResource(R.string.setting_tts_page_add_provider),
-          style = MaterialTheme.typography.headlineSmall
-        )
-
-        TTSProviderConfigure(
-          setting = currentProvider,
-          onValueChange = { newState ->
-            currentProvider = newState
-          },
-          modifier = Modifier.weight(1f)
-        )
-
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-          TextButton(
-            onClick = {
-              showBottomSheet = false
-            },
-            modifier = Modifier.weight(1f)
-          ) {
-            Text(stringResource(R.string.cancel))
-          }
-
-          TextButton(
-            onClick = {
-              onAdd(currentProvider)
-              showBottomSheet = false
-            },
-            modifier = Modifier.weight(1f)
-          ) {
-            Text(stringResource(R.string.setting_tts_page_add))
-          }
+    IconButton(
+        onClick = {
+            currentProvider = TTSProviderSetting.SystemTTS()
+            showBottomSheet = true
         }
-      }
+    ) {
+        Icon(Lucide.Plus, "Add TTS Provider")
     }
-  }
+
+    if (showBottomSheet) {
+        val bottomSheetState = rememberModalBottomSheetState()
+        ModalBottomSheet(
+            onDismissRequest = {
+                showBottomSheet = false
+            },
+            sheetState = bottomSheetState,
+            dragHandle = {
+                BottomSheetDefaults.DragHandle()
+            }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .fillMaxHeight(0.8f),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.setting_tts_page_add_provider),
+                    style = MaterialTheme.typography.headlineSmall
+                )
+
+                TTSProviderConfigure(
+                    setting = currentProvider,
+                    onValueChange = { newState ->
+                        currentProvider = newState
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    TextButton(
+                        onClick = {
+                            showBottomSheet = false
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(stringResource(R.string.cancel))
+                    }
+
+                    TextButton(
+                        onClick = {
+                            onAdd(currentProvider)
+                            showBottomSheet = false
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(stringResource(R.string.setting_tts_page_add))
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable
 private fun TTSProviderItem(
-  provider: TTSProviderSetting,
-  modifier: Modifier = Modifier,
-  isSelected: Boolean = false,
-  dragHandle: @Composable () -> Unit,
-  onSelect: () -> Unit,
-  onEdit: () -> Unit,
-  onDelete: () -> Unit
+    provider: TTSProviderSetting,
+    modifier: Modifier = Modifier,
+    isSelected: Boolean = false,
+    dragHandle: @Composable () -> Unit,
+    onSelect: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
 ) {
-  var showDropdownMenu by remember { mutableStateOf(false) }
-  Card(
-    modifier = modifier,
-    colors = CardDefaults.cardColors(
-      containerColor = if (provider.enabled) {
-        MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
-      } else MaterialTheme.colorScheme.errorContainer,
-    )
-  ) {
-    Column(
-      modifier = Modifier.padding(16.dp),
-      verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-      Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        AutoAIIcon(
-          name = provider.name.ifEmpty { stringResource(R.string.setting_tts_page_default_name) },
-          modifier = Modifier.size(32.dp)
+    var showDropdownMenu by remember { mutableStateOf(false) }
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = if (provider.enabled) {
+                MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
+            } else MaterialTheme.colorScheme.errorContainer,
         )
-        Spacer(modifier = Modifier.weight(1f))
-        dragHandle()
-      }
-      Row {
+    ) {
         Column(
-          modifier = Modifier.weight(1f),
-          verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-          Text(
-            text = provider.name.ifEmpty { stringResource(R.string.setting_tts_page_default_name) },
-            style = MaterialTheme.typography.titleLarge
-          )
-          Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-          ) {
-            if (isSelected) {
-              Tag(type = TagType.SUCCESS) {
-                Text(stringResource(R.string.setting_tts_page_selected))
-              }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                AutoAIIcon(
+                    name = provider.name.ifEmpty { stringResource(R.string.setting_tts_page_default_name) },
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                dragHandle()
             }
-            Tag(type = if (provider.enabled) TagType.SUCCESS else TagType.WARNING) {
-              Text(stringResource(if (provider.enabled) R.string.setting_tts_page_enabled else R.string.setting_tts_page_disabled))
-            }
-            // Display provider type
-            Tag(type = TagType.INFO) {
-              Text(
-                when (provider) {
-                  is TTSProviderSetting.OpenAI -> "OpenAI"
-                  is TTSProviderSetting.Gemini -> "Gemini"
-                  is TTSProviderSetting.SystemTTS -> "System TTS"
+            Row {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(
+                        text = provider.name.ifEmpty { stringResource(R.string.setting_tts_page_default_name) },
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        if (isSelected) {
+                            Tag(type = TagType.SUCCESS) {
+                                Text(stringResource(R.string.setting_tts_page_selected))
+                            }
+                        }
+                        Tag(type = if (provider.enabled) TagType.SUCCESS else TagType.WARNING) {
+                            Text(stringResource(if (provider.enabled) R.string.setting_tts_page_enabled else R.string.setting_tts_page_disabled))
+                        }
+                        // Display provider type
+                        Tag(type = TagType.INFO) {
+                            Text(
+                                when (provider) {
+                                    is TTSProviderSetting.OpenAI -> "OpenAI"
+                                    is TTSProviderSetting.Gemini -> "Gemini"
+                                    is TTSProviderSetting.SystemTTS -> "System TTS"
+                                }
+                            )
+                        }
+                    }
                 }
-              )
-            }
-          }
-        }
-        IconButton(
-          onClick = { showDropdownMenu = true }
-        ) {
-          Icon(
-            imageVector = Lucide.Settings2,
-            contentDescription = "More options"
-          )
-          DropdownMenu(
-            expanded = showDropdownMenu,
-            onDismissRequest = { showDropdownMenu = false }
-          ) {
-            if (!isSelected && provider.enabled) {
-              DropdownMenuItem(
-                text = { Text(stringResource(R.string.setting_tts_page_select)) },
-                onClick = {
-                  showDropdownMenu = false
-                  onSelect()
-                },
-                leadingIcon = {
-                  Icon(Lucide.Check, contentDescription = null)
+                IconButton(
+                    onClick = { showDropdownMenu = true }
+                ) {
+                    Icon(
+                        imageVector = Lucide.Settings2,
+                        contentDescription = "More options"
+                    )
+                    DropdownMenu(
+                        expanded = showDropdownMenu,
+                        onDismissRequest = { showDropdownMenu = false }
+                    ) {
+                        if (!isSelected && provider.enabled) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.setting_tts_page_select)) },
+                                onClick = {
+                                    showDropdownMenu = false
+                                    onSelect()
+                                },
+                                leadingIcon = {
+                                    Icon(Lucide.Check, contentDescription = null)
+                                }
+                            )
+                        }
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.edit)) },
+                            onClick = {
+                                showDropdownMenu = false
+                                onEdit()
+                            },
+                            leadingIcon = {
+                                Icon(Lucide.Pencil, contentDescription = null)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.delete)) },
+                            onClick = {
+                                showDropdownMenu = false
+                                onDelete()
+                            },
+                            leadingIcon = {
+                                Icon(Lucide.Trash2, contentDescription = null)
+                            }
+                        )
+                    }
                 }
-              )
             }
-            DropdownMenuItem(
-              text = { Text(stringResource(R.string.edit)) },
-              onClick = {
-                showDropdownMenu = false
-                onEdit()
-              },
-              leadingIcon = {
-                Icon(Lucide.Pencil, contentDescription = null)
-              }
-            )
-            DropdownMenuItem(
-              text = { Text(stringResource(R.string.delete)) },
-              onClick = {
-                showDropdownMenu = false
-                onDelete()
-              },
-              leadingIcon = {
-                Icon(Lucide.Trash2, contentDescription = null)
-              }
-            )
-          }
         }
-      }
     }
-  }
 }

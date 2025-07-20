@@ -225,15 +225,15 @@
   <string name="mermaid_export_failed">导出失败</string>
 
   <!-- Avatar Component -->
-      <string name="avatar_change_avatar">更换头像</string>
-    <string name="avatar_pick_image">选择图片</string>
-    <string name="avatar_pick_emoji">选择表情</string>
-    <string name="avatar_input_url">输入链接</string>
-    <string name="avatar_reset">重置</string>
-    <string name="avatar_cancel">取消</string>
-    <string name="avatar_url_dialog_title">输入图片链接</string>
-    <string name="avatar_url_hint">请输入图片链接</string>
-    <string name="avatar_url_confirm">确认</string>
+  <string name="avatar_change_avatar">更换头像</string>
+  <string name="avatar_pick_image">选择图片</string>
+  <string name="avatar_pick_emoji">选择表情</string>
+  <string name="avatar_input_url">输入链接</string>
+  <string name="avatar_reset">重置</string>
+  <string name="avatar_cancel">取消</string>
+  <string name="avatar_url_dialog_title">输入图片链接</string>
+  <string name="avatar_url_hint">请输入图片链接</string>
+  <string name="avatar_url_confirm">确认</string>
 
   <!-- Emoji Picker -->
   <string name="emoji_picker_search_placeholder">搜索表情符号...</string>
@@ -241,7 +241,7 @@
 
   <!-- Reasoning -->
   <string name="reasoning_set_budget">设置推理预算 (%1$d tokens)</string>
-  
+
   <!-- User -->
   <string name="user_default_name">用户</string>
 
@@ -492,4 +492,4 @@
   <string name="setting_tts_page_select">选择</string>
   <string name="setting_tts_page_selected">已选择</string>
   <string name="setting_tts_page_default_name">系统TTS</string>
-</resources> 
+</resources>

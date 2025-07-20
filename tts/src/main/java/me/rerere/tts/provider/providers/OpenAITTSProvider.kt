@@ -2,7 +2,6 @@ package me.rerere.tts.provider.providers
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.serialization.Serializable
 import me.rerere.tts.model.AudioChunk
 import me.rerere.tts.model.AudioFormat
 import me.rerere.tts.model.TTSRequest
@@ -17,9 +16,10 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 class OpenAITTSProvider : TTSProvider<TTSProviderSetting.OpenAI> {
-  private val httpClient = OkHttpClient.Builder()
-    .readTimeout(30, TimeUnit.SECONDS)
-    .build()
+    private val httpClient = OkHttpClient.Builder()
+        .readTimeout(30, TimeUnit.SECONDS)
+        .build()
+
     override suspend fun generateSpeech(
         providerSetting: TTSProviderSetting.OpenAI,
         request: TTSRequest
@@ -40,7 +40,7 @@ class OpenAITTSProvider : TTSProvider<TTSProviderSetting.OpenAI> {
             .build()
 
         val response = httpClient.newCall(httpRequest).execute()
-        
+
         if (!response.isSuccessful) {
             throw Exception("TTS request failed: ${response.code} ${response.message}")
         }
@@ -66,11 +66,13 @@ class OpenAITTSProvider : TTSProvider<TTSProviderSetting.OpenAI> {
         // OpenAI currently doesn't support streaming TTS
         // We'll implement it as a single chunk
         val response = generateSpeech(providerSetting, request)
-        emit(AudioChunk(
-            data = response.audioData,
-            isLast = true,
-            metadata = response.metadata
-        ))
+        emit(
+            AudioChunk(
+                data = response.audioData,
+                isLast = true,
+                metadata = response.metadata
+            )
+        )
     }
 
     override suspend fun testConnection(providerSetting: TTSProviderSetting.OpenAI): Boolean {

@@ -14,37 +14,37 @@ import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val viewModelModule = module {
-  viewModel<ChatVM> { params ->
-    ChatVM(
-      id = params.get(),
-      context = get(),
-      settingsStore = get(),
-      conversationRepo = get(),
-      memoryRepository = get(),
-      generationHandler = get(),
-      templateTransformer = get(),
-      mcpManager = get(),
-      updateChecker = get(),
-    )
-  }
-  viewModelOf(::SettingVM)
-  viewModelOf(::DebugVM)
-  viewModelOf(::HistoryVM)
-  viewModelOf(::AssistantVM)
-  viewModel<AssistantDetailVM> {
-    AssistantDetailVM(
-      id = it.get(),
-      settingsStore = get(),
-      memoryRepository = get(),
-      context = get(),
-    )
-  }
-  viewModelOf(::TranslatorVM)
-  viewModel<ShareHandlerVM> {
-    ShareHandlerVM(
-      text = it.get(),
-      settingsStore = get(),
-    )
-  }
-  viewModelOf(::BackupVM)
+    viewModel<ChatVM> { params ->
+        ChatVM(
+            id = params.get(),
+            context = get(),
+            settingsStore = get(),
+            conversationRepo = get(),
+            memoryRepository = get(),
+            generationHandler = get(),
+            templateTransformer = get(),
+            mcpManager = get(),
+            updateChecker = get(),
+        )
+    }
+    viewModelOf(::SettingVM)
+    viewModelOf(::DebugVM)
+    viewModelOf(::HistoryVM)
+    viewModelOf(::AssistantVM)
+    viewModel<AssistantDetailVM> {
+        AssistantDetailVM(
+            id = it.get(),
+            settingsStore = get(),
+            memoryRepository = get(),
+            context = get(),
+        )
+    }
+    viewModelOf(::TranslatorVM)
+    viewModel<ShareHandlerVM> {
+        ShareHandlerVM(
+            text = it.get(),
+            settingsStore = get(),
+        )
+    }
+    viewModelOf(::BackupVM)
 }

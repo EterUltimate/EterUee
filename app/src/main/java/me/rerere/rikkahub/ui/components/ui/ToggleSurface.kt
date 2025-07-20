@@ -11,23 +11,23 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun ToggleSurface(
-  checked: Boolean,
-  modifier: Modifier = Modifier,
-  shape: Shape = RoundedCornerShape(50),
-  onClick: () -> Unit = {},
-  content: @Composable () -> Unit
+    checked: Boolean,
+    modifier: Modifier = Modifier,
+    shape: Shape = RoundedCornerShape(50),
+    onClick: () -> Unit = {},
+    content: @Composable () -> Unit
 ) {
-  val colors =
-    if (checked) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
-  Surface(
-    onClick = onClick,
-    color = colors,
-    modifier = modifier,
-    shape = shape,
-    tonalElevation = if (checked) 8.dp else 0.dp
-  ) {
-    ProvideTextStyle(MaterialTheme.typography.labelLarge) {
-      content()
+    val colors =
+        if (checked) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+    Surface(
+        onClick = onClick,
+        color = colors,
+        modifier = modifier,
+        shape = shape,
+        tonalElevation = if (checked) 8.dp else 0.dp
+    ) {
+        ProvideTextStyle(MaterialTheme.typography.labelLarge) {
+            content()
+        }
     }
-  }
 }

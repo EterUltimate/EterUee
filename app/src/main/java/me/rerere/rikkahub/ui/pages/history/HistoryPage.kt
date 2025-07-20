@@ -42,136 +42,136 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun HistoryPage(vm: HistoryVM = koinViewModel()) {
-  val navController = LocalNavController.current
+    val navController = LocalNavController.current
 
-  var searchText by remember { mutableStateOf("") }
-  val allConversations by vm.conversations.collectAsStateWithLifecycle()
-  val searchConversations by produceState(emptyList(), searchText) {
-    runCatching {
-      vm.searchConversations(searchText).collect {
-        value = it
-      }
-    }.onFailure {
-      it.printStackTrace()
-    }
-  }
-  val showConversations = if (searchText.isEmpty()) {
-    allConversations
-  } else {
-    searchConversations
-  }
-
-  Scaffold(
-    topBar = {
-      TopAppBar(
-        title = {
-          Text(stringResource(R.string.history_page_title))
-        },
-        navigationIcon = {
-          BackButton()
-        },
-        actions = {
-          TextButton(
-            onClick = {
-              vm.deleteAllConversations()
+    var searchText by remember { mutableStateOf("") }
+    val allConversations by vm.conversations.collectAsStateWithLifecycle()
+    val searchConversations by produceState(emptyList(), searchText) {
+        runCatching {
+            vm.searchConversations(searchText).collect {
+                value = it
             }
-          ) {
-            Text(stringResource(R.string.history_page_reset_chat))
-          }
+        }.onFailure {
+            it.printStackTrace()
         }
-      )
-    },
-    bottomBar = {
-      SearchInput(
-        value = searchText,
-        onValueChange = { searchText = it }
-      )
     }
-  ) { contentPadding ->
-    LazyColumn(
-      contentPadding = contentPadding + PaddingValues(8.dp),
-      verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-      items(showConversations, key = { it.id }) {
-        ConversationItem(
-          conversation = it,
-          onClick = {
-            navigateToChatPage(navController, it.id)
-          },
-          onDelete = { vm.deleteConversation(it) },
-          modifier = Modifier
-            .fillMaxWidth()
-            .animateItem()
-        )
-      }
+    val showConversations = if (searchText.isEmpty()) {
+        allConversations
+    } else {
+        searchConversations
     }
-  }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(stringResource(R.string.history_page_title))
+                },
+                navigationIcon = {
+                    BackButton()
+                },
+                actions = {
+                    TextButton(
+                        onClick = {
+                            vm.deleteAllConversations()
+                        }
+                    ) {
+                        Text(stringResource(R.string.history_page_reset_chat))
+                    }
+                }
+            )
+        },
+        bottomBar = {
+            SearchInput(
+                value = searchText,
+                onValueChange = { searchText = it }
+            )
+        }
+    ) { contentPadding ->
+        LazyColumn(
+            contentPadding = contentPadding + PaddingValues(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(showConversations, key = { it.id }) {
+                ConversationItem(
+                    conversation = it,
+                    onClick = {
+                        navigateToChatPage(navController, it.id)
+                    },
+                    onDelete = { vm.deleteConversation(it) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateItem()
+                )
+            }
+        }
+    }
 }
 
 @Composable
 private fun SearchInput(
-  value: String,
-  onValueChange: (String) -> Unit,
+    value: String,
+    onValueChange: (String) -> Unit,
 ) {
-  Surface(
-    tonalElevation = 4.dp,
-    modifier = Modifier.fillMaxWidth()
-  ) {
-    Row(
-      modifier = Modifier
-        .imePadding()
-        .navigationBarsPadding()
-        .padding(horizontal = 16.dp, vertical = 8.dp)
+    Surface(
+        tonalElevation = 4.dp,
+        modifier = Modifier.fillMaxWidth()
     ) {
-      OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = Modifier.fillMaxWidth(),
-        placeholder = {
-          Text(stringResource(R.string.history_page_search_placeholder))
-        },
-        shape = RoundedCornerShape(50),
-        singleLine = true,
-        trailingIcon = {
-          IconButton(
-            onClick = { onValueChange("") },
+        Row(
             modifier = Modifier
-          ) {
-            Icon(Lucide.X, stringResource(R.string.history_page_clear))
-          }
+                .imePadding()
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            OutlinedTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = {
+                    Text(stringResource(R.string.history_page_search_placeholder))
+                },
+                shape = RoundedCornerShape(50),
+                singleLine = true,
+                trailingIcon = {
+                    IconButton(
+                        onClick = { onValueChange("") },
+                        modifier = Modifier
+                    ) {
+                        Icon(Lucide.X, stringResource(R.string.history_page_clear))
+                    }
+                }
+            )
         }
-      )
     }
-  }
 }
 
 @Composable
 private fun ConversationItem(
-  conversation: Conversation,
-  modifier: Modifier = Modifier,
-  onDelete: () -> Unit = {},
-  onClick: () -> Unit = {},
+    conversation: Conversation,
+    modifier: Modifier = Modifier,
+    onDelete: () -> Unit = {},
+    onClick: () -> Unit = {},
 ) {
-  Surface(
-    onClick = onClick,
-    tonalElevation = 2.dp,
-    shape = RoundedCornerShape(25),
-    modifier = modifier
-  ) {
-    ListItem(
-      headlineContent = {
-        Text(conversation.title.ifBlank { stringResource(R.string.history_page_new_conversation) }.trim())
-      },
-      supportingContent = {
-        Text(conversation.createAt.toLocalDateTime())
-      },
-      trailingContent = {
-        IconButton(
-          onClick = onDelete
-        ) {
-          Icon(Lucide.X, stringResource(R.string.delete))
-        }
-      }
-    )
-  }
+    Surface(
+        onClick = onClick,
+        tonalElevation = 2.dp,
+        shape = RoundedCornerShape(25),
+        modifier = modifier
+    ) {
+        ListItem(
+            headlineContent = {
+                Text(conversation.title.ifBlank { stringResource(R.string.history_page_new_conversation) }.trim())
+            },
+            supportingContent = {
+                Text(conversation.createAt.toLocalDateTime())
+            },
+            trailingContent = {
+                IconButton(
+                    onClick = onDelete
+                ) {
+                    Icon(Lucide.X, stringResource(R.string.delete))
+                }
+            }
+        )
+    }
 }

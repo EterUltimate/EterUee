@@ -3,14 +3,12 @@ package me.rerere.rikkahub.ui.components.ui
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -23,110 +21,110 @@ import me.rerere.rikkahub.utils.toCssHex
 
 @Composable
 private fun AIIcon(
-  path: String,
-  name: String,
-  modifier: Modifier = Modifier,
-  loading: Boolean = false
+    path: String,
+    name: String,
+    modifier: Modifier = Modifier,
+    loading: Boolean = false
 ) {
-  val contentColor = LocalContentColor.current
-  val context = LocalContext.current
-  val model = remember(path, contentColor, context) {
-    ImageRequest.Builder(context)
-      .data("file:///android_asset/icons/$path")
-      .css(
-        """
+    val contentColor = LocalContentColor.current
+    val context = LocalContext.current
+    val model = remember(path, contentColor, context) {
+        ImageRequest.Builder(context)
+            .data("file:///android_asset/icons/$path")
+            .css(
+                """
                 svg {
                   fill: ${contentColor.toCssHex()};
                 }
             """.trimIndent()
-      )
-      .build()
-  }
-  Surface(
-    modifier = modifier.size(24.dp),
-    shape = rememberAvatarShape(loading),
-    color = MaterialTheme.colorScheme.secondaryContainer,
-  ) {
-    AsyncImage(
-      model = model,
-      contentDescription = name,
-      modifier = Modifier.padding(4.dp)
-    )
-  }
+            )
+            .build()
+    }
+    Surface(
+        modifier = modifier.size(24.dp),
+        shape = rememberAvatarShape(loading),
+        color = MaterialTheme.colorScheme.secondaryContainer,
+    ) {
+        AsyncImage(
+            model = model,
+            contentDescription = name,
+            modifier = Modifier.padding(4.dp)
+        )
+    }
 }
 
 @Composable
 fun AutoAIIcon(
-  name: String,
-  modifier: Modifier = Modifier,
-  loading: Boolean = false,
+    name: String,
+    modifier: Modifier = Modifier,
+    loading: Boolean = false,
 ) {
-  val path = remember(name) { computeAIIconByName(name) } ?: run {
-    TextAvatar(text = name, modifier = modifier, loading = loading)
-    return
-  }
-  AIIcon(
-    path = path,
-    name = name,
-    modifier = modifier,
-    loading = loading
-  )
+    val path = remember(name) { computeAIIconByName(name) } ?: run {
+        TextAvatar(text = name, modifier = modifier, loading = loading)
+        return
+    }
+    AIIcon(
+        path = path,
+        name = name,
+        modifier = modifier,
+        loading = loading
+    )
 }
 
 @Preview
 @Composable
 private fun PreviewAutoAIIcon() {
-  Column {
-    AutoAIIcon("测试")
-  }
+    Column {
+        AutoAIIcon("测试")
+    }
 }
 
 // https://lobehub.com/zh/icons
 private fun computeAIIconByName(name: String): String? {
-  // 检查缓存
-  ICON_CACHE[name]?.let { return it }
+    // 检查缓存
+    ICON_CACHE[name]?.let { return it }
 
-  val lowerName = name.lowercase()
-  val result = when {
-    PATTERN_OPENAI.containsMatchIn(lowerName) -> "openai.svg"
-    PATTERN_GEMINI.containsMatchIn(lowerName) -> "gemini-color.svg"
-    PATTERN_GOOGLE.containsMatchIn(lowerName) -> "google-color.svg"
-    PATTERN_ANTHROPIC.containsMatchIn(lowerName) -> "anthropic.svg"
-    PATTERN_CLAUDE.containsMatchIn(lowerName) -> "claude-color.svg"
-    PATTERN_DEEPSEEK.containsMatchIn(lowerName) -> "deepseek-color.svg"
-    PATTERN_GROK.containsMatchIn(lowerName) -> "grok.svg"
-    PATTERN_QWEN.containsMatchIn(lowerName) -> "qwen-color.svg"
-    PATTERN_DOUBAO.containsMatchIn(lowerName) -> "doubao-color.svg"
-    PATTERN_OPENROUTER.containsMatchIn(lowerName) -> "openrouter.svg"
-    PATTERN_ZHIPU.containsMatchIn(lowerName) -> "zhipu-color.svg"
-    PATTERN_MISTRAL.containsMatchIn(lowerName) -> "mistral-color.svg"
-    PATTERN_META.containsMatchIn(lowerName) -> "meta-color.svg"
-    PATTERN_HUNYUAN.containsMatchIn(lowerName) -> "hunyuan-color.svg"
-    PATTERN_GEMMA.containsMatchIn(lowerName) -> "gemma-color.svg"
-    PATTERN_PERPLEXITY.containsMatchIn(lowerName) -> "perplexity-color.svg"
-    PATTERN_ALIYUN.containsMatchIn(lowerName) -> "alibabacloud-color.svg"
-    PATTERN_BYTEDANCE.containsMatchIn(lowerName) -> "bytedance-color.svg"
-    PATTERN_SILLICON_CLOUD.containsMatchIn(lowerName) -> "siliconcloud-color.svg"
-    PATTERN_AIHUBMIX.containsMatchIn(lowerName) -> "aihubmix-color.svg"
-    PATTERN_OLLAMA.containsMatchIn(lowerName) -> "ollama.svg"
-    PATTERN_GITHUB.containsMatchIn(lowerName) -> "github.svg"
-    PATTERN_CLOUDFLARE.containsMatchIn(lowerName) -> "cloudflare-color.svg"
-    PATTERN_MINIMAX.containsMatchIn(lowerName) -> "minimax-color.svg"
-    PATTERN_XAI.containsMatchIn(lowerName) -> "xai.svg"
-    PATTERN_JUHENEXT.containsMatchIn(lowerName) -> "juhenext.png"
-    PATTERN_KIMI.containsMatchIn(lowerName) -> "kimi-color.svg"
+    val lowerName = name.lowercase()
+    val result = when {
+        PATTERN_OPENAI.containsMatchIn(lowerName) -> "openai.svg"
+        PATTERN_GEMINI.containsMatchIn(lowerName) -> "gemini-color.svg"
+        PATTERN_GOOGLE.containsMatchIn(lowerName) -> "google-color.svg"
+        PATTERN_ANTHROPIC.containsMatchIn(lowerName) -> "anthropic.svg"
+        PATTERN_CLAUDE.containsMatchIn(lowerName) -> "claude-color.svg"
+        PATTERN_DEEPSEEK.containsMatchIn(lowerName) -> "deepseek-color.svg"
+        PATTERN_GROK.containsMatchIn(lowerName) -> "grok.svg"
+        PATTERN_QWEN.containsMatchIn(lowerName) -> "qwen-color.svg"
+        PATTERN_DOUBAO.containsMatchIn(lowerName) -> "doubao-color.svg"
+        PATTERN_OPENROUTER.containsMatchIn(lowerName) -> "openrouter.svg"
+        PATTERN_ZHIPU.containsMatchIn(lowerName) -> "zhipu-color.svg"
+        PATTERN_MISTRAL.containsMatchIn(lowerName) -> "mistral-color.svg"
+        PATTERN_META.containsMatchIn(lowerName) -> "meta-color.svg"
+        PATTERN_HUNYUAN.containsMatchIn(lowerName) -> "hunyuan-color.svg"
+        PATTERN_GEMMA.containsMatchIn(lowerName) -> "gemma-color.svg"
+        PATTERN_PERPLEXITY.containsMatchIn(lowerName) -> "perplexity-color.svg"
+        PATTERN_ALIYUN.containsMatchIn(lowerName) -> "alibabacloud-color.svg"
+        PATTERN_BYTEDANCE.containsMatchIn(lowerName) -> "bytedance-color.svg"
+        PATTERN_SILLICON_CLOUD.containsMatchIn(lowerName) -> "siliconcloud-color.svg"
+        PATTERN_AIHUBMIX.containsMatchIn(lowerName) -> "aihubmix-color.svg"
+        PATTERN_OLLAMA.containsMatchIn(lowerName) -> "ollama.svg"
+        PATTERN_GITHUB.containsMatchIn(lowerName) -> "github.svg"
+        PATTERN_CLOUDFLARE.containsMatchIn(lowerName) -> "cloudflare-color.svg"
+        PATTERN_MINIMAX.containsMatchIn(lowerName) -> "minimax-color.svg"
+        PATTERN_XAI.containsMatchIn(lowerName) -> "xai.svg"
+        PATTERN_JUHENEXT.containsMatchIn(lowerName) -> "juhenext.png"
+        PATTERN_KIMI.containsMatchIn(lowerName) -> "kimi-color.svg"
 
-    PATTERN_SEARCH_LINKUP.containsMatchIn(lowerName) -> "linkup.png"
-    PATTERN_SEARCH_BING.containsMatchIn(lowerName) -> "bing.png"
-    PATTERN_SEARCH_TAVILY.containsMatchIn(lowerName) -> "tavily.png"
-    PATTERN_SEARCH_EXA.containsMatchIn(lowerName) -> "exa.png"
-    else -> null
-  }
+        PATTERN_SEARCH_LINKUP.containsMatchIn(lowerName) -> "linkup.png"
+        PATTERN_SEARCH_BING.containsMatchIn(lowerName) -> "bing.png"
+        PATTERN_SEARCH_TAVILY.containsMatchIn(lowerName) -> "tavily.png"
+        PATTERN_SEARCH_EXA.containsMatchIn(lowerName) -> "exa.png"
+        else -> null
+    }
 
-  // 保存到缓存
-  result?.let { ICON_CACHE[name] = it }
+    // 保存到缓存
+    result?.let { ICON_CACHE[name] = it }
 
-  return result
+    return result
 }
 
 // 静态缓存和正则模式

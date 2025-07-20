@@ -4,11 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-RikkaHub is a native Android LLM chat client that supports switching between different AI providers for conversations. Built with Jetpack Compose, Kotlin, and follows Material Design 3 principles.
+RikkaHub is a native Android LLM chat client that supports switching between different AI providers for conversations.
+Built with Jetpack Compose, Kotlin, and follows Material Design 3 principles.
 
 ## Architecture Overview
 
 ### Module Structure
+
 - **app**: Main application module with UI, ViewModels, and core logic
 - **ai**: AI SDK abstraction layer for different providers (OpenAI, Google, Anthropic)
 - **highlight**: Code syntax highlighting implementation
@@ -16,6 +18,7 @@ RikkaHub is a native Android LLM chat client that supports switching between dif
 - **rag**: RAG (Retrieval Augmented Generation) implementation
 
 ### Key Technologies
+
 - **Jetpack Compose**: Modern UI toolkit
 - **Koin**: Dependency injection
 - **Room**: Database ORM
@@ -25,6 +28,7 @@ RikkaHub is a native Android LLM chat client that supports switching between dif
 - **Kotlinx Serialization**: JSON handling
 
 ### Core Packages
+
 - `data/`: Data layer with repositories, database entities, and API clients
 - `ui/pages/`: Screen implementations and ViewModels
 - `ui/components/`: Reusable UI components
@@ -34,6 +38,7 @@ RikkaHub is a native Android LLM chat client that supports switching between dif
 ## Development Guidelines
 
 ### UI Development
+
 - Follow Material Design 3 principles
 - Use existing UI components from `ui/components/`
 - Reference `SettingProviderPage.kt` for page layout patterns
@@ -41,30 +46,36 @@ RikkaHub is a native Android LLM chat client that supports switching between dif
 - Implement proper state management with ViewModels
 
 ### Internationalization
+
 - Support for English (default), Chinese(zh), Japanese(ja), and Traditional Chinese(zh-rTW)
 - String resources located in `app/src/main/res/values-*/strings.xml`
 - Use `stringResource(R.string.key_name)` in Compose
 - Page-specific strings should use page prefix (e.g., `setting_page_`)
-- If the user does not explicitly request localization, prioritize implementing functionality without considering localization. (e.g `Text("Hello world")`)
+- If the user does not explicitly request localization, prioritize implementing functionality without considering
+  localization. (e.g `Text("Hello world")`)
 
 ### Database
+
 - Room database with migration support
 - Schema files in `app/schemas/`
 - Use KSP for Room annotation processing
 - Current database version tracked in `AppDatabase.kt`
 
 ### AI Provider Integration
+
 - New providers go in `ai/src/main/java/me/rerere/ai/provider/providers/`
 - Extend base `Provider` class
 - Implement required API methods following existing patterns
 - Support for streaming responses via SSE
 
 ### Prerequisites
+
 - Android Studio with Kotlin support
 - Requires `google-services.json` in `app/` folder for Firebase features
 - Signing keys in `local.properties` for release builds
 
 ### Key Files to Reference
+
 - `app/src/main/java/me/rerere/rikkahub/ui/pages/setting/SettingProviderPage.kt`: UI patterns
 - `app/src/main/java/me/rerere/rikkahub/data/datastore/PreferencesStore.kt`: Data storage
 - `ai/src/main/java/me/rerere/ai/provider/providers/OpenAIProvider.kt`: AI provider implementation
@@ -73,17 +84,20 @@ RikkaHub is a native Android LLM chat client that supports switching between dif
 ## Build Configuration
 
 ### Gradle Configuration
+
 - Multi-module project with version catalogs
 - Supports ABI splits for arm64-v8a and x86_64
 - Uses KSP for annotation processing
 - Chaquopy for Python integration (PDF/DOCX processing)
 
 ### Target SDK
+
 - Compile SDK: 36
-- Target SDK: 36  
+- Target SDK: 36
 - Min SDK: 26
 - JVM Target: 11
 
 ### Signing
+
 - Release builds require signing configuration in `local.properties`
 - Debug builds use `.debug` application ID suffix

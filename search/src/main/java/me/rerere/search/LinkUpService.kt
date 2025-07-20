@@ -19,76 +19,76 @@ import okhttp3.RequestBody.Companion.toRequestBody
 private const val TAG = "LinkUpService"
 
 object LinkUpService : SearchService<SearchServiceOptions.LinkUpOptions> {
-  override val name: String = "LinkUp"
+    override val name: String = "LinkUp"
 
-  @Composable
-  override fun Description() {
-    val urlHandler = LocalUriHandler.current
-    TextButton(
-      onClick = {
-        urlHandler.openUri("https://www.linkup.so/")
-      }
-    ) {
-      Text("点击获取API Key")
-    }
-  }
-
-  override suspend fun search(
-    query: String,
-    commonOptions: SearchCommonOptions,
-    serviceOptions: SearchServiceOptions.LinkUpOptions
-  ): Result<SearchResult> = withContext(Dispatchers.IO) {
-    runCatching {
-      val body = buildJsonObject {
-        put("q", JsonPrimitive(query))
-        put("depth", JsonPrimitive("standard"))
-        put("outputType", JsonPrimitive("sourcedAnswer"))
-        put("includeImages", JsonPrimitive("false"))
-      }
-
-      val request = Request.Builder()
-        .url("https://api.linkup.so/v1/search")
-        .post(body.toString().toRequestBody())
-        .addHeader("Authorization", "Bearer ${serviceOptions.apiKey}")
-        .addHeader("Content-Type", "application/json")
-        .build()
-
-      Log.i(TAG, "search: $query")
-
-      val response = httpClient.newCall(request).await()
-      if (response.isSuccessful) {
-        val responseBody = response.body.string().let {
-          json.decodeFromString<LinkUpSearchResponse>(it)
-        }
-
-        return@withContext Result.success(
-          SearchResult(
-            answer = responseBody.answer,
-            items = responseBody.sources.take(commonOptions.resultSize).map {
-              SearchResultItem(
-                title = it.name,
-                url = it.url,
-                text = it.snippet
-              )
+    @Composable
+    override fun Description() {
+        val urlHandler = LocalUriHandler.current
+        TextButton(
+            onClick = {
+                urlHandler.openUri("https://www.linkup.so/")
             }
-          )
-        )
-      } else {
-        error("response failed #${response.code}: ${response.body?.string()}")
-      }
+        ) {
+            Text("点击获取API Key")
+        }
     }
-  }
 
-  @Serializable
-  data class LinkUpSearchResponse(
-    val answer: String,
-    val sources: List<Source>
-  )
+    override suspend fun search(
+        query: String,
+        commonOptions: SearchCommonOptions,
+        serviceOptions: SearchServiceOptions.LinkUpOptions
+    ): Result<SearchResult> = withContext(Dispatchers.IO) {
+        runCatching {
+            val body = buildJsonObject {
+                put("q", JsonPrimitive(query))
+                put("depth", JsonPrimitive("standard"))
+                put("outputType", JsonPrimitive("sourcedAnswer"))
+                put("includeImages", JsonPrimitive("false"))
+            }
 
-  @Serializable
-  data class Source(
-    val name: String,
-    val url: String,
-    val snippet: String
-  )
+            val request = Request.Builder()
+                .url("https://api.linkup.so/v1/search")
+                .post(body.toString().toRequestBody())
+                .addHeader("Authorization", "Bearer ${serviceOptions.apiKey}")
+                .addHeader("Content-Type", "application/json")
+                .build()
+
+            Log.i(TAG, "search: $query")
+
+            val response = httpClient.newCall(request).await()
+            if (response.isSuccessful) {
+                val responseBody = response.body.string().let {
+                    json.decodeFromString<LinkUpSearchResponse>(it)
+                }
+
+                return@withContext Result.success(
+                    SearchResult(
+                        answer = responseBody.answer,
+                        items = responseBody.sources.take(commonOptions.resultSize).map {
+                            SearchResultItem(
+                                title = it.name,
+                                url = it.url,
+                                text = it.snippet
+                            )
+                        }
+                    )
+                )
+            } else {
+                error("response failed #${response.code}: ${response.body?.string()}")
+            }
+        }
+    }
+
+    @Serializable
+    data class LinkUpSearchResponse(
+        val answer: String,
+        val sources: List<Source>
+    )
+
+    @Serializable
+    data class Source(
+        val name: String,
+        val url: String,
+        val snippet: String
+    )
 }

@@ -13,16 +13,16 @@ import me.rerere.rikkahub.ui.context.popBack
 
 @Composable
 fun BackButton(modifier: Modifier = Modifier) {
-  val navController = LocalNavController.current
-  IconButton(
-    onClick = {
-      navController.popBack()
-    },
-    modifier = modifier
-  ) {
-    Icon(
-      Lucide.ArrowLeft,
-      contentDescription = stringResource(R.string.back)
-    )
-  }
+    val navController = LocalNavController.current
+    IconButton(
+        onClick = {
+            navController.popBack()
+        },
+        modifier = modifier
+    ) {
+        Icon(
+            Lucide.ArrowLeft,
+            contentDescription = stringResource(R.string.back)
+        )
+    }
 }

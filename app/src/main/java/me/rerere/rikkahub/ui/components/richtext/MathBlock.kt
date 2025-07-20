@@ -16,38 +16,38 @@ import androidx.compose.ui.unit.takeOrElse
 
 @Composable
 fun MathInline(
-  latex: String,
-  modifier: Modifier = Modifier,
-  fontSize: TextUnit = TextUnit.Unspecified
+    latex: String,
+    modifier: Modifier = Modifier,
+    fontSize: TextUnit = TextUnit.Unspecified
 ) {
-  val proceededLatex = latex
-  LatexText(
-    latex = proceededLatex,
-    color = LocalContentColor.current,
-    fontSize = fontSize.takeOrElse { LocalTextStyle.current.fontSize },
-    modifier = modifier,
-  )
+    val proceededLatex = latex
+    LatexText(
+        latex = proceededLatex,
+        color = LocalContentColor.current,
+        fontSize = fontSize.takeOrElse { LocalTextStyle.current.fontSize },
+        modifier = modifier,
+    )
 }
 
 @Composable
 fun MathBlock(
-  latex: String,
-  modifier: Modifier = Modifier,
-  fontSize: TextUnit = TextUnit.Unspecified
+    latex: String,
+    modifier: Modifier = Modifier,
+    fontSize: TextUnit = TextUnit.Unspecified
 ) {
-  val proceededLatex = latex
-  Box(
-    modifier = modifier.padding(8.dp)
-  ) {
-    LatexText(
-      latex = proceededLatex,
-      color = LocalContentColor.current,
-      fontSize = fontSize.takeOrElse { MaterialTheme.typography.bodyLarge.fontSize },
-      modifier = Modifier
-          .align(Alignment.Center)
-          .horizontalScroll(
-              rememberScrollState()
-          ),
-    )
-  }
+    val proceededLatex = latex
+    Box(
+        modifier = modifier.padding(8.dp)
+    ) {
+        LatexText(
+            latex = proceededLatex,
+            color = LocalContentColor.current,
+            fontSize = fontSize.takeOrElse { MaterialTheme.typography.bodyLarge.fontSize },
+            modifier = Modifier
+                .align(Alignment.Center)
+                .horizontalScroll(
+                    rememberScrollState()
+                ),
+        )
+    }
 }

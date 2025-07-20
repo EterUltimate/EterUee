@@ -52,195 +52,195 @@ import org.koin.compose.koinInject
 
 @Composable
 fun McpPickerButton(
-  assistant: Assistant,
-  servers: List<McpServerConfig>,
-  mcpManager: McpManager,
-  modifier: Modifier = Modifier,
-  onUpdateAssistant: (Assistant) -> Unit
+    assistant: Assistant,
+    servers: List<McpServerConfig>,
+    mcpManager: McpManager,
+    modifier: Modifier = Modifier,
+    onUpdateAssistant: (Assistant) -> Unit
 ) {
-  var showMcpPicker by remember { mutableStateOf(false) }
-  val status by mcpManager.syncingStatus.collectAsStateWithLifecycle()
-  val loading = status.values.any { it == McpStatus.Connecting }
-  val enabledServers = servers.fastFilter {
-    it.commonOptions.enable && assistant.mcpServers.contains(it.id)
-  }
-  ToggleSurface(
-    modifier = modifier,
-    checked = assistant.mcpServers.isNotEmpty(),
-    onClick = {
-      showMcpPicker = true
+    var showMcpPicker by remember { mutableStateOf(false) }
+    val status by mcpManager.syncingStatus.collectAsStateWithLifecycle()
+    val loading = status.values.any { it == McpStatus.Connecting }
+    val enabledServers = servers.fastFilter {
+        it.commonOptions.enable && assistant.mcpServers.contains(it.id)
     }
-  ) {
-    Row(
-      modifier = Modifier
-        .padding(vertical = 8.dp, horizontal = 8.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ToggleSurface(
+        modifier = modifier,
+        checked = assistant.mcpServers.isNotEmpty(),
+        onClick = {
+            showMcpPicker = true
+        }
     ) {
-      Box(
-        modifier = Modifier.size(24.dp),
-        contentAlignment = Alignment.Center
-      ) {
-        if (loading) {
-          CircularProgressIndicator(
-            modifier = Modifier.size(20.dp)
-          )
-        } else {
-          BadgedBox(
-            badge = {
-              if(enabledServers.isNotEmpty()) {
-                Badge(
-                  containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                ) {
-                  Text(text = enabledServers.size.toString())
-                }
-              }
-            }
-          ) {
-            Icon(
-              imageVector = Lucide.Terminal,
-              contentDescription = stringResource(R.string.mcp_picker_title),
-            )
-          }
+        Row(
+            modifier = Modifier
+                .padding(vertical = 8.dp, horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Box(
+                modifier = Modifier.size(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (loading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp)
+                    )
+                } else {
+                    BadgedBox(
+                        badge = {
+                            if (enabledServers.isNotEmpty()) {
+                                Badge(
+                                    containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                                ) {
+                                    Text(text = enabledServers.size.toString())
+                                }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Lucide.Terminal,
+                            contentDescription = stringResource(R.string.mcp_picker_title),
+                        )
+                    }
 
+                }
+            }
         }
-      }
     }
-  }
-  if (showMcpPicker) {
-    ModalBottomSheet(
-      onDismissRequest = { showMcpPicker = false },
-      sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    ) {
-      Column(
-        modifier = Modifier.Companion
-            .fillMaxWidth()
-            .fillMaxHeight(0.7f)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-      ) {
-        Text(
-          text = stringResource(id = R.string.mcp_picker_title),
-          style = MaterialTheme.typography.titleLarge.copy(
-            fontWeight = FontWeight.Bold
-          )
-        )
-        AnimatedVisibility(loading) {
-          Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.padding(vertical = 4.dp)
-          ) {
-            LinearWavyProgressIndicator()
-            Text(
-              text = stringResource(id = R.string.mcp_picker_syncing),
-              style = MaterialTheme.typography.bodyLarge
-            )
-          }
+    if (showMcpPicker) {
+        ModalBottomSheet(
+            onDismissRequest = { showMcpPicker = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            Column(
+                modifier = Modifier.Companion
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.7f)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = stringResource(id = R.string.mcp_picker_title),
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+                AnimatedVisibility(loading) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    ) {
+                        LinearWavyProgressIndicator()
+                        Text(
+                            text = stringResource(id = R.string.mcp_picker_syncing),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+                McpPicker(
+                    assistant = assistant,
+                    servers = servers,
+                    onUpdateAssistant = {
+                        onUpdateAssistant(it)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                )
+            }
         }
-        McpPicker(
-          assistant = assistant,
-          servers = servers,
-          onUpdateAssistant = {
-            onUpdateAssistant(it)
-          },
-          modifier = Modifier
-              .fillMaxWidth()
-              .weight(1f)
-        )
-      }
     }
-  }
 }
 
 @Composable
 fun McpPicker(
-  assistant: Assistant,
-  servers: List<McpServerConfig>,
-  modifier: Modifier = Modifier,
-  onUpdateAssistant: (Assistant) -> Unit
+    assistant: Assistant,
+    servers: List<McpServerConfig>,
+    modifier: Modifier = Modifier,
+    onUpdateAssistant: (Assistant) -> Unit
 ) {
-  val mcpManager = koinInject<McpManager>()
-  LazyColumn(
-    modifier = modifier.fillMaxSize(),
-    verticalArrangement = Arrangement.spacedBy(4.dp),
-  ) {
-    items(servers.fastFilter { it.commonOptions.enable }) { server ->
-      val status by mcpManager.getStatus(server).collectAsStateWithLifecycle(McpStatus.Idle)
-      Card {
-        Row(
-          modifier = Modifier
-              .padding(horizontal = 16.dp, vertical = 8.dp)
-              .fillMaxWidth(),
-          horizontalArrangement = Arrangement.spacedBy(16.dp),
-          verticalAlignment = Alignment.CenterVertically,
-        ) {
-          when (status) {
-            McpStatus.Idle -> Icon(Lucide.MessageSquareOff, null)
-            McpStatus.Connecting -> CircularProgressIndicator(
-              modifier = Modifier.size(
-                24.dp
-              )
-            )
+    val mcpManager = koinInject<McpManager>()
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        items(servers.fastFilter { it.commonOptions.enable }) { server ->
+            val status by mcpManager.getStatus(server).collectAsStateWithLifecycle(McpStatus.Idle)
+            Card {
+                Row(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    when (status) {
+                        McpStatus.Idle -> Icon(Lucide.MessageSquareOff, null)
+                        McpStatus.Connecting -> CircularProgressIndicator(
+                            modifier = Modifier.size(
+                                24.dp
+                            )
+                        )
 
-            McpStatus.Connected -> Icon(Lucide.Terminal, null)
-            is McpStatus.Error -> Icon(Lucide.CircleAlert, null)
-          }
-          Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-          ) {
-            Text(
-              text = server.commonOptions.name,
-              style = MaterialTheme.typography.titleLarge,
-            )
-            Text(
-              text = when (status) {
-                is McpStatus.Idle -> "Idle"
-                is McpStatus.Connecting -> "Connecting"
-                is McpStatus.Connected -> "Connected"
-                is McpStatus.Error -> "Error: ${(status as McpStatus.Error).message}"
-              },
-              style = MaterialTheme.typography.labelSmall,
-              color = LocalContentColor.current.copy(alpha = 0.8f)
-            )
-            if (status == McpStatus.Connected) {
-              val tools = server.commonOptions.tools
-              val enabledTools = tools.fastFilter { it.enable }
-              Tag(
-                type = TagType.INFO
-              ) {
-                Text("${enabledTools.size}/${tools.size} tools")
-              }
+                        McpStatus.Connected -> Icon(Lucide.Terminal, null)
+                        is McpStatus.Error -> Icon(Lucide.CircleAlert, null)
+                    }
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = server.commonOptions.name,
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                        Text(
+                            text = when (status) {
+                                is McpStatus.Idle -> "Idle"
+                                is McpStatus.Connecting -> "Connecting"
+                                is McpStatus.Connected -> "Connected"
+                                is McpStatus.Error -> "Error: ${(status as McpStatus.Error).message}"
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = LocalContentColor.current.copy(alpha = 0.8f)
+                        )
+                        if (status == McpStatus.Connected) {
+                            val tools = server.commonOptions.tools
+                            val enabledTools = tools.fastFilter { it.enable }
+                            Tag(
+                                type = TagType.INFO
+                            ) {
+                                Text("${enabledTools.size}/${tools.size} tools")
+                            }
+                        }
+                    }
+                    Switch(
+                        checked = server.id in assistant.mcpServers,
+                        onCheckedChange = {
+                            if (it) {
+                                val newServers = assistant.mcpServers.toMutableSet()
+                                newServers.add(server.id)
+                                newServers.removeIf { servers.none { s -> s.id == server.id } } // remove invalid servers
+                                onUpdateAssistant(
+                                    assistant.copy(
+                                        mcpServers = newServers.toSet()
+                                    )
+                                )
+                            } else {
+                                val newServers = assistant.mcpServers.toMutableSet()
+                                newServers.remove(server.id)
+                                newServers.removeIf { servers.none { s -> s.id == server.id } } //  remove invalid servers
+                                onUpdateAssistant(
+                                    assistant.copy(
+                                        mcpServers = newServers.toSet()
+                                    )
+                                )
+                            }
+                        }
+                    )
+                }
             }
-          }
-          Switch(
-            checked = server.id in assistant.mcpServers,
-            onCheckedChange = {
-              if (it) {
-                val newServers = assistant.mcpServers.toMutableSet()
-                newServers.add(server.id)
-                newServers.removeIf { servers.none { s -> s.id == server.id } } // remove invalid servers
-                onUpdateAssistant(
-                  assistant.copy(
-                    mcpServers = newServers.toSet()
-                  )
-                )
-              } else {
-                val newServers = assistant.mcpServers.toMutableSet()
-                newServers.remove(server.id)
-                newServers.removeIf { servers.none { s -> s.id == server.id } } //  remove invalid servers
-                onUpdateAssistant(
-                  assistant.copy(
-                    mcpServers = newServers.toSet()
-                  )
-                )
-              }
-            }
-          )
         }
-      }
     }
-  }
 }

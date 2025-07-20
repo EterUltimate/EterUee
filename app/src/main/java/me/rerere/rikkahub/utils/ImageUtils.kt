@@ -25,15 +25,15 @@ object ImageUtils {
      * 2. 计算合适的采样率
      * 3. 加载压缩后的图片
      * 4. 处理图片旋转
-     * 
+     *
      * @param context Android上下文
      * @param uri 图片URI
      * @param maxSize 最大尺寸限制，默认1024px
      * @return 压缩后的Bitmap，失败返回null
      */
     fun loadOptimizedBitmap(
-        context: Context, 
-        uri: Uri, 
+        context: Context,
+        uri: Uri,
         maxSize: Int = 1024
     ): Bitmap? {
         return runCatching {
@@ -68,7 +68,7 @@ object ImageUtils {
 
     /**
      * 计算合适的采样率
-     * 
+     *
      * @param options BitmapFactory.Options包含原始图片尺寸信息
      * @param reqWidth 目标宽度
      * @param reqHeight 目标高度
@@ -99,7 +99,7 @@ object ImageUtils {
     /**
      * 修正图片旋转
      * 根据EXIF信息自动旋转图片到正确方向
-     * 
+     *
      * @param context Android上下文
      * @param uri 图片URI
      * @param bitmap 原始bitmap
@@ -138,7 +138,7 @@ object ImageUtils {
 
     /**
      * 从图片中解析二维码
-     * 
+     *
      * @param bitmap 要解析的图片
      * @return 二维码内容，解析失败返回null
      */
@@ -163,15 +163,15 @@ object ImageUtils {
 
     /**
      * 从URI加载图片并解析二维码（组合方法）
-     * 
+     *
      * @param context Android上下文
      * @param uri 图片URI
      * @param maxSize 最大尺寸限制，默认1024px
      * @return 二维码内容，解析失败返回null
      */
     fun decodeQRCodeFromUri(
-        context: Context, 
-        uri: Uri, 
+        context: Context,
+        uri: Uri,
         maxSize: Int = 1024
     ): String? {
         val bitmap = loadOptimizedBitmap(context, uri, maxSize) ?: return null
@@ -184,7 +184,7 @@ object ImageUtils {
 
     /**
      * 安全地回收Bitmap内存
-     * 
+     *
      * @param bitmap 要回收的bitmap
      */
     fun recycleBitmapSafely(bitmap: Bitmap?) {
@@ -197,7 +197,7 @@ object ImageUtils {
 
     /**
      * 获取图片的基本信息（不加载到内存）
-     * 
+     *
      * @param context Android上下文
      * @param uri 图片URI
      * @return ImageInfo包含宽度、高度、MIME类型等信息

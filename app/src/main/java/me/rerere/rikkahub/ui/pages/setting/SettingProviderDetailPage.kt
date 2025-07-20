@@ -49,7 +49,6 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -127,1296 +126,1296 @@ import kotlin.uuid.Uuid
 
 @Composable
 fun SettingProviderDetailPage(id: Uuid, vm: SettingVM = koinViewModel()) {
-  val settings by vm.settings.collectAsStateWithLifecycle()
-  val navController = LocalNavController.current
-  val provider = settings.providers.find { it.id == id } ?: return
-  val pager = rememberPagerState { 3 }
-  val scope = rememberCoroutineScope()
-  val toaster = LocalToaster.current
-  val context = LocalContext.current
+    val settings by vm.settings.collectAsStateWithLifecycle()
+    val navController = LocalNavController.current
+    val provider = settings.providers.find { it.id == id } ?: return
+    val pager = rememberPagerState { 3 }
+    val scope = rememberCoroutineScope()
+    val toaster = LocalToaster.current
+    val context = LocalContext.current
 
-  val onEdit = { newProvider: ProviderSetting ->
-    val newSettings = settings.copy(
-      providers = settings.providers.map {
-        if (newProvider.id == it.id) {
-          newProvider
-        } else {
-          it
-        }
-      }
-    )
-    vm.updateSettings(newSettings)
-  }
-  val onDelete = {
-    val newSettings = settings.copy(
-      providers = settings.providers - provider
-    )
-    vm.updateSettings(newSettings)
-    navController.popBack()
-  }
-
-  Scaffold(
-    topBar = {
-      TopAppBar(
-        navigationIcon = {
-          BackButton()
-        },
-        title = {
-          Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-          ) {
-            AutoAIIcon(provider.name, modifier = Modifier.size(22.dp))
-            Text(provider.name)
-          }
-        },
-        actions = {
-          val shareSheetState = rememberShareSheetState()
-          ShareSheet(shareSheetState)
-          IconButton(
-            onClick = {
-              shareSheetState.show(provider)
+    val onEdit = { newProvider: ProviderSetting ->
+        val newSettings = settings.copy(
+            providers = settings.providers.map {
+                if (newProvider.id == it.id) {
+                    newProvider
+                } else {
+                    it
+                }
             }
-          ) {
-            Icon(Lucide.Share, null)
-          }
-        }
-      )
-    },
-    bottomBar = {
-      NavigationBar {
-        NavigationBarItem(
-          selected = pager.currentPage == 0,
-          label = { Text(stringResource(id = R.string.setting_provider_page_configuration)) },
-          icon = { Icon(Lucide.Settings2, null) },
-          onClick = {
-            scope.launch {
-              pager.animateScrollToPage(0)
-            }
-          }
         )
-        NavigationBarItem(
-          selected = pager.currentPage == 1,
-          label = { Text(stringResource(id = R.string.setting_provider_page_models)) },
-          icon = { Icon(Lucide.Boxes, null) },
-          onClick = {
-            scope.launch {
-              pager.animateScrollToPage(1)
-            }
-          }
-        )
-        NavigationBarItem(
-          selected = pager.currentPage == 2,
-          label = { Text(stringResource(id = R.string.setting_provider_page_network_proxy)) },
-          icon = { Icon(Lucide.Network, null) },
-          onClick = {
-            scope.launch {
-              pager.animateScrollToPage(2)
-            }
-          }
-        )
-      }
+        vm.updateSettings(newSettings)
     }
-  ) {
-    HorizontalPager(
-      state = pager,
-      modifier = Modifier.padding(it)
-    ) { page ->
-      when (page) {
-        0 -> {
-          SettingProviderConfigPage(
-            provider = provider,
-            onEdit = {
-              onEdit(it)
-              toaster.show(
-                context.getString(R.string.setting_provider_page_save_success),
-                type = ToastType.Success
-              )
-            },
-            onDelete = {
-              onDelete()
-            }
-          )
-        }
-
-        1 -> {
-          SettingProviderModelPage(
-            provider = provider,
-            onEdit = onEdit
-          )
-        }
-
-        2 -> {
-          SettingProviderProxyPage(
-            provider = provider,
-            onEdit = onEdit
-          )
-        }
-      }
+    val onDelete = {
+        val newSettings = settings.copy(
+            providers = settings.providers - provider
+        )
+        vm.updateSettings(newSettings)
+        navController.popBack()
     }
-  }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                navigationIcon = {
+                    BackButton()
+                },
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        AutoAIIcon(provider.name, modifier = Modifier.size(22.dp))
+                        Text(provider.name)
+                    }
+                },
+                actions = {
+                    val shareSheetState = rememberShareSheetState()
+                    ShareSheet(shareSheetState)
+                    IconButton(
+                        onClick = {
+                            shareSheetState.show(provider)
+                        }
+                    ) {
+                        Icon(Lucide.Share, null)
+                    }
+                }
+            )
+        },
+        bottomBar = {
+            NavigationBar {
+                NavigationBarItem(
+                    selected = pager.currentPage == 0,
+                    label = { Text(stringResource(id = R.string.setting_provider_page_configuration)) },
+                    icon = { Icon(Lucide.Settings2, null) },
+                    onClick = {
+                        scope.launch {
+                            pager.animateScrollToPage(0)
+                        }
+                    }
+                )
+                NavigationBarItem(
+                    selected = pager.currentPage == 1,
+                    label = { Text(stringResource(id = R.string.setting_provider_page_models)) },
+                    icon = { Icon(Lucide.Boxes, null) },
+                    onClick = {
+                        scope.launch {
+                            pager.animateScrollToPage(1)
+                        }
+                    }
+                )
+                NavigationBarItem(
+                    selected = pager.currentPage == 2,
+                    label = { Text(stringResource(id = R.string.setting_provider_page_network_proxy)) },
+                    icon = { Icon(Lucide.Network, null) },
+                    onClick = {
+                        scope.launch {
+                            pager.animateScrollToPage(2)
+                        }
+                    }
+                )
+            }
+        }
+    ) {
+        HorizontalPager(
+            state = pager,
+            modifier = Modifier.padding(it)
+        ) { page ->
+            when (page) {
+                0 -> {
+                    SettingProviderConfigPage(
+                        provider = provider,
+                        onEdit = {
+                            onEdit(it)
+                            toaster.show(
+                                context.getString(R.string.setting_provider_page_save_success),
+                                type = ToastType.Success
+                            )
+                        },
+                        onDelete = {
+                            onDelete()
+                        }
+                    )
+                }
+
+                1 -> {
+                    SettingProviderModelPage(
+                        provider = provider,
+                        onEdit = onEdit
+                    )
+                }
+
+                2 -> {
+                    SettingProviderProxyPage(
+                        provider = provider,
+                        onEdit = onEdit
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable
 private fun SettingProviderConfigPage(
-  provider: ProviderSetting,
-  onEdit: (ProviderSetting) -> Unit,
-  onDelete: () -> Unit
+    provider: ProviderSetting,
+    onEdit: (ProviderSetting) -> Unit,
+    onDelete: () -> Unit
 ) {
-  var internalProvider by remember(provider) { mutableStateOf(provider) }
-  val scope = rememberCoroutineScope()
-  var showDeleteDialog by remember { mutableStateOf(false) }
+    var internalProvider by remember(provider) { mutableStateOf(provider) }
+    val scope = rememberCoroutineScope()
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
-  Column(
-    modifier = Modifier
-        .fillMaxSize()
-        .verticalScroll(rememberScrollState())
-        .padding(16.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp)
-  ) {
-    ProviderConfigure(
-      provider = internalProvider,
-      onEdit = {
-        internalProvider = it
-      }
-    )
-
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
-      verticalAlignment = Alignment.CenterVertically
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-      ConnectionTester(
-        provider = provider,
-        internalProvider = internalProvider,
-        scope = scope
-      )
+        ProviderConfigure(
+            provider = internalProvider,
+            onEdit = {
+                internalProvider = it
+            }
+        )
 
-      Spacer(Modifier.weight(1f))
-
-      if (!internalProvider.builtIn) {
-        IconButton(
-          onClick = {
-            showDeleteDialog = true
-          },
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-          Icon(Lucide.Trash2, "Delete")
-        }
-      }
+            ConnectionTester(
+                provider = provider,
+                internalProvider = internalProvider,
+                scope = scope
+            )
 
-      Button(
-        onClick = {
-          onEdit(internalProvider)
+            Spacer(Modifier.weight(1f))
+
+            if (!internalProvider.builtIn) {
+                IconButton(
+                    onClick = {
+                        showDeleteDialog = true
+                    },
+                ) {
+                    Icon(Lucide.Trash2, "Delete")
+                }
+            }
+
+            Button(
+                onClick = {
+                    onEdit(internalProvider)
+                }
+            ) {
+                Text(stringResource(R.string.setting_provider_page_save))
+            }
         }
-      ) {
-        Text(stringResource(R.string.setting_provider_page_save))
-      }
     }
-  }
 
-  // Delete confirmation dialog
-  if (showDeleteDialog) {
-    AlertDialog(
-      onDismissRequest = { showDeleteDialog = false },
-      title = {
-        Text(stringResource(R.string.confirm_delete))
-      },
-      text = {
-        Text(stringResource(R.string.setting_provider_page_delete_dialog_text))
-      },
-      dismissButton = {
-        TextButton(onClick = { showDeleteDialog = false }) {
-          Text(stringResource(R.string.cancel))
-        }
-      },
-      confirmButton = {
-        TextButton(
-          onClick = {
-            showDeleteDialog = false
-            onDelete()
-          }
-        ) {
-          Text(stringResource(R.string.delete))
-        }
-      }
-    )
-  }
+    // Delete confirmation dialog
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = {
+                Text(stringResource(R.string.confirm_delete))
+            },
+            text = {
+                Text(stringResource(R.string.setting_provider_page_delete_dialog_text))
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        onDelete()
+                    }
+                ) {
+                    Text(stringResource(R.string.delete))
+                }
+            }
+        )
+    }
 }
 
 @Composable
 private fun SettingProviderModelPage(
-  provider: ProviderSetting,
-  onEdit: (ProviderSetting) -> Unit
+    provider: ProviderSetting,
+    onEdit: (ProviderSetting) -> Unit
 ) {
-  ModelList(
-    providerSetting = provider,
-    onUpdateProvider = onEdit
-  )
+    ModelList(
+        providerSetting = provider,
+        onUpdateProvider = onEdit
+    )
 }
 
 @Composable
 private fun SettingProviderProxyPage(
-  provider: ProviderSetting,
-  onEdit: (ProviderSetting) -> Unit
+    provider: ProviderSetting,
+    onEdit: (ProviderSetting) -> Unit
 ) {
-  val toaster = LocalToaster.current
-  val context = LocalContext.current
-  var editingProxy by remember(provider.proxy) {
-    mutableStateOf(provider.proxy)
-  }
-  val proxyType = when (editingProxy) {
-    is ProviderProxy.Http -> "HTTP"
-    is ProviderProxy.None -> "None"
-  }
-
-  Column(
-    modifier = Modifier
-        .fillMaxSize()
-        .verticalScroll(rememberScrollState())
-        .padding(16.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp)
-  ) {
-    SingleChoiceSegmentedButtonRow(
-      modifier = Modifier.fillMaxWidth()
-    ) {
-      val types = listOf("None", "HTTP")
-      types.forEachIndexed { index, type ->
-        SegmentedButton(
-          shape = SegmentedButtonDefaults.itemShape(index, types.size),
-          label = { Text(type) },
-          selected = proxyType == type,
-          onClick = {
-            editingProxy = when (type) {
-              "HTTP" -> ProviderProxy.Http(
-                address = "",
-                port = 8080
-              )
-
-              else -> ProviderProxy.None
-            }
-          }
-        )
-      }
+    val toaster = LocalToaster.current
+    val context = LocalContext.current
+    var editingProxy by remember(provider.proxy) {
+        mutableStateOf(provider.proxy)
+    }
+    val proxyType = when (editingProxy) {
+        is ProviderProxy.Http -> "HTTP"
+        is ProviderProxy.None -> "None"
     }
 
-    when (editingProxy) {
-      is ProviderProxy.None -> {}
-      is ProviderProxy.Http -> {
-        OutlinedTextField(
-          value = (editingProxy as ProviderProxy.Http).address,
-          onValueChange = {
-            editingProxy = (editingProxy as ProviderProxy.Http).copy(address = it)
-          },
-          label = { Text(stringResource(id = R.string.setting_provider_page_proxy_host)) },
-          modifier = Modifier.fillMaxWidth()
-        )
-        var portStr by remember { mutableStateOf((editingProxy as ProviderProxy.Http).port.toString()) }
-        OutlinedTextField(
-          value = portStr,
-          onValueChange = {
-            portStr = it
-            it.toIntOrNull()?.let { port ->
-              editingProxy = (editingProxy as ProviderProxy.Http).copy(port = port)
-            }
-          },
-          label = { Text(stringResource(id = R.string.setting_provider_page_proxy_port)) },
-          modifier = Modifier.fillMaxWidth(),
-          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-        )
-        OutlinedTextField(
-          value = (editingProxy as ProviderProxy.Http).username ?: "",
-          onValueChange = {
-            editingProxy = (editingProxy as ProviderProxy.Http).copy(username = it)
-          },
-          label = { Text(stringResource(id = R.string.setting_provider_page_proxy_username)) },
-          modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-          value = (editingProxy as ProviderProxy.Http).password ?: "",
-          onValueChange = {
-            editingProxy = (editingProxy as ProviderProxy.Http).copy(password = it)
-          },
-          label = { Text(stringResource(id = R.string.setting_provider_page_proxy_password)) },
-          modifier = Modifier.fillMaxWidth(),
-        )
-      }
-    }
-
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.End
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-      Button(
-        onClick = {
-          onEdit(provider.copyProvider(proxy = editingProxy))
-          toaster.show(
-            context.getString(R.string.setting_provider_page_save_success),
-            type = ToastType.Success
-          )
+        SingleChoiceSegmentedButtonRow(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            val types = listOf("None", "HTTP")
+            types.forEachIndexed { index, type ->
+                SegmentedButton(
+                    shape = SegmentedButtonDefaults.itemShape(index, types.size),
+                    label = { Text(type) },
+                    selected = proxyType == type,
+                    onClick = {
+                        editingProxy = when (type) {
+                            "HTTP" -> ProviderProxy.Http(
+                                address = "",
+                                port = 8080
+                            )
+
+                            else -> ProviderProxy.None
+                        }
+                    }
+                )
+            }
         }
-      ) {
-        Text(stringResource(id = R.string.setting_provider_page_save))
-      }
+
+        when (editingProxy) {
+            is ProviderProxy.None -> {}
+            is ProviderProxy.Http -> {
+                OutlinedTextField(
+                    value = (editingProxy as ProviderProxy.Http).address,
+                    onValueChange = {
+                        editingProxy = (editingProxy as ProviderProxy.Http).copy(address = it)
+                    },
+                    label = { Text(stringResource(id = R.string.setting_provider_page_proxy_host)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                var portStr by remember { mutableStateOf((editingProxy as ProviderProxy.Http).port.toString()) }
+                OutlinedTextField(
+                    value = portStr,
+                    onValueChange = {
+                        portStr = it
+                        it.toIntOrNull()?.let { port ->
+                            editingProxy = (editingProxy as ProviderProxy.Http).copy(port = port)
+                        }
+                    },
+                    label = { Text(stringResource(id = R.string.setting_provider_page_proxy_port)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+                OutlinedTextField(
+                    value = (editingProxy as ProviderProxy.Http).username ?: "",
+                    onValueChange = {
+                        editingProxy = (editingProxy as ProviderProxy.Http).copy(username = it)
+                    },
+                    label = { Text(stringResource(id = R.string.setting_provider_page_proxy_username)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = (editingProxy as ProviderProxy.Http).password ?: "",
+                    onValueChange = {
+                        editingProxy = (editingProxy as ProviderProxy.Http).copy(password = it)
+                    },
+                    label = { Text(stringResource(id = R.string.setting_provider_page_proxy_password)) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            Button(
+                onClick = {
+                    onEdit(provider.copyProvider(proxy = editingProxy))
+                    toaster.show(
+                        context.getString(R.string.setting_provider_page_save_success),
+                        type = ToastType.Success
+                    )
+                }
+            ) {
+                Text(stringResource(id = R.string.setting_provider_page_save))
+            }
+        }
     }
-  }
 }
 
 @Composable
 private fun ConnectionTester(
-  provider: ProviderSetting,
-  internalProvider: ProviderSetting,
-  scope: CoroutineScope
+    provider: ProviderSetting,
+    internalProvider: ProviderSetting,
+    scope: CoroutineScope
 ) {
-  var showTestDialog by remember { mutableStateOf(false) }
-  IconButton(
-    onClick = {
-      showTestDialog = true
+    var showTestDialog by remember { mutableStateOf(false) }
+    IconButton(
+        onClick = {
+            showTestDialog = true
+        }
+    ) {
+        Icon(Lucide.Cable, null)
     }
-  ) {
-    Icon(Lucide.Cable, null)
-  }
-  if (showTestDialog) {
-    var model by remember { mutableStateOf<Model?>(null) }
-    var testState: UiState<String> by remember { mutableStateOf(UiState.Idle) }
-    AlertDialog(
-      onDismissRequest = { showTestDialog = false },
-      title = {
-        Text(stringResource(R.string.setting_provider_page_test_connection))
-      },
-      text = {
-        Column(
-          verticalArrangement = Arrangement.spacedBy(8.dp),
-          horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-          ModelSelector(
-            modelId = model?.id,
-            providers = listOf(provider),
-            type = ModelType.CHAT,
-            modifier = Modifier.fillMaxWidth()
-          ) {
-            model = it
-          }
-          when (testState) {
-            is UiState.Loading -> {
-              LinearWavyProgressIndicator()
-            }
+    if (showTestDialog) {
+        var model by remember { mutableStateOf<Model?>(null) }
+        var testState: UiState<String> by remember { mutableStateOf(UiState.Idle) }
+        AlertDialog(
+            onDismissRequest = { showTestDialog = false },
+            title = {
+                Text(stringResource(R.string.setting_provider_page_test_connection))
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    ModelSelector(
+                        modelId = model?.id,
+                        providers = listOf(provider),
+                        type = ModelType.CHAT,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        model = it
+                    }
+                    when (testState) {
+                        is UiState.Loading -> {
+                            LinearWavyProgressIndicator()
+                        }
 
-            is UiState.Success -> {
-              Text(
-                text = stringResource(R.string.setting_provider_page_test_success),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.extendColors.green6
-              )
-            }
+                        is UiState.Success -> {
+                            Text(
+                                text = stringResource(R.string.setting_provider_page_test_success),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.extendColors.green6
+                            )
+                        }
 
-            is UiState.Error -> {
-              Text(
-                text = (testState as UiState.Error).error.message ?: "Error",
-                color = MaterialTheme.extendColors.red6,
-                maxLines = 10
-              )
-            }
+                        is UiState.Error -> {
+                            Text(
+                                text = (testState as UiState.Error).error.message ?: "Error",
+                                color = MaterialTheme.extendColors.red6,
+                                maxLines = 10
+                            )
+                        }
 
-            else -> {}
-          }
-        }
-      },
-      dismissButton = {
-        TextButton(onClick = { showTestDialog = false }) {
-          Text(stringResource(R.string.cancel))
-        }
-      },
-      confirmButton = {
-        TextButton(
-          onClick = {
-            if (model == null) return@TextButton
-            val provider = ProviderManager.getProviderByType(internalProvider)
-            scope.launch {
-              runCatching {
-                testState = UiState.Loading
-                provider.generateText(
-                  providerSetting = internalProvider,
-                  messages = listOf(
-                    UIMessage.user("hello")
-                  ),
-                  params = TextGenerationParams(
-                    model = model!!,
-                  )
-                )
-                testState = UiState.Success("Success")
-              }.onFailure {
-                testState = UiState.Error(it)
-              }
+                        else -> {}
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTestDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (model == null) return@TextButton
+                        val provider = ProviderManager.getProviderByType(internalProvider)
+                        scope.launch {
+                            runCatching {
+                                testState = UiState.Loading
+                                provider.generateText(
+                                    providerSetting = internalProvider,
+                                    messages = listOf(
+                                        UIMessage.user("hello")
+                                    ),
+                                    params = TextGenerationParams(
+                                        model = model!!,
+                                    )
+                                )
+                                testState = UiState.Success("Success")
+                            }.onFailure {
+                                testState = UiState.Error(it)
+                            }
+                        }
+                    }
+                ) {
+                    Text(stringResource(R.string.setting_provider_page_test))
+                }
             }
-          }
-        ) {
-          Text(stringResource(R.string.setting_provider_page_test))
-        }
-      }
-    )
-  }
+        )
+    }
 }
 
 @Composable
 private fun ModelList(
-  providerSetting: ProviderSetting,
-  onUpdateProvider: (ProviderSetting) -> Unit
+    providerSetting: ProviderSetting,
+    onUpdateProvider: (ProviderSetting) -> Unit
 ) {
-  val modelList by produceState(emptyList(), providerSetting) {
-    runCatching {
-      println("loading models...")
-      value = ProviderManager.getProviderByType(providerSetting)
-        .listModels(providerSetting)
-        .sortedBy { it.modelId }
-        .toList()
-      // println(value)
-    }.onFailure {
-      it.printStackTrace()
+    val modelList by produceState(emptyList(), providerSetting) {
+        runCatching {
+            println("loading models...")
+            value = ProviderManager.getProviderByType(providerSetting)
+                .listModels(providerSetting)
+                .sortedBy { it.modelId }
+                .toList()
+            // println(value)
+        }.onFailure {
+            it.printStackTrace()
+        }
     }
-  }
-  var expanded by rememberSaveable { mutableStateOf(true) }
-  val lazyListState = rememberLazyListState()
-  val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
-    onUpdateProvider(providerSetting.moveMove(from.index, to.index))
-  }
+    var expanded by rememberSaveable { mutableStateOf(true) }
+    val lazyListState = rememberLazyListState()
+    val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
+        onUpdateProvider(providerSetting.moveMove(from.index, to.index))
+    }
 
-  Box(modifier = Modifier.fillMaxSize()) {
-    LazyColumn(
-      modifier = Modifier
-          .fillMaxSize()
-          .floatingToolbarVerticalNestedScroll(
-              expanded = expanded,
-              onExpand = { expanded = true },
-              onCollapse = { expanded = false },
-          ),
-      contentPadding = PaddingValues(16.dp) + PaddingValues(bottom = 128.dp),
-      horizontalAlignment = Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.spacedBy(8.dp),
-      state = lazyListState
-    ) {
-      // 模型列表
-      if (providerSetting.models.isEmpty()) {
-        item {
-          Column(
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
             modifier = Modifier
-                .fillParentMaxHeight(0.8f)
-                .fillMaxWidth(),
+                .fillMaxSize()
+                .floatingToolbarVerticalNestedScroll(
+                    expanded = expanded,
+                    onExpand = { expanded = true },
+                    onCollapse = { expanded = false },
+                ),
+            contentPadding = PaddingValues(16.dp) + PaddingValues(bottom = 128.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-          ) {
-            Text(
-              text = stringResource(R.string.setting_provider_page_no_models),
-              style = MaterialTheme.typography.bodyLarge,
-              color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-              text = stringResource(R.string.setting_provider_page_add_models_hint),
-              style = MaterialTheme.typography.bodyMedium,
-              color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-            )
-          }
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            state = lazyListState
+        ) {
+            // 模型列表
+            if (providerSetting.models.isEmpty()) {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillParentMaxHeight(0.8f)
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = stringResource(R.string.setting_provider_page_no_models),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = stringResource(R.string.setting_provider_page_add_models_hint),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+            } else {
+                items(providerSetting.models, key = { it.id }) { item ->
+                    ReorderableItem(
+                        state = reorderableLazyListState,
+                        key = item.id
+                    ) { isDragging ->
+                        ModelCard(
+                            model = item,
+                            onDelete = {
+                                onUpdateProvider(providerSetting.delModel(item))
+                            },
+                            onEdit = { editedModel ->
+                                onUpdateProvider(providerSetting.editModel(editedModel))
+                            },
+                            modifier = Modifier
+                                .longPressDraggableHandle()
+                                .graphicsLayer {
+                                    if (isDragging) {
+                                        scaleX = 1.05f
+                                        scaleY = 1.05f
+                                    } else {
+                                        scaleX = 1f
+                                        scaleY = 1f
+                                    }
+                                },
+                        )
+                    }
+                }
+            }
         }
-      } else {
-        items(providerSetting.models, key = { it.id }) { item ->
-          ReorderableItem(
-            state = reorderableLazyListState,
-            key = item.id
-          ) { isDragging ->
-            ModelCard(
-              model = item,
-              onDelete = {
-                onUpdateProvider(providerSetting.delModel(item))
-              },
-              onEdit = { editedModel ->
-                onUpdateProvider(providerSetting.editModel(editedModel))
-              },
-              modifier = Modifier
-                  .longPressDraggableHandle()
-                  .graphicsLayer {
-                      if (isDragging) {
-                          scaleX = 1.05f
-                          scaleY = 1.05f
-                      } else {
-                          scaleX = 1f
-                          scaleY = 1f
-                      }
-                  },
+        HorizontalFloatingToolbar(
+            expanded = expanded,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .offset(y = -ScreenOffset),
+        ) {
+            AddModelButton(
+                models = modelList,
+                selectedModels = providerSetting.models,
+                onAddModel = {
+                    onUpdateProvider(providerSetting.addModel(it))
+                },
+                onRemoveModel = {
+                    onUpdateProvider(providerSetting.delModel(it))
+                },
+                expanded = expanded
             )
-          }
         }
-      }
     }
-    HorizontalFloatingToolbar(
-      expanded = expanded,
-      modifier = Modifier
-          .align(Alignment.BottomCenter)
-          .offset(y = -ScreenOffset),
-    ) {
-      AddModelButton(
-        models = modelList,
-        selectedModels = providerSetting.models,
-        onAddModel = {
-          onUpdateProvider(providerSetting.addModel(it))
-        },
-        onRemoveModel = {
-          onUpdateProvider(providerSetting.delModel(it))
-        },
-        expanded = expanded
-      )
-    }
-  }
 }
 
 @Composable
 private fun ModelSettingsForm(
-  model: Model,
-  onModelChange: (Model) -> Unit,
-  isEdit: Boolean
+    model: Model,
+    onModelChange: (Model) -> Unit,
+    isEdit: Boolean
 ) {
-  val pagerState = rememberPagerState { 2 }
-  val scope = rememberCoroutineScope()
+    val pagerState = rememberPagerState { 2 }
+    val scope = rememberCoroutineScope()
 
-  fun setModelId(id: String) {
-    val modality = guessModalityFromModelId(id.lowercase())
-    val abilities = guessModelAbilityFromModelId(id.lowercase())
-    onModelChange(
-      model.copy(
-        modelId = id,
-        displayName = id.uppercase(),
-        inputModalities = modality.first,
-        outputModalities = modality.second,
-        abilities = abilities
-      )
-    )
-  }
-
-  Column {
-    SecondaryTabRow(
-      selectedTabIndex = pagerState.currentPage,
-      containerColor = Color.Transparent,
-    ) {
-      Tab(
-        selected = pagerState.currentPage == 0,
-        onClick = {
-          scope.launch {
-            pagerState.animateScrollToPage(0)
-          }
-        },
-        text = { Text(stringResource(R.string.setting_provider_page_basic_settings)) }
-      )
-      Tab(
-        selected = pagerState.currentPage == 1,
-        onClick = {
-          scope.launch {
-            pagerState.animateScrollToPage(1)
-          }
-        },
-        text = { Text(stringResource(R.string.setting_provider_page_advanced_settings)) }
-      )
+    fun setModelId(id: String) {
+        val modality = guessModalityFromModelId(id.lowercase())
+        val abilities = guessModelAbilityFromModelId(id.lowercase())
+        onModelChange(
+            model.copy(
+                modelId = id,
+                displayName = id.uppercase(),
+                inputModalities = modality.first,
+                outputModalities = modality.second,
+                abilities = abilities
+            )
+        )
     }
 
-    HorizontalPager(
-      state = pagerState,
-      modifier = Modifier.fillMaxWidth()
-    ) { page ->
-      when (page) {
-        0 -> {
-          // 基本设置页面
-          Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(vertical = 16.dp)
-                .verticalScroll(rememberScrollState())
-          ) {
-            OutlinedTextField(
-              value = model.modelId,
-              onValueChange = {
-                if (!isEdit) {
-                  setModelId(it.trim())
-                }
-              },
-              label = { Text(stringResource(R.string.setting_provider_page_model_id)) },
-              modifier = Modifier.fillMaxWidth(),
-              placeholder = {
-                if (!isEdit) {
-                  Text(stringResource(R.string.setting_provider_page_model_id_placeholder))
-                }
-              },
-              enabled = !isEdit
+    Column {
+        SecondaryTabRow(
+            selectedTabIndex = pagerState.currentPage,
+            containerColor = Color.Transparent,
+        ) {
+            Tab(
+                selected = pagerState.currentPage == 0,
+                onClick = {
+                    scope.launch {
+                        pagerState.animateScrollToPage(0)
+                    }
+                },
+                text = { Text(stringResource(R.string.setting_provider_page_basic_settings)) }
             )
-
-            OutlinedTextField(
-              value = model.displayName,
-              onValueChange = {
-                onModelChange(model.copy(displayName = it.trim()))
-              },
-              label = { Text(stringResource(if (isEdit) R.string.setting_provider_page_model_name else R.string.setting_provider_page_model_display_name)) },
-              modifier = Modifier.fillMaxWidth(),
-              placeholder = {
-                if (!isEdit) {
-                  Text(stringResource(R.string.setting_provider_page_model_display_name_placeholder))
-                }
-              }
+            Tab(
+                selected = pagerState.currentPage == 1,
+                onClick = {
+                    scope.launch {
+                        pagerState.animateScrollToPage(1)
+                    }
+                },
+                text = { Text(stringResource(R.string.setting_provider_page_advanced_settings)) }
             )
-
-            ModelTypeSelector(
-              selectedType = model.type,
-              onTypeSelected = {
-                onModelChange(model.copy(type = it))
-              }
-            )
-
-            ModelModalitySelector(
-              inputModalities = model.inputModalities,
-              onUpdateInputModalities = {
-                onModelChange(model.copy(inputModalities = it))
-              },
-              outputModalities = model.outputModalities,
-              onUpdateOutputModalities = {
-                onModelChange(model.copy(outputModalities = it))
-              }
-            )
-
-            ModalAbilitySelector(
-              abilities = model.abilities,
-              onUpdateAbilities = {
-                onModelChange(model.copy(abilities = it))
-              }
-            )
-          }
         }
 
-        1 -> {
-          // 高级设置页面
-          Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-          ) {
-            CustomHeaders(
-              headers = model.customHeaders,
-              onUpdate = { headers ->
-                onModelChange(model.copy(customHeaders = headers))
-              }
-            )
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxWidth()
+        ) { page ->
+            when (page) {
+                0 -> {
+                    // 基本设置页面
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(vertical = 16.dp)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        OutlinedTextField(
+                            value = model.modelId,
+                            onValueChange = {
+                                if (!isEdit) {
+                                    setModelId(it.trim())
+                                }
+                            },
+                            label = { Text(stringResource(R.string.setting_provider_page_model_id)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = {
+                                if (!isEdit) {
+                                    Text(stringResource(R.string.setting_provider_page_model_id_placeholder))
+                                }
+                            },
+                            enabled = !isEdit
+                        )
 
-            Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = model.displayName,
+                            onValueChange = {
+                                onModelChange(model.copy(displayName = it.trim()))
+                            },
+                            label = { Text(stringResource(if (isEdit) R.string.setting_provider_page_model_name else R.string.setting_provider_page_model_display_name)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = {
+                                if (!isEdit) {
+                                    Text(stringResource(R.string.setting_provider_page_model_display_name_placeholder))
+                                }
+                            }
+                        )
 
-            CustomBodies(
-              customBodies = model.customBodies,
-              onUpdate = { bodies ->
-                onModelChange(model.copy(customBodies = bodies))
-              }
-            )
-          }
+                        ModelTypeSelector(
+                            selectedType = model.type,
+                            onTypeSelected = {
+                                onModelChange(model.copy(type = it))
+                            }
+                        )
+
+                        ModelModalitySelector(
+                            inputModalities = model.inputModalities,
+                            onUpdateInputModalities = {
+                                onModelChange(model.copy(inputModalities = it))
+                            },
+                            outputModalities = model.outputModalities,
+                            onUpdateOutputModalities = {
+                                onModelChange(model.copy(outputModalities = it))
+                            }
+                        )
+
+                        ModalAbilitySelector(
+                            abilities = model.abilities,
+                            onUpdateAbilities = {
+                                onModelChange(model.copy(abilities = it))
+                            }
+                        )
+                    }
+                }
+
+                1 -> {
+                    // 高级设置页面
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        CustomHeaders(
+                            headers = model.customHeaders,
+                            onUpdate = { headers ->
+                                onModelChange(model.copy(customHeaders = headers))
+                            }
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        CustomBodies(
+                            customBodies = model.customBodies,
+                            onUpdate = { bodies ->
+                                onModelChange(model.copy(customBodies = bodies))
+                            }
+                        )
+                    }
+                }
+            }
         }
-      }
     }
-  }
 }
 
 @Composable
 private fun AddModelButton(
-  models: List<Model>,
-  selectedModels: List<Model>,
-  expanded: Boolean,
-  onAddModel: (Model) -> Unit,
-  onRemoveModel: (Model) -> Unit
+    models: List<Model>,
+    selectedModels: List<Model>,
+    expanded: Boolean,
+    onAddModel: (Model) -> Unit,
+    onRemoveModel: (Model) -> Unit
 ) {
-  val dialogState = useEditState<Model> { onAddModel(it) }
-  val scope = rememberCoroutineScope()
+    val dialogState = useEditState<Model> { onAddModel(it) }
+    val scope = rememberCoroutineScope()
 
-  Row(
-    horizontalArrangement = Arrangement.spacedBy(16.dp),
-    verticalAlignment = Alignment.CenterVertically,
-  ) {
-    ModelPicker(
-      models = models,
-      selectedModels = selectedModels,
-      onModelSelected = { model ->
-        val modality = guessModalityFromModelId(model.modelId)
-        val abilities = guessModelAbilityFromModelId(model.modelId)
-        onAddModel(
-          model.copy(
-            inputModalities = modality.first,
-            outputModalities = modality.second,
-            abilities = abilities
-          )
-        )
-      },
-      onModelDeselected = { model ->
-        onRemoveModel(model)
-      }
-    )
-
-    Button(
-      onClick = {
-        dialogState.open(Model())
-      }
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-      Row(
-        modifier = Modifier,
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-        Icon(
-          Lucide.Plus,
-          contentDescription = stringResource(R.string.setting_provider_page_add_model)
+        ModelPicker(
+            models = models,
+            selectedModels = selectedModels,
+            onModelSelected = { model ->
+                val modality = guessModalityFromModelId(model.modelId)
+                val abilities = guessModelAbilityFromModelId(model.modelId)
+                onAddModel(
+                    model.copy(
+                        inputModalities = modality.first,
+                        outputModalities = modality.second,
+                        abilities = abilities
+                    )
+                )
+            },
+            onModelDeselected = { model ->
+                onRemoveModel(model)
+            }
         )
-        AnimatedVisibility(expanded) {
-          Spacer(modifier = Modifier.size(8.dp))
-          Text(
-            stringResource(R.string.setting_provider_page_add_new_model),
-            style = MaterialTheme.typography.bodyLarge
-          )
-        }
-      }
-    }
-  }
 
-  if (dialogState.isEditing) {
-    dialogState.currentState?.let { modelState ->
-      val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-      ModalBottomSheet(
-        onDismissRequest = {
-          dialogState.dismiss()
-        },
-        sheetState = sheetState,
-        sheetGesturesEnabled = false,
-        dragHandle = {
-          IconButton(
+        Button(
             onClick = {
-              scope.launch {
-                sheetState.hide()
-                dialogState.dismiss()
-              }
+                dialogState.open(Model())
             }
-          ) {
-            Icon(Lucide.ChevronDown, null)
-          }
-        }
-      ) {
-        Column(
-          modifier = Modifier
-              .fillMaxWidth()
-              .fillMaxHeight(0.95f)
-              .padding(16.dp),
-          verticalArrangement = Arrangement.spacedBy(16.dp),
-          horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-          Text(
-            text = stringResource(R.string.setting_provider_page_add_model),
-            style = MaterialTheme.typography.titleLarge
-          )
-          Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-          ) {
-            ModelSettingsForm(
-              model = modelState,
-              onModelChange = { dialogState.currentState = it },
-              isEdit = false
-            )
-          }
-
-          Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-          ) {
-            TextButton(
-              onClick = {
-                dialogState.dismiss()
-              },
+            Row(
+                modifier = Modifier,
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-              Text(stringResource(R.string.cancel))
-            }
-            TextButton(
-              onClick = {
-                if (modelState.modelId.isNotBlank() && modelState.displayName.isNotBlank()) {
-                  dialogState.confirm()
+                Icon(
+                    Lucide.Plus,
+                    contentDescription = stringResource(R.string.setting_provider_page_add_model)
+                )
+                AnimatedVisibility(expanded) {
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text(
+                        stringResource(R.string.setting_provider_page_add_new_model),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                 }
-              },
-            ) {
-              Text(stringResource(R.string.setting_provider_page_add))
             }
-          }
         }
-      }
     }
-  }
+
+    if (dialogState.isEditing) {
+        dialogState.currentState?.let { modelState ->
+            val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            ModalBottomSheet(
+                onDismissRequest = {
+                    dialogState.dismiss()
+                },
+                sheetState = sheetState,
+                sheetGesturesEnabled = false,
+                dragHandle = {
+                    IconButton(
+                        onClick = {
+                            scope.launch {
+                                sheetState.hide()
+                                dialogState.dismiss()
+                            }
+                        }
+                    ) {
+                        Icon(Lucide.ChevronDown, null)
+                    }
+                }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.95f)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = stringResource(R.string.setting_provider_page_add_model),
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                    ) {
+                        ModelSettingsForm(
+                            model = modelState,
+                            onModelChange = { dialogState.currentState = it },
+                            isEdit = false
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                    ) {
+                        TextButton(
+                            onClick = {
+                                dialogState.dismiss()
+                            },
+                        ) {
+                            Text(stringResource(R.string.cancel))
+                        }
+                        TextButton(
+                            onClick = {
+                                if (modelState.modelId.isNotBlank() && modelState.displayName.isNotBlank()) {
+                                    dialogState.confirm()
+                                }
+                            },
+                        ) {
+                            Text(stringResource(R.string.setting_provider_page_add))
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable
 private fun ModelPicker(
-  models: List<Model>,
-  selectedModels: List<Model>,
-  onModelSelected: (Model) -> Unit,
-  onModelDeselected: (Model) -> Unit
+    models: List<Model>,
+    selectedModels: List<Model>,
+    onModelSelected: (Model) -> Unit,
+    onModelDeselected: (Model) -> Unit
 ) {
-  var showModal by remember { mutableStateOf(false) }
-  if (showModal) {
-    ModalBottomSheet(
-      onDismissRequest = { showModal = false },
-      sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-      )
-    ) {
-      var filterText by remember { mutableStateOf("") }
-      val filterKeywords = filterText.split(" ").filter { it.isNotBlank() }
-      val filteredModels = models.fastFilter {
-        if (filterKeywords.isEmpty()) {
-          true
-        } else {
-          filterKeywords.all { keyword ->
-            it.modelId.contains(keyword, ignoreCase = true) ||
-              it.displayName.contains(keyword, ignoreCase = true)
-          }
-        }
-      }
-      Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(500.dp)
-            .padding(8.dp)
-            .imePadding(),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-      ) {
-        LazyColumn(
-          modifier = Modifier
-              .fillMaxWidth()
-              .weight(1f),
-          verticalArrangement = Arrangement.spacedBy(8.dp),
-          contentPadding = PaddingValues(8.dp),
+    var showModal by remember { mutableStateOf(false) }
+    if (showModal) {
+        ModalBottomSheet(
+            onDismissRequest = { showModal = false },
+            sheetState = rememberModalBottomSheetState(
+                skipPartiallyExpanded = true
+            )
         ) {
-          items(filteredModels) {
-            Card {
-              Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(
-                  8.dp
-                ),
+            var filterText by remember { mutableStateOf("") }
+            val filterKeywords = filterText.split(" ").filter { it.isNotBlank() }
+            val filteredModels = models.fastFilter {
+                if (filterKeywords.isEmpty()) {
+                    true
+                } else {
+                    filterKeywords.all { keyword ->
+                        it.modelId.contains(keyword, ignoreCase = true) ||
+                            it.displayName.contains(keyword, ignoreCase = true)
+                    }
+                }
+            }
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp),
-              ) {
-                AutoAIIcon(
-                  it.modelId,
-                  Modifier.size(32.dp)
-                )
-                Column(
-                  verticalArrangement = Arrangement.spacedBy(
-                    4.dp
-                  ),
-                  modifier = Modifier.weight(1f),
+                    .height(500.dp)
+                    .padding(8.dp)
+                    .imePadding(),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(8.dp),
                 ) {
-                  Text(
-                    text = it.modelId,
-                    style = MaterialTheme.typography.titleSmall,
-                  )
-                }
-                IconButton(
-                  onClick = {
-                    if (selectedModels.any { model -> model.modelId == it.modelId }) {
-                      // 从selectedModels中计算出要删除的model，因为删除需要id匹配，而不是ModelId
-                      onModelDeselected(selectedModels.firstOrNull { model -> model.modelId == it.modelId }
-                        ?: it)
-                    } else {
-                      onModelSelected(it)
+                    items(filteredModels) {
+                        Card {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(
+                                    8.dp
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp),
+                            ) {
+                                AutoAIIcon(
+                                    it.modelId,
+                                    Modifier.size(32.dp)
+                                )
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(
+                                        4.dp
+                                    ),
+                                    modifier = Modifier.weight(1f),
+                                ) {
+                                    Text(
+                                        text = it.modelId,
+                                        style = MaterialTheme.typography.titleSmall,
+                                    )
+                                }
+                                IconButton(
+                                    onClick = {
+                                        if (selectedModels.any { model -> model.modelId == it.modelId }) {
+                                            // 从selectedModels中计算出要删除的model，因为删除需要id匹配，而不是ModelId
+                                            onModelDeselected(selectedModels.firstOrNull { model -> model.modelId == it.modelId }
+                                                ?: it)
+                                        } else {
+                                            onModelSelected(it)
+                                        }
+                                    }
+                                ) {
+                                    if (selectedModels.any { model -> model.modelId == it.modelId }) {
+                                        Icon(Lucide.X, null)
+                                    } else {
+                                        Icon(Lucide.Plus, null)
+                                    }
+                                }
+                            }
+                        }
                     }
-                  }
-                ) {
-                  if (selectedModels.any { model -> model.modelId == it.modelId }) {
-                    Icon(Lucide.X, null)
-                  } else {
-                    Icon(Lucide.Plus, null)
-                  }
                 }
-              }
+                OutlinedTextField(
+                    value = filterText,
+                    onValueChange = {
+                        filterText = it
+                    },
+                    label = { Text(stringResource(R.string.setting_provider_page_filter_placeholder)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = {
+                        Text(stringResource(R.string.setting_provider_page_filter_example))
+                    },
+                )
             }
-          }
         }
-        OutlinedTextField(
-          value = filterText,
-          onValueChange = {
-            filterText = it
-          },
-          label = { Text(stringResource(R.string.setting_provider_page_filter_placeholder)) },
-          modifier = Modifier.fillMaxWidth(),
-          placeholder = {
-            Text(stringResource(R.string.setting_provider_page_filter_example))
-          },
-        )
-      }
     }
-  }
-  BadgedBox(
-    badge = {
-      if (models.isNotEmpty()) {
-        Badge {
-          Text(models.size.toString())
+    BadgedBox(
+        badge = {
+            if (models.isNotEmpty()) {
+                Badge {
+                    Text(models.size.toString())
+                }
+            }
         }
-      }
-    }
-  ) {
-    IconButton(
-      onClick = {
-        showModal = true
-      }
     ) {
-      Icon(Lucide.Boxes, null)
+        IconButton(
+            onClick = {
+                showModal = true
+            }
+        ) {
+            Icon(Lucide.Boxes, null)
+        }
     }
-  }
 }
 
 @Composable
 private fun ModelTypeSelector(
-  selectedType: ModelType,
-  onTypeSelected: (ModelType) -> Unit
+    selectedType: ModelType,
+    onTypeSelected: (ModelType) -> Unit
 ) {
-  Text(
-    stringResource(R.string.setting_provider_page_model_type),
-    style = MaterialTheme.typography.titleSmall
-  )
-  SingleChoiceSegmentedButtonRow(
-    modifier = Modifier.fillMaxWidth()
-  ) {
-    ModelType.entries.forEachIndexed { index, type ->
-      SegmentedButton(
-        shape = SegmentedButtonDefaults.itemShape(index, ModelType.entries.size),
-        label = {
-          Text(
-            text = stringResource(
-              when (type) {
-                ModelType.CHAT -> R.string.setting_provider_page_chat_model
-                ModelType.EMBEDDING -> R.string.setting_provider_page_embedding_model
-              }
+    Text(
+        stringResource(R.string.setting_provider_page_model_type),
+        style = MaterialTheme.typography.titleSmall
+    )
+    SingleChoiceSegmentedButtonRow(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        ModelType.entries.forEachIndexed { index, type ->
+            SegmentedButton(
+                shape = SegmentedButtonDefaults.itemShape(index, ModelType.entries.size),
+                label = {
+                    Text(
+                        text = stringResource(
+                            when (type) {
+                                ModelType.CHAT -> R.string.setting_provider_page_chat_model
+                                ModelType.EMBEDDING -> R.string.setting_provider_page_embedding_model
+                            }
+                        )
+                    )
+                },
+                selected = selectedType == type,
+                onClick = { onTypeSelected(type) }
             )
-          )
-        },
-        selected = selectedType == type,
-        onClick = { onTypeSelected(type) }
-      )
+        }
     }
-  }
 }
 
 @Composable
 private fun ModelModalitySelector(
-  inputModalities: List<Modality>,
-  onUpdateInputModalities: (List<Modality>) -> Unit,
-  outputModalities: List<Modality>,
-  onUpdateOutputModalities: (List<Modality>) -> Unit
+    inputModalities: List<Modality>,
+    onUpdateInputModalities: (List<Modality>) -> Unit,
+    outputModalities: List<Modality>,
+    onUpdateOutputModalities: (List<Modality>) -> Unit
 ) {
-  Text(
-    stringResource(R.string.setting_provider_page_input_modality),
-    style = MaterialTheme.typography.titleSmall
-  )
-  MultiChoiceSegmentedButtonRow(
-    modifier = Modifier.fillMaxWidth(),
-  ) {
-    Modality.entries.forEachIndexed { index, modality ->
-      SegmentedButton(
-        checked = modality in inputModalities,
-        shape = SegmentedButtonDefaults.itemShape(index, Modality.entries.size),
-        onCheckedChange = {
-          if (it) {
-            onUpdateInputModalities(inputModalities + modality)
-          } else {
-            onUpdateInputModalities(inputModalities - modality)
-          }
-        }
-      ) {
-        Text(
-          text = stringResource(
-            when (modality) {
-              Modality.TEXT -> R.string.setting_provider_page_text
-              Modality.IMAGE -> R.string.setting_provider_page_image
+    Text(
+        stringResource(R.string.setting_provider_page_input_modality),
+        style = MaterialTheme.typography.titleSmall
+    )
+    MultiChoiceSegmentedButtonRow(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Modality.entries.forEachIndexed { index, modality ->
+            SegmentedButton(
+                checked = modality in inputModalities,
+                shape = SegmentedButtonDefaults.itemShape(index, Modality.entries.size),
+                onCheckedChange = {
+                    if (it) {
+                        onUpdateInputModalities(inputModalities + modality)
+                    } else {
+                        onUpdateInputModalities(inputModalities - modality)
+                    }
+                }
+            ) {
+                Text(
+                    text = stringResource(
+                        when (modality) {
+                            Modality.TEXT -> R.string.setting_provider_page_text
+                            Modality.IMAGE -> R.string.setting_provider_page_image
+                        }
+                    )
+                )
             }
-          )
-        )
-      }
-    }
-  }
-  Text(
-    stringResource(R.string.setting_provider_page_output_modality),
-    style = MaterialTheme.typography.titleSmall
-  )
-  MultiChoiceSegmentedButtonRow(
-    modifier = Modifier.fillMaxWidth(),
-  ) {
-    Modality.entries.forEachIndexed { index, modality ->
-      SegmentedButton(
-        checked = modality in outputModalities,
-        shape = SegmentedButtonDefaults.itemShape(index, Modality.entries.size),
-        onCheckedChange = {
-          if (it) {
-            onUpdateOutputModalities(outputModalities + modality)
-          } else {
-            onUpdateOutputModalities(outputModalities - modality)
-          }
         }
-      ) {
-        Text(
-          text = stringResource(
-            when (modality) {
-              Modality.TEXT -> R.string.setting_provider_page_text
-              Modality.IMAGE -> R.string.setting_provider_page_image
-            }
-          )
-        )
-      }
     }
-  }
+    Text(
+        stringResource(R.string.setting_provider_page_output_modality),
+        style = MaterialTheme.typography.titleSmall
+    )
+    MultiChoiceSegmentedButtonRow(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Modality.entries.forEachIndexed { index, modality ->
+            SegmentedButton(
+                checked = modality in outputModalities,
+                shape = SegmentedButtonDefaults.itemShape(index, Modality.entries.size),
+                onCheckedChange = {
+                    if (it) {
+                        onUpdateOutputModalities(outputModalities + modality)
+                    } else {
+                        onUpdateOutputModalities(outputModalities - modality)
+                    }
+                }
+            ) {
+                Text(
+                    text = stringResource(
+                        when (modality) {
+                            Modality.TEXT -> R.string.setting_provider_page_text
+                            Modality.IMAGE -> R.string.setting_provider_page_image
+                        }
+                    )
+                )
+            }
+        }
+    }
 }
 
 @Composable
 fun ModalAbilitySelector(
-  abilities: List<ModelAbility>,
-  onUpdateAbilities: (List<ModelAbility>) -> Unit
+    abilities: List<ModelAbility>,
+    onUpdateAbilities: (List<ModelAbility>) -> Unit
 ) {
-  Text(
-    stringResource(R.string.setting_provider_page_abilities),
-    style = MaterialTheme.typography.titleSmall
-  )
-  MultiChoiceSegmentedButtonRow(
-    modifier = Modifier.fillMaxWidth(),
-  ) {
-    ModelAbility.entries.forEachIndexed { index, ability ->
-      SegmentedButton(
-        checked = ability in abilities,
-        shape = SegmentedButtonDefaults.itemShape(index, ModelAbility.entries.size),
-        onCheckedChange = {
-          if (it) {
-            onUpdateAbilities(abilities + ability)
-          } else {
-            onUpdateAbilities(abilities - ability)
-          }
-        },
-        label = {
-          Text(
-            text = stringResource(
-              when (ability) {
-                ModelAbility.TOOL -> R.string.setting_provider_page_tool
-                ModelAbility.REASONING -> R.string.setting_provider_page_reasoning
-              }
+    Text(
+        stringResource(R.string.setting_provider_page_abilities),
+        style = MaterialTheme.typography.titleSmall
+    )
+    MultiChoiceSegmentedButtonRow(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        ModelAbility.entries.forEachIndexed { index, ability ->
+            SegmentedButton(
+                checked = ability in abilities,
+                shape = SegmentedButtonDefaults.itemShape(index, ModelAbility.entries.size),
+                onCheckedChange = {
+                    if (it) {
+                        onUpdateAbilities(abilities + ability)
+                    } else {
+                        onUpdateAbilities(abilities - ability)
+                    }
+                },
+                label = {
+                    Text(
+                        text = stringResource(
+                            when (ability) {
+                                ModelAbility.TOOL -> R.string.setting_provider_page_tool
+                                ModelAbility.REASONING -> R.string.setting_provider_page_reasoning
+                            }
+                        )
+                    )
+                }
             )
-          )
         }
-      )
     }
-  }
 }
 
 @Composable
 private fun ModelCard(
-  model: Model,
-  modifier: Modifier = Modifier,
-  onDelete: () -> Unit,
-  onEdit: (Model) -> Unit
+    model: Model,
+    modifier: Modifier = Modifier,
+    onDelete: () -> Unit,
+    onEdit: (Model) -> Unit
 ) {
-  val dialogState = useEditState<Model> {
-    onEdit(it)
-  }
-  val swipeToDismissBoxState = rememberSwipeToDismissBoxState()
-  val scope = rememberCoroutineScope()
-
-
-  if (dialogState.isEditing) {
-    dialogState.currentState?.let { editingModel ->
-      ModalBottomSheet(
-        onDismissRequest = {
-          dialogState.dismiss()
-        },
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        sheetGesturesEnabled = false,
-        dragHandle = {
-          IconButton(
-            onClick = {
-              dialogState.dismiss()
-            }
-          ) {
-            Icon(Lucide.ChevronDown, null)
-          }
-        }
-      ) {
-        Column(
-          modifier = Modifier
-              .fillMaxWidth()
-              .fillMaxHeight(0.95f)
-              .padding(16.dp),
-          verticalArrangement = Arrangement.spacedBy(16.dp),
-          horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-          Text(
-            text = stringResource(R.string.setting_provider_page_edit_model),
-            style = MaterialTheme.typography.titleLarge
-          )
-          Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-          ) {
-            ModelSettingsForm(
-              model = editingModel,
-              onModelChange = { dialogState.currentState = it },
-              isEdit = true
-            )
-          }
-
-          Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-          ) {
-            TextButton(
-              onClick = {
-                dialogState.dismiss()
-              },
-            ) {
-              Text(stringResource(R.string.cancel))
-            }
-            TextButton(
-              onClick = {
-                if (editingModel.displayName.isNotBlank()) {
-                  dialogState.confirm()
-                }
-              },
-            ) {
-              Text(stringResource(R.string.confirm))
-            }
-          }
-        }
-      }
+    val dialogState = useEditState<Model> {
+        onEdit(it)
     }
-  }
+    val swipeToDismissBoxState = rememberSwipeToDismissBoxState()
+    val scope = rememberCoroutineScope()
 
-  SwipeToDismissBox(
-    state = swipeToDismissBoxState,
-    backgroundContent = {
-      Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-        IconButton(
-          onClick = {
-            scope.launch {
-              swipeToDismissBoxState.reset()
-            }
-          }
-        ) {
-          Icon(Lucide.X, null)
-        }
-        FilledIconButton(
-          onClick = {
-            scope.launch {
-              onDelete()
-              swipeToDismissBoxState.reset()
-            }
-          }
-        ) {
-          Icon(
-            Lucide.Trash2,
-            contentDescription = stringResource(R.string.chat_page_delete)
-          )
-        }
-      }
-    },
-    enableDismissFromStartToEnd = false,
-    gesturesEnabled = true,
-    modifier = modifier
-  ) {
-    OutlinedCard {
-      Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-        AutoAIIcon(
-          name = model.modelId,
-          modifier = Modifier.size(32.dp),
-        )
-        Column(modifier = Modifier.weight(1f)) {
-          Text(
-            text = model.modelId,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-          )
-          Text(
-            text = model.displayName,
-            style = MaterialTheme.typography.titleSmall,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-          )
-          Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-          ) {
-            Tag(
-              type = TagType.INFO
-            ) {
-              Text(
-                text = stringResource(
-                  when (model.type) {
-                    ModelType.CHAT -> R.string.setting_provider_page_chat_model
-                    ModelType.EMBEDDING -> R.string.setting_provider_page_embedding_model
-                  }
-                )
-              )
-            }
-            Tag(
-              type = TagType.SUCCESS
-            ) {
-              Text(
-                text = buildString {
-                  append(model.inputModalities.joinToString(",") { it.name.lowercase() })
-                  append("->")
-                  append(model.outputModalities.joinToString(",") { it.name.lowercase() })
+
+    if (dialogState.isEditing) {
+        dialogState.currentState?.let { editingModel ->
+            ModalBottomSheet(
+                onDismissRequest = {
+                    dialogState.dismiss()
                 },
-                maxLines = 1,
-              )
-            }
-            model.abilities.fastForEach { ability ->
-              when (ability) {
-                ModelAbility.TOOL -> {
-                  Tag(
-                    type = TagType.WARNING
-                  ) {
-                    Icon(Lucide.Hammer, null, modifier = Modifier.size(14.dp))
-                  }
+                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                sheetGesturesEnabled = false,
+                dragHandle = {
+                    IconButton(
+                        onClick = {
+                            dialogState.dismiss()
+                        }
+                    ) {
+                        Icon(Lucide.ChevronDown, null)
+                    }
                 }
-
-                ModelAbility.REASONING -> {
-                  Tag(
-                    type = TagType.INFO
-                  ) {
-                    Icon(
-                      Lucide.Lightbulb,
-                      null,
-                      modifier = Modifier.size(14.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.95f)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = stringResource(R.string.setting_provider_page_edit_model),
+                        style = MaterialTheme.typography.titleLarge
                     )
-                  }
-                }
-              }
-            }
-          }
-        }
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                    ) {
+                        ModelSettingsForm(
+                            model = editingModel,
+                            onModelChange = { dialogState.currentState = it },
+                            isEdit = true
+                        )
+                    }
 
-        // Edit button
-        IconButton(
-          onClick = {
-            dialogState.open(model.copy())
-          }
-        ) {
-          Icon(Lucide.Pencil, "Edit")
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                    ) {
+                        TextButton(
+                            onClick = {
+                                dialogState.dismiss()
+                            },
+                        ) {
+                            Text(stringResource(R.string.cancel))
+                        }
+                        TextButton(
+                            onClick = {
+                                if (editingModel.displayName.isNotBlank()) {
+                                    dialogState.confirm()
+                                }
+                            },
+                        ) {
+                            Text(stringResource(R.string.confirm))
+                        }
+                    }
+                }
+            }
         }
-      }
     }
-  }
+
+    SwipeToDismissBox(
+        state = swipeToDismissBoxState,
+        backgroundContent = {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = {
+                        scope.launch {
+                            swipeToDismissBoxState.reset()
+                        }
+                    }
+                ) {
+                    Icon(Lucide.X, null)
+                }
+                FilledIconButton(
+                    onClick = {
+                        scope.launch {
+                            onDelete()
+                            swipeToDismissBoxState.reset()
+                        }
+                    }
+                ) {
+                    Icon(
+                        Lucide.Trash2,
+                        contentDescription = stringResource(R.string.chat_page_delete)
+                    )
+                }
+            }
+        },
+        enableDismissFromStartToEnd = false,
+        gesturesEnabled = true,
+        modifier = modifier
+    ) {
+        OutlinedCard {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AutoAIIcon(
+                    name = model.modelId,
+                    modifier = Modifier.size(32.dp),
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = model.modelId,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                    Text(
+                        text = model.displayName,
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Tag(
+                            type = TagType.INFO
+                        ) {
+                            Text(
+                                text = stringResource(
+                                    when (model.type) {
+                                        ModelType.CHAT -> R.string.setting_provider_page_chat_model
+                                        ModelType.EMBEDDING -> R.string.setting_provider_page_embedding_model
+                                    }
+                                )
+                            )
+                        }
+                        Tag(
+                            type = TagType.SUCCESS
+                        ) {
+                            Text(
+                                text = buildString {
+                                    append(model.inputModalities.joinToString(",") { it.name.lowercase() })
+                                    append("->")
+                                    append(model.outputModalities.joinToString(",") { it.name.lowercase() })
+                                },
+                                maxLines = 1,
+                            )
+                        }
+                        model.abilities.fastForEach { ability ->
+                            when (ability) {
+                                ModelAbility.TOOL -> {
+                                    Tag(
+                                        type = TagType.WARNING
+                                    ) {
+                                        Icon(Lucide.Hammer, null, modifier = Modifier.size(14.dp))
+                                    }
+                                }
+
+                                ModelAbility.REASONING -> {
+                                    Tag(
+                                        type = TagType.INFO
+                                    ) {
+                                        Icon(
+                                            Lucide.Lightbulb,
+                                            null,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Edit button
+                IconButton(
+                    onClick = {
+                        dialogState.open(model.copy())
+                    }
+                ) {
+                    Icon(Lucide.Pencil, "Edit")
+                }
+            }
+        }
+    }
 }

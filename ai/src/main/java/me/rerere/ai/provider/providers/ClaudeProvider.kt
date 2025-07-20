@@ -57,432 +57,432 @@ private const val TAG = "ClaudeProvider"
 private const val ANTHROPIC_VERSION = "2023-06-01"
 
 object ClaudeProvider : Provider<ProviderSetting.Claude> {
-  private val client = OkHttpClient.Builder()
-    .connectTimeout(120, TimeUnit.SECONDS)
-    .readTimeout(120, TimeUnit.SECONDS)
-    .writeTimeout(120, TimeUnit.SECONDS)
-    .retryOnConnectionFailure(true)
-    .addInterceptor { chain ->
-      val request = chain.request().newBuilder()
-        .build()
-      chain.proceed(request)
-    }
-    .addInterceptor(HttpLoggingInterceptor().apply {
-      level = HttpLoggingInterceptor.Level.HEADERS
-    })
-    .build()
-
-  override suspend fun listModels(providerSetting: ProviderSetting.Claude): List<Model> =
-    withContext(Dispatchers.IO) {
-      val request = Request.Builder()
-        .url("${providerSetting.baseUrl}/models")
-        .addHeader("x-api-key", providerSetting.apiKey)
-        .addHeader("anthropic-version", ANTHROPIC_VERSION)
-        .get()
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(120, TimeUnit.SECONDS)
+        .readTimeout(120, TimeUnit.SECONDS)
+        .writeTimeout(120, TimeUnit.SECONDS)
+        .retryOnConnectionFailure(true)
+        .addInterceptor { chain ->
+            val request = chain.request().newBuilder()
+                .build()
+            chain.proceed(request)
+        }
+        .addInterceptor(HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.HEADERS
+        })
         .build()
 
-      val response =
-        client.configureClientWithProxy(providerSetting.proxy).newCall(request).execute()
-      if (!response.isSuccessful) {
-        error("Failed to get models: ${response.code} ${response.body?.string()}")
-      }
+    override suspend fun listModels(providerSetting: ProviderSetting.Claude): List<Model> =
+        withContext(Dispatchers.IO) {
+            val request = Request.Builder()
+                .url("${providerSetting.baseUrl}/models")
+                .addHeader("x-api-key", providerSetting.apiKey)
+                .addHeader("anthropic-version", ANTHROPIC_VERSION)
+                .get()
+                .build()
 
-      val bodyStr = response.body?.string() ?: ""
-      val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
-      val data = bodyJson["data"]?.jsonArray ?: return@withContext emptyList()
+            val response =
+                client.configureClientWithProxy(providerSetting.proxy).newCall(request).execute()
+            if (!response.isSuccessful) {
+                error("Failed to get models: ${response.code} ${response.body?.string()}")
+            }
 
-      data.mapNotNull { modelJson ->
-        val modelObj = modelJson.jsonObject
-        val id = modelObj["id"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
-        val displayName = modelObj["display_name"]?.jsonPrimitive?.contentOrNull ?: id
+            val bodyStr = response.body?.string() ?: ""
+            val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
+            val data = bodyJson["data"]?.jsonArray ?: return@withContext emptyList()
 
-        Model(
-          modelId = id,
-          displayName = displayName,
-        )
-      }
-    }
+            data.mapNotNull { modelJson ->
+                val modelObj = modelJson.jsonObject
+                val id = modelObj["id"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
+                val displayName = modelObj["display_name"]?.jsonPrimitive?.contentOrNull ?: id
 
-  override suspend fun generateText(
-    providerSetting: ProviderSetting.Claude,
-    messages: List<UIMessage>,
-    params: TextGenerationParams
-  ): MessageChunk = withContext(Dispatchers.IO) {
-    val requestBody = buildMessageRequest(messages, params)
-    val request = Request.Builder()
-      .url("${providerSetting.baseUrl}/messages")
-      .headers(params.customHeaders.toHeaders())
-      .post(json.encodeToString(requestBody).toRequestBody("application/json".toMediaType()))
-      .addHeader("x-api-key", providerSetting.apiKey)
-      .addHeader("anthropic-version", ANTHROPIC_VERSION)
-      .configureReferHeaders(providerSetting.baseUrl)
-      .build()
-
-    Log.i(TAG, "generateText: ${json.encodeToString(requestBody)}")
-
-    val response = client.configureClientWithProxy(providerSetting.proxy).newCall(request).await()
-    if (!response.isSuccessful) {
-      throw Exception("Failed to get response: ${response.code} ${response.body?.string()}")
-    }
-
-    val bodyStr = response.body?.string() ?: ""
-    val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
-
-    // 从 JsonObject 中提取必要的信息
-    val id = bodyJson["id"]?.jsonPrimitive?.contentOrNull ?: ""
-    val model = bodyJson["model"]?.jsonPrimitive?.contentOrNull ?: ""
-    val content = bodyJson["content"]?.jsonArray ?: JsonArray(emptyList())
-    val stopReason = bodyJson["stop_reason"]?.jsonPrimitive?.contentOrNull ?: "unknown"
-    val usage = parseTokenUsage(bodyJson["usage"] as? JsonObject)
-
-    MessageChunk(
-      id = id,
-      model = model,
-      choices = listOf(
-        UIMessageChoice(
-          index = 0,
-          delta = null,
-          message = parseMessage(content),
-          finishReason = stopReason
-        )
-      ),
-      usage = usage
-    )
-  }
-
-  override suspend fun streamText(
-    providerSetting: ProviderSetting.Claude,
-    messages: List<UIMessage>,
-    params: TextGenerationParams
-  ): Flow<MessageChunk> = callbackFlow {
-    val requestBody = buildMessageRequest(messages, params, stream = true)
-    val request = Request.Builder()
-      .url("${providerSetting.baseUrl}/messages")
-      .headers(params.customHeaders.toHeaders())
-      .post(json.encodeToString(requestBody).toRequestBody("application/json".toMediaType()))
-      .addHeader("x-api-key", providerSetting.apiKey)
-      .addHeader("anthropic-version", ANTHROPIC_VERSION)
-      .addHeader("Content-Type", "application/json")
-      .configureReferHeaders(providerSetting.baseUrl)
-      .build()
-
-    Log.i(TAG, "streamText: ${json.encodeToString(requestBody)}")
-
-    requestBody["messages"]!!.jsonArray.forEach {
-      Log.i(TAG, "streamText: $it")
-    }
-
-    val listener = object : EventSourceListener() {
-      override fun onEvent(
-        eventSource: EventSource,
-        id: String?,
-        type: String?,
-        data: String
-      ) {
-        Log.d(TAG, "onEvent: type=$type, data=$data")
-
-        val dataJson = json.parseToJsonElement(data).jsonObject
-        val deltaMessage = parseMessage(buildJsonArray {
-          val contentBlockObj = dataJson["content_block"]?.jsonObject
-          val deltaObj = dataJson["delta"]?.jsonObject
-          if (contentBlockObj != null) {
-            add(contentBlockObj)
-          }
-          if (deltaObj != null) {
-            add(deltaObj)
-          }
-        })
-        val tokenUsage = parseTokenUsage(
-          dataJson["usage"]?.jsonObject ?: dataJson["message"]?.jsonObject?.get("usage")?.jsonObject
-        )
-        val messageChunk = MessageChunk(
-          id = id ?: "",
-          model = "",
-          choices = listOf(
-            UIMessageChoice(
-              index = 0,
-              delta = deltaMessage,
-              message = null,
-              finishReason = null
-            )
-          ),
-          usage = tokenUsage
-        )
-
-        when (type) {
-          "message_stop" -> {
-            Log.d(TAG, "Stream ended")
-            close()
-          }
-
-          "error" -> {
-            val eventData = json.parseToJsonElement(data).jsonObject
-            val error = eventData["error"]?.parseErrorDetail()
-            close(error)
-          }
+                Model(
+                    modelId = id,
+                    displayName = displayName,
+                )
+            }
         }
 
-        trySend(messageChunk)
-      }
+    override suspend fun generateText(
+        providerSetting: ProviderSetting.Claude,
+        messages: List<UIMessage>,
+        params: TextGenerationParams
+    ): MessageChunk = withContext(Dispatchers.IO) {
+        val requestBody = buildMessageRequest(messages, params)
+        val request = Request.Builder()
+            .url("${providerSetting.baseUrl}/messages")
+            .headers(params.customHeaders.toHeaders())
+            .post(json.encodeToString(requestBody).toRequestBody("application/json".toMediaType()))
+            .addHeader("x-api-key", providerSetting.apiKey)
+            .addHeader("anthropic-version", ANTHROPIC_VERSION)
+            .configureReferHeaders(providerSetting.baseUrl)
+            .build()
 
-      override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
-        var exception = t
+        Log.i(TAG, "generateText: ${json.encodeToString(requestBody)}")
 
-        t?.printStackTrace()
-        Log.e(TAG, "onFailure: ${t?.javaClass?.name} ${t?.message} / $response")
-
-        val bodyRaw = response?.body?.stringSafe()
-        try {
-          if (!bodyRaw.isNullOrBlank()) {
-            val bodyElement = Json.parseToJsonElement(bodyRaw)
-            Log.i(TAG, "Error response: $bodyElement")
-            exception = bodyElement.parseErrorDetail()
-          }
-        } catch (e: Throwable) {
-          Log.w(TAG, "onFailure: failed to parse from $bodyRaw")
-          e.printStackTrace()
-        } finally {
-          close(exception)
+        val response = client.configureClientWithProxy(providerSetting.proxy).newCall(request).await()
+        if (!response.isSuccessful) {
+            throw Exception("Failed to get response: ${response.code} ${response.body?.string()}")
         }
-      }
 
-      override fun onClosed(eventSource: EventSource) {
-        close()
-      }
+        val bodyStr = response.body?.string() ?: ""
+        val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
+
+        // 从 JsonObject 中提取必要的信息
+        val id = bodyJson["id"]?.jsonPrimitive?.contentOrNull ?: ""
+        val model = bodyJson["model"]?.jsonPrimitive?.contentOrNull ?: ""
+        val content = bodyJson["content"]?.jsonArray ?: JsonArray(emptyList())
+        val stopReason = bodyJson["stop_reason"]?.jsonPrimitive?.contentOrNull ?: "unknown"
+        val usage = parseTokenUsage(bodyJson["usage"] as? JsonObject)
+
+        MessageChunk(
+            id = id,
+            model = model,
+            choices = listOf(
+                UIMessageChoice(
+                    index = 0,
+                    delta = null,
+                    message = parseMessage(content),
+                    finishReason = stopReason
+                )
+            ),
+            usage = usage
+        )
     }
 
-    val eventSource =
-      EventSources.createFactory(client.configureClientWithProxy(providerSetting.proxy))
-        .newEventSource(request, listener)
+    override suspend fun streamText(
+        providerSetting: ProviderSetting.Claude,
+        messages: List<UIMessage>,
+        params: TextGenerationParams
+    ): Flow<MessageChunk> = callbackFlow {
+        val requestBody = buildMessageRequest(messages, params, stream = true)
+        val request = Request.Builder()
+            .url("${providerSetting.baseUrl}/messages")
+            .headers(params.customHeaders.toHeaders())
+            .post(json.encodeToString(requestBody).toRequestBody("application/json".toMediaType()))
+            .addHeader("x-api-key", providerSetting.apiKey)
+            .addHeader("anthropic-version", ANTHROPIC_VERSION)
+            .addHeader("Content-Type", "application/json")
+            .configureReferHeaders(providerSetting.baseUrl)
+            .build()
 
-    awaitClose {
-      Log.d(TAG, "Closing eventSource")
-      eventSource.cancel()
-    }
-  }
+        Log.i(TAG, "streamText: ${json.encodeToString(requestBody)}")
 
-  private fun buildMessageRequest(
-    messages: List<UIMessage>,
-    params: TextGenerationParams,
-    stream: Boolean = false
-  ): JsonObject {
-    return buildJsonObject {
-      put("model", params.model.modelId)
-      put("messages", buildMessages(messages))
-      put("max_tokens", 64000) // Claude 需要明确指定 max_tokens
-
-      if (params.temperature != null && (params.thinkingBudget ?: 0) == 0) put(
-        "temperature",
-        params.temperature
-      )
-      if (params.topP != null) put("top_p", params.topP)
-
-      put("stream", stream)
-
-      // system prompt
-      val systemMessage = messages.firstOrNull { it.role == MessageRole.SYSTEM }
-      if (systemMessage != null) {
-        put("system", buildJsonArray {
-          systemMessage.parts.filterIsInstance<UIMessagePart.Text>().forEach { part ->
-            add(buildJsonObject {
-              put("type", "text")
-              put("text", part.text)
-            })
-          }
-        })
-      }
-
-      // 处理 thinking budget
-      if (params.model.abilities.contains(ModelAbility.REASONING)) {
-        val level = ReasoningLevel.fromBudgetTokens(params.thinkingBudget ?: 0)
-        put("thinking", buildJsonObject {
-          if (level == ReasoningLevel.OFF) {
-            put("type", "disabled")
-          } else {
-            put("type", "enabled")
-            put("budget_tokens", params.thinkingBudget)
-          }
-        })
-      }
-
-      // 处理工具
-      if (params.model.abilities.contains(ModelAbility.TOOL) && params.tools.isNotEmpty()) {
-        putJsonArray("tools") {
-          params.tools.forEach { tool ->
-            add(buildJsonObject {
-              put("name", tool.name)
-              put("description", tool.description)
-              put("input_schema", json.encodeToJsonElement(tool.parameters))
-            })
-          }
+        requestBody["messages"]!!.jsonArray.forEach {
+            Log.i(TAG, "streamText: $it")
         }
-      }
-    }.mergeCustomBody(params.customBody)
-  }
 
-  private fun buildMessages(messages: List<UIMessage>) = buildJsonArray {
-    messages
-      .filter { it.isValidToUpload() && it.role != MessageRole.SYSTEM }
-      .forEach { message ->
-        if (message.role == MessageRole.TOOL) {
-          message.getToolResults().forEach { result ->
-            add(buildJsonObject {
-              put("role", "user")
-              putJsonArray("content") {
-                add(buildJsonObject {
-                  put("type", "tool_result")
-                  put("tool_use_id", result.toolCallId)
-                  put("content", json.encodeToString(result.content))
+        val listener = object : EventSourceListener() {
+            override fun onEvent(
+                eventSource: EventSource,
+                id: String?,
+                type: String?,
+                data: String
+            ) {
+                Log.d(TAG, "onEvent: type=$type, data=$data")
+
+                val dataJson = json.parseToJsonElement(data).jsonObject
+                val deltaMessage = parseMessage(buildJsonArray {
+                    val contentBlockObj = dataJson["content_block"]?.jsonObject
+                    val deltaObj = dataJson["delta"]?.jsonObject
+                    if (contentBlockObj != null) {
+                        add(contentBlockObj)
+                    }
+                    if (deltaObj != null) {
+                        add(deltaObj)
+                    }
                 })
-              }
-            })
-          }
-          return@forEach
-        }
+                val tokenUsage = parseTokenUsage(
+                    dataJson["usage"]?.jsonObject ?: dataJson["message"]?.jsonObject?.get("usage")?.jsonObject
+                )
+                val messageChunk = MessageChunk(
+                    id = id ?: "",
+                    model = "",
+                    choices = listOf(
+                        UIMessageChoice(
+                            index = 0,
+                            delta = deltaMessage,
+                            message = null,
+                            finishReason = null
+                        )
+                    ),
+                    usage = tokenUsage
+                )
 
-        add(buildJsonObject {
-          // role
-          put("role", JsonPrimitive(message.role.name.lowercase()))
-
-          // content
-          putJsonArray("content") {
-            message.parts.forEach { part ->
-              when (part) {
-                is UIMessagePart.Text -> {
-                  add(buildJsonObject {
-                    put("type", "text")
-                    put("text", part.text)
-                  })
-                }
-
-                is UIMessagePart.Image -> {
-                  add(buildJsonObject {
-                    part.encodeBase64().onSuccess { base64Data ->
-                      put("type", "image")
-                      put("source", buildJsonObject {
-                        put("type", "base64")
-                        put(
-                          "media_type",
-                          "image/jpeg"
-                        ) // 默认为 jpeg，可能需要根据实际情况调整
-                        put(
-                          "data",
-                          base64Data.substringAfter(",")
-                        ) // 移除 data:image/jpeg;base64, 前缀
-                      })
-                    }.onFailure {
-                      it.printStackTrace()
-                      Log.w(TAG, "encode image failed: ${part.url}")
-                      // 如果图片编码失败，添加一个空文本块
-                      put("type", "text")
-                      put("text", "")
+                when (type) {
+                    "message_stop" -> {
+                        Log.d(TAG, "Stream ended")
+                        close()
                     }
-                  })
-                }
 
-                is UIMessagePart.ToolCall -> {
-                  add(buildJsonObject {
-                    put("type", "tool_use")
-                    put("id", part.toolCallId)
-                    put("name", part.toolName)
-                    put("input", json.parseToJsonElement(part.arguments))
-                  })
-                }
-
-                is UIMessagePart.Reasoning -> {
-                  add(buildJsonObject {
-                    put("type", "thinking")
-                    put("thinking", part.reasoning)
-                    part.metadata?.let {
-                      it.forEach { entry ->
-                        put(entry.key, entry.value)
-                      }
+                    "error" -> {
+                        val eventData = json.parseToJsonElement(data).jsonObject
+                        val error = eventData["error"]?.parseErrorDetail()
+                        close(error)
                     }
-                  })
                 }
 
-                else -> {
-                  Log.w(TAG, "buildMessages: message part not supported: $part")
-                  // DO NOTHING
+                trySend(messageChunk)
+            }
+
+            override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
+                var exception = t
+
+                t?.printStackTrace()
+                Log.e(TAG, "onFailure: ${t?.javaClass?.name} ${t?.message} / $response")
+
+                val bodyRaw = response?.body?.stringSafe()
+                try {
+                    if (!bodyRaw.isNullOrBlank()) {
+                        val bodyElement = Json.parseToJsonElement(bodyRaw)
+                        Log.i(TAG, "Error response: $bodyElement")
+                        exception = bodyElement.parseErrorDetail()
+                    }
+                } catch (e: Throwable) {
+                    Log.w(TAG, "onFailure: failed to parse from $bodyRaw")
+                    e.printStackTrace()
+                } finally {
+                    close(exception)
                 }
-              }
             }
-          }
-        })
-      }
-  }
 
-  private fun parseMessage(content: JsonArray): UIMessage {
-    val parts = mutableListOf<UIMessagePart>()
-
-    content.forEach { contentBlock ->
-      val block = contentBlock.jsonObject
-      val type = block["type"]?.jsonPrimitive?.contentOrNull
-
-      when (type) {
-        "text", "text_delta" -> {
-          val text = block["text"]?.jsonPrimitive?.contentOrNull ?: ""
-          parts.add(UIMessagePart.Text(text))
-        }
-
-        "thinking", "thinking_delta", "signature_delta" -> {
-          val thinking = block["thinking"]?.jsonPrimitive?.contentOrNull ?: ""
-          val signature = block["signature"]?.jsonPrimitive?.contentOrNull
-          val reasoning = UIMessagePart.Reasoning(
-            reasoning = thinking,
-            createdAt = Clock.System.now(),
-          )
-          if (signature != null) {
-            reasoning.metadata = buildJsonObject {
-              put("signature", signature)
+            override fun onClosed(eventSource: EventSource) {
+                close()
             }
-          }
-          parts.add(reasoning)
         }
 
-        "redacted_thinking" -> {
-          error("redacted_thinking detected, not support yet!")
-        }
+        val eventSource =
+            EventSources.createFactory(client.configureClientWithProxy(providerSetting.proxy))
+                .newEventSource(request, listener)
 
-        "tool_use" -> {
-          val id = block["id"]?.jsonPrimitive?.contentOrNull ?: ""
-          val name = block["name"]?.jsonPrimitive?.contentOrNull ?: ""
-          val input = block["input"]?.jsonObject ?: JsonObject(emptyMap())
-          parts.add(
-            UIMessagePart.ToolCall(
-              toolCallId = id,
-              toolName = name,
-              arguments = if (input.isEmpty()) "" else json.encodeToString(input)
-            )
-          )
+        awaitClose {
+            Log.d(TAG, "Closing eventSource")
+            eventSource.cancel()
         }
-
-        "input_json_delta" -> {
-          val input = block["partial_json"]?.jsonPrimitive?.contentOrNull
-          parts.add(
-            UIMessagePart.ToolCall(
-              toolCallId = "",
-              toolName = "",
-              arguments = input ?: ""
-            )
-          )
-        }
-      }
     }
 
-    return UIMessage(
-      role = MessageRole.ASSISTANT,
-      parts = parts
-    )
-  }
+    private fun buildMessageRequest(
+        messages: List<UIMessage>,
+        params: TextGenerationParams,
+        stream: Boolean = false
+    ): JsonObject {
+        return buildJsonObject {
+            put("model", params.model.modelId)
+            put("messages", buildMessages(messages))
+            put("max_tokens", 64000) // Claude 需要明确指定 max_tokens
 
-  private fun parseTokenUsage(jsonObject: JsonObject?): TokenUsage? {
-    if (jsonObject == null) return null
-    return TokenUsage(
-      promptTokens = jsonObject["input_tokens"]?.jsonPrimitive?.intOrNull ?: 0,
-      completionTokens = jsonObject["output_tokens"]?.jsonPrimitive?.intOrNull ?: 0,
-      totalTokens = (jsonObject["input_tokens"]?.jsonPrimitive?.intOrNull ?: 0) +
-        (jsonObject["output_tokens"]?.jsonPrimitive?.intOrNull ?: 0)
-    )
-  }
+            if (params.temperature != null && (params.thinkingBudget ?: 0) == 0) put(
+                "temperature",
+                params.temperature
+            )
+            if (params.topP != null) put("top_p", params.topP)
+
+            put("stream", stream)
+
+            // system prompt
+            val systemMessage = messages.firstOrNull { it.role == MessageRole.SYSTEM }
+            if (systemMessage != null) {
+                put("system", buildJsonArray {
+                    systemMessage.parts.filterIsInstance<UIMessagePart.Text>().forEach { part ->
+                        add(buildJsonObject {
+                            put("type", "text")
+                            put("text", part.text)
+                        })
+                    }
+                })
+            }
+
+            // 处理 thinking budget
+            if (params.model.abilities.contains(ModelAbility.REASONING)) {
+                val level = ReasoningLevel.fromBudgetTokens(params.thinkingBudget ?: 0)
+                put("thinking", buildJsonObject {
+                    if (level == ReasoningLevel.OFF) {
+                        put("type", "disabled")
+                    } else {
+                        put("type", "enabled")
+                        put("budget_tokens", params.thinkingBudget)
+                    }
+                })
+            }
+
+            // 处理工具
+            if (params.model.abilities.contains(ModelAbility.TOOL) && params.tools.isNotEmpty()) {
+                putJsonArray("tools") {
+                    params.tools.forEach { tool ->
+                        add(buildJsonObject {
+                            put("name", tool.name)
+                            put("description", tool.description)
+                            put("input_schema", json.encodeToJsonElement(tool.parameters))
+                        })
+                    }
+                }
+            }
+        }.mergeCustomBody(params.customBody)
+    }
+
+    private fun buildMessages(messages: List<UIMessage>) = buildJsonArray {
+        messages
+            .filter { it.isValidToUpload() && it.role != MessageRole.SYSTEM }
+            .forEach { message ->
+                if (message.role == MessageRole.TOOL) {
+                    message.getToolResults().forEach { result ->
+                        add(buildJsonObject {
+                            put("role", "user")
+                            putJsonArray("content") {
+                                add(buildJsonObject {
+                                    put("type", "tool_result")
+                                    put("tool_use_id", result.toolCallId)
+                                    put("content", json.encodeToString(result.content))
+                                })
+                            }
+                        })
+                    }
+                    return@forEach
+                }
+
+                add(buildJsonObject {
+                    // role
+                    put("role", JsonPrimitive(message.role.name.lowercase()))
+
+                    // content
+                    putJsonArray("content") {
+                        message.parts.forEach { part ->
+                            when (part) {
+                                is UIMessagePart.Text -> {
+                                    add(buildJsonObject {
+                                        put("type", "text")
+                                        put("text", part.text)
+                                    })
+                                }
+
+                                is UIMessagePart.Image -> {
+                                    add(buildJsonObject {
+                                        part.encodeBase64().onSuccess { base64Data ->
+                                            put("type", "image")
+                                            put("source", buildJsonObject {
+                                                put("type", "base64")
+                                                put(
+                                                    "media_type",
+                                                    "image/jpeg"
+                                                ) // 默认为 jpeg，可能需要根据实际情况调整
+                                                put(
+                                                    "data",
+                                                    base64Data.substringAfter(",")
+                                                ) // 移除 data:image/jpeg;base64, 前缀
+                                            })
+                                        }.onFailure {
+                                            it.printStackTrace()
+                                            Log.w(TAG, "encode image failed: ${part.url}")
+                                            // 如果图片编码失败，添加一个空文本块
+                                            put("type", "text")
+                                            put("text", "")
+                                        }
+                                    })
+                                }
+
+                                is UIMessagePart.ToolCall -> {
+                                    add(buildJsonObject {
+                                        put("type", "tool_use")
+                                        put("id", part.toolCallId)
+                                        put("name", part.toolName)
+                                        put("input", json.parseToJsonElement(part.arguments))
+                                    })
+                                }
+
+                                is UIMessagePart.Reasoning -> {
+                                    add(buildJsonObject {
+                                        put("type", "thinking")
+                                        put("thinking", part.reasoning)
+                                        part.metadata?.let {
+                                            it.forEach { entry ->
+                                                put(entry.key, entry.value)
+                                            }
+                                        }
+                                    })
+                                }
+
+                                else -> {
+                                    Log.w(TAG, "buildMessages: message part not supported: $part")
+                                    // DO NOTHING
+                                }
+                            }
+                        }
+                    }
+                })
+            }
+    }
+
+    private fun parseMessage(content: JsonArray): UIMessage {
+        val parts = mutableListOf<UIMessagePart>()
+
+        content.forEach { contentBlock ->
+            val block = contentBlock.jsonObject
+            val type = block["type"]?.jsonPrimitive?.contentOrNull
+
+            when (type) {
+                "text", "text_delta" -> {
+                    val text = block["text"]?.jsonPrimitive?.contentOrNull ?: ""
+                    parts.add(UIMessagePart.Text(text))
+                }
+
+                "thinking", "thinking_delta", "signature_delta" -> {
+                    val thinking = block["thinking"]?.jsonPrimitive?.contentOrNull ?: ""
+                    val signature = block["signature"]?.jsonPrimitive?.contentOrNull
+                    val reasoning = UIMessagePart.Reasoning(
+                        reasoning = thinking,
+                        createdAt = Clock.System.now(),
+                    )
+                    if (signature != null) {
+                        reasoning.metadata = buildJsonObject {
+                            put("signature", signature)
+                        }
+                    }
+                    parts.add(reasoning)
+                }
+
+                "redacted_thinking" -> {
+                    error("redacted_thinking detected, not support yet!")
+                }
+
+                "tool_use" -> {
+                    val id = block["id"]?.jsonPrimitive?.contentOrNull ?: ""
+                    val name = block["name"]?.jsonPrimitive?.contentOrNull ?: ""
+                    val input = block["input"]?.jsonObject ?: JsonObject(emptyMap())
+                    parts.add(
+                        UIMessagePart.ToolCall(
+                            toolCallId = id,
+                            toolName = name,
+                            arguments = if (input.isEmpty()) "" else json.encodeToString(input)
+                        )
+                    )
+                }
+
+                "input_json_delta" -> {
+                    val input = block["partial_json"]?.jsonPrimitive?.contentOrNull
+                    parts.add(
+                        UIMessagePart.ToolCall(
+                            toolCallId = "",
+                            toolName = "",
+                            arguments = input ?: ""
+                        )
+                    )
+                }
+            }
+        }
+
+        return UIMessage(
+            role = MessageRole.ASSISTANT,
+            parts = parts
+        )
+    }
+
+    private fun parseTokenUsage(jsonObject: JsonObject?): TokenUsage? {
+        if (jsonObject == null) return null
+        return TokenUsage(
+            promptTokens = jsonObject["input_tokens"]?.jsonPrimitive?.intOrNull ?: 0,
+            completionTokens = jsonObject["output_tokens"]?.jsonPrimitive?.intOrNull ?: 0,
+            totalTokens = (jsonObject["input_tokens"]?.jsonPrimitive?.intOrNull ?: 0) +
+                (jsonObject["output_tokens"]?.jsonPrimitive?.intOrNull ?: 0)
+        )
+    }
 }

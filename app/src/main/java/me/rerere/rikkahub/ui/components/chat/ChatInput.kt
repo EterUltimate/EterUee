@@ -125,823 +125,823 @@ import kotlin.uuid.Uuid
 
 @Serializable
 class ChatInputState {
-  var messageContent by mutableStateOf(listOf<UIMessagePart>())
-  var editingMessage by mutableStateOf<Uuid?>(null)
-  var loading by mutableStateOf(false)
+    var messageContent by mutableStateOf(listOf<UIMessagePart>())
+    var editingMessage by mutableStateOf<Uuid?>(null)
+    var loading by mutableStateOf(false)
 
-  fun clearInput() {
-    messageContent = emptyList()
-    editingMessage = null
-  }
+    fun clearInput() {
+        messageContent = emptyList()
+        editingMessage = null
+    }
 
-  fun isEditing() = editingMessage != null
+    fun isEditing() = editingMessage != null
 
-  fun setMessageText(text: String) {
-    val newMessage = messageContent.toMutableList()
-    if (newMessage.isEmpty()) {
-      newMessage.add(UIMessagePart.Text(text))
-      messageContent = newMessage
-    } else {
-      if (messageContent.filterIsInstance<UIMessagePart.Text>().isEmpty()) {
-        newMessage.add(UIMessagePart.Text(text))
-      }
-      messageContent = newMessage.map {
-        if (it is UIMessagePart.Text) {
-          it.copy(text)
+    fun setMessageText(text: String) {
+        val newMessage = messageContent.toMutableList()
+        if (newMessage.isEmpty()) {
+            newMessage.add(UIMessagePart.Text(text))
+            messageContent = newMessage
         } else {
-          it
+            if (messageContent.filterIsInstance<UIMessagePart.Text>().isEmpty()) {
+                newMessage.add(UIMessagePart.Text(text))
+            }
+            messageContent = newMessage.map {
+                if (it is UIMessagePart.Text) {
+                    it.copy(text)
+                } else {
+                    it
+                }
+            }
         }
-      }
     }
-  }
 
-  fun addImages(uris: List<Uri>) {
-    val newMessage = messageContent.toMutableList()
-    uris.forEach { uri ->
-      newMessage.add(UIMessagePart.Image(uri.toString()))
+    fun addImages(uris: List<Uri>) {
+        val newMessage = messageContent.toMutableList()
+        uris.forEach { uri ->
+            newMessage.add(UIMessagePart.Image(uri.toString()))
+        }
+        messageContent = newMessage
     }
-    messageContent = newMessage
-  }
 
-  fun addFiles(uris: List<UIMessagePart.Document>) {
-    val newMessage = messageContent.toMutableList()
-    uris.forEach {
-      newMessage.add(it)
+    fun addFiles(uris: List<UIMessagePart.Document>) {
+        val newMessage = messageContent.toMutableList()
+        uris.forEach {
+            newMessage.add(it)
+        }
+        messageContent = newMessage
     }
-    messageContent = newMessage
-  }
 }
 
 object ChatInputStateSaver : Saver<ChatInputState, String> {
-  override fun restore(value: String): ChatInputState? {
-    val jsonObject = JsonInstant.parseToJsonElement(value).jsonObject
-    val messageContent = jsonObject["messageContent"]?.let {
-      JsonInstant.decodeFromJsonElement<List<UIMessagePart>>(it)
+    override fun restore(value: String): ChatInputState? {
+        val jsonObject = JsonInstant.parseToJsonElement(value).jsonObject
+        val messageContent = jsonObject["messageContent"]?.let {
+            JsonInstant.decodeFromJsonElement<List<UIMessagePart>>(it)
+        }
+        val editingMessage = jsonObject["editingMessage"]?.jsonPrimitive?.contentOrNull?.let {
+            Uuid.parse(it)
+        }
+        val state = ChatInputState()
+        state.messageContent = messageContent ?: emptyList()
+        state.editingMessage = editingMessage
+        return state
     }
-    val editingMessage = jsonObject["editingMessage"]?.jsonPrimitive?.contentOrNull?.let {
-      Uuid.parse(it)
-    }
-    val state = ChatInputState()
-    state.messageContent = messageContent ?: emptyList()
-    state.editingMessage = editingMessage
-    return state
-  }
 
-  override fun SaverScope.save(value: ChatInputState): String? {
-    return JsonInstant.encodeToString(buildJsonObject {
-      put("messageContent", JsonInstant.encodeToJsonElement(value.messageContent))
-      put("editingMessage", JsonInstant.encodeToJsonElement(value.editingMessage))
-    })
-  }
+    override fun SaverScope.save(value: ChatInputState): String? {
+        return JsonInstant.encodeToString(buildJsonObject {
+            put("messageContent", JsonInstant.encodeToJsonElement(value.messageContent))
+            put("editingMessage", JsonInstant.encodeToJsonElement(value.editingMessage))
+        })
+    }
 }
 
 
 @Composable
 fun rememberChatInputState(
-  message: List<UIMessagePart> = emptyList(),
-  loading: Boolean = false,
+    message: List<UIMessagePart> = emptyList(),
+    loading: Boolean = false,
 ): ChatInputState {
-  return rememberSaveable(message, loading, saver = ChatInputStateSaver) {
-    ChatInputState().apply {
-      this.messageContent = message
-      this.loading = loading
+    return rememberSaveable(message, loading, saver = ChatInputStateSaver) {
+        ChatInputState().apply {
+            this.messageContent = message
+            this.loading = loading
+        }
     }
-  }
 }
 
 enum class ExpandState {
-  Collapsed,
-  Files,
+    Collapsed,
+    Files,
 }
 
 @Composable
 fun ChatInput(
-  state: ChatInputState,
-  conversation: Conversation,
-  settings: Settings,
-  mcpManager: McpManager,
-  enableSearch: Boolean,
-  onToggleSearch: (Boolean) -> Unit,
-  modifier: Modifier = Modifier,
-  onUpdateChatModel: (Model) -> Unit,
-  onUpdateAssistant: (Assistant) -> Unit,
-  onUpdateSearchService: (Int) -> Unit,
-  onClearContext: () -> Unit,
-  onCancelClick: () -> Unit,
-  onSendClick: () -> Unit,
+    state: ChatInputState,
+    conversation: Conversation,
+    settings: Settings,
+    mcpManager: McpManager,
+    enableSearch: Boolean,
+    onToggleSearch: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    onUpdateChatModel: (Model) -> Unit,
+    onUpdateAssistant: (Assistant) -> Unit,
+    onUpdateSearchService: (Int) -> Unit,
+    onClearContext: () -> Unit,
+    onCancelClick: () -> Unit,
+    onSendClick: () -> Unit,
 ) {
-  val text =
-    state.messageContent.filterIsInstance<UIMessagePart.Text>().firstOrNull()
-      ?: UIMessagePart.Text("")
+    val text =
+        state.messageContent.filterIsInstance<UIMessagePart.Text>().firstOrNull()
+            ?: UIMessagePart.Text("")
 
-  val context = LocalContext.current
-  val toaster = LocalToaster.current
+    val context = LocalContext.current
+    val toaster = LocalToaster.current
 
-  val keyboardController = LocalSoftwareKeyboardController.current
+    val keyboardController = LocalSoftwareKeyboardController.current
 
-  fun sendMessage() {
-    keyboardController?.hide()
-    if (state.loading) onCancelClick() else onSendClick()
-  }
-
-  var expand by remember { mutableStateOf(ExpandState.Collapsed) }
-  fun dismissExpand() {
-    expand = ExpandState.Collapsed
-  }
-
-  fun expandToggle(type: ExpandState) {
-    if (expand == type) {
-      dismissExpand()
-    } else {
-      expand = type
+    fun sendMessage() {
+        keyboardController?.hide()
+        if (state.loading) onCancelClick() else onSendClick()
     }
-  }
 
-  Surface {
-    Column(
-      modifier = modifier
-        .imePadding()
-        .navigationBarsPadding(),
-      verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-      // Medias
-      Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 8.dp)
-          .horizontalScroll(rememberScrollState())
-      ) {
-        state.messageContent.filterIsInstance<UIMessagePart.Image>().fastForEach { image ->
-          Box {
-            Surface(
-              modifier = Modifier.size(48.dp),
-              shape = RoundedCornerShape(8.dp),
-              tonalElevation = 4.dp
-            ) {
-              AsyncImage(
-                model = image.url,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-              )
-            }
-            Icon(
-              imageVector = Lucide.X,
-              contentDescription = null,
-              modifier = Modifier
-                .clip(CircleShape)
-                .size(20.dp)
-                .clickable {
-                  // Remove image
-                  state.messageContent =
-                    state.messageContent.filterNot { it == image }
-                  // Delete image
-                  context.deleteChatFiles(listOf(image.url.toUri()))
-                }
-                .align(Alignment.TopEnd)
-                .background(MaterialTheme.colorScheme.secondary),
-              tint = MaterialTheme.colorScheme.onSecondary
-            )
-          }
+    var expand by remember { mutableStateOf(ExpandState.Collapsed) }
+    fun dismissExpand() {
+        expand = ExpandState.Collapsed
+    }
+
+    fun expandToggle(type: ExpandState) {
+        if (expand == type) {
+            dismissExpand()
+        } else {
+            expand = type
         }
-        state.messageContent.filterIsInstance<UIMessagePart.Document>()
-          .fastForEach { document ->
-            Box {
-              Surface(
-                modifier = Modifier
-                  .height(48.dp)
-                  .widthIn(max = 128.dp),
-                shape = RoundedCornerShape(8.dp),
-                tonalElevation = 4.dp
-              ) {
-                CompositionLocalProvider(
-                  LocalContentColor provides MaterialTheme.colorScheme.onSurface.copy(
-                    0.8f
-                  )
-                ) {
-                  Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(4.dp)
-                  ) {
-                    Text(
-                      text = document.fileName,
-                      overflow = TextOverflow.Ellipsis,
-                    )
-                  }
-                }
-              }
-              Icon(
-                imageVector = Lucide.X,
-                contentDescription = null,
-                modifier = Modifier
-                  .clip(CircleShape)
-                  .size(20.dp)
-                  .clickable {
-                    // Remove image
-                    state.messageContent =
-                      state.messageContent.filterNot { it == document }
-                    // Delete image
-                    context.deleteChatFiles(listOf(document.url.toUri()))
-                  }
-                  .align(Alignment.TopEnd)
-                  .background(MaterialTheme.colorScheme.secondary),
-                tint = MaterialTheme.colorScheme.onSecondary
-              )
-            }
-          }
-      }
+    }
 
-      Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 12.dp),
-      ) {
-        // TextField
-        Surface(
-          shape = RoundedCornerShape(32.dp),
-          tonalElevation = 4.dp,
-          modifier = Modifier.weight(1f)
+    Surface {
+        Column(
+            modifier = modifier
+                .imePadding()
+                .navigationBarsPadding(),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-          Column {
-            if (state.isEditing()) {
-              Surface(
-                tonalElevation = 8.dp
-              ) {
-                Row(
-                  modifier = Modifier
+            // Medias
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
-                  verticalAlignment = Alignment.CenterVertically
-                ) {
-                  Text(
-                    text = stringResource(R.string.editing),
-                  )
-                  Spacer(Modifier.weight(1f))
-                  Icon(
-                    Lucide.X, stringResource(R.string.cancel_edit),
-                    modifier = Modifier
-                      .clickable {
-                        state.clearInput()
-                      }
-                  )
-                }
-              }
-            }
-            var isFocused by remember { mutableStateOf(false) }
-            var isFullScreen by remember { mutableStateOf(false) }
-            val receiveContentListener = remember {
-              ReceiveContentListener { transferableContent ->
-                when {
-                  transferableContent.hasMediaType(MediaType.Image) -> {
-                    transferableContent.consume { item ->
-                      val uri = item.uri
-                      if (uri != null) {
-                        state.addImages(
-                          context.createChatFilesByContents(
-                            listOf(
-                              uri
+                    .padding(horizontal = 8.dp)
+                    .horizontalScroll(rememberScrollState())
+            ) {
+                state.messageContent.filterIsInstance<UIMessagePart.Image>().fastForEach { image ->
+                    Box {
+                        Surface(
+                            modifier = Modifier.size(48.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            tonalElevation = 4.dp
+                        ) {
+                            AsyncImage(
+                                model = image.url,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
                             )
-                          )
+                        }
+                        Icon(
+                            imageVector = Lucide.X,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .size(20.dp)
+                                .clickable {
+                                    // Remove image
+                                    state.messageContent =
+                                        state.messageContent.filterNot { it == image }
+                                    // Delete image
+                                    context.deleteChatFiles(listOf(image.url.toUri()))
+                                }
+                                .align(Alignment.TopEnd)
+                                .background(MaterialTheme.colorScheme.secondary),
+                            tint = MaterialTheme.colorScheme.onSecondary
                         )
-                      }
-                      uri != null
                     }
-                  }
-
-                  else -> transferableContent
                 }
-              }
+                state.messageContent.filterIsInstance<UIMessagePart.Document>()
+                    .fastForEach { document ->
+                        Box {
+                            Surface(
+                                modifier = Modifier
+                                    .height(48.dp)
+                                    .widthIn(max = 128.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                tonalElevation = 4.dp
+                            ) {
+                                CompositionLocalProvider(
+                                    LocalContentColor provides MaterialTheme.colorScheme.onSurface.copy(
+                                        0.8f
+                                    )
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(4.dp)
+                                    ) {
+                                        Text(
+                                            text = document.fileName,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                    }
+                                }
+                            }
+                            Icon(
+                                imageVector = Lucide.X,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .size(20.dp)
+                                    .clickable {
+                                        // Remove image
+                                        state.messageContent =
+                                            state.messageContent.filterNot { it == document }
+                                        // Delete image
+                                        context.deleteChatFiles(listOf(document.url.toUri()))
+                                    }
+                                    .align(Alignment.TopEnd)
+                                    .background(MaterialTheme.colorScheme.secondary),
+                                tint = MaterialTheme.colorScheme.onSecondary
+                            )
+                        }
+                    }
             }
-            TextField(
-              value = text.text,
-              onValueChange = { state.setMessageText(it) },
-              modifier = Modifier
-                .fillMaxWidth()
-                .contentReceiver(receiveContentListener)
-                .onFocusChanged {
-                  isFocused = it.isFocused
-                  if (isFocused) {
-                    expand = ExpandState.Collapsed
-                  }
-                },
-              shape = RoundedCornerShape(32.dp),
-              placeholder = {
-                Text(stringResource(R.string.chat_input_placeholder))
-              },
-              maxLines = 5,
-              colors = TextFieldDefaults.colors().copy(
-                unfocusedIndicatorColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-              ),
-              trailingIcon = {
-                if (isFocused) {
-                  IconButton(
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp),
+            ) {
+                // TextField
+                Surface(
+                    shape = RoundedCornerShape(32.dp),
+                    tonalElevation = 4.dp,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Column {
+                        if (state.isEditing()) {
+                            Surface(
+                                tonalElevation = 8.dp
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.editing),
+                                    )
+                                    Spacer(Modifier.weight(1f))
+                                    Icon(
+                                        Lucide.X, stringResource(R.string.cancel_edit),
+                                        modifier = Modifier
+                                            .clickable {
+                                                state.clearInput()
+                                            }
+                                    )
+                                }
+                            }
+                        }
+                        var isFocused by remember { mutableStateOf(false) }
+                        var isFullScreen by remember { mutableStateOf(false) }
+                        val receiveContentListener = remember {
+                            ReceiveContentListener { transferableContent ->
+                                when {
+                                    transferableContent.hasMediaType(MediaType.Image) -> {
+                                        transferableContent.consume { item ->
+                                            val uri = item.uri
+                                            if (uri != null) {
+                                                state.addImages(
+                                                    context.createChatFilesByContents(
+                                                        listOf(
+                                                            uri
+                                                        )
+                                                    )
+                                                )
+                                            }
+                                            uri != null
+                                        }
+                                    }
+
+                                    else -> transferableContent
+                                }
+                            }
+                        }
+                        TextField(
+                            value = text.text,
+                            onValueChange = { state.setMessageText(it) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .contentReceiver(receiveContentListener)
+                                .onFocusChanged {
+                                    isFocused = it.isFocused
+                                    if (isFocused) {
+                                        expand = ExpandState.Collapsed
+                                    }
+                                },
+                            shape = RoundedCornerShape(32.dp),
+                            placeholder = {
+                                Text(stringResource(R.string.chat_input_placeholder))
+                            },
+                            maxLines = 5,
+                            colors = TextFieldDefaults.colors().copy(
+                                unfocusedIndicatorColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                            ),
+                            trailingIcon = {
+                                if (isFocused) {
+                                    IconButton(
+                                        onClick = {
+                                            isFullScreen = !isFullScreen
+                                        }
+                                    ) {
+                                        Icon(Lucide.Fullscreen, null)
+                                    }
+                                }
+                            }
+                        )
+                        if (isFullScreen) {
+                            FullScreenEditor(text, state) {
+                                isFullScreen = false
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Actions Row
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    // Model Picker
+                    ModelSelector(
+                        modelId = settings.getCurrentAssistant().chatModelId ?: settings.chatModelId,
+                        providers = settings.providers,
+                        onSelect = {
+                            onUpdateChatModel(it)
+                            dismissExpand()
+                        },
+                        type = ModelType.CHAT,
+                        onlyIcon = true,
+                        modifier = Modifier,
+                    )
+
+                    // Search
+                    val enableSearchMsg = stringResource(R.string.web_search_enabled)
+                    val disableSearchMsg = stringResource(R.string.web_search_disabled)
+                    SearchPickerButton(
+                        enableSearch = enableSearch,
+                        settings = settings,
+                        onToggleSearch = { enabled ->
+                            onToggleSearch(enabled)
+                            toaster.show(
+                                message = if (enabled) enableSearchMsg else disableSearchMsg,
+                                duration = 1.seconds,
+                                type = if (enabled) {
+                                    ToastType.Success
+                                } else {
+                                    ToastType.Normal
+                                }
+                            )
+                        },
+                        onUpdateSearchService = onUpdateSearchService,
+                    )
+
+                    // Reasoning
+                    val model = settings.getCurrentChatModel()
+                    if (model?.abilities?.contains(ModelAbility.REASONING) == true) {
+                        val assistant = settings.getCurrentAssistant()
+                        ReasoningButton(
+                            reasoningTokens = assistant.thinkingBudget ?: 0,
+                            onUpdateReasoningTokens = {
+                                onUpdateAssistant(assistant.copy(thinkingBudget = it))
+                            },
+                            onlyIcon = true,
+                        )
+                    }
+
+                    // MCP
+                    if (settings.mcpServers.isNotEmpty()) {
+                        McpPickerButton(
+                            assistant = settings.getCurrentAssistant(),
+                            servers = settings.mcpServers,
+                            mcpManager = mcpManager,
+                            onUpdateAssistant = {
+                                onUpdateAssistant(it)
+                            },
+                        )
+                    }
+                }
+
+                // Insert files
+                IconButton(
                     onClick = {
-                      isFullScreen = !isFullScreen
+                        expandToggle(ExpandState.Files)
                     }
-                  ) {
-                    Icon(Lucide.Fullscreen, null)
-                  }
+                ) {
+                    Icon(
+                        if (expand == ExpandState.Files) Lucide.X else Lucide.Plus,
+                        stringResource(R.string.more_options)
+                    )
                 }
-              }
-            )
-            if (isFullScreen) {
-              FullScreenEditor(text, state) {
-                isFullScreen = false
-              }
+
+                // Send Button
+                IconButton(
+                    onClick = {
+                        expand = ExpandState.Collapsed
+                        sendMessage()
+                    },
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = if (state.loading) MaterialTheme.colorScheme.errorContainer else Color.Unspecified,
+                        contentColor = if (state.loading) MaterialTheme.colorScheme.onErrorContainer else Color.Unspecified,
+                    ),
+                    enabled = state.loading || !state.messageContent.isEmptyInputMessage(),
+                ) {
+                    if (state.loading) {
+                        KeepScreenOn()
+                        Icon(Lucide.X, stringResource(R.string.stop))
+                    } else {
+                        Icon(Lucide.ArrowUp, stringResource(R.string.send))
+                    }
+                }
             }
-          }
-        }
-      }
 
-      // Actions Row
-      Row(
-        modifier = Modifier.padding(horizontal = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-      ) {
-        Row(
-          modifier = Modifier
-            .weight(1f)
-            .horizontalScroll(rememberScrollState()),
-          horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-          // Model Picker
-          ModelSelector(
-            modelId = settings.getCurrentAssistant().chatModelId ?: settings.chatModelId,
-            providers = settings.providers,
-            onSelect = {
-              onUpdateChatModel(it)
-              dismissExpand()
-            },
-            type = ModelType.CHAT,
-            onlyIcon = true,
-            modifier = Modifier,
-          )
-
-          // Search
-          val enableSearchMsg = stringResource(R.string.web_search_enabled)
-          val disableSearchMsg = stringResource(R.string.web_search_disabled)
-          SearchPickerButton(
-            enableSearch = enableSearch,
-            settings = settings,
-            onToggleSearch = { enabled ->
-              onToggleSearch(enabled)
-              toaster.show(
-                message = if (enabled) enableSearchMsg else disableSearchMsg,
-                duration = 1.seconds,
-                type = if (enabled) {
-                  ToastType.Success
-                } else {
-                  ToastType.Normal
+            // Expanded content
+            Box(
+                modifier = Modifier
+                    .animateContentSize()
+                    .fillMaxWidth()
+            ) {
+                BackHandler(
+                    enabled = expand != ExpandState.Collapsed,
+                ) {
+                    dismissExpand()
                 }
-              )
-            },
-            onUpdateSearchService = onUpdateSearchService,
-          )
-
-          // Reasoning
-          val model = settings.getCurrentChatModel()
-          if (model?.abilities?.contains(ModelAbility.REASONING) == true) {
-            val assistant = settings.getCurrentAssistant()
-            ReasoningButton(
-              reasoningTokens = assistant.thinkingBudget ?: 0,
-              onUpdateReasoningTokens = {
-                onUpdateAssistant(assistant.copy(thinkingBudget = it))
-              },
-              onlyIcon = true,
-            )
-          }
-
-          // MCP
-          if (settings.mcpServers.isNotEmpty()) {
-            McpPickerButton(
-              assistant = settings.getCurrentAssistant(),
-              servers = settings.mcpServers,
-              mcpManager = mcpManager,
-              onUpdateAssistant = {
-                onUpdateAssistant(it)
-              },
-            )
-          }
+                if (expand == ExpandState.Files) {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    ) {
+                        FilesPicker(
+                            conversation = conversation,
+                            state = state,
+                            onClearContext = onClearContext,
+                            onDismiss = { dismissExpand() }
+                        )
+                    }
+                }
+            }
         }
-
-        // Insert files
-        IconButton(
-          onClick = {
-            expandToggle(ExpandState.Files)
-          }
-        ) {
-          Icon(
-            if (expand == ExpandState.Files) Lucide.X else Lucide.Plus,
-            stringResource(R.string.more_options)
-          )
-        }
-
-        // Send Button
-        IconButton(
-          onClick = {
-            expand = ExpandState.Collapsed
-            sendMessage()
-          },
-          colors = IconButtonDefaults.filledIconButtonColors(
-            containerColor = if (state.loading) MaterialTheme.colorScheme.errorContainer else Color.Unspecified,
-            contentColor = if (state.loading) MaterialTheme.colorScheme.onErrorContainer else Color.Unspecified,
-          ),
-          enabled = state.loading || !state.messageContent.isEmptyInputMessage(),
-        ) {
-          if (state.loading) {
-            KeepScreenOn()
-            Icon(Lucide.X, stringResource(R.string.stop))
-          } else {
-            Icon(Lucide.ArrowUp, stringResource(R.string.send))
-          }
-        }
-      }
-
-      // Expanded content
-      Box(
-        modifier = Modifier
-          .animateContentSize()
-          .fillMaxWidth()
-      ) {
-        BackHandler(
-          enabled = expand != ExpandState.Collapsed,
-        ) {
-          dismissExpand()
-        }
-        if (expand == ExpandState.Files) {
-          Surface(
-            modifier = Modifier
-              .fillMaxWidth()
-          ) {
-            FilesPicker(
-              conversation = conversation,
-              state = state,
-              onClearContext = onClearContext,
-              onDismiss = { dismissExpand() }
-            )
-          }
-        }
-      }
     }
-  }
 }
 
 @Composable
 private fun FilesPicker(
-  conversation: Conversation,
-  state: ChatInputState,
-  onClearContext: () -> Unit,
-  onDismiss: () -> Unit
+    conversation: Conversation,
+    state: ChatInputState,
+    onClearContext: () -> Unit,
+    onDismiss: () -> Unit
 ) {
-  Column(
-    modifier = Modifier
-      .fillMaxWidth()
-      .padding(16.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp)
-  ) {
-    FlowRow(
-      modifier = Modifier
-        .fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(16.dp),
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-      TakePicButton {
-        state.addImages(it)
-        onDismiss()
-      }
+        FlowRow(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            TakePicButton {
+                state.addImages(it)
+                onDismiss()
+            }
 
-      ImagePickButton {
-        state.addImages(it)
-        onDismiss()
-      }
+            ImagePickButton {
+                state.addImages(it)
+                onDismiss()
+            }
 
-      FilePickButton {
-        state.addFiles(it)
-        onDismiss()
-      }
-    }
-
-    HorizontalDivider(
-      modifier = Modifier.fillMaxWidth()
-    )
-
-    ListItem(
-      leadingContent = {
-        Icon(
-          imageVector = Lucide.Eraser,
-          contentDescription = stringResource(R.string.chat_page_clear_context),
-        )
-      },
-      headlineContent = {
-        Text(stringResource(R.string.chat_page_clear_context))
-      },
-      trailingContent = {
-        // Context Size
-        val settings = LocalSettings.current
-        if (settings.displaySetting.showTokenUsage && conversation.messageNodes.isNotEmpty()) {
-          val configuredContextSize = settings.getCurrentAssistant().contextMessageSize
-          val effectiveMessagesAfterTruncation =
-            conversation.messageNodes.size - conversation.truncateIndex.coerceAtLeast(0)
-          val actualContextMessageCount =
-            minOf(effectiveMessagesAfterTruncation, configuredContextSize)
-          Text(
-            text = "$actualContextMessageCount/$configuredContextSize",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.outlineVariant,
-          )
+            FilePickButton {
+                state.addFiles(it)
+                onDismiss()
+            }
         }
-      },
-      modifier = Modifier
-        .clip(MaterialTheme.shapes.large)
-        .clickable(
-          onClick = {
-            onClearContext()
-          }
-        ),
-    )
-  }
+
+        HorizontalDivider(
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        ListItem(
+            leadingContent = {
+                Icon(
+                    imageVector = Lucide.Eraser,
+                    contentDescription = stringResource(R.string.chat_page_clear_context),
+                )
+            },
+            headlineContent = {
+                Text(stringResource(R.string.chat_page_clear_context))
+            },
+            trailingContent = {
+                // Context Size
+                val settings = LocalSettings.current
+                if (settings.displaySetting.showTokenUsage && conversation.messageNodes.isNotEmpty()) {
+                    val configuredContextSize = settings.getCurrentAssistant().contextMessageSize
+                    val effectiveMessagesAfterTruncation =
+                        conversation.messageNodes.size - conversation.truncateIndex.coerceAtLeast(0)
+                    val actualContextMessageCount =
+                        minOf(effectiveMessagesAfterTruncation, configuredContextSize)
+                    Text(
+                        text = "$actualContextMessageCount/$configuredContextSize",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                    )
+                }
+            },
+            modifier = Modifier
+                .clip(MaterialTheme.shapes.large)
+                .clickable(
+                    onClick = {
+                        onClearContext()
+                    }
+                ),
+        )
+    }
 }
 
 @Composable
 private fun FullScreenEditor(
-  text: UIMessagePart.Text,
-  state: ChatInputState,
-  onDone: () -> Unit
+    text: UIMessagePart.Text,
+    state: ChatInputState,
+    onDone: () -> Unit
 ) {
-  BasicAlertDialog(
-    onDismissRequest = {
-      onDone()
-    },
-    properties = DialogProperties(
-      usePlatformDefaultWidth = false
-    ),
-  ) {
-    Column(
-      modifier = Modifier
-        .fillMaxSize(),
-      verticalArrangement = Arrangement.Bottom
+    BasicAlertDialog(
+        onDismissRequest = {
+            onDone()
+        },
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false
+        ),
     ) {
-      Surface(
-        modifier = Modifier
-          .widthIn(max = 800.dp)
-          .fillMaxHeight(0.9f),
-        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
-      ) {
         Column(
-          modifier = Modifier
-            .padding(8.dp)
-            .fillMaxSize(),
-          horizontalAlignment = Alignment.End,
-          verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-          Row {
-            TextButton(
-              onClick = {
-                onDone()
-              }
-            ) {
-              Text(stringResource(R.string.chat_page_save))
-            }
-          }
-          TextField(
-            value = text.text,
-            onValueChange = { state.setMessageText(it) },
             modifier = Modifier
-              .imePadding()
-              .fillMaxSize(),
-            shape = RoundedCornerShape(32.dp),
-            placeholder = {
-              Text(stringResource(R.string.chat_input_placeholder))
-            },
-            colors = TextFieldDefaults.colors().copy(
-              unfocusedIndicatorColor = Color.Transparent,
-              focusedIndicatorColor = Color.Transparent,
-              focusedContainerColor = Color.Transparent,
-              unfocusedContainerColor = Color.Transparent,
-            ),
-          )
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Surface(
+                modifier = Modifier
+                    .widthIn(max = 800.dp)
+                    .fillMaxHeight(0.9f),
+                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .fillMaxSize(),
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Row {
+                        TextButton(
+                            onClick = {
+                                onDone()
+                            }
+                        ) {
+                            Text(stringResource(R.string.chat_page_save))
+                        }
+                    }
+                    TextField(
+                        value = text.text,
+                        onValueChange = { state.setMessageText(it) },
+                        modifier = Modifier
+                            .imePadding()
+                            .fillMaxSize(),
+                        shape = RoundedCornerShape(32.dp),
+                        placeholder = {
+                            Text(stringResource(R.string.chat_input_placeholder))
+                        },
+                        colors = TextFieldDefaults.colors().copy(
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                        ),
+                    )
+                }
+            }
         }
-      }
     }
-  }
 }
 
 @Composable
 private fun ImagePickButton(onAddImages: (List<Uri>) -> Unit = {}) {
-  val context = LocalContext.current
-  val pickMedia =
-    rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
-      if (uris.isNotEmpty()) {
-        Log.d("PhotoPicker", "Selected URI: $uris")
-        onAddImages(context.createChatFilesByContents(uris))
-      } else {
-        Log.d("PhotoPicker", "No media selected")
-      }
+    val context = LocalContext.current
+    val pickMedia =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
+            if (uris.isNotEmpty()) {
+                Log.d("PhotoPicker", "Selected URI: $uris")
+                onAddImages(context.createChatFilesByContents(uris))
+            } else {
+                Log.d("PhotoPicker", "No media selected")
+            }
+        }
+    BigIconTextButton(
+        icon = {
+            Icon(Lucide.Image, null)
+        },
+        text = {
+            Text(stringResource(R.string.photo))
+        }
+    ) {
+        pickMedia.launch("image/*")
     }
-  BigIconTextButton(
-    icon = {
-      Icon(Lucide.Image, null)
-    },
-    text = {
-      Text(stringResource(R.string.photo))
-    }
-  ) {
-    pickMedia.launch("image/*")
-  }
 }
 
 @Composable
 fun TakePicButton(onAddImages: (List<Uri>) -> Unit = {}) {
-  val permissionState = rememberAppPermissionState(
-    permissions = listOf(
-      AppPermission(
-        permission = Manifest.permission.CAMERA,
-        description = "需要权限才能使用相机功能",
-        isRequired = true
-      )
+    val permissionState = rememberAppPermissionState(
+        permissions = listOf(
+            AppPermission(
+                permission = Manifest.permission.CAMERA,
+                description = "需要权限才能使用相机功能",
+                isRequired = true
+            )
+        )
     )
-  )
-  val context = LocalContext.current
-  var providerUri by remember { mutableStateOf<Uri?>(null) }
-  var file by remember { mutableStateOf<File?>(null) }
-  val pickMedia =
-    rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-      if (success) {
-        onAddImages(context.createChatFilesByContents(listOf(providerUri!!)))
-      }
-      // delete the temp file
-      file?.delete()
-    }
+    val context = LocalContext.current
+    var providerUri by remember { mutableStateOf<Uri?>(null) }
+    var file by remember { mutableStateOf<File?>(null) }
+    val pickMedia =
+        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            if (success) {
+                onAddImages(context.createChatFilesByContents(listOf(providerUri!!)))
+            }
+            // delete the temp file
+            file?.delete()
+        }
 
-  BigIconTextButton(
-    icon = {
-      Icon(Lucide.Camera, null)
-    },
-    text = {
-      Text(stringResource(R.string.take_picture))
+    BigIconTextButton(
+        icon = {
+            Icon(Lucide.Camera, null)
+        },
+        text = {
+            Text(stringResource(R.string.take_picture))
+        }
+    ) {
+        permissionState.requestPermission()
+        if (permissionState.allRequiredGranted()) {
+            file = context.cacheDir.resolve(Uuid.random().toString())
+            providerUri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                file!!
+            )
+            pickMedia.launch(providerUri!!)
+        }
     }
-  ) {
-    permissionState.requestPermission()
-    if (permissionState.allRequiredGranted()) {
-      file = context.cacheDir.resolve(Uuid.random().toString())
-      providerUri = FileProvider.getUriForFile(
-        context,
-        "${context.packageName}.fileprovider",
-        file!!
-      )
-      pickMedia.launch(providerUri!!)
-    }
-  }
 }
 
 @Composable
 fun FilePickButton(onAddFiles: (List<UIMessagePart.Document>) -> Unit = {}) {
-  val context = LocalContext.current
-  val pickMedia =
-    rememberLauncherForActivityResult(GetContentWithMultiMime()) { uris ->
-      if (uris.isNotEmpty()) {
-        val documents = uris.map { uri ->
-          val fileName = context.getFileNameFromUri(uri) ?: "file"
-          val mime = context.getFileMimeType(uri)
-          val localUri = context.createChatFilesByContents(listOf(uri))[0]
-          UIMessagePart.Document(
-            url = localUri.toString(),
-            fileName = fileName,
-            mime = mime ?: "text/*"
-          )
+    val context = LocalContext.current
+    val pickMedia =
+        rememberLauncherForActivityResult(GetContentWithMultiMime()) { uris ->
+            if (uris.isNotEmpty()) {
+                val documents = uris.map { uri ->
+                    val fileName = context.getFileNameFromUri(uri) ?: "file"
+                    val mime = context.getFileMimeType(uri)
+                    val localUri = context.createChatFilesByContents(listOf(uri))[0]
+                    UIMessagePart.Document(
+                        url = localUri.toString(),
+                        fileName = fileName,
+                        mime = mime ?: "text/*"
+                    )
+                }
+                onAddFiles(documents)
+            }
         }
-        onAddFiles(documents)
-      }
+    BigIconTextButton(
+        icon = {
+            Icon(Lucide.Files, null)
+        },
+        text = {
+            Text(stringResource(R.string.upload_file))
+        }
+    ) {
+        pickMedia.launch(
+            listOf(
+                "text/*",
+                "application/json",
+                "application/javascript",
+                "application/pdf",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            )
+        )
     }
-  BigIconTextButton(
-    icon = {
-      Icon(Lucide.Files, null)
-    },
-    text = {
-      Text(stringResource(R.string.upload_file))
-    }
-  ) {
-    pickMedia.launch(
-      listOf(
-        "text/*",
-        "application/json",
-        "application/javascript",
-        "application/pdf",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-      )
-    )
-  }
 }
 
 
 @Composable
 private fun BigIconTextButton(
-  modifier: Modifier = Modifier,
-  icon: @Composable () -> Unit,
-  text: @Composable () -> Unit,
-  onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    icon: @Composable () -> Unit,
+    text: @Composable () -> Unit,
+    onClick: () -> Unit,
 ) {
-  val interactionSource = remember { MutableInteractionSource() }
-  Column(
-    modifier = modifier
-      .clip(RoundedCornerShape(8.dp))
-      .clickable(
-        interactionSource = interactionSource,
-        indication = LocalIndication.current,
-        onClick = onClick
-      )
-      .semantics {
-        role = Role.Button
-      }
-      .wrapContentWidth(),
-    horizontalAlignment = Alignment.CenterHorizontally,
-    verticalArrangement = Arrangement.spacedBy(2.dp)
-  ) {
-    Surface(
-      tonalElevation = 2.dp,
-      shape = RoundedCornerShape(8.dp)
+    val interactionSource = remember { MutableInteractionSource() }
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(
+                interactionSource = interactionSource,
+                indication = LocalIndication.current,
+                onClick = onClick
+            )
+            .semantics {
+                role = Role.Button
+            }
+            .wrapContentWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-      Box(
-        modifier = Modifier
-          .padding(horizontal = 32.dp, vertical = 16.dp)
-      ) {
-        icon()
-      }
+        Surface(
+            tonalElevation = 2.dp,
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 32.dp, vertical = 16.dp)
+            ) {
+                icon()
+            }
+        }
+        ProvideTextStyle(MaterialTheme.typography.bodySmall) {
+            text()
+        }
     }
-    ProvideTextStyle(MaterialTheme.typography.bodySmall) {
-      text()
-    }
-  }
 }
 
 @Composable
 private fun ChatActionItem(
-  modifier: Modifier = Modifier,
-  checked: Boolean,
-  icon: @Composable () -> Unit,
-  title: @Composable (() -> Unit)? = null,
-  tail: @Composable (() -> Unit)? = null,
-  onClick: () -> Unit
+    modifier: Modifier = Modifier,
+    checked: Boolean,
+    icon: @Composable () -> Unit,
+    title: @Composable (() -> Unit)? = null,
+    tail: @Composable (() -> Unit)? = null,
+    onClick: () -> Unit
 ) {
-  ToggleSurface(
-    modifier = modifier,
-    checked = checked,
-    onClick = {
-      onClick()
-    }
-  ) {
-    Row(
-      modifier = Modifier
-        .padding(vertical = 8.dp, horizontal = 8.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ToggleSurface(
+        modifier = modifier,
+        checked = checked,
+        onClick = {
+            onClick()
+        }
     ) {
-      Box(
-        modifier = Modifier.size(24.dp),
-        contentAlignment = Alignment.Center
-      ) {
-        icon()
-      }
-      if (checked) {
-        title?.let {
-          Column(
-            modifier = Modifier,
-            verticalArrangement = Arrangement.spacedBy(2.dp)
-          ) {
-            title()
-          }
-        }
-      }
-      tail?.let {
-        Box(
-          modifier = Modifier
-            .padding(horizontal = 8.dp),
-          contentAlignment = Alignment.Center
+        Row(
+            modifier = Modifier
+                .padding(vertical = 8.dp, horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-          tail()
+            Box(
+                modifier = Modifier.size(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                icon()
+            }
+            if (checked) {
+                title?.let {
+                    Column(
+                        modifier = Modifier,
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        title()
+                    }
+                }
+            }
+            tail?.let {
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    tail()
+                }
+            }
         }
-      }
     }
-  }
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun BigIconTextButtonPreview() {
-  Row(
-    modifier = Modifier.padding(16.dp)
-  ) {
-    BigIconTextButton(
-      icon = {
-        Icon(Lucide.Image, null)
-      },
-      text = {
-        Text(stringResource(R.string.photo))
-      }
-    ) {}
-  }
+    Row(
+        modifier = Modifier.padding(16.dp)
+    ) {
+        BigIconTextButton(
+            icon = {
+                Icon(Lucide.Image, null)
+            },
+            text = {
+                Text(stringResource(R.string.photo))
+            }
+        ) {}
+    }
 }

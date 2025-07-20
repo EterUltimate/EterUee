@@ -24,81 +24,81 @@ import okhttp3.logging.HttpLoggingInterceptor
 import java.util.concurrent.TimeUnit
 
 object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
-  private val client = OkHttpClient.Builder()
-    .connectTimeout(120, TimeUnit.SECONDS)
-    .readTimeout(120, TimeUnit.SECONDS)
-    .writeTimeout(120, TimeUnit.SECONDS)
-    .retryOnConnectionFailure(true)
-    .addInterceptor(HttpLoggingInterceptor().apply {
-      level = HttpLoggingInterceptor.Level.HEADERS
-    })
-    .build()
-
-  private val chatCompletionsAPI = ChatCompletionsAPI(client = client)
-  private val responseAPI = ResponseAPI(client = client)
-
-  override suspend fun listModels(providerSetting: ProviderSetting.OpenAI): List<Model> =
-    withContext(Dispatchers.IO) {
-      val request = Request.Builder()
-        .url("${providerSetting.baseUrl}/models")
-        .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
-        .get()
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(120, TimeUnit.SECONDS)
+        .readTimeout(120, TimeUnit.SECONDS)
+        .writeTimeout(120, TimeUnit.SECONDS)
+        .retryOnConnectionFailure(true)
+        .addInterceptor(HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.HEADERS
+        })
         .build()
 
-      val response =
-        client.configureClientWithProxy(providerSetting.proxy).newCall(request).await()
-      if (!response.isSuccessful) {
-        error("Failed to get models: ${response.code} ${response.body?.string()}")
-      }
+    private val chatCompletionsAPI = ChatCompletionsAPI(client = client)
+    private val responseAPI = ResponseAPI(client = client)
 
-      val bodyStr = response.body?.string() ?: ""
-      val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
-      val data = bodyJson["data"]?.jsonArray ?: return@withContext emptyList()
+    override suspend fun listModels(providerSetting: ProviderSetting.OpenAI): List<Model> =
+        withContext(Dispatchers.IO) {
+            val request = Request.Builder()
+                .url("${providerSetting.baseUrl}/models")
+                .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
+                .get()
+                .build()
 
-      data.mapNotNull { modelJson ->
-        val modelObj = modelJson.jsonObject
-        val id = modelObj["id"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
+            val response =
+                client.configureClientWithProxy(providerSetting.proxy).newCall(request).await()
+            if (!response.isSuccessful) {
+                error("Failed to get models: ${response.code} ${response.body?.string()}")
+            }
 
-        Model(
-          modelId = id,
-          displayName = id,
+            val bodyStr = response.body?.string() ?: ""
+            val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
+            val data = bodyJson["data"]?.jsonArray ?: return@withContext emptyList()
+
+            data.mapNotNull { modelJson ->
+                val modelObj = modelJson.jsonObject
+                val id = modelObj["id"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
+
+                Model(
+                    modelId = id,
+                    displayName = id,
+                )
+            }
+        }
+
+    override suspend fun streamText(
+        providerSetting: ProviderSetting.OpenAI,
+        messages: List<UIMessage>,
+        params: TextGenerationParams
+    ): Flow<MessageChunk> = if (providerSetting.useResponseApi) {
+        responseAPI.streamText(
+            providerSetting = providerSetting,
+            messages = messages,
+            params = params
         )
-      }
+    } else {
+        chatCompletionsAPI.streamText(
+            providerSetting = providerSetting,
+            messages = messages,
+            params = params
+        )
     }
 
-  override suspend fun streamText(
-    providerSetting: ProviderSetting.OpenAI,
-    messages: List<UIMessage>,
-    params: TextGenerationParams
-  ): Flow<MessageChunk> = if (providerSetting.useResponseApi) {
-    responseAPI.streamText(
-      providerSetting = providerSetting,
-      messages = messages,
-      params = params
-    )
-  } else {
-    chatCompletionsAPI.streamText(
-      providerSetting = providerSetting,
-      messages = messages,
-      params = params
-    )
-  }
-
-  override suspend fun generateText(
-    providerSetting: ProviderSetting.OpenAI,
-    messages: List<UIMessage>,
-    params: TextGenerationParams
-  ): MessageChunk = if (providerSetting.useResponseApi) {
-    responseAPI.generateText(
-      providerSetting = providerSetting,
-      messages = messages,
-      params = params
-    )
-  } else {
-    chatCompletionsAPI.generateText(
-      providerSetting = providerSetting,
-      messages = messages,
-      params = params
-    )
-  }
+    override suspend fun generateText(
+        providerSetting: ProviderSetting.OpenAI,
+        messages: List<UIMessage>,
+        params: TextGenerationParams
+    ): MessageChunk = if (providerSetting.useResponseApi) {
+        responseAPI.generateText(
+            providerSetting = providerSetting,
+            messages = messages,
+            params = params
+        )
+    } else {
+        chatCompletionsAPI.generateText(
+            providerSetting = providerSetting,
+            messages = messages,
+            params = params
+        )
+    }
 }

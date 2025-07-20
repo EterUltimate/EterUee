@@ -225,15 +225,15 @@
   <string name="mermaid_export_failed">エクスポートに失敗しました</string>
 
   <!-- Avatar Component -->
-      <string name="avatar_change_avatar">アバターを変更</string>
-    <string name="avatar_pick_image">画像を選択</string>
-    <string name="avatar_pick_emoji">絵文字を選択</string>
-    <string name="avatar_input_url">URLを入力</string>
-    <string name="avatar_reset">リセット</string>
-    <string name="avatar_cancel">キャンセル</string>
-    <string name="avatar_url_dialog_title">画像URLを入力</string>
-    <string name="avatar_url_hint">画像URLを入力してください</string>
-    <string name="avatar_url_confirm">確認</string>
+  <string name="avatar_change_avatar">アバターを変更</string>
+  <string name="avatar_pick_image">画像を選択</string>
+  <string name="avatar_pick_emoji">絵文字を選択</string>
+  <string name="avatar_input_url">URLを入力</string>
+  <string name="avatar_reset">リセット</string>
+  <string name="avatar_cancel">キャンセル</string>
+  <string name="avatar_url_dialog_title">画像URLを入力</string>
+  <string name="avatar_url_hint">画像URLを入力してください</string>
+  <string name="avatar_url_confirm">確認</string>
 
   <!-- Emoji Picker -->
   <string name="emoji_picker_search_placeholder">絵文字を検索...</string>
@@ -241,7 +241,7 @@
 
   <!-- Reasoning -->
   <string name="reasoning_set_budget">推論予算を設定 (%1$d トークン)</string>
-  
+
   <!-- User -->
   <string name="user_default_name">ユーザー</string>
   <string name="reasoning_off">オフ</string>
@@ -493,4 +493,4 @@
   <string name="setting_tts_page_select">選択</string>
   <string name="setting_tts_page_selected">選択済み</string>
   <string name="setting_tts_page_default_name">システムTTS</string>
-</resources> 
+</resources>

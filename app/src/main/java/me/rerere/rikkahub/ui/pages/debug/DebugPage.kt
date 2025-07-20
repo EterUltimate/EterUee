@@ -38,40 +38,40 @@ import kotlin.uuid.Uuid
 
 @Composable
 fun DebugPage(vm: DebugVM = koinViewModel()) {
-  val settings by vm.settings.collectAsStateWithLifecycle()
-  val scope = rememberCoroutineScope()
-  val context = LocalContext.current
-  Scaffold(
-    topBar = {
-      TopAppBar(
-        title = {
-          Text("Debug Mode")
-        },
-        navigationIcon = {
-          BackButton()
+    val settings by vm.settings.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text("Debug Mode")
+                },
+                navigationIcon = {
+                    BackButton()
+                }
+            )
         }
-      )
-    }
-  ) { contentPadding ->
-    Column(
-      modifier = Modifier
-        .padding(contentPadding)
-        .padding(8.dp)
-        .verticalScroll(rememberScrollState())
-        .imePadding(),
-      verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-      var avatar: Avatar by remember { mutableStateOf(Avatar.Emoji("😎")) }
-      UIAvatar(
-        value = avatar,
-        onUpdate = {
-          println("Avatar updated: $it")
-          avatar = it
-        },
-        name = "A"
-      )
-      Mermaid(
-        code = """
+    ) { contentPadding ->
+        Column(
+            modifier = Modifier
+              .padding(contentPadding)
+              .padding(8.dp)
+              .verticalScroll(rememberScrollState())
+              .imePadding(),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            var avatar: Avatar by remember { mutableStateOf(Avatar.Emoji("😎")) }
+            UIAvatar(
+                value = avatar,
+                onUpdate = {
+                    println("Avatar updated: $it")
+                    avatar = it
+                },
+                name = "A"
+            )
+            Mermaid(
+                code = """
                 mindmap
                   root((mindmap))
                     Origins
@@ -90,50 +90,50 @@ fun DebugPage(vm: DebugVM = koinViewModel()) {
                       Pen and paper
                       Mermaid
                 """.trimIndent(),
-        modifier = Modifier.fillMaxWidth(),
-      )
-
-      var counter by remember {
-        mutableIntStateOf(0)
-      }
-      val toaster = LocalToaster.current
-      Button(
-        onClick = {
-          toaster.show("测试 ${counter++}")
-          toaster.show("测试 ${counter++}", type = ToastType.Info)
-          toaster.show("测试 ${counter++}", type = ToastType.Error)
-        }
-      ) {
-        Text("toast")
-      }
-      Button(
-        onClick = {
-          vm.updateSettings(
-            settings.copy(
-              chatModelId = Uuid.random()
+                modifier = Modifier.fillMaxWidth(),
             )
-          )
-        }
-      ) {
-        Text("重置Chat模型")
-      }
 
-      Button(
-        onClick = {
-          error("测试崩溃 ${Random.nextInt(0..1000)}")
-        }
-      ) {
-        Text("崩溃")
-      }
+            var counter by remember {
+                mutableIntStateOf(0)
+            }
+            val toaster = LocalToaster.current
+            Button(
+                onClick = {
+                    toaster.show("测试 ${counter++}")
+                    toaster.show("测试 ${counter++}", type = ToastType.Info)
+                    toaster.show("测试 ${counter++}", type = ToastType.Error)
+                }
+            ) {
+                Text("toast")
+            }
+            Button(
+                onClick = {
+                    vm.updateSettings(
+                        settings.copy(
+                            chatModelId = Uuid.random()
+                        )
+                    )
+                }
+            ) {
+                Text("重置Chat模型")
+            }
 
-      var markdown by remember { mutableStateOf("") }
-      MarkdownBlock(markdown, modifier = Modifier.fillMaxWidth())
-      MathBlock(markdown)
-      OutlinedTextField(
-        value = markdown,
-        onValueChange = { markdown = it },
-        modifier = Modifier.fillMaxWidth()
-      )
+            Button(
+                onClick = {
+                    error("测试崩溃 ${Random.nextInt(0..1000)}")
+                }
+            ) {
+                Text("崩溃")
+            }
+
+            var markdown by remember { mutableStateOf("") }
+            MarkdownBlock(markdown, modifier = Modifier.fillMaxWidth())
+            MathBlock(markdown)
+            OutlinedTextField(
+                value = markdown,
+                onValueChange = { markdown = it },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
-  }
 }

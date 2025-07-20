@@ -5,6 +5,6 @@ import kotlin.uuid.Uuid
 
 @Serializable
 data class Tag(
-  val id: Uuid,
-  val name: String,
+    val id: Uuid,
+    val name: String,
 )

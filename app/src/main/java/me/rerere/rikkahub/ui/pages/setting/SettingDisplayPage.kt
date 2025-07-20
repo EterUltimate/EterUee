@@ -36,205 +36,205 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
-  val settings by vm.settings.collectAsStateWithLifecycle()
-  var displaySetting by remember(settings) { mutableStateOf(settings.displaySetting) }
+    val settings by vm.settings.collectAsStateWithLifecycle()
+    var displaySetting by remember(settings) { mutableStateOf(settings.displaySetting) }
 
-  fun updateDisplaySetting(setting: DisplaySetting) {
-    displaySetting = setting
-    vm.updateSettings(
-      settings.copy(
+    fun updateDisplaySetting(setting: DisplaySetting) {
         displaySetting = setting
-      )
-    )
-  }
-
-  Scaffold(
-    topBar = {
-      TopAppBar(
-        title = {
-          Text(stringResource(R.string.setting_display_page_title))
-        },
-        navigationIcon = {
-          BackButton()
-        }
-      )
+        vm.updateSettings(
+            settings.copy(
+                displaySetting = setting
+            )
+        )
     }
-  ) { contentPadding ->
-    LazyColumn(
-      modifier = Modifier.fillMaxSize(),
-      contentPadding = contentPadding + PaddingValues(16.dp),
-      verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-      item {
-        Card {
-          ListItem(
-            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-            headlineContent = {
-              Text(stringResource(R.string.setting_display_page_show_user_avatar_title))
-            },
-            supportingContent = {
-              Text(stringResource(R.string.setting_display_page_show_user_avatar_desc))
-            },
-            trailingContent = {
-              Switch(
-                checked = displaySetting.showUserAvatar,
-                onCheckedChange = {
-                  updateDisplaySetting(displaySetting.copy(showUserAvatar = it))
-                }
-              )
-            },
-          )
-        }
-      }
 
-      item {
-        Card {
-          ListItem(
-            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-            headlineContent = {
-              Text(stringResource(R.string.setting_display_page_chat_list_model_icon_title))
-            },
-            supportingContent = {
-              Text(stringResource(R.string.setting_display_page_chat_list_model_icon_desc))
-            },
-            trailingContent = {
-              Switch(
-                checked = displaySetting.showModelIcon,
-                onCheckedChange = {
-                  updateDisplaySetting(displaySetting.copy(showModelIcon = it))
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(stringResource(R.string.setting_display_page_title))
+                },
+                navigationIcon = {
+                    BackButton()
                 }
-              )
-            },
-          )
-        }
-      }
-
-      item {
-        Card {
-          ListItem(
-            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-            headlineContent = {
-              Text(stringResource(R.string.setting_display_page_show_token_usage_title))
-            },
-            supportingContent = {
-              Text(stringResource(R.string.setting_display_page_show_token_usage_desc))
-            },
-            trailingContent = {
-              Switch(
-                checked = displaySetting.showTokenUsage,
-                onCheckedChange = {
-                  updateDisplaySetting(displaySetting.copy(showTokenUsage = it))
-                }
-              )
-            },
-          )
-        }
-      }
-
-      item {
-        Card {
-          ListItem(
-            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-            headlineContent = {
-              Text(stringResource(R.string.setting_display_page_auto_collapse_thinking_title))
-            },
-            supportingContent = {
-              Text(stringResource(R.string.setting_display_page_auto_collapse_thinking_desc))
-            },
-            trailingContent = {
-              Switch(
-                checked = displaySetting.autoCloseThinking,
-                onCheckedChange = {
-                  updateDisplaySetting(displaySetting.copy(autoCloseThinking = it))
-                }
-              )
-            },
-          )
-        }
-      }
-
-      item {
-        Card {
-          ListItem(
-            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-            headlineContent = {
-              Text(stringResource(R.string.setting_display_page_show_updates_title))
-            },
-            supportingContent = {
-              Text(stringResource(R.string.setting_display_page_show_updates_desc))
-            },
-            trailingContent = {
-              Switch(
-                checked = displaySetting.showUpdates,
-                onCheckedChange = {
-                  updateDisplaySetting(displaySetting.copy(showUpdates = it))
-                }
-              )
-            },
-          )
-        }
-      }
-
-      item {
-        Card {
-          ListItem(
-            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-            headlineContent = {
-              Text(stringResource(R.string.setting_display_page_show_message_jumper_title))
-            },
-            supportingContent = {
-              Text(stringResource(R.string.setting_display_page_show_message_jumper_desc))
-            },
-            trailingContent = {
-              Switch(
-                checked = displaySetting.showMessageJumper,
-                onCheckedChange = {
-                  updateDisplaySetting(displaySetting.copy(showMessageJumper = it))
-                }
-              )
-            },
-          )
-        }
-      }
-
-      item {
-        Card {
-          ListItem(
-            headlineContent = {
-              Text(stringResource(R.string.setting_display_page_font_size_title))
-            },
-            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-          )
-          Row(
-            modifier = Modifier
-              .padding(horizontal = 16.dp)
-              .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-          ) {
-            Slider(
-              value = displaySetting.fontSizeRatio,
-              onValueChange = {
-                updateDisplaySetting(displaySetting.copy(fontSizeRatio = it))
-              },
-              valueRange = 0.5f..2f,
-              steps = 11,
-              modifier = Modifier.weight(1f)
             )
-            Text(
-              text = "${(displaySetting.fontSizeRatio * 100).toInt()}%",
-            )
-          }
-          MarkdownBlock(
-            content = stringResource(R.string.setting_display_page_font_size_preview),
-            modifier = Modifier.padding(8.dp),
-            style = LocalTextStyle.current.copy(
-              fontSize = LocalTextStyle.current.fontSize * displaySetting.fontSizeRatio,
-              lineHeight = LocalTextStyle.current.lineHeight * displaySetting.fontSizeRatio,
-            )
-          )
         }
-      }
+    ) { contentPadding ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = contentPadding + PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                Card {
+                    ListItem(
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        headlineContent = {
+                            Text(stringResource(R.string.setting_display_page_show_user_avatar_title))
+                        },
+                        supportingContent = {
+                            Text(stringResource(R.string.setting_display_page_show_user_avatar_desc))
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = displaySetting.showUserAvatar,
+                                onCheckedChange = {
+                                    updateDisplaySetting(displaySetting.copy(showUserAvatar = it))
+                                }
+                            )
+                        },
+                    )
+                }
+            }
+
+            item {
+                Card {
+                    ListItem(
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        headlineContent = {
+                            Text(stringResource(R.string.setting_display_page_chat_list_model_icon_title))
+                        },
+                        supportingContent = {
+                            Text(stringResource(R.string.setting_display_page_chat_list_model_icon_desc))
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = displaySetting.showModelIcon,
+                                onCheckedChange = {
+                                    updateDisplaySetting(displaySetting.copy(showModelIcon = it))
+                                }
+                            )
+                        },
+                    )
+                }
+            }
+
+            item {
+                Card {
+                    ListItem(
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        headlineContent = {
+                            Text(stringResource(R.string.setting_display_page_show_token_usage_title))
+                        },
+                        supportingContent = {
+                            Text(stringResource(R.string.setting_display_page_show_token_usage_desc))
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = displaySetting.showTokenUsage,
+                                onCheckedChange = {
+                                    updateDisplaySetting(displaySetting.copy(showTokenUsage = it))
+                                }
+                            )
+                        },
+                    )
+                }
+            }
+
+            item {
+                Card {
+                    ListItem(
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        headlineContent = {
+                            Text(stringResource(R.string.setting_display_page_auto_collapse_thinking_title))
+                        },
+                        supportingContent = {
+                            Text(stringResource(R.string.setting_display_page_auto_collapse_thinking_desc))
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = displaySetting.autoCloseThinking,
+                                onCheckedChange = {
+                                    updateDisplaySetting(displaySetting.copy(autoCloseThinking = it))
+                                }
+                            )
+                        },
+                    )
+                }
+            }
+
+            item {
+                Card {
+                    ListItem(
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        headlineContent = {
+                            Text(stringResource(R.string.setting_display_page_show_updates_title))
+                        },
+                        supportingContent = {
+                            Text(stringResource(R.string.setting_display_page_show_updates_desc))
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = displaySetting.showUpdates,
+                                onCheckedChange = {
+                                    updateDisplaySetting(displaySetting.copy(showUpdates = it))
+                                }
+                            )
+                        },
+                    )
+                }
+            }
+
+            item {
+                Card {
+                    ListItem(
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        headlineContent = {
+                            Text(stringResource(R.string.setting_display_page_show_message_jumper_title))
+                        },
+                        supportingContent = {
+                            Text(stringResource(R.string.setting_display_page_show_message_jumper_desc))
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = displaySetting.showMessageJumper,
+                                onCheckedChange = {
+                                    updateDisplaySetting(displaySetting.copy(showMessageJumper = it))
+                                }
+                            )
+                        },
+                    )
+                }
+            }
+
+            item {
+                Card {
+                    ListItem(
+                        headlineContent = {
+                            Text(stringResource(R.string.setting_display_page_font_size_title))
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    )
+                    Row(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Slider(
+                            value = displaySetting.fontSizeRatio,
+                            onValueChange = {
+                                updateDisplaySetting(displaySetting.copy(fontSizeRatio = it))
+                            },
+                            valueRange = 0.5f..2f,
+                            steps = 11,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            text = "${(displaySetting.fontSizeRatio * 100).toInt()}%",
+                        )
+                    }
+                    MarkdownBlock(
+                        content = stringResource(R.string.setting_display_page_font_size_preview),
+                        modifier = Modifier.padding(8.dp),
+                        style = LocalTextStyle.current.copy(
+                            fontSize = LocalTextStyle.current.fontSize * displaySetting.fontSizeRatio,
+                            lineHeight = LocalTextStyle.current.lineHeight * displaySetting.fontSizeRatio,
+                        )
+                    )
+                }
+            }
+        }
     }
-  }
 }

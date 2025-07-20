@@ -34,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.graphics.shapes.Morph
 import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Settings2
@@ -50,196 +49,196 @@ import me.rerere.search.SearchServiceOptions
 
 @Composable
 fun SearchPickerButton(
-  enableSearch: Boolean,
-  settings: Settings,
-  modifier: Modifier = Modifier,
-  onToggleSearch: (Boolean) -> Unit,
-  onUpdateSearchService: (Int) -> Unit,
+    enableSearch: Boolean,
+    settings: Settings,
+    modifier: Modifier = Modifier,
+    onToggleSearch: (Boolean) -> Unit,
+    onUpdateSearchService: (Int) -> Unit,
 ) {
-  var showSearchPicker by remember { mutableStateOf(false) }
-  val currentService = settings.searchServices.getOrNull(settings.searchServiceSelected)
+    var showSearchPicker by remember { mutableStateOf(false) }
+    val currentService = settings.searchServices.getOrNull(settings.searchServiceSelected)
 
-  ToggleSurface(
-    modifier = modifier,
-    checked = enableSearch,
-    onClick = {
-      showSearchPicker = true
-    }
-  ) {
-    Row(
-      modifier = Modifier
-        .padding(vertical = 8.dp, horizontal = 8.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-      Box(
-        modifier = Modifier.size(24.dp),
-        contentAlignment = Alignment.Center
-      ) {
-        if (enableSearch && currentService != null) {
-          Icon(
-            imageVector = Lucide.Earth,
-            contentDescription = stringResource(R.string.use_web_search),
-          )
-        } else {
-          Icon(
-            imageVector = Lucide.Earth,
-            contentDescription = stringResource(R.string.use_web_search),
-          )
+    ToggleSurface(
+        modifier = modifier,
+        checked = enableSearch,
+        onClick = {
+            showSearchPicker = true
         }
-      }
-    }
-  }
-
-  if (showSearchPicker) {
-    ModalBottomSheet(
-      onDismissRequest = { showSearchPicker = false },
-      sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ) {
-      Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(0.7f)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-      ) {
-        Text(
-          text = stringResource(R.string.search_picker_title),
-          style = MaterialTheme.typography.titleLarge.copy(
-            fontWeight = FontWeight.Bold
-          )
-        )
-
-        SearchPicker(
-          enableSearch = enableSearch,
-          settings = settings,
-          onToggleSearch = onToggleSearch,
-          onUpdateSearchService = { index ->
-            onUpdateSearchService(index)
-          },
-          modifier = Modifier
-              .fillMaxWidth()
-              .weight(1f),
-          onDismiss = {
-            showSearchPicker = false
-          }
-        )
-      }
+        Row(
+            modifier = Modifier
+                .padding(vertical = 8.dp, horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Box(
+                modifier = Modifier.size(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (enableSearch && currentService != null) {
+                    Icon(
+                        imageVector = Lucide.Earth,
+                        contentDescription = stringResource(R.string.use_web_search),
+                    )
+                } else {
+                    Icon(
+                        imageVector = Lucide.Earth,
+                        contentDescription = stringResource(R.string.use_web_search),
+                    )
+                }
+            }
+        }
     }
-  }
+
+    if (showSearchPicker) {
+        ModalBottomSheet(
+            onDismissRequest = { showSearchPicker = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.7f)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.search_picker_title),
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+
+                SearchPicker(
+                    enableSearch = enableSearch,
+                    settings = settings,
+                    onToggleSearch = onToggleSearch,
+                    onUpdateSearchService = { index ->
+                        onUpdateSearchService(index)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    onDismiss = {
+                        showSearchPicker = false
+                    }
+                )
+            }
+        }
+    }
 }
 
 @Composable
 fun SearchPicker(
-  enableSearch: Boolean,
-  settings: Settings,
-  modifier: Modifier = Modifier,
-  onToggleSearch: (Boolean) -> Unit,
-  onUpdateSearchService: (Int) -> Unit,
-  onDismiss: () -> Unit
+    enableSearch: Boolean,
+    settings: Settings,
+    modifier: Modifier = Modifier,
+    onToggleSearch: (Boolean) -> Unit,
+    onUpdateSearchService: (Int) -> Unit,
+    onDismiss: () -> Unit
 ) {
-  val navBackStack = LocalNavController.current
+    val navBackStack = LocalNavController.current
 
-  Card {
-    Row(
-      modifier = Modifier
-          .padding(horizontal = 16.dp, vertical = 12.dp)
-          .fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(16.dp),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Icon(Lucide.Earth, null)
-      Column(
-        modifier = Modifier.weight(1f),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-      ) {
-        Text(
-          text = stringResource(R.string.use_web_search),
-          style = MaterialTheme.typography.titleMedium,
-        )
-        Text(
-          text = if (enableSearch) {
-            stringResource(R.string.web_search_enabled)
-          } else {
-            stringResource(R.string.web_search_disabled)
-          },
-          style = MaterialTheme.typography.bodySmall,
-          color = LocalContentColor.current.copy(alpha = 0.8f)
-        )
-      }
-      IconButton(
-        onClick = {
-          onDismiss()
-          navBackStack.push(Screen.SettingSearch)
-        }
-      ) {
-        Icon(Lucide.Settings2, null)
-      }
-      Switch(
-        checked = enableSearch,
-        onCheckedChange = onToggleSearch
-      )
-    }
-  }
-
-  LazyVerticalGrid(
-    modifier = modifier.fillMaxSize(),
-    columns = GridCells.Adaptive(150.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp),
-    horizontalArrangement = Arrangement.spacedBy(16.dp),
-  ) {
-    itemsIndexed(settings.searchServices) { index, service ->
-      val containerColor = animateColorAsState(
-        if (settings.searchServiceSelected == index) {
-          MaterialTheme.colorScheme.primaryContainer
-        } else {
-          MaterialTheme.colorScheme.surface
-        }
-      )
-      val textColor = animateColorAsState(
-        if (settings.searchServiceSelected == index) {
-          MaterialTheme.colorScheme.onPrimaryContainer
-        } else {
-          MaterialTheme.colorScheme.onSurface
-        }
-      )
-      Card(
-        colors = CardDefaults.cardColors(
-          containerColor = containerColor.value,
-          contentColor = textColor.value,
-        ),
-        onClick = {
-          onUpdateSearchService(index)
-        },
-        shape = RoundedCornerShape(50),
-      ) {
+    Card {
         Row(
-          modifier = Modifier
-              .padding(horizontal = 16.dp, vertical = 12.dp)
-              .fillMaxWidth(),
-          horizontalArrangement = Arrangement.spacedBy(16.dp),
-          verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-          AutoAIIcon(
-            name = SearchServiceOptions.TYPES[service::class] ?: "Search",
-            modifier = Modifier.size(32.dp)
-          )
-          Column(
-            modifier = Modifier.weight(1f),
-          ) {
-            Text(
-              text = SearchServiceOptions.TYPES[service::class] ?: "Unknown",
-              style = MaterialTheme.typography.titleMedium,
+            Icon(Lucide.Earth, null)
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.use_web_search),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    text = if (enableSearch) {
+                        stringResource(R.string.web_search_enabled)
+                    } else {
+                        stringResource(R.string.web_search_disabled)
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = LocalContentColor.current.copy(alpha = 0.8f)
+                )
+            }
+            IconButton(
+                onClick = {
+                    onDismiss()
+                    navBackStack.push(Screen.SettingSearch)
+                }
+            ) {
+                Icon(Lucide.Settings2, null)
+            }
+            Switch(
+                checked = enableSearch,
+                onCheckedChange = onToggleSearch
             )
-            Text(
-              text = SearchService.getService(service).name,
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalContentColor.current.copy(alpha = 0.8f)
-            )
-          }
         }
-      }
     }
-  }
-} 
+
+    LazyVerticalGrid(
+        modifier = modifier.fillMaxSize(),
+        columns = GridCells.Adaptive(150.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        itemsIndexed(settings.searchServices) { index, service ->
+            val containerColor = animateColorAsState(
+                if (settings.searchServiceSelected == index) {
+                    MaterialTheme.colorScheme.primaryContainer
+                } else {
+                    MaterialTheme.colorScheme.surface
+                }
+            )
+            val textColor = animateColorAsState(
+                if (settings.searchServiceSelected == index) {
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                }
+            )
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = containerColor.value,
+                    contentColor = textColor.value,
+                ),
+                onClick = {
+                    onUpdateSearchService(index)
+                },
+                shape = RoundedCornerShape(50),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    AutoAIIcon(
+                        name = SearchServiceOptions.TYPES[service::class] ?: "Search",
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Column(
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(
+                            text = SearchServiceOptions.TYPES[service::class] ?: "Unknown",
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Text(
+                            text = SearchService.getService(service).name,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = LocalContentColor.current.copy(alpha = 0.8f)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

@@ -76,408 +76,408 @@ import sh.calvin.reorderable.rememberReorderableLazyStaggeredGridState
 
 @Composable
 fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
-  val settings by vm.settings.collectAsStateWithLifecycle()
-  val navController = LocalNavController.current
-  Scaffold(
-    topBar = {
-      TopAppBar(
-        title = {
-          Text(text = stringResource(R.string.setting_provider_page_title))
-        },
-        navigationIcon = {
-          BackButton()
-        },
-        actions = {
-          ImportProviderButton {
-            vm.updateSettings(
-              settings.copy(
-                providers = listOf(it) + settings.providers
-              )
-            )
-          }
-          AddButton {
-            vm.updateSettings(
-              settings.copy(
-                providers = listOf(it) + settings.providers
-              )
-            )
-          }
-        }
-      )
-    },
-  ) { innerPadding ->
-    val lazyListState = rememberLazyStaggeredGridState()
-    val reorderableState = rememberReorderableLazyStaggeredGridState(lazyListState) { from, to ->
-      val newProviders = settings.providers.toMutableList().apply {
-        add(to.index, removeAt(from.index))
-      }
-      vm.updateSettings(settings.copy(providers = newProviders))
-    }
-    LazyVerticalStaggeredGrid(
-      modifier = Modifier
-          .fillMaxSize()
-          .imePadding(),
-      contentPadding = innerPadding + PaddingValues(16.dp),
-      verticalItemSpacing = 8.dp,
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
-      state = lazyListState,
-      columns = StaggeredGridCells.Fixed(2)
-    ) {
-      items(settings.providers, key = { it.id }) { provider ->
-        ReorderableItem(
-          state = reorderableState,
-          key = provider.id
-        ) { isDragging ->
-          ProviderItem(
-            modifier = Modifier
-              .scale(if (isDragging) 0.95f else 1f)
-              .fillMaxWidth(),
-            provider = provider,
-            dragHandle = {
-              val haptic = LocalHapticFeedback.current
-              IconButton(
-                onClick = {},
-                modifier = Modifier
-                  .longPressDraggableHandle(
-                    onDragStarted = {
-                      haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
-                    },
-                    onDragStopped = {
-                      haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
+    val settings by vm.settings.collectAsStateWithLifecycle()
+    val navController = LocalNavController.current
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(text = stringResource(R.string.setting_provider_page_title))
+                },
+                navigationIcon = {
+                    BackButton()
+                },
+                actions = {
+                    ImportProviderButton {
+                        vm.updateSettings(
+                            settings.copy(
+                                providers = listOf(it) + settings.providers
+                            )
+                        )
                     }
-                  )
-              ) {
-                Icon(
-                  imageVector = Lucide.GripHorizontal,
-                  contentDescription = null
-                )
-              }
-            },
-            onClick = {
-              navController.push(Screen.SettingProviderDetail(providerId = provider.id.toString()))
+                    AddButton {
+                        vm.updateSettings(
+                            settings.copy(
+                                providers = listOf(it) + settings.providers
+                            )
+                        )
+                    }
+                }
+            )
+        },
+    ) { innerPadding ->
+        val lazyListState = rememberLazyStaggeredGridState()
+        val reorderableState = rememberReorderableLazyStaggeredGridState(lazyListState) { from, to ->
+            val newProviders = settings.providers.toMutableList().apply {
+                add(to.index, removeAt(from.index))
             }
-          )
+            vm.updateSettings(settings.copy(providers = newProviders))
         }
-      }
+        LazyVerticalStaggeredGrid(
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding(),
+            contentPadding = innerPadding + PaddingValues(16.dp),
+            verticalItemSpacing = 8.dp,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            state = lazyListState,
+            columns = StaggeredGridCells.Fixed(2)
+        ) {
+            items(settings.providers, key = { it.id }) { provider ->
+                ReorderableItem(
+                    state = reorderableState,
+                    key = provider.id
+                ) { isDragging ->
+                    ProviderItem(
+                        modifier = Modifier
+                            .scale(if (isDragging) 0.95f else 1f)
+                            .fillMaxWidth(),
+                        provider = provider,
+                        dragHandle = {
+                            val haptic = LocalHapticFeedback.current
+                            IconButton(
+                                onClick = {},
+                                modifier = Modifier
+                                    .longPressDraggableHandle(
+                                        onDragStarted = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
+                                        },
+                                        onDragStopped = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                                        }
+                                    )
+                            ) {
+                                Icon(
+                                    imageVector = Lucide.GripHorizontal,
+                                    contentDescription = null
+                                )
+                            }
+                        },
+                        onClick = {
+                            navController.push(Screen.SettingProviderDetail(providerId = provider.id.toString()))
+                        }
+                    )
+                }
+            }
+        }
     }
-  }
 }
 
 @Composable
 private fun ImportProviderButton(
-  onAdd: (ProviderSetting) -> Unit
+    onAdd: (ProviderSetting) -> Unit
 ) {
-  val toaster = LocalToaster.current
-  val context = LocalContext.current
-  var showImportDialog by remember { mutableStateOf(false) }
+    val toaster = LocalToaster.current
+    val context = LocalContext.current
+    var showImportDialog by remember { mutableStateOf(false) }
 
-  val scanQrCodeLauncher = rememberLauncherForActivityResult(ScanQRCode()) { result ->
-    handleQRResult(result, onAdd, toaster, context)
-  }
-
-  val pickImageLauncher = rememberLauncherForActivityResult(
-    ActivityResultContracts.PickVisualMedia()
-  ) { uri ->
-    uri?.let {
-      handleImageQRCode(it, onAdd, toaster, context)
+    val scanQrCodeLauncher = rememberLauncherForActivityResult(ScanQRCode()) { result ->
+        handleQRResult(result, onAdd, toaster, context)
     }
-  }
 
-  IconButton(
-    onClick = {
-      showImportDialog = true
+    val pickImageLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        uri?.let {
+            handleImageQRCode(it, onAdd, toaster, context)
+        }
     }
-  ) {
-    Icon(Lucide.Import, null)
-  }
 
-  if (showImportDialog) {
-    AlertDialog(
-      onDismissRequest = { showImportDialog = false },
-      title = {
-        Text(
-          text = stringResource(R.string.setting_provider_page_import_dialog_title),
-          style = MaterialTheme.typography.headlineSmall
+    IconButton(
+        onClick = {
+            showImportDialog = true
+        }
+    ) {
+        Icon(Lucide.Import, null)
+    }
+
+    if (showImportDialog) {
+        AlertDialog(
+            onDismissRequest = { showImportDialog = false },
+            title = {
+                Text(
+                    text = stringResource(R.string.setting_provider_page_import_dialog_title),
+                    style = MaterialTheme.typography.headlineSmall
+                )
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.setting_provider_page_import_dialog_message),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // 主要操作：扫描二维码
+                        Button(
+                            onClick = {
+                                showImportDialog = false
+                                scanQrCodeLauncher.launch(null)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            shape = MaterialTheme.shapes.large
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(
+                                    imageVector = Lucide.Camera,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = stringResource(R.string.setting_provider_page_scan_qr_code),
+                                    style = MaterialTheme.typography.labelLarge
+                                )
+                            }
+                        }
+
+                        // 次要操作：从相册选择
+                        OutlinedButton(
+                            onClick = {
+                                showImportDialog = false
+                                pickImageLauncher.launch(
+                                    androidx.activity.result.PickVisualMediaRequest(
+                                        ActivityResultContracts.PickVisualMedia.ImageOnly
+                                    )
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            shape = MaterialTheme.shapes.large
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(
+                                    imageVector = Lucide.Image,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = stringResource(R.string.setting_provider_page_select_from_gallery),
+                                    style = MaterialTheme.typography.labelLarge
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(
+                    onClick = { showImportDialog = false },
+                    shape = MaterialTheme.shapes.large
+                ) {
+                    Text(
+                        text = stringResource(R.string.cancel),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            }
         )
-      },
-      text = {
-        Column(
-          verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-          Text(
-            text = stringResource(R.string.setting_provider_page_import_dialog_message),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-          )
-
-          Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-          ) {
-            // 主要操作：扫描二维码
-            Button(
-              onClick = {
-                showImportDialog = false
-                scanQrCodeLauncher.launch(null)
-              },
-              modifier = Modifier
-                  .fillMaxWidth()
-                  .height(56.dp),
-              shape = MaterialTheme.shapes.large
-            ) {
-              Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-              ) {
-                Icon(
-                  imageVector = Lucide.Camera,
-                  contentDescription = null,
-                  modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                  text = stringResource(R.string.setting_provider_page_scan_qr_code),
-                  style = MaterialTheme.typography.labelLarge
-                )
-              }
-            }
-
-            // 次要操作：从相册选择
-            OutlinedButton(
-              onClick = {
-                showImportDialog = false
-                pickImageLauncher.launch(
-                  androidx.activity.result.PickVisualMediaRequest(
-                    ActivityResultContracts.PickVisualMedia.ImageOnly
-                  )
-                )
-              },
-              modifier = Modifier
-                  .fillMaxWidth()
-                  .height(56.dp),
-              shape = MaterialTheme.shapes.large
-            ) {
-              Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-              ) {
-                Icon(
-                  imageVector = Lucide.Image,
-                  contentDescription = null,
-                  modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                  text = stringResource(R.string.setting_provider_page_select_from_gallery),
-                  style = MaterialTheme.typography.labelLarge
-                )
-              }
-            }
-          }
-        }
-      },
-      confirmButton = {},
-      dismissButton = {
-        TextButton(
-          onClick = { showImportDialog = false },
-          shape = MaterialTheme.shapes.large
-        ) {
-          Text(
-            text = stringResource(R.string.cancel),
-            style = MaterialTheme.typography.labelLarge
-          )
-        }
-      }
-    )
-  }
+    }
 }
 
 private fun handleQRResult(
-  result: QRResult,
-  onAdd: (ProviderSetting) -> Unit,
-  toaster: com.dokar.sonner.ToasterState,
-  context: android.content.Context
+    result: QRResult,
+    onAdd: (ProviderSetting) -> Unit,
+    toaster: com.dokar.sonner.ToasterState,
+    context: android.content.Context
 ) {
-  runCatching {
-    when (result) {
-      is QRResult.QRError -> {
-        toaster.show(
-          context.getString(
-            R.string.setting_provider_page_scan_error,
-            result
-          ), type = ToastType.Error
-        )
-      }
+    runCatching {
+        when (result) {
+            is QRResult.QRError -> {
+                toaster.show(
+                    context.getString(
+                        R.string.setting_provider_page_scan_error,
+                        result
+                    ), type = ToastType.Error
+                )
+            }
 
-      QRResult.QRMissingPermission -> {
-        toaster.show(
-          context.getString(R.string.setting_provider_page_no_permission),
-          type = ToastType.Error
-        )
-      }
+            QRResult.QRMissingPermission -> {
+                toaster.show(
+                    context.getString(R.string.setting_provider_page_no_permission),
+                    type = ToastType.Error
+                )
+            }
 
-      is QRResult.QRSuccess -> {
-        val setting = decodeProviderSetting(result.content.rawValue ?: "")
-        onAdd(setting)
-        toaster.show(
-          context.getString(R.string.setting_provider_page_import_success),
-          type = ToastType.Success
-        )
-      }
+            is QRResult.QRSuccess -> {
+                val setting = decodeProviderSetting(result.content.rawValue ?: "")
+                onAdd(setting)
+                toaster.show(
+                    context.getString(R.string.setting_provider_page_import_success),
+                    type = ToastType.Success
+                )
+            }
 
-      QRResult.QRUserCanceled -> {}
+            QRResult.QRUserCanceled -> {}
+        }
+    }.onFailure { error ->
+        toaster.show(
+            context.getString(R.string.setting_provider_page_qr_decode_failed, error.message ?: ""),
+            type = ToastType.Error
+        )
     }
-  }.onFailure { error ->
-    toaster.show(
-      context.getString(R.string.setting_provider_page_qr_decode_failed, error.message ?: ""),
-      type = ToastType.Error
-    )
-  }
 }
 
 private fun handleImageQRCode(
-  uri: Uri,
-  onAdd: (ProviderSetting) -> Unit,
-  toaster: com.dokar.sonner.ToasterState,
-  context: android.content.Context
+    uri: Uri,
+    onAdd: (ProviderSetting) -> Unit,
+    toaster: com.dokar.sonner.ToasterState,
+    context: android.content.Context
 ) {
-  runCatching {
-    // 使用ImageUtils解析二维码
-    val qrContent = ImageUtils.decodeQRCodeFromUri(context, uri)
+    runCatching {
+        // 使用ImageUtils解析二维码
+        val qrContent = ImageUtils.decodeQRCodeFromUri(context, uri)
 
-    if (qrContent.isNullOrEmpty()) {
-      toaster.show(
-        context.getString(R.string.setting_provider_page_no_qr_found),
-        type = ToastType.Error
-      )
-      return
+        if (qrContent.isNullOrEmpty()) {
+            toaster.show(
+                context.getString(R.string.setting_provider_page_no_qr_found),
+                type = ToastType.Error
+            )
+            return
+        }
+
+        val setting = decodeProviderSetting(qrContent)
+        onAdd(setting)
+        toaster.show(
+            context.getString(R.string.setting_provider_page_import_success),
+            type = ToastType.Success
+        )
+    }.onFailure { error ->
+        toaster.show(
+            context.getString(R.string.setting_provider_page_image_qr_decode_failed, error.message ?: ""),
+            type = ToastType.Error
+        )
     }
-
-    val setting = decodeProviderSetting(qrContent)
-    onAdd(setting)
-    toaster.show(
-      context.getString(R.string.setting_provider_page_import_success),
-      type = ToastType.Success
-    )
-  }.onFailure { error ->
-    toaster.show(
-      context.getString(R.string.setting_provider_page_image_qr_decode_failed, error.message ?: ""),
-      type = ToastType.Error
-    )
-  }
 }
 
 
 @Composable
 private fun AddButton(onAdd: (ProviderSetting) -> Unit) {
-  val dialogState = useEditState<ProviderSetting> {
-    onAdd(it)
-  }
-
-  IconButton(
-    onClick = {
-      dialogState.open(ProviderSetting.OpenAI())
+    val dialogState = useEditState<ProviderSetting> {
+        onAdd(it)
     }
-  ) {
-    Icon(Lucide.Plus, "Add")
-  }
 
-  if (dialogState.isEditing) {
-    AlertDialog(
-      onDismissRequest = {
-        dialogState.dismiss()
-      },
-      title = {
-        Text(stringResource(R.string.setting_provider_page_add_provider))
-      },
-      text = {
-        dialogState.currentState?.let {
-          ProviderConfigure(it) { newState ->
-            dialogState.currentState = newState
-          }
+    IconButton(
+        onClick = {
+            dialogState.open(ProviderSetting.OpenAI())
         }
-      },
-      confirmButton = {
-        TextButton(
-          onClick = {
-            dialogState.confirm()
-          }
-        ) {
-          Text(stringResource(R.string.setting_provider_page_add))
-        }
-      },
-      dismissButton = {
-        TextButton(
-          onClick = {
-            dialogState.dismiss()
-          }
-        ) {
-          Text(stringResource(R.string.cancel))
-        }
-      },
-    )
-  }
+    ) {
+        Icon(Lucide.Plus, "Add")
+    }
+
+    if (dialogState.isEditing) {
+        AlertDialog(
+            onDismissRequest = {
+                dialogState.dismiss()
+            },
+            title = {
+                Text(stringResource(R.string.setting_provider_page_add_provider))
+            },
+            text = {
+                dialogState.currentState?.let {
+                    ProviderConfigure(it) { newState ->
+                        dialogState.currentState = newState
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        dialogState.confirm()
+                    }
+                ) {
+                    Text(stringResource(R.string.setting_provider_page_add))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        dialogState.dismiss()
+                    }
+                ) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
+    }
 }
 
 @Composable
 private fun ProviderItem(
-  provider: ProviderSetting,
-  modifier: Modifier = Modifier,
-  dragHandle: @Composable () -> Unit,
-  onClick: () -> Unit
+    provider: ProviderSetting,
+    modifier: Modifier = Modifier,
+    dragHandle: @Composable () -> Unit,
+    onClick: () -> Unit
 ) {
-  Card(
-    modifier = modifier,
-    colors = CardDefaults.cardColors(
-      containerColor = if (provider.enabled) {
-        MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
-      } else MaterialTheme.colorScheme.errorContainer,
-    ),
-    onClick = {
-      onClick()
-    }
-  ) {
-    Column(
-      modifier = Modifier.padding(16.dp),
-      verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-      Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        AutoAIIcon(
-          name = provider.name,
-          modifier = Modifier.size(32.dp)
-        )
-        Spacer(modifier = Modifier.weight(1f))
-        dragHandle()
-      }
-      Column(
-        modifier = Modifier,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-      ) {
-        Text(
-          text = provider.name,
-          style = MaterialTheme.typography.titleLarge
-        )
-        Row(
-          horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-          Tag(type = if (provider.enabled) TagType.SUCCESS else TagType.WARNING) {
-            Text(stringResource(if (provider.enabled) R.string.setting_provider_page_enabled else R.string.setting_provider_page_disabled))
-          }
-          Tag(type = TagType.INFO) {
-            Text(
-              stringResource(
-                R.string.setting_provider_page_model_count,
-                provider.models.size
-              )
-            )
-          }
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = if (provider.enabled) {
+                MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
+            } else MaterialTheme.colorScheme.errorContainer,
+        ),
+        onClick = {
+            onClick()
         }
-      }
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                AutoAIIcon(
+                    name = provider.name,
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                dragHandle()
+            }
+            Column(
+                modifier = Modifier,
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = provider.name,
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Tag(type = if (provider.enabled) TagType.SUCCESS else TagType.WARNING) {
+                        Text(stringResource(if (provider.enabled) R.string.setting_provider_page_enabled else R.string.setting_provider_page_disabled))
+                    }
+                    Tag(type = TagType.INFO) {
+                        Text(
+                            stringResource(
+                                R.string.setting_provider_page_model_count,
+                                provider.models.size
+                            )
+                        )
+                    }
+                }
+            }
+        }
     }
-  }
 }

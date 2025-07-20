@@ -49,181 +49,180 @@ import me.rerere.rikkahub.ui.context.push
 import me.rerere.rikkahub.utils.joinQQGroup
 import me.rerere.rikkahub.utils.openUrl
 import me.rerere.rikkahub.utils.plus
-import me.rerere.rikkahub.utils.urlEncode
 
 @Composable
 fun SettingAboutPage() {
-  val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-  val context = LocalContext.current
-  val navController = LocalNavController.current
-  Scaffold(
-    topBar = {
-      LargeTopAppBar(
-        title = {
-          Text(stringResource(R.string.about_page_title))
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val context = LocalContext.current
+    val navController = LocalNavController.current
+    Scaffold(
+        topBar = {
+            LargeTopAppBar(
+                title = {
+                    Text(stringResource(R.string.about_page_title))
+                },
+                navigationIcon = {
+                    BackButton()
+                },
+                scrollBehavior = scrollBehavior,
+            )
         },
-        navigationIcon = {
-          BackButton()
-        },
-        scrollBehavior = scrollBehavior,
-      )
-    },
-    modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
-  ) {
-    LazyColumn(
-      modifier = Modifier.fillMaxSize(),
-      contentPadding = it + PaddingValues(8.dp)
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
     ) {
-      item {
-        Column(
-          modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-          horizontalAlignment = Alignment.CenterHorizontally,
-          verticalArrangement = Arrangement.spacedBy(8.dp)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = it + PaddingValues(8.dp)
         ) {
-          AsyncImage(
-            model = R.mipmap.ic_launcher,
-            contentDescription = "Logo",
-            modifier = Modifier
-              .clip(CircleShape)
-              .size(150.dp)
-          )
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    AsyncImage(
+                        model = R.mipmap.ic_launcher,
+                        contentDescription = "Logo",
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .size(150.dp)
+                    )
 
-          Text(
-            text = "RikkaHub",
-            style = MaterialTheme.typography.displaySmall,
-          )
+                    Text(
+                        text = "RikkaHub",
+                        style = MaterialTheme.typography.displaySmall,
+                    )
 
-          Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(
-              8.dp,
-              Alignment.CenterHorizontally
-            ),
-            modifier = Modifier.fillMaxWidth(),
-          ) {
-            IconButton(
-              onClick = {
-                context.joinQQGroup("wMdqlDETtzIz6o49HrBR2TeQlwcX6RH9")
-              }
-            ) {
-              Icon(
-                imageVector = TencentQQIcon,
-                contentDescription = "QQ",
-                tint = MaterialTheme.colorScheme.secondary
-              )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(
+                            8.dp,
+                            Alignment.CenterHorizontally
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        IconButton(
+                            onClick = {
+                                context.joinQQGroup("wMdqlDETtzIz6o49HrBR2TeQlwcX6RH9")
+                            }
+                        ) {
+                            Icon(
+                                imageVector = TencentQQIcon,
+                                contentDescription = "QQ",
+                                tint = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                context.openUrl("https://discord.gg/9weBqxe5c4")
+                            }
+                        ) {
+                            Icon(
+                                imageVector = DiscordIcon,
+                                contentDescription = "Discord",
+                                tint = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                    }
+                }
             }
 
-            IconButton(
-              onClick = {
-                context.openUrl("https://discord.gg/9weBqxe5c4")
-              }
-            ) {
-              Icon(
-                imageVector = DiscordIcon,
-                contentDescription = "Discord",
-                tint = MaterialTheme.colorScheme.secondary
-              )
+            item {
+                ListItem(
+                    headlineContent = {
+                        Text(stringResource(R.string.about_page_version))
+                    },
+                    supportingContent = {
+                        Text(
+                            text = "${BuildConfig.VERSION_NAME} / ${BuildConfig.VERSION_CODE}",
+                        )
+                    },
+                    leadingContent = {
+                        Icon(Lucide.Code, null)
+                    },
+                    modifier = Modifier.combinedClickable(
+                        onClick = {},
+                        onLongClick = {
+                            navController.push(Screen.Debug)
+                        },
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = LocalIndication.current,
+                    )
+                )
             }
-          }
+
+            item {
+                ListItem(
+                    headlineContent = {
+                        Text(stringResource(R.string.about_page_system))
+                    },
+                    supportingContent = {
+                        Text(
+                            text = "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL} / Android ${android.os.Build.VERSION.RELEASE} / SDK ${android.os.Build.VERSION.SDK_INT}",
+                        )
+                    },
+                    leadingContent = {
+                        Icon(Lucide.Phone, null)
+                    }
+                )
+            }
+
+            item {
+                ListItem(
+                    headlineContent = {
+                        Text(stringResource(R.string.about_page_website))
+                    },
+                    supportingContent = {
+                        Text(
+                            text = "https://rikka-ai.com"
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        context.openUrl("https://rikka-ai.com/")
+                    },
+                    leadingContent = {
+                        Icon(Lucide.Earth, null)
+                    }
+                )
+            }
+
+            item {
+                ListItem(
+                    headlineContent = {
+                        Text(stringResource(R.string.about_page_github))
+                    },
+                    supportingContent = {
+                        Text(
+                            text = "https://github.com/rikkahub/rikkahub"
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        context.openUrl("https://github.com/rikkahub/rikkahub")
+                    },
+                    leadingContent = {
+                        Icon(Lucide.Github, null)
+                    }
+                )
+            }
+
+            item {
+                ListItem(
+                    headlineContent = {
+                        Text(stringResource(R.string.about_page_license))
+                    },
+                    supportingContent = {
+                        Text("https://github.com/rikkahub/rikkahub/blob/master/LICENSE")
+                    },
+                    leadingContent = {
+                        Icon(Lucide.FileText, null)
+                    },
+                    modifier = Modifier.clickable {
+                        context.openUrl("https://github.com/rikkahub/rikkahub/blob/master/LICENSE")
+                    }
+                )
+            }
         }
-      }
-
-      item {
-        ListItem(
-          headlineContent = {
-            Text(stringResource(R.string.about_page_version))
-          },
-          supportingContent = {
-            Text(
-              text = "${BuildConfig.VERSION_NAME} / ${BuildConfig.VERSION_CODE}",
-            )
-          },
-          leadingContent = {
-            Icon(Lucide.Code, null)
-          },
-          modifier = Modifier.combinedClickable(
-            onClick = {},
-            onLongClick = {
-              navController.push(Screen.Debug)
-            },
-            interactionSource = remember { MutableInteractionSource() },
-            indication = LocalIndication.current,
-          )
-        )
-      }
-
-      item {
-        ListItem(
-          headlineContent = {
-            Text(stringResource(R.string.about_page_system))
-          },
-          supportingContent = {
-            Text(
-              text = "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL} / Android ${android.os.Build.VERSION.RELEASE} / SDK ${android.os.Build.VERSION.SDK_INT}",
-            )
-          },
-          leadingContent = {
-            Icon(Lucide.Phone, null)
-          }
-        )
-      }
-
-      item {
-        ListItem(
-          headlineContent = {
-            Text(stringResource(R.string.about_page_website))
-          },
-          supportingContent = {
-            Text(
-              text = "https://rikka-ai.com"
-            )
-          },
-          modifier = Modifier.clickable {
-            context.openUrl("https://rikka-ai.com/")
-          },
-          leadingContent = {
-            Icon(Lucide.Earth, null)
-          }
-        )
-      }
-
-      item {
-        ListItem(
-          headlineContent = {
-            Text(stringResource(R.string.about_page_github))
-          },
-          supportingContent = {
-            Text(
-              text = "https://github.com/rikkahub/rikkahub"
-            )
-          },
-          modifier = Modifier.clickable {
-            context.openUrl("https://github.com/rikkahub/rikkahub")
-          },
-          leadingContent = {
-            Icon(Lucide.Github, null)
-          }
-        )
-      }
-
-      item {
-        ListItem(
-          headlineContent = {
-            Text(stringResource(R.string.about_page_license))
-          },
-          supportingContent = {
-            Text("https://github.com/rikkahub/rikkahub/blob/master/LICENSE")
-          },
-          leadingContent = {
-            Icon(Lucide.FileText, null)
-          },
-          modifier = Modifier.clickable {
-            context.openUrl("https://github.com/rikkahub/rikkahub/blob/master/LICENSE")
-          }
-        )
-      }
     }
-  }
 }

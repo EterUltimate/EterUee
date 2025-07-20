@@ -16,72 +16,73 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 @Composable
 fun Favicon(
-  url: String,
-  modifier: Modifier = Modifier,
-  shape: Shape = RoundedCornerShape(25),
+    url: String,
+    modifier: Modifier = Modifier,
+    shape: Shape = RoundedCornerShape(25),
 ) {
-  val faviconUrl = remember(url) {
-    url.toHttpUrlOrNull()?.host?.let { host ->
-      "https://icon.horse/icon/$host"
+    val faviconUrl = remember(url) {
+        url.toHttpUrlOrNull()?.host?.let { host ->
+            "https://icon.horse/icon/$host"
+        }
     }
-  }
-  AsyncImage(
-    model = faviconUrl,
-    modifier = modifier
-        .size(20.dp)
-        .clip(shape)
-        .background(MaterialTheme.colorScheme.surfaceContainer),
-    contentDescription = null,
-    contentScale = ContentScale.Crop,
-  )
+    AsyncImage(
+        model = faviconUrl,
+        modifier = modifier
+            .size(20.dp)
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceContainer),
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+    )
 }
 
 @Composable
 fun FaviconRow(
-  urls: List<String>,
-  modifier: Modifier = Modifier,
-  size: Dp = 20.dp
+    urls: List<String>,
+    modifier: Modifier = Modifier,
+    size: Dp = 20.dp
 ) {
-  val displayUrls = remember(urls) {
-    urls.distinctBy { it.toHttpUrlOrNull()?.host }
-  }.take(3)
-  Layout(
-    modifier = modifier,
-    content = {
-      displayUrls.forEachIndexed { index, url ->
-        Favicon(
-          url = url,
-          modifier = Modifier.zIndex(index.toFloat()).size(size),
-          shape = CircleShape,
-        )
-      }
-    }
-  ) { measurables, constraints ->
-    val placeables = measurables.map { measurable ->
-      measurable.measure(constraints)
-    }
-    val faviconSize = size.roundToPx()
-    val overlap = 4.dp.roundToPx()
-    val step = faviconSize - overlap
+    val displayUrls = remember(urls) {
+        urls.distinctBy { it.toHttpUrlOrNull()?.host }
+    }.take(3)
+    Layout(
+        modifier = modifier,
+        content = {
+            displayUrls.forEachIndexed { index, url ->
+                Favicon(
+                    url = url,
+                    modifier = Modifier
+                        .zIndex(index.toFloat())
+                        .size(size),
+                    shape = CircleShape,
+                )
+            }
+        }
+    ) { measurables, constraints ->
+        val placeables = measurables.map { measurable ->
+            measurable.measure(constraints)
+        }
+        val faviconSize = size.roundToPx()
+        val overlap = 4.dp.roundToPx()
+        val step = faviconSize - overlap
 
-    val width = if (placeables.isEmpty()) {
-      0
-    } else {
-      faviconSize + (placeables.size - 1) * step
-    }
-    val height = if (placeables.isEmpty()) 0 else placeables.maxOfOrNull { it.height } ?: 0
+        val width = if (placeables.isEmpty()) {
+            0
+        } else {
+            faviconSize + (placeables.size - 1) * step
+        }
+        val height = if (placeables.isEmpty()) 0 else placeables.maxOfOrNull { it.height } ?: 0
 
-    layout(width, height) {
-      var xPosition = 0
-      placeables.forEach { placeable ->
-        placeable.placeRelative(x = xPosition, y = 0)
-        xPosition += step
-      }
+        layout(width, height) {
+            var xPosition = 0
+            placeables.forEach { placeable ->
+                placeable.placeRelative(x = xPosition, y = 0)
+                xPosition += step
+            }
+        }
     }
-  }
 }

@@ -3,7 +3,6 @@ package me.rerere.rikkahub.ui.pages.assistant.detail
 import android.app.Application
 import android.util.Log
 import androidx.core.net.toUri
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,151 +23,151 @@ import kotlin.uuid.Uuid
 private const val TAG = "AssistantDetailVM"
 
 class AssistantDetailVM(
-  private val id: String,
-  private val settingsStore: SettingsStore,
-  private val memoryRepository: MemoryRepository,
-  private val context: Application,
+    private val id: String,
+    private val settingsStore: SettingsStore,
+    private val memoryRepository: MemoryRepository,
+    private val context: Application,
 ) : ViewModel() {
-  private val assistantId = Uuid.parse(id)
+    private val assistantId = Uuid.parse(id)
 
-  val settings: StateFlow<Settings> =
-    settingsStore.settingsFlow.stateIn(viewModelScope, SharingStarted.Eagerly, Settings())
+    val settings: StateFlow<Settings> =
+        settingsStore.settingsFlow.stateIn(viewModelScope, SharingStarted.Eagerly, Settings())
 
-  val mcpServerConfigs = settingsStore
-    .settingsFlow.map { settings ->
-      settings.mcpServers
-    }.stateIn(
-      scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList()
-    )
-
-  val assistant: StateFlow<Assistant> = settingsStore
-    .settingsFlow
-    .map { settings ->
-      settings.assistants.find { it.id == assistantId } ?: Assistant()
-    }.stateIn(
-      scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = Assistant()
-    )
-
-  val memories = memoryRepository.getMemoriesOfAssistantFlow(assistantId.toString())
-    .stateIn(
-      scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList()
-    )
-
-  val providers = settingsStore
-    .settingsFlow
-    .map { settings ->
-      settings.providers
-    }.stateIn(
-      scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList()
-    )
-
-  val tags = settingsStore
-    .settingsFlow
-    .map { settings ->
-      settings.assistantTags
-    }.stateIn(
-      scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList()
-    )
-
-  fun updateTags(tagIds: List<Uuid>, tags: List<Tag>) {
-    viewModelScope.launch {
-      val settings = settings.value
-      settingsStore.update(
-        settings = settings.copy(
-          assistantTags = tags
+    val mcpServerConfigs = settingsStore
+        .settingsFlow.map { settings ->
+            settings.mcpServers
+        }.stateIn(
+            scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList()
         )
-      )
-      update(
-        assistant.value.copy(
-          tags = tagIds.toList()
+
+    val assistant: StateFlow<Assistant> = settingsStore
+        .settingsFlow
+        .map { settings ->
+            settings.assistants.find { it.id == assistantId } ?: Assistant()
+        }.stateIn(
+            scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = Assistant()
         )
-      )
-      Log.d(TAG, "updateTags: ${tagIds.joinToString(",")}")
-      cleanupUnusedTags()
-    }
-  }
 
-  fun cleanupUnusedTags() {
-    viewModelScope.launch {
-      val settings = settings.value
-      val validTagIds = settings.assistantTags.map { it.id }.toSet()
+    val memories = memoryRepository.getMemoriesOfAssistantFlow(assistantId.toString())
+        .stateIn(
+            scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList()
+        )
 
-      // 清理 assistant 中的无效 tag id
-      val cleanedAssistants = settings.assistants.map { assistant ->
-        val validTags = assistant.tags.filter { tagId ->
-          validTagIds.contains(tagId)
+    val providers = settingsStore
+        .settingsFlow
+        .map { settings ->
+            settings.providers
+        }.stateIn(
+            scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList()
+        )
+
+    val tags = settingsStore
+        .settingsFlow
+        .map { settings ->
+            settings.assistantTags
+        }.stateIn(
+            scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList()
+        )
+
+    fun updateTags(tagIds: List<Uuid>, tags: List<Tag>) {
+        viewModelScope.launch {
+            val settings = settings.value
+            settingsStore.update(
+                settings = settings.copy(
+                    assistantTags = tags
+                )
+            )
+            update(
+                assistant.value.copy(
+                    tags = tagIds.toList()
+                )
+            )
+            Log.d(TAG, "updateTags: ${tagIds.joinToString(",")}")
+            cleanupUnusedTags()
         }
-        if (validTags.size != assistant.tags.size) {
-          assistant.copy(tags = validTags)
-        } else {
-          assistant
-        }
-      }
-
-      // 获取清理后的 assistant 中使用的 tag id
-      val usedTagIds = cleanedAssistants.flatMap { it.tags }.toSet()
-
-      // 清理未使用的 tags
-      val cleanedTags = settings.assistantTags.filter { tag ->
-        usedTagIds.contains(tag.id)
-      }
-
-      // 检查是否需要更新
-      val needUpdateAssistants = cleanedAssistants != settings.assistants
-      val needUpdateTags = cleanedTags.size != settings.assistantTags.size
-
-      if (needUpdateAssistants || needUpdateTags) {
-        settingsStore.update(
-          settings = settings.copy(
-            assistants = cleanedAssistants,
-            assistantTags = cleanedTags
-          )
-        )
-      }
     }
-  }
 
-  fun update(assistant: Assistant) {
-    viewModelScope.launch {
-      val settings = settings.value
-      settingsStore.update(
-        settings = settings.copy(
-          assistants = settings.assistants.map {
-            if (it.id == assistant.id) {
-              checkAvatarDelete(old = it, new = assistant) // 删除旧头像
-              assistant
-            } else {
-              it
+    fun cleanupUnusedTags() {
+        viewModelScope.launch {
+            val settings = settings.value
+            val validTagIds = settings.assistantTags.map { it.id }.toSet()
+
+            // 清理 assistant 中的无效 tag id
+            val cleanedAssistants = settings.assistants.map { assistant ->
+                val validTags = assistant.tags.filter { tagId ->
+                    validTagIds.contains(tagId)
+                }
+                if (validTags.size != assistant.tags.size) {
+                    assistant.copy(tags = validTags)
+                } else {
+                    assistant
+                }
             }
-          })
-      )
-    }
-  }
 
-  fun addMemory(memory: AssistantMemory) {
-    viewModelScope.launch {
-      memoryRepository.addMemory(
-        assistantId = assistantId.toString(),
-        content = memory.content
-      )
-    }
-  }
+            // 获取清理后的 assistant 中使用的 tag id
+            val usedTagIds = cleanedAssistants.flatMap { it.tags }.toSet()
 
-  fun updateMemory(memory: AssistantMemory) {
-    viewModelScope.launch {
-      memoryRepository.updateContent(id = memory.id, content = memory.content)
-    }
-  }
+            // 清理未使用的 tags
+            val cleanedTags = settings.assistantTags.filter { tag ->
+                usedTagIds.contains(tag.id)
+            }
 
-  fun deleteMemory(memory: AssistantMemory) {
-    viewModelScope.launch {
-      memoryRepository.deleteMemory(id = memory.id)
-    }
-  }
+            // 检查是否需要更新
+            val needUpdateAssistants = cleanedAssistants != settings.assistants
+            val needUpdateTags = cleanedTags.size != settings.assistantTags.size
 
-  fun checkAvatarDelete(old: Assistant, new: Assistant) {
-    if (old.avatar is Avatar.Image && old.avatar != new.avatar) {
-      context.deleteChatFiles(listOf(old.avatar.url.toUri()))
+            if (needUpdateAssistants || needUpdateTags) {
+                settingsStore.update(
+                    settings = settings.copy(
+                        assistants = cleanedAssistants,
+                        assistantTags = cleanedTags
+                    )
+                )
+            }
+        }
     }
-  }
+
+    fun update(assistant: Assistant) {
+        viewModelScope.launch {
+            val settings = settings.value
+            settingsStore.update(
+                settings = settings.copy(
+                    assistants = settings.assistants.map {
+                        if (it.id == assistant.id) {
+                            checkAvatarDelete(old = it, new = assistant) // 删除旧头像
+                            assistant
+                        } else {
+                            it
+                        }
+                    })
+            )
+        }
+    }
+
+    fun addMemory(memory: AssistantMemory) {
+        viewModelScope.launch {
+            memoryRepository.addMemory(
+                assistantId = assistantId.toString(),
+                content = memory.content
+            )
+        }
+    }
+
+    fun updateMemory(memory: AssistantMemory) {
+        viewModelScope.launch {
+            memoryRepository.updateContent(id = memory.id, content = memory.content)
+        }
+    }
+
+    fun deleteMemory(memory: AssistantMemory) {
+        viewModelScope.launch {
+            memoryRepository.deleteMemory(id = memory.id)
+        }
+    }
+
+    fun checkAvatarDelete(old: Assistant, new: Assistant) {
+        if (old.avatar is Avatar.Image && old.avatar != new.avatar) {
+            context.deleteChatFiles(listOf(old.avatar.url.toUri()))
+        }
+    }
 }

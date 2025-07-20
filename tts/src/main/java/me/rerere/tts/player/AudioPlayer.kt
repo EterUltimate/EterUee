@@ -10,7 +10,6 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import me.rerere.tts.model.AudioFormat
 import java.io.File
-import java.io.FileDescriptor
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -20,19 +19,19 @@ private const val TAG = "AudioPlayer"
 /**
  * 协程化的音频播放器，支持复用播放器实例
  * 支持 MediaPlayer 和 AudioTrack 的复用，提供资源管理
- * 
+ *
  * ## 使用示例
  * ```kotlin
  * // 创建播放器实例
  * val audioPlayer = AudioPlayer(context)
- * 
+ *
  * try {
  *     // 播放音频文件
  *     audioPlayer.playSound(audioData, AudioFormat.MP3)
- *     
+ *
  *     // 播放 PCM 数据
  *     audioPlayer.playPcmSound(pcmData, 24000)
- *     
+ *
  *     // 手动停止播放
  *     audioPlayer.stop()
  * } finally {
@@ -40,7 +39,7 @@ private const val TAG = "AudioPlayer"
  *     audioPlayer.dispose()
  * }
  * ```
- * 
+ *
  * ## 特性
  * - ✅ 复用 MediaPlayer 和 AudioTrack 实例，避免频繁创建
  * - ✅ 支持协程取消和错误处理
@@ -49,12 +48,12 @@ private const val TAG = "AudioPlayer"
  * - ✅ 支持多种音频格式 (MP3, WAV, OGG, AAC, OPUS, PCM)
  */
 class AudioPlayer(private val context: Context) {
-    
+
     private var mediaPlayer: MediaPlayer? = null
     private var audioTrack: AudioTrack? = null
     private val isDisposed = AtomicBoolean(false)
     private var currentTempFile: File? = null
-    
+
     /**
      * 使用指定格式播放音频数据
      */
@@ -65,12 +64,12 @@ class AudioPlayer(private val context: Context) {
         if (isDisposed.get()) {
             throw IllegalStateException("AudioPlayer has been disposed")
         }
-        
+
         suspendCancellableCoroutine { continuation ->
             try {
                 // 停止当前播放
                 stopCurrentPlayback()
-                
+
                 // 创建临时文件
                 val tempFile = File.createTempFile("audio_temp", getFileExtension(format), context.cacheDir)
                 currentTempFile = tempFile
@@ -78,19 +77,19 @@ class AudioPlayer(private val context: Context) {
 
                 // 获取或创建 MediaPlayer 实例
                 val player = getOrCreateMediaPlayer()
-                
+
                 player.apply {
                     reset()
                     setDataSource(tempFile.absolutePath)
-                    
-                    setOnCompletionListener { 
+
+                    setOnCompletionListener {
                         Log.d(TAG, "Audio playback completed")
                         cleanupTempFile()
                         if (continuation.isActive) {
                             continuation.resume(Unit)
                         }
                     }
-                    
+
                     setOnErrorListener { _, what, extra ->
                         val errorMsg = "MediaPlayer error occurred $what $extra"
                         Log.e(TAG, errorMsg)
@@ -100,12 +99,12 @@ class AudioPlayer(private val context: Context) {
                         }
                         true
                     }
-                    
-                    setOnPreparedListener { 
+
+                    setOnPreparedListener {
                         it.start()
                         Log.d(TAG, "Audio playback started")
                     }
-                    
+
                     prepareAsync()
                 }
 
@@ -142,12 +141,12 @@ class AudioPlayer(private val context: Context) {
         if (isDisposed.get()) {
             throw IllegalStateException("AudioPlayer has been disposed")
         }
-        
+
         suspendCancellableCoroutine { continuation ->
             try {
                 // 停止当前播放
                 stopCurrentPlayback()
-                
+
                 val minBufferSize = AudioTrack.getMinBufferSize(
                     sampleRate,
                     android.media.AudioFormat.CHANNEL_OUT_MONO,
@@ -169,16 +168,16 @@ class AudioPlayer(private val context: Context) {
 
                 track.play()
                 Log.d(TAG, "PCM playback started")
-                
+
                 val bytesWritten = track.write(pcmData, 0, pcmData.size)
                 if (bytesWritten != pcmData.size) {
                     Log.w(TAG, "Not all PCM data was written: $bytesWritten/${pcmData.size}")
                 }
-                
+
                 // 等待播放完成
                 track.stop()
                 Log.i(TAG, "PCM playback completed")
-                
+
                 if (continuation.isActive) {
                     continuation.resume(Unit)
                 }
@@ -192,13 +191,13 @@ class AudioPlayer(private val context: Context) {
             }
         }
     }
-    
+
     /**
      * 停止当前播放
      */
     fun stop() {
         if (isDisposed.get()) return
-        
+
         try {
             stopCurrentPlayback()
             cleanupTempFile()
@@ -206,21 +205,21 @@ class AudioPlayer(private val context: Context) {
             Log.e(TAG, "Error stopping playback", e)
         }
     }
-    
+
     /**
      * 释放所有资源
      */
     fun dispose() {
         if (isDisposed.compareAndSet(false, true)) {
             Log.d(TAG, "Disposing AudioPlayer")
-            
+
             try {
                 stopCurrentPlayback()
                 cleanupTempFile()
-                
+
                 mediaPlayer?.release()
                 mediaPlayer = null
-                
+
                 audioTrack?.release()
                 audioTrack = null
             } catch (e: Exception) {
@@ -228,7 +227,7 @@ class AudioPlayer(private val context: Context) {
             }
         }
     }
-    
+
     /**
      * 获取或创建 MediaPlayer 实例
      */
@@ -239,7 +238,7 @@ class AudioPlayer(private val context: Context) {
             newPlayer
         }
     }
-    
+
     /**
      * 获取或创建 AudioTrack 实例
      */
@@ -251,7 +250,7 @@ class AudioPlayer(private val context: Context) {
                 audioTrack = null
             }
         }
-        
+
         return audioTrack ?: run {
             val newTrack = AudioTrack(
                 AudioManager.STREAM_MUSIC,
@@ -265,7 +264,7 @@ class AudioPlayer(private val context: Context) {
             newTrack
         }
     }
-    
+
     /**
      * 停止当前播放
      */
@@ -280,10 +279,10 @@ class AudioPlayer(private val context: Context) {
         } catch (e: Exception) {
             Log.e(TAG, "Error stopping MediaPlayer", e)
         }
-        
+
         stopPcmPlayback()
     }
-    
+
     /**
      * 停止 PCM 播放
      */
@@ -300,7 +299,7 @@ class AudioPlayer(private val context: Context) {
             Log.e(TAG, "Error stopping AudioTrack", e)
         }
     }
-    
+
     /**
      * 清理临时文件
      */
@@ -327,4 +326,4 @@ class AudioPlayer(private val context: Context) {
             AudioFormat.PCM -> ".pcm"
         }
     }
-} 
+}

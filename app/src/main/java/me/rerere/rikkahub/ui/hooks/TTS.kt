@@ -57,10 +57,9 @@ fun rememberCustomTtsState(): CustomTtsState {
     onDispose { }
   }
 
-  // Use DisposableEffect to ensure resources are cleaned up when the composable leaves composition
+  // Cleanup resources when the state is disposed
   DisposableEffect(ttsState) {
     onDispose {
-      Log.d("rememberCustomTtsState", "Disposing Custom TTS State")
       ttsState.cleanup()
     }
   }
@@ -118,6 +117,8 @@ private class CustomTtsStateImpl(
 ) : CustomTtsState, KoinComponent {
 
   private val ttsManager by inject<TTSManager>()
+  // 创建自己的 AudioPlayer 实例，避免与 TTSManager 的单例冲突
+  private val audioPlayer = me.rerere.tts.player.AudioPlayer(context)
   private val scope = CoroutineScope(Dispatchers.Main)
   private var currentJob: Job? = null
   
@@ -439,10 +440,18 @@ private class CustomTtsStateImpl(
       // Trigger pre-synthesis for upcoming chunks
       triggerMoreSynthesis(allChunks, chunkIndex + 1)
       
-      // Play the audio using TTSManager's coroutine-based player
+      // Play the audio using our own AudioPlayer instance
       try {
         Log.d("CustomTtsState", "Starting playback for chunk ${chunkIndex + 1}")
-        ttsManager.playAudio(response)
+        when (response.format) {
+          AudioFormat.PCM -> {
+            val sampleRate = response.sampleRate ?: 24000
+            audioPlayer.playPcmSound(response.audioData, sampleRate)
+          }
+          else -> {
+            audioPlayer.playSound(response.audioData, response.format)
+          }
+        }
         Log.d("CustomTtsState", "Playback completed for chunk ${chunkIndex + 1}")
       } catch (e: Exception) {
         Log.e("CustomTtsState", "Audio playback error for chunk ${chunkIndex + 1}", e)
@@ -463,6 +472,8 @@ private class CustomTtsStateImpl(
   override fun stop() {
     currentJob?.cancel()
     synthesizerJob?.cancel()
+    // 停止当前音频播放
+    audioPlayer.stop()
     chunkQueue.clear()
     preSynthesisCache.clear()
     isProcessingQueue = false
@@ -494,5 +505,7 @@ private class CustomTtsStateImpl(
   override fun cleanup() {
     stop()
     currentJob = null
+    // 释放我们自己的 AudioPlayer 资源
+    audioPlayer.dispose()
   }
 } 

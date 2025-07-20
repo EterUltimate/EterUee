@@ -21,6 +21,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
@@ -32,6 +33,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,12 +47,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Check
+import com.composables.icons.lucide.CircleStop
 import com.composables.icons.lucide.GripHorizontal
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Settings2
 import com.composables.icons.lucide.Trash2
+import com.composables.icons.lucide.Volume2
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.DEFAULT_SYSTEM_TTS_ID
 import me.rerere.rikkahub.ui.components.nav.BackButton
@@ -58,6 +62,7 @@ import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
 import me.rerere.rikkahub.ui.context.LocalNavController
+import me.rerere.rikkahub.ui.context.LocalTTSState
 import me.rerere.rikkahub.ui.pages.setting.components.TTSProviderConfigure
 import me.rerere.rikkahub.utils.plus
 import me.rerere.tts.provider.TTSProviderSetting
@@ -311,6 +316,10 @@ private fun TTSProviderItem(
     onDelete: () -> Unit
 ) {
     var showDropdownMenu by remember { mutableStateOf(false) }
+    val tts = LocalTTSState.current
+    val isSpeaking by tts.isSpeaking.collectAsState()
+    val isAvailable by tts.isAvailable.collectAsState()
+
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
@@ -378,6 +387,30 @@ private fun TTSProviderItem(
                 }
 
                 Spacer(modifier = Modifier.weight(1f))
+
+                // TTS测试播放按钮
+                if (isSelected && isAvailable) {
+                    IconButton(
+                        onClick = {
+                            if (!isSpeaking) {
+                                val testText = when (provider) {
+                                    is TTSProviderSetting.OpenAI -> "Hello, this is a test of OpenAI text-to-speech."
+                                    is TTSProviderSetting.Gemini -> "Hello, this is a test of Google Gemini text-to-speech."
+                                    is TTSProviderSetting.SystemTTS -> "Hello, this is a test of system text-to-speech."
+                                }
+                                tts.speak(testText)
+                            } else {
+                                tts.stop()
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = if (isSpeaking) Lucide.CircleStop else Lucide.Volume2,
+                            contentDescription = if (isSpeaking) stringResource(R.string.stop) else stringResource(R.string.test_tts),
+                            tint = if (isSpeaking) MaterialTheme.colorScheme.error else LocalContentColor.current
+                        )
+                    }
+                }
 
                 IconButton(
                     onClick = { showDropdownMenu = true }

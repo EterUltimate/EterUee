@@ -18,6 +18,7 @@
   <string name="regenerate">重新生成</string>
   <string name="edit">編輯</string>
   <string name="tts">語音</string>
+  <string name="test_tts">測試語音</string>
   <string name="deep_thinking">深度思考</string>
   <string name="citations_count">%1$d 條引用</string>
   <string name="back">返回</string>

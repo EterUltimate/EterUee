@@ -56,9 +56,11 @@ import me.rerere.rikkahub.ui.context.LocalFirebaseAnalytics
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSettings
 import me.rerere.rikkahub.ui.context.LocalSharedTransitionScope
+import me.rerere.rikkahub.ui.context.LocalTTSState
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.ui.context.popBack
 import me.rerere.rikkahub.ui.hooks.readStringPreference
+import me.rerere.rikkahub.ui.hooks.rememberCustomTtsState
 import me.rerere.rikkahub.ui.pages.assistant.AssistantPage
 import me.rerere.rikkahub.ui.pages.assistant.detail.AssistantDetailPage
 import me.rerere.rikkahub.ui.pages.backup.BackupPage
@@ -169,6 +171,7 @@ class RouteActivity : ComponentActivity() {
     fun AppRoutes(navBackStack: NavBackStack) {
         val toastState = rememberToasterState()
         val settings by settingsStore.settingsFlow.collectAsStateWithLifecycle()
+        val tts = rememberCustomTtsState()
         SharedTransitionLayout {
             CompositionLocalProvider(
                 LocalNavController provides navBackStack,
@@ -177,6 +180,7 @@ class RouteActivity : ComponentActivity() {
                 LocalHighlighter provides highlighter,
                 LocalFirebaseAnalytics provides firebaseAnalytics,
                 LocalToaster provides toastState,
+                LocalTTSState provides tts,
             ) {
                 Toaster(
                     state = toastState,

@@ -17,6 +17,7 @@
   <string name="regenerate">Regenerate</string>
   <string name="edit">Edit</string>
   <string name="tts">TTS</string>
+  <string name="test_tts">Test TTS</string>
   <string name="deep_thinking">Deep Thinking</string>
   <string name="citations_count">%1$d Citations</string>
   <string name="back">Back</string>

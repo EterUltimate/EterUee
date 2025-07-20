@@ -18,6 +18,7 @@
   <string name="regenerate">再生成</string>
   <string name="edit">編集</string>
   <string name="tts">音声</string>
+  <string name="test_tts">音声テスト</string>
   <string name="deep_thinking">深く考える</string>
   <string name="citations_count">%1$d 件の引用</string>
   <string name="back">戻る</string>

@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -19,10 +18,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.ui.FormItem
+import me.rerere.rikkahub.ui.components.ui.OutlinedNumberInput
 import me.rerere.tts.provider.TTSProviderSetting
 
 @Composable
@@ -226,18 +225,15 @@ private fun OpenAITTSConfiguration(
         label = { Text(stringResource(R.string.setting_tts_page_speed)) },
         description = { Text(stringResource(R.string.setting_tts_page_speed_description)) }
     ) {
-        OutlinedTextField(
-            value = setting.speed.toString(),
+        OutlinedNumberInput(
+            value = setting.speed,
             onValueChange = { newSpeed ->
-                newSpeed.toFloatOrNull()?.let { speed ->
-                    if (speed in 0.25f..4.0f) {
-                        onValueChange(setting.copy(speed = speed))
-                    }
+                if (newSpeed in 0.25f..4.0f) {
+                    onValueChange(setting.copy(speed = newSpeed))
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("1.0") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+            label = stringResource(R.string.setting_tts_page_speed)
         )
     }
 }
@@ -303,18 +299,15 @@ private fun SystemTTSConfiguration(
         label = { Text(stringResource(R.string.setting_tts_page_speech_rate)) },
         description = { Text(stringResource(R.string.setting_tts_page_speech_rate_description)) }
     ) {
-        OutlinedTextField(
-            value = setting.speechRate.toString(),
+        OutlinedNumberInput(
+            value = setting.speechRate,
             onValueChange = { newRate ->
-                newRate.toFloatOrNull()?.let { rate ->
-                    if (rate in 0.1f..3.0f) {
-                        onValueChange(setting.copy(speechRate = rate))
-                    }
+                if (newRate in 0.1f..3.0f) {
+                    onValueChange(setting.copy(speechRate = newRate))
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("1.0") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+            label = stringResource(R.string.setting_tts_page_speech_rate)
         )
     }
 
@@ -323,18 +316,15 @@ private fun SystemTTSConfiguration(
         label = { Text(stringResource(R.string.setting_tts_page_pitch)) },
         description = { Text(stringResource(R.string.setting_tts_page_pitch_description)) }
     ) {
-        OutlinedTextField(
-            value = setting.pitch.toString(),
+        OutlinedNumberInput(
+            value = setting.pitch,
             onValueChange = { newPitch ->
-                newPitch.toFloatOrNull()?.let { pitch ->
-                    if (pitch in 0.1f..2.0f) {
-                        onValueChange(setting.copy(pitch = pitch))
-                    }
+                if (newPitch in 0.1f..2.0f) {
+                    onValueChange(setting.copy(pitch = newPitch))
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("1.0") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+            label = stringResource(R.string.setting_tts_page_pitch)
         )
     }
 }

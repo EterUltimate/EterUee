@@ -98,6 +98,13 @@
   <string name="setting_page_config_api_desc">你还没有配置API和模型，请先配置</string>
   <string name="setting_page_config">配置</string>
 
+  <!-- Model Settings -->
+  <string name="setting_page_built_in_tools">内置工具</string>
+  <string name="setting_page_built_in_tools_search">搜索</string>
+  <string name="setting_page_built_in_tools_search_desc">启用 Google 搜索集成</string>
+  <string name="setting_page_built_in_tools_url_context">URL 上下文</string>
+  <string name="setting_page_built_in_tools_url_context_desc">启用 URL 内容处理</string>
+
   <!-- Setting Model Page -->
   <string name="setting_model_page_title">模型设置</string>
   <string name="setting_model_page_chat_model">聊天模型</string>

@@ -97,6 +97,13 @@
   <string name="setting_page_config_api_desc">APIとモデルを設定してください</string>
   <string name="setting_page_config">設定</string>
 
+  <!-- Model Settings -->
+  <string name="setting_page_built_in_tools">組み込みツール</string>
+  <string name="setting_page_built_in_tools_search">検索</string>
+  <string name="setting_page_built_in_tools_search_desc">Google検索連携を有効化</string>
+  <string name="setting_page_built_in_tools_url_context">URLコンテキスト</string>
+  <string name="setting_page_built_in_tools_url_context_desc">URLコンテンツ処理を有効化</string>
+
 
   <!-- Setting Model Page -->
   <string name="setting_model_page_title">モデル設定</string>

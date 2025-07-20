@@ -97,6 +97,13 @@
   <string name="setting_page_config_api_desc">You haven\'t configured API and model yet, please configure first</string>
   <string name="setting_page_config">Configure</string>
 
+  <!-- Model Settings -->
+  <string name="setting_page_built_in_tools">Built-in Tools</string>
+  <string name="setting_page_built_in_tools_search">Search</string>
+  <string name="setting_page_built_in_tools_search_desc">Enable Google Search integration</string>
+  <string name="setting_page_built_in_tools_url_context">URL Context</string>
+  <string name="setting_page_built_in_tools_url_context_desc">Enable URL content processing</string>
+
   <!-- Setting Model Page -->
   <string name="setting_model_page_title">Model Settings</string>
   <string name="setting_model_page_chat_model">Chat Model</string>

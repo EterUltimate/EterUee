@@ -721,7 +721,7 @@ private fun ModelSettingsForm(
                         pagerState.animateScrollToPage(2)
                     }
                 },
-                text = { Text("内置工具") }
+                text = { Text(stringResource(R.string.setting_page_built_in_tools)) }
             )
         }
 
@@ -1454,7 +1454,7 @@ private fun BuiltInToolsSettings(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "内置工具配置",
+            text = stringResource(R.string.setting_page_built_in_tools),
             style = MaterialTheme.typography.titleMedium
         )
 
@@ -1465,8 +1465,8 @@ private fun BuiltInToolsSettings(
         )
 
         val availableTools = listOf(
-            BuiltInTools.Search to Pair("搜索工具", "允许模型访问实时搜索功能，获取最新信息"),
-            BuiltInTools.UrlContext to Pair("网页解析工具", "允许模型解析和理解网页内容")
+            BuiltInTools.Search to Pair(stringResource(R.string.setting_page_built_in_tools_search), stringResource(R.string.setting_page_built_in_tools_search_desc)),
+            BuiltInTools.UrlContext to Pair(stringResource(R.string.setting_page_built_in_tools_url_context), stringResource(R.string.setting_page_built_in_tools_url_context_desc))
         )
 
         availableTools.forEach { (tool, info) ->

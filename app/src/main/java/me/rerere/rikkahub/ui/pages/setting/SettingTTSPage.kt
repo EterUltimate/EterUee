@@ -169,7 +169,7 @@ fun SettingTTSPage(vm: SettingVM = koinViewModel()) {
 
     // Edit TTS Provider Bottom Sheet
     editingProvider?.let { provider ->
-        val bottomSheetState = rememberModalBottomSheetState()
+        val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         var currentProvider by remember(provider) { mutableStateOf(provider) }
 
         ModalBottomSheet(
@@ -247,7 +247,7 @@ private fun AddTTSProviderButton(onAdd: (TTSProviderSetting) -> Unit) {
     }
 
     if (showBottomSheet) {
-        val bottomSheetState = rememberModalBottomSheetState()
+        val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(
             onDismissRequest = {
                 showBottomSheet = false

@@ -82,6 +82,8 @@
   <string name="setting_page_mcp_desc">MCPサーバーを設定</string>
   <string name="setting_page_assistant">アシスタント</string>
   <string name="setting_page_assistant_desc">カスタムアシスタント（エージェント）を設定</string>
+  <string name="setting_page_documentation">ドキュメント</string>
+  <string name="setting_page_documentation_desc">アプリの使用方法とヘルプドキュメントを表示</string>
   <string name="setting_page_about">アプリについて</string>
   <string name="setting_page_about_desc">このアプリについて</string>
   <string name="setting_page_chat_storage">チャット保存</string>

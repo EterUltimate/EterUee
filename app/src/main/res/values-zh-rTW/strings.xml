@@ -81,6 +81,8 @@
   <string name="setting_page_mcp_desc">配置MCP伺服器</string>
   <string name="setting_page_assistant">助手</string>
   <string name="setting_page_assistant_desc">設定個性化助手 (智能體)</string>
+  <string name="setting_page_documentation">使用文檔</string>
+  <string name="setting_page_documentation_desc">查看應用使用說明和幫助文檔</string>
   <string name="setting_page_about">關於</string>
   <string name="setting_page_about_desc">關於本APP</string>
   <string name="setting_page_chat_storage">聊天記錄儲存</string>

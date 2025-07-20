@@ -44,6 +44,7 @@ import com.composables.icons.lucide.Database
 import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.HardDrive
 import com.composables.icons.lucide.Heart
+import com.composables.icons.lucide.Library
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.MessageCircleWarning
 import com.composables.icons.lucide.Monitor
@@ -64,6 +65,7 @@ import me.rerere.rikkahub.ui.hooks.rememberColorMode
 import me.rerere.rikkahub.ui.pages.setting.components.PresetThemeButtonGroup
 import me.rerere.rikkahub.ui.theme.ColorMode
 import me.rerere.rikkahub.utils.countChatFiles
+import me.rerere.rikkahub.utils.openUrl
 import me.rerere.rikkahub.utils.plus
 import org.koin.androidx.compose.koinViewModel
 
@@ -315,6 +317,19 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                     description = { Text(stringResource(R.string.setting_page_about_desc)) },
                     icon = { Icon(Lucide.BadgeInfo, "About") },
                     link = Screen.SettingAbout
+                )
+            }
+
+            item {
+                val context = LocalContext.current
+                SettingItem(
+                    navController = navController,
+                    title = { Text(stringResource(R.string.setting_page_documentation)) },
+                    description = { Text(stringResource(R.string.setting_page_documentation_desc)) },
+                    icon = { Icon(Lucide.Library, stringResource(R.string.setting_page_documentation)) },
+                    onClick = {
+                        context.openUrl("https://rikka-ai.com/docs/basic/get-started.html")
+                    }
                 )
             }
 

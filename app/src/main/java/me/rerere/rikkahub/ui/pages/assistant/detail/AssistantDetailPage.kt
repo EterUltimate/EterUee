@@ -6,17 +6,21 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
@@ -28,20 +32,27 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryScrollableTabRow
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
@@ -54,7 +65,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.composables.icons.lucide.Fullscreen
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.Plus
@@ -583,6 +596,9 @@ private fun AssistantPromptSettings(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val templateTransformer = koinInject<TemplateTransformer>()
+    var isFocused by remember { mutableStateOf(false) }
+    var isFullScreen by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -609,8 +625,38 @@ private fun AssistantPromptSettings(
                     },
                     minLines = 6,
                     maxLines = 15,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged {
+                            isFocused = it.isFocused
+                        },
+                    trailingIcon = {
+                        if (isFocused) {
+                            IconButton(
+                                onClick = {
+                                    isFullScreen = !isFullScreen
+                                }
+                            ) {
+                                Icon(Lucide.Fullscreen, null)
+                            }
+                        }
+                    }
                 )
+
+                if (isFullScreen) {
+                    FullScreenSystemPromptEditor(
+                        systemPrompt = assistant.systemPrompt,
+                        onUpdate = { newSystemPrompt ->
+                            onUpdate(
+                                assistant.copy(
+                                    systemPrompt = newSystemPrompt
+                                )
+                            )
+                        }
+                    ) {
+                        isFullScreen = false
+                    }
+                }
 
                 Text(
                     text = buildAnnotatedString {
@@ -1062,4 +1108,71 @@ private fun AssistantMcpSettings(
         servers = mcpServerConfigs,
         onUpdateAssistant = onUpdate,
     )
+}
+
+@Composable
+private fun FullScreenSystemPromptEditor(
+    systemPrompt: String,
+    onUpdate: (String) -> Unit,
+    onDone: () -> Unit
+) {
+    var editingText by remember(systemPrompt) { mutableStateOf(systemPrompt) }
+
+    BasicAlertDialog(
+        onDismissRequest = {
+            onDone()
+        },
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false
+        ),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Surface(
+                modifier = Modifier
+                    .widthIn(max = 800.dp)
+                    .fillMaxHeight(0.9f),
+                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .fillMaxSize(),
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Row {
+                        TextButton(
+                            onClick = {
+                                onUpdate(editingText)
+                                onDone()
+                            }
+                        ) {
+                            Text(stringResource(R.string.assistant_page_save))
+                        }
+                    }
+                    TextField(
+                        value = editingText,
+                        onValueChange = { editingText = it },
+                        modifier = Modifier
+                            .imePadding()
+                            .fillMaxSize(),
+                        shape = RoundedCornerShape(16.dp),
+                        placeholder = {
+                            Text(stringResource(R.string.assistant_page_system_prompt))
+                        },
+                        colors = TextFieldDefaults.colors().copy(
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                        ),
+                    )
+                }
+            }
+        }
+    }
 }

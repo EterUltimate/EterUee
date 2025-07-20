@@ -219,23 +219,6 @@ private fun OpenAITTSConfiguration(
             }
         }
     }
-
-    // Speed
-    FormItem(
-        label = { Text(stringResource(R.string.setting_tts_page_speed)) },
-        description = { Text(stringResource(R.string.setting_tts_page_speed_description)) }
-    ) {
-        OutlinedNumberInput(
-            value = setting.speed,
-            onValueChange = { newSpeed ->
-                if (newSpeed in 0.25f..4.0f) {
-                    onValueChange(setting.copy(speed = newSpeed))
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            label = stringResource(R.string.setting_tts_page_speed)
-        )
-    }
 }
 
 @Composable

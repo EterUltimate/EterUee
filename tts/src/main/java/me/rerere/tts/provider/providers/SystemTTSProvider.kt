@@ -3,6 +3,7 @@ package me.rerere.tts.provider.providers
 import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.util.Log
 import kotlinx.coroutines.suspendCancellableCoroutine
 import me.rerere.tts.model.TTSRequest
 import me.rerere.tts.model.TTSResponse
@@ -14,42 +15,41 @@ import java.util.UUID
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-class SystemTTSProvider(private val context: Context) : TTSProvider<TTSProviderSetting.SystemTTS> {
-    private var textToSpeech: TextToSpeech? = null
+private const val TAG = "SystemTTSProvider"
 
+class SystemTTSProvider(private val context: Context) : TTSProvider<TTSProviderSetting.SystemTTS> {
     override suspend fun generateSpeech(
         providerSetting: TTSProviderSetting.SystemTTS,
         request: TTSRequest
     ): TTSResponse = suspendCancellableCoroutine { continuation ->
-
-        textToSpeech = TextToSpeech(context) { status ->
+        var tts: TextToSpeech? = null
+        val listener = TextToSpeech.OnInitListener { status ->
             if (status == TextToSpeech.SUCCESS) {
-                val tts = textToSpeech!!
+                val ttsInstance = tts!!
 
                 // Set language
                 val locale = Locale.getDefault()
-                val langResult = tts.setLanguage(locale)
+                val langResult = ttsInstance.setLanguage(locale)
 
                 if (langResult == TextToSpeech.LANG_MISSING_DATA ||
                     langResult == TextToSpeech.LANG_NOT_SUPPORTED
                 ) {
-//                    continuation.resumeWithException(
-//                        Exception("Language $locale not supported")
-//                    )
-                    return@TextToSpeech
+                    Log.w(TAG, "generateSpeech: Language $locale not supported")
                 }
 
                 // Set speech parameters
-                tts.setSpeechRate(providerSetting.speechRate)
-                tts.setPitch(providerSetting.pitch)
+                ttsInstance.setSpeechRate(providerSetting.speechRate)
+                ttsInstance.setPitch(providerSetting.pitch)
 
                 // Create temporary file for audio output
                 val audioFile = File(context.cacheDir, "tts_${System.currentTimeMillis()}.wav")
 
                 val utteranceId = UUID.randomUUID().toString()
 
-                tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                    override fun onStart(utteranceId: String?) {}
+                ttsInstance.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                    override fun onStart(utteranceId: String?) {
+                        Log.i(TAG, "onStart: TTS engine started!")
+                    }
 
                     override fun onDone(utteranceId: String?) {
                         try {
@@ -66,29 +66,30 @@ class SystemTTSProvider(private val context: Context) : TTSProvider<TTSProviderS
                                         "pitch" to providerSetting.pitch.toString()
                                     )
                                 )
-                                continuation.resume(response)
+                                if (continuation.isActive) continuation.resume(response)
                             } else {
-                                continuation.resumeWithException(
+                                if (continuation.isActive) continuation.resumeWithException(
                                     Exception("Failed to generate audio file")
                                 )
                             }
                         } catch (e: Exception) {
-                            continuation.resumeWithException(e)
+                            if (continuation.isActive) continuation.resumeWithException(e)
                         } finally {
-                            tts.shutdown()
+                            ttsInstance.shutdown()
                         }
                     }
 
                     override fun onError(utteranceId: String?) {
+                        Log.e(TAG, "onError: TTS synthesis failed!")
                         audioFile.delete()
-                        continuation.resumeWithException(
+                        if (continuation.isActive) continuation.resumeWithException(
                             Exception("TTS synthesis failed")
                         )
-                        tts.shutdown()
+                        ttsInstance.shutdown()
                     }
                 })
 
-                val result = tts.synthesizeToFile(
+                val result = ttsInstance.synthesizeToFile(
                     request.text,
                     null,
                     audioFile,
@@ -96,21 +97,22 @@ class SystemTTSProvider(private val context: Context) : TTSProvider<TTSProviderS
                 )
 
                 if (result != TextToSpeech.SUCCESS) {
-                    continuation.resumeWithException(
+                    if (continuation.isActive) continuation.resumeWithException(
                         Exception("Failed to start TTS synthesis")
                     )
-                    tts.shutdown()
+                    ttsInstance.shutdown()
                 }
 
             } else {
-                continuation.resumeWithException(
+                if (continuation.isActive) continuation.resumeWithException(
                     Exception("Failed to initialize TextToSpeech engine")
                 )
             }
         }
+        tts = TextToSpeech(context, listener)
 
         continuation.invokeOnCancellation {
-            textToSpeech?.shutdown()
+            tts?.shutdown()
         }
     }
 }

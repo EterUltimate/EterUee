@@ -22,6 +22,7 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.core.TokenUsage
+import me.rerere.ai.provider.BuiltInTools
 import me.rerere.ai.provider.Modality
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
@@ -395,6 +396,27 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
                         }
                     })
                 })
+            })
+        }
+        // Model BuiltIn Tools
+        // 目前不能和工具调用兼容
+        if(params.model.tools.isNotEmpty()) {
+            put("tools", buildJsonArray {
+                params.model.tools.forEach { builtInTool ->
+                    when (builtInTool) {
+                        BuiltInTools.Search -> {
+                            add(buildJsonObject {
+                                put("google_search", buildJsonObject {})
+                            })
+                        }
+
+                        BuiltInTools.UrlContext -> {
+                            add(buildJsonObject {
+                                put("url_context", buildJsonObject {})
+                            })
+                        }
+                    }
+                }
             })
         }
     }.mergeCustomBody(params.customBody)

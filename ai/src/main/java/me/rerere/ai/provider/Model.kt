@@ -1,5 +1,6 @@
 package me.rerere.ai.provider
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.uuid.Uuid
 
@@ -14,6 +15,7 @@ data class Model(
     val inputModalities: List<Modality> = listOf(Modality.TEXT),
     val outputModalities: List<Modality> = listOf(Modality.TEXT),
     val abilities: List<ModelAbility> = emptyList(),
+    val tools: Set<BuiltInTools> = emptySet(),
 )
 
 @Serializable
@@ -32,6 +34,20 @@ enum class Modality {
 enum class ModelAbility {
     TOOL,
     REASONING,
+}
+
+// 模型(提供商)提供的内置工具选项
+@Serializable
+sealed class BuiltInTools {
+    // https://ai.google.dev/gemini-api/docs/google-search?hl=zh-cn
+    @Serializable
+    @SerialName("search")
+    data object Search : BuiltInTools()
+
+    // https://ai.google.dev/gemini-api/docs/url-context?hl=zh-cn
+    @Serializable
+    @SerialName("url_context")
+    data object UrlContext : BuiltInTools()
 }
 
 fun guessModalityFromModelId(modelId: String): Pair<List<Modality>, List<Modality>> {

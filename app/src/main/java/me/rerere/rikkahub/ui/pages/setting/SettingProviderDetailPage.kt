@@ -38,6 +38,7 @@ import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.MultiChoiceSegmentedButtonRow
+import androidx.compose.material3.Switch
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedCard
@@ -90,6 +91,7 @@ import com.composables.icons.lucide.X
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import me.rerere.ai.provider.BuiltInTools
 import me.rerere.ai.provider.Modality
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
@@ -672,7 +674,7 @@ private fun ModelSettingsForm(
     onModelChange: (Model) -> Unit,
     isEdit: Boolean
 ) {
-    val pagerState = rememberPagerState { 2 }
+    val pagerState = rememberPagerState { 3 }
     val scope = rememberCoroutineScope()
 
     fun setModelId(id: String) {
@@ -711,6 +713,15 @@ private fun ModelSettingsForm(
                     }
                 },
                 text = { Text(stringResource(R.string.setting_provider_page_advanced_settings)) }
+            )
+            Tab(
+                selected = pagerState.currentPage == 2,
+                onClick = {
+                    scope.launch {
+                        pagerState.animateScrollToPage(2)
+                    }
+                },
+                text = { Text("内置工具") }
             )
         }
 
@@ -809,6 +820,16 @@ private fun ModelSettingsForm(
                             }
                         )
                     }
+                }
+
+                2 -> {
+                    // 内置工具页面
+                    BuiltInToolsSettings(
+                        tools = model.tools,
+                        onUpdateTools = { tools ->
+                            onModelChange(model.copy(tools = tools))
+                        }
+                    )
                 }
             }
         }
@@ -1414,6 +1435,76 @@ private fun ModelCard(
                     }
                 ) {
                     Icon(Lucide.Pencil, "Edit")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BuiltInToolsSettings(
+    tools: Set<BuiltInTools>,
+    onUpdateTools: (Set<BuiltInTools>) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = "内置工具配置",
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        Text(
+            text = "选择模型支持的内置工具功能",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        val availableTools = listOf(
+            BuiltInTools.Search to Pair("搜索工具", "允许模型访问实时搜索功能，获取最新信息"),
+            BuiltInTools.UrlContext to Pair("网页解析工具", "允许模型解析和理解网页内容")
+        )
+
+        availableTools.forEach { (tool, info) ->
+            val (title, description) = info
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        Text(
+                            text = description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = tool in tools,
+                        onCheckedChange = { checked ->
+                            if (checked) {
+                                onUpdateTools(tools + tool)
+                            } else {
+                                onUpdateTools(tools - tool)
+                            }
+                        }
+                    )
                 }
             }
         }

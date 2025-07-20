@@ -32,6 +32,7 @@ import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.ui.MessageChunk
 import me.rerere.ai.ui.UIMessage
+import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessageChoice
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.util.await
@@ -241,22 +242,23 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
                         choices = candidates.mapIndexed { index, candidate ->
                             val candidateObj = candidate.jsonObject
                             val content = candidateObj["content"]?.jsonObject
+                            val groundingMetadata = candidateObj["groundingMetadata"]?.jsonObject
                             val finishReason =
                                 candidateObj["finishReason"]?.jsonPrimitive?.contentOrNull
 
+                            val message = content?.let {
+                                parseMessage(buildJsonObject {
+                                    put("role", JsonPrimitive("model"))
+                                    put("content" ,it)
+                                    groundingMetadata?.let { groundingMetadata ->
+                                        put("groundingMetadata", groundingMetadata)
+                                    }
+                                })
+                            }
+
                             UIMessageChoice(
                                 index = index,
-                                delta = content?.let {
-                                    parseMessage(
-                                        JsonObject(
-                                            mapOf(
-                                                "role" to JsonPrimitive(
-                                                    "model"
-                                                ), "content" to it
-                                            )
-                                        )
-                                    )
-                                },
+                                delta = message,
                                 message = null,
                                 finishReason = finishReason
                             )
@@ -448,10 +450,31 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
             parseMessagePart(part.jsonObject)
         } ?: emptyList()
 
+        val groundingMetadata = message["groundingMetadata"]?.jsonObject
+        Log.i(TAG, "parseMessage: $groundingMetadata")
+        val annotations = parseSearchGroundingMetadata(groundingMetadata)
+
         return UIMessage(
             role = role,
-            parts = parts
+            parts = parts,
+            annotations = annotations
         )
+    }
+
+    private fun parseSearchGroundingMetadata(jsonObject: JsonObject?): List<UIMessageAnnotation> {
+        if(jsonObject == null) return emptyList()
+        val groundingChunks = jsonObject["groundingChunks"]?.jsonArray ?: emptyList()
+        val chunks = groundingChunks.mapNotNull { chunk ->
+            val web = chunk.jsonObject["web"]?.jsonObject ?: return@mapNotNull null
+            val uri = web["uri"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
+            val title = web["title"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
+            UIMessageAnnotation.UrlCitation(
+                title = title,
+                url = uri
+            )
+        }
+        Log.i(TAG, "parseSearchGroundingMetadata: $chunks")
+        return chunks
     }
 
     private fun parseMessagePart(jsonObject: JsonObject): UIMessagePart {

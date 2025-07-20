@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import me.rerere.rikkahub.di.appModule
 import me.rerere.rikkahub.di.dataSourceModule
 import me.rerere.rikkahub.di.repositoryModule
@@ -48,9 +49,11 @@ class RikkaHubApp : Application() {
     }
 
     private fun deleteTempFiles() {
-        val dir = filesDir.resolve("temp")
-        if (dir.exists()) {
-            dir.deleteRecursively()
+        get<AppScope>().launch(Dispatchers.IO) {
+            val dir = filesDir.resolve("temp")
+            if (dir.exists()) {
+                dir.deleteRecursively()
+            }
         }
     }
 

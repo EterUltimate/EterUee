@@ -1,5 +1,6 @@
 package me.rerere.tts.provider.providers
 
+import android.content.Context
 import android.util.Base64
 import android.util.Log
 import kotlinx.serialization.Serializable
@@ -52,6 +53,7 @@ class GeminiTTSProvider : TTSProvider<TTSProviderSetting.Gemini> {
     )
 
     override suspend fun generateSpeech(
+        context: Context,
         providerSetting: TTSProviderSetting.Gemini,
         request: TTSRequest
     ): TTSResponse {

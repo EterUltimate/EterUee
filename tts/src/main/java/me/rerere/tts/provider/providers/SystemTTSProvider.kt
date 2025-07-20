@@ -17,8 +17,9 @@ import kotlin.coroutines.resumeWithException
 
 private const val TAG = "SystemTTSProvider"
 
-class SystemTTSProvider(private val context: Context) : TTSProvider<TTSProviderSetting.SystemTTS> {
+class SystemTTSProvider : TTSProvider<TTSProviderSetting.SystemTTS> {
     override suspend fun generateSpeech(
+        context: Context,
         providerSetting: TTSProviderSetting.SystemTTS,
         request: TTSRequest
     ): TTSResponse = suspendCancellableCoroutine { continuation ->
@@ -41,8 +42,12 @@ class SystemTTSProvider(private val context: Context) : TTSProvider<TTSProviderS
                 ttsInstance.setSpeechRate(providerSetting.speechRate)
                 ttsInstance.setPitch(providerSetting.pitch)
 
-                // Create temporary file for audio output
-                val audioFile = File(context.cacheDir, "tts_${System.currentTimeMillis()}.wav")
+                // Create temporary file for audio output using temp directory like RikkaHubApp
+                val tempDir = context.filesDir.resolve("temp")
+                if (!tempDir.exists()) {
+                    tempDir.mkdirs()
+                }
+                val audioFile = File(tempDir, "tts_${System.currentTimeMillis()}.wav")
 
                 val utteranceId = UUID.randomUUID().toString()
 

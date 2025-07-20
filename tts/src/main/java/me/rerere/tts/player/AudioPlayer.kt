@@ -70,8 +70,12 @@ class AudioPlayer(private val context: Context) {
                 // 停止当前播放
                 stopCurrentPlayback()
 
-                // 创建临时文件
-                val tempFile = File.createTempFile("audio_temp", getFileExtension(format), context.cacheDir)
+                // 创建临时文件使用与 RikkaHubApp 相同的临时文件夹
+                val tempDir = context.filesDir.resolve("temp")
+                if (!tempDir.exists()) {
+                    tempDir.mkdirs()
+                }
+                val tempFile = File.createTempFile("audio_temp", getFileExtension(format), tempDir)
                 currentTempFile = tempFile
                 tempFile.writeBytes(sound)
 

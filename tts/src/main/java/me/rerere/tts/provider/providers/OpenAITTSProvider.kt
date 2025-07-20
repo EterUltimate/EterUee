@@ -1,5 +1,6 @@
 package me.rerere.tts.provider.providers
 
+import android.content.Context
 import android.util.Log
 import kotlinx.serialization.json.Json
 import me.rerere.tts.model.AudioFormat
@@ -22,6 +23,7 @@ class OpenAITTSProvider : TTSProvider<TTSProviderSetting.OpenAI> {
         .build()
 
     override suspend fun generateSpeech(
+        context: Context,
         providerSetting: TTSProviderSetting.OpenAI,
         request: TTSRequest
     ): TTSResponse {

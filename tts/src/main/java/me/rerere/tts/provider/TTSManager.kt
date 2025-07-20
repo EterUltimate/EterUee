@@ -10,16 +10,16 @@ import me.rerere.tts.provider.providers.SystemTTSProvider
 class TTSManager(private val context: Context) {
     private val openAIProvider = OpenAITTSProvider()
     private val geminiProvider = GeminiTTSProvider()
-    private val systemProvider = SystemTTSProvider(context)
+    private val systemProvider = SystemTTSProvider()
 
     suspend fun generateSpeech(
         providerSetting: TTSProviderSetting,
         request: TTSRequest
     ): TTSResponse {
         return when (providerSetting) {
-            is TTSProviderSetting.OpenAI -> openAIProvider.generateSpeech(providerSetting, request)
-            is TTSProviderSetting.Gemini -> geminiProvider.generateSpeech(providerSetting, request)
-            is TTSProviderSetting.SystemTTS -> systemProvider.generateSpeech(providerSetting, request)
+            is TTSProviderSetting.OpenAI -> openAIProvider.generateSpeech(context, providerSetting, request)
+            is TTSProviderSetting.Gemini -> geminiProvider.generateSpeech(context, providerSetting, request)
+            is TTSProviderSetting.SystemTTS -> systemProvider.generateSpeech(context, providerSetting, request)
         }
     }
 }

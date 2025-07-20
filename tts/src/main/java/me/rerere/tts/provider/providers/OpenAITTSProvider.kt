@@ -1,5 +1,7 @@
 package me.rerere.tts.provider.providers
 
+import android.util.Log
+import kotlinx.serialization.json.Json
 import me.rerere.tts.model.AudioFormat
 import me.rerere.tts.model.TTSRequest
 import me.rerere.tts.model.TTSResponse
@@ -11,6 +13,8 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
+
+private const val TAG = "OpenAITTSProvider"
 
 class OpenAITTSProvider : TTSProvider<TTSProviderSetting.OpenAI> {
     private val httpClient = OkHttpClient.Builder()
@@ -28,6 +32,8 @@ class OpenAITTSProvider : TTSProvider<TTSProviderSetting.OpenAI> {
             put("speed", providerSetting.speed)
             put("response_format", "mp3") // Default to MP3
         }
+
+        Log.i(TAG, "generateSpeech: $requestBody")
 
         val httpRequest = Request.Builder()
             .url("${providerSetting.baseUrl}/audio/speech")

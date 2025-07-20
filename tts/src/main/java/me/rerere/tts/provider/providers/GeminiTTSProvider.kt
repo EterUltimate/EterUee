@@ -1,6 +1,7 @@
 package me.rerere.tts.provider.providers
 
 import android.util.Base64
+import android.util.Log
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import me.rerere.tts.model.AudioFormat
@@ -15,6 +16,8 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
+
+private const val TAG = "GeminiTTSProvider"
 
 class GeminiTTSProvider : TTSProvider<TTSProviderSetting.Gemini> {
     private val httpClient = OkHttpClient.Builder()
@@ -76,6 +79,8 @@ class GeminiTTSProvider : TTSProvider<TTSProviderSetting.Gemini> {
             })
             put("model", providerSetting.model)
         }
+
+        Log.i(TAG, "generateSpeech: $requestBody")
 
         val httpRequest = Request.Builder()
             .url("https://generativelanguage.googleapis.com/v1beta/models/${providerSetting.model}:generateContent")

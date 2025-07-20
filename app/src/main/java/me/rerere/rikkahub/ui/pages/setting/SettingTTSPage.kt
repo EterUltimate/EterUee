@@ -243,7 +243,7 @@ private fun AddTTSProviderButton(onAdd: (TTSProviderSetting) -> Unit) {
             showBottomSheet = true
         }
     ) {
-        Icon(Lucide.Plus, "Add TTS Provider")
+        Icon(Lucide.Plus, stringResource(R.string.setting_tts_page_add_provider_content_description))
     }
 
     if (showBottomSheet) {
@@ -358,9 +358,9 @@ private fun TTSProviderItem(
 
                     Text(
                         text = when (provider) {
-                            is TTSProviderSetting.OpenAI -> "OpenAI"
-                            is TTSProviderSetting.Gemini -> "Gemini"
-                            is TTSProviderSetting.SystemTTS -> "System TTS"
+                            is TTSProviderSetting.OpenAI -> stringResource(R.string.setting_tts_page_provider_openai)
+                            is TTSProviderSetting.Gemini -> stringResource(R.string.setting_tts_page_provider_gemini)
+                            is TTSProviderSetting.SystemTTS -> stringResource(R.string.setting_tts_page_provider_system)
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -390,14 +390,10 @@ private fun TTSProviderItem(
 
                 // TTS测试播放按钮
                 if (isSelected && isAvailable) {
+                    val testText = stringResource(R.string.setting_tts_page_test_text)
                     IconButton(
                         onClick = {
                             if (!isSpeaking) {
-                                val testText = when (provider) {
-                                    is TTSProviderSetting.OpenAI -> "Hello, this is a test of OpenAI text-to-speech."
-                                    is TTSProviderSetting.Gemini -> "Hello, this is a test of Google Gemini text-to-speech."
-                                    is TTSProviderSetting.SystemTTS -> "Hello, this is a test of system text-to-speech."
-                                }
                                 tts.speak(testText)
                             } else {
                                 tts.stop()
@@ -417,7 +413,7 @@ private fun TTSProviderItem(
                 ) {
                     Icon(
                         imageVector = Lucide.Settings2,
-                        contentDescription = "More options"
+                        contentDescription = stringResource(R.string.setting_tts_page_more_options_content_description)
                     )
                     DropdownMenu(
                         expanded = showDropdownMenu,

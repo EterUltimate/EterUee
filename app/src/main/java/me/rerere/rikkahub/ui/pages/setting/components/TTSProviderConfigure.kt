@@ -145,7 +145,7 @@ private fun OpenAITTSConfiguration(
                 onValueChange(setting.copy(apiKey = newApiKey))
             },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("sk-...") },
+            placeholder = { Text(stringResource(R.string.setting_tts_page_api_key_placeholder_openai)) },
         )
     }
 
@@ -160,7 +160,7 @@ private fun OpenAITTSConfiguration(
                 onValueChange(setting.copy(baseUrl = newBaseUrl))
             },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("https://api.openai.com/v1") }
+            placeholder = { Text(stringResource(R.string.setting_tts_page_base_url_placeholder)) }
         )
     }
 
@@ -175,7 +175,7 @@ private fun OpenAITTSConfiguration(
                 onValueChange(setting.copy(model = newModel))
             },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("gpt-4o-mini-tts") }
+            placeholder = { Text(stringResource(R.string.setting_tts_page_model_placeholder_openai)) }
         )
     }
 
@@ -237,7 +237,7 @@ private fun GeminiTTSConfiguration(
                 onValueChange(setting.copy(apiKey = newApiKey))
             },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("AIza...") },
+            placeholder = { Text(stringResource(R.string.setting_tts_page_api_key_placeholder_gemini)) },
         )
     }
 
@@ -252,7 +252,7 @@ private fun GeminiTTSConfiguration(
                 onValueChange(setting.copy(model = newModel))
             },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("gemini-2.5-flash-preview-tts") }
+            placeholder = { Text(stringResource(R.string.setting_tts_page_model_placeholder_gemini)) }
         )
     }
 
@@ -267,7 +267,7 @@ private fun GeminiTTSConfiguration(
                 onValueChange(setting.copy(voiceName = newVoiceName))
             },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Kore") }
+            placeholder = { Text(stringResource(R.string.setting_tts_page_voice_name_placeholder)) }
         )
     }
 }

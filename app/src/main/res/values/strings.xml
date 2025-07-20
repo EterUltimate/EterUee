@@ -444,6 +444,21 @@
   <string name="setting_tts_page_select">Select</string>
   <string name="setting_tts_page_selected">Selected</string>
   <string name="setting_tts_page_default_name">System TTS</string>
+      <string name="setting_tts_page_test_text">Hello, this is a text-to-speech test.</string>
+  <string name="setting_tts_page_provider_openai">OpenAI</string>
+  <string name="setting_tts_page_provider_gemini">Gemini</string>
+  <string name="setting_tts_page_provider_system">System TTS</string>
+  <string name="setting_tts_page_add_provider_content_description">Add TTS Provider</string>
+  <string name="setting_tts_page_more_options_content_description">More options</string>
+  <string name="setting_tts_page_default_openai_name">OpenAI TTS</string>
+  <string name="setting_tts_page_default_gemini_name">Gemini TTS</string>
+  <string name="setting_tts_page_default_system_name">System TTS</string>
+  <string name="setting_tts_page_api_key_placeholder_openai">sk-...</string>
+  <string name="setting_tts_page_api_key_placeholder_gemini">AIza...</string>
+  <string name="setting_tts_page_base_url_placeholder">https://api.openai.com/v1</string>
+  <string name="setting_tts_page_model_placeholder_openai">gpt-4o-mini-tts</string>
+  <string name="setting_tts_page_model_placeholder_gemini">gemini-2.5-flash-preview-tts</string>
+  <string name="setting_tts_page_voice_name_placeholder">Kore</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">Created memory</string>

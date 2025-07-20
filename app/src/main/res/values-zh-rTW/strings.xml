@@ -492,4 +492,19 @@
   <string name="setting_tts_page_select">選擇</string>
   <string name="setting_tts_page_selected">已選擇</string>
   <string name="setting_tts_page_default_name">系統TTS</string>
+      <string name="setting_tts_page_test_text">你好，這是文字轉語音測試。</string>
+  <string name="setting_tts_page_provider_openai">OpenAI</string>
+  <string name="setting_tts_page_provider_gemini">Gemini</string>
+  <string name="setting_tts_page_provider_system">系統TTS</string>
+  <string name="setting_tts_page_add_provider_content_description">新增TTS提供商</string>
+  <string name="setting_tts_page_more_options_content_description">更多選項</string>
+  <string name="setting_tts_page_default_openai_name">OpenAI TTS</string>
+  <string name="setting_tts_page_default_gemini_name">Gemini TTS</string>
+  <string name="setting_tts_page_default_system_name">系統TTS</string>
+  <string name="setting_tts_page_api_key_placeholder_openai">sk-...</string>
+  <string name="setting_tts_page_api_key_placeholder_gemini">AIza...</string>
+  <string name="setting_tts_page_base_url_placeholder">https://api.openai.com/v1</string>
+  <string name="setting_tts_page_model_placeholder_openai">gpt-4o-mini-tts</string>
+  <string name="setting_tts_page_model_placeholder_gemini">gemini-2.5-flash-preview-tts</string>
+  <string name="setting_tts_page_voice_name_placeholder">Kore</string>
 </resources>

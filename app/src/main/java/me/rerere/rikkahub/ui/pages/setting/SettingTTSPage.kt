@@ -441,7 +441,8 @@ private fun TTSProviderItem(
                             },
                             leadingIcon = {
                                 Icon(Lucide.Trash2, contentDescription = null)
-                            }
+                            },
+                            enabled = provider.id != DEFAULT_SYSTEM_TTS_ID
                         )
                     }
                 }

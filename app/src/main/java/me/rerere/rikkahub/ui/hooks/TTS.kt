@@ -2,6 +2,7 @@ package me.rerere.rikkahub.ui.hooks
 
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -154,6 +155,12 @@ private class CustomTtsStateImpl(
     private val _totalChunks = MutableStateFlow(0)
     override val totalChunks: StateFlow<Int> = _totalChunks.asStateFlow()
 
+    private fun showToast(message: String) {
+        scope.launch(Dispatchers.Main) {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     fun updateProvider(provider: TTSProviderSetting?) {
         currentProvider = provider
         _isAvailable.update { provider != null }
@@ -273,7 +280,9 @@ private class CustomTtsStateImpl(
     override fun speak(text: String, flushCalled: Boolean) {
         val provider = currentProvider
         if (provider == null) {
-            _error.update { "No TTS provider selected" }
+            val errorMsg = "No TTS provider selected"
+            _error.update { errorMsg }
+            showToast(errorMsg)
             return
         }
 
@@ -342,11 +351,17 @@ private class CustomTtsStateImpl(
                         Log.d("CustomTtsState", "Pre-synthesis completed for chunk $i")
                     } catch (e: Exception) {
                         Log.e("CustomTtsState", "Pre-synthesis error for chunk $i", e)
+                        val errorMsg = "TTS synthesis error: ${e.message}"
+                        _error.update { errorMsg }
+                        showToast(errorMsg)
                         break
                     }
                 }
             } catch (e: Exception) {
                 Log.e("CustomTtsState", "Synthesizer error", e)
+                val errorMsg = "TTS synthesis error: ${e.message}"
+                _error.update { errorMsg }
+                showToast(errorMsg)
             }
         }
     }
@@ -375,11 +390,17 @@ private class CustomTtsStateImpl(
                             Log.d("CustomTtsState", "Pre-synthesis completed for chunk $i")
                         } catch (e: Exception) {
                             Log.e("CustomTtsState", "Pre-synthesis error for chunk $i", e)
+                            val errorMsg = "TTS synthesis error: ${e.message}"
+                            _error.update { errorMsg }
+                            showToast(errorMsg)
                             break
                         }
                     }
                 } catch (e: Exception) {
                     Log.e("CustomTtsState", "Trigger synthesis error", e)
+                    val errorMsg = "TTS synthesis error: ${e.message}"
+                    _error.update { errorMsg }
+                    showToast(errorMsg)
                 }
             }
         }
@@ -397,7 +418,9 @@ private class CustomTtsStateImpl(
                 processQueue()
             } catch (e: Exception) {
                 Log.e("CustomTtsState", "Queue processing error", e)
-                _error.update { "Queue processing error: ${e.message}" }
+                val errorMsg = "Queue processing error: ${e.message}"
+                _error.update { errorMsg }
+                showToast(errorMsg)
             } finally {
                 isProcessingQueue = false
                 _isSpeaking.update { false }
@@ -432,7 +455,9 @@ private class CustomTtsStateImpl(
                 }
             } catch (e: Exception) {
                 Log.e("CustomTtsState", "TTS synthesis error for chunk ${chunkIndex + 1}", e)
-                _error.update { "TTS synthesis error for chunk ${chunkIndex + 1}: ${e.message}" }
+                val errorMsg = "TTS synthesis error for chunk ${chunkIndex + 1}: ${e.message}"
+                _error.update { errorMsg }
+                showToast(errorMsg)
                 chunkIndex++
                 continue
             }
@@ -456,7 +481,9 @@ private class CustomTtsStateImpl(
                 Log.d("CustomTtsState", "Playback completed for chunk ${chunkIndex + 1}")
             } catch (e: Exception) {
                 Log.e("CustomTtsState", "Audio playback error for chunk ${chunkIndex + 1}", e)
-                _error.update { "Audio playback error: ${e.message}" }
+                val errorMsg = "Audio playback error: ${e.message}"
+                _error.update { errorMsg }
+                showToast(errorMsg)
             }
 
             // Small delay between chunks

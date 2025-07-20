@@ -3,6 +3,7 @@ package me.rerere.search
 import android.util.Log
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
@@ -21,15 +22,8 @@ object SearXNGService : SearchService<SearchServiceOptions.SearXNGOptions> {
 
     @Composable
     override fun Description() {
-        Text("settings.yml内需要开启json format支持:")
-        Text(
-            """
-            search:
-              formats:
-                - html
-                - json
-        """.trimIndent()
-        )
+        Text(stringResource(R.string.searxng_desc_1))
+        Text(stringResource(R.string.searxng_desc_2))
     }
 
     override suspend fun search(

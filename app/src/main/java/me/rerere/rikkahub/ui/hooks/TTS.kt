@@ -23,8 +23,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.ConcurrentHashMap
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.getSelectedTTSProvider
-import me.rerere.rikkahub.utils.playPcmSound
-import me.rerere.rikkahub.utils.playSound
+
 import me.rerere.tts.model.AudioFormat
 import me.rerere.tts.model.TTSRequest
 import me.rerere.tts.model.TTSResponse
@@ -440,52 +439,15 @@ private class CustomTtsStateImpl(
       // Trigger pre-synthesis for upcoming chunks
       triggerMoreSynthesis(allChunks, chunkIndex + 1)
       
-      // Play the audio based on format with callbacks
-      var isPlaying = true
-      when (response.format) {
-          AudioFormat.PCM -> {
-            val sampleRate = response.sampleRate ?: 24000
-            context.playPcmSound(
-              pcmData = response.audioData,
-              sampleRate = sampleRate,
-              onStart = {
-                Log.d("CustomTtsState", "PCM playback started for chunk ${chunkIndex + 1}")
-              },
-              onComplete = {
-                Log.d("CustomTtsState", "PCM playback completed for chunk ${chunkIndex + 1}")
-                isPlaying = false
-              },
-              onError = { error ->
-                Log.e("CustomTtsState", "PCM playback error: $error")
-                _error.update { "PCM playback error: $error" }
-                isPlaying = false
-              }
-            )
-          }
-          else -> {
-            context.playSound(
-              sound = response.audioData,
-              format = response.format,
-              onStart = {
-                Log.d("CustomTtsState", "Audio playback started for chunk ${chunkIndex + 1}")
-              },
-              onComplete = {
-                Log.d("CustomTtsState", "Audio playback completed for chunk ${chunkIndex + 1}")
-                isPlaying = false
-              },
-              onError = { error ->
-                Log.e("CustomTtsState", "Audio playback error: $error")
-                _error.update { "Audio playback error: $error" }
-                isPlaying = false
-              }
-            )
-          }
-        }
-        
-        // Wait for playback to complete
-        while (isPlaying && !(currentJob?.isCancelled ?: false)) {
-          delay(50)
-        }
+      // Play the audio using TTSManager's coroutine-based player
+      try {
+        Log.d("CustomTtsState", "Starting playback for chunk ${chunkIndex + 1}")
+        ttsManager.playAudio(response)
+        Log.d("CustomTtsState", "Playback completed for chunk ${chunkIndex + 1}")
+      } catch (e: Exception) {
+        Log.e("CustomTtsState", "Audio playback error for chunk ${chunkIndex + 1}", e)
+        _error.update { "Audio playback error: ${e.message}" }
+      }
         
         // Small delay between chunks
         if (chunkQueue.isNotEmpty() && !(currentJob?.isCancelled ?: false)) {

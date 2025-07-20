@@ -3,13 +3,16 @@ package me.rerere.tts.provider
 import android.content.Context
 import kotlinx.coroutines.flow.Flow
 import me.rerere.tts.model.AudioChunk
+import me.rerere.tts.model.AudioFormat
 import me.rerere.tts.model.TTSRequest
 import me.rerere.tts.model.TTSResponse
+import me.rerere.tts.player.AudioPlayer
 import me.rerere.tts.provider.providers.OpenAITTSProvider
 import me.rerere.tts.provider.providers.GeminiTTSProvider
 import me.rerere.tts.provider.providers.SystemTTSProvider
 
 class TTSManager(private val context: Context) {
+  private val audioPlayer = AudioPlayer(context)
   private val openAIProvider = OpenAITTSProvider()
   private val geminiProvider = GeminiTTSProvider()
   private val systemProvider = SystemTTSProvider(context)
@@ -42,5 +45,34 @@ class TTSManager(private val context: Context) {
       is TTSProviderSetting.Gemini -> geminiProvider.testConnection(providerSetting)
       is TTSProviderSetting.SystemTTS -> systemProvider.testConnection(providerSetting)
     }
+  }
+
+  /**
+   * Play audio response using coroutines
+   */
+  suspend fun playAudio(response: TTSResponse) {
+    when (response.format) {
+      AudioFormat.PCM -> {
+        val sampleRate = response.sampleRate ?: 24000
+        audioPlayer.playPcmSound(response.audioData, sampleRate)
+      }
+      else -> {
+        audioPlayer.playSound(response.audioData, response.format)
+      }
+    }
+  }
+
+  /**
+   * Play audio data with specified format
+   */
+  suspend fun playSound(audioData: ByteArray, format: AudioFormat) {
+    audioPlayer.playSound(audioData, format)
+  }
+
+  /**
+   * Play PCM audio data
+   */
+  suspend fun playPcmSound(pcmData: ByteArray, sampleRate: Int = 24000) {
+    audioPlayer.playPcmSound(pcmData, sampleRate)
   }
 }

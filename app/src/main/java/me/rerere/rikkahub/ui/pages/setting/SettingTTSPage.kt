@@ -23,7 +23,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -141,6 +143,22 @@ fun SettingTTSPage(vm: SettingVM = koinViewModel()) {
                         },
                         onEdit = {
                             editingProvider = provider
+                        },
+                        onToggleEnabled = { enabled ->
+                            val newProviders = settings.ttsProviders.map {
+                                if (it.id == provider.id) it.copyProvider(enabled = enabled) else it
+                            }
+                            val newSelectedId = if (!enabled && settings.selectedTTSProviderId == provider.id) {
+                                null
+                            } else {
+                                settings.selectedTTSProviderId
+                            }
+                            vm.updateSettings(
+                                settings.copy(
+                                    ttsProviders = newProviders,
+                                    selectedTTSProviderId = newSelectedId
+                                )
+                            )
                         },
                         onDelete = {
                             val newProviders = settings.ttsProviders - provider
@@ -305,22 +323,25 @@ private fun TTSProviderItem(
     dragHandle: @Composable () -> Unit,
     onSelect: () -> Unit,
     onEdit: () -> Unit,
+    onToggleEnabled: (Boolean) -> Unit,
     onDelete: () -> Unit
 ) {
     var showDropdownMenu by remember { mutableStateOf(false) }
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
-            containerColor = if (provider.enabled) {
-                MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
-            } else MaterialTheme.colorScheme.errorContainer,
+            containerColor = when {
+                isSelected && provider.enabled -> MaterialTheme.colorScheme.primaryContainer
+                provider.enabled -> MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
+                else -> MaterialTheme.colorScheme.errorContainer
+            },
         )
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Row(
+                        Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -328,41 +349,61 @@ private fun TTSProviderItem(
                     name = provider.name.ifEmpty { stringResource(R.string.setting_tts_page_default_name) },
                     modifier = Modifier.size(32.dp)
                 )
-                Spacer(modifier = Modifier.weight(1f))
-                dragHandle()
-            }
-            Row {
+
                 Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.weight(1f)
                 ) {
                     Text(
                         text = provider.name.ifEmpty { stringResource(R.string.setting_tts_page_default_name) },
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.titleMedium,
+                        color = if (isSelected && provider.enabled) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        }
                     )
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        if (isSelected) {
-                            Tag(type = TagType.SUCCESS) {
-                                Text(stringResource(R.string.setting_tts_page_selected))
-                            }
-                        }
-                        Tag(type = if (provider.enabled) TagType.SUCCESS else TagType.WARNING) {
-                            Text(stringResource(if (provider.enabled) R.string.setting_tts_page_enabled else R.string.setting_tts_page_disabled))
-                        }
-                        // Display provider type
-                        Tag(type = TagType.INFO) {
-                            Text(
-                                when (provider) {
-                                    is TTSProviderSetting.OpenAI -> "OpenAI"
-                                    is TTSProviderSetting.Gemini -> "Gemini"
-                                    is TTSProviderSetting.SystemTTS -> "System TTS"
-                                }
-                            )
-                        }
+
+                    Text(
+                        text = when (provider) {
+                            is TTSProviderSetting.OpenAI -> "OpenAI"
+                            is TTSProviderSetting.Gemini -> "Gemini"
+                            is TTSProviderSetting.SystemTTS -> "System TTS"
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                // 启用/禁用开关
+                Switch(
+                    checked = provider.enabled,
+                    onCheckedChange = onToggleEnabled
+                )
+
+                // 只有启用的提供商才显示单选按钮
+                if (provider.enabled) {
+                    RadioButton(
+                        selected = isSelected,
+                        onClick = onSelect
+                    )
+                }
+
+                dragHandle()
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // 状态标签
+                if (isSelected && provider.enabled) {
+                    Tag(type = TagType.SUCCESS) {
+                        Text(stringResource(R.string.setting_tts_page_selected))
                     }
                 }
+
+                Spacer(modifier = Modifier.weight(1f))
+
                 IconButton(
                     onClick = { showDropdownMenu = true }
                 ) {
@@ -374,18 +415,6 @@ private fun TTSProviderItem(
                         expanded = showDropdownMenu,
                         onDismissRequest = { showDropdownMenu = false }
                     ) {
-                        if (!isSelected && provider.enabled) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.setting_tts_page_select)) },
-                                onClick = {
-                                    showDropdownMenu = false
-                                    onSelect()
-                                },
-                                leadingIcon = {
-                                    Icon(Lucide.Check, contentDescription = null)
-                                }
-                            )
-                        }
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.edit)) },
                             onClick = {

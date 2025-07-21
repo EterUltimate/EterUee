@@ -99,12 +99,17 @@ class RouteActivity : ComponentActivity() {
         disableNavigationBarContrast()
         super.onCreate(savedInstanceState)
         setContent {
+            val settings by settingsStore.settingsFlow.collectAsStateWithLifecycle()
             val navStack = rememberNavBackStack(
                 Screen.Chat(
-                    id = readStringPreference(
-                        "lastConversationId",
+                    id = if (settings.displaySetting.createNewConversationOnStart) {
                         Uuid.random().toString()
-                    ) ?: Uuid.random().toString(),
+                    } else {
+                        readStringPreference(
+                            "lastConversationId",
+                            Uuid.random().toString()
+                        ) ?: Uuid.random().toString()
+                    }
                 )
             )
             ShareHandler(navStack)

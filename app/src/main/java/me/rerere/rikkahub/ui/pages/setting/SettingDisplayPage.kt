@@ -200,6 +200,28 @@ fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
             }
 
             item {
+                Card {
+                    ListItem(
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        headlineContent = {
+                            Text(stringResource(R.string.setting_display_page_enable_message_generation_haptic_effect_title))
+                        },
+                        supportingContent = {
+                            Text(stringResource(R.string.setting_display_page_enable_message_generation_haptic_effect_desc))
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = displaySetting.enableMessageGenerationHapticEffect,
+                                onCheckedChange = {
+                                    updateDisplaySetting(displaySetting.copy(enableMessageGenerationHapticEffect = it))
+                                }
+                            )
+                        },
+                    )
+                }
+            }
+
+            item {
                 var createNewConversationOnStart by rememberSharedPreferenceBoolean(
                     "create_new_conversation_on_start",
                     true

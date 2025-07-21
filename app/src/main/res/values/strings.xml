@@ -300,6 +300,8 @@
     <string name="setting_display_page_create_new_conversation_on_start_desc">Create a new conversation when the app starts</string>
     <string name="setting_display_page_font_size_title">Chat Font Size</string>
   <string name="setting_display_page_font_size_preview">This is a **sample** chat text</string>
+  <string name="setting_display_page_enable_message_generation_haptic_effect_title">Message Generation Haptic Effect</string>
+  <string name="setting_display_page_enable_message_generation_haptic_effect_desc">Enable haptic feedback when messages are being generated</string>
   <string name="setting_display_page_title">Display Settings</string>
 
   <!-- Share Handler Page -->

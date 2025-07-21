@@ -99,6 +99,7 @@
 
   <!-- Model Settings -->
   <string name="setting_page_built_in_tools">組み込みツール</string>
+  <string name="setting_page_built_in_tools_desc">モデルがサポートする組み込みツールを選択します。これらのツールはAPIに直接組み込まれており、アプリのサポートは不要です。現在、この機能は公式Gemini APIでのみサポートされています。</string>
   <string name="setting_page_built_in_tools_search">検索</string>
   <string name="setting_page_built_in_tools_search_desc">Google検索連携を有効化</string>
   <string name="setting_page_built_in_tools_url_context">URLコンテキスト</string>

@@ -99,6 +99,7 @@
 
   <!-- Model Settings -->
   <string name="setting_page_built_in_tools">Built-in Tools</string>
+  <string name="setting_page_built_in_tools_desc">Select built-in tools supported by the model. These tools are directly provided by the API without requiring app support. Currently, this feature is only supported by the official Gemini API.</string>
   <string name="setting_page_built_in_tools_search">Search</string>
   <string name="setting_page_built_in_tools_search_desc">Enable Google Search integration</string>
   <string name="setting_page_built_in_tools_url_context">URL Context</string>

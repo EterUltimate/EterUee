@@ -1459,7 +1459,7 @@ private fun BuiltInToolsSettings(
         )
 
         Text(
-            text = "选择模型支持的内置工具功能",
+            text = stringResource(R.string.setting_page_built_in_tools_desc),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

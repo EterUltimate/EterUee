@@ -100,6 +100,7 @@
 
   <!-- Model Settings -->
   <string name="setting_page_built_in_tools">内置工具</string>
+  <string name="setting_page_built_in_tools_desc">选择模型支持的内置工具, 这些工具直接由API内置，无需APP提供，当前这个功能仅支持Gemini官方API。</string>
   <string name="setting_page_built_in_tools_search">搜索</string>
   <string name="setting_page_built_in_tools_search_desc">启用 Google 搜索集成</string>
   <string name="setting_page_built_in_tools_url_context">URL 上下文</string>

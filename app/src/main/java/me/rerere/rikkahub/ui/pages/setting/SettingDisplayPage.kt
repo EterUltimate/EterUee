@@ -31,6 +31,8 @@ import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.DisplaySetting
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
+import me.rerere.rikkahub.ui.hooks.rememberSharedPreferenceBoolean
+import me.rerere.rikkahub.ui.hooks.rememberSharedPreferenceString
 import me.rerere.rikkahub.utils.plus
 import org.koin.androidx.compose.koinViewModel
 
@@ -198,6 +200,10 @@ fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
             }
 
             item {
+                var createNewConversationOnStart by rememberSharedPreferenceBoolean(
+                    "create_new_conversation_on_start",
+                    true
+                )
                 Card {
                     ListItem(
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
@@ -209,9 +215,9 @@ fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
                         },
                         trailingContent = {
                             Switch(
-                                checked = displaySetting.createNewConversationOnStart,
+                                checked = createNewConversationOnStart,
                                 onCheckedChange = {
-                                    updateDisplaySetting(displaySetting.copy(createNewConversationOnStart = it))
+                                    createNewConversationOnStart = it
                                 }
                             )
                         },

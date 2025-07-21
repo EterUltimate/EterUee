@@ -55,6 +55,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -112,10 +113,12 @@ import com.composables.icons.lucide.Wrench
 import com.composables.icons.lucide.X
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -132,6 +135,7 @@ import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.Avatar
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.model.MessageNode
+import me.rerere.rikkahub.data.repository.MemoryRepository
 import me.rerere.rikkahub.ui.components.richtext.HighlightCodeBlock
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.components.richtext.ZoomableAsyncImage
@@ -143,7 +147,6 @@ import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSettings
 import me.rerere.rikkahub.ui.context.LocalTTSState
 import me.rerere.rikkahub.ui.context.push
-import me.rerere.rikkahub.ui.hooks.rememberCustomTtsState
 import me.rerere.rikkahub.ui.modifier.shimmer
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.JsonInstant
@@ -154,6 +157,7 @@ import me.rerere.rikkahub.utils.jsonPrimitiveOrNull
 import me.rerere.rikkahub.utils.openUrl
 import me.rerere.rikkahub.utils.toLocalString
 import me.rerere.rikkahub.utils.urlDecode
+import org.koin.compose.koinInject
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
@@ -856,7 +860,7 @@ private fun MessagePartsBlock(
     val hapticFeedback = LocalHapticFeedback.current
     val settings = LocalSettings.current
     LaunchedEffect(parts) {
-        if(parts.isNotEmpty() && loading && settings.displaySetting.enableMessageGenerationHapticEffect) {
+        if (parts.isNotEmpty() && loading && settings.displaySetting.enableMessageGenerationHapticEffect) {
             hapticFeedback.performHapticFeedback(HapticFeedbackType.KeyboardTap)
         }
     }
@@ -1187,6 +1191,13 @@ private fun ToolCallPreviewDialog(
     onDismissRequest: () -> Unit = {}
 ) {
     val navController = LocalNavController.current
+    val memoryRepo: MemoryRepository = koinInject()
+    val scope = rememberCoroutineScope()
+
+    // Check if this is a memory creation/update operation
+    val isMemoryOperation = toolName in listOf("create_memory", "edit_memory")
+    val memoryId = content.jsonObject["id"]?.jsonPrimitiveOrNull?.intOrNull
+
     ModalBottomSheet(
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         onDismissRequest = {
@@ -1297,12 +1308,38 @@ private fun ToolCallPreviewDialog(
                     }
 
                     else -> {
-                        Text(
-                            text = stringResource(R.string.chat_message_tool_call_title),
-                            style = MaterialTheme.typography.headlineSmall,
+                        Row(
                             modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
-                        )
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.chat_message_tool_call_title),
+                                style = MaterialTheme.typography.headlineSmall,
+                                textAlign = TextAlign.Center
+                            )
+
+                            // 如果是memory操作，允许用户快速删除
+                            if (isMemoryOperation && memoryId != null) {
+                                IconButton(
+                                    onClick = {
+                                        scope.launch {
+                                            try {
+                                                memoryRepo.deleteMemory(memoryId)
+                                                onDismissRequest()
+                                            } catch (e: Exception) {
+                                                // Handle error if needed
+                                            }
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        Lucide.Trash2,
+                                        contentDescription = "Delete memory"
+                                    )
+                                }
+                            }
+                        }
                         FormItem(
                             label = {
                                 Text(

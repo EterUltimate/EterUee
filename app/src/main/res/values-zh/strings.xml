@@ -285,8 +285,10 @@
   <string name="setting_display_page_show_updates_title">显示更新</string>
   <string name="setting_display_page_show_updates_desc">是否显示应用更新通知</string>
   <string name="setting_display_page_show_message_jumper_title">消息导航按钮</string>
-  <string name="setting_display_page_show_message_jumper_desc">在滚动聊天列表时，在右侧显示快速跳转按钮</string>
-  <string name="setting_display_page_font_size_title">聊天字体大小</string>
+    <string name="setting_display_page_show_message_jumper_desc">在滚动聊天列表时，在右侧显示快速跳转按钮</string>
+    <string name="setting_display_page_create_new_conversation_on_start_title">启动时新建对话</string>
+    <string name="setting_display_page_create_new_conversation_on_start_desc">当应用启动时，自动创建一个新的对话</string>
+    <string name="setting_display_page_font_size_title">聊天字体大小</string>
   <string name="setting_display_page_font_size_preview">这是一个**示例**的聊天文本</string>
   <string name="setting_display_page_title">显示设置</string>
 

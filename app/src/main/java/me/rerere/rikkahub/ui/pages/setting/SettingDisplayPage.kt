@@ -200,6 +200,28 @@ fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
             item {
                 Card {
                     ListItem(
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        headlineContent = {
+                            Text(stringResource(R.string.setting_display_page_create_new_conversation_on_start_title))
+                        },
+                        supportingContent = {
+                            Text(stringResource(R.string.setting_display_page_create_new_conversation_on_start_desc))
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = displaySetting.createNewConversationOnStart,
+                                onCheckedChange = {
+                                    updateDisplaySetting(displaySetting.copy(createNewConversationOnStart = it))
+                                }
+                            )
+                        },
+                    )
+                }
+            }
+
+            item {
+                Card {
+                    ListItem(
                         headlineContent = {
                             Text(stringResource(R.string.setting_display_page_font_size_title))
                         },

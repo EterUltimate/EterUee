@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.LightbulbOff
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Sparkle
 import me.rerere.ai.core.ReasoningLevel
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.ui.ToggleSurface
@@ -115,6 +116,21 @@ fun ReasoningPicker(
                 },
                 onClick = {
                     onUpdateReasoningTokens(0)
+                }
+            )
+            ReasoningLevelCard(
+                selected = currentLevel == ReasoningLevel.AUTO,
+                icon = {
+                    Icon(Lucide.Sparkle, null)
+                },
+                title = {
+                    Text(stringResource(id = R.string.reasoning_auto))
+                },
+                description = {
+                    Text(stringResource(id = R.string.reasoning_auto_desc))
+                },
+                onClick = {
+                    onUpdateReasoningTokens(-1)
                 }
             )
             ReasoningLevelCard(

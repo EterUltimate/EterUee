@@ -262,6 +262,8 @@
   <string name="setting_page_data_backup_desc">备份和恢复应用数据</string>
   <string name="reasoning_off">关闭</string>
   <string name="reasoning_off_desc">关闭推理功能，模型将直接回答问题。</string>
+  <string name="reasoning_auto">自动</string>
+  <string name="reasoning_auto_desc">让模型自动决定推理级别。</string>
 
   <!-- Chat Page - Nickname Edit -->
   <string name="chat_page_edit_nickname">编辑昵称</string>

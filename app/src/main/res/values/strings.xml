@@ -276,6 +276,8 @@
   <string name="setting_page_data_backup_desc">Backup and restore app data</string>
   <string name="reasoning_off">Off</string>
   <string name="reasoning_off_desc">Turn off reasoning functionality, the model will directly answer questions.</string>
+  <string name="reasoning_auto">Auto</string>
+  <string name="reasoning_auto_desc">Let the model automatically determine reasoning level.</string>
   <string name="reasoning_light">Light reasoning</string>
   <string name="reasoning_light_desc">The model will use a small amount of reasoning to answer questions.</string>
   <string name="reasoning_medium">Medium reasoning</string>

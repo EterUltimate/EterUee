@@ -249,7 +249,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
                             val message = content?.let {
                                 parseMessage(buildJsonObject {
                                     put("role", JsonPrimitive("model"))
-                                    put("content" ,it)
+                                    put("content", it)
                                     groundingMetadata?.let { groundingMetadata ->
                                         put("groundingMetadata", groundingMetadata)
                                     }
@@ -353,16 +353,19 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
             }
             if (params.model.abilities.contains(ModelAbility.REASONING)) {
                 put("thinkingConfig", buildJsonObject {
+                    put("includeThoughts", true)
+
                     val isGeminiPro =
                         params.model.modelId.contains(Regex("2\\.5.*pro", RegexOption.IGNORE_CASE))
-                    val budget = if (isGeminiPro) {
-                        // https://github.com/rikkahub/rikkahub/issues/207
-                        (params.thinkingBudget ?: -1).let { if (it == 0) -1 else it }
-                    } else {
-                        params.thinkingBudget ?: 0
+
+                    when (params.thinkingBudget) {
+                        null, -1 -> {}
+                        0 -> {
+                            if (!isGeminiPro) put("thinkingBudget", 0) // disable thinking if not gemini pro
+                        }
+
+                        else -> put("thinkingBudget", params.thinkingBudget)
                     }
-                    put("thinkingBudget", budget)
-                    put("includeThoughts", true)
                 })
             }
         })
@@ -402,7 +405,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
         }
         // Model BuiltIn Tools
         // 目前不能和工具调用兼容
-        if(params.model.tools.isNotEmpty()) {
+        if (params.model.tools.isNotEmpty()) {
             put("tools", buildJsonArray {
                 params.model.tools.forEach { builtInTool ->
                     when (builtInTool) {
@@ -462,7 +465,7 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
     }
 
     private fun parseSearchGroundingMetadata(jsonObject: JsonObject?): List<UIMessageAnnotation> {
-        if(jsonObject == null) return emptyList()
+        if (jsonObject == null) return emptyList()
         val groundingChunks = jsonObject["groundingChunks"]?.jsonArray ?: emptyList()
         val chunks = groundingChunks.mapNotNull { chunk ->
             val web = chunk.jsonObject["web"]?.jsonObject ?: return@mapNotNull null

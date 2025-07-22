@@ -10,9 +10,15 @@ enum class ReasoningLevel(
     MEDIUM(16_000, "medium"),
     HIGH(32_000, "high");
 
+    val isOpenAISpecific: Boolean
+        get() = this == LOW || this == MEDIUM || this == HIGH
+
+    val isEnabled: Boolean
+        get() = this != OFF
+
     companion object {
-        fun fromBudgetTokens(budgetTokens: Int): ReasoningLevel {
-            return entries.minByOrNull { kotlin.math.abs(it.budgetTokens - budgetTokens) } ?: OFF
+        fun fromBudgetTokens(budgetTokens: Int?): ReasoningLevel {
+            return entries.minByOrNull { kotlin.math.abs(it.budgetTokens - (budgetTokens ?: AUTO.budgetTokens)) } ?: AUTO
         }
     }
 }

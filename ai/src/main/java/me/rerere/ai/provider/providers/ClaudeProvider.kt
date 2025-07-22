@@ -300,7 +300,7 @@ object ClaudeProvider : Provider<ProviderSetting.Claude> {
                         put("type", "disabled")
                     } else {
                         put("type", "enabled")
-                        put("budget_tokens", params.thinkingBudget)
+                        if(level != ReasoningLevel.AUTO) put("budget_tokens", params.thinkingBudget ?: 0)
                     }
                 })
             }

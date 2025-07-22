@@ -188,7 +188,7 @@ class ResponseAPI(private val client: OkHttpClient) : OpenAIImpl {
             // reasoning
             if (params.model.abilities.contains(ModelAbility.REASONING)) {
                 val level = ReasoningLevel.fromBudgetTokens(params.thinkingBudget ?: 0)
-                if (level != ReasoningLevel.OFF) {
+                if (level.isOpenAISpecific) {
                     put("reasoning", buildJsonObject {
                         put("summary", "auto")
                         put("effort", level.effort)

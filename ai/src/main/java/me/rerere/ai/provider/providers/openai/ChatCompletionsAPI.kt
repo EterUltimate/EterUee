@@ -262,13 +262,13 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
             }
 
             if (params.model.abilities.contains(ModelAbility.REASONING)) {
-                val level = ReasoningLevel.fromBudgetTokens(params.thinkingBudget ?: 0)
+                val level = ReasoningLevel.fromBudgetTokens(params.thinkingBudget)
                 when (host) {
                     "openrouter.ai" -> {
                         // https://openrouter.ai/docs/use-cases/reasoning-tokens
                         put("reasoning", buildJsonObject {
-                            put("max_tokens", params.thinkingBudget ?: 0)
-                            if ((params.thinkingBudget ?: 0) == 0) {
+                            if (level != ReasoningLevel.AUTO) put("max_tokens", params.thinkingBudget ?: 0)
+                            if (!level.isEnabled) {
                                 put("enabled", false)
                             }
                         })
@@ -277,14 +277,14 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
                     "dashscope.aliyuncs.com" -> {
                         // 阿里云百炼
                         // https://bailian.console.aliyun.com/console?tab=doc#/doc/?type=model&url=https%3A%2F%2Fhelp.aliyun.com%2Fdocument_detail%2F2870973.html&renderType=iframe
-                        put("enable_thinking", level != ReasoningLevel.OFF)
-                        put("thinking_budget", params.thinkingBudget ?: 0)
+                        put("enable_thinking", level.isEnabled)
+                        if (level != ReasoningLevel.AUTO) put("thinking_budget", params.thinkingBudget ?: 0)
                     }
 
                     "ark.cn-beijing.volces.com" -> {
                         // 豆包 (火山)
                         put("thinking", buildJsonObject {
-                            put("type", if (level == ReasoningLevel.OFF) "disabled" else "enabled")
+                            put("type", if (!level.isEnabled) "disabled" else "enabled")
                         })
                     }
 
@@ -295,7 +295,7 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
                     else -> {
                         // OpenAI 官方
                         // 文档中，只支持 "low", "medium", "high"
-                        if (level != ReasoningLevel.OFF) put("reasoning_effort", level.effort)
+                        if (level.isOpenAISpecific) put("reasoning_effort", level.effort)
                     }
                 }
             }

@@ -257,6 +257,8 @@
   <string name="user_default_name">ユーザー</string>
   <string name="reasoning_off">オフ</string>
   <string name="reasoning_off_desc">推論機能を無効にし、モデルは直接質問に答えます。</string>
+  <string name="reasoning_auto">自動</string>
+  <string name="reasoning_auto_desc">モデルが推論レベルを自動的に決定します。</string>
   <string name="reasoning_light">軽度推論</string>
   <string name="reasoning_light_desc">モデルは少量の推論を使用して質問に答えます。</string>
   <string name="reasoning_medium">中度推論</string>

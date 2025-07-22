@@ -43,7 +43,6 @@ import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.ToggleSurface
 import me.rerere.rikkahub.ui.context.LocalNavController
-import me.rerere.rikkahub.ui.context.push
 import me.rerere.search.SearchService
 import me.rerere.search.SearchServiceOptions
 
@@ -170,7 +169,7 @@ fun SearchPicker(
             IconButton(
                 onClick = {
                     onDismiss()
-                    navBackStack.push(Screen.SettingSearch)
+                    navBackStack.navigate(Screen.SettingSearch)
                 }
             ) {
                 Icon(Lucide.Settings2, null)

@@ -48,6 +48,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation3.runtime.rememberNavBackStack
 import coil3.compose.AsyncImage
 import com.composables.icons.lucide.BookDashed
@@ -362,7 +363,7 @@ private fun ExportedChatImage(
     messages: List<UIMessage>,
     options: ImageExportOptions = ImageExportOptions()
 ) {
-    val navBackStack = rememberNavBackStack(Screen.Chat("export"))
+    val navBackStack = rememberNavController()
     val highlighter = koinInject<Highlighter>()
     RikkahubTheme {
         CompositionLocalProvider(

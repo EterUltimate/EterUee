@@ -35,8 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation3.runtime.NavBackStack
-import androidx.navigation3.runtime.NavKey
+import androidx.navigation.NavHostController
 import com.composables.icons.lucide.BadgeInfo
 import com.composables.icons.lucide.Bot
 import com.composables.icons.lucide.Boxes
@@ -59,8 +58,6 @@ import me.rerere.rikkahub.data.datastore.isNotConfigured
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.Select
 import me.rerere.rikkahub.ui.context.LocalNavController
-import me.rerere.rikkahub.ui.context.push
-import me.rerere.rikkahub.ui.context.replace
 import me.rerere.rikkahub.ui.hooks.rememberColorMode
 import me.rerere.rikkahub.ui.pages.setting.components.PresetThemeButtonGroup
 import me.rerere.rikkahub.ui.theme.ColorMode
@@ -122,8 +119,12 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                             selectedOption = colorMode,
                             onOptionSelected = {
                                 colorMode = it
-
-                                navController.replace(Screen.Setting)
+                                navController.navigate(Screen.Setting) {
+                                    launchSingleTop = true
+                                    popUpTo(Screen.Setting) {
+                                        inclusive = true
+                                    }
+                                }
                             },
                             optionToString = {
                                 when (it) {
@@ -364,7 +365,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
 }
 
 @Composable
-private fun ProviderConfigWarningCard(navController: NavBackStack) {
+private fun ProviderConfigWarningCard(navController: NavHostController) {
     Card(
         modifier = Modifier.padding(8.dp),
         colors = CardDefaults.cardColors(
@@ -394,7 +395,7 @@ private fun ProviderConfigWarningCard(navController: NavBackStack) {
 
             TextButton(
                 onClick = {
-                    navController.push(Screen.SettingProvider)
+                    navController.navigate(Screen.SettingProvider)
                 }
             ) {
                 Text(stringResource(R.string.setting_page_config))
@@ -405,16 +406,16 @@ private fun ProviderConfigWarningCard(navController: NavBackStack) {
 
 @Composable
 fun SettingItem(
-    navController: NavBackStack,
+    navController: NavHostController,
     title: @Composable () -> Unit,
     description: @Composable () -> Unit,
     icon: @Composable () -> Unit,
-    link: NavKey? = null,
+    link: Screen? = null,
     onClick: () -> Unit = {}
 ) {
     Surface(
         onClick = {
-            if (link != null) navController.push(link)
+            if (link != null) navController.navigate(link)
             onClick()
         }
     ) {

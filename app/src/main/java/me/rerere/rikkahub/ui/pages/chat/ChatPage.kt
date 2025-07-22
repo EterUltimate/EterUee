@@ -52,7 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation.NavHostController
 import com.composables.icons.lucide.Download
 import com.composables.icons.lucide.History
 import com.composables.icons.lucide.ListTree
@@ -84,7 +84,6 @@ import me.rerere.rikkahub.ui.components.chat.rememberChatInputState
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalToaster
-import me.rerere.rikkahub.ui.context.push
 import me.rerere.rikkahub.ui.hooks.EditStateContent
 import me.rerere.rikkahub.ui.hooks.useEditState
 import me.rerere.rikkahub.ui.hooks.useThrottle
@@ -208,7 +207,7 @@ private fun ChatPageContent(
     bigScreen: Boolean,
     conversation: Conversation,
     drawerState: DrawerState,
-    navController: NavBackStack,
+    navController: NavHostController,
     vm: ChatVM,
     enableWebSearch: Boolean,
     currentChatModel: Model?,
@@ -230,7 +229,7 @@ private fun ChatPageContent(
                     navigateToChatPage(navController)
                 },
                 onClickMenu = {
-                    navController.push(Screen.Menu)
+                    navController.navigate(Screen.Menu)
                 },
                 onUpdateTitle = {
                     vm.updateTitle(it)
@@ -465,7 +464,7 @@ private fun TopBar(
 
 @Composable
 private fun DrawerContent(
-    navController: NavBackStack,
+    navController: NavHostController,
     vm: ChatVM,
     settings: Settings,
     current: Conversation,
@@ -572,7 +571,7 @@ private fun DrawerContent(
                 modifier = Modifier.fillMaxWidth(),
                 onClickSetting = {
                     val currentAssistantId = settings.assistantId
-                    navController.push(Screen.AssistantDetail(id = currentAssistantId.toString()))
+                    navController.navigate(Screen.AssistantDetail(id = currentAssistantId.toString()))
                 }
             )
             Row(
@@ -580,7 +579,7 @@ private fun DrawerContent(
             ) {
                 TextButton(
                     onClick = {
-                        navController.push(Screen.History)
+                        navController.navigate(Screen.History)
                     },
                     modifier = Modifier.weight(1f)
                 ) {
@@ -592,7 +591,7 @@ private fun DrawerContent(
                 }
                 TextButton(
                     onClick = {
-                        navController.push(Screen.Setting)
+                        navController.navigate(Screen.Setting)
                     },
                     modifier = Modifier.weight(1f)
                 ) {

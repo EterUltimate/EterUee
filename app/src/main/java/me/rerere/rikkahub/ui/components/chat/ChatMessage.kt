@@ -146,7 +146,6 @@ import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSettings
 import me.rerere.rikkahub.ui.context.LocalTTSState
-import me.rerere.rikkahub.ui.context.push
 import me.rerere.rikkahub.ui.modifier.shimmer
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.JsonInstant
@@ -1257,7 +1256,7 @@ private fun ToolCallPreviewDialog(
                                             ?: return@items
                                     Card(
                                         onClick = {
-                                            navController.push(Screen.WebView(url = url))
+                                            navController.navigate(Screen.WebView(url = url))
                                         },
                                         colors = CardDefaults.cardColors(
                                             containerColor = MaterialTheme.colorScheme.tertiaryContainer,

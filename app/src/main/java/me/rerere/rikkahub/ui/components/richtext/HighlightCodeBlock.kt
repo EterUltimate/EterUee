@@ -41,7 +41,6 @@ import me.rerere.highlight.buildHighlightText
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.Screen
 import me.rerere.rikkahub.ui.context.LocalNavController
-import me.rerere.rikkahub.ui.context.push
 import me.rerere.rikkahub.ui.theme.AtomOneDarkPalette
 import me.rerere.rikkahub.ui.theme.AtomOneLightPalette
 import me.rerere.rikkahub.ui.theme.JetbrainsMono
@@ -111,7 +110,7 @@ fun HighlightCodeBlock(
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         modifier = Modifier
                             .clickable {
-                                navController.push(Screen.WebView(content = code.base64Encode()))
+                                navController.navigate(Screen.WebView(content = code.base64Encode()))
                             }
                     )
                 }

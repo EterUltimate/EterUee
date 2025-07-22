@@ -83,7 +83,6 @@ import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
 import me.rerere.rikkahub.ui.components.ui.icons.HeartIcon
 import me.rerere.rikkahub.ui.context.LocalNavController
-import me.rerere.rikkahub.ui.context.push
 import me.rerere.rikkahub.ui.theme.extendColors
 import org.koin.compose.koinInject
 import sh.calvin.reorderable.ReorderableItem
@@ -530,7 +529,7 @@ private fun ModelItem(
             onLongClick = if (dragHandle == null) {
                 {
                     onDismiss()
-                    navController.push(
+                    navController.navigate(
                         Screen.SettingProviderDetail(
                             providerSetting.id.toString()
                         )

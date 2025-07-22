@@ -68,7 +68,6 @@ import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TagType
 import me.rerere.rikkahub.ui.context.LocalNavController
-import me.rerere.rikkahub.ui.context.push
 import me.rerere.rikkahub.ui.hooks.EditState
 import me.rerere.rikkahub.ui.hooks.EditStateContent
 import me.rerere.rikkahub.ui.hooks.useEditState
@@ -191,7 +190,7 @@ fun AssistantPage(vm: AssistantVM = koinViewModel()) {
                         settings = settings,
                         memories = memories,
                         onEdit = {
-                            navController.push(Screen.AssistantDetail(id = assistant.id.toString()))
+                            navController.navigate(Screen.AssistantDetail(id = assistant.id.toString()))
                         },
                         onDelete = {
                             vm.removeAssistant(assistant)

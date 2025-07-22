@@ -45,7 +45,6 @@ import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.icons.DiscordIcon
 import me.rerere.rikkahub.ui.components.ui.icons.TencentQQIcon
 import me.rerere.rikkahub.ui.context.LocalNavController
-import me.rerere.rikkahub.ui.context.push
 import me.rerere.rikkahub.utils.joinQQGroup
 import me.rerere.rikkahub.utils.openUrl
 import me.rerere.rikkahub.utils.plus
@@ -145,7 +144,7 @@ fun SettingAboutPage() {
                     modifier = Modifier.combinedClickable(
                         onClick = {},
                         onLongClick = {
-                            navController.push(Screen.Debug)
+                            navController.navigate(Screen.Debug)
                         },
                         interactionSource = remember { MutableInteractionSource() },
                         indication = LocalIndication.current,

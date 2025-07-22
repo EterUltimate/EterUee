@@ -8,8 +8,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ContentTransform
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -21,7 +19,6 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -29,15 +26,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
-import androidx.navigation3.runtime.NavBackStack
-import androidx.navigation3.runtime.NavKey
-import androidx.navigation3.runtime.entry
-import androidx.navigation3.runtime.entryProvider
-import androidx.navigation3.runtime.rememberNavBackStack
-import androidx.navigation3.runtime.rememberSavedStateNavEntryDecorator
-import androidx.navigation3.ui.NavDisplay
-import androidx.navigation3.ui.rememberSceneSetupNavEntryDecorator
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
@@ -58,7 +51,6 @@ import me.rerere.rikkahub.ui.context.LocalSettings
 import me.rerere.rikkahub.ui.context.LocalSharedTransitionScope
 import me.rerere.rikkahub.ui.context.LocalTTSState
 import me.rerere.rikkahub.ui.context.LocalToaster
-import me.rerere.rikkahub.ui.context.popBack
 import me.rerere.rikkahub.ui.hooks.readBooleanPreference
 import me.rerere.rikkahub.ui.hooks.readStringPreference
 import me.rerere.rikkahub.ui.hooks.rememberCustomTtsState
@@ -100,19 +92,7 @@ class RouteActivity : ComponentActivity() {
         disableNavigationBarContrast()
         super.onCreate(savedInstanceState)
         setContent {
-            val settings by settingsStore.settingsFlow.collectAsStateWithLifecycle()
-            val navStack = rememberNavBackStack(
-                Screen.Chat(
-                    id = if (readBooleanPreference("create_new_conversation_on_start", true)) {
-                        Uuid.random().toString()
-                    } else {
-                        readStringPreference(
-                            "lastConversationId",
-                            Uuid.random().toString()
-                        ) ?: Uuid.random().toString()
-                    }
-                )
-            )
+            val navStack = rememberNavController()
             ShareHandler(navStack)
             RikkahubTheme {
                 setSingletonImageLoaderFactory { context ->
@@ -137,7 +117,7 @@ class RouteActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun ShareHandler(navBackStack: NavBackStack) {
+    private fun ShareHandler(navBackStack: NavHostController) {
         val shareIntent = remember {
             Intent().apply {
                 action = intent?.action
@@ -149,32 +129,14 @@ class RouteActivity : ComponentActivity() {
             if (shareIntent.action == Intent.ACTION_SEND) {
                 val text = shareIntent.getStringExtra(Intent.EXTRA_TEXT)
                 if (text != null) {
-                    navBackStack.add(Screen.ShareHandler(text))
+                    navBackStack.navigate(Screen.ShareHandler(text))
                 }
             }
         }
     }
 
-    private val enterTransition: AnimatedContentTransitionScope<*>.() -> ContentTransform = {
-        // Slide in from right when navigating forward
-        slideInHorizontally(initialOffsetX = { it }) togetherWith
-            slideOutHorizontally(targetOffsetX = { -it })
-    }
-    private val popTransition: AnimatedContentTransitionScope<*>.() -> ContentTransform = {
-        // Slide in from left when navigating back
-        slideInHorizontally(initialOffsetX = { -it / 3 }) + fadeIn() + scaleIn(initialScale = 1.1f) togetherWith
-            slideOutHorizontally(targetOffsetX = { it }) + scaleOut(targetScale = 0.75f) + fadeOut()
-    }
-    private val noneTransition: AnimatedContentTransitionScope<*>.() -> ContentTransform = {
-        ContentTransform(
-            targetContentEnter = EnterTransition.None,
-            initialContentExit = ExitTransition.None
-        )
-    }
-
-    @OptIn(ExperimentalMaterial3AdaptiveApi::class)
     @Composable
-    fun AppRoutes(navBackStack: NavBackStack) {
+    fun AppRoutes(navBackStack: NavHostController) {
         val toastState = rememberToasterState()
         val settings by settingsStore.settingsFlow.collectAsStateWithLifecycle()
         val tts = rememberCustomTtsState()
@@ -193,106 +155,114 @@ class RouteActivity : ComponentActivity() {
                     darkTheme = LocalDarkMode.current,
                     richColors = true,
                 )
-                NavDisplay(
+                NavHost(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.background),
-                    backStack = navBackStack,
-                    onBack = { navBackStack.popBack() },
-                    entryDecorators = listOf(
-                        // Add the default decorators for managing scenes and saving state
-                        rememberSceneSetupNavEntryDecorator(),
-                        rememberSavedStateNavEntryDecorator(),
-                        // Then add the view model store decorator
-                        rememberViewModelStoreNavEntryDecorator()
+                    startDestination = Screen.Chat(
+                        id = if (readBooleanPreference("create_new_conversation_on_start", true)) {
+                            Uuid.random().toString()
+                        } else {
+                            readStringPreference(
+                                "lastConversationId",
+                                Uuid.random().toString()
+                            ) ?: Uuid.random().toString()
+                        }
                     ),
-                    transitionSpec = enterTransition,
-                    popTransitionSpec = popTransition,
-                    predictivePopTransitionSpec = popTransition,
-                    entryProvider = entryProvider {
-                        entry<Screen.Chat>(
-                            metadata = NavDisplay.transitionSpec(noneTransition)
-                        ) {
-                            ChatPage(
-                                id = Uuid.parse(it.id),
-                                text = it.text,
-                            )
-                        }
-
-                        entry<Screen.ShareHandler> {
-                            ShareHandlerPage(it.text)
-                        }
-
-                        entry<Screen.History> {
-                            HistoryPage()
-                        }
-
-                        entry<Screen.Assistant> {
-                            AssistantPage()
-                        }
-
-                        entry<Screen.AssistantDetail> {
-                            AssistantDetailPage(it.id)
-                        }
-
-                        entry<Screen.Menu> {
-                            MenuPage()
-                        }
-
-                        entry<Screen.Translator> {
-                            TranslatorPage()
-                        }
-
-                        entry<Screen.Setting> {
-                            SettingPage()
-                        }
-
-                        entry<Screen.Backup> {
-                            BackupPage()
-                        }
-
-                        entry<Screen.WebView> {
-                            WebViewPage(it.url, it.content)
-                        }
-
-                        entry<Screen.SettingDisplay> {
-                            SettingDisplayPage()
-                        }
-
-                        entry<Screen.SettingProvider> {
-                            SettingProviderPage()
-                        }
-
-                        entry<Screen.SettingProviderDetail> {
-                            val id = Uuid.parse(it.providerId)
-                            SettingProviderDetailPage(id = id)
-                        }
-
-                        entry<Screen.SettingModels> {
-                            SettingModelPage()
-                        }
-
-                        entry<Screen.SettingAbout> {
-                            SettingAboutPage()
-                        }
-
-                        entry<Screen.SettingSearch> {
-                            SettingSearchPage()
-                        }
-
-                        entry<Screen.SettingTTS> {
-                            SettingTTSPage()
-                        }
-
-                        entry<Screen.SettingMcp> {
-                            SettingMcpPage()
-                        }
-
-                        entry<Screen.Debug> {
-                            DebugPage()
-                        }
+                    navController = navBackStack,
+                    enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
+                    exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) },
+                    popEnterTransition = {
+                        slideInHorizontally(initialOffsetX = { -it / 3 }) + fadeIn() + scaleIn(initialScale = 1.1f)
                     },
-                )
+                    popExitTransition = {
+                        slideOutHorizontally(targetOffsetX = { it }) + scaleOut(targetScale = 0.75f) + fadeOut()
+                    }
+                ) {
+                    composable<Screen.Chat> { backStackEntry ->
+                        val route = backStackEntry.toRoute<Screen.Chat>()
+                        ChatPage(
+                            id = Uuid.parse(route.id),
+                            text = route.text,
+                        )
+                    }
+
+                    composable<Screen.ShareHandler> { backStackEntry ->
+                        val route = backStackEntry.toRoute<Screen.ShareHandler>()
+                        ShareHandlerPage(route.text)
+                    }
+
+                    composable<Screen.History> {
+                        HistoryPage()
+                    }
+
+                    composable<Screen.Assistant> {
+                        AssistantPage()
+                    }
+
+                    composable<Screen.AssistantDetail> {
+                        AssistantDetailPage(it.id)
+                    }
+
+                    composable<Screen.Menu> {
+                        MenuPage()
+                    }
+
+                    composable<Screen.Translator> {
+                        TranslatorPage()
+                    }
+
+                    composable<Screen.Setting> {
+                        SettingPage()
+                    }
+
+                    composable<Screen.Backup> {
+                        BackupPage()
+                    }
+
+                    composable<Screen.WebView> { backStackEntry ->
+                        val route = backStackEntry.toRoute<Screen.WebView>()
+                        WebViewPage(route.url, route.content)
+                    }
+
+                    composable<Screen.SettingDisplay> {
+                        SettingDisplayPage()
+                    }
+
+                    composable<Screen.SettingProvider> {
+                        SettingProviderPage()
+                    }
+
+                    composable<Screen.SettingProviderDetail> {
+                        val route = it.toRoute<Screen.SettingProviderDetail>()
+                        val id = Uuid.parse(route.providerId)
+                        SettingProviderDetailPage(id = id)
+                    }
+
+                    composable<Screen.SettingModels> {
+                        SettingModelPage()
+                    }
+
+                    composable<Screen.SettingAbout> {
+                        SettingAboutPage()
+                    }
+
+                    composable<Screen.SettingSearch> {
+                        SettingSearchPage()
+                    }
+
+                    composable<Screen.SettingTTS> {
+                        SettingTTSPage()
+                    }
+
+                    composable<Screen.SettingMcp> {
+                        SettingMcpPage()
+                    }
+
+                    composable<Screen.Debug> {
+                        DebugPage()
+                    }
+                }
             }
         }
     }
@@ -300,62 +270,62 @@ class RouteActivity : ComponentActivity() {
 
 sealed interface Screen {
     @Serializable
-    data class Chat(val id: String, val text: String? = null) : NavKey
+    data class Chat(val id: String, val text: String? = null) : Screen
 
     @Serializable
-    data class ShareHandler(val text: String) : NavKey
+    data class ShareHandler(val text: String) : Screen
 
     @Serializable
-    data object History : NavKey
+    data object History : Screen
 
     @Serializable
-    data object Assistant : NavKey
+    data object Assistant : Screen
 
     @Serializable
-    data class AssistantDetail(val id: String) : NavKey
+    data class AssistantDetail(val id: String) : Screen
 
     @Serializable
-    data object Menu : NavKey
+    data object Menu : Screen
 
     @Serializable
-    data object Translator : NavKey
+    data object Translator : Screen
 
     @Serializable
-    data object Setting : NavKey
+    data object Setting : Screen
 
     @Serializable
-    data object Backup : NavKey
+    data object Backup : Screen
 
     @Serializable
-    data class WebView(val url: String = "", val content: String = "") : NavKey
+    data class WebView(val url: String = "", val content: String = "") : Screen
 
     @Serializable
-    data object SettingDisplay : NavKey
+    data object SettingDisplay : Screen
 
     @Serializable
-    data object SettingProvider : NavKey
+    data object SettingProvider : Screen
 
     @Serializable
-    data class SettingProviderDetail(val providerId: String) : NavKey
+    data class SettingProviderDetail(val providerId: String) : Screen
 
     @Serializable
-    data object SettingModels : NavKey
+    data object SettingModels : Screen
 
     @Serializable
-    data object SettingAbout : NavKey
+    data object SettingAbout : Screen
 
     @Serializable
-    data object SettingSearch : NavKey
+    data object SettingSearch : Screen
 
     @Serializable
-    data object SettingTTS : NavKey
+    data object SettingTTS : Screen
 
     @Serializable
-    data class SettingTTSProviderDetail(val providerId: String) : NavKey
+    data class SettingTTSProviderDetail(val providerId: String) : Screen
 
     @Serializable
-    data object SettingMcp : NavKey
+    data object SettingMcp : Screen
 
     @Serializable
-    data object Debug : NavKey
+    data object Debug : Screen
 }

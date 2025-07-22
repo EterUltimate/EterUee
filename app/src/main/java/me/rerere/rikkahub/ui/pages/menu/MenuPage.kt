@@ -36,7 +36,6 @@ import me.rerere.rikkahub.ui.components.chat.Greeting
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.Favicon
 import me.rerere.rikkahub.ui.context.LocalNavController
-import me.rerere.rikkahub.ui.context.push
 import me.rerere.rikkahub.utils.plus
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
@@ -123,7 +122,7 @@ private fun FeaturesSection() {
                         )
                     },
                 ) {
-                    navController.push(Screen.Translator)
+                    navController.navigate(Screen.Translator)
                 }
             }
 
@@ -159,7 +158,7 @@ private fun LeaderBoard() {
     ) {
         Card(
             onClick = {
-                navController.push(Screen.WebView(url = url))
+                navController.navigate(Screen.WebView(url = url))
             },
             modifier = Modifier.widthIn(min = 150.dp)
         ) {

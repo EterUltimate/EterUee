@@ -37,8 +37,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.time.Duration
@@ -231,14 +229,8 @@ class StreamableHttpClientTransport(
 
         Log.d(TAG, "startSseSession: Client attempting to start SSE session at url: $url")
         try {
-            val urlWithoutQuery = HttpUrl.Builder()
-                .host(url.toHttpUrl().host)
-                .encodedPath(url.toHttpUrl().encodedPath)
-                .scheme(url.toHttpUrl().scheme)
-                .build()
-            println(urlWithoutQuery)
             sseSession = client.sseSession(
-                urlString = urlWithoutQuery.toString(),
+                urlString = url,
                 reconnectionTime = reconnectionTime,
             ) {
                 method = HttpMethod.Get

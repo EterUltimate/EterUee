@@ -52,7 +52,7 @@ val dataSourceModule = module {
         get<AppDatabase>().memoryDao()
     }
 
-    single { McpManager(settingsStore = get(), appScope = get(), okHttpClient = get()) }
+    single { McpManager(settingsStore = get(), appScope = get()) }
 
     single {
         GenerationHandler(

@@ -372,7 +372,7 @@ fun MarkdownNode(
         }
 
         MarkdownElementTypes.STRONG -> {
-            ProvideTextStyle(TextStyle(fontWeight = FontWeight.Bold)) {
+            ProvideTextStyle(TextStyle(fontWeight = FontWeight.ExtraBold)) {
                 node.children.fastForEach { child ->
                     MarkdownNode(
                         node = child,
@@ -790,7 +790,7 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
         }
 
         node.type == MarkdownElementTypes.STRONG -> {
-            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+            withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
                 node.children
                     .trim(MarkdownTokenTypes.EMPH, 2)
                     .fastForEach {

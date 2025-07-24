@@ -1195,7 +1195,7 @@ private fun ToolCallPreviewDialog(
 
     // Check if this is a memory creation/update operation
     val isMemoryOperation = toolName in listOf("create_memory", "edit_memory")
-    val memoryId = content.jsonObject["id"]?.jsonPrimitiveOrNull?.intOrNull
+    val memoryId = (content as? JsonObject)?.get("id")?.jsonPrimitiveOrNull?.intOrNull
 
     ModalBottomSheet(
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),

@@ -203,7 +203,8 @@ fun McpPicker(
                                 is McpStatus.Error -> "Error: ${(status as McpStatus.Error).message}"
                             },
                             style = MaterialTheme.typography.labelSmall,
-                            color = LocalContentColor.current.copy(alpha = 0.8f)
+                            color = LocalContentColor.current.copy(alpha = 0.8f),
+                            maxLines = 5
                         )
                         if (status == McpStatus.Connected) {
                             val tools = server.commonOptions.tools

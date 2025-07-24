@@ -141,12 +141,8 @@ class McpManager(
         is McpServerConfig.StreamableHTTPServer -> {
             StreamableHttpClientTransport(
                 url = config.url,
-                client = httpClient,
-                requestBuilder = {
-                    config.commonOptions.headers.forEach { (k, v) ->
-                        header(k, v)
-                    }
-                }
+                client = okHttpClient,
+                // headers = config.commonOptions.headers,
             )
         }
     }

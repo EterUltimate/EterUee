@@ -247,9 +247,6 @@ dependencies {
 
     // mcp
     implementation(libs.modelcontextprotocol.kotlin.sdk)
-    implementation("io.ktor:ktor-client-okhttp:3.2.2")
-    implementation("io.ktor:ktor-client-content-negotiation:3.2.2")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:3.2.2")
 
     // modules
     implementation(project(":ai"))

@@ -46,13 +46,6 @@ class McpManager(
         .followRedirects(true)
         .build()
 
-    private val httpClient = HttpClient(CIO) {
-        install(SSE)
-        install(ContentNegotiation) {
-            json(McpJson)
-        }
-    }
-
     private val clients: MutableMap<McpServerConfig, Client> = mutableMapOf()
     val syncingStatus = MutableStateFlow<Map<Uuid, McpStatus>>(mapOf())
 

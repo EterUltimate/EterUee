@@ -488,6 +488,42 @@ private fun SearXNGOptions(
             modifier = Modifier.fillMaxWidth()
         )
     }
+
+    FormItem(
+        label = {
+            Text("Username")
+        }
+    ) {
+        OutlinedTextField(
+            value = options.username,
+            onValueChange = {
+                onUpdateOptions(
+                    options.copy(
+                        username = it
+                    )
+                )
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+
+    FormItem(
+        label = {
+            Text("Password")
+        }
+    ) {
+        OutlinedTextField(
+            value = options.password,
+            onValueChange = {
+                onUpdateOptions(
+                    options.copy(
+                        password = it
+                    )
+                )
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
 }
 
 @Composable

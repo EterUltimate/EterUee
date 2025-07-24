@@ -122,6 +122,8 @@ sealed class SearchServiceOptions {
         val url: String = "",
         val engines: String = "",
         val language: String = "",
+        val username: String = "",
+        val password: String = "",
     ) : SearchServiceOptions()
 
     @Serializable

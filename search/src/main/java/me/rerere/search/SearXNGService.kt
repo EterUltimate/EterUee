@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
 import me.rerere.search.SearchResult.SearchResultItem
 import me.rerere.search.SearchService.Companion.httpClient
 import me.rerere.search.SearchService.Companion.json
+import okhttp3.Credentials
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
 import java.net.URLEncoder
@@ -56,6 +57,12 @@ object SearXNGService : SearchService<SearchServiceOptions.SearXNGOptions> {
             val request = Request.Builder()
                 .url(url)
                 .get()
+                .apply {
+                    // 添加HTTP Basic Auth支持
+                    if (serviceOptions.username.isNotBlank() && serviceOptions.password.isNotBlank()) {
+                        header("Authorization", Credentials.basic(serviceOptions.username, serviceOptions.password))
+                    }
+                }
                 .build()
 
             Log.i(TAG, "search: $url")

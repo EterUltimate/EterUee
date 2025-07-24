@@ -372,7 +372,7 @@ fun MarkdownNode(
         }
 
         MarkdownElementTypes.STRONG -> {
-            ProvideTextStyle(TextStyle(fontWeight = FontWeight.ExtraBold)) {
+            ProvideTextStyle(TextStyle(fontWeight = FontWeight.SemiBold)) {
                 node.children.fastForEach { child ->
                     MarkdownNode(
                         node = child,

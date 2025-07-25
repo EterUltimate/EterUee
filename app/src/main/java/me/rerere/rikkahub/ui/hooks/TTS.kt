@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -136,9 +137,9 @@ private class CustomTtsStateImpl(
     private var nextChunkToSynthesize = 0
 
     // Chunking configuration
-    private val maxChunkLength = 200 // Maximum characters per chunk (only as reference)
+    private val maxChunkLength = 50 // Maximum characters per chunk (only as reference)
     private val chunkDelayMs = 0L // Delay between chunks
-    private val preSynthesisCount = 2 // Number of chunks to pre-synthesize ahead
+    private val preSynthesisCount = 3 // Number of chunks to pre-synthesize ahead
 
     private val _isAvailable = MutableStateFlow(false)
     override val isAvailable: StateFlow<Boolean> = _isAvailable.asStateFlow()
@@ -350,6 +351,7 @@ private class CustomTtsStateImpl(
                         nextChunkToSynthesize = i + 1
                         Log.d("CustomTtsState", "Pre-synthesis completed for chunk $i")
                     } catch (e: Exception) {
+                        if (e is CancellationException) throw e
                         Log.e("CustomTtsState", "Pre-synthesis error for chunk $i", e)
                         val errorMsg = "TTS synthesis error: ${e.message}"
                         _error.update { errorMsg }
@@ -358,6 +360,7 @@ private class CustomTtsStateImpl(
                     }
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 Log.e("CustomTtsState", "Synthesizer error", e)
                 val errorMsg = "TTS synthesis error: ${e.message}"
                 _error.update { errorMsg }
@@ -389,6 +392,7 @@ private class CustomTtsStateImpl(
                             nextChunkToSynthesize = i + 1
                             Log.d("CustomTtsState", "Pre-synthesis completed for chunk $i")
                         } catch (e: Exception) {
+                            if (e is CancellationException) throw e
                             Log.e("CustomTtsState", "Pre-synthesis error for chunk $i", e)
                             val errorMsg = "TTS synthesis error: ${e.message}"
                             _error.update { errorMsg }
@@ -397,6 +401,7 @@ private class CustomTtsStateImpl(
                         }
                     }
                 } catch (e: Exception) {
+                    if (e is CancellationException) throw e
                     Log.e("CustomTtsState", "Trigger synthesis error", e)
                     val errorMsg = "TTS synthesis error: ${e.message}"
                     _error.update { errorMsg }
@@ -417,10 +422,12 @@ private class CustomTtsStateImpl(
             try {
                 processQueue()
             } catch (e: Exception) {
-                Log.e("CustomTtsState", "Queue processing error", e)
-                val errorMsg = "Queue processing error: ${e.message}"
-                _error.update { errorMsg }
-                showToast(errorMsg)
+                if (e !is CancellationException) {
+                    Log.e("CustomTtsState", "Queue processing error", e)
+                    val errorMsg = "Queue processing error: ${e.message}"
+                    _error.update { errorMsg }
+                    showToast(errorMsg)
+                }
             } finally {
                 isProcessingQueue = false
                 _isSpeaking.update { false }
@@ -454,6 +461,7 @@ private class CustomTtsStateImpl(
                     }
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 Log.e("CustomTtsState", "TTS synthesis error for chunk ${chunkIndex + 1}", e)
                 val errorMsg = "TTS synthesis error for chunk ${chunkIndex + 1}: ${e.message}"
                 _error.update { errorMsg }
@@ -480,6 +488,7 @@ private class CustomTtsStateImpl(
                 }
                 Log.d("CustomTtsState", "Playback completed for chunk ${chunkIndex + 1}")
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 Log.e("CustomTtsState", "Audio playback error for chunk ${chunkIndex + 1}", e)
                 val errorMsg = "Audio playback error: ${e.message}"
                 _error.update { errorMsg }

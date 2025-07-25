@@ -85,6 +85,7 @@ import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.ui.hooks.EditStateContent
+import me.rerere.rikkahub.ui.hooks.rememberIsPlayStoreVersion
 import me.rerere.rikkahub.ui.hooks.useEditState
 import me.rerere.rikkahub.ui.hooks.useThrottle
 import me.rerere.rikkahub.utils.UpdateDownload
@@ -533,7 +534,8 @@ private fun DrawerContent(
                 }
             }
 
-            if (settings.displaySetting.showUpdates) {
+            val isPlayStore = rememberIsPlayStoreVersion()
+            if (settings.displaySetting.showUpdates && !isPlayStore) {
                 UpdateCard(vm)
             }
             ConversationList(

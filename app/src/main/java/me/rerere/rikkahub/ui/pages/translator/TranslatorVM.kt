@@ -9,6 +9,10 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import me.rerere.ai.provider.CustomBody
+import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ProviderManager
 import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.ui.UIMessage
@@ -17,7 +21,6 @@ import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.findProvider
-import me.rerere.rikkahub.data.datastore.getCurrentAssistant
 import me.rerere.rikkahub.utils.applyPlaceholders
 import java.util.Locale
 
@@ -71,7 +74,6 @@ class TranslatorVM(
 
         val model = settings.value.providers.findModelById(settings.value.translateModeId) ?: return
         val provider = model.findProvider(settings.value.providers) ?: return
-        val assistant = settings.value.getCurrentAssistant()
 
         // 取消当前任务
         currentJob?.cancel()
@@ -83,25 +85,49 @@ class TranslatorVM(
         currentJob = viewModelScope.launch {
             runCatching {
                 val providerHandler = ProviderManager.getProviderByType(provider)
-                val prompt = settings.value.translatePrompt.applyPlaceholders(
-                    "source_text" to inputText,
-                    "target_lang" to targetLanguage.value.toString(),
-                )
 
-                var messages = listOf(
-                    UIMessage.user(prompt)
-                )
+                if (!model.isQwenMT()) {
+                    val prompt = settings.value.translatePrompt.applyPlaceholders(
+                        "source_text" to inputText,
+                        "target_lang" to targetLanguage.value.toString(),
+                    )
 
-                providerHandler.streamText(
-                    providerSetting = provider,
-                    messages = listOf(UIMessage.user(prompt)),
-                    params = TextGenerationParams(
-                        model = model,
-                        temperature = assistant.temperature,
-                    ),
-                ).collect { chunk ->
-                    messages = messages.handleMessageChunk(chunk)
-                    _translatedText.value = messages.lastOrNull()?.toText() ?: ""
+                    var messages = listOf(
+                        UIMessage.user(prompt)
+                    )
+
+                    providerHandler.streamText(
+                        providerSetting = provider,
+                        messages = listOf(UIMessage.user(prompt)),
+                        params = TextGenerationParams(
+                            model = model,
+                            temperature = 0.3f,
+                        ),
+                    ).collect { chunk ->
+                        messages = messages.handleMessageChunk(chunk)
+                        _translatedText.value = messages.lastOrNull()?.toText() ?: ""
+                    }
+                } else {
+                    val messages = listOf(UIMessage.user(inputText))
+                    val chunk = providerHandler.generateText(
+                        providerSetting = provider,
+                        messages = messages,
+                        params = TextGenerationParams(
+                            model = model,
+                            temperature = 0.3f,
+                            topP = 0.95f,
+                            customBody = listOf(
+                                CustomBody(
+                                    "translation_options",
+                                    buildJsonObject {
+                                        put("source_lang", "auto")
+                                        put("target_lang", targetLanguage.value.getDisplayLanguage(Locale.ENGLISH))
+                                    }
+                                )
+                            )
+                        ),
+                    )
+                    _translatedText.value = chunk.choices.firstOrNull()?.message?.toText() ?: ""
                 }
             }.onFailure {
                 it.printStackTrace()
@@ -117,3 +143,5 @@ class TranslatorVM(
         _translating.value = false
     }
 }
+
+private fun Model.isQwenMT() = this.modelId.contains("qwen-mt", true)

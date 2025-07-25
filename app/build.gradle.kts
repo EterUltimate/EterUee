@@ -31,15 +31,6 @@ android {
                 abiFilters += listOf("arm64-v8a", "x86_64")
             }
         }
-
-        splits {
-            abi {
-                reset()
-                include("arm64-v8a", "x86_64")
-                isEnable = true
-                isUniversalApk = true
-            }
-        }
     }
 
     signingConfigs {

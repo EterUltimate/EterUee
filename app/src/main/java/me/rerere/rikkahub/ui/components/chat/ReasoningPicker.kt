@@ -58,7 +58,7 @@ fun ReasoningButton(
     }
 
     ToggleSurface(
-        checked = reasoningTokens > 0,
+        checked = ReasoningLevel.fromBudgetTokens(reasoningTokens).isEnabled,
         onClick = {
             showPicker = true
         }

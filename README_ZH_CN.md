@@ -19,7 +19,7 @@
 
 ## 🚀 下载
 
-🔗 [点击前往官网下载](https://rikka-ai.com/)
+🔗 [前往 Google Play 下载](https://play.google.com/store/apps/details?id=me.rerere.rikkahub)
 
 ## ✨ 功能特色
 

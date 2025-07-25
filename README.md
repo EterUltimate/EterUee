@@ -19,7 +19,7 @@ Click to join our Discord server 👉 [【RikkaHub】](https://discord.gg/9weBqx
 
 ## 🚀 Download
 
-🔗 [Visit the official website to download](https://rikka-ai.com/)
+🔗 [Download from Google Play](https://play.google.com/store/apps/details?id=me.rerere.rikkahub)
 
 ## ✨ Features
 
@@ -69,6 +69,10 @@ Technology stack documentation:
 ## 💰 Donate
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/X8X71DVU91)
+
+<div>
+  <img src="docs/donate.png" alt="捐赠" width="200" />
+</div>
 
 ## ⭐ Star History
 

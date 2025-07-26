@@ -113,6 +113,11 @@ android {
     }
 }
 
+tasks.register("buildAll") {
+    dependsOn("assembleRelease", "bundleRelease")
+    description = "Build both APK and AAB"
+}
+
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }

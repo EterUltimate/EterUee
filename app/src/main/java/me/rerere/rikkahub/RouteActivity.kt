@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -119,15 +120,15 @@ class RouteActivity : ComponentActivity() {
             Intent().apply {
                 action = intent?.action
                 putExtra(Intent.EXTRA_TEXT, intent?.getStringExtra(Intent.EXTRA_TEXT))
+                putExtra(Intent.EXTRA_STREAM, intent?.getStringExtra(Intent.EXTRA_STREAM))
             }
         }
 
         LaunchedEffect(navBackStack) {
             if (shareIntent.action == Intent.ACTION_SEND) {
-                val text = shareIntent.getStringExtra(Intent.EXTRA_TEXT)
-                if (text != null) {
-                    navBackStack.navigate(Screen.ShareHandler(text))
-                }
+                val text = shareIntent.getStringExtra(Intent.EXTRA_TEXT) ?: ""
+                val imageUri = shareIntent.getStringExtra(Intent.EXTRA_STREAM)
+                navBackStack.navigate(Screen.ShareHandler(text, imageUri))
             }
         }
     }
@@ -184,12 +185,16 @@ class RouteActivity : ComponentActivity() {
                         ChatPage(
                             id = Uuid.parse(route.id),
                             text = route.text,
+                            files = route.files.map { it.toUri() }
                         )
                     }
 
                     composable<Screen.ShareHandler> { backStackEntry ->
                         val route = backStackEntry.toRoute<Screen.ShareHandler>()
-                        ShareHandlerPage(route.text)
+                        ShareHandlerPage(
+                            text = route.text,
+                            image = route.streamUri
+                        )
                     }
 
                     composable<Screen.History> {
@@ -271,10 +276,10 @@ class RouteActivity : ComponentActivity() {
 
 sealed interface Screen {
     @Serializable
-    data class Chat(val id: String, val text: String? = null) : Screen
+    data class Chat(val id: String, val text: String? = null, val files: List<String> = emptyList()) : Screen
 
     @Serializable
-    data class ShareHandler(val text: String) : Screen
+    data class ShareHandler(val text: String, val streamUri: String? = null) : Screen
 
     @Serializable
     data object History : Screen
@@ -320,9 +325,6 @@ sealed interface Screen {
 
     @Serializable
     data object SettingTTS : Screen
-
-    @Serializable
-    data class SettingTTSProviderDetail(val providerId: String) : Screen
 
     @Serializable
     data object SettingMcp : Screen

@@ -485,6 +485,17 @@
   <string name="tag_input_dialog_create_new">新しいタグを作成</string>
   <string name="tag_input_dialog_tag_exists">同じ名前のタグが既に存在します</string>
   <string name="assistant_page_tags">タグ</string>
+  <string name="assistant_page_chat_background">チャット背景</string>
+  <string name="assistant_page_chat_background_desc">アシスタントチャットページの背景画像を設定</string>
+  <string name="assistant_page_select_background">背景画像を選択</string>
+  <string name="assistant_page_change_background">背景画像を変更</string>
+  <string name="assistant_page_background_set">背景画像が設定されました</string>
+  <string name="assistant_page_remove">削除</string>
+  <string name="assistant_page_select_from_gallery">ギャラリーから選択</string>
+  <string name="assistant_page_enter_image_url">画像URLを入力</string>
+  <string name="assistant_page_remove_background">背景を削除</string>
+  <string name="assistant_page_image_url">画像URL</string>
+  <string name="assistant_page_confirm">確認</string>
 
   <!-- Long Press Actions -->
   <string name="select_and_copy">選択コピー</string>

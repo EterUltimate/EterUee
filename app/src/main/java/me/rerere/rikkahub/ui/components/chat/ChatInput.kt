@@ -257,7 +257,9 @@ fun ChatInput(
         }
     }
 
-    Surface {
+    Surface(
+        color = Color.Transparent,
+    ) {
         Column(
             modifier = modifier
                 .imePadding()

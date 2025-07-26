@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -34,6 +35,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.currentWindowDpSize
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -46,13 +48,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
-import androidx.core.net.toFile
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.composables.icons.lucide.Download
@@ -237,128 +239,135 @@ private fun ChatPageContent(
         inputState.loading = loadingJob != null
     }
     val chatListState = rememberLazyListState()
-    Scaffold(
-        topBar = {
-            TopBar(
-                settings = setting,
-                conversation = conversation,
-                bigScreen = bigScreen,
-                drawerState = drawerState,
-                onNewChat = {
-                    navigateToChatPage(navController)
-                },
-                onClickMenu = {
-                    navController.navigate(Screen.Menu)
-                },
-                onUpdateTitle = {
-                    vm.updateTitle(it)
-                }
-            )
-        },
-        bottomBar = {
-            ChatInput(
-                state = inputState,
-                settings = setting,
-                conversation = conversation,
-                mcpManager = vm.mcpManager,
-                onCancelClick = {
-                    loadingJob?.cancel()
-                },
-                enableSearch = enableWebSearch,
-                onToggleSearch = {
-                    vm.updateSettings(setting.copy(enableWebSearch = !enableWebSearch))
-                },
-                onSendClick = {
-                    if (currentChatModel == null) {
-                        toaster.show("请先选择模型", type = ToastType.Error)
-                        return@ChatInput
+    Surface(
+        color = MaterialTheme.colorScheme.background,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        AssistantBackground(setting = setting)
+        Scaffold(
+            topBar = {
+                TopBar(
+                    settings = setting,
+                    conversation = conversation,
+                    bigScreen = bigScreen,
+                    drawerState = drawerState,
+                    onNewChat = {
+                        navigateToChatPage(navController)
+                    },
+                    onClickMenu = {
+                        navController.navigate(Screen.Menu)
+                    },
+                    onUpdateTitle = {
+                        vm.updateTitle(it)
                     }
-                    if (inputState.isEditing()) {
-                        vm.handleMessageEdit(
-                            parts = inputState.messageContent,
-                            messageId = inputState.editingMessage!!,
-                        )
-                    } else {
-                        vm.handleMessageSend(inputState.messageContent)
-                        scope.launch {
-                            chatListState.requestScrollToItem(conversation.currentMessages.size + 5)
+                )
+            },
+            bottomBar = {
+                ChatInput(
+                    state = inputState,
+                    settings = setting,
+                    conversation = conversation,
+                    mcpManager = vm.mcpManager,
+                    onCancelClick = {
+                        loadingJob?.cancel()
+                    },
+                    enableSearch = enableWebSearch,
+                    onToggleSearch = {
+                        vm.updateSettings(setting.copy(enableWebSearch = !enableWebSearch))
+                    },
+                    onSendClick = {
+                        if (currentChatModel == null) {
+                            toaster.show("请先选择模型", type = ToastType.Error)
+                            return@ChatInput
                         }
+                        if (inputState.isEditing()) {
+                            vm.handleMessageEdit(
+                                parts = inputState.messageContent,
+                                messageId = inputState.editingMessage!!,
+                            )
+                        } else {
+                            vm.handleMessageSend(inputState.messageContent)
+                            scope.launch {
+                                chatListState.requestScrollToItem(conversation.currentMessages.size + 5)
+                            }
+                        }
+                        inputState.clearInput()
+                    },
+                    onUpdateChatModel = {
+                        vm.setChatModel(assistant = setting.getCurrentAssistant(), model = it)
+                    },
+                    onUpdateAssistant = {
+                        vm.updateSettings(
+                            setting.copy(
+                                assistants = setting.assistants.map { assistant ->
+                                    if (assistant.id == it.id) {
+                                        it
+                                    } else {
+                                        assistant
+                                    }
+                                }
+                            )
+                        )
+                    },
+                    onUpdateSearchService = { index ->
+                        vm.updateSettings(
+                            setting.copy(
+                                searchServiceSelected = index
+                            )
+                        )
+                    },
+                    onClearContext = {
+                        vm.handleMessageTruncate()
+                    },
+                )
+            },
+            containerColor = Color.Transparent,
+        ) { innerPadding ->
+            ChatList(
+                innerPadding = innerPadding,
+                conversation = conversation,
+                state = chatListState,
+                loading = loadingJob != null,
+                settings = setting,
+                onRegenerate = {
+                    vm.regenerateAtMessage(it)
+                },
+                onEdit = {
+                    inputState.editingMessage = it.id
+                    inputState.messageContent = it.parts
+                },
+                onForkMessage = {
+                    scope.launch {
+                        val fork = vm.forkMessage(message = it)
+                        navigateToChatPage(navController, chatId = fork.id)
                     }
-                    inputState.clearInput()
                 },
-                onUpdateChatModel = {
-                    vm.setChatModel(assistant = setting.getCurrentAssistant(), model = it)
+                onDelete = {
+                    vm.deleteMessage(it)
                 },
-                onUpdateAssistant = {
-                    vm.updateSettings(
-                        setting.copy(
-                            assistants = setting.assistants.map { assistant ->
-                                if (assistant.id == it.id) {
-                                    it
+                onUpdateMessage = { newNode ->
+                    vm.updateConversation(
+                        conversation.copy(
+                            messageNodes = conversation.messageNodes.map { node ->
+                                if (node.id == newNode.id) {
+                                    newNode
                                 } else {
-                                    assistant
+                                    node
                                 }
                             }
+                        ))
+                    vm.saveConversationAsync()
+                },
+                onClickSuggestion = { suggestion ->
+                    inputState.editingMessage = null
+                    inputState.messageContent = listOf(
+                        UIMessagePart.Text(
+                            text = suggestion
                         )
                     )
-                },
-                onUpdateSearchService = { index ->
-                    vm.updateSettings(
-                        setting.copy(
-                            searchServiceSelected = index
-                        )
-                    )
-                },
-                onClearContext = {
-                    vm.handleMessageTruncate()
-                },
+                }
             )
         }
-    ) { innerPadding ->
-        ChatList(
-            innerPadding = innerPadding,
-            conversation = conversation,
-            state = chatListState,
-            loading = loadingJob != null,
-            settings = setting,
-            onRegenerate = {
-                vm.regenerateAtMessage(it)
-            },
-            onEdit = {
-                inputState.editingMessage = it.id
-                inputState.messageContent = it.parts
-            },
-            onForkMessage = {
-                scope.launch {
-                    val fork = vm.forkMessage(message = it)
-                    navigateToChatPage(navController, chatId = fork.id)
-                }
-            },
-            onDelete = {
-                vm.deleteMessage(it)
-            },
-            onUpdateMessage = { newNode ->
-                vm.updateConversation(
-                    conversation.copy(
-                        messageNodes = conversation.messageNodes.map { node ->
-                            if (node.id == newNode.id) {
-                                newNode
-                            } else {
-                                node
-                            }
-                        }
-                    ))
-                vm.saveConversationAsync()
-            },
-            onClickSuggestion = { suggestion ->
-                inputState.editingMessage = null
-                inputState.messageContent = listOf(
-                    UIMessagePart.Text(
-                        text = suggestion
-                    )
-                )
-            }
-        )
     }
 }
 
@@ -379,6 +388,7 @@ private fun TopBar(
     }
 
     TopAppBar(
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
         navigationIcon = {
             if (!bigScreen) {
                 IconButton(
@@ -399,7 +409,8 @@ private fun TopBar(
                     } else {
                         toaster.show(editTitleWarning, type = ToastType.Warning)
                     }
-                }
+                },
+                color = Color.Transparent,
             ) {
                 Column {
                     val assistant = settings.getCurrentAssistant()

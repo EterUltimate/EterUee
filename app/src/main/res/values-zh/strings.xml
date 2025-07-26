@@ -485,6 +485,17 @@
   <string name="tag_input_dialog_create_new">创建新标签</string>
   <string name="tag_input_dialog_tag_exists">该名称的标签已存在</string>
   <string name="assistant_page_tags">标签</string>
+  <string name="assistant_page_chat_background">聊天背景</string>
+  <string name="assistant_page_chat_background_desc">设置助手聊天页面的背景图片</string>
+  <string name="assistant_page_select_background">选择背景图片</string>
+  <string name="assistant_page_change_background">更换背景图片</string>
+  <string name="assistant_page_background_set">已设置背景图片</string>
+  <string name="assistant_page_remove">移除</string>
+  <string name="assistant_page_select_from_gallery">从相册选择</string>
+  <string name="assistant_page_enter_image_url">输入图片URL</string>
+  <string name="assistant_page_remove_background">移除背景</string>
+  <string name="assistant_page_image_url">图片URL</string>
+  <string name="assistant_page_confirm">确定</string>
 
   <!-- Long Press Actions -->
   <string name="select_and_copy">选择复制</string>

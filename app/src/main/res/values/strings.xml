@@ -544,6 +544,17 @@
   <string name="tag_input_dialog_create_new">Create New Tag</string>
   <string name="tag_input_dialog_tag_exists">Tag with this name already exists</string>
   <string name="assistant_page_tags">Tags</string>
+  <string name="assistant_page_chat_background">Chat Background</string>
+  <string name="assistant_page_chat_background_desc">Set background image for assistant chat page</string>
+  <string name="assistant_page_select_background">Select Background Image</string>
+  <string name="assistant_page_change_background">Change Background Image</string>
+  <string name="assistant_page_background_set">Background image set</string>
+  <string name="assistant_page_remove">Remove</string>
+  <string name="assistant_page_select_from_gallery">Select from Gallery</string>
+  <string name="assistant_page_enter_image_url">Enter Image URL</string>
+  <string name="assistant_page_remove_background">Remove Background</string>
+  <string name="assistant_page_image_url">Image URL</string>
+  <string name="assistant_page_confirm">Confirm</string>
 
   <!-- Long Press Actions -->
   <string name="select_and_copy">Select and Copy</string>

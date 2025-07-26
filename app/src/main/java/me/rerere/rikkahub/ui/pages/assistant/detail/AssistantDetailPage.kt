@@ -624,6 +624,17 @@ private fun AssistantBasicSettings(
                 )
             }
         }
+
+        BackgroundPicker(
+            background = assistant.background,
+            onUpdate = { background ->
+                onUpdate(
+                    assistant.copy(
+                        background = background
+                    )
+                )
+            }
+        )
     }
 }
 

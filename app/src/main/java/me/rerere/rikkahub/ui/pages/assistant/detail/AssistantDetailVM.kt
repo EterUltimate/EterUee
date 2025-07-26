@@ -135,6 +135,7 @@ class AssistantDetailVM(
                     assistants = settings.assistants.map {
                         if (it.id == assistant.id) {
                             checkAvatarDelete(old = it, new = assistant) // 删除旧头像
+                            checkBackgroundDelete(old = it, new = assistant) // 删除旧背景
                             assistant
                         } else {
                             it
@@ -168,6 +169,22 @@ class AssistantDetailVM(
     fun checkAvatarDelete(old: Assistant, new: Assistant) {
         if (old.avatar is Avatar.Image && old.avatar != new.avatar) {
             context.deleteChatFiles(listOf(old.avatar.url.toUri()))
+        }
+    }
+
+    fun checkBackgroundDelete(old: Assistant, new: Assistant) {
+        val oldBackground = old.background
+        val newBackground = new.background
+        
+        if (oldBackground != null && oldBackground != newBackground) {
+            try {
+                val oldUri = oldBackground.toUri()
+                if (oldUri.scheme == "content" || oldUri.scheme == "file") {
+                    context.deleteChatFiles(listOf(oldUri))
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to delete background file: $oldBackground", e)
+            }
         }
     }
 }

@@ -41,6 +41,13 @@ fun UIMessagePart.Image.encodeBase64(withPrefix: Boolean = true): Result<String>
 
         this.url.startsWith("data:") -> url
         this.url.startsWith("http:") -> url
+        this.url.startsWith("content://") -> {
+            val context = GlobalContext.get()
+            val inputStream = context.contentResolver.openInputStream(this.url.toUri())
+            val bytes = inputStream?.readBytes()
+            val base64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
+            "data:image/jpeg;base64,$base64"
+        }
         else -> throw IllegalArgumentException("Unsupported URL format: $url")
     }
 }

@@ -12,6 +12,7 @@
   <string name="search_picker_title">Search Settings</string>
   <string name="photo">Photo</string>
   <string name="take_picture">Take Picture</string>
+  <string name="shortcut_take_picture">Take Picture &amp; Ask</string>
   <string name="upload_file">Upload File</string>
   <string name="copy">Copy</string>
   <string name="regenerate">Regenerate</string>

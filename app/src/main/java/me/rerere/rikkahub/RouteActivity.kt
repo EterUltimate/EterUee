@@ -119,14 +119,22 @@ class RouteActivity : ComponentActivity() {
             Intent().apply {
                 action = intent?.action
                 putExtra(Intent.EXTRA_TEXT, intent?.getStringExtra(Intent.EXTRA_TEXT))
+                putExtra("imageUri", intent?.getStringExtra("imageUri"))
             }
         }
 
         LaunchedEffect(navBackStack) {
             if (shareIntent.action == Intent.ACTION_SEND) {
                 val text = shareIntent.getStringExtra(Intent.EXTRA_TEXT)
-                if (text != null) {
-                    navBackStack.navigate(Screen.ShareHandler(text))
+                val imageUri = shareIntent.getStringExtra("imageUri")
+                if (text != null || imageUri != null) {
+                    navBackStack.navigate(
+                        Screen.Chat(
+                            id = Uuid.random().toString(),
+                            text = text,
+                            imageUri = imageUri
+                        )
+                    )
                 }
             }
         }
@@ -184,6 +192,7 @@ class RouteActivity : ComponentActivity() {
                         ChatPage(
                             id = Uuid.parse(route.id),
                             text = route.text,
+                            imageUri = route.imageUri
                         )
                     }
 
@@ -271,7 +280,7 @@ class RouteActivity : ComponentActivity() {
 
 sealed interface Screen {
     @Serializable
-    data class Chat(val id: String, val text: String? = null) : Screen
+    data class Chat(val id: String, val text: String? = null, val imageUri: String? = null) : Screen
 
     @Serializable
     data class ShareHandler(val text: String) : Screen

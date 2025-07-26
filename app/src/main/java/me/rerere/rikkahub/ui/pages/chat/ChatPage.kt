@@ -104,7 +104,7 @@ import kotlin.time.toJavaInstant
 import kotlin.uuid.Uuid
 
 @Composable
-fun ChatPage(id: Uuid, text: String?) {
+fun ChatPage(id: Uuid, text: String?, imageUri: String?) {
     val vm: ChatVM = koinViewModel(
         parameters = {
             parametersOf(id.toString())
@@ -135,9 +135,16 @@ fun ChatPage(id: Uuid, text: String?) {
         windowAdaptiveInfo.width > windowAdaptiveInfo.height && windowAdaptiveInfo.width >= 1100.dp
 
     val inputState = rememberChatInputState(
-        message = text?.let {
-            listOf(UIMessagePart.Text(it.base64Decode()))
-        } ?: emptyList(),
+        message = remember(text, imageUri) {
+            buildList {
+                text?.let {
+                    add(UIMessagePart.Text(it.base64Decode()))
+                }
+                imageUri?.let {
+                    add(UIMessagePart.Image(it))
+                }
+            }
+        }
     )
 
     when {

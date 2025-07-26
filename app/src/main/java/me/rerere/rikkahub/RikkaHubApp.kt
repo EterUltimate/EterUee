@@ -10,6 +10,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import me.rerere.ai.util.ContextProvider
+import me.rerere.ai.util.GlobalContext
 import me.rerere.rikkahub.di.appModule
 import me.rerere.rikkahub.di.dataSourceModule
 import me.rerere.rikkahub.di.repositoryModule
@@ -25,9 +27,12 @@ private const val TAG = "RikkaHubApp"
 
 const val CHAT_COMPLETED_NOTIFICATION_CHANNEL_ID = "chat_completed"
 
-class RikkaHubApp : Application() {
+class RikkaHubApp : Application(), ContextProvider {
+    override fun getContext() = this
+
     override fun onCreate() {
         super.onCreate()
+        GlobalContext.provider = this
         startKoin {
             androidLogger()
             androidContext(this@RikkaHubApp)

@@ -13,6 +13,7 @@
   <string name="search_picker_title">搜尋設定</string>
   <string name="photo">照片</string>
   <string name="take_picture">拍照</string>
+  <string name="shortcut_take_picture">拍照提問</string>
   <string name="upload_file">上傳檔案</string>
   <string name="copy">複製</string>
   <string name="regenerate">重新生成</string>

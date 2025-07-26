@@ -25,8 +25,8 @@ class ShortcutHandlerActivity : ComponentActivity() {
         if (success) {
             photoURI?.let {
                 val intent = Intent(this, RouteActivity::class.java).apply {
-                    action = "android.intent.action.SEND"
-                    putExtra("imageUri", it.toString())
+                    action = Intent.ACTION_SEND
+                    putExtra(Intent.EXTRA_STREAM, it.toString())
                 }
                 startActivity(intent)
             }

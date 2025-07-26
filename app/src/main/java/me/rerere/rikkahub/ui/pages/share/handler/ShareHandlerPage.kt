@@ -2,6 +2,7 @@ package me.rerere.rikkahub.ui.pages.share.handler
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,7 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.context.LocalNavController
@@ -33,7 +36,7 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
 @Composable
-fun ShareHandlerPage(text: String) {
+fun ShareHandlerPage(text: String, image: String?) {
     val vm: ShareHandlerVM = koinViewModel(parameters = { parametersOf(text) })
     val settings by vm.settings.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -54,7 +57,7 @@ fun ShareHandlerPage(text: String) {
         ) {
             item {
                 Card {
-                    Box(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp)
@@ -65,6 +68,14 @@ fun ShareHandlerPage(text: String) {
                             overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.bodySmall
                         )
+
+                        image?.let {
+                            AsyncImage(
+                                model = it,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
                 }
             }
@@ -77,6 +88,7 @@ fun ShareHandlerPage(text: String) {
                             navigateToChatPage(
                                 navController = navController,
                                 initText = vm.shareText.base64Encode(),
+                                initFiles = image?.let { listOf(it.toUri()) } ?: emptyList()
                             )
                         }
                     },

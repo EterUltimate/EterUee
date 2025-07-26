@@ -26,12 +26,14 @@ fun navigateToChatPage(
     navController: NavHostController,
     chatId: Uuid = Uuid.random(),
     initText: String? = null,
+    initFiles: List<Uri> = emptyList(),
 ) {
     Log.i(TAG, "navigateToChatPage: navigate to $chatId")
     navController.navigate(
         route = Screen.Chat(
             id = chatId.toString(),
-            text = initText
+            text = initText,
+            files = initFiles.map { it.toString() },
         ),
     ) {
         popUpTo(0) {
@@ -155,8 +157,10 @@ fun Context.getFileNameFromUri(uri: Uri): String? {
 }
 
 fun Context.getFileMimeType(uri: Uri): String? {
-    val mimeType = contentResolver.getType(uri)
-    return mimeType
+    return when (uri.scheme) {
+        "content" -> contentResolver.getType(uri)
+        else -> null
+    }
 }
 
 @OptIn(ExperimentalEncodingApi::class)

@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.ui.pages.chat
 
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -51,6 +52,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
+import androidx.core.net.toFile
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.composables.icons.lucide.Download
@@ -91,6 +93,8 @@ import me.rerere.rikkahub.ui.hooks.useThrottle
 import me.rerere.rikkahub.utils.UpdateDownload
 import me.rerere.rikkahub.utils.Version
 import me.rerere.rikkahub.utils.base64Decode
+import me.rerere.rikkahub.utils.createChatFilesByContents
+import me.rerere.rikkahub.utils.getFileMimeType
 import me.rerere.rikkahub.utils.navigateToChatPage
 import me.rerere.rikkahub.utils.onError
 import me.rerere.rikkahub.utils.onSuccess
@@ -104,7 +108,7 @@ import kotlin.time.toJavaInstant
 import kotlin.uuid.Uuid
 
 @Composable
-fun ChatPage(id: Uuid, text: String?, imageUri: String?) {
+fun ChatPage(id: Uuid, text: String?, files: List<Uri>) {
     val vm: ChatVM = koinViewModel(
         parameters = {
             parametersOf(id.toString())
@@ -112,7 +116,7 @@ fun ChatPage(id: Uuid, text: String?, imageUri: String?) {
     )
     val navController = LocalNavController.current
     val toaster = LocalToaster.current
-    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     // Handle Error
     LaunchedEffect(Unit) {
@@ -135,13 +139,20 @@ fun ChatPage(id: Uuid, text: String?, imageUri: String?) {
         windowAdaptiveInfo.width > windowAdaptiveInfo.height && windowAdaptiveInfo.width >= 1100.dp
 
     val inputState = rememberChatInputState(
-        message = remember(text, imageUri) {
+        message = remember(text, files) {
             buildList {
                 text?.let {
                     add(UIMessagePart.Text(it.base64Decode()))
                 }
-                imageUri?.let {
-                    add(UIMessagePart.Image(it))
+                val localFiles = context.createChatFilesByContents(files)
+                val contentTypes = files.mapNotNull { file ->
+                    context.getFileMimeType(file)
+                }
+                localFiles.forEachIndexed { index, file ->
+                    val type = contentTypes.getOrNull(index)
+                    if (type?.startsWith("image/") == true) {
+                        add(UIMessagePart.Image(url = file.toString()))
+                    }
                 }
             }
         }

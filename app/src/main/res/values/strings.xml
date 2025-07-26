@@ -164,6 +164,11 @@
   <string name="assistant_page_top_p_value">Top P: %s</string>
   <string name="assistant_page_thinking_budget">Thinking Budget</string>
   <string name="assistant_page_thinking_budget_default">Default</string>
+  <string name="assistant_page_max_tokens">Max Tokens</string>
+  <string name="assistant_page_max_tokens_desc">Maximum number of tokens to generate. Leave empty for no limit.</string>
+  <string name="assistant_page_max_tokens_no_limit">No limit</string>
+  <string name="assistant_page_max_tokens_limit">Limit: %d tokens</string>
+  <string name="assistant_page_max_tokens_no_token_limit">No token limit</string>
   <string name="assistant_page_message_template">Message Content Template</string>
   <string name="assistant_page_message_template_desc">Controls the content format of chat messages before being sent to the LLM, usually no need to modify</string>
   <string name="assistant_page_template_preview">Preview:</string>

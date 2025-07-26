@@ -30,6 +30,7 @@ data class TextGenerationParams(
     val model: Model,
     val temperature: Float? = 0.6f,
     val topP: Float? = 1f,
+    val maxTokens: Int? = null,
     val tools: List<Tool> = emptyList(),
     val thinkingBudget: Int? = null,
     val customHeaders: List<CustomHeader> = emptyList(),

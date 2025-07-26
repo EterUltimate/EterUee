@@ -251,6 +251,7 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
                 if (params.temperature != null) put("temperature", params.temperature)
                 if (params.topP != null) put("top_p", params.topP)
             }
+            if(params.maxTokens != null) put("max_tokens", params.maxTokens)
 
             put("stream", stream)
             if (stream) {

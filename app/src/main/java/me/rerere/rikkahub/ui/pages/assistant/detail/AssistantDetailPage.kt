@@ -585,6 +585,45 @@ private fun AssistantBasicSettings(
                 )
             }
         }
+
+        Card {
+            FormItem(
+                modifier = Modifier.padding(16.dp),
+                label = {
+                    Text(stringResource(R.string.assistant_page_max_tokens))
+                },
+                description = {
+                    Text(stringResource(R.string.assistant_page_max_tokens_desc))
+                }
+            ) {
+                OutlinedTextField(
+                    value = assistant.maxTokens?.toString() ?: "",
+                    onValueChange = { text ->
+                        val tokens = if (text.isBlank()) {
+                            null
+                        } else {
+                            text.toIntOrNull()?.takeIf { it > 0 }
+                        }
+                        onUpdate(
+                            assistant.copy(
+                                maxTokens = tokens
+                            )
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = {
+                        Text(stringResource(R.string.assistant_page_max_tokens_no_limit))
+                    },
+                    supportingText = {
+                        if (assistant.maxTokens != null) {
+                            Text(stringResource(R.string.assistant_page_max_tokens_limit, assistant.maxTokens))
+                        } else {
+                            Text(stringResource(R.string.assistant_page_max_tokens_no_token_limit))
+                        }
+                    }
+                )
+            }
+        }
     }
 }
 

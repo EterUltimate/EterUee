@@ -269,7 +269,7 @@ object ClaudeProvider : Provider<ProviderSetting.Claude> {
         return buildJsonObject {
             put("model", params.model.modelId)
             put("messages", buildMessages(messages))
-            put("max_tokens", 64000) // Claude 需要明确指定 max_tokens
+            put("max_tokens", params.maxTokens ?: 128_000)
 
             if (params.temperature != null && (params.thinkingBudget ?: 0) == 0) put(
                 "temperature",
@@ -300,7 +300,7 @@ object ClaudeProvider : Provider<ProviderSetting.Claude> {
                         put("type", "disabled")
                     } else {
                         put("type", "enabled")
-                        if(level != ReasoningLevel.AUTO) put("budget_tokens", params.thinkingBudget ?: 0)
+                        if (level != ReasoningLevel.AUTO) put("budget_tokens", params.thinkingBudget ?: 0)
                     }
                 })
             }

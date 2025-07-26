@@ -165,6 +165,11 @@
   <string name="assistant_page_top_p_value">Top P: %s</string>
   <string name="assistant_page_thinking_budget">思考バジェット</string>
   <string name="assistant_page_thinking_budget_default">デフォルト</string>
+  <string name="assistant_page_max_tokens">最大トークン数</string>
+  <string name="assistant_page_max_tokens_desc">生成する最大トークン数。空白にすると制限なし。</string>
+  <string name="assistant_page_max_tokens_no_limit">制限なし</string>
+  <string name="assistant_page_max_tokens_limit">制限：%d トークン</string>
+  <string name="assistant_page_max_tokens_no_token_limit">トークン制限なし</string>
   <string name="assistant_page_message_template">チャットコンテンツテンプレート</string>
   <string name="assistant_page_message_template_desc">チャットメッセージがLLMに送信される前のコンテンツ形式を制御します。通常は変更する必要がありません</string>
   <string name="assistant_page_template_preview">プレビュー:</string>

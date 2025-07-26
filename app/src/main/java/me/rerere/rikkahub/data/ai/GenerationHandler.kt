@@ -222,6 +222,7 @@ class GenerationHandler(
             model = model,
             temperature = assistant?.temperature,
             topP = assistant?.topP,
+            maxTokens = assistant?.maxTokens,
             tools = tools,
             thinkingBudget = assistant?.thinkingBudget,
             customHeaders = buildList {

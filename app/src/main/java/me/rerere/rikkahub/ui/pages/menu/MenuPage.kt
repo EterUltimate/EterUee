@@ -6,11 +6,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.LocalContentColor
@@ -19,12 +21,10 @@ import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.carousel.CarouselItemScope
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
-import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
@@ -75,7 +75,7 @@ private fun FeaturesSection() {
     val navController = LocalNavController.current
 
     @Composable
-    fun CarouselItemScope.FeatureCard(
+    fun FeatureCard(
         title: @Composable () -> Unit,
         image: @Composable () -> Unit,
         modifier: Modifier = Modifier,
@@ -83,66 +83,76 @@ private fun FeaturesSection() {
     ) {
         Box(
             modifier = modifier
+                .clip(MaterialTheme.shapes.medium)
                 .clickable { onClick() }
-                .maskClip(MaterialTheme.shapes.medium)
+                .height(150.dp)
+                .wrapContentHeight()
                 .fillMaxWidth()
-                .height(200.dp)
         ) {
             image()
             Column(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(8.dp)
+                    .padding(16.dp)
             ) {
-                ProvideTextStyle(MaterialTheme.typography.titleMedium.copy(color = Color.White)) {
+                ProvideTextStyle(MaterialTheme.typography.headlineSmall.copy(color = Color.White)) {
                     title()
                 }
             }
         }
     }
 
-    HorizontalMultiBrowseCarousel(
-        state = rememberCarouselState { 2 },
-        itemSpacing = 8.dp,
-        preferredItemWidth = 250.dp
-    ) { index ->
-        when (index) {
-            0 -> {
-                FeatureCard(
-                    title = {
-                        Text(stringResource(id = R.string.menu_page_ai_translator))
-                    },
-                    image = {
-                        AsyncImage(
-                            model = "file:///android_asset/banner/banner-1.png",
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    },
-                ) {
-                    navController.navigate(Screen.Translator)
-                }
-            }
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight(),
+    ) {
+        FeatureCard(
+            title = {
+                Text(stringResource(id = R.string.menu_page_ai_translator))
+            },
+            image = {
+                AsyncImage(
+                    model = "file:///android_asset/banner/banner-1.png",
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            },
+        ) {
 
-            1 -> {
-                FeatureCard(
-                    title = {
-                        Text(stringResource(id = R.string.menu_page_knowledge_base))
-                    },
-                    image = {
-                        AsyncImage(
-                            model = "file:///android_asset/banner/banner-2.png",
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    },
-                ) {
-                    // navController.push(Screen.Library)
-                }
-            }
+        }
+        FeatureCard(
+            title = {
+                Text("图片生成")
+            },
+            image = {
+                AsyncImage(
+                    model = "file:///android_asset/banner/banner-3.png",
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            },
+        ) {
+            navController.navigate(Screen.ImageGen)
+        }
+        FeatureCard(
+            title = {
+                Text(stringResource(id = R.string.menu_page_knowledge_base))
+            },
+            image = {
+                AsyncImage(
+                    model = "file:///android_asset/banner/banner-2.png",
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            },
+        ) {
+            // navController.push(Screen.Library)
         }
     }
 }

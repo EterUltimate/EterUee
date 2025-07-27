@@ -58,6 +58,7 @@ import me.rerere.rikkahub.ui.pages.backup.BackupPage
 import me.rerere.rikkahub.ui.pages.chat.ChatPage
 import me.rerere.rikkahub.ui.pages.debug.DebugPage
 import me.rerere.rikkahub.ui.pages.history.HistoryPage
+import me.rerere.rikkahub.ui.pages.imggen.ImageGenPage
 import me.rerere.rikkahub.ui.pages.menu.MenuPage
 import me.rerere.rikkahub.ui.pages.setting.SettingAboutPage
 import me.rerere.rikkahub.ui.pages.setting.SettingDisplayPage
@@ -226,6 +227,10 @@ class RouteActivity : ComponentActivity() {
                         BackupPage()
                     }
 
+                    composable<Screen.ImageGen> {
+                        ImageGenPage()
+                    }
+
                     composable<Screen.WebView> { backStackEntry ->
                         val route = backStackEntry.toRoute<Screen.WebView>()
                         WebViewPage(route.url, route.content)
@@ -301,6 +306,9 @@ sealed interface Screen {
 
     @Serializable
     data object Backup : Screen
+
+    @Serializable
+    data object ImageGen : Screen
 
     @Serializable
     data class WebView(val url: String = "", val content: String = "") : Screen

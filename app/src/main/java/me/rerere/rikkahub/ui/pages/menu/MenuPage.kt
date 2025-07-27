@@ -122,7 +122,7 @@ private fun FeaturesSection() {
                 )
             },
         ) {
-
+            navController.navigate(Screen.Translator)
         }
         FeatureCard(
             title = {

@@ -212,6 +212,7 @@
   <string name="menu_page_evening_greeting">こんばんは\uD83D\uDC4B</string>
   <string name="menu_page_night_greeting">夜更かしですね、お気をつけて\uD83D\uDC4B</string>
   <string name="menu_page_ai_translator">AI翻訳</string>
+  <string name="menu_page_image_generation">画像生成</string>
   <string name="menu_page_knowledge_base">知識ベース (開発中)</string>
   <string name="menu_page_llm_leaderboard">LLMランキング</string>
 

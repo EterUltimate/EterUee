@@ -213,6 +213,7 @@
   <string name="menu_page_evening_greeting">晚上好\uD83D\uDC4B</string>
   <string name="menu_page_night_greeting">夜深了，注意休息\uD83D\uDC4B</string>
   <string name="menu_page_ai_translator">AI翻译</string>
+  <string name="menu_page_image_generation">图片生成</string>
   <string name="menu_page_knowledge_base">知识库 (施工中)</string>
   <string name="menu_page_llm_leaderboard">LLM排行榜</string>
 

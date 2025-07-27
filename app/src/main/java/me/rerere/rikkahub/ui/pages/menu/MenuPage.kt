@@ -126,7 +126,7 @@ private fun FeaturesSection() {
         }
         FeatureCard(
             title = {
-                Text("图片生成")
+                Text(stringResource(id = R.string.menu_page_image_generation))
             },
             image = {
                 AsyncImage(

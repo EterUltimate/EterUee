@@ -38,7 +38,6 @@ import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.MultiChoiceSegmentedButtonRow
-import androidx.compose.material3.Switch
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedCard
@@ -49,6 +48,7 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -777,6 +777,7 @@ private fun ModelSettingsForm(
                         )
 
                         ModelModalitySelector(
+                            model = model,
                             inputModalities = model.inputModalities,
                             onUpdateInputModalities = {
                                 onModelChange(model.copy(inputModalities = it))
@@ -787,12 +788,14 @@ private fun ModelSettingsForm(
                             }
                         )
 
-                        ModalAbilitySelector(
-                            abilities = model.abilities,
-                            onUpdateAbilities = {
-                                onModelChange(model.copy(abilities = it))
-                            }
-                        )
+                        if (model.type == ModelType.CHAT) {
+                            ModalAbilitySelector(
+                                abilities = model.abilities,
+                                onUpdateAbilities = {
+                                    onModelChange(model.copy(abilities = it))
+                                }
+                            )
+                        }
                     }
                 }
 
@@ -1125,68 +1128,72 @@ private fun ModelTypeSelector(
 
 @Composable
 private fun ModelModalitySelector(
+    model: Model,
     inputModalities: List<Modality>,
     onUpdateInputModalities: (List<Modality>) -> Unit,
     outputModalities: List<Modality>,
     onUpdateOutputModalities: (List<Modality>) -> Unit
 ) {
-    Text(
-        stringResource(R.string.setting_provider_page_input_modality),
-        style = MaterialTheme.typography.titleSmall
-    )
-    MultiChoiceSegmentedButtonRow(
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Modality.entries.forEachIndexed { index, modality ->
-            SegmentedButton(
-                checked = modality in inputModalities,
-                shape = SegmentedButtonDefaults.itemShape(index, Modality.entries.size),
-                onCheckedChange = {
-                    if (it) {
-                        onUpdateInputModalities(inputModalities + modality)
-                    } else {
-                        onUpdateInputModalities(inputModalities - modality)
-                    }
-                }
-            ) {
-                Text(
-                    text = stringResource(
-                        when (modality) {
-                            Modality.TEXT -> R.string.setting_provider_page_text
-                            Modality.IMAGE -> R.string.setting_provider_page_image
+    if (model.type == ModelType.CHAT) {
+        Text(
+            stringResource(R.string.setting_provider_page_input_modality),
+            style = MaterialTheme.typography.titleSmall
+        )
+        MultiChoiceSegmentedButtonRow(
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Modality.entries.forEachIndexed { index, modality ->
+                SegmentedButton(
+                    checked = modality in inputModalities,
+                    shape = SegmentedButtonDefaults.itemShape(index, Modality.entries.size),
+                    onCheckedChange = {
+                        if (it) {
+                            onUpdateInputModalities(inputModalities + modality)
+                        } else {
+                            onUpdateInputModalities(inputModalities - modality)
                         }
+                    }
+                ) {
+                    Text(
+                        text = stringResource(
+                            when (modality) {
+                                Modality.TEXT -> R.string.setting_provider_page_text
+                                Modality.IMAGE -> R.string.setting_provider_page_image
+                            }
+                        )
                     )
-                )
+                }
             }
         }
-    }
-    Text(
-        stringResource(R.string.setting_provider_page_output_modality),
-        style = MaterialTheme.typography.titleSmall
-    )
-    MultiChoiceSegmentedButtonRow(
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Modality.entries.forEachIndexed { index, modality ->
-            SegmentedButton(
-                checked = modality in outputModalities,
-                shape = SegmentedButtonDefaults.itemShape(index, Modality.entries.size),
-                onCheckedChange = {
-                    if (it) {
-                        onUpdateOutputModalities(outputModalities + modality)
-                    } else {
-                        onUpdateOutputModalities(outputModalities - modality)
-                    }
-                }
-            ) {
-                Text(
-                    text = stringResource(
-                        when (modality) {
-                            Modality.TEXT -> R.string.setting_provider_page_text
-                            Modality.IMAGE -> R.string.setting_provider_page_image
+
+        Text(
+            stringResource(R.string.setting_provider_page_output_modality),
+            style = MaterialTheme.typography.titleSmall
+        )
+        MultiChoiceSegmentedButtonRow(
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Modality.entries.forEachIndexed { index, modality ->
+                SegmentedButton(
+                    checked = modality in outputModalities,
+                    shape = SegmentedButtonDefaults.itemShape(index, Modality.entries.size),
+                    onCheckedChange = {
+                        if (it) {
+                            onUpdateOutputModalities(outputModalities + modality)
+                        } else {
+                            onUpdateOutputModalities(outputModalities - modality)
                         }
+                    }
+                ) {
+                    Text(
+                        text = stringResource(
+                            when (modality) {
+                                Modality.TEXT -> R.string.setting_provider_page_text
+                                Modality.IMAGE -> R.string.setting_provider_page_image
+                            }
+                        )
                     )
-                )
+                }
             }
         }
     }
@@ -1466,8 +1473,14 @@ private fun BuiltInToolsSettings(
         )
 
         val availableTools = listOf(
-            BuiltInTools.Search to Pair(stringResource(R.string.setting_page_built_in_tools_search), stringResource(R.string.setting_page_built_in_tools_search_desc)),
-            BuiltInTools.UrlContext to Pair(stringResource(R.string.setting_page_built_in_tools_url_context), stringResource(R.string.setting_page_built_in_tools_url_context_desc))
+            BuiltInTools.Search to Pair(
+                stringResource(R.string.setting_page_built_in_tools_search),
+                stringResource(R.string.setting_page_built_in_tools_search_desc)
+            ),
+            BuiltInTools.UrlContext to Pair(
+                stringResource(R.string.setting_page_built_in_tools_url_context),
+                stringResource(R.string.setting_page_built_in_tools_url_context_desc)
+            )
         )
 
         availableTools.forEach { (tool, info) ->

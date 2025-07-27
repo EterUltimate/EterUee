@@ -585,6 +585,7 @@ private fun ModelItem(
                             when (model.type) {
                                 ModelType.CHAT -> stringResource(R.string.model_list_chat)
                                 ModelType.EMBEDDING -> stringResource(R.string.model_list_embedding)
+                                ModelType.IMAGE -> stringResource(R.string.model_list_image)
                             }
                         )
                     }

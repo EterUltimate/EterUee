@@ -221,6 +221,7 @@
   <string name="model_list_favorite">Favorites</string>
   <string name="model_list_chat">Chat</string>
   <string name="model_list_embedding">Embedding</string>
+  <string name="model_list_image">Image</string>
   <string name="model_list_search_placeholder">Enter model name to search</string>
 
   <!-- About Page -->
@@ -395,6 +396,7 @@
   <string name="setting_provider_page_model_type">Model Type</string>
   <string name="setting_provider_page_chat_model">Chat Model</string>
   <string name="setting_provider_page_embedding_model">Embedding Model</string>
+  <string name="setting_provider_page_image_model">Image Model</string>
   <string name="setting_provider_page_input_modality">Input Modality</string>
   <string name="setting_provider_page_output_modality">Output Modality</string>
   <string name="setting_provider_page_text">Text</string>

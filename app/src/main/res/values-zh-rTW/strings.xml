@@ -220,6 +220,7 @@
   <string name="model_list_favorite">收藏</string>
   <string name="model_list_chat">聊天</string>
   <string name="model_list_embedding">嵌入</string>
+  <string name="model_list_image">圖像</string>
   <string name="model_list_search_placeholder">輸入模型名稱搜尋</string>
 
   <!-- About Page -->
@@ -375,6 +376,7 @@
   <string name="setting_provider_page_model_type">模型類型</string>
   <string name="setting_provider_page_chat_model">聊天模型</string>
   <string name="setting_provider_page_embedding_model">嵌入模型</string>
+  <string name="setting_provider_page_image_model">圖像模型</string>
   <string name="setting_provider_page_input_modality">輸入模態</string>
   <string name="setting_provider_page_output_modality">輸出模態</string>
   <string name="setting_provider_page_text">文字</string>

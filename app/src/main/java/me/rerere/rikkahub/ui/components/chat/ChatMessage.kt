@@ -860,7 +860,7 @@ private fun MessagePartsBlock(
     val settings = LocalSettings.current
     LaunchedEffect(parts) {
         if (parts.isNotEmpty() && loading && settings.displaySetting.enableMessageGenerationHapticEffect) {
-            hapticFeedback.performHapticFeedback(HapticFeedbackType.KeyboardTap)
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
         }
     }
 

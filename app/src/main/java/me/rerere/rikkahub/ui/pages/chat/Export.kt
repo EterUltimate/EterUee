@@ -49,7 +49,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation3.runtime.rememberNavBackStack
 import coil3.compose.AsyncImage
 import com.composables.icons.lucide.BookDashed
 import com.composables.icons.lucide.BookHeart
@@ -74,7 +73,6 @@ import me.rerere.ai.util.encodeBase64
 import me.rerere.highlight.Highlighter
 import me.rerere.highlight.LocalHighlighter
 import me.rerere.rikkahub.R
-import me.rerere.rikkahub.Screen
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.components.ui.BitmapComposer

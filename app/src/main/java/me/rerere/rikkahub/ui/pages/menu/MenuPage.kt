@@ -115,7 +115,7 @@ private fun FeaturesSection() {
                     },
                     image = {
                         AsyncImage(
-                            model = "file:///android_asset/banner/translator.jpeg",
+                            model = "file:///android_asset/banner/banner-1.png",
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
@@ -133,7 +133,7 @@ private fun FeaturesSection() {
                     },
                     image = {
                         AsyncImage(
-                            model = "file:///android_asset/banner/library.jpeg",
+                            model = "file:///android_asset/banner/banner-2.png",
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop

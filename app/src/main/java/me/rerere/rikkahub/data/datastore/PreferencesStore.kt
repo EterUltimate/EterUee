@@ -476,7 +476,7 @@ private val DEFAULT_PROVIDERS = listOf(
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("da93779f-3956-48cc-82ef-67bb482eaaf7"),
-        name = "302.ai",
+        name = "302.AI",
         baseUrl = "https://api.302.ai/v1",
         apiKey = "",
         enabled = false,

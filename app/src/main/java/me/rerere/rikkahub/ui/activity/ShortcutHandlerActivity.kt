@@ -1,5 +1,6 @@
-package me.rerere.rikkahub.shortcuts
+package me.rerere.rikkahub.ui.activity
 
+import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -36,7 +37,7 @@ class ShortcutHandlerActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        requestPermissionLauncher.launch(android.Manifest.permission.CAMERA)
+        requestPermissionLauncher.launch(Manifest.permission.CAMERA)
     }
 
     private fun launchCamera() {

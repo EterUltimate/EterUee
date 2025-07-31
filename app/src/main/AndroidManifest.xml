@@ -47,7 +47,7 @@
     </activity>
 
     <activity
-        android:name=".shortcuts.ShortcutHandlerActivity"
+        android:name=".ui.activity.ShortcutHandlerActivity"
         android:exported="true"
         android:theme="@android:style/Theme.Translucent.NoTitleBar">
         <intent-filter>

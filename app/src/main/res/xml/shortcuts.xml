@@ -8,7 +8,7 @@
         android:shortcutLongLabel="@string/shortcut_take_picture">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetClass="me.rerere.rikkahub.shortcuts.ShortcutHandlerActivity"
+            android:targetClass="me.rerere.rikkahub.ui.activity.ShortcutHandlerActivity"
             android:data="rikkahub://shortcut" />
         <categories android:name="android.shortcut.conversation" />
     </shortcut>

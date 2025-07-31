@@ -16,6 +16,7 @@ Built with Jetpack Compose, Kotlin, and follows Material Design 3 principles.
 - **highlight**: Code syntax highlighting implementation
 - **search**: Search functionality SDK (Exa, Tavily, Zhipu)
 - **rag**: RAG (Retrieval Augmented Generation) implementation
+- **tts**: Text-to-speech implementation for different providers
 
 ### Key Technologies
 

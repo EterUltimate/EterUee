@@ -61,11 +61,6 @@
       android:name="com.yalantis.ucrop.UCropActivity"
       android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
-    <service
-      android:name=".services.ChatService"
-      android:enabled="true"
-      android:foregroundServiceType="remoteMessaging" />
-
     <provider
       android:name="androidx.core.content.FileProvider"
       android:authorities="${applicationId}.fileprovider"

@@ -67,7 +67,7 @@ class GenerationHandler(
         memories: (suspend () -> List<AssistantMemory>)? = null,
         tools: List<Tool> = emptyList(),
         truncateIndex: Int = -1,
-        maxSteps: Int = 5,
+        maxSteps: Int = 256,
     ): Flow<GenerationChunk> = flow {
         val provider = model.findProvider(settings.providers) ?: error("Provider not found")
         val providerImpl = ProviderManager.getProviderByType(provider)

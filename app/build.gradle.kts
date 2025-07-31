@@ -217,9 +217,6 @@ dependencies {
     // Apache Commons Text
     implementation(libs.commons.text)
 
-    // Compose Cropper
-    implementation(libs.ucrop)
-
     // Toast (Sonner)
     implementation(libs.sonner)
 

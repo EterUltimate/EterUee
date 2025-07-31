@@ -33,7 +33,6 @@ kotlinx-datetime = "0.7.1"
 ksp = "2.2.0-2.0.2"
 paging = "3.3.6"
 lucide-icons = "1.1.0"
-ucrop = "4.1.0-non-native"
 image-viewer = "1.1.0-alpha.7"
 google-services = "4.4.3"
 firebase-bom = "34.0.0"
@@ -107,7 +106,6 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlin-coroutines-core" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 lucide-icons = { group = "com.composables", name = "icons-lucide", version.ref = "lucide-icons" }
-ucrop = { group = "com.github.jens-muenker", name = "uCrop-n-Edit", version.ref = "ucrop" }
 image-viewer = { group = "com.jvziyaoyao.scale", name = "image-viewer", version.ref = "image-viewer" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase-bom" }
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }

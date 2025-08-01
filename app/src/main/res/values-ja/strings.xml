@@ -13,6 +13,7 @@
   <string name="search_picker_title">検索設定</string>
   <string name="photo">写真</string>
   <string name="take_picture">写真を撮る</string>
+  <string name="shortcut_take_picture">写真で質問</string>
   <string name="upload_file">ファイルをアップロード</string>
   <string name="copy">コピー</string>
   <string name="regenerate">再生成</string>
@@ -515,6 +516,28 @@
   <string name="history_page_search_placeholder">キーワードを入力してチャットを検索</string>
   <string name="history_page_new_conversation">新しい会話</string>
   <string name="history_page_clear">クリア</string>
+
+  <!-- TTS Settings Page -->
+  <string name="setting_tts_page_title">テキスト読み上げ</string>
+  <string name="setting_tts_page_add_provider">TTSプロバイダーを追加</string>
+  <string name="setting_tts_page_add">追加</string>
+  <string name="setting_tts_page_enabled">有効</string>
+  <string name="setting_tts_page_disabled">無効</string>
+  <string name="setting_tts_page_provider_type">プロバイダーの種類</string>
+  <string name="setting_tts_page_provider_type_description">TTSプロバイダーの種類を選択</string>
+  <string name="setting_tts_page_name">名前</string>
+  <string name="setting_tts_page_name_description">このTTSプロバイダーのカスタム名</string>
+  <string name="setting_tts_page_name_placeholder">プロバイダー名を入力</string>
+  <string name="setting_tts_page_api_key">APIキー</string>
+  <string name="setting_tts_page_api_key_description">プロバイダーのAPIキー</string>
+  <string name="setting_tts_page_base_url">ベースURL</string>
+  <string name="setting_tts_page_base_url_description">APIベースURLエンドポイント</string>
+  <string name="setting_tts_page_model">モデル</string>
+  <string name="setting_tts_page_model_description">使用するTTSモデル</string>
+  <string name="setting_tts_page_voice">音声</string>
+  <string name="setting_tts_page_voice_description">音声合成に使用する声</string>
+  <string name="setting_tts_page_voice_name">音声名</string>
+  <string name="setting_tts_page_voice_name_description">音声の名前</string>
   <string name="setting_tts_page_speed">速度</string>
   <string name="setting_tts_page_speed_description">音声合成の速度 (0.25 - 4.0)</string>
   <string name="setting_tts_page_speech_rate">音声速度</string>

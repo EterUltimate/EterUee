@@ -515,6 +515,28 @@
   <string name="history_page_search_placeholder">输入关键词搜索聊天</string>
   <string name="history_page_new_conversation">新对话</string>
   <string name="history_page_clear">清除</string>
+
+  <!-- TTS Settings Page -->
+  <string name="setting_tts_page_title">语音合成</string>
+  <string name="setting_tts_page_add_provider">添加TTS提供商</string>
+  <string name="setting_tts_page_add">添加</string>
+  <string name="setting_tts_page_enabled">启用</string>
+  <string name="setting_tts_page_disabled">禁用</string>
+  <string name="setting_tts_page_provider_type">提供商类型</string>
+  <string name="setting_tts_page_provider_type_description">选择TTS提供商类型</string>
+  <string name="setting_tts_page_name">名称</string>
+  <string name="setting_tts_page_name_description">此TTS提供商的自定义名称</string>
+  <string name="setting_tts_page_name_placeholder">输入提供商名称</string>
+  <string name="setting_tts_page_api_key">API密钥</string>
+  <string name="setting_tts_page_api_key_description">您的提供商API密钥</string>
+  <string name="setting_tts_page_base_url">基础URL</string>
+  <string name="setting_tts_page_base_url_description">API基础URL端点</string>
+  <string name="setting_tts_page_model">模型</string>
+  <string name="setting_tts_page_model_description">要使用的TTS模型</string>
+  <string name="setting_tts_page_voice">语音</string>
+  <string name="setting_tts_page_voice_description">用于语音合成的声音</string>
+  <string name="setting_tts_page_voice_name">语音名称</string>
+  <string name="setting_tts_page_voice_name_description">语音的名称</string>
   <string name="setting_tts_page_speed">语速</string>
   <string name="setting_tts_page_speed_description">语音合成速度 (0.25 - 4.0)</string>
   <string name="setting_tts_page_speech_rate">语音速度</string>

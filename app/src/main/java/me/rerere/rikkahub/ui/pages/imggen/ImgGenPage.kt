@@ -10,6 +10,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -19,6 +20,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Palette
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import me.rerere.rikkahub.ui.components.nav.BackButton
 
 @Composable
 fun ImageGenPage(modifier: Modifier = Modifier) {
@@ -26,7 +28,14 @@ fun ImageGenPage(modifier: Modifier = Modifier) {
     val scope = rememberCoroutineScope()
     Scaffold(
         topBar = {
-            Text("AI生图")
+            TopAppBar(
+                title = {
+                    Text("图片生成")
+                },
+                navigationIcon = {
+                    BackButton()
+                }
+            )
         },
         bottomBar = {
             BottomBar(pagerState, scope)
@@ -83,7 +92,9 @@ private fun BottomBar(
 }
 
 @Composable
-private fun ImageGenScreen() {}
+private fun ImageGenScreen() {
+    Text("抱歉，开发中")
+}
 
 @Composable
 private fun ImageGalleryScreen() {}

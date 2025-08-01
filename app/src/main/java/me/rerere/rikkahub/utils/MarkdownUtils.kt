@@ -31,3 +31,24 @@ fun String.stripMarkdown(): String {
         .replace(Regex("\n{3,}"), "\n\n")
         .trim()
 }
+
+fun String.extractGeminiThinkingTitle(): String? {
+    // 按行分割文本
+    val lines = this.lines()
+
+    // 从后往前查找最后一个符合条件的加粗文本行
+    for (i in lines.indices.reversed()) {
+        val line = lines[i].trim()
+
+        // 检查是否为加粗格式且独占一整行
+        val boldPattern = Regex("^\\*\\*(.+?)\\*\\*$")
+        val match = boldPattern.find(line)
+
+        if (match != null) {
+            // 返回加粗标记内的文本内容
+            return match.groupValues[1].trim()
+        }
+    }
+
+    return null
+}

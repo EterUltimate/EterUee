@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.ui.hooks
 
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -18,7 +19,10 @@ fun rememberAvatarShape(loading: Boolean): Shape {
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 3000),
+            animation = tween(
+                durationMillis = 3000,
+                easing = LinearEasing
+            ),
         )
     )
     return if (loading) MaterialShapes.Cookie6Sided.toShape(rotateAngle.value.roundToInt()) else CircleShape

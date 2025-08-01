@@ -5,7 +5,10 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 
 @Composable
 operator fun PaddingValues.plus(other: PaddingValues): PaddingValues {
@@ -26,4 +29,14 @@ fun Color.toCssHex(): String {
     val green = (green * 255).toInt()
     val blue = (blue * 255).toInt()
     return "#${String.format("%02X%02X%02X%02X", red, green, blue, alpha)}"
+}
+
+@Composable
+fun Dp.toSp(): TextUnit = with(LocalDensity.current) {
+    this@toSp.toSp()
+}
+
+@Composable
+fun TextUnit.toDp(): Dp = with(LocalDensity.current) {
+    this@toDp.toDp()
 }

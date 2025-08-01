@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,6 +36,7 @@ import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearWavyProgressIndicator
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.MultiChoiceSegmentedButtonRow
@@ -122,6 +124,7 @@ import me.rerere.rikkahub.ui.pages.setting.components.ProviderConfigure
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.UiState
 import me.rerere.rikkahub.utils.plus
+import me.rerere.rikkahub.utils.toDp
 import org.koin.androidx.compose.koinViewModel
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -1386,8 +1389,9 @@ private fun ModelCard(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    Row(
+                    FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Tag(
                             type = TagType.INFO
@@ -1422,7 +1426,7 @@ private fun ModelCard(
                                         Icon(
                                             imageVector = Lucide.Hammer,
                                             contentDescription = null,
-                                            modifier = Modifier.size(14.dp)
+                                            modifier = Modifier.size(LocalTextStyle.current.lineHeight.toDp())
                                         )
                                     }
                                 }
@@ -1434,7 +1438,7 @@ private fun ModelCard(
                                         Icon(
                                             painter = painterResource(R.drawable.deepthink),
                                             contentDescription = null,
-                                            modifier = Modifier.size(14.dp)
+                                            modifier = Modifier.size(LocalTextStyle.current.lineHeight.toDp()),
                                         )
                                     }
                                 }

@@ -425,6 +425,30 @@ object GoogleProvider : Provider<ProviderSetting.Google> {
                 }
             })
         }
+
+        // Safety Settings
+        putJsonArray("safetySettings") {
+            add(buildJsonObject {
+                put("category", "HARM_CATEGORY_HARASSMENT")
+                put("threshold", "OFF")
+            })
+            add(buildJsonObject {
+                put("category", "HARM_CATEGORY_HATE_SPEECH")
+                put("threshold", "OFF")
+            })
+            add(buildJsonObject {
+                put("category", "HARM_CATEGORY_SEXUALLY_EXPLICIT")
+                put("threshold", "OFF")
+            })
+            add(buildJsonObject {
+                put("category", "HARM_CATEGORY_DANGEROUS_CONTENT")
+                put("threshold", "OFF")
+            })
+            add(buildJsonObject {
+                put("category", "HARM_CATEGORY_CIVIC_INTEGRITY")
+                put("threshold", "OFF")
+            })
+        }
     }.mergeCustomBody(params.customBody)
 
     private fun commonRoleToGoogleRole(role: MessageRole): String {

@@ -12,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,7 +51,7 @@ fun Tag(
     ProvideTextStyle(MaterialTheme.typography.labelSmall.copy(color = textColor)) {
         Row(
             modifier = modifier
-                .clip(RoundedCornerShape(2.dp))
+                .clip(RoundedCornerShape(50))
                 .background(background)
                 .let {
                     if (onClick != null) {
@@ -59,7 +60,8 @@ fun Tag(
                         it
                     }
                 }
-                .padding(horizontal = 4.dp, vertical = 1.dp)
+                .padding(horizontal = 6.dp, vertical = 1.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             children()
         }

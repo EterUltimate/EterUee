@@ -51,6 +51,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -62,7 +63,6 @@ import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.GripHorizontal
 import com.composables.icons.lucide.Hammer
 import com.composables.icons.lucide.Heart
-import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Search
 import com.composables.icons.lucide.X
@@ -637,7 +637,7 @@ private fun ModelItem(
                                             modifier = Modifier.fillMaxHeight()
                                         ) {
                                             Icon(
-                                                imageVector = Lucide.Lightbulb,
+                                                painter = painterResource(R.drawable.deepthink),
                                                 contentDescription = null,
                                                 modifier = Modifier
                                                     .height(iconHeight)

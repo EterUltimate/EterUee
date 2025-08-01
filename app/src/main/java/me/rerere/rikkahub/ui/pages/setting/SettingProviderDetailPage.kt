@@ -47,6 +47,7 @@ import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
@@ -68,10 +69,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -79,7 +82,6 @@ import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Cable
 import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.Hammer
-import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Network
 import com.composables.icons.lucide.Pencil
@@ -1361,25 +1363,28 @@ private fun ModelCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 4.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                AutoAIIcon(
-                    name = model.modelId,
-                    modifier = Modifier.size(32.dp),
-                )
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = model.modelId,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                Surface(
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    shape = MaterialTheme.shapes.small,
+                ) {
+                    AutoAIIcon(
+                        name = model.modelId,
+                        modifier = Modifier.size(36.dp),
                     )
+                }
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
                     Text(
                         text = model.displayName,
                         style = MaterialTheme.typography.titleSmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
                     )
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -1414,7 +1419,11 @@ private fun ModelCard(
                                     Tag(
                                         type = TagType.WARNING
                                     ) {
-                                        Icon(Lucide.Hammer, null, modifier = Modifier.size(14.dp))
+                                        Icon(
+                                            imageVector = Lucide.Hammer,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(14.dp)
+                                        )
                                     }
                                 }
 
@@ -1423,8 +1432,8 @@ private fun ModelCard(
                                         type = TagType.INFO
                                     ) {
                                         Icon(
-                                            Lucide.Lightbulb,
-                                            null,
+                                            painter = painterResource(R.drawable.deepthink),
+                                            contentDescription = null,
                                             modifier = Modifier.size(14.dp)
                                         )
                                     }
@@ -1440,7 +1449,7 @@ private fun ModelCard(
                         dialogState.open(model.copy())
                     }
                 ) {
-                    Icon(Lucide.Pencil, "Edit")
+                    Icon(Lucide.Settings2, "Edit")
                 }
             }
         }

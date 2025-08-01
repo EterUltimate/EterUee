@@ -28,6 +28,7 @@ import me.rerere.tts.model.TTSRequest
 import me.rerere.tts.model.TTSResponse
 import me.rerere.tts.provider.TTSManager
 import me.rerere.tts.provider.TTSProviderSetting
+import me.rerere.rikkahub.utils.stripMarkdown
 import org.koin.compose.koinInject
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -137,7 +138,7 @@ private class CustomTtsStateImpl(
     private var nextChunkToSynthesize = 0
 
     // Chunking configuration
-    private val maxChunkLength = 50 // Maximum characters per chunk (only as reference)
+    private val maxChunkLength = 40 // Maximum characters per chunk (only as reference)
     private val chunkDelayMs = 0L // Delay between chunks
     private val preSynthesisCount = 3 // Number of chunks to pre-synthesize ahead
 
@@ -173,109 +174,77 @@ private class CustomTtsStateImpl(
     }
 
     private fun chunkText(text: String): List<String> {
-        if (text.length <= maxChunkLength) {
-            return listOf(text)
+        if (text.isBlank()) {
+            return emptyList()
         }
 
-        val chunks = mutableListOf<String>()
+        // 1. 按段落分割
+        val paragraphs = text.split("\n\n")
+
+        // 正则表达式会在标点符号后分割，并保留标点
+        val punctuationRegex = "(?<=[。！？，、：;.!?:,\n])".toRegex()
+
+        // 2. 对每个段落进行处理，然后将结果合并
+        return paragraphs.flatMap { paragraph ->
+            if (paragraph.isBlank()) {
+                emptyList()
+            } else {
+                paragraph.stripMarkdown()
+                    .split(punctuationRegex)
+                    .asSequence()
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                    .fold<String, MutableList<StringBuilder>>(mutableListOf()) { acc, chunk ->
+                        if (acc.isEmpty() || acc.last().length + chunk.length > maxChunkLength) {
+                            acc.add(StringBuilder(chunk))
+                        } else {
+                            acc.last().append(chunk)
+                        }
+                        acc
+                    }
+                    .map { it.toString() }
+                    .flatMap { chunk ->
+                        if (chunk.length > maxChunkLength) {
+                            splitLongChunkIntelligently(chunk)
+                        } else {
+                            listOf(chunk)
+                        }
+                    }
+            }
+        }
+    }
+
+    /**
+     * 将长文本块智能地分割成较小的子块，尝试在句子结束标点或靠近 `maxChunkLength` 的空格处断开。
+     *
+     * @param longChunk 要分割的长字符串。
+     * @return 较小字符串的列表。
+     */
+    private fun splitLongChunkIntelligently(longChunk: String): List<String> {
+        val subChunks = mutableListOf<String>()
         var startIndex = 0
 
-        while (startIndex < text.length) {
-            val endIndex = minOf(startIndex + maxChunkLength, text.length)
+        while (startIndex < longChunk.length) {
+            val endIndex = minOf(startIndex + maxChunkLength, longChunk.length)
             var chunkEndIndex = endIndex
 
-            // If we haven't reached the end of the text, find a proper break point
-            if (endIndex < text.length) {
-                // Priority 1: Look for sentence endings (. ! ? followed by space or newline)
-                var bestBreakPoint = -1
+            if (endIndex < longChunk.length) {
+                val bestBreakPoint = longChunk.lastIndexOf(' ', endIndex)
 
-                // Search from end backwards to find the latest possible break point
-                for (i in endIndex - 1 downTo startIndex) {
-                    val char = text.getOrNull(i)
-                    val nextChar = text.getOrNull(i + 1)
-
-                    if (char != null && (char == '.' || char == '!' || char == '?' || char == '。' || char == '！' || char == '？')) {
-                        if (nextChar == null || nextChar.isWhitespace()) {
-                            bestBreakPoint = i + 1
-                            break
-                        }
-                    }
-                }
-
-                // Priority 2: Look for line breaks
-                if (bestBreakPoint == -1) {
-                    for (i in endIndex - 1 downTo startIndex) {
-                        val char = text.getOrNull(i)
-                        if (char == '\n' || char == '\r') {
-                            bestBreakPoint = i + 1
-                            break
-                        }
-                    }
-                }
-
-                // Priority 3: Look for other punctuation marks
-                if (bestBreakPoint == -1) {
-                    for (i in endIndex - 1 downTo startIndex) {
-                        val char = text.getOrNull(i)
-                        val nextChar = text.getOrNull(i + 1)
-
-                        if (char != null && (char == ',' || char == ';' || char == ':' || char == '，' || char == '；' || char == '：')) {
-                            if (nextChar == null || nextChar.isWhitespace()) {
-                                bestBreakPoint = i + 1
-                                break
-                            }
-                        }
-                    }
-                }
-
-                // Priority 4: Look for word boundaries (spaces)
-                if (bestBreakPoint == -1) {
-                    for (i in endIndex - 1 downTo startIndex) {
-                        if (text[i].isWhitespace()) {
-                            bestBreakPoint = i + 1
-                            break
-                        }
-                    }
-                }
-
-                // Priority 5: If still no break point found, extend search beyond maxChunkLength
-                if (bestBreakPoint == -1) {
-                    // Look ahead for the next sentence ending
-                    for (i in endIndex until text.length) {
-                        val char = text.getOrNull(i)
-                        val nextChar = text.getOrNull(i + 1)
-
-                        if (char != null && (char == '.' || char == '!' || char == '?' || char == '。' || char == '！' || char == '？')) {
-                            if (nextChar == null || nextChar.isWhitespace()) {
-                                bestBreakPoint = i + 1
-                                break
-                            }
-                        }
-
-                        // Don't search too far ahead
-                        if (i - endIndex > maxChunkLength / 2) break
-                    }
-                }
-
-                // Use the best break point found, or fall back to maxChunkLength only if absolutely necessary
-                if (bestBreakPoint != -1) {
-                    chunkEndIndex = bestBreakPoint
+                // 如果能找到空格，就在最后一个空格处断开
+                if (bestBreakPoint > startIndex) {
+                    chunkEndIndex = bestBreakPoint + 1
                 }
             }
 
-            val chunk = text.substring(startIndex, chunkEndIndex).trim()
-            if (chunk.isNotEmpty()) {
-                chunks.add(chunk)
+            val subChunk = longChunk.substring(startIndex, chunkEndIndex).trim()
+            if (subChunk.isNotEmpty()) {
+                subChunks.add(subChunk)
             }
-
             startIndex = chunkEndIndex
-            // Skip any remaining whitespace
-            while (startIndex < text.length && text[startIndex].isWhitespace()) {
-                startIndex++
-            }
         }
 
-        return chunks
+        return subChunks
     }
 
     override fun speak(text: String, flushCalled: Boolean) {

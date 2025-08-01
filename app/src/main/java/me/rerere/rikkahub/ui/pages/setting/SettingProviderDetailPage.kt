@@ -1257,21 +1257,14 @@ private fun ModelCard(
 
     if (dialogState.isEditing) {
         dialogState.currentState?.let { editingModel ->
+            val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
             ModalBottomSheet(
                 onDismissRequest = {
                     dialogState.dismiss()
                 },
-                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                sheetState = sheetState,
                 sheetGesturesEnabled = false,
-                dragHandle = {
-                    IconButton(
-                        onClick = {
-                            dialogState.dismiss()
-                        }
-                    ) {
-                        Icon(Lucide.ChevronDown, null)
-                    }
-                }
+                dragHandle = null,
             ) {
                 Column(
                     modifier = Modifier
@@ -1281,10 +1274,26 @@ private fun ModelCard(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Text(
-                        text = stringResource(R.string.setting_provider_page_edit_model),
-                        style = MaterialTheme.typography.titleLarge
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        IconButton(
+                            onClick = {
+                                scope.launch {
+                                    sheetState.hide()
+                                    dialogState.dismiss()
+                                }
+                            },
+                            modifier = Modifier.align(Alignment.CenterStart)
+                        ) {
+                            Icon(Lucide.X, null)
+                        }
+                        Text(
+                            text = stringResource(R.string.setting_provider_page_edit_model),
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.align(Alignment.Center),
+                        )
+                    }
                     Column(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier

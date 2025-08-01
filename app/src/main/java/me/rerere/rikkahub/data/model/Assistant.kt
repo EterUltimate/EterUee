@@ -17,7 +17,7 @@ data class Assistant(
     val systemPrompt: String = "",
     val temperature: Float = 0.6f,
     val topP: Float = 1.0f,
-    val contextMessageSize: Int = 32,
+    val contextMessageSize: Int = 64,
     val streamOutput: Boolean = true,
     val enableMemory: Boolean = false,
     val enableRecentChatsReference: Boolean = false,

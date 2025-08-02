@@ -437,7 +437,15 @@ private val DEFAULT_PROVIDERS = listOf(
     ProviderSetting.OpenAI(
         id = Uuid.parse("f4f8870e-82d3-495b-9b64-d58e508b3b2c"),
         name = "阶跃星辰",
-        baseUrl = " https://api.stepfun.com/v1",
+        baseUrl = "https://api.stepfun.com/v1",
+        apiKey = "",
+        enabled = false,
+        builtIn = true
+    ),
+    ProviderSetting.OpenAI(
+        id = Uuid.parse("7a4c4ad2-20e9-4952-9d38-ac2e0e61e2ea"),
+        name = "书生",
+        baseUrl = "https://chat.intern-ai.org.cn/api/v1",
         apiKey = "",
         enabled = false,
         builtIn = true

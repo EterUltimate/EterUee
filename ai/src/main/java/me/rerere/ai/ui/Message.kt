@@ -270,6 +270,26 @@ fun List<UIMessage>.truncate(index: Int): List<UIMessage> {
     return this.subList(index, this.size)
 }
 
+fun List<UIMessage>.limitContext(size: Int): List<UIMessage> {
+    if (size <= 0 || this.size <= size) return this
+
+    val startIndex = this.size - size
+    var adjustedStartIndex = startIndex
+
+    // 如果第一个消息包含tool result，往前查找对应的tool call
+    if (this[startIndex].getToolResults().isNotEmpty()) {
+        // 向前查找，直到找到包含tool call的消息
+        for (i in startIndex - 1 downTo 0) {
+            if (this[i].getToolCalls().isNotEmpty()) {
+                adjustedStartIndex = i
+                break
+            }
+        }
+    }
+
+    return this.subList(adjustedStartIndex, this.size)
+}
+
 @Serializable
 sealed class UIMessagePart {
     abstract val priority: Int

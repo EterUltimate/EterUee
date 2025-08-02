@@ -31,6 +31,7 @@ import me.rerere.ai.ui.OutputMessageTransformer
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.handleMessageChunk
+import me.rerere.ai.ui.limitContext
 import me.rerere.ai.ui.onGenerationFinish
 import me.rerere.ai.ui.transforms
 import me.rerere.ai.ui.truncate
@@ -214,7 +215,7 @@ class GenerationHandler(
                 }
                 if (system.isNotBlank()) add(UIMessage.system(system))
             }
-            addAll(messages.truncate(truncateIndex).takeLast(assistant?.contextMessageSize ?: 32))
+            addAll(messages.truncate(truncateIndex).limitContext(assistant?.contextMessageSize ?: 32))
         }.transforms(transformers, context, model)
 
         var messages: List<UIMessage> = messages

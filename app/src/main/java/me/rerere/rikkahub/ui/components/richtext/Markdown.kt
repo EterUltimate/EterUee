@@ -312,7 +312,7 @@ fun MarkdownNode(
             ProvideTextStyle(LocalTextStyle.current.copy(fontStyle = FontStyle.Italic)) {
                 val borderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
                 val bgColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
-                FlowRow(
+                Column(
                     modifier = Modifier
                         .drawWithContent {
                             drawContent()
@@ -492,11 +492,11 @@ fun MarkdownNode(
             )
         }
 
-        MarkdownTokenTypes.TEXT, MarkdownTokenTypes.WHITE_SPACE -> {
+        MarkdownTokenTypes.TEXT -> {
             val text = node.getTextInNode(content)
             Text(
                 text = text,
-                modifier = modifier
+                modifier = modifier.background(Color.Blue)
             )
         }
 
@@ -762,6 +762,8 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
     onClickCitation: (String) -> Unit = {},
 ) {
     when {
+        node.type == MarkdownTokenTypes.BLOCK_QUOTE -> {}
+
         node is LeafASTNode -> {
             append(
                 node

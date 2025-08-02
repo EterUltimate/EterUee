@@ -251,7 +251,7 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
                 if (params.temperature != null) put("temperature", params.temperature)
                 if (params.topP != null) put("top_p", params.topP)
             }
-            if(params.maxTokens != null) put("max_tokens", params.maxTokens)
+            if (params.maxTokens != null) put("max_tokens", params.maxTokens)
 
             put("stream", stream)
             if (stream) {
@@ -291,6 +291,12 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
 
                     "api.mistral.ai" -> {
                         // Mistral 不支持
+                    }
+
+                    "chat.intern-ai.org.cn" -> {
+                        // 书生
+                        // https://internlm.intern-ai.org.cn/api/document?lang=zh
+                        put("thinking_mode", level.isEnabled)
                     }
 
                     else -> {

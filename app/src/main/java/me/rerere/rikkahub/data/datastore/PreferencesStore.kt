@@ -445,7 +445,7 @@ private val DEFAULT_PROVIDERS = listOf(
             Text(
                 text = buildAnnotatedString {
                     append("一站式API中转平台, 官网：")
-                    withLink(LinkAnnotation.Url("https://api.juheai.top")) {
+                    withLink(LinkAnnotation.Url("https://api.juheai.top/register?aff=qG7E")) {
                         withStyle(SpanStyle(MaterialTheme.colorScheme.primary)) {
                             append("https://api.juheai.top")
                         }

@@ -7,7 +7,9 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
@@ -44,16 +46,15 @@ fun HighlightText(
     var tokens: List<HighlightToken> by remember { mutableStateOf(emptyList()) }
     var annotatedString by remember { mutableStateOf(AnnotatedString(code)) }
 
-    LaunchedEffect(code, language) {
-        runCatching {
-            tokens = highlighter.highlight(code, language)
-        }.onFailure {
-            it.printStackTrace()
-            tokens = listOf(HighlightToken.Plain(code))
-        }
-        annotatedString = buildAnnotatedString {
-            tokens.fastForEach { token ->
-                buildHighlightText(token, colors)
+    val updatedCode by rememberUpdatedState(code)
+    val updatedLanguage by rememberUpdatedState(language)
+    LaunchedEffect(Unit) {
+        snapshotFlow { updatedCode to updatedLanguage }.collect {
+            tokens = highlighter.highlight(updatedCode, updatedLanguage)
+            annotatedString = buildAnnotatedString {
+                tokens.fastForEach { token ->
+                    buildHighlightText(token, colors)
+                }
             }
         }
     }

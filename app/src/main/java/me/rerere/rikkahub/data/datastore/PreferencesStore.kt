@@ -435,6 +435,14 @@ private val DEFAULT_PROVIDERS = listOf(
         builtIn = true
     ),
     ProviderSetting.OpenAI(
+        id = Uuid.parse("f4f8870e-82d3-495b-9b64-d58e508b3b2c"),
+        name = "阶跃星辰",
+        baseUrl = " https://api.stepfun.com/v1",
+        apiKey = "",
+        enabled = false,
+        builtIn = true
+    ),
+    ProviderSetting.OpenAI(
         id = Uuid.parse("89e67540-32fe-4c62-9970-2e9aed9bd59d"),
         name = "JuheNext",
         baseUrl = "https://api.juheai.top/v1",

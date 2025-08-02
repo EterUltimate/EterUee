@@ -496,7 +496,7 @@ fun MarkdownNode(
             val text = node.getTextInNode(content)
             Text(
                 text = text,
-                modifier = modifier.background(Color.Blue)
+                modifier = modifier,
             )
         }
 

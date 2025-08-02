@@ -23,17 +23,19 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.getSelectedTTSProvider
+import me.rerere.rikkahub.utils.stripMarkdown
 import me.rerere.tts.model.AudioFormat
 import me.rerere.tts.model.TTSRequest
 import me.rerere.tts.model.TTSResponse
 import me.rerere.tts.provider.TTSManager
 import me.rerere.tts.provider.TTSProviderSetting
-import me.rerere.rikkahub.utils.stripMarkdown
 import org.koin.compose.koinInject
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
+
+private const val TAG = "TTS"
 
 /**
  * Composable function to remember and manage custom TTS state.
@@ -203,48 +205,8 @@ private class CustomTtsStateImpl(
                         acc
                     }
                     .map { it.toString() }
-                    .flatMap { chunk ->
-                        if (chunk.length > maxChunkLength) {
-                            splitLongChunkIntelligently(chunk)
-                        } else {
-                            listOf(chunk)
-                        }
-                    }
             }
         }
-    }
-
-    /**
-     * 将长文本块智能地分割成较小的子块，尝试在句子结束标点或靠近 `maxChunkLength` 的空格处断开。
-     *
-     * @param longChunk 要分割的长字符串。
-     * @return 较小字符串的列表。
-     */
-    private fun splitLongChunkIntelligently(longChunk: String): List<String> {
-        val subChunks = mutableListOf<String>()
-        var startIndex = 0
-
-        while (startIndex < longChunk.length) {
-            val endIndex = minOf(startIndex + maxChunkLength, longChunk.length)
-            var chunkEndIndex = endIndex
-
-            if (endIndex < longChunk.length) {
-                val bestBreakPoint = longChunk.lastIndexOf(' ', endIndex)
-
-                // 如果能找到空格，就在最后一个空格处断开
-                if (bestBreakPoint > startIndex) {
-                    chunkEndIndex = bestBreakPoint + 1
-                }
-            }
-
-            val subChunk = longChunk.substring(startIndex, chunkEndIndex).trim()
-            if (subChunk.isNotEmpty()) {
-                subChunks.add(subChunk)
-            }
-            startIndex = chunkEndIndex
-        }
-
-        return subChunks
     }
 
     override fun speak(text: String, flushCalled: Boolean) {
@@ -309,7 +271,7 @@ private class CustomTtsStateImpl(
                     if (!isActive) break
 
                     val chunk = chunks[i]
-                    Log.d("CustomTtsState", "Pre-synthesizing chunk $i: ${chunk.take(30)}...")
+                    Log.d("CustomTtsState", "Pre-synthesizing chunk $i: $chunk")
 
                     try {
                         val request = TTSRequest(text = chunk)
@@ -350,7 +312,7 @@ private class CustomTtsStateImpl(
                         if (!isActive || preSynthesisCache.containsKey(i)) continue
 
                         val chunk = allChunks[i]
-                        Log.d("CustomTtsState", "Pre-synthesizing chunk $i: ${chunk.take(30)}...")
+                        Log.d("CustomTtsState", "Pre-synthesizing chunk $i: $chunk")
 
                         try {
                             val request = TTSRequest(text = chunk)
@@ -418,7 +380,7 @@ private class CustomTtsStateImpl(
             val chunk = chunkQueue.poll() ?: break
             _currentChunk.update { chunkIndex + 1 }
 
-            Log.d("CustomTtsState", "Processing chunk ${chunkIndex + 1}/${_totalChunks.value}: ${chunk.take(50)}...")
+            Log.d("CustomTtsState", "Processing chunk ${chunkIndex + 1}/${_totalChunks.value}: $chunk")
 
             // Try to get pre-synthesized audio, fallback to real-time synthesis
             val response = try {

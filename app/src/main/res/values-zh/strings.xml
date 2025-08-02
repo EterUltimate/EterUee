@@ -434,6 +434,7 @@
   <string name="chat_message_tool_call_title">工具调用</string>
   <string name="chat_message_tool_call_label">调用工具 %1$s</string>
   <string name="chat_message_tool_call_result">调用结果</string>
+  <string name="chat_message_tool_search_results_count">共 %1$d 条结果</string>
 
   <!-- Backup and Restore Page -->
   <string name="backup_page_title">备份与恢复</string>

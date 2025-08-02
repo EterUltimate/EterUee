@@ -1119,7 +1119,7 @@ private fun ToolCallItem(
                 )
             }
             Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
                     text = when (toolName) {
@@ -1168,12 +1168,22 @@ private fun ToolCallItem(
                     }
                     val items = content?.jsonObject["items"]?.jsonArray ?: emptyList()
                     if (items.isNotEmpty()) {
-                        FaviconRow(
-                            urls = items.mapNotNull {
-                                it.jsonObject["url"]?.jsonPrimitiveOrNull?.contentOrNull
-                            },
-                            size = 14.dp,
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            FaviconRow(
+                                urls = items.mapNotNull {
+                                    it.jsonObject["url"]?.jsonPrimitiveOrNull?.contentOrNull
+                                },
+                                size = 18.dp,
+                            )
+                            Text(
+                                text = stringResource(R.string.chat_message_tool_search_results_count, items.size),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                            )
+                        }
                     }
                 }
             }

@@ -493,6 +493,7 @@
   <string name="chat_message_tool_call_title">Tool Call</string>
   <string name="chat_message_tool_call_label">Called tool %1$s</string>
   <string name="chat_message_tool_call_result">Call result</string>
+  <string name="chat_message_tool_search_results_count">%1$d results</string>
 
   <!-- Backup and Restore Page -->
   <string name="backup_page_title">Backup and Restore</string>

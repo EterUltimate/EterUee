@@ -427,6 +427,7 @@
   <string name="chat_message_tool_call_title">ツール呼び出し</string>
   <string name="chat_message_tool_call_label">ツール %1$s を呼び出しました</string>
   <string name="chat_message_tool_call_result">呼び出し結果</string>
+  <string name="chat_message_tool_search_results_count">%1$d件の結果</string>
   <string name="delete">削除</string>
   <string name="setting_display_page_show_message_jumper_title">メッセージナビゲーションボタン</string>
   <string name="setting_display_page_show_message_jumper_desc">チャットリストをスクロールすると、右側にクイックジャンプボタンが表示されます。</string>

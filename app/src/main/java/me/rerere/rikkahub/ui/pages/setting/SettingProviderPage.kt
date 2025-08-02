@@ -448,7 +448,7 @@ private fun ProviderItem(
             ) {
                 AutoAIIcon(
                     name = provider.name,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(36.dp)
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 dragHandle()

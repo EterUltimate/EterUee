@@ -443,14 +443,6 @@ private val DEFAULT_PROVIDERS = listOf(
         builtIn = true
     ),
     ProviderSetting.OpenAI(
-        id = Uuid.parse("7a4c4ad2-20e9-4952-9d38-ac2e0e61e2ea"),
-        name = "书生",
-        baseUrl = "https://chat.intern-ai.org.cn/api/v1",
-        apiKey = "",
-        enabled = false,
-        builtIn = true
-    ),
-    ProviderSetting.OpenAI(
         id = Uuid.parse("89e67540-32fe-4c62-9970-2e9aed9bd59d"),
         name = "JuheNext",
         baseUrl = "https://api.juheai.top/v1",

@@ -141,8 +141,8 @@ private class CustomTtsStateImpl(
 
     // Chunking configuration
     private val maxChunkLength = 40 // Maximum characters per chunk (only as reference)
-    private val chunkDelayMs = 0L // Delay between chunks
-    private val preSynthesisCount = 3 // Number of chunks to pre-synthesize ahead
+    private val chunkDelayMs = 5L // Delay between chunks
+    private val preSynthesisCount = 4 // Number of chunks to pre-synthesize ahead
 
     private val _isAvailable = MutableStateFlow(false)
     override val isAvailable: StateFlow<Boolean> = _isAvailable.asStateFlow()

@@ -89,6 +89,7 @@ import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.ui.hooks.EditStateContent
+import me.rerere.rikkahub.ui.hooks.readBooleanPreference
 import me.rerere.rikkahub.ui.hooks.rememberIsPlayStoreVersion
 import me.rerere.rikkahub.ui.hooks.useEditState
 import me.rerere.rikkahub.ui.hooks.useThrottle
@@ -502,6 +503,7 @@ private fun DrawerContent(
     loading: Boolean,
 ) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     // 昵称编辑状态
     val nicknameEditState = useEditState<String> { newNickname ->
@@ -593,10 +595,15 @@ private fun DrawerContent(
                 onUpdateSettings = {
                     vm.updateSettings(it)
                     scope.launch {
-                        val conversation = repo.getConversationsOfAssistant(it.assistantId)
-                            .first()
-                            .firstOrNull()
-                        navigateToChatPage(navController, conversation?.id ?: Uuid.random())
+                        val id = if (context.readBooleanPreference("create_new_conversation_on_start", true)) {
+                            Uuid.random()
+                        } else {
+                            repo.getConversationsOfAssistant(it.assistantId)
+                                .first()
+                                .firstOrNull()
+                                ?.id ?: Uuid.random()
+                        }
+                        navigateToChatPage(navController = navController, chatId = id)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),

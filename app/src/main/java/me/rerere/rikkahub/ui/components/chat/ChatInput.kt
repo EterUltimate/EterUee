@@ -487,6 +487,7 @@ fun ChatInput(
                     // Search
                     val enableSearchMsg = stringResource(R.string.web_search_enabled)
                     val disableSearchMsg = stringResource(R.string.web_search_disabled)
+                    val chatModel = settings.getCurrentChatModel()
                     SearchPickerButton(
                         enableSearch = enableSearch,
                         settings = settings,
@@ -503,6 +504,7 @@ fun ChatInput(
                             )
                         },
                         onUpdateSearchService = onUpdateSearchService,
+                        model = chatModel,
                     )
 
                     // Reasoning

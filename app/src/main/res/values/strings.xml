@@ -10,6 +10,8 @@
   <string name="web_search_enabled">Web search enabled</string>
   <string name="web_search_disabled">Web search disabled</string>
   <string name="search_picker_title">Search Settings</string>
+  <string name="built_in_search_title">Built-in Search</string>
+  <string name="built_in_search_description">Enable model\'s built-in search functionality</string>
   <string name="photo">Photo</string>
   <string name="take_picture">Take Picture</string>
   <string name="shortcut_take_picture">Take Picture &amp; Ask</string>

@@ -11,6 +11,8 @@
   <string name="web_search_enabled">ウェブ検索が有効になりました</string>
   <string name="web_search_disabled">ウェブ検索が無効になりました</string>
   <string name="search_picker_title">検索設定</string>
+  <string name="built_in_search_title">組み込み検索</string>
+  <string name="built_in_search_description">モデルの組み込み検索機能を有効にする</string>
   <string name="photo">写真</string>
   <string name="take_picture">写真を撮る</string>
   <string name="shortcut_take_picture">写真で質問</string>

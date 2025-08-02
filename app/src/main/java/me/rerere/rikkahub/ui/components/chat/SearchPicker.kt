@@ -28,23 +28,31 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Search
 import com.composables.icons.lucide.Settings2
+import kotlinx.coroutines.launch
+import me.rerere.ai.provider.BuiltInTools
+import me.rerere.ai.provider.Model
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.Screen
 import me.rerere.rikkahub.data.datastore.Settings
+import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.ToggleSurface
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.search.SearchService
 import me.rerere.search.SearchServiceOptions
+import org.koin.compose.koinInject
 
 @Composable
 fun SearchPickerButton(
@@ -53,13 +61,14 @@ fun SearchPickerButton(
     modifier: Modifier = Modifier,
     onToggleSearch: (Boolean) -> Unit,
     onUpdateSearchService: (Int) -> Unit,
+    model: Model?,
 ) {
     var showSearchPicker by remember { mutableStateOf(false) }
     val currentService = settings.searchServices.getOrNull(settings.searchServiceSelected)
 
     ToggleSurface(
         modifier = modifier,
-        checked = enableSearch,
+        checked = enableSearch || model?.tools?.contains(BuiltInTools.Search) == true,
         onClick = {
             showSearchPicker = true
         }
@@ -119,6 +128,7 @@ fun SearchPickerButton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
+                    model = model,
                     onDismiss = {
                         showSearchPicker = false
                     }
@@ -129,9 +139,10 @@ fun SearchPickerButton(
 }
 
 @Composable
-fun SearchPicker(
+private fun SearchPicker(
     enableSearch: Boolean,
     settings: Settings,
+    model: Model?,
     modifier: Modifier = Modifier,
     onToggleSearch: (Boolean) -> Unit,
     onUpdateSearchService: (Int) -> Unit,
@@ -139,6 +150,35 @@ fun SearchPicker(
 ) {
     val navBackStack = LocalNavController.current
 
+    // 模型内置搜索
+    if (model?.modelId?.contains("gemini") == true) {
+        BuiltInSearchSetting(model = model)
+    }
+
+    // 如果没有开启内置搜索，显示搜索服务选择
+    if (model?.tools?.contains(BuiltInTools.Search) != true) {
+        AppSearchSettings(
+            enableSearch = enableSearch,
+            onDismiss = onDismiss,
+            navBackStack = navBackStack,
+            onToggleSearch = onToggleSearch,
+            modifier = modifier,
+            settings = settings,
+            onUpdateSearchService = onUpdateSearchService
+        )
+    }
+}
+
+@Composable
+private fun AppSearchSettings(
+    enableSearch: Boolean,
+    onDismiss: () -> Unit,
+    navBackStack: NavHostController,
+    onToggleSearch: (Boolean) -> Unit,
+    modifier: Modifier,
+    settings: Settings,
+    onUpdateSearchService: (Int) -> Unit
+) {
     Card {
         Row(
             modifier = Modifier
@@ -238,6 +278,57 @@ fun SearchPicker(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun BuiltInSearchSetting(model: Model) {
+    val settingsStore = koinInject<SettingsStore>()
+    val scope = rememberCoroutineScope()
+    Card {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(Lucide.Search, null)
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.built_in_search_title),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    text = stringResource(R.string.built_in_search_description),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = LocalContentColor.current.copy(alpha = 0.8f)
+                )
+            }
+
+            Switch(
+                checked = model.tools.contains(BuiltInTools.Search),
+                onCheckedChange = { checked ->
+                    val settings = settingsStore.settingsFlow.value
+                    scope.launch {
+                        settingsStore.update(
+                            settings.copy(
+                                providers = settings.providers.map { providerSetting ->
+                                    providerSetting.editModel(
+                                        Model(
+                                            tools = if (checked) model.tools + BuiltInTools.Search else model.tools - BuiltInTools.Search
+                                        )
+                                    )
+                                }
+                            )
+                        )
+                    }
+                }
+            )
         }
     }
 }

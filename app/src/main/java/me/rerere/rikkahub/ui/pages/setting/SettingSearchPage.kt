@@ -282,6 +282,13 @@ private fun SearchProviderCard(
                     }
                 }
 
+                is SearchServiceOptions.BraveOptions -> {
+                    BraveOptions(options as SearchServiceOptions.BraveOptions) {
+                        options = it
+                        onUpdateService(options)
+                    }
+                }
+
                 is SearchServiceOptions.BingLocalOptions -> {}
             }
 
@@ -530,6 +537,30 @@ private fun SearXNGOptions(
 private fun SearchLinkUpPage(
     options: SearchServiceOptions.LinkUpOptions,
     onUpdateOptions: (SearchServiceOptions.LinkUpOptions) -> Unit
+) {
+    FormItem(
+        label = {
+            Text("API Key")
+        }
+    ) {
+        OutlinedTextField(
+            value = options.apiKey,
+            onValueChange = {
+                onUpdateOptions(
+                    options.copy(
+                        apiKey = it
+                    )
+                )
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+private fun BraveOptions(
+    options: SearchServiceOptions.BraveOptions,
+    onUpdateOptions: (SearchServiceOptions.BraveOptions) -> Unit
 ) {
     FormItem(
         label = {

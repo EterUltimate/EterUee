@@ -119,6 +119,7 @@ private fun computeAIIconByName(name: String): String? {
         PATTERN_SEARCH_BING.containsMatchIn(lowerName) -> "bing.png"
         PATTERN_SEARCH_TAVILY.containsMatchIn(lowerName) -> "tavily.png"
         PATTERN_SEARCH_EXA.containsMatchIn(lowerName) -> "exa.png"
+        PATTERN_SEARCH_BRAVE.containsMatchIn(lowerName) -> "brave.svg"
         else -> null
     }
 
@@ -163,3 +164,4 @@ private val PATTERN_SEARCH_LINKUP = Regex("linkup")
 private val PATTERN_SEARCH_BING = Regex("bing")
 private val PATTERN_SEARCH_TAVILY = Regex("tavily")
 private val PATTERN_SEARCH_EXA = Regex("exa")
+private val PATTERN_SEARCH_BRAVE = Regex("brave")

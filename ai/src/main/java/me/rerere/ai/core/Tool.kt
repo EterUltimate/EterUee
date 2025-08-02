@@ -4,13 +4,14 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import me.rerere.ai.provider.Model
 
 @Serializable
 data class Tool(
     val name: String,
     val description: String,
     val parameters: InputSchema? = null,
-    val systemPrompt: () -> String = { "" },
+    val systemPrompt: (model: Model) -> String = { "" },
     val execute: suspend (JsonElement) -> JsonElement
 )
 

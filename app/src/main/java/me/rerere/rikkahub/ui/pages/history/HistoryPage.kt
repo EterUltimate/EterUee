@@ -108,14 +108,14 @@ fun HistoryPage(vm: HistoryVM = koinViewModel()) {
                             }
                         }
                     ) {
-                        Icon(Lucide.Search, contentDescription = "Search")
+                        Icon(Lucide.Search, contentDescription = stringResource(R.string.history_page_search))
                     }
                     IconButton(
                         onClick = {
                             showDeleteAllDialog = true
                         }
                     ) {
-                        Icon(Lucide.Trash2, contentDescription = "Delete All")
+                        Icon(Lucide.Trash2, contentDescription = stringResource(R.string.history_page_delete_all))
                     }
                 }
             )
@@ -136,6 +136,8 @@ fun HistoryPage(vm: HistoryVM = koinViewModel()) {
             SnackbarHost(hostState = snackbarHostState)
         }
     ) { contentPadding ->
+        val snackMessageDeleted = stringResource(R.string.history_page_conversation_deleted)
+        val snackMessageUndo = stringResource(R.string.history_page_undo)
         LazyColumn(
             contentPadding = contentPadding + PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -150,8 +152,8 @@ fun HistoryPage(vm: HistoryVM = koinViewModel()) {
                         vm.deleteConversation(conversation)
                         scope.launch {
                             val result = snackbarHostState.showSnackbar(
-                                message = "Conversation deleted",
-                                actionLabel = "Undo",
+                                message = snackMessageDeleted,
+                                actionLabel = snackMessageUndo,
                                 withDismissAction = true,
                             )
                             if (result == SnackbarResult.ActionPerformed) {
@@ -171,8 +173,8 @@ fun HistoryPage(vm: HistoryVM = koinViewModel()) {
     if (showDeleteAllDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteAllDialog = false },
-            title = { Text("Delete All Conversations") },
-            text = { Text("Are you sure you want to delete all conversations? This action cannot be undone.") },
+            title = { Text(stringResource(R.string.history_page_delete_all_conversations)) },
+            text = { Text(stringResource(R.string.history_page_delete_all_confirmation)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -180,14 +182,14 @@ fun HistoryPage(vm: HistoryVM = koinViewModel()) {
                         showDeleteAllDialog = false
                     }
                 ) {
-                    Text("Delete")
+                    Text(stringResource(R.string.history_page_delete))
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showDeleteAllDialog = false }
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.history_page_cancel))
                 }
             }
         )
@@ -272,7 +274,7 @@ private fun SwipeableConversationItem(
             ) {
                 Icon(
                     imageVector = Lucide.Trash2,
-                    contentDescription = "Delete",
+                    contentDescription = stringResource(R.string.history_page_delete),
                     tint = MaterialTheme.colorScheme.onErrorContainer
                 )
             }
@@ -333,7 +335,9 @@ private fun ConversationItem(
                 ) {
                     Icon(
                         if (conversation.isPinned) Lucide.PinOff else Lucide.Pin,
-                        contentDescription = if (conversation.isPinned) "Unpin" else "Pin"
+                        contentDescription = if (conversation.isPinned) stringResource(R.string.history_page_unpin) else stringResource(
+                            R.string.history_page_pin
+                        )
                     )
                 }
             }

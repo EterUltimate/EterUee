@@ -518,6 +518,16 @@
   <string name="history_page_search_placeholder">输入关键词搜索聊天</string>
   <string name="history_page_new_conversation">新对话</string>
   <string name="history_page_clear">清除</string>
+  <string name="history_page_search">搜索</string>
+  <string name="history_page_delete_all">删除全部</string>
+  <string name="history_page_conversation_deleted">对话已删除</string>
+  <string name="history_page_undo">撤销</string>
+  <string name="history_page_delete_all_conversations">删除全部对话</string>
+  <string name="history_page_delete_all_confirmation">确定要删除所有对话吗？此操作无法撤销。</string>
+  <string name="history_page_delete">删除</string>
+  <string name="history_page_cancel">取消</string>
+  <string name="history_page_pin">置顶</string>
+  <string name="history_page_unpin">取消置顶</string>
 
   <!-- TTS Settings Page -->
   <string name="setting_tts_page_title">语音合成</string>

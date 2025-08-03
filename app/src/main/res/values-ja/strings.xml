@@ -519,6 +519,16 @@
   <string name="history_page_search_placeholder">キーワードを入力してチャットを検索</string>
   <string name="history_page_new_conversation">新しい会話</string>
   <string name="history_page_clear">クリア</string>
+  <string name="history_page_search">検索</string>
+  <string name="history_page_delete_all">すべて削除</string>
+  <string name="history_page_conversation_deleted">会話が削除されました</string>
+  <string name="history_page_undo">元に戻す</string>
+  <string name="history_page_delete_all_conversations">すべての会話を削除</string>
+  <string name="history_page_delete_all_confirmation">すべての会話を削除してもよろしいですか？この操作は元に戻せません。</string>
+  <string name="history_page_delete">削除</string>
+  <string name="history_page_cancel">キャンセル</string>
+  <string name="history_page_pin">ピン留め</string>
+  <string name="history_page_unpin">ピン留め解除</string>
 
   <!-- TTS Settings Page -->
   <string name="setting_tts_page_title">テキスト読み上げ</string>

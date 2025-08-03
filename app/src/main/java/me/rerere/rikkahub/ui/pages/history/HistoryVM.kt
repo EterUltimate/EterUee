@@ -6,8 +6,12 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import me.rerere.rikkahub.data.datastore.SettingsStore
+import me.rerere.rikkahub.data.datastore.getCurrentAssistant
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.repository.ConversationRepository
 import kotlin.uuid.Uuid
@@ -16,16 +20,26 @@ private const val TAG = "HistoryVM"
 
 class HistoryVM(
     private val conversationRepo: ConversationRepository,
+    private val settingsStore: SettingsStore,
 ) : ViewModel() {
-    val conversations = conversationRepo.getAllConversations()
-        .catch {
-            Log.e(TAG, "conversationRepo.getAllConversations: ", it)
-            emit(emptyList())
-        }
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val assistant = settingsStore.settingsFlow
+        .map { it.getCurrentAssistant() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    fun searchConversations(query: String): Flow<List<Conversation>> =
-        conversationRepo.searchConversations(query)
+    val conversations = assistant.flatMapLatest { assistant ->
+        conversationRepo.getConversationsOfAssistant(assistant?.id ?: Uuid.random())
+    }.catch {
+        Log.e(TAG, "Error: ${it.message}")
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    fun searchConversations(query: String): Flow<List<Conversation>> {
+        val currentAssistant = assistant.value
+        return if (currentAssistant != null) {
+            conversationRepo.searchConversationsOfAssistant(currentAssistant.id, query)
+        } else {
+            conversationRepo.searchConversations(query)
+        }
+    }
 
     fun deleteConversation(conversation: Conversation) {
         viewModelScope.launch {

@@ -54,6 +54,16 @@ class ConversationRepository(
             }
     }
 
+    fun searchConversationsOfAssistant(assistantId: Uuid, titleKeyword: String): Flow<List<Conversation>> {
+        return conversationDAO
+            .searchConversationsOfAssistant(assistantId.toString(), titleKeyword)
+            .map { flow ->
+                flow.map { entity ->
+                    conversationEntityToConversation(entity)
+                }
+            }
+    }
+
     suspend fun getConversationById(uuid: Uuid): Conversation? {
         val entity = conversationDAO.getConversationById(uuid.toString())
         return if (entity != null) {

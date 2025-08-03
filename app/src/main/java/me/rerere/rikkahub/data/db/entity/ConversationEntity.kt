@@ -22,4 +22,6 @@ data class ConversationEntity(
     val truncateIndex: Int,
     @ColumnInfo("suggestions", defaultValue = "[]")
     val chatSuggestions: String,
+    @ColumnInfo("is_pinned", defaultValue = "0")
+    val isPinned: Boolean,
 )

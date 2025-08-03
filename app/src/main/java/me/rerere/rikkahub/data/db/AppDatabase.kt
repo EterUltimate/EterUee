@@ -23,7 +23,7 @@ private const val TAG = "AppDatabase"
 
 @Database(
     entities = [ConversationEntity::class, MemoryEntity::class],
-    version = 9,
+    version = 10,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
@@ -32,6 +32,7 @@ private const val TAG = "AppDatabase"
         AutoMigration(from = 5, to = 6),
         AutoMigration(from = 7, to = 8),
         AutoMigration(from = 8, to = 9, spec = Migration_8_9::class),
+        AutoMigration(from = 9, to = 10),
     ]
 )
 @TypeConverters(TokenUsageConverter::class)

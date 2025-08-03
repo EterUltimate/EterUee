@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -30,6 +31,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Pin
+import com.composables.icons.lucide.PinOff
 import com.composables.icons.lucide.X
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.model.Conversation
@@ -99,6 +102,7 @@ fun HistoryPage(vm: HistoryVM = koinViewModel()) {
                         navigateToChatPage(navController, it.id)
                     },
                     onDelete = { vm.deleteConversation(it) },
+                    onTogglePin = { vm.togglePinStatus(it.id) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .animateItem()
@@ -150,6 +154,7 @@ private fun ConversationItem(
     conversation: Conversation,
     modifier: Modifier = Modifier,
     onDelete: () -> Unit = {},
+    onTogglePin: () -> Unit = {},
     onClick: () -> Unit = {},
 ) {
     Surface(
@@ -160,16 +165,36 @@ private fun ConversationItem(
     ) {
         ListItem(
             headlineContent = {
-                Text(conversation.title.ifBlank { stringResource(R.string.history_page_new_conversation) }.trim())
+                Row {
+                    if (conversation.isPinned) {
+                        Icon(
+                            Lucide.Pin,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                    }
+                    Text(conversation.title.ifBlank { stringResource(R.string.history_page_new_conversation) }.trim())
+                }
             },
             supportingContent = {
                 Text(conversation.createAt.toLocalDateTime())
             },
             trailingContent = {
-                IconButton(
-                    onClick = onDelete
-                ) {
-                    Icon(Lucide.X, stringResource(R.string.delete))
+                Row {
+                    IconButton(
+                        onClick = onTogglePin
+                    ) {
+                        Icon(
+                            if (conversation.isPinned) Lucide.PinOff else Lucide.Pin,
+                            contentDescription = if (conversation.isPinned) "Unpin" else "Pin"
+                        )
+                    }
+                    IconButton(
+                        onClick = onDelete
+                    ) {
+                        Icon(Lucide.X, stringResource(R.string.delete))
+                    }
                 }
             }
         )

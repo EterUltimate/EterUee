@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.repository.ConversationRepository
+import kotlin.uuid.Uuid
 
 private const val TAG = "HistoryVM"
 
@@ -37,4 +38,13 @@ class HistoryVM(
             conversationRepo.deleteAllConversations()
         }
     }
+
+    fun togglePinStatus(conversationId: Uuid) {
+        viewModelScope.launch {
+            conversationRepo.togglePinStatus(conversationId)
+        }
+    }
+
+    fun getPinnedConversations(): Flow<List<Conversation>> =
+        conversationRepo.getPinnedConversations()
 }

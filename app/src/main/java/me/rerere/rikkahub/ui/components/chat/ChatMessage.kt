@@ -105,6 +105,7 @@ import com.composables.icons.lucide.Copy
 import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.Ellipsis
 import com.composables.icons.lucide.Expand
+import com.composables.icons.lucide.ExternalLink
 import com.composables.icons.lucide.File
 import com.composables.icons.lucide.GitFork
 import com.composables.icons.lucide.Lucide
@@ -145,6 +146,7 @@ import me.rerere.rikkahub.data.repository.MemoryRepository
 import me.rerere.rikkahub.ui.components.richtext.HighlightCodeBlock
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.components.richtext.ZoomableAsyncImage
+import me.rerere.rikkahub.ui.components.richtext.buildMarkdownPreviewHtml
 import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.Favicon
 import me.rerere.rikkahub.ui.components.ui.FaviconRow
@@ -156,6 +158,7 @@ import me.rerere.rikkahub.ui.modifier.shimmer
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.JsonInstantPretty
+import me.rerere.rikkahub.utils.base64Encode
 import me.rerere.rikkahub.utils.copyMessageToClipboard
 import me.rerere.rikkahub.utils.extractGeminiThinkingTitle
 import me.rerere.rikkahub.utils.formatNumber
@@ -256,6 +259,8 @@ fun ChatMessage(
         }
     }
     if (showActionsSheet) {
+        val navController = LocalNavController.current
+        val context = LocalContext.current
         LongPressActionsSheet(
             message = message,
             onEdit = onEdit,
@@ -265,6 +270,16 @@ fun ChatMessage(
             model = model,
             onSelectAndCopy = {
                 showSelectCopySheet = true
+            },
+            onWebViewPreview = {
+                val textContent = message.parts
+                    .filterIsInstance<UIMessagePart.Text>()
+                    .joinToString("\n\n") { it.text }
+                    .trim()
+                if (textContent.isNotBlank()) {
+                    val htmlContent = buildMarkdownPreviewHtml(context, textContent)
+                    navController.navigate(Screen.WebView(content = htmlContent.base64Encode()))
+                }
             },
             onDismissRequest = {
                 showActionsSheet = false
@@ -291,6 +306,7 @@ private fun LongPressActionsSheet(
     onShare: () -> Unit,
     onFork: () -> Unit,
     onSelectAndCopy: () -> Unit,
+    onWebViewPreview: () -> Unit,
     onDismissRequest: () -> Unit
 ) {
     ModalBottomSheet(
@@ -331,6 +347,37 @@ private fun LongPressActionsSheet(
                 }
             }
 
+            // WebView Preview (only show if message has text content)
+            val hasTextContent = message.parts.filterIsInstance<UIMessagePart.Text>()
+                .any { it.text.isNotBlank() }
+
+            if (hasTextContent) {
+                Card(
+                    onClick = {
+                        onDismissRequest()
+                        onWebViewPreview()
+                    },
+                    shape = MaterialTheme.shapes.medium
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Lucide.ExternalLink,
+                            contentDescription = null,
+                            modifier = Modifier.padding(4.dp)
+                        )
+                        Text(
+                            text = "WebView Preview",
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                    }
+                }
+            }
 
             // Edit
             Card(

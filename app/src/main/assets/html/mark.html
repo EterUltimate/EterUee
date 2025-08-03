@@ -5,23 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Markdown Preview</title>
 
-    <!-- Marked.js for markdown parsing -->
-    <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
-
     <!-- KaTeX for LaTeX math rendering -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
 
     <!-- Highlight.js for syntax highlighting -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/highlight.min.js"></script>
-
-    <!-- Mermaid for diagrams -->
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
-
-    <!-- Base64 for file loading -->
-    <script src="https://cdn.jsdelivr.net/npm/js-base64@latest/base64.min.js"></script>
 
     <style>
         body {
@@ -237,17 +225,63 @@
 <body>
     <div id="content"></div>
 
-    <script>
-        // Configure marked.js
-        marked.setOptions({
-            highlight: function(code, lang) {
-                const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-                return hljs.highlight(code, { language }).value;
-            },
-            langPrefix: 'hljs language-',
-            breaks: true,
-            gfm: true
+    <script type="module">
+        // Import markdown-it and plugins using esm.sh
+        import MarkdownIt from 'https://esm.sh/markdown-it@14.0.0';
+        import vscodemarkdownItKatex from 'https://esm.sh/@vscode/markdown-it-katex'
+        import markdownItTaskLists from 'https://esm.sh/markdown-it-task-lists@2.1.1';
+
+        import katex from 'https://esm.sh/katex@0.16.8';
+        import hljs from 'https://esm.sh/highlight.js@11.9.0';
+        import mermaid from 'https://esm.sh/mermaid@10.6.1';
+        import { Base64 } from 'https://esm.sh/js-base64@3.7.5';
+
+        // Configure markdown-it
+        const md = new MarkdownIt({
+            html: true,         // Enable HTML tags in source
+            xhtmlOut: false,    // Use '/' to close single tags (<br />)
+            breaks: false,      // Convert '\n' in paragraphs into <br>
+            langPrefix: 'language-',  // CSS language prefix for fenced blocks
+            linkify: true,      // Autoconvert URL-like text to links
+            typographer: true,  // Enable some language-neutral replacement + quotes beautification
+            quotes: '“”‘’',     // Quote chars
+            highlight: function (str, lang) {
+                if (lang && hljs.getLanguage(lang)) {
+                    try {
+                        return '<pre class="hljs"><code>' +
+                               hljs.highlight(str, { language: lang, ignoreIllegals: true }).value +
+                               '</code></pre>';
+                    } catch (__) {}
+                }
+                return '<pre class="hljs"><code>' + md.utils.escapeHtml(str) + '</code></pre>';
+            }
         });
+
+        // Add plugins
+        md.use(vscodemarkdownItKatex);
+
+        md.use(markdownItTaskLists, {
+            enabled: true,
+            label: true,
+            labelAfter: true
+        });
+
+        // Add custom renderer for mermaid
+        const defaultFenceRenderer = md.renderer.rules.fence || function(tokens, idx, options, env, renderer) {
+            return renderer.renderToken(tokens, idx, options);
+        };
+
+        md.renderer.rules.fence = function(tokens, idx, options, env, renderer) {
+            const token = tokens[idx];
+            const info = token.info ? md.utils.unescapeAll(token.info).trim() : '';
+
+            if (info === 'mermaid') {
+                const id = 'mermaid-' + Math.random().toString(36).substr(2, 9);
+                return `<div class="mermaid" id="${id}">${token.content.trim()}</div>\n`;
+            }
+
+            return defaultFenceRenderer(tokens, idx, options, env, renderer);
+        };
 
         // Configure mermaid
         mermaid.initialize({
@@ -261,61 +295,58 @@
         const markdownBase64 = `{{MARKDOWN_BASE64}}`;
         const markdownContent = Base64.decode(markdownBase64);
 
-        // Custom renderer for mermaid blocks
-        const renderer = new marked.Renderer();
-        const originalCode = renderer.code;
+        // Render markdown with markdown-it
+        async function renderMarkdown() {
+            try {
+                // Process with markdown-it
+                const html = md.render(markdownContent);
+                document.getElementById('content').innerHTML = html;
 
-        renderer.code = function(code, language) {
-            if (language === 'mermaid') {
-                const id = 'mermaid-' + Math.random().toString(36).substr(2, 9);
-                return `<div class="mermaid" id="${id}">${code}</div>`;
+                // Render mermaid diagrams
+                const mermaidElements = document.querySelectorAll('.mermaid');
+                if (mermaidElements.length > 0) {
+                    await mermaid.run({
+                        nodes: mermaidElements
+                    });
+                }
+
+                // Render KaTeX math
+                document.querySelectorAll('.math.inline').forEach(el => {
+                    try {
+                        katex.render(el.textContent, el, {
+                            throwOnError: false,
+                            errorColor: '#cc0000'
+                        });
+                    } catch (e) {
+                        console.warn('KaTeX inline render error:', e);
+                    }
+                });
+
+                document.querySelectorAll('.math.block').forEach(el => {
+                    try {
+                        katex.render(el.textContent, el, {
+                            displayMode: true,
+                            throwOnError: false,
+                            errorColor: '#cc0000'
+                        });
+                    } catch (e) {
+                        console.warn('KaTeX block render error:', e);
+                    }
+                });
+
+                // Handle external links
+                document.querySelectorAll('a[href^="http"]').forEach(link => {
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                });
+            } catch (error) {
+                console.error('Error rendering markdown:', error);
+                document.getElementById('content').innerHTML = '<p>Error rendering markdown content: ' + error.message + '</p>';
             }
-            return originalCode.call(this, code, language);
-        };
+        }
 
-        // Set the custom renderer
-        marked.setOptions({ renderer: renderer });
-
-        // Render markdown
-        const htmlContent = marked.parse(markdownContent);
-        document.getElementById('content').innerHTML = htmlContent;
-
-        // Render KaTeX math
-        renderMathInElement(document.body, {
-            delimiters: [
-                {left: '$$', right: '$$', display: true},
-                {left: '$', right: '$', display: false},
-                {left: '\\[', right: '\\]', display: true},
-                {left: '\\(', right: '\\)', display: false}
-            ],
-            throwOnError: false,
-            errorColor: '#cc0000'
-        });
-
-        // Render mermaid diagrams
-        mermaid.run({
-            nodes: document.querySelectorAll('.mermaid')
-        });
-
-        // Highlight code blocks
-        hljs.highlightAll();
-
-        // Handle task lists
-        document.querySelectorAll('li').forEach(li => {
-            const text = li.innerHTML;
-            if (text.startsWith('[ ]') || text.startsWith('[x]')) {
-                li.classList.add('task-list-item');
-                const checked = text.startsWith('[x]');
-                const content = text.substring(3).trim();
-                li.innerHTML = `<input type="checkbox" ${checked ? 'checked' : ''} disabled> ${content}`;
-            }
-        });
-
-        // Handle external links
-        document.querySelectorAll('a[href^="http"]').forEach(link => {
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-        });
+        // Call the render function
+        renderMarkdown();
     </script>
 </body>
 </html>

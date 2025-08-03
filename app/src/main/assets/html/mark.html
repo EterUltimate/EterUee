@@ -293,7 +293,12 @@
 
         // The markdown content to render (base64 encoded)
         const markdownBase64 = `{{MARKDOWN_BASE64}}`;
-        const markdownContent = Base64.decode(markdownBase64);
+        let markdownContent = Base64.decode(markdownBase64);
+
+        // Convert \[ ... \] to $$ ... $$ for LaTeX block math
+        markdownContent = markdownContent.replace(/\\\[([\s\S]*?)\\\]/g, '$$$1$$');
+        // Convert \( ... \) to $ ... $ for LaTeX inline math
+        markdownContent = markdownContent.replace(/\\\(([\s\S]*?)\\\)/g, '$ $1 $');
 
         // Render markdown with markdown-it
         async function renderMarkdown() {

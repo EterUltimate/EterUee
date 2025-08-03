@@ -76,7 +76,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
 import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -86,7 +85,6 @@ import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.Hammer
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Network
-import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Settings2
 import com.composables.icons.lucide.Share
@@ -104,8 +102,7 @@ import me.rerere.ai.provider.ProviderManager
 import me.rerere.ai.provider.ProviderProxy
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.TextGenerationParams
-import me.rerere.ai.provider.guessModalityFromModelId
-import me.rerere.ai.provider.guessModelAbilityFromModelId
+import me.rerere.ai.registry.ModelRegistry
 import me.rerere.ai.ui.UIMessage
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
@@ -682,14 +679,15 @@ private fun ModelSettingsForm(
     val scope = rememberCoroutineScope()
 
     fun setModelId(id: String) {
-        val modality = guessModalityFromModelId(id.lowercase())
-        val abilities = guessModelAbilityFromModelId(id.lowercase())
+        val inputModality = ModelRegistry.MODEL_INPUT_MODALITIES.getData(id)
+        val outputModality = ModelRegistry.MODEL_OUTPUT_MODALITIES.getData(id)
+        val abilities = ModelRegistry.MODEL_ABILITIES.getData(id)
         onModelChange(
             model.copy(
                 modelId = id,
                 displayName = id.uppercase(),
-                inputModalities = modality.first,
-                outputModalities = modality.second,
+                inputModalities = inputModality,
+                outputModalities = outputModality,
                 abilities = abilities
             )
         )
@@ -862,12 +860,13 @@ private fun AddModelButton(
             models = models,
             selectedModels = selectedModels,
             onModelSelected = { model ->
-                val modality = guessModalityFromModelId(model.modelId)
-                val abilities = guessModelAbilityFromModelId(model.modelId)
+                val inputModalities = ModelRegistry.MODEL_INPUT_MODALITIES.getData(model.modelId)
+                val outputModalities = ModelRegistry.MODEL_OUTPUT_MODALITIES.getData(model.modelId)
+                val abilities = ModelRegistry.MODEL_ABILITIES.getData(model.modelId)
                 onAddModel(
                     model.copy(
-                        inputModalities = modality.first,
-                        outputModalities = modality.second,
+                        inputModalities = inputModalities,
+                        outputModalities = outputModalities,
                         abilities = abilities
                     )
                 )

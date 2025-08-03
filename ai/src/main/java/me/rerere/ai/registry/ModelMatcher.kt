@@ -10,7 +10,9 @@ interface ModelMatcher {
     companion object {
         fun exact(id: String): ModelMatcher = ExactModelMatcher(id)
 
-        fun regex(regex: String): ModelMatcher = RegexModelMatcher(regex.toRegex())
+        fun regex(regex: String): ModelMatcher = RegexModelMatcher(regex.toRegex(RegexOption.IGNORE_CASE))
+
+        fun containsRegex(regex: String): ModelMatcher = ContainsRegexModelMatcher(regex.toRegex(RegexOption.IGNORE_CASE))
 
         fun regex(regex: Regex): ModelMatcher = RegexModelMatcher(regex)
 
@@ -41,6 +43,14 @@ private class RegexModelMatcher(
 ) : ModelMatcher {
     override fun match(modelId: String): Boolean {
         return regex.matches(modelId)
+    }
+}
+
+private class ContainsRegexModelMatcher(
+    val regex: Regex
+) : ModelMatcher {
+    override fun match(modelId: String): Boolean {
+        return regex.containsMatchIn(modelId)
     }
 }
 

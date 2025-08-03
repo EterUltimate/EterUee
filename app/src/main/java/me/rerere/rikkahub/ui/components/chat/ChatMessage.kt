@@ -129,6 +129,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.provider.Model
+import me.rerere.ai.registry.ModelRegistry
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessagePart
@@ -1569,7 +1570,7 @@ fun ReasoningCard(
             }
 
             // 如果是gemini, 显示当前的思考标题
-            if (loading && model?.modelId?.contains("gemini") == true) {
+            if (loading && model != null && ModelRegistry.GEMINI_SERIES.match(model.modelId)) {
                 val title = reasoning.reasoning.extractGeminiThinkingTitle()
                 if (title != null) {
                     AnimatedContent(

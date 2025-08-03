@@ -43,6 +43,7 @@ import com.composables.icons.lucide.Settings2
 import kotlinx.coroutines.launch
 import me.rerere.ai.provider.BuiltInTools
 import me.rerere.ai.provider.Model
+import me.rerere.ai.registry.ModelRegistry
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.Screen
 import me.rerere.rikkahub.data.datastore.Settings
@@ -151,7 +152,7 @@ private fun SearchPicker(
     val navBackStack = LocalNavController.current
 
     // 模型内置搜索
-    if (model?.modelId?.contains("gemini") == true) {
+    if (model != null && ModelRegistry.GEMINI_SERIES.match(model.modelId)) {
         BuiltInSearchSetting(model = model)
     }
 

@@ -61,4 +61,10 @@ class HistoryVM(
 
     fun getPinnedConversations(): Flow<List<Conversation>> =
         conversationRepo.getPinnedConversations()
+        
+    fun restoreConversation(conversation: Conversation) {
+        viewModelScope.launch {
+            conversationRepo.insertConversation(conversation)
+        }
+    }
 }

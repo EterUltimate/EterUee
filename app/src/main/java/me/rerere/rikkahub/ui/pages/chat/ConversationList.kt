@@ -44,6 +44,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Pin
+import com.composables.icons.lucide.PinOff
 import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.X
@@ -63,7 +65,8 @@ fun ColumnScope.ConversationList(
     modifier: Modifier = Modifier,
     onClick: (Conversation) -> Unit = {},
     onDelete: (Conversation) -> Unit = {},
-    onRegenerateTitle: (Conversation) -> Unit = {}
+    onRegenerateTitle: (Conversation) -> Unit = {},
+    onPin: (Conversation) -> Unit = {}
 ) {
     var searchInput by remember {
         mutableStateOf("")
@@ -99,18 +102,46 @@ fun ColumnScope.ConversationList(
         }
     )
 
-    // 按日期分组对话
+    // 按置顶状态和日期分组对话
     val groupedConversations by remember(conversations) {
         derivedStateOf {
-            conversations
+            val filtered = conversations
                 .filter { conversation ->
                     conversation.title.contains(searchInput, true)
                 }
+            
+            // 分离置顶和非置顶对话
+            val (pinnedConversations, unpinnedConversations) = filtered.partition { it.isPinned }
+            
+            val result = mutableMapOf<LocalDate, List<Conversation>>()
+            
+            // 处理置顶对话 - 按日期分组但在最前面显示
+            val pinnedGrouped = pinnedConversations
                 .groupBy { conversation ->
                     val instant = conversation.updateAt
                     instant.atZone(ZoneId.systemDefault()).toLocalDate()
                 }
                 .toSortedMap(compareByDescending { it })
+            
+            // 处理非置顶对话
+            val unpinnedGrouped = unpinnedConversations
+                .groupBy { conversation ->
+                    val instant = conversation.updateAt
+                    instant.atZone(ZoneId.systemDefault()).toLocalDate()
+                }
+                .toSortedMap(compareByDescending { it })
+            
+            // 合并分组：置顶的对话组优先
+            pinnedGrouped.forEach { (date, conversations) ->
+                result[date] = conversations.sortedByDescending { it.updateAt }
+            }
+            
+            unpinnedGrouped.forEach { (date, conversations) ->
+                val existingConversations = result[date] ?: emptyList()
+                result[date] = existingConversations + conversations.sortedByDescending { it.updateAt }
+            }
+            
+            result.toSortedMap(compareByDescending { it })
         }
     }
 
@@ -151,6 +182,7 @@ fun ColumnScope.ConversationList(
                     onClick = onClick,
                     onDelete = onDelete,
                     onRegenerateTitle = onRegenerateTitle,
+                    onPin = onPin,
                     modifier = Modifier.animateItem()
                 )
             }
@@ -203,6 +235,7 @@ private fun ConversationItem(
     modifier: Modifier = Modifier,
     onDelete: (Conversation) -> Unit = {},
     onRegenerateTitle: (Conversation) -> Unit = {},
+    onPin: (Conversation) -> Unit = {},
     onClick: (Conversation) -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -239,6 +272,16 @@ private fun ConversationItem(
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(Modifier.weight(1f))
+            
+            // 置顶图标
+            AnimatedVisibility(conversation.isPinned) {
+                Icon(
+                    imageVector = Lucide.Pin,
+                    contentDescription = "Pinned",
+                    modifier = Modifier.size(12.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
             AnimatedVisibility(loading) {
                 Box(
                     modifier = Modifier
@@ -254,6 +297,24 @@ private fun ConversationItem(
                 expanded = showDropdownMenu,
                 onDismissRequest = { showDropdownMenu = false },
             ) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            if (conversation.isPinned) "取消置顶" else "置顶对话"
+                        )
+                    },
+                    onClick = {
+                        onPin(conversation)
+                        showDropdownMenu = false
+                    },
+                    leadingIcon = {
+                        Icon(
+                            if (conversation.isPinned) Lucide.PinOff else Lucide.Pin,
+                            null
+                        )
+                    }
+                )
+                
                 DropdownMenuItem(
                     text = {
                         Text(stringResource(id = R.string.chat_page_regenerate_title))

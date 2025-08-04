@@ -587,6 +587,9 @@ private fun DrawerContent(
                     if (it.id == current.id) {
                         navigateToChatPage(navController)
                     }
+                },
+                onPin = {
+                    vm.updatePinnedStatus(it)
                 }
             )
             val repo = koinInject<ConversationRepository>()

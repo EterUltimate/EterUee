@@ -674,4 +674,10 @@ class ChatVM(
             conversationRepo.deleteConversation(conversation)
         }
     }
+
+    fun updatePinnedStatus(conversation: Conversation) {
+        viewModelScope.launch {
+            conversationRepo.togglePinStatus(conversation.id)
+        }
+    }
 }

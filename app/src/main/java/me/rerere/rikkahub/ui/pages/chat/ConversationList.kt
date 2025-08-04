@@ -102,48 +102,36 @@ fun ColumnScope.ConversationList(
         }
     )
 
-    // 按置顶状态和日期分组对话
-    val groupedConversations by remember(conversations) {
+    // 分离置顶和普通对话
+    val calculateConversations by remember(conversations) {
         derivedStateOf {
             val filtered = conversations
                 .filter { conversation ->
                     conversation.title.contains(searchInput, true)
                 }
-            
+
             // 分离置顶和非置顶对话
-            val (pinnedConversations, unpinnedConversations) = filtered.partition { it.isPinned }
-            
-            val result = mutableMapOf<LocalDate, List<Conversation>>()
-            
-            // 处理置顶对话 - 按日期分组但在最前面显示
-            val pinnedGrouped = pinnedConversations
+            val (pinned, unpinned) = filtered.partition { it.isPinned }
+
+            // 置顶对话按更新时间排序
+            val pinnedSorted = pinned.sortedByDescending { it.updateAt }
+
+            // 非置顶对话按日期分组
+            val unpinnedGrouped = unpinned
                 .groupBy { conversation ->
                     val instant = conversation.updateAt
                     instant.atZone(ZoneId.systemDefault()).toLocalDate()
                 }
                 .toSortedMap(compareByDescending { it })
-            
-            // 处理非置顶对话
-            val unpinnedGrouped = unpinnedConversations
-                .groupBy { conversation ->
-                    val instant = conversation.updateAt
-                    instant.atZone(ZoneId.systemDefault()).toLocalDate()
+                .mapValues { (_, conversations) ->
+                    conversations.sortedByDescending { it.updateAt }
                 }
-                .toSortedMap(compareByDescending { it })
-            
-            // 合并分组：置顶的对话组优先
-            pinnedGrouped.forEach { (date, conversations) ->
-                result[date] = conversations.sortedByDescending { it.updateAt }
-            }
-            
-            unpinnedGrouped.forEach { (date, conversations) ->
-                val existingConversations = result[date] ?: emptyList()
-                result[date] = existingConversations + conversations.sortedByDescending { it.updateAt }
-            }
-            
-            result.toSortedMap(compareByDescending { it })
+
+            pinnedSorted to unpinnedGrouped
         }
     }
+
+    val (pinnedConversations, groupedConversations) = calculateConversations
 
     LazyColumn(
         modifier = modifier,
@@ -167,6 +155,27 @@ fun ColumnScope.ConversationList(
             }
         }
 
+        // 置顶对话区域
+        if (pinnedConversations.isNotEmpty()) {
+            stickyHeader {
+                PinnedHeader()
+            }
+
+            items(pinnedConversations, key = { it.id }) { conversation ->
+                ConversationItem(
+                    conversation = conversation,
+                    selected = conversation.id == current.id,
+                    loading = conversation.id in loadings,
+                    onClick = onClick,
+                    onDelete = onDelete,
+                    onRegenerateTitle = onRegenerateTitle,
+                    onPin = onPin,
+                    modifier = Modifier.animateItem()
+                )
+            }
+        }
+
+        // 普通对话按日期分组
         groupedConversations.forEach { (date, conversationsInGroup) ->
             // 添加日期标题
             stickyHeader {
@@ -187,6 +196,31 @@ fun ColumnScope.ConversationList(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun PinnedHeader() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Lucide.Pin,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(Modifier.size(8.dp))
+        Text(
+            text = "置顶对话",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
     }
 }
 
@@ -272,7 +306,7 @@ private fun ConversationItem(
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(Modifier.weight(1f))
-            
+
             // 置顶图标
             AnimatedVisibility(conversation.isPinned) {
                 Icon(
@@ -314,7 +348,7 @@ private fun ConversationItem(
                         )
                     }
                 )
-                
+
                 DropdownMenuItem(
                     text = {
                         Text(stringResource(id = R.string.chat_page_regenerate_title))

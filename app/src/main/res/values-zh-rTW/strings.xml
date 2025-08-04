@@ -506,6 +506,7 @@
   <string name="no_text_content_to_copy">暫無可複製的文字內容</string>
   <string name="share">分享</string>
   <string name="create_fork">建立分支</string>
+  <string name="render_with_webview">網頁視圖渲染</string>
 
   <!-- Assistant Picker -->
   <string name="assistant_picker_expand">展開</string>

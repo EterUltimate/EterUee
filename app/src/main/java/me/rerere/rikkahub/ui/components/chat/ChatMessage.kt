@@ -96,6 +96,7 @@ import androidx.core.net.toFile
 import androidx.core.net.toUri
 import com.composables.icons.lucide.BookDashed
 import com.composables.icons.lucide.BookHeart
+import com.composables.icons.lucide.BookOpenText
 import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.ChevronLeft
 import com.composables.icons.lucide.ChevronRight
@@ -372,12 +373,12 @@ private fun LongPressActionsSheet(
                             .fillMaxWidth()
                     ) {
                         Icon(
-                            imageVector = Lucide.ExternalLink,
+                            imageVector = Lucide.BookOpenText,
                             contentDescription = null,
                             modifier = Modifier.padding(4.dp)
                         )
                         Text(
-                            text = "WebView Preview",
+                            text = stringResource(R.string.render_with_webview),
                             style = MaterialTheme.typography.titleMedium,
                         )
                     }

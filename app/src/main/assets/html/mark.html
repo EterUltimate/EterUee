@@ -248,7 +248,7 @@
         let markdownContent = Base64.decode(markdownBase64);
 
         // Convert \[ ... \] to $$ ... $$ for LaTeX block math
-        markdownContent = markdownContent.replace(/\\\[([\s\S]*?)\\\]/g, '$$$1$$');
+        markdownContent = markdownContent.replace(/\\\[([\s\S]*?)\\\]/g, '$$ $1 $$');
         // Convert \( ... \) to $ ... $ for LaTeX inline math
         markdownContent = markdownContent.replace(/\\\(([\s\S]*?)\\\)/g, '$ $1 $');
 

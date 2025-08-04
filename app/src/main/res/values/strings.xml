@@ -576,4 +576,5 @@
   <string name="no_text_content_to_copy">No text content available to copy</string>
   <string name="share">Share</string>
   <string name="create_fork">Create a fork</string>
+  <string name="render_with_webview">Render with WebView</string>
 </resources>

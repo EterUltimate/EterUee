@@ -508,6 +508,7 @@
   <string name="no_text_content_to_copy">コピーできるテキストコンテンツがありません</string>
   <string name="share">共有</string>
   <string name="create_fork">フォークを作成</string>
+  <string name="render_with_webview">WebViewで表示</string>
 
   <!-- Assistant Picker -->
   <string name="assistant_picker_expand">展開</string>

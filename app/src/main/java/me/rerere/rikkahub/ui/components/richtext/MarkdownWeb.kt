@@ -1,7 +1,9 @@
 package me.rerere.rikkahub.ui.components.richtext
 
 import android.content.Context
+import androidx.compose.material3.ColorScheme
 import me.rerere.rikkahub.utils.base64Encode
+import me.rerere.rikkahub.utils.toCssHex
 
 /**
  * Build HTML page for markdown preview with support for:
@@ -10,7 +12,18 @@ import me.rerere.rikkahub.utils.base64Encode
  * - Mermaid diagrams
  * - Syntax highlighting via highlight.js
  */
-fun buildMarkdownPreviewHtml(context: Context, markdown: String): String {
+fun buildMarkdownPreviewHtml(context: Context, markdown: String, colorScheme: ColorScheme): String {
     val htmlTemplate = context.assets.open("html/mark.html").bufferedReader().use { it.readText() }
-    return htmlTemplate.replace("{{MARKDOWN_BASE64}}", markdown.base64Encode())
+
+    return htmlTemplate
+        .replace("{{MARKDOWN_BASE64}}", markdown.base64Encode())
+        .replace("{{BACKGROUND_COLOR}}", colorScheme.background.toCssHex())
+        .replace("{{ON_BACKGROUND_COLOR}}", colorScheme.onBackground.toCssHex())
+        .replace("{{SURFACE_COLOR}}", colorScheme.surface.toCssHex())
+        .replace("{{ON_SURFACE_COLOR}}", colorScheme.onSurface.toCssHex())
+        .replace("{{SURFACE_VARIANT_COLOR}}", colorScheme.surfaceVariant.toCssHex())
+        .replace("{{ON_SURFACE_VARIANT_COLOR}}", colorScheme.onSurfaceVariant.toCssHex())
+        .replace("{{PRIMARY_COLOR}}", colorScheme.primary.toCssHex())
+        .replace("{{OUTLINE_COLOR}}", colorScheme.outline.toCssHex())
+        .replace("{{OUTLINE_VARIANT_COLOR}}", colorScheme.outlineVariant.toCssHex())
 }

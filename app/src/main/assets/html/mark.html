@@ -9,17 +9,17 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
 
     <!-- Highlight.js for syntax highlighting -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/atom-one-dark.min.css">
 
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
             line-height: 1.6;
-            color: #333;
+            color: {{ON_BACKGROUND_COLOR}};
             max-width: 100%;
             margin: 0;
             padding: 16px;
-            background: #fff;
+            background: {{BACKGROUND_COLOR}};
         }
 
         /* Responsive design */
@@ -39,12 +39,12 @@
             line-height: 1.25;
         }
 
-        h1 { font-size: 2em; border-bottom: 1px solid #eaecef; padding-bottom: 8px; }
-        h2 { font-size: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: 8px; }
+        h1 { font-size: 2em; border-bottom: 1px solid {{OUTLINE_VARIANT_COLOR}}; padding-bottom: 8px; }
+        h2 { font-size: 1.5em; border-bottom: 1px solid {{OUTLINE_VARIANT_COLOR}}; padding-bottom: 8px; }
         h3 { font-size: 1.25em; }
         h4 { font-size: 1em; }
         h5 { font-size: 0.875em; }
-        h6 { font-size: 0.85em; color: #6a737d; }
+        h6 { font-size: 0.85em; color: {{ON_SURFACE_VARIANT_COLOR}}; }
 
         p {
             margin-bottom: 16px;
@@ -52,7 +52,7 @@
 
         /* Code styling */
         code {
-            background: #f6f8fa;
+            background: {{SURFACE_VARIANT_COLOR}};
             border-radius: 3px;
             font-size: 85%;
             margin: 0;
@@ -61,7 +61,7 @@
         }
 
         pre {
-            background: #f6f8fa;
+            background: {{SURFACE_VARIANT_COLOR}};
             border-radius: 6px;
             font-size: 85%;
             line-height: 1.45;
@@ -90,17 +90,17 @@
         }
 
         table th, table td {
-            border: 1px solid #dfe2e5;
+            border: 1px solid {{OUTLINE_VARIANT_COLOR}};
             padding: 6px 13px;
         }
 
         table th {
-            background: #f6f8fa;
+            background: {{SURFACE_VARIANT_COLOR}};
             font-weight: 600;
         }
 
         table tr:nth-child(2n) {
-            background: #f6f8fa;
+            background: {{SURFACE_VARIANT_COLOR}};
         }
 
         /* Lists */
@@ -115,15 +115,15 @@
 
         /* Blockquotes */
         blockquote {
-            border-left: 4px solid #dfe2e5;
-            color: #6a737d;
+            border-left: 4px solid {{OUTLINE_VARIANT_COLOR}};
+            color: {{ON_SURFACE_VARIANT_COLOR}};
             margin: 0 0 16px 0;
             padding: 0 16px;
         }
 
         /* Links */
         a {
-            color: #0366d6;
+            color: {{PRIMARY_COLOR}};
             text-decoration: none;
         }
 
@@ -141,7 +141,7 @@
 
         /* Horizontal rules */
         hr {
-            background: #e1e4e8;
+            background: {{OUTLINE_VARIANT_COLOR}};
             border: 0;
             height: 1px;
             margin: 24px 0;
@@ -171,55 +171,7 @@
             margin-right: 8px;
         }
 
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-            body {
-                background: #0d1117;
-                color: #c9d1d9;
-            }
-
-            h1, h2 {
-                border-bottom-color: #21262d;
-            }
-
-            h6 {
-                color: #8b949e;
-            }
-
-            code {
-                background: #161b22;
-                color: #f0f6fc;
-            }
-
-            pre {
-                background: #161b22;
-            }
-
-            blockquote {
-                border-left-color: #30363d;
-                color: #8b949e;
-            }
-
-            table th, table td {
-                border-color: #30363d;
-            }
-
-            table th {
-                background: #161b22;
-            }
-
-            table tr:nth-child(2n) {
-                background: #161b22;
-            }
-
-            a {
-                color: #58a6ff;
-            }
-
-            hr {
-                background: #21262d;
-            }
-        }
+        /* Theme colors are dynamically replaced by the Android app */
     </style>
 </head>
 <body>

@@ -198,6 +198,9 @@ fun ChatMessage(
     )
     var showActionsSheet by remember { mutableStateOf(false) }
     var showSelectCopySheet by remember { mutableStateOf(false) }
+    val navController = LocalNavController.current
+    val context = LocalContext.current
+    val colorScheme = MaterialTheme.colorScheme
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = if (message.role == MessageRole.USER) Alignment.End else Alignment.Start,
@@ -259,8 +262,6 @@ fun ChatMessage(
         }
     }
     if (showActionsSheet) {
-        val navController = LocalNavController.current
-        val context = LocalContext.current
         LongPressActionsSheet(
             message = message,
             onEdit = onEdit,
@@ -277,7 +278,11 @@ fun ChatMessage(
                     .joinToString("\n\n") { it.text }
                     .trim()
                 if (textContent.isNotBlank()) {
-                    val htmlContent = buildMarkdownPreviewHtml(context, textContent)
+                    val htmlContent = buildMarkdownPreviewHtml(
+                        context = context,
+                        markdown = textContent,
+                        colorScheme = colorScheme
+                    )
                     navController.navigate(Screen.WebView(content = htmlContent.base64Encode()))
                 }
             },

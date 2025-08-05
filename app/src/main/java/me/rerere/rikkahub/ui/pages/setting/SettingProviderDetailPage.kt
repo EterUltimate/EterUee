@@ -36,7 +36,6 @@ import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearWavyProgressIndicator
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.MultiChoiceSegmentedButtonRow
@@ -71,28 +70,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFilter
-import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Cable
 import com.composables.icons.lucide.ChevronDown
-import com.composables.icons.lucide.ChevronRight
-import com.composables.icons.lucide.Hammer
-import com.composables.icons.lucide.Image
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Network
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Settings2
 import com.composables.icons.lucide.Share
-import com.composables.icons.lucide.Text
 import com.composables.icons.lucide.Trash2
-import com.composables.icons.lucide.Type
 import com.composables.icons.lucide.X
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.CoroutineScope
@@ -109,12 +101,13 @@ import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.registry.ModelRegistry
 import me.rerere.ai.ui.UIMessage
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.ui.components.chat.ModelAbilityTag
+import me.rerere.rikkahub.ui.components.chat.ModelModalityTag
 import me.rerere.rikkahub.ui.components.chat.ModelSelector
+import me.rerere.rikkahub.ui.components.chat.ModelTypeTag
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.ShareSheet
-import me.rerere.rikkahub.ui.components.ui.Tag
-import me.rerere.rikkahub.ui.components.ui.TagType
 import me.rerere.rikkahub.ui.components.ui.rememberShareSheetState
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalToaster
@@ -125,7 +118,6 @@ import me.rerere.rikkahub.ui.pages.setting.components.ProviderConfigure
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.UiState
 import me.rerere.rikkahub.utils.plus
-import me.rerere.rikkahub.utils.toDp
 import org.koin.androidx.compose.koinViewModel
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -1405,74 +1397,9 @@ private fun ModelCard(
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        Tag(
-                            type = TagType.INFO
-                        ) {
-                            Text(
-                                text = stringResource(
-                                    when (model.type) {
-                                        ModelType.CHAT -> R.string.setting_provider_page_chat_model
-                                        ModelType.EMBEDDING -> R.string.setting_provider_page_embedding_model
-                                    }
-                                )
-                            )
-                        }
-                        Tag(
-                            type = TagType.SUCCESS
-                        ) {
-                            model.inputModalities.fastForEach { modality ->
-                                Icon(
-                                    imageVector = when (modality) {
-                                        Modality.TEXT -> Lucide.Type
-                                        Modality.IMAGE -> Lucide.Image
-                                    },
-                                    contentDescription = null,
-                                    modifier = Modifier.size(LocalTextStyle.current.lineHeight.toDp())
-                                )
-                            }
-                            Icon(
-                                imageVector = Lucide.ChevronRight,
-                                contentDescription = null,
-                                modifier = Modifier.size(LocalTextStyle.current.lineHeight.toDp())
-                            )
-                            model.outputModalities.fastForEach { modality ->
-                                Icon(
-                                    imageVector = when (modality) {
-                                        Modality.TEXT -> Lucide.Type
-                                        Modality.IMAGE -> Lucide.Image
-                                    },
-                                    contentDescription = null,
-                                    modifier = Modifier.size(LocalTextStyle.current.lineHeight.toDp())
-                                )
-                            }
-                        }
-                        model.abilities.fastForEach { ability ->
-                            when (ability) {
-                                ModelAbility.TOOL -> {
-                                    Tag(
-                                        type = TagType.WARNING
-                                    ) {
-                                        Icon(
-                                            imageVector = Lucide.Hammer,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(LocalTextStyle.current.lineHeight.toDp())
-                                        )
-                                    }
-                                }
-
-                                ModelAbility.REASONING -> {
-                                    Tag(
-                                        type = TagType.INFO
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.deepthink),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(LocalTextStyle.current.lineHeight.toDp()),
-                                        )
-                                    }
-                                }
-                            }
-                        }
+                        ModelTypeTag(model = model)
+                        ModelModalityTag(model = model)
+                        ModelAbilityTag(model = model)
                     }
                 }
 

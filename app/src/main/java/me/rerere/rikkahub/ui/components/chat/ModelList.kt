@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -49,7 +48,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -60,15 +58,19 @@ import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Boxes
+import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.GripHorizontal
 import com.composables.icons.lucide.Hammer
 import com.composables.icons.lucide.Heart
+import com.composables.icons.lucide.Image
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Search
+import com.composables.icons.lucide.Type
 import com.composables.icons.lucide.X
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import me.rerere.ai.provider.Modality
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ModelType
@@ -84,6 +86,7 @@ import me.rerere.rikkahub.ui.components.ui.TagType
 import me.rerere.rikkahub.ui.components.ui.icons.HeartIcon
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.theme.extendColors
+import me.rerere.rikkahub.utils.toDp
 import org.koin.compose.koinInject
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -591,68 +594,101 @@ private fun ModelItem(
                                 .height(IntrinsicSize.Min),
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Tag(type = TagType.INFO) {
-                                Text(
-                                    when (model.type) {
-                                        ModelType.CHAT -> stringResource(R.string.model_list_chat)
-                                        ModelType.EMBEDDING -> stringResource(R.string.model_list_embedding)
-                                    }
-                                )
-                            }
+                            ModelTypeTag(model = model)
 
-                            Tag(type = TagType.SUCCESS) {
-                                Text(
-                                    text = buildString {
-                                        append(model.inputModalities.joinToString(",") { it.name.lowercase() })
-                                        append("->")
-                                        append(model.outputModalities.joinToString(",") { it.name.lowercase() })
-                                    },
-                                    maxLines = 1,
-                                )
-                            }
+                            ModelModalityTag(model = model)
 
-                            val iconHeight = with(LocalDensity.current) {
-                                LocalTextStyle.current.fontSize.toDp() * 0.9f
-                            }
-                            model.abilities.fastForEach { ability ->
-                                when (ability) {
-                                    ModelAbility.TOOL -> {
-                                        Tag(
-                                            type = TagType.WARNING,
-                                            modifier = Modifier.fillMaxHeight()
-                                        ) {
-                                            Icon(
-                                                imageVector = Lucide.Hammer,
-                                                contentDescription = null,
-                                                modifier = Modifier
-                                                    .height(iconHeight)
-                                                    .aspectRatio(1f)
-                                            )
-                                        }
-                                    }
-
-                                    ModelAbility.REASONING -> {
-                                        Tag(
-                                            type = TagType.INFO,
-                                            modifier = Modifier.fillMaxHeight()
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.deepthink),
-                                                contentDescription = null,
-                                                modifier = Modifier
-                                                    .height(iconHeight)
-                                                    .aspectRatio(1f)
-                                            )
-                                        }
-                                    }
-                                }
-                            }
+                            ModelAbilityTag(model = model)
                         }
                     }
                 }
                 tail()
             }
             dragHandle?.let { it() }
+        }
+    }
+}
+
+@Composable
+fun ModelTypeTag(model: Model) {
+    Tag(
+        type = TagType.INFO
+    ) {
+        Text(
+            text = stringResource(
+                when (model.type) {
+                    ModelType.CHAT -> R.string.setting_provider_page_chat_model
+                    ModelType.EMBEDDING -> R.string.setting_provider_page_embedding_model
+                }
+            )
+        )
+    }
+}
+
+@Composable
+fun ModelModalityTag(model: Model) {
+    Tag(
+        type = TagType.SUCCESS
+    ) {
+        model.inputModalities.fastForEach { modality ->
+            Icon(
+                imageVector = when (modality) {
+                    Modality.TEXT -> Lucide.Type
+                    Modality.IMAGE -> Lucide.Image
+                },
+                contentDescription = null,
+                modifier = Modifier
+                    .size(LocalTextStyle.current.lineHeight.toDp())
+                    .padding(1.dp)
+            )
+        }
+        Icon(
+            imageVector = Lucide.ChevronRight,
+            contentDescription = null,
+            modifier = Modifier.size(LocalTextStyle.current.lineHeight.toDp())
+        )
+        model.outputModalities.fastForEach { modality ->
+            Icon(
+                imageVector = when (modality) {
+                    Modality.TEXT -> Lucide.Type
+                    Modality.IMAGE -> Lucide.Image
+                },
+                contentDescription = null,
+                modifier = Modifier
+                    .size(LocalTextStyle.current.lineHeight.toDp())
+                    .padding(1.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun ModelAbilityTag(model: Model) {
+    model.abilities.fastForEach { ability ->
+        when (ability) {
+            ModelAbility.TOOL -> {
+                Tag(
+                    type = TagType.WARNING
+                ) {
+                    Icon(
+                        imageVector = Lucide.Hammer,
+                        contentDescription = null,
+                        modifier = Modifier.size(LocalTextStyle.current.lineHeight.toDp())
+                    )
+                }
+            }
+
+            ModelAbility.REASONING -> {
+                Tag(
+                    type = TagType.INFO
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.deepthink),
+                        contentDescription = null,
+                        modifier = Modifier.size(LocalTextStyle.current.lineHeight.toDp()),
+                    )
+                }
+            }
         }
     }
 }

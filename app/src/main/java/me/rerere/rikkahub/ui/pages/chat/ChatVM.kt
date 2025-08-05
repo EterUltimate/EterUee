@@ -68,6 +68,7 @@ import me.rerere.rikkahub.utils.UpdateChecker
 import me.rerere.rikkahub.utils.applyPlaceholders
 import kotlinx.coroutines.Dispatchers
 import me.rerere.ai.provider.CustomBody
+import me.rerere.ai.registry.ModelRegistry
 import me.rerere.ai.ui.handleMessageChunk
 import me.rerere.rikkahub.utils.deleteChatFiles
 import me.rerere.search.SearchService
@@ -709,7 +710,7 @@ class ChatVM(
                 val providerHandler = ProviderManager.getProviderByType(provider)
                 var translatedText = ""
 
-                if (!model.isQwenMT()) {
+                if (!ModelRegistry.QWEN_MT.match(model.modelId)) {
                     val prompt = settings.translatePrompt.applyPlaceholders(
                         "source_text" to messageText,
                         "target_lang" to targetLanguage.toString(),
@@ -813,6 +814,4 @@ class ChatVM(
 
         updateConversation(currentConversation.copy(messageNodes = updatedNodes))
     }
-
-    private fun Model.isQwenMT() = this.modelId.contains("qwen-mt", true)
 }

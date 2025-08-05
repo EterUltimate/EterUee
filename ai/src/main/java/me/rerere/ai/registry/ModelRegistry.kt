@@ -23,7 +23,7 @@ object ModelRegistry {
     private val KIMI_K2 = ModelMatcher.containsRegex("kimi-k2")
     private val STEP_3 = ModelMatcher.containsRegex("step-3")
     private val INTERN_S1 = ModelMatcher.containsRegex("intern-s1")
-
+    val QWEN_MT = ModelMatcher.containsRegex("qwen-mt")
     val GEMINI_SERIES = GEMINI_20_FLASH + GEMINI_2_5_FLASH + GEMINI_2_5_PRO
 
     val VISION_MODELS =

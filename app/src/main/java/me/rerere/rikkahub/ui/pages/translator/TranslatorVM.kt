@@ -15,6 +15,7 @@ import me.rerere.ai.provider.CustomBody
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ProviderManager
 import me.rerere.ai.provider.TextGenerationParams
+import me.rerere.ai.registry.ModelRegistry
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.handleMessageChunk
 import me.rerere.rikkahub.data.datastore.Settings
@@ -86,7 +87,7 @@ class TranslatorVM(
             runCatching {
                 val providerHandler = ProviderManager.getProviderByType(provider)
 
-                if (!model.isQwenMT()) {
+                if (!ModelRegistry.QWEN_MT.match(model.modelId)) {
                     val prompt = settings.value.translatePrompt.applyPlaceholders(
                         "source_text" to inputText,
                         "target_lang" to targetLanguage.value.toString(),
@@ -143,5 +144,3 @@ class TranslatorVM(
         _translating.value = false
     }
 }
-
-private fun Model.isQwenMT() = this.modelId.contains("qwen-mt", true)

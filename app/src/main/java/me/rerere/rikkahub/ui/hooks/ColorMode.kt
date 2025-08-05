@@ -30,3 +30,8 @@ fun rememberColorMode(): MutableState<ColorMode> {
         }
     }
 }
+
+@Composable
+fun rememberAmoledDarkMode(): MutableState<Boolean> {
+    return rememberSharedPreferenceBoolean("amoledDark", false)
+}

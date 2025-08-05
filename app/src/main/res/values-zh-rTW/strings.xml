@@ -376,8 +376,8 @@
   <string name="setting_provider_page_model_display_name">模型顯示名稱</string>
   <string name="setting_provider_page_model_display_name_placeholder">例如：GPT-3.5, 用於UI顯示</string>
   <string name="setting_provider_page_model_type">模型類型</string>
-  <string name="setting_provider_page_chat_model">聊天模型</string>
-  <string name="setting_provider_page_embedding_model">嵌入模型</string>
+  <string name="setting_provider_page_chat_model">聊天</string>
+  <string name="setting_provider_page_embedding_model">嵌入</string>
   <string name="setting_provider_page_input_modality">輸入模態</string>
   <string name="setting_provider_page_output_modality">輸出模態</string>
   <string name="setting_provider_page_text">文字</string>

@@ -406,8 +406,8 @@
   <string name="setting_provider_page_model_display_name">Model Display Name</string>
   <string name="setting_provider_page_model_display_name_placeholder">e.g.: GPT-3.5, for UI display</string>
   <string name="setting_provider_page_model_type">Model Type</string>
-  <string name="setting_provider_page_chat_model">Chat Model</string>
-  <string name="setting_provider_page_embedding_model">Embedding Model</string>
+  <string name="setting_provider_page_chat_model">Chat</string>
+  <string name="setting_provider_page_embedding_model">Embedding</string>
   <string name="setting_provider_page_input_modality">Input Modality</string>
   <string name="setting_provider_page_output_modality">Output Modality</string>
   <string name="setting_provider_page_text">Text</string>
@@ -588,7 +588,7 @@
   <string name="translation_model_not_configured">Translation model not configured</string>
   <string name="unknown_language">Unknown Language</string>
   <string name="translating">Translating...</string>
-  
+
   <!-- Language Names with Emojis -->
   <string name="language_simplified_chinese">🇨🇳 简体中文</string>
   <string name="language_english">🇺🇸 English</string>

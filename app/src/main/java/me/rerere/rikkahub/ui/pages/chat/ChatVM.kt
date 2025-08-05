@@ -66,6 +66,9 @@ import me.rerere.rikkahub.utils.JsonInstantPretty
 import me.rerere.rikkahub.utils.UiState
 import me.rerere.rikkahub.utils.UpdateChecker
 import me.rerere.rikkahub.utils.applyPlaceholders
+import kotlinx.coroutines.Dispatchers
+import me.rerere.ai.provider.CustomBody
+import me.rerere.ai.ui.handleMessageChunk
 import me.rerere.rikkahub.utils.deleteChatFiles
 import me.rerere.search.SearchService
 import me.rerere.search.SearchServiceOptions
@@ -680,4 +683,101 @@ class ChatVM(
             conversationRepo.togglePinStatus(conversation.id)
         }
     }
+
+    fun translateMessage(message: UIMessage, targetLanguage: java.util.Locale) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val settings = settingsStore.settingsFlow.first()
+                val model = settings.providers.findModelById(settings.translateModeId)
+                val provider = model?.findProvider(settings.providers)
+                
+                if (model == null || provider == null) {
+                    errorFlow.emit(Exception("未配置翻译模型"))
+                    return@launch
+                }
+
+                val messageText = message.parts.filterIsInstance<UIMessagePart.Text>()
+                    .joinToString("\n\n") { it.text }
+                    .trim()
+                
+                if (messageText.isBlank()) return@launch
+
+                val providerHandler = ProviderManager.getProviderByType(provider)
+                var translatedText = ""
+                
+                if (!model.isQwenMT()) {
+                    val prompt = settings.translatePrompt.applyPlaceholders(
+                        "source_text" to messageText,
+                        "target_lang" to targetLanguage.toString(),
+                    )
+
+                    var messages = listOf(UIMessage.user(prompt))
+
+                    providerHandler.streamText(
+                        providerSetting = provider,
+                        messages = messages,
+                        params = TextGenerationParams(
+                            model = model,
+                            temperature = 0.3f,
+                        ),
+                    ).collect { chunk ->
+                        messages = messages.handleMessageChunk(chunk)
+                        translatedText = messages.lastOrNull()?.toText() ?: ""
+                    }
+                } else {
+                    val messages = listOf(UIMessage.user(messageText))
+                    val chunk = providerHandler.generateText(
+                        providerSetting = provider,
+                        messages = messages,
+                        params = TextGenerationParams(
+                            model = model,
+                            temperature = 0.3f,
+                            topP = 0.95f,
+                            customBody = listOf(
+                                CustomBody(
+                                    key = "translation_options",
+                                    value = buildJsonObject {
+                                        put("source_lang", JsonPrimitive("auto"))
+                                        put("target_lang", JsonPrimitive(targetLanguage.getDisplayLanguage(java.util.Locale.ENGLISH)))
+                                    }
+                                )
+                            )
+                        ),
+                    )
+                    translatedText = chunk.choices.firstOrNull()?.message?.toText() ?: ""
+                }
+
+                // 翻译完成后，将译文追加到原消息中
+                if (translatedText.isNotBlank()) {
+                    val currentConversation = conversation.value
+                    val updatedNodes = currentConversation.messageNodes.map { node ->
+                        if (node.messages.any { it.id == message.id }) {
+                            val updatedMessages = node.messages.map { msg ->
+                                if (msg.id == message.id) {
+                                    val translationPart = UIMessagePart.Text(
+                                        text = "\n\n---\n\n**译文 (${targetLanguage.getDisplayLanguage(java.util.Locale.getDefault())})**\n\n$translatedText"
+                                    )
+                                    msg.copy(
+                                        parts = msg.parts + translationPart
+                                    )
+                                } else {
+                                    msg
+                                }
+                            }
+                            node.copy(messages = updatedMessages)
+                        } else {
+                            node
+                        }
+                    }
+                    
+                    updateConversation(currentConversation.copy(messageNodes = updatedNodes))
+                    saveConversationAsync()
+                }
+            } catch (e: Exception) {
+                errorFlow.emit(e)
+            }
+        }
+    }
+
+    private fun Model.isQwenMT() = this.modelId.contains("qwen-mt", true)
 }

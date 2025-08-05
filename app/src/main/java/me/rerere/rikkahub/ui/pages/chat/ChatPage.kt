@@ -375,6 +375,9 @@ private fun ChatPageContent(
                             text = suggestion
                         )
                     )
+                },
+                onTranslate = { message, locale ->
+                    vm.translateMessage(message, locale)
                 }
             )
         }

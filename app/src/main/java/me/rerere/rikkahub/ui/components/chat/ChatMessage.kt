@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -118,6 +119,25 @@ import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.Volume2
 import com.composables.icons.lucide.Wrench
 import com.composables.icons.lucide.X
+import com.composables.icons.lucide.Languages
+import com.composables.icons.lucide.ChevronDown
+import com.composables.icons.lucide.ChevronUp
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.FontWeight
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -136,6 +156,7 @@ import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyUIMessage
+import me.rerere.ai.ui.handleMessageChunk
 import me.rerere.highlight.HighlightText
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.Screen
@@ -167,7 +188,11 @@ import me.rerere.rikkahub.utils.jsonPrimitiveOrNull
 import me.rerere.rikkahub.utils.openUrl
 import me.rerere.rikkahub.utils.toLocalString
 import me.rerere.rikkahub.utils.urlDecode
+import me.rerere.rikkahub.utils.applyPlaceholders
+import me.rerere.rikkahub.data.datastore.findModelById
+import me.rerere.rikkahub.data.datastore.findProvider
 import org.koin.compose.koinInject
+import java.util.Locale
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
@@ -189,7 +214,8 @@ fun ChatMessage(
     onEdit: () -> Unit,
     onShare: () -> Unit,
     onDelete: () -> Unit,
-    onUpdate: (MessageNode) -> Unit
+    onUpdate: (MessageNode) -> Unit,
+    onTranslate: ((UIMessage, Locale) -> Unit)? = null
 ) {
     val message = node.messages[node.selectIndex]
     val settings = LocalSettings.current.displaySetting
@@ -257,7 +283,8 @@ fun ChatMessage(
                     onUpdate = onUpdate,
                     onOpenActionSheet = {
                         showActionsSheet = true
-                    }
+                    },
+                    onTranslate = onTranslate
                 )
             }
         }
@@ -738,10 +765,12 @@ private fun ColumnScope.Actions(
     onUpdate: (MessageNode) -> Unit,
     onRegenerate: () -> Unit,
     onOpenActionSheet: () -> Unit,
+    onTranslate: ((UIMessage, Locale) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     var showInformation by remember { mutableStateOf(false) }
     var isPendingDelete by remember { mutableStateOf(false) }
+    var showTranslateDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(isPendingDelete) {
         if (isPendingDelete) {
@@ -795,6 +824,25 @@ private fun ColumnScope.Actions(
                     .size(16.dp),
                 tint = if (isAvailable) LocalContentColor.current else LocalContentColor.current.copy(alpha = 0.38f)
             )
+            
+            // Translation button
+            if (onTranslate != null) {
+                Icon(
+                    imageVector = Lucide.Languages,
+                    contentDescription = stringResource(R.string.translate),
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = LocalIndication.current,
+                            onClick = {
+                                showTranslateDialog = true
+                            }
+                        )
+                        .padding(8.dp)
+                        .size(16.dp)
+                )
+            }
         }
 
         Icon(
@@ -816,6 +864,19 @@ private fun ColumnScope.Actions(
         MessageNodePagerButtons(
             node = node,
             onUpdate = onUpdate,
+        )
+    }
+    
+    // Translation dialog
+    if (showTranslateDialog && onTranslate != null) {
+        LanguageSelectionDialog(
+            onLanguageSelected = { language ->
+                showTranslateDialog = false
+                onTranslate(message, language)
+            },
+            onDismissRequest = {
+                showTranslateDialog = false
+            }
         )
     }
 }
@@ -953,13 +1014,23 @@ private fun MessagePartsBlock(
                     }
                 }
             } else {
-                MarkdownBlock(
-                    content = part.text,
-                    onClickCitation = { id ->
-                        handleClickCitation(id)
-                    },
-                    modifier = Modifier.animateContentSize()
-                )
+                // Check if contains translation content
+                if (part.text.contains("\n\n---\n\n**${stringResource(R.string.translation_text)}")) {
+                    CollapsibleTranslationText(
+                        content = part.text,
+                        onClickCitation = { id ->
+                            handleClickCitation(id)
+                        }
+                    )
+                } else {
+                    MarkdownBlock(
+                        content = part.text,
+                        onClickCitation = { id ->
+                            handleClickCitation(id)
+                        },
+                        modifier = Modifier.animateContentSize()
+                    )
+                }
             }
         }
     }
@@ -1645,3 +1716,245 @@ fun ReasoningCard(
         }
     }
 }
+
+@Composable
+private fun LanguageSelectionDialog(
+    onLanguageSelected: (Locale) -> Unit,
+    onDismissRequest: () -> Unit
+) {
+    // 支持的语言列表
+    val languages = remember {
+        listOf(
+            Locale.SIMPLIFIED_CHINESE,
+            Locale.ENGLISH,
+            Locale.TRADITIONAL_CHINESE,
+            Locale.JAPANESE,
+            Locale.KOREAN,
+            Locale.FRENCH,
+            Locale.GERMAN,
+            Locale.ITALIAN,
+        )
+    }
+    
+    // 语言名称映射函数，原有的 locale.displayName 方法无法获取 emoji
+    @Composable
+    fun getLanguageDisplayName(locale: Locale): String {
+        return when (locale) {
+            Locale.SIMPLIFIED_CHINESE -> stringResource(R.string.language_simplified_chinese)
+            Locale.ENGLISH -> stringResource(R.string.language_english)
+            Locale.TRADITIONAL_CHINESE -> stringResource(R.string.language_traditional_chinese)
+            Locale.JAPANESE -> stringResource(R.string.language_japanese)
+            Locale.KOREAN -> stringResource(R.string.language_korean)
+            Locale.FRENCH -> stringResource(R.string.language_french)
+            Locale.GERMAN -> stringResource(R.string.language_german)
+            Locale.ITALIAN -> stringResource(R.string.language_italian)
+            else -> locale.getDisplayLanguage(Locale.getDefault())
+        }
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            // 标题
+            Text(
+                text = stringResource(R.string.translation_language_selection_title),
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // 语言列表
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(languages) { language ->
+                    Card(
+                        onClick = {
+                            onLanguageSelected(language)
+                        },
+                        shape = MaterialTheme.shapes.medium
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth()
+                        ) {
+                            Icon(
+                                imageVector = Lucide.Languages,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Text(
+                                text = getLanguageDisplayName(language),
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                        }
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+private fun CollapsibleTranslationText(
+    content: String,
+    onClickCitation: (String) -> Unit
+) {
+    val translationText = stringResource(R.string.translation_text)
+    // Split original text and translation
+    val parts = content.split("\n\n---\n\n**$translationText")
+    val originalText = parts[0]
+    val translationParts = parts.drop(1)
+    
+    Column(
+        modifier = Modifier.animateContentSize()
+    ) {
+        // 显示原文
+        MarkdownBlock(
+            content = originalText,
+            onClickCitation = onClickCitation,
+            modifier = Modifier.animateContentSize()
+        )
+        
+        // Display each translation part
+        translationParts.forEachIndexed { index, translationPart ->
+            val fullTranslationText = "**$translationText$translationPart"
+            
+            // 提取语言信息
+            val languageMatch = Regex("\\*\\*$translationText \\(([^)]+)\\)\\*\\*").find(fullTranslationText)
+            val language = languageMatch?.groupValues?.get(1) ?: stringResource(R.string.unknown_language)
+            
+            // Extract translation content
+            val translationContent = fullTranslationText.substringAfter("**\n\n").trim()
+            
+            var isCollapsed by remember { mutableStateOf(false) }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // 分隔线
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+            )
+            
+            // Translation title and collapse button
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Lucide.Languages,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "${stringResource(R.string.translation_text)} ($language)",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                
+                // 折叠/展开按钮
+                IconButton(
+                    onClick = { isCollapsed = !isCollapsed },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = if (isCollapsed) Lucide.ChevronDown else Lucide.ChevronUp,
+                        contentDescription = if (isCollapsed) stringResource(R.string.expand_translation) else stringResource(R.string.collapse_translation),
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            
+            // Translation content (collapsible)
+            AnimatedVisibility(
+                visible = !isCollapsed,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                if (translationContent.isNotBlank()) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                        ),
+                        shape = MaterialTheme.shapes.medium
+                    ) {
+                        // Check if it's loading state
+                        val isTranslating = translationContent.contains(stringResource(R.string.translating))
+                        
+                        if (isTranslating) {
+                            // Show loading animation for translation
+                            Row(
+                                modifier = Modifier
+                                    .padding(12.dp)
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                
+                                val infiniteTransition = rememberInfiniteTransition(label = "loading")
+                                val alpha by infiniteTransition.animateFloat(
+                                    initialValue = 0.3f,
+                                    targetValue = 1f,
+                                    animationSpec = infiniteRepeatable(
+                                        animation = tween(1000, easing = LinearEasing),
+                                        repeatMode = RepeatMode.Reverse
+                                    ),
+                                    label = "alpha"
+                                )
+                                
+                                Text(
+                                    text = stringResource(R.string.translating),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.graphicsLayer(alpha = alpha)
+                                )
+                            }
+                        } else {
+                            // Show normal translation content
+                            MarkdownBlock(
+                                content = translationContent,
+                                onClickCitation = onClickCitation,
+                                modifier = Modifier
+                                    .padding(12.dp)
+                                    .animateContentSize()
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Extension function to check if it's a Qwen machine translation model
+private fun Model.isQwenMT() = this.modelId.contains("qwen-mt", true)

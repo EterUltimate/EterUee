@@ -579,4 +579,24 @@
   <string name="setting_tts_page_model_placeholder_openai">gpt-4o-mini-tts</string>
   <string name="setting_tts_page_model_placeholder_gemini">gemini-2.5-flash-preview-tts</string>
   <string name="setting_tts_page_voice_name_placeholder">Kore</string>
+
+  <!-- Translation -->
+  <string name="translate">翻译</string>
+  <string name="translation_language_selection_title">选择翻译语言</string>
+  <string name="translation_text">译文</string>
+  <string name="expand_translation">展开翻译</string>
+  <string name="collapse_translation">折叠翻译</string>
+  <string name="translation_model_not_configured">未配置翻译模型</string>
+  <string name="unknown_language">未知语言</string>
+  <string name="translating">翻译中...</string>
+  
+  <!-- Language Names with Emojis -->
+  <string name="language_simplified_chinese">🇨🇳 简体中文</string>
+  <string name="language_english">🇺🇸 English</string>
+  <string name="language_traditional_chinese">🇨🇳 繁體中文</string>
+  <string name="language_japanese">🇯🇵 日本語</string>
+  <string name="language_korean">🇰🇷 한국어</string>
+  <string name="language_french">🇫🇷 Français</string>
+  <string name="language_german">🇩🇪 Deutsch</string>
+  <string name="language_italian">🇮🇹 Italiano</string>
 </resources>

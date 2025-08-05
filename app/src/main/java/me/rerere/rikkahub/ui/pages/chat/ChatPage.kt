@@ -139,6 +139,13 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>) {
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
+    // Handle back press when drawer is open
+    BackHandler(enabled = drawerState.isOpen) {
+        scope.launch {
+            drawerState.close()
+        }
+    }
+
     val windowAdaptiveInfo = currentWindowDpSize()
     val isBigScreen =
         windowAdaptiveInfo.width > windowAdaptiveInfo.height && windowAdaptiveInfo.width >= 1100.dp
@@ -371,6 +378,9 @@ private fun ChatPageContent(
                             text = suggestion
                         )
                     )
+                },
+                onTranslate = { message, locale ->
+                    vm.translateMessage(message, locale)
                 }
             )
         }

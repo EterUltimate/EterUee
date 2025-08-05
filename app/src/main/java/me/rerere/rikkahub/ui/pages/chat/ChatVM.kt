@@ -66,6 +66,9 @@ import me.rerere.rikkahub.utils.JsonInstantPretty
 import me.rerere.rikkahub.utils.UiState
 import me.rerere.rikkahub.utils.UpdateChecker
 import me.rerere.rikkahub.utils.applyPlaceholders
+import kotlinx.coroutines.Dispatchers
+import me.rerere.ai.provider.CustomBody
+import me.rerere.ai.ui.handleMessageChunk
 import me.rerere.rikkahub.utils.deleteChatFiles
 import me.rerere.search.SearchService
 import me.rerere.search.SearchServiceOptions
@@ -680,4 +683,147 @@ class ChatVM(
             conversationRepo.togglePinStatus(conversation.id)
         }
     }
+
+    fun translateMessage(message: UIMessage, targetLanguage: java.util.Locale) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val settings = settingsStore.settingsFlow.first()
+                val model = settings.providers.findModelById(settings.translateModeId)
+                val provider = model?.findProvider(settings.providers)
+                
+                if (model == null || provider == null) {
+                    errorFlow.emit(Exception(context.getString(R.string.translation_model_not_configured)))
+                    return@launch
+                }
+
+                val messageText = message.parts.filterIsInstance<UIMessagePart.Text>()
+                    .joinToString("\n\n") { it.text }
+                    .trim()
+                
+                if (messageText.isBlank()) return@launch
+
+                // Initialize translation display with loading state
+                val languageDisplayName = targetLanguage.getDisplayLanguage(java.util.Locale.getDefault())
+                val translationHeader = "\n\n---\n\n**${context.getString(R.string.translation_text)} ($languageDisplayName)**\n\n"
+                val loadingText = context.getString(R.string.translating)
+                
+                // Add initial translation part with loading state
+                updateTranslationContent(message.id, translationHeader + loadingText)
+
+                val providerHandler = ProviderManager.getProviderByType(provider)
+                var translatedText = ""
+                
+                if (!model.isQwenMT()) {
+                    val prompt = settings.translatePrompt.applyPlaceholders(
+                        "source_text" to messageText,
+                        "target_lang" to targetLanguage.toString(),
+                    )
+
+                    var messages = listOf(UIMessage.user(prompt))
+
+                    providerHandler.streamText(
+                        providerSetting = provider,
+                        messages = messages,
+                        params = TextGenerationParams(
+                            model = model,
+                            temperature = 0.3f,
+                        ),
+                    ).collect { chunk ->
+                        messages = messages.handleMessageChunk(chunk)
+                        translatedText = messages.lastOrNull()?.toText() ?: ""
+                        
+                        // Update translation content in real-time
+                        if (translatedText.isNotBlank()) {
+                            updateTranslationContent(message.id, translationHeader + translatedText)
+                        }
+                    }
+                } else {
+                    val messages = listOf(UIMessage.user(messageText))
+                    val chunk = providerHandler.generateText(
+                        providerSetting = provider,
+                        messages = messages,
+                        params = TextGenerationParams(
+                            model = model,
+                            temperature = 0.3f,
+                            topP = 0.95f,
+                            customBody = listOf(
+                                CustomBody(
+                                    key = "translation_options",
+                                    value = buildJsonObject {
+                                        put("source_lang", JsonPrimitive("auto"))
+                                        put("target_lang", JsonPrimitive(targetLanguage.getDisplayLanguage(java.util.Locale.ENGLISH)))
+                                    }
+                                )
+                            )
+                        ),
+                    )
+                    translatedText = chunk.choices.firstOrNull()?.message?.toText() ?: ""
+                    
+                    // Update translation content for non-streaming
+                    if (translatedText.isNotBlank()) {
+                        updateTranslationContent(message.id, translationHeader + translatedText)
+                    }
+                }
+
+                // Save the conversation after translation is complete
+                saveConversationAsync()
+            } catch (e: Exception) {
+                // Remove loading state on error
+                removeTranslationLoadingState(message.id)
+                errorFlow.emit(e)
+            }
+        }
+    }
+    
+    private fun updateTranslationContent(messageId: Uuid, translationContent: String) {
+        val currentConversation = conversation.value
+        val updatedNodes = currentConversation.messageNodes.map { node ->
+            if (node.messages.any { it.id == messageId }) {
+                val updatedMessages = node.messages.map { msg ->
+                    if (msg.id == messageId) {
+                        // Check if translation part already exists
+                        val existingParts = msg.parts.filter { part ->
+                            !(part is UIMessagePart.Text && part.text.contains("\n\n---\n\n**${context.getString(R.string.translation_text)}"))
+                        }
+                        
+                        val translationPart = UIMessagePart.Text(text = translationContent)
+                        msg.copy(parts = existingParts + translationPart)
+                    } else {
+                        msg
+                    }
+                }
+                node.copy(messages = updatedMessages)
+            } else {
+                node
+            }
+        }
+        
+        updateConversation(currentConversation.copy(messageNodes = updatedNodes))
+    }
+    
+    private fun removeTranslationLoadingState(messageId: Uuid) {
+        val currentConversation = conversation.value
+        val updatedNodes = currentConversation.messageNodes.map { node ->
+            if (node.messages.any { it.id == messageId }) {
+                val updatedMessages = node.messages.map { msg ->
+                    if (msg.id == messageId) {
+                                                 // Remove any translation parts with loading state
+                         val filteredParts = msg.parts.filter { part ->
+                             !(part is UIMessagePart.Text && part.text.contains("\n\n---\n\n**${context.getString(R.string.translation_text)}") && part.text.endsWith(context.getString(R.string.translating)))
+                         }
+                        msg.copy(parts = filteredParts)
+                    } else {
+                        msg
+                    }
+                }
+                node.copy(messages = updatedMessages)
+            } else {
+                node
+            }
+        }
+        
+        updateConversation(currentConversation.copy(messageNodes = updatedNodes))
+    }
+
+    private fun Model.isQwenMT() = this.modelId.contains("qwen-mt", true)
 }

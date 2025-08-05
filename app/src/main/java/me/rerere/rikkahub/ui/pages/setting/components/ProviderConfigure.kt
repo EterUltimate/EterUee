@@ -126,6 +126,19 @@ private fun ColumnScope.ProviderConfigureOpenAI(
         modifier = Modifier.fillMaxWidth()
     )
 
+    if (!provider.useResponseApi) {
+        OutlinedTextField(
+            value = provider.chatCompletionsPath,
+            onValueChange = {
+                onEdit(provider.copy(chatCompletionsPath = it.trim()))
+            },
+            label = {
+                Text(stringResource(id = R.string.setting_provider_page_api_path))
+            },
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {

@@ -70,7 +70,7 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
         val proxyClient = client.configureClientWithProxy(providerSetting.proxy)
 
         val request = Request.Builder()
-            .url("${providerSetting.baseUrl}/chat/completions")
+            .url("${providerSetting.baseUrl}${providerSetting.chatCompletionsPath}")
             .headers(params.customHeaders.toHeaders())
             .post(json.encodeToString(requestBody).toRequestBody("application/json".toMediaType()))
             .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
@@ -129,7 +129,7 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
         val proxyClient = client.configureClientWithProxy(providerSetting.proxy)
 
         val request = Request.Builder()
-            .url("${providerSetting.baseUrl}/chat/completions")
+            .url("${providerSetting.baseUrl}${providerSetting.chatCompletionsPath}")
             .headers(params.customHeaders.toHeaders())
             .post(json.encodeToString(requestBody).toRequestBody("application/json".toMediaType()))
             .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")

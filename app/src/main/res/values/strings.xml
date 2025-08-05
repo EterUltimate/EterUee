@@ -434,6 +434,7 @@
   <string name="setting_provider_page_name">Name</string>
   <string name="setting_provider_page_api_key">API Key</string>
   <string name="setting_provider_page_api_base_url">API Base Url</string>
+  <string name="setting_provider_page_api_path">API Path</string>
   <string name="setting_provider_page_response_api">Response API</string>
   <string name="setting_provider_page_vertex_ai">Vertex AI</string>
   <string name="setting_provider_page_location">Location (e.g. us-central1)</string>

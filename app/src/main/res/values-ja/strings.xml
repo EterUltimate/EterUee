@@ -407,6 +407,7 @@
   <string name="setting_provider_page_name">名前</string>
   <string name="setting_provider_page_api_key">API Key</string>
   <string name="setting_provider_page_api_base_url">API Base Url</string>
+  <string name="setting_provider_page_api_path">APIパス</string>
   <string name="setting_provider_page_response_api">Response API</string>
   <string name="setting_provider_page_vertex_ai">Vertex AI</string>
   <string name="setting_provider_page_location">場所（例：us-central1）</string>

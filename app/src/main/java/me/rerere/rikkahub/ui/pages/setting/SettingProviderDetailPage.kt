@@ -82,13 +82,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Cable
 import com.composables.icons.lucide.ChevronDown
+import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.Hammer
+import com.composables.icons.lucide.Image
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Network
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Settings2
 import com.composables.icons.lucide.Share
+import com.composables.icons.lucide.Text
 import com.composables.icons.lucide.Trash2
+import com.composables.icons.lucide.Type
 import com.composables.icons.lucide.X
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.CoroutineScope
@@ -1416,14 +1420,31 @@ private fun ModelCard(
                         Tag(
                             type = TagType.SUCCESS
                         ) {
-                            Text(
-                                text = buildString {
-                                    append(model.inputModalities.joinToString(",") { it.name.lowercase() })
-                                    append("->")
-                                    append(model.outputModalities.joinToString(",") { it.name.lowercase() })
-                                },
-                                maxLines = 1,
+                            model.inputModalities.fastForEach { modality ->
+                                Icon(
+                                    imageVector = when (modality) {
+                                        Modality.TEXT -> Lucide.Type
+                                        Modality.IMAGE -> Lucide.Image
+                                    },
+                                    contentDescription = null,
+                                    modifier = Modifier.size(LocalTextStyle.current.lineHeight.toDp())
+                                )
+                            }
+                            Icon(
+                                imageVector = Lucide.ChevronRight,
+                                contentDescription = null,
+                                modifier = Modifier.size(LocalTextStyle.current.lineHeight.toDp())
                             )
+                            model.outputModalities.fastForEach { modality ->
+                                Icon(
+                                    imageVector = when (modality) {
+                                        Modality.TEXT -> Lucide.Type
+                                        Modality.IMAGE -> Lucide.Image
+                                    },
+                                    contentDescription = null,
+                                    modifier = Modifier.size(LocalTextStyle.current.lineHeight.toDp())
+                                )
+                            }
                         }
                         model.abilities.fastForEach { ability ->
                             when (ability) {

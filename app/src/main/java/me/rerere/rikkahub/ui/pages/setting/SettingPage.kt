@@ -335,6 +335,20 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
             }
 
             item {
+                SettingItem(
+                    navController = navController,
+                    title = { Text("Donate") },
+                    description = {
+                        Text("If you like it, sponsor the author's work")
+                    },
+                    icon = {
+                        Icon(Lucide.Heart, "Donate")
+                    },
+                    link = Screen.SettingDonate
+                )
+            }
+
+            item {
                 val context = LocalContext.current
                 val shareText = stringResource(R.string.setting_page_share_text)
                 val share = stringResource(R.string.setting_page_share)

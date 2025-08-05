@@ -1,6 +1,7 @@
 package me.rerere.rikkahub.ui.pages.chat
 
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -120,6 +121,7 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>) {
     val navController = LocalNavController.current
     val toaster = LocalToaster.current
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     // Handle Error
     LaunchedEffect(Unit) {
@@ -216,6 +218,9 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>) {
                     currentChatModel = currentChatModel,
                     bigScreen = false
                 )
+            }
+            BackHandler(drawerState.isOpen) {
+                scope.launch { drawerState.close() }
             }
         }
     }

@@ -138,7 +138,6 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>) {
     val enableWebSearch by vm.enableWebSearch.collectAsStateWithLifecycle()
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
 
     // Handle back press when drawer is open
     BackHandler(enabled = drawerState.isOpen) {

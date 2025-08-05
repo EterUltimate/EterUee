@@ -817,11 +817,11 @@ private fun ColumnScope.Actions(
                 tint = if (isAvailable) LocalContentColor.current else LocalContentColor.current.copy(alpha = 0.38f)
             )
             
-            // 翻译按钮
+            // Translation button
             if (onTranslate != null) {
                 Icon(
                     imageVector = Lucide.Languages,
-                    contentDescription = "翻译",
+                    contentDescription = stringResource(R.string.translate),
                     modifier = Modifier
                         .clip(CircleShape)
                         .clickable(
@@ -859,7 +859,7 @@ private fun ColumnScope.Actions(
         )
     }
     
-    // 翻译对话框
+    // Translation dialog
     if (showTranslateDialog && onTranslate != null) {
         LanguageSelectionDialog(
             onLanguageSelected = { language ->
@@ -1006,8 +1006,8 @@ private fun MessagePartsBlock(
                     }
                 }
             } else {
-                // 检查是否包含翻译内容
-                if (part.text.contains("\n\n---\n\n**译文")) {
+                // Check if contains translation content
+                if (part.text.contains("\n\n---\n\n**${stringResource(R.string.translation_text)}")) {
                     CollapsibleTranslationText(
                         content = part.text,
                         onClickCitation = { id ->
@@ -1727,6 +1727,22 @@ private fun LanguageSelectionDialog(
             Locale.ITALIAN,
         )
     }
+    
+    // 语言名称映射函数，原有的 locale.displayName 方法无法获取 emoji
+    @Composable
+    fun getLanguageDisplayName(locale: Locale): String {
+        return when (locale) {
+            Locale.SIMPLIFIED_CHINESE -> stringResource(R.string.language_simplified_chinese)
+            Locale.ENGLISH -> stringResource(R.string.language_english)
+            Locale.TRADITIONAL_CHINESE -> stringResource(R.string.language_traditional_chinese)
+            Locale.JAPANESE -> stringResource(R.string.language_japanese)
+            Locale.KOREAN -> stringResource(R.string.language_korean)
+            Locale.FRENCH -> stringResource(R.string.language_french)
+            Locale.GERMAN -> stringResource(R.string.language_german)
+            Locale.ITALIAN -> stringResource(R.string.language_italian)
+            else -> locale.getDisplayLanguage(Locale.getDefault())
+        }
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
@@ -1740,7 +1756,7 @@ private fun LanguageSelectionDialog(
         ) {
             // 标题
             Text(
-                text = "选择翻译语言",
+                text = stringResource(R.string.translation_language_selection_title),
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -1770,7 +1786,7 @@ private fun LanguageSelectionDialog(
                                 modifier = Modifier.size(24.dp)
                             )
                             Text(
-                                text = language.getDisplayLanguage(Locale.getDefault()),
+                                text = getLanguageDisplayName(language),
                                 style = MaterialTheme.typography.titleMedium,
                             )
                         }
@@ -1788,8 +1804,9 @@ private fun CollapsibleTranslationText(
     content: String,
     onClickCitation: (String) -> Unit
 ) {
-    // 分割原文和译文
-    val parts = content.split("\n\n---\n\n**译文")
+    val translationText = stringResource(R.string.translation_text)
+    // Split original text and translation
+    val parts = content.split("\n\n---\n\n**$translationText")
     val originalText = parts[0]
     val translationParts = parts.drop(1)
     
@@ -1803,15 +1820,15 @@ private fun CollapsibleTranslationText(
             modifier = Modifier.animateContentSize()
         )
         
-        // 显示每个翻译部分
+        // Display each translation part
         translationParts.forEachIndexed { index, translationPart ->
-            val fullTranslationText = "**译文$translationPart"
+            val fullTranslationText = "**$translationText$translationPart"
             
             // 提取语言信息
-            val languageMatch = Regex("\\*\\*译文 \\(([^)]+)\\)\\*\\*").find(fullTranslationText)
-            val language = languageMatch?.groupValues?.get(1) ?: "未知语言"
+            val languageMatch = Regex("\\*\\*$translationText \\(([^)]+)\\)\\*\\*").find(fullTranslationText)
+            val language = languageMatch?.groupValues?.get(1) ?: stringResource(R.string.unknown_language)
             
-            // 提取翻译内容
+            // Extract translation content
             val translationContent = fullTranslationText.substringAfter("**\n\n").trim()
             
             var isCollapsed by remember { mutableStateOf(false) }
@@ -1824,7 +1841,7 @@ private fun CollapsibleTranslationText(
                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
             )
             
-            // 翻译标题和折叠按钮
+            // Translation title and collapse button
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -1841,7 +1858,7 @@ private fun CollapsibleTranslationText(
                         tint = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = "译文 ($language)",
+                        text = "${stringResource(R.string.translation_text)} ($language)",
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.SemiBold
@@ -1855,14 +1872,14 @@ private fun CollapsibleTranslationText(
                 ) {
                     Icon(
                         imageVector = if (isCollapsed) Lucide.ChevronDown else Lucide.ChevronUp,
-                        contentDescription = if (isCollapsed) "展开翻译" else "折叠翻译",
+                        contentDescription = if (isCollapsed) stringResource(R.string.expand_translation) else stringResource(R.string.collapse_translation),
                         modifier = Modifier.size(16.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
             
-            // 翻译内容（可折叠）
+            // Translation content (collapsible)
             AnimatedVisibility(
                 visible = !isCollapsed,
                 enter = expandVertically() + fadeIn(),
@@ -1892,5 +1909,5 @@ private fun CollapsibleTranslationText(
     }
 }
 
-// 扩展函数，检查是否为Qwen机器翻译模型
+// Extension function to check if it's a Qwen machine translation model
 private fun Model.isQwenMT() = this.modelId.contains("qwen-mt", true)

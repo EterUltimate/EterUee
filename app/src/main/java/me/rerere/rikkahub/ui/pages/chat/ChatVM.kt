@@ -692,7 +692,7 @@ class ChatVM(
                 val provider = model?.findProvider(settings.providers)
                 
                 if (model == null || provider == null) {
-                    errorFlow.emit(Exception("未配置翻译模型"))
+                    errorFlow.emit(Exception(context.getString(R.string.translation_model_not_configured)))
                     return@launch
                 }
 
@@ -747,7 +747,7 @@ class ChatVM(
                     translatedText = chunk.choices.firstOrNull()?.message?.toText() ?: ""
                 }
 
-                // 翻译完成后，将译文追加到原消息中
+                // After translation is complete, append the translation to the original message
                 if (translatedText.isNotBlank()) {
                     val currentConversation = conversation.value
                     val updatedNodes = currentConversation.messageNodes.map { node ->
@@ -755,7 +755,7 @@ class ChatVM(
                             val updatedMessages = node.messages.map { msg ->
                                 if (msg.id == message.id) {
                                     val translationPart = UIMessagePart.Text(
-                                        text = "\n\n---\n\n**译文 (${targetLanguage.getDisplayLanguage(java.util.Locale.getDefault())})**\n\n$translatedText"
+                                        text = "\n\n---\n\n**${context.getString(R.string.translation_text)} (${targetLanguage.getDisplayLanguage(java.util.Locale.getDefault())})**\n\n$translatedText"
                                     )
                                     msg.copy(
                                         parts = msg.parts + translationPart

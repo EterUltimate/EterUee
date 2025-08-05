@@ -578,4 +578,23 @@
   <string name="share">Share</string>
   <string name="create_fork">Create a fork</string>
   <string name="render_with_webview">Render with WebView</string>
+
+  <!-- Translation -->
+  <string name="translate">Translate</string>
+  <string name="translation_language_selection_title">Select Translation Language</string>
+  <string name="translation_text">Translation</string>
+  <string name="expand_translation">Expand Translation</string>
+  <string name="collapse_translation">Collapse Translation</string>
+  <string name="translation_model_not_configured">Translation model not configured</string>
+  <string name="unknown_language">Unknown Language</string>
+  
+  <!-- Language Names with Emojis -->
+  <string name="language_simplified_chinese">🇨🇳 简体中文</string>
+  <string name="language_english">🇺🇸 English</string>
+  <string name="language_traditional_chinese">🇨🇳 繁體中文</string>
+  <string name="language_japanese">🇯🇵 日本語</string>
+  <string name="language_korean">🇰🇷 한국어</string>
+  <string name="language_french">🇫🇷 Français</string>
+  <string name="language_german">🇩🇪 Deutsch</string>
+  <string name="language_italian">🇮🇹 Italiano</string>
 </resources>

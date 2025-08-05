@@ -587,6 +587,7 @@
   <string name="collapse_translation">Collapse Translation</string>
   <string name="translation_model_not_configured">Translation model not configured</string>
   <string name="unknown_language">Unknown Language</string>
+  <string name="translating">Translating...</string>
   
   <!-- Language Names with Emojis -->
   <string name="language_simplified_chinese">🇨🇳 简体中文</string>

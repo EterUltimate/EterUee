@@ -127,8 +127,16 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -1895,13 +1903,52 @@ private fun CollapsibleTranslationText(
                         ),
                         shape = MaterialTheme.shapes.medium
                     ) {
-                        MarkdownBlock(
-                            content = translationContent,
-                            onClickCitation = onClickCitation,
-                            modifier = Modifier
-                                .padding(12.dp)
-                                .animateContentSize()
-                        )
+                        // Check if it's loading state
+                        val isTranslating = translationContent.contains(stringResource(R.string.translating))
+                        
+                        if (isTranslating) {
+                            // Show loading animation for translation
+                            Row(
+                                modifier = Modifier
+                                    .padding(12.dp)
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                
+                                val infiniteTransition = rememberInfiniteTransition(label = "loading")
+                                val alpha by infiniteTransition.animateFloat(
+                                    initialValue = 0.3f,
+                                    targetValue = 1f,
+                                    animationSpec = infiniteRepeatable(
+                                        animation = tween(1000, easing = LinearEasing),
+                                        repeatMode = RepeatMode.Reverse
+                                    ),
+                                    label = "alpha"
+                                )
+                                
+                                Text(
+                                    text = stringResource(R.string.translating),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.graphicsLayer(alpha = alpha)
+                                )
+                            }
+                        } else {
+                            // Show normal translation content
+                            MarkdownBlock(
+                                content = translationContent,
+                                onClickCitation = onClickCitation,
+                                modifier = Modifier
+                                    .padding(12.dp)
+                                    .animateContentSize()
+                            )
+                        }
                     }
                 }
             }

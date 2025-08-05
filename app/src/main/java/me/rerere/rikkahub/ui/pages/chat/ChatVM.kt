@@ -702,6 +702,14 @@ class ChatVM(
                 
                 if (messageText.isBlank()) return@launch
 
+                // Initialize translation display with loading state
+                val languageDisplayName = targetLanguage.getDisplayLanguage(java.util.Locale.getDefault())
+                val translationHeader = "\n\n---\n\n**${context.getString(R.string.translation_text)} ($languageDisplayName)**\n\n"
+                val loadingText = context.getString(R.string.translating)
+                
+                // Add initial translation part with loading state
+                updateTranslationContent(message.id, translationHeader + loadingText)
+
                 val providerHandler = ProviderManager.getProviderByType(provider)
                 var translatedText = ""
                 
@@ -723,6 +731,11 @@ class ChatVM(
                     ).collect { chunk ->
                         messages = messages.handleMessageChunk(chunk)
                         translatedText = messages.lastOrNull()?.toText() ?: ""
+                        
+                        // Update translation content in real-time
+                        if (translatedText.isNotBlank()) {
+                            updateTranslationContent(message.id, translationHeader + translatedText)
+                        }
                     }
                 } else {
                     val messages = listOf(UIMessage.user(messageText))
@@ -745,38 +758,71 @@ class ChatVM(
                         ),
                     )
                     translatedText = chunk.choices.firstOrNull()?.message?.toText() ?: ""
+                    
+                    // Update translation content for non-streaming
+                    if (translatedText.isNotBlank()) {
+                        updateTranslationContent(message.id, translationHeader + translatedText)
+                    }
                 }
 
-                // After translation is complete, append the translation to the original message
-                if (translatedText.isNotBlank()) {
-                    val currentConversation = conversation.value
-                    val updatedNodes = currentConversation.messageNodes.map { node ->
-                        if (node.messages.any { it.id == message.id }) {
-                            val updatedMessages = node.messages.map { msg ->
-                                if (msg.id == message.id) {
-                                    val translationPart = UIMessagePart.Text(
-                                        text = "\n\n---\n\n**${context.getString(R.string.translation_text)} (${targetLanguage.getDisplayLanguage(java.util.Locale.getDefault())})**\n\n$translatedText"
-                                    )
-                                    msg.copy(
-                                        parts = msg.parts + translationPart
-                                    )
-                                } else {
-                                    msg
-                                }
-                            }
-                            node.copy(messages = updatedMessages)
-                        } else {
-                            node
-                        }
-                    }
-                    
-                    updateConversation(currentConversation.copy(messageNodes = updatedNodes))
-                    saveConversationAsync()
-                }
+                // Save the conversation after translation is complete
+                saveConversationAsync()
             } catch (e: Exception) {
+                // Remove loading state on error
+                removeTranslationLoadingState(message.id)
                 errorFlow.emit(e)
             }
         }
+    }
+    
+    private fun updateTranslationContent(messageId: Uuid, translationContent: String) {
+        val currentConversation = conversation.value
+        val updatedNodes = currentConversation.messageNodes.map { node ->
+            if (node.messages.any { it.id == messageId }) {
+                val updatedMessages = node.messages.map { msg ->
+                    if (msg.id == messageId) {
+                        // Check if translation part already exists
+                        val existingParts = msg.parts.filter { part ->
+                            !(part is UIMessagePart.Text && part.text.contains("\n\n---\n\n**${context.getString(R.string.translation_text)}"))
+                        }
+                        
+                        val translationPart = UIMessagePart.Text(text = translationContent)
+                        msg.copy(parts = existingParts + translationPart)
+                    } else {
+                        msg
+                    }
+                }
+                node.copy(messages = updatedMessages)
+            } else {
+                node
+            }
+        }
+        
+        updateConversation(currentConversation.copy(messageNodes = updatedNodes))
+    }
+    
+    private fun removeTranslationLoadingState(messageId: Uuid) {
+        val currentConversation = conversation.value
+        val updatedNodes = currentConversation.messageNodes.map { node ->
+            if (node.messages.any { it.id == messageId }) {
+                val updatedMessages = node.messages.map { msg ->
+                    if (msg.id == messageId) {
+                                                 // Remove any translation parts with loading state
+                         val filteredParts = msg.parts.filter { part ->
+                             !(part is UIMessagePart.Text && part.text.contains("\n\n---\n\n**${context.getString(R.string.translation_text)}") && part.text.endsWith(context.getString(R.string.translating)))
+                         }
+                        msg.copy(parts = filteredParts)
+                    } else {
+                        msg
+                    }
+                }
+                node.copy(messages = updatedMessages)
+            } else {
+                node
+            }
+        }
+        
+        updateConversation(currentConversation.copy(messageNodes = updatedNodes))
     }
 
     private fun Model.isQwenMT() = this.modelId.contains("qwen-mt", true)

@@ -587,6 +587,7 @@
   <string name="collapse_translation">收合翻譯</string>
   <string name="translation_model_not_configured">未配置翻譯模型</string>
   <string name="unknown_language">未知語言</string>
+  <string name="translating">翻譯中...</string>
   
   <!-- Language Names with Emojis -->
   <string name="language_simplified_chinese">🇨🇳 简体中文</string>

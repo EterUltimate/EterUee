@@ -223,9 +223,7 @@
   <string name="model_list_select_model">モデルを選択</string>
   <string name="model_list_no_providers">利用可能なAIプロバイダーがありません。設定で追加してください</string>
   <string name="model_list_favorite">お気に入り</string>
-  <string name="model_list_chat">チャット</string>
-  <string name="model_list_embedding">埋め込み</string>
-    <string name="model_list_search_placeholder">モデル名を入力して検索</string>
+  <string name="model_list_search_placeholder">モデル名を入力して検索</string>
 
   <!-- About Page -->
   <string name="about_page_title">アプリについて</string>
@@ -590,7 +588,7 @@
   <string name="translation_model_not_configured">翻訳モデルが設定されていません</string>
   <string name="unknown_language">不明な言語</string>
   <string name="translating">翻訳中...</string>
-  
+
   <!-- Language Names with Emojis -->
   <string name="language_simplified_chinese">🇨🇳 简体中文</string>
   <string name="language_english">🇺🇸 English</string>

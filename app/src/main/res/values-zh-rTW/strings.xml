@@ -221,9 +221,7 @@
   <string name="model_list_select_model">選擇模型</string>
   <string name="model_list_no_providers">沒有可用AI提供商，請在設置添加</string>
   <string name="model_list_favorite">收藏</string>
-  <string name="model_list_chat">聊天</string>
-  <string name="model_list_embedding">嵌入</string>
-    <string name="model_list_search_placeholder">輸入模型名稱搜尋</string>
+  <string name="model_list_search_placeholder">輸入模型名稱搜尋</string>
 
   <!-- About Page -->
   <string name="about_page_title">關於</string>
@@ -588,7 +586,7 @@
   <string name="translation_model_not_configured">未配置翻譯模型</string>
   <string name="unknown_language">未知語言</string>
   <string name="translating">翻譯中...</string>
-  
+
   <!-- Language Names with Emojis -->
   <string name="language_simplified_chinese">🇨🇳 简体中文</string>
   <string name="language_english">🇺🇸 English</string>

@@ -222,8 +222,6 @@
   <string name="model_list_select_model">Select Model</string>
   <string name="model_list_no_providers">No available AI providers, please add in settings</string>
   <string name="model_list_favorite">Favorites</string>
-  <string name="model_list_chat">Chat</string>
-  <string name="model_list_embedding">Embedding</string>
   <string name="model_list_search_placeholder">Enter model name to search</string>
 
   <!-- About Page -->

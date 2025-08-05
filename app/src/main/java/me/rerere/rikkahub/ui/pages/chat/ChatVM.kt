@@ -690,7 +690,7 @@ class ChatVM(
                 val settings = settingsStore.settingsFlow.first()
                 val model = settings.providers.findModelById(settings.translateModeId)
                 val provider = model?.findProvider(settings.providers)
-                
+
                 if (model == null || provider == null) {
                     errorFlow.emit(Exception(context.getString(R.string.translation_model_not_configured)))
                     return@launch
@@ -699,20 +699,16 @@ class ChatVM(
                 val messageText = message.parts.filterIsInstance<UIMessagePart.Text>()
                     .joinToString("\n\n") { it.text }
                     .trim()
-                
+
                 if (messageText.isBlank()) return@launch
 
-                // Initialize translation display with loading state
-                val languageDisplayName = targetLanguage.getDisplayLanguage(java.util.Locale.getDefault())
-                val translationHeader = "\n\n---\n\n**${context.getString(R.string.translation_text)} ($languageDisplayName)**\n\n"
+                // Set loading state for translation
                 val loadingText = context.getString(R.string.translating)
-                
-                // Add initial translation part with loading state
-                updateTranslationContent(message.id, translationHeader + loadingText)
+                updateTranslationField(message.id, loadingText)
 
                 val providerHandler = ProviderManager.getProviderByType(provider)
                 var translatedText = ""
-                
+
                 if (!model.isQwenMT()) {
                     val prompt = settings.translatePrompt.applyPlaceholders(
                         "source_text" to messageText,
@@ -731,10 +727,10 @@ class ChatVM(
                     ).collect { chunk ->
                         messages = messages.handleMessageChunk(chunk)
                         translatedText = messages.lastOrNull()?.toText() ?: ""
-                        
-                        // Update translation content in real-time
+
+                        // Update translation field in real-time
                         if (translatedText.isNotBlank()) {
-                            updateTranslationContent(message.id, translationHeader + translatedText)
+                            updateTranslationField(message.id, translatedText)
                         }
                     }
                 } else {
@@ -751,43 +747,40 @@ class ChatVM(
                                     key = "translation_options",
                                     value = buildJsonObject {
                                         put("source_lang", JsonPrimitive("auto"))
-                                        put("target_lang", JsonPrimitive(targetLanguage.getDisplayLanguage(java.util.Locale.ENGLISH)))
+                                        put(
+                                            "target_lang",
+                                            JsonPrimitive(targetLanguage.getDisplayLanguage(Locale.ENGLISH))
+                                        )
                                     }
                                 )
                             )
                         ),
                     )
                     translatedText = chunk.choices.firstOrNull()?.message?.toText() ?: ""
-                    
-                    // Update translation content for non-streaming
+
+                    // Update translation field for non-streaming
                     if (translatedText.isNotBlank()) {
-                        updateTranslationContent(message.id, translationHeader + translatedText)
+                        updateTranslationField(message.id, translatedText)
                     }
                 }
 
                 // Save the conversation after translation is complete
                 saveConversationAsync()
             } catch (e: Exception) {
-                // Remove loading state on error
-                removeTranslationLoadingState(message.id)
+                // Clear translation field on error
+                clearTranslationField(message.id)
                 errorFlow.emit(e)
             }
         }
     }
-    
-    private fun updateTranslationContent(messageId: Uuid, translationContent: String) {
+
+    private fun updateTranslationField(messageId: Uuid, translationText: String) {
         val currentConversation = conversation.value
         val updatedNodes = currentConversation.messageNodes.map { node ->
             if (node.messages.any { it.id == messageId }) {
                 val updatedMessages = node.messages.map { msg ->
                     if (msg.id == messageId) {
-                        // Check if translation part already exists
-                        val existingParts = msg.parts.filter { part ->
-                            !(part is UIMessagePart.Text && part.text.contains("\n\n---\n\n**${context.getString(R.string.translation_text)}"))
-                        }
-                        
-                        val translationPart = UIMessagePart.Text(text = translationContent)
-                        msg.copy(parts = existingParts + translationPart)
+                        msg.copy(translation = translationText)
                     } else {
                         msg
                     }
@@ -797,21 +790,17 @@ class ChatVM(
                 node
             }
         }
-        
+
         updateConversation(currentConversation.copy(messageNodes = updatedNodes))
     }
-    
-    private fun removeTranslationLoadingState(messageId: Uuid) {
+
+    private fun clearTranslationField(messageId: Uuid) {
         val currentConversation = conversation.value
         val updatedNodes = currentConversation.messageNodes.map { node ->
             if (node.messages.any { it.id == messageId }) {
                 val updatedMessages = node.messages.map { msg ->
                     if (msg.id == messageId) {
-                                                 // Remove any translation parts with loading state
-                         val filteredParts = msg.parts.filter { part ->
-                             !(part is UIMessagePart.Text && part.text.contains("\n\n---\n\n**${context.getString(R.string.translation_text)}") && part.text.endsWith(context.getString(R.string.translating)))
-                         }
-                        msg.copy(parts = filteredParts)
+                        msg.copy(translation = null)
                     } else {
                         msg
                     }
@@ -821,7 +810,7 @@ class ChatVM(
                 node
             }
         }
-        
+
         updateConversation(currentConversation.copy(messageNodes = updatedNodes))
     }
 

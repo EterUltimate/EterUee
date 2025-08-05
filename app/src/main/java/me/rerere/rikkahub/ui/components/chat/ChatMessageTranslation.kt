@@ -146,146 +146,116 @@ fun CollapsibleTranslationText(
     content: String,
     onClickCitation: (String) -> Unit
 ) {
-    val translationText = stringResource(R.string.translation_text)
-    // Split original text and translation
-    val parts = content.split("\n\n---\n\n**$translationText")
-    val originalText = parts[0]
-    val translationParts = parts.drop(1)
+    if (!content.isBlank()) {
+        var isCollapsed by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier.animateContentSize()
-    ) {
-        // 显示原文
-        MarkdownBlock(
-            content = originalText,
-            onClickCitation = onClickCitation,
-            modifier = Modifier.animateContentSize()
+        Spacer(modifier = Modifier.height(12.dp))
+
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 8.dp),
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
         )
 
-        // Display each translation part
-        translationParts.forEachIndexed { index, translationPart ->
-            val fullTranslationText = "**$translationText$translationPart"
-
-            // 提取语言信息
-            val languageMatch = Regex("\\*\\*$translationText \\(([^)]+)\\)\\*\\*").find(fullTranslationText)
-            val language = languageMatch?.groupValues?.get(1) ?: stringResource(R.string.unknown_language)
-
-            // Extract translation content
-            val translationContent = fullTranslationText.substringAfter("**\n\n").trim()
-
-            var isCollapsed by remember { mutableStateOf(false) }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // 分隔线
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 8.dp),
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-            )
-
-            // Translation title and collapse button
+        // Translation title and collapse button
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        imageVector = Lucide.Languages,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = "${stringResource(R.string.translation_text)} ($language)",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-
-                // 折叠/展开按钮
-                IconButton(
-                    onClick = { isCollapsed = !isCollapsed },
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        imageVector = if (isCollapsed) Lucide.ChevronDown else Lucide.ChevronUp,
-                        contentDescription = if (isCollapsed) stringResource(R.string.expand_translation) else stringResource(
-                            R.string.collapse_translation
-                        ),
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                Icon(
+                    imageVector = Lucide.Languages,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = stringResource(R.string.translation_text),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
 
-            // Translation content (collapsible)
-            AnimatedVisibility(
-                visible = !isCollapsed,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut()
+            // 折叠/展开按钮
+            IconButton(
+                onClick = { isCollapsed = !isCollapsed },
+                modifier = Modifier.size(32.dp)
             ) {
-                if (translationContent.isNotBlank()) {
-                    Card(
+                Icon(
+                    imageVector = if (isCollapsed) Lucide.ChevronDown else Lucide.ChevronUp,
+                    contentDescription = if (isCollapsed) stringResource(R.string.expand_translation) else stringResource(
+                        R.string.collapse_translation
+                    ),
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        // Translation content (collapsible)
+        AnimatedVisibility(
+            visible = !isCollapsed,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                ),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                // Check if it's loading state
+                val isTranslating = content == stringResource(R.string.translating)
+
+                if (isTranslating) {
+                    // Show loading animation for translation
+                    Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                        ),
-                        shape = MaterialTheme.shapes.medium
+                            .padding(12.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Check if it's loading state
-                        val isTranslating = translationContent.contains(stringResource(R.string.translating))
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
 
-                        if (isTranslating) {
-                            // Show loading animation for translation
-                            Row(
-                                modifier = Modifier
-                                    .padding(12.dp)
-                                    .fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(16.dp),
-                                    strokeWidth = 2.dp,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
+                        val infiniteTransition = rememberInfiniteTransition(label = "loading")
+                        val alpha by infiniteTransition.animateFloat(
+                            initialValue = 0.3f,
+                            targetValue = 1f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(1000, easing = LinearEasing),
+                                repeatMode = RepeatMode.Reverse
+                            ),
+                            label = "alpha"
+                        )
 
-                                val infiniteTransition = rememberInfiniteTransition(label = "loading")
-                                val alpha by infiniteTransition.animateFloat(
-                                    initialValue = 0.3f,
-                                    targetValue = 1f,
-                                    animationSpec = infiniteRepeatable(
-                                        animation = tween(1000, easing = LinearEasing),
-                                        repeatMode = RepeatMode.Reverse
-                                    ),
-                                    label = "alpha"
-                                )
-
-                                Text(
-                                    text = stringResource(R.string.translating),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.graphicsLayer(alpha = alpha)
-                                )
-                            }
-                        } else {
-                            // Show normal translation content
-                            MarkdownBlock(
-                                content = translationContent,
-                                onClickCitation = onClickCitation,
-                                modifier = Modifier
-                                    .padding(12.dp)
-                                    .animateContentSize()
-                            )
-                        }
+                        Text(
+                            text = stringResource(R.string.translating),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.graphicsLayer(alpha = alpha)
+                        )
                     }
+                } else {
+                    // Show normal translation content
+                    MarkdownBlock(
+                        content = content,
+                        onClickCitation = onClickCitation,
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .animateContentSize()
+                    )
                 }
             }
         }

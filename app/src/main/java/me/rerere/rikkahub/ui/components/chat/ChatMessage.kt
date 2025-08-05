@@ -138,6 +138,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
+import androidx.core.graphics.translationMatrix
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -267,6 +268,13 @@ fun ChatMessage(
                 loading = loading,
                 model = model,
             )
+
+            message.translation?.let { translation ->
+                CollapsibleTranslationText(
+                    content = translation,
+                    onClickCitation = {}
+                )
+            }
         }
         AnimatedVisibility(
             visible = showActions,
@@ -1014,23 +1022,13 @@ private fun MessagePartsBlock(
                     }
                 }
             } else {
-                // Check if contains translation content
-                if (part.text.contains("\n\n---\n\n**${stringResource(R.string.translation_text)}")) {
-                    CollapsibleTranslationText(
-                        content = part.text,
-                        onClickCitation = { id ->
-                            handleClickCitation(id)
-                        }
-                    )
-                } else {
-                    MarkdownBlock(
-                        content = part.text,
-                        onClickCitation = { id ->
-                            handleClickCitation(id)
-                        },
-                        modifier = Modifier.animateContentSize()
-                    )
-                }
+                MarkdownBlock(
+                    content = part.text,
+                    onClickCitation = { id ->
+                        handleClickCitation(id)
+                    },
+                    modifier = Modifier.animateContentSize()
+                )
             }
         }
     }

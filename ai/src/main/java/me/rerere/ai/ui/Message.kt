@@ -11,6 +11,7 @@ import me.rerere.ai.core.MessageRole
 import me.rerere.ai.core.TokenUsage
 import me.rerere.ai.provider.Model
 import me.rerere.ai.util.json
+import java.util.Locale
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
@@ -26,6 +27,7 @@ data class UIMessage(
         .toLocalDateTime(TimeZone.currentSystemDefault()),
     val modelId: Uuid? = null,
     val usage: TokenUsage? = null,
+    val translation: String? = null
 ) {
     private fun appendChunk(chunk: MessageChunk): UIMessage {
         val choice = chunk.choices.getOrNull(0)

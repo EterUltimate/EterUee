@@ -824,7 +824,7 @@ private fun ColumnScope.Actions(
                     .size(16.dp),
                 tint = if (isAvailable) LocalContentColor.current else LocalContentColor.current.copy(alpha = 0.38f)
             )
-            
+
             // Translation button
             if (onTranslate != null) {
                 Icon(
@@ -866,7 +866,7 @@ private fun ColumnScope.Actions(
             onUpdate = onUpdate,
         )
     }
-    
+
     // Translation dialog
     if (showTranslateDialog && onTranslate != null) {
         LanguageSelectionDialog(
@@ -1695,266 +1695,29 @@ fun ReasoningCard(
 
             // 如果是gemini, 显示当前的思考标题
             if (loading && model != null && ModelRegistry.GEMINI_SERIES.match(model.modelId)) {
-                val title = reasoning.reasoning.extractGeminiThinkingTitle()
-                if (title != null) {
-                    AnimatedContent(
-                        targetState = title,
-                        transitionSpec = {
-                            (slideInVertically { height -> height } + fadeIn()).togetherWith(slideOutVertically { height -> -height } + fadeOut())
-                        }
-                    ) {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.labelSmall,
-                            modifier = Modifier
-                                .padding(horizontal = 4.dp)
-                                .shimmer(true),
-                        )
-                    }
-                }
+                GeminiReasoningTitle(reasoning = reasoning)
             }
         }
     }
 }
 
 @Composable
-private fun LanguageSelectionDialog(
-    onLanguageSelected: (Locale) -> Unit,
-    onDismissRequest: () -> Unit
-) {
-    // 支持的语言列表
-    val languages = remember {
-        listOf(
-            Locale.SIMPLIFIED_CHINESE,
-            Locale.ENGLISH,
-            Locale.TRADITIONAL_CHINESE,
-            Locale.JAPANESE,
-            Locale.KOREAN,
-            Locale.FRENCH,
-            Locale.GERMAN,
-            Locale.ITALIAN,
-        )
-    }
-    
-    // 语言名称映射函数，原有的 locale.displayName 方法无法获取 emoji
-    @Composable
-    fun getLanguageDisplayName(locale: Locale): String {
-        return when (locale) {
-            Locale.SIMPLIFIED_CHINESE -> stringResource(R.string.language_simplified_chinese)
-            Locale.ENGLISH -> stringResource(R.string.language_english)
-            Locale.TRADITIONAL_CHINESE -> stringResource(R.string.language_traditional_chinese)
-            Locale.JAPANESE -> stringResource(R.string.language_japanese)
-            Locale.KOREAN -> stringResource(R.string.language_korean)
-            Locale.FRENCH -> stringResource(R.string.language_french)
-            Locale.GERMAN -> stringResource(R.string.language_german)
-            Locale.ITALIAN -> stringResource(R.string.language_italian)
-            else -> locale.getDisplayLanguage(Locale.getDefault())
-        }
-    }
-
-    ModalBottomSheet(
-        onDismissRequest = onDismissRequest,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+private fun GeminiReasoningTitle(reasoning: UIMessagePart.Reasoning) {
+    val title = reasoning.reasoning.extractGeminiThinkingTitle()
+    if (title != null) {
+        AnimatedContent(
+            targetState = title,
+            transitionSpec = {
+                (slideInVertically { height -> height } + fadeIn()).togetherWith(slideOutVertically { height -> -height } + fadeOut())
+            }
         ) {
-            // 标题
             Text(
-                text = stringResource(R.string.translation_language_selection_title),
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.fillMaxWidth()
+                text = it,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier
+                    .padding(horizontal = 4.dp)
+                    .shimmer(true),
             )
-
-            // 语言列表
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items(languages) { language ->
-                    Card(
-                        onClick = {
-                            onLanguageSelected(language)
-                        },
-                        shape = MaterialTheme.shapes.medium
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            modifier = Modifier
-                                .padding(16.dp)
-                                .fillMaxWidth()
-                        ) {
-                            Icon(
-                                imageVector = Lucide.Languages,
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp)
-                            )
-                            Text(
-                                text = getLanguageDisplayName(language),
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                        }
-                    }
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
-
-@Composable
-private fun CollapsibleTranslationText(
-    content: String,
-    onClickCitation: (String) -> Unit
-) {
-    val translationText = stringResource(R.string.translation_text)
-    // Split original text and translation
-    val parts = content.split("\n\n---\n\n**$translationText")
-    val originalText = parts[0]
-    val translationParts = parts.drop(1)
-    
-    Column(
-        modifier = Modifier.animateContentSize()
-    ) {
-        // 显示原文
-        MarkdownBlock(
-            content = originalText,
-            onClickCitation = onClickCitation,
-            modifier = Modifier.animateContentSize()
-        )
-        
-        // Display each translation part
-        translationParts.forEachIndexed { index, translationPart ->
-            val fullTranslationText = "**$translationText$translationPart"
-            
-            // 提取语言信息
-            val languageMatch = Regex("\\*\\*$translationText \\(([^)]+)\\)\\*\\*").find(fullTranslationText)
-            val language = languageMatch?.groupValues?.get(1) ?: stringResource(R.string.unknown_language)
-            
-            // Extract translation content
-            val translationContent = fullTranslationText.substringAfter("**\n\n").trim()
-            
-            var isCollapsed by remember { mutableStateOf(false) }
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            // 分隔线
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 8.dp),
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-            )
-            
-            // Translation title and collapse button
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        imageVector = Lucide.Languages,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = "${stringResource(R.string.translation_text)} ($language)",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-                
-                // 折叠/展开按钮
-                IconButton(
-                    onClick = { isCollapsed = !isCollapsed },
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        imageVector = if (isCollapsed) Lucide.ChevronDown else Lucide.ChevronUp,
-                        contentDescription = if (isCollapsed) stringResource(R.string.expand_translation) else stringResource(R.string.collapse_translation),
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            
-            // Translation content (collapsible)
-            AnimatedVisibility(
-                visible = !isCollapsed,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut()
-            ) {
-                if (translationContent.isNotBlank()) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                        ),
-                        shape = MaterialTheme.shapes.medium
-                    ) {
-                        // Check if it's loading state
-                        val isTranslating = translationContent.contains(stringResource(R.string.translating))
-                        
-                        if (isTranslating) {
-                            // Show loading animation for translation
-                            Row(
-                                modifier = Modifier
-                                    .padding(12.dp)
-                                    .fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(16.dp),
-                                    strokeWidth = 2.dp,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                
-                                val infiniteTransition = rememberInfiniteTransition(label = "loading")
-                                val alpha by infiniteTransition.animateFloat(
-                                    initialValue = 0.3f,
-                                    targetValue = 1f,
-                                    animationSpec = infiniteRepeatable(
-                                        animation = tween(1000, easing = LinearEasing),
-                                        repeatMode = RepeatMode.Reverse
-                                    ),
-                                    label = "alpha"
-                                )
-                                
-                                Text(
-                                    text = stringResource(R.string.translating),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.graphicsLayer(alpha = alpha)
-                                )
-                            }
-                        } else {
-                            // Show normal translation content
-                            MarkdownBlock(
-                                content = translationContent,
-                                onClickCitation = onClickCitation,
-                                modifier = Modifier
-                                    .padding(12.dp)
-                                    .animateContentSize()
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-// Extension function to check if it's a Qwen machine translation model
-private fun Model.isQwenMT() = this.modelId.contains("qwen-mt", true)

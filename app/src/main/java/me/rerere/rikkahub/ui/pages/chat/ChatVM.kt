@@ -67,9 +67,6 @@ import me.rerere.rikkahub.utils.UiState
 import me.rerere.rikkahub.utils.UpdateChecker
 import me.rerere.rikkahub.utils.applyPlaceholders
 import kotlinx.coroutines.Dispatchers
-import me.rerere.ai.provider.CustomBody
-import me.rerere.ai.registry.ModelRegistry
-import me.rerere.ai.ui.handleMessageChunk
 import me.rerere.rikkahub.utils.deleteChatFiles
 import me.rerere.search.SearchService
 import me.rerere.search.SearchServiceOptions
@@ -685,17 +682,10 @@ class ChatVM(
         }
     }
 
-    fun translateMessage(message: UIMessage, targetLanguage: java.util.Locale) {
+    fun translateMessage(message: UIMessage, targetLanguage: Locale) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val settings = settingsStore.settingsFlow.first()
-                val model = settings.providers.findModelById(settings.translateModeId)
-                val provider = model?.findProvider(settings.providers)
-
-                if (model == null || provider == null) {
-                    errorFlow.emit(Exception(context.getString(R.string.translation_model_not_configured)))
-                    return@launch
-                }
 
                 val messageText = message.parts.filterIsInstance<UIMessagePart.Text>()
                     .joinToString("\n\n") { it.text }
@@ -707,63 +697,14 @@ class ChatVM(
                 val loadingText = context.getString(R.string.translating)
                 updateTranslationField(message.id, loadingText)
 
-                val providerHandler = ProviderManager.getProviderByType(provider)
-                var translatedText = ""
-
-                if (!ModelRegistry.QWEN_MT.match(model.modelId)) {
-                    val prompt = settings.translatePrompt.applyPlaceholders(
-                        "source_text" to messageText,
-                        "target_lang" to targetLanguage.toString(),
-                    )
-
-                    var messages = listOf(UIMessage.user(prompt))
-
-                    providerHandler.streamText(
-                        providerSetting = provider,
-                        messages = messages,
-                        params = TextGenerationParams(
-                            model = model,
-                            temperature = 0.3f,
-                        ),
-                    ).collect { chunk ->
-                        messages = messages.handleMessageChunk(chunk)
-                        translatedText = messages.lastOrNull()?.toText() ?: ""
-
-                        // Update translation field in real-time
-                        if (translatedText.isNotBlank()) {
-                            updateTranslationField(message.id, translatedText)
-                        }
-                    }
-                } else {
-                    val messages = listOf(UIMessage.user(messageText))
-                    val chunk = providerHandler.generateText(
-                        providerSetting = provider,
-                        messages = messages,
-                        params = TextGenerationParams(
-                            model = model,
-                            temperature = 0.3f,
-                            topP = 0.95f,
-                            customBody = listOf(
-                                CustomBody(
-                                    key = "translation_options",
-                                    value = buildJsonObject {
-                                        put("source_lang", JsonPrimitive("auto"))
-                                        put(
-                                            "target_lang",
-                                            JsonPrimitive(targetLanguage.getDisplayLanguage(Locale.ENGLISH))
-                                        )
-                                    }
-                                )
-                            )
-                        ),
-                    )
-                    translatedText = chunk.choices.firstOrNull()?.message?.toText() ?: ""
-
-                    // Update translation field for non-streaming
-                    if (translatedText.isNotBlank()) {
-                        updateTranslationField(message.id, translatedText)
-                    }
-                }
+                generationHandler.translateText(
+                    settings = settings,
+                    sourceText = messageText,
+                    targetLanguage = targetLanguage
+                ) { translatedText ->
+                    // Update translation field in real-time
+                    updateTranslationField(message.id, translatedText)
+                }.collect { /* Final translation already handled in onStreamUpdate */ }
 
                 // Save the conversation after translation is complete
                 saveConversationAsync()

@@ -9,26 +9,16 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
-import me.rerere.ai.provider.CustomBody
-import me.rerere.ai.provider.Model
-import me.rerere.ai.provider.ProviderManager
-import me.rerere.ai.provider.TextGenerationParams
-import me.rerere.ai.registry.ModelRegistry
-import me.rerere.ai.ui.UIMessage
-import me.rerere.ai.ui.handleMessageChunk
+import me.rerere.rikkahub.data.ai.GenerationHandler
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
-import me.rerere.rikkahub.data.datastore.findModelById
-import me.rerere.rikkahub.data.datastore.findProvider
-import me.rerere.rikkahub.utils.applyPlaceholders
 import java.util.Locale
 
 private const val TAG = "TranslatorVM"
 
 class TranslatorVM(
     private val settingsStore: SettingsStore,
+    private val generationHandler: GenerationHandler,
 ) : ViewModel() {
     val settings: StateFlow<Settings> = settingsStore.settingsFlow
         .stateIn(viewModelScope, SharingStarted.Lazily, Settings())
@@ -73,9 +63,6 @@ class TranslatorVM(
         val inputText = _inputText.value
         if (inputText.isBlank()) return
 
-        val model = settings.value.providers.findModelById(settings.value.translateModeId) ?: return
-        val provider = model.findProvider(settings.value.providers) ?: return
-
         // 取消当前任务
         currentJob?.cancel()
 
@@ -85,51 +72,14 @@ class TranslatorVM(
 
         currentJob = viewModelScope.launch {
             runCatching {
-                val providerHandler = ProviderManager.getProviderByType(provider)
-
-                if (!ModelRegistry.QWEN_MT.match(model.modelId)) {
-                    val prompt = settings.value.translatePrompt.applyPlaceholders(
-                        "source_text" to inputText,
-                        "target_lang" to targetLanguage.value.toString(),
-                    )
-
-                    var messages = listOf(
-                        UIMessage.user(prompt)
-                    )
-
-                    providerHandler.streamText(
-                        providerSetting = provider,
-                        messages = listOf(UIMessage.user(prompt)),
-                        params = TextGenerationParams(
-                            model = model,
-                            temperature = 0.3f,
-                        ),
-                    ).collect { chunk ->
-                        messages = messages.handleMessageChunk(chunk)
-                        _translatedText.value = messages.lastOrNull()?.toText() ?: ""
-                    }
-                } else {
-                    val messages = listOf(UIMessage.user(inputText))
-                    val chunk = providerHandler.generateText(
-                        providerSetting = provider,
-                        messages = messages,
-                        params = TextGenerationParams(
-                            model = model,
-                            temperature = 0.3f,
-                            topP = 0.95f,
-                            customBody = listOf(
-                                CustomBody(
-                                    "translation_options",
-                                    buildJsonObject {
-                                        put("source_lang", "auto")
-                                        put("target_lang", targetLanguage.value.getDisplayLanguage(Locale.ENGLISH))
-                                    }
-                                )
-                            )
-                        ),
-                    )
-                    _translatedText.value = chunk.choices.firstOrNull()?.message?.toText() ?: ""
-                }
+                generationHandler.translateText(
+                    settings = settings.value,
+                    sourceText = inputText,
+                    targetLanguage = targetLanguage.value
+                ) { translatedText ->
+                    // Update translation in real-time
+                    _translatedText.value = translatedText
+                }.collect { /* Final translation already handled in onStreamUpdate */ }
             }.onFailure {
                 it.printStackTrace()
                 errorFlow.emit(it)

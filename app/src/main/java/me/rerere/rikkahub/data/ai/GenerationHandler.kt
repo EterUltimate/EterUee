@@ -16,6 +16,10 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import me.rerere.ai.provider.CustomBody
+import me.rerere.ai.registry.ModelRegistry
+import me.rerere.rikkahub.utils.applyPlaceholders
+import java.util.Locale
 import me.rerere.ai.core.InputSchema
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.core.Tool
@@ -37,6 +41,7 @@ import me.rerere.ai.ui.transforms
 import me.rerere.ai.ui.truncate
 import me.rerere.ai.ui.visualTransforms
 import me.rerere.rikkahub.data.datastore.Settings
+import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.findProvider
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
@@ -404,4 +409,76 @@ class GenerationHandler(
         }
         return ""
     }
+
+    fun translateText(
+        settings: Settings,
+        sourceText: String,
+        targetLanguage: Locale,
+        onStreamUpdate: ((String) -> Unit)? = null
+    ): Flow<String> = flow {
+        val model = settings.providers.findModelById(settings.translateModeId)
+            ?: error("Translation model not found")
+        val provider = model.findProvider(settings.providers)
+            ?: error("Translation provider not found")
+
+        val providerHandler = ProviderManager.getProviderByType(provider)
+
+        if (!ModelRegistry.QWEN_MT.match(model.modelId)) {
+            // Use regular translation with prompt
+            val prompt = settings.translatePrompt.applyPlaceholders(
+                "source_text" to sourceText,
+                "target_lang" to targetLanguage.toString(),
+            )
+
+            var messages = listOf(UIMessage.user(prompt))
+            var translatedText = ""
+
+            providerHandler.streamText(
+                providerSetting = provider,
+                messages = messages,
+                params = TextGenerationParams(
+                    model = model,
+                    temperature = 0.3f,
+                ),
+            ).collect { chunk ->
+                messages = messages.handleMessageChunk(chunk)
+                translatedText = messages.lastOrNull()?.toText() ?: ""
+
+                if (translatedText.isNotBlank()) {
+                    onStreamUpdate?.invoke(translatedText)
+                    emit(translatedText)
+                }
+            }
+        } else {
+            // Use Qwen MT model with special translation options
+            val messages = listOf(UIMessage.user(sourceText))
+            val chunk = providerHandler.generateText(
+                providerSetting = provider,
+                messages = messages,
+                params = TextGenerationParams(
+                    model = model,
+                    temperature = 0.3f,
+                    topP = 0.95f,
+                    customBody = listOf(
+                        CustomBody(
+                            key = "translation_options",
+                            value = buildJsonObject {
+                                put("source_lang", JsonPrimitive("auto"))
+                                put(
+                                    "target_lang",
+                                    JsonPrimitive(targetLanguage.getDisplayLanguage(Locale.ENGLISH))
+                                )
+                            }
+                        )
+                    )
+                ),
+            )
+            val translatedText = chunk.choices.firstOrNull()?.message?.toText() ?: ""
+
+            if (translatedText.isNotBlank()) {
+                onStreamUpdate?.invoke(translatedText)
+                emit(translatedText)
+            }
+        }
+    }.flowOn(Dispatchers.IO)
 }

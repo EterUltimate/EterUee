@@ -115,12 +115,14 @@ class SettingsStore(
                 favoriteModels = preferences[FAVORITE_MODELS]?.let {
                     JsonInstant.decodeFromString(it)
                 } ?: emptyList(),
-                chatModelId = preferences[SELECT_MODEL]?.let { Uuid.parse(it) } ?: Uuid.random(),
-                titleModelId = preferences[TITLE_MODEL]?.let { Uuid.parse(it) } ?: Uuid.random(),
+                chatModelId = preferences[SELECT_MODEL]?.let { Uuid.parse(it) }
+                    ?: SILICONFLOW_QWEN3_8B_ID,
+                titleModelId = preferences[TITLE_MODEL]?.let { Uuid.parse(it) }
+                    ?: SILICONFLOW_QWEN2_5_ID,
                 translateModeId = preferences[TRANSLATE_MODEL]?.let { Uuid.parse(it) }
-                    ?: Uuid.random(),
+                    ?: SILICONFLOW_QWEN2_5_ID,
                 suggestionModelId = preferences[SUGGESTION_MODEL]?.let { Uuid.parse(it) }
-                    ?: Uuid.random(),
+                    ?: SILICONFLOW_QWEN2_5_ID,
                 titlePrompt = preferences[TITLE_PROMPT] ?: DEFAULT_TITLE_PROMPT,
                 translatePrompt = preferences[TRANSLATION_PROMPT] ?: DEFAULT_TRANSLATION_PROMPT,
                 suggestionPrompt = preferences[SUGGESTION_PROMPT] ?: DEFAULT_SUGGESTION_PROMPT,
@@ -153,7 +155,8 @@ class SettingsStore(
                 ttsProviders = preferences[TTS_PROVIDERS]?.let {
                     JsonInstant.decodeFromString(it)
                 } ?: emptyList(),
-                selectedTTSProviderId = preferences[SELECTED_TTS_PROVIDER]?.let { Uuid.parse(it) } ?: DEFAULT_SYSTEM_TTS_ID,
+                selectedTTSProviderId = preferences[SELECTED_TTS_PROVIDER]?.let { Uuid.parse(it) }
+                    ?: DEFAULT_SYSTEM_TTS_ID,
             )
         }
         .map {
@@ -378,6 +381,9 @@ fun Model.findProvider(providers: List<ProviderSetting>): ProviderSetting? {
     return null
 }
 
+private val SILICONFLOW_QWEN3_8B_ID = Uuid.parse("dd82297e-4237-4d3c-85b3-58d5c7084fc2")
+private val SILICONFLOW_QWEN2_5_ID = Uuid.parse("94d04067-dd1a-45d8-a6ca-c210c6a98a58")
+
 private val DEFAULT_PROVIDERS = listOf(
     ProviderSetting.OpenAI(
         id = Uuid.parse("1eeea727-9ee5-4cae-93e6-6fb01a4d051e"),
@@ -409,9 +415,9 @@ private val DEFAULT_PROVIDERS = listOf(
         },
         models = listOf(
             Model(
-                id = Uuid.parse("dd82297e-4237-4d3c-85b3-58d5c7084fc2"),
+                id = SILICONFLOW_QWEN3_8B_ID,
                 modelId = "Qwen/Qwen3-8B",
-                displayName = "Qwen3 8B",
+                displayName = "Qwen3-8B",
                 inputModalities = listOf(Modality.TEXT),
                 outputModalities = listOf(Modality.TEXT),
                 abilities = listOf(ModelAbility.TOOL, ModelAbility.REASONING),
@@ -423,6 +429,14 @@ private val DEFAULT_PROVIDERS = listOf(
                 inputModalities = listOf(Modality.TEXT, Modality.IMAGE),
                 outputModalities = listOf(Modality.TEXT),
                 abilities = listOf(ModelAbility.TOOL, ModelAbility.REASONING),
+            ),
+            Model(
+                id = SILICONFLOW_QWEN2_5_ID,
+                modelId = "Qwen/Qwen2.5-7B-Instruct",
+                displayName = "Qwen2.5-7B",
+                inputModalities = listOf(Modality.TEXT),
+                outputModalities = listOf(Modality.TEXT),
+                abilities = listOf(ModelAbility.TOOL),
             )
         )
     ),

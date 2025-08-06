@@ -1038,6 +1038,25 @@ private fun ModelPicker(
                                         text = it.modelId,
                                         style = MaterialTheme.typography.titleSmall,
                                     )
+
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                    ) {
+                                        val modelMeta = remember(it) {
+                                            it.copy(
+                                                inputModalities = ModelRegistry.MODEL_INPUT_MODALITIES.getData(it.modelId),
+                                                outputModalities = ModelRegistry.MODEL_OUTPUT_MODALITIES.getData(it.modelId),
+                                                abilities = ModelRegistry.MODEL_ABILITIES.getData(it.modelId),
+                                            )
+                                        }
+                                        ModelModalityTag(
+                                            model = modelMeta,
+                                        )
+                                        ModelAbilityTag(
+                                            model = modelMeta,
+                                        )
+                                    }
                                 }
                                 IconButton(
                                     onClick = {

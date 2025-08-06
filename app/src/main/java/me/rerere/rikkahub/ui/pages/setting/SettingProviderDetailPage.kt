@@ -108,6 +108,7 @@ import me.rerere.rikkahub.ui.components.chat.ModelTypeTag
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.ShareSheet
+import me.rerere.rikkahub.ui.components.ui.SiliconFlowPowerByIcon
 import me.rerere.rikkahub.ui.components.ui.rememberShareSheetState
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalToaster
@@ -121,6 +122,7 @@ import me.rerere.rikkahub.utils.plus
 import org.koin.androidx.compose.koinViewModel
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
+import java.net.ProxySelector
 import kotlin.uuid.Uuid
 
 @Composable
@@ -309,6 +311,15 @@ private fun SettingProviderConfigPage(
             ) {
                 Text(stringResource(R.string.setting_provider_page_save))
             }
+        }
+
+        // 硅基流动图标
+        if (provider is ProviderSetting.OpenAI && provider.baseUrl.contains("siliconflow.cn")) {
+            SiliconFlowPowerByIcon(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(vertical = 16.dp)
+            )
         }
     }
 

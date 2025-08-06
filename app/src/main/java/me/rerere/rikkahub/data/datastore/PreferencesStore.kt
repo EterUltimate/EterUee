@@ -390,16 +390,28 @@ private val DEFAULT_PROVIDERS = listOf(
         builtIn = true
     ),
     ProviderSetting.OpenAI(
-        id = Uuid.parse("f099ad5b-ef03-446d-8e78-7e36787f780b"),
-        name = "DeepSeek",
-        baseUrl = "https://api.deepseek.com/v1",
-        apiKey = "sk-",
-        builtIn = true
-    ),
-    ProviderSetting.OpenAI(
         id = Uuid.parse("56a94d29-c88b-41c5-8e09-38a7612d6cf8"),
         name = "硅基流动",
         baseUrl = "https://api.siliconflow.cn/v1",
+        apiKey = "",
+        builtIn = true,
+        description = {
+            Text(
+                text = buildAnnotatedString {
+                    append("全球领先的 AI 能力提供商，加速 AGI 普惠人类。\n")
+                    append("官网: ")
+                    withLink(LinkAnnotation.Url("https://cloud.siliconflow.cn/i/u1Ia4Ycf")) {
+                        append("https://cloud.siliconflow.cn/")
+                    }
+                    append("\n")
+                }
+            )
+        }
+    ),
+    ProviderSetting.OpenAI(
+        id = Uuid.parse("f099ad5b-ef03-446d-8e78-7e36787f780b"),
+        name = "DeepSeek",
+        baseUrl = "https://api.deepseek.com/v1",
         apiKey = "sk-",
         builtIn = true
     ),

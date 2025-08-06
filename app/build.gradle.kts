@@ -161,6 +161,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.config)
 
     // DataStore
     implementation(libs.androidx.datastore.preferences)

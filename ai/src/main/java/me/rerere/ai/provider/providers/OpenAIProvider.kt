@@ -23,17 +23,9 @@ import okhttp3.Request
 import okhttp3.logging.HttpLoggingInterceptor
 import java.util.concurrent.TimeUnit
 
-object OpenAIProvider : Provider<ProviderSetting.OpenAI> {
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(120, TimeUnit.SECONDS)
-        .readTimeout(120, TimeUnit.SECONDS)
-        .writeTimeout(120, TimeUnit.SECONDS)
-        .retryOnConnectionFailure(true)
-        .addInterceptor(HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.HEADERS
-        })
-        .build()
-
+class OpenAIProvider(
+    private val client: OkHttpClient
+) : Provider<ProviderSetting.OpenAI> {
     private val chatCompletionsAPI = ChatCompletionsAPI(client = client)
     private val responseAPI = ResponseAPI(client = client)
 

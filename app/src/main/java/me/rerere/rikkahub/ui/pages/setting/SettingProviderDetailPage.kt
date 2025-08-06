@@ -120,6 +120,7 @@ import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.UiState
 import me.rerere.rikkahub.utils.plus
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import java.net.ProxySelector
@@ -477,6 +478,7 @@ private fun ConnectionTester(
     scope: CoroutineScope
 ) {
     var showTestDialog by remember { mutableStateOf(false) }
+    val providerManager = koinInject<ProviderManager>()
     IconButton(
         onClick = {
             showTestDialog = true
@@ -536,10 +538,11 @@ private fun ConnectionTester(
                 }
             },
             confirmButton = {
+
                 TextButton(
                     onClick = {
                         if (model == null) return@TextButton
-                        val provider = ProviderManager.getProviderByType(internalProvider)
+                        val provider = providerManager.getProviderByType(internalProvider)
                         scope.launch {
                             runCatching {
                                 testState = UiState.Loading
@@ -571,14 +574,14 @@ private fun ModelList(
     providerSetting: ProviderSetting,
     onUpdateProvider: (ProviderSetting) -> Unit
 ) {
+    val providerManager = koinInject<ProviderManager>()
     val modelList by produceState(emptyList(), providerSetting) {
         runCatching {
             println("loading models...")
-            value = ProviderManager.getProviderByType(providerSetting)
+            value = providerManager.getProviderByType(providerSetting)
                 .listModels(providerSetting)
                 .sortedBy { it.modelId }
                 .toList()
-            // println(value)
         }.onFailure {
             it.printStackTrace()
         }

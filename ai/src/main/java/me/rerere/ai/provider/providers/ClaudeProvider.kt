@@ -56,22 +56,7 @@ import kotlin.time.Clock
 private const val TAG = "ClaudeProvider"
 private const val ANTHROPIC_VERSION = "2023-06-01"
 
-object ClaudeProvider : Provider<ProviderSetting.Claude> {
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(120, TimeUnit.SECONDS)
-        .readTimeout(120, TimeUnit.SECONDS)
-        .writeTimeout(120, TimeUnit.SECONDS)
-        .retryOnConnectionFailure(true)
-        .addInterceptor { chain ->
-            val request = chain.request().newBuilder()
-                .build()
-            chain.proceed(request)
-        }
-        .addInterceptor(HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.HEADERS
-        })
-        .build()
-
+class ClaudeProvider(private val client: OkHttpClient) : Provider<ProviderSetting.Claude> {
     override suspend fun listModels(providerSetting: ProviderSetting.Claude): List<Model> =
         withContext(Dispatchers.IO) {
             val request = Request.Builder()

@@ -3,6 +3,8 @@ package me.rerere.rikkahub.di
 import androidx.room.Room
 import io.pebbletemplates.pebble.PebbleEngine
 import kotlinx.serialization.json.Json
+import me.rerere.ai.provider.ProviderManager
+import me.rerere.rikkahub.data.ai.AIRequestInterceptor
 import me.rerere.rikkahub.data.ai.AssistantTemplateLoader
 import me.rerere.rikkahub.data.ai.GenerationHandler
 import me.rerere.rikkahub.data.ai.TemplateTransformer
@@ -57,6 +59,7 @@ val dataSourceModule = module {
     single {
         GenerationHandler(
             context = get(),
+            providerManager = get(),
             json = get(),
             memoryRepo = get(),
             conversationRepo = get()
@@ -66,13 +69,17 @@ val dataSourceModule = module {
     single<OkHttpClient> {
         OkHttpClient.Builder()
             .connectTimeout(20, TimeUnit.SECONDS)
-            .readTimeout(20, TimeUnit.SECONDS)
-            .writeTimeout(20, TimeUnit.SECONDS)
-            .callTimeout(20, TimeUnit.SECONDS)
+            .readTimeout(120, TimeUnit.SECONDS)
+            .writeTimeout(120, TimeUnit.SECONDS)
             .followSslRedirects(true)
             .followRedirects(true)
             .retryOnConnectionFailure(true)
+            .addInterceptor(AIRequestInterceptor(remoteConfig = get()))
             .build()
+    }
+
+    single {
+        ProviderManager(client = get())
     }
 
     single {

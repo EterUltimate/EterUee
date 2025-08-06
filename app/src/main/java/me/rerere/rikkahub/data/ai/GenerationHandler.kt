@@ -59,6 +59,7 @@ sealed interface GenerationChunk {
 
 class GenerationHandler(
     private val context: Context,
+    private val providerManager: ProviderManager,
     private val json: Json,
     private val memoryRepo: MemoryRepository,
     private val conversationRepo: ConversationRepository
@@ -76,7 +77,7 @@ class GenerationHandler(
         maxSteps: Int = 256,
     ): Flow<GenerationChunk> = flow {
         val provider = model.findProvider(settings.providers) ?: error("Provider not found")
-        val providerImpl = ProviderManager.getProviderByType(provider)
+        val providerImpl = providerManager.getProviderByType(provider)
 
         var messages: List<UIMessage> = messages
 
@@ -421,7 +422,7 @@ class GenerationHandler(
         val provider = model.findProvider(settings.providers)
             ?: error("Translation provider not found")
 
-        val providerHandler = ProviderManager.getProviderByType(provider)
+        val providerHandler = providerManager.getProviderByType(provider)
 
         if (!ModelRegistry.QWEN_MT.match(model.modelId)) {
             // Use regular translation with prompt

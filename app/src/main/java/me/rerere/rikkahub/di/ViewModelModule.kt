@@ -25,6 +25,7 @@ val viewModelModule = module {
             templateTransformer = get(),
             mcpManager = get(),
             updateChecker = get(),
+            providerManager = get(),
         )
     }
     viewModelOf(::SettingVM)

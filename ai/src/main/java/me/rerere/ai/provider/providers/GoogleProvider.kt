@@ -61,17 +61,7 @@ import kotlin.uuid.Uuid
 
 private const val TAG = "GoogleProvider"
 
-object GoogleProvider : Provider<ProviderSetting.Google> {
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(120, TimeUnit.SECONDS)
-        .readTimeout(120, TimeUnit.SECONDS)
-        .writeTimeout(120, TimeUnit.SECONDS)
-        .retryOnConnectionFailure(true)
-        .addInterceptor(HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.HEADERS
-        })
-        .build()
-
+class GoogleProvider(private val client: OkHttpClient) : Provider<ProviderSetting.Google> {
     private fun buildUrl(providerSetting: ProviderSetting.Google, path: String): HttpUrl {
         val keys = providerSetting.apiKey.split(",")
         return if (!providerSetting.vertexAI) {

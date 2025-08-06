@@ -36,14 +36,10 @@ import coil3.request.crossfade
 import coil3.svg.SvgDecoder
 import com.dokar.sonner.Toaster
 import com.dokar.sonner.rememberToasterState
-import com.google.firebase.Firebase
-import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.analytics
 import kotlinx.serialization.Serializable
 import me.rerere.highlight.Highlighter
 import me.rerere.highlight.LocalHighlighter
 import me.rerere.rikkahub.data.datastore.SettingsStore
-import me.rerere.rikkahub.ui.context.LocalFirebaseAnalytics
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSettings
 import me.rerere.rikkahub.ui.context.LocalSharedTransitionScope
@@ -82,7 +78,6 @@ import kotlin.uuid.Uuid
 private const val TAG = "RouteActivity"
 
 class RouteActivity : ComponentActivity() {
-    private lateinit var firebaseAnalytics: FirebaseAnalytics
     private val highlighter by inject<Highlighter>()
     private val okHttpClient by inject<OkHttpClient>()
     private val settingsStore by inject<SettingsStore>()
@@ -107,7 +102,6 @@ class RouteActivity : ComponentActivity() {
                 AppRoutes(navStack)
             }
         }
-        firebaseAnalytics = Firebase.analytics
     }
 
     private fun disableNavigationBarContrast() {
@@ -146,7 +140,6 @@ class RouteActivity : ComponentActivity() {
                 LocalSharedTransitionScope provides this,
                 LocalSettings provides settings,
                 LocalHighlighter provides highlighter,
-                LocalFirebaseAnalytics provides firebaseAnalytics,
                 LocalToaster provides toastState,
                 LocalTTSState provides tts,
             ) {

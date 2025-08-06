@@ -99,6 +99,7 @@ class ChatVM(
     private val memoryRepository: MemoryRepository,
     private val generationHandler: GenerationHandler,
     private val templateTransformer: TemplateTransformer,
+    private val providerManager: ProviderManager,
     val mcpManager: McpManager,
     val updateChecker: UpdateChecker,
 ) : ViewModel() {
@@ -470,7 +471,7 @@ class ChatVM(
 
         viewModelScope.launch {
             runCatching {
-                val providerHandler = ProviderManager.getProviderByType(provider)
+                val providerHandler = providerManager.getProviderByType(provider)
                 val result = providerHandler.generateText(
                     providerSetting = provider,
                     messages = listOf(
@@ -506,7 +507,7 @@ class ChatVM(
         viewModelScope.launch {
             runCatching {
                 updateConversation(_conversation.value.copy(chatSuggestions = emptyList()))
-                val providerHandler = ProviderManager.getProviderByType(provider)
+                val providerHandler = providerManager.getProviderByType(provider)
                 val result = providerHandler.generateText(
                     providerSetting = provider,
                     messages = listOf(

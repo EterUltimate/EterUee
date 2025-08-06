@@ -22,7 +22,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.serialization.Serializable
+import me.rerere.ai.provider.Modality
 import me.rerere.ai.provider.Model
+import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.rikkahub.AppScope
 import me.rerere.rikkahub.data.mcp.McpServerConfig
@@ -166,6 +168,7 @@ class SettingsStore(
                     provider.copyProvider(
                         builtIn = defaultProvider.builtIn,
                         description = defaultProvider.description,
+                        models = (defaultProvider.models + provider.models).distinctBy { model -> model.modelId },
                     )
                 } else provider
             }.toMutableList()
@@ -406,7 +409,25 @@ private val DEFAULT_PROVIDERS = listOf(
                     append("\n")
                 }
             )
-        }
+        },
+        models = listOf(
+            Model(
+                id = Uuid.parse("dd82297e-4237-4d3c-85b3-58d5c7084fc2"),
+                modelId = "Qwen/Qwen3-8B",
+                displayName = "Qwen3 8B",
+                inputModalities = listOf(Modality.TEXT),
+                outputModalities = listOf(Modality.TEXT),
+                abilities = listOf(ModelAbility.TOOL, ModelAbility.REASONING),
+            ),
+            Model(
+                id = Uuid.parse("e4b836cd-6cbe-4350-b9e5-8c3b2d448b00"),
+                modelId = "THUDM/GLM-4.1V-9B-Thinking",
+                displayName = "GLM-4.1V-9B",
+                inputModalities = listOf(Modality.TEXT, Modality.IMAGE),
+                outputModalities = listOf(Modality.TEXT),
+                abilities = listOf(ModelAbility.TOOL, ModelAbility.REASONING),
+            )
+        )
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("f099ad5b-ef03-446d-8e78-7e36787f780b"),

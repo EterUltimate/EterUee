@@ -38,120 +38,178 @@ class MessageTest {
     }
 
     @Test
-    fun `limitContext should include tool call when first message has tool result`() {
-        val messages = mutableListOf<UIMessage>()
+    fun `limitContext with tool result at start should include corresponding tool call`() {
+        val messages = listOf(
+            UIMessage(role = MessageRole.USER, parts = listOf(UIMessagePart.Text("User message"))),
+            UIMessage(
+                role = MessageRole.ASSISTANT, parts = listOf(
+                    UIMessagePart.ToolCall("call1", "test_tool", "{}")
+                )
+            ),
+            UIMessage(
+                role = MessageRole.USER, parts = listOf(
+                    UIMessagePart.ToolResult("call1", "test_tool", JsonPrimitive("result"), JsonPrimitive("{}"))
+                )
+            ),
+            UIMessage(role = MessageRole.ASSISTANT, parts = listOf(UIMessagePart.Text("Final response")))
+        )
 
-        // Message 0: User message
-        messages.add(UIMessage(
-            role = MessageRole.USER,
-            parts = listOf(UIMessagePart.Text("Hello"))
-        ))
-
-        // Message 1: Assistant with tool call
-        messages.add(UIMessage(
-            role = MessageRole.ASSISTANT,
-            parts = listOf(UIMessagePart.ToolCall("call_1", "search", "{}"))
-        ))
-
-        // Message 2: Tool result
-        messages.add(UIMessage(
-            role = MessageRole.TOOL,
-            parts = listOf(UIMessagePart.ToolResult("call_1", "search", JsonPrimitive("result"), JsonPrimitive("{}")))
-        ))
-
-        // Message 3: Assistant response
-        messages.add(UIMessage(
-            role = MessageRole.ASSISTANT,
-            parts = listOf(UIMessagePart.Text("Based on the search result..."))
-        ))
-
-        // Message 4: User message
-        messages.add(UIMessage(
-            role = MessageRole.USER,
-            parts = listOf(UIMessagePart.Text("Thanks"))
-        ))
-
-        // Limit to 2 messages, but should include the tool call message
-        val result = messages.limitContext(3)
-
-        // Should include message 1 (tool call), 2 (tool result), 3 (assistant), 4 (user)
+        val result = messages.limitContext(2)
         assertEquals(4, result.size)
-        assertEquals(messages.subList(1, 5), result)
+        assertEquals(messages, result)
     }
 
     @Test
-    fun `limitContext without tool result should work normally`() {
-        val messages = mutableListOf<UIMessage>()
-
-        // Message 0: User message
-        messages.add(UIMessage(
-            role = MessageRole.USER,
-            parts = listOf(UIMessagePart.Text("Hello 1"))
-        ))
-
-        // Message 1: Assistant response
-        messages.add(UIMessage(
-            role = MessageRole.ASSISTANT,
-            parts = listOf(UIMessagePart.Text("Response 1"))
-        ))
-
-        // Message 2: User message
-        messages.add(UIMessage(
-            role = MessageRole.USER,
-            parts = listOf(UIMessagePart.Text("Hello 2"))
-        ))
-
-        // Message 3: Assistant response
-        messages.add(UIMessage(
-            role = MessageRole.ASSISTANT,
-            parts = listOf(UIMessagePart.Text("Response 2"))
-        ))
+    fun `limitContext with tool call at start should include corresponding user message`() {
+        val messages = listOf(
+            UIMessage(role = MessageRole.USER, parts = listOf(UIMessagePart.Text("User query"))),
+            UIMessage(
+                role = MessageRole.ASSISTANT, parts = listOf(
+                    UIMessagePart.ToolCall("call1", "test_tool", "{}")
+                )
+            ),
+            UIMessage(
+                role = MessageRole.USER, parts = listOf(
+                    UIMessagePart.ToolResult("call1", "test_tool", JsonPrimitive("result"), JsonPrimitive("{}"))
+                )
+            ),
+            UIMessage(role = MessageRole.ASSISTANT, parts = listOf(UIMessagePart.Text("Final response")))
+        )
 
         val result = messages.limitContext(2)
+        assertEquals(4, result.size)
+        assertEquals(messages, result)
+    }
 
+    @Test
+    fun `limitContext with tool result that chains to tool call and user message`() {
+        val messages = listOf(
+            UIMessage(role = MessageRole.USER, parts = listOf(UIMessagePart.Text("Initial query"))),
+            UIMessage(
+                role = MessageRole.ASSISTANT, parts = listOf(
+                    UIMessagePart.ToolCall("call1", "test_tool", "{}")
+                )
+            ),
+            UIMessage(
+                role = MessageRole.USER, parts = listOf(
+                    UIMessagePart.ToolResult("call1", "test_tool", JsonPrimitive("result"), JsonPrimitive("{}"))
+                )
+            ),
+            UIMessage(role = MessageRole.ASSISTANT, parts = listOf(UIMessagePart.Text("Response 1"))),
+            UIMessage(role = MessageRole.ASSISTANT, parts = listOf(UIMessagePart.Text("Response 2")))
+        )
+
+        // Request only 1 message but tool result should chain back to include user message
+        val result = messages.limitContext(1)
+        assertEquals(1, result.size)
+        assertEquals(messages.subList(4, 5), result)
+    }
+
+    @Test
+    fun `limitContext with multiple tool calls should find earliest user message`() {
+        val messages = listOf(
+            UIMessage(role = MessageRole.USER, parts = listOf(UIMessagePart.Text("User query"))),
+            UIMessage(
+                role = MessageRole.ASSISTANT, parts = listOf(
+                    UIMessagePart.ToolCall("call1", "tool1", "{}")
+                )
+            ),
+            UIMessage(
+                role = MessageRole.ASSISTANT, parts = listOf(
+                    UIMessagePart.ToolCall("call2", "tool2", "{}")
+                )
+            ),
+            UIMessage(role = MessageRole.ASSISTANT, parts = listOf(UIMessagePart.Text("Final response")))
+        )
+
+        val result = messages.limitContext(2)
+        assertEquals(4, result.size)
+        assertEquals(messages, result)
+    }
+
+    @Test
+    fun `limitContext with tool result but no corresponding tool call should not adjust`() {
+        val messages = listOf(
+            UIMessage(role = MessageRole.USER, parts = listOf(UIMessagePart.Text("User 1"))),
+            UIMessage(role = MessageRole.ASSISTANT, parts = listOf(UIMessagePart.Text("Assistant 1"))),
+            UIMessage(
+                role = MessageRole.USER, parts = listOf(
+                    UIMessagePart.ToolResult("orphan", "test_tool", JsonPrimitive("result"), JsonPrimitive("{}"))
+                )
+            ),
+            UIMessage(role = MessageRole.ASSISTANT, parts = listOf(UIMessagePart.Text("Assistant 2")))
+        )
+
+        val result = messages.limitContext(2)
         assertEquals(2, result.size)
         assertEquals(messages.subList(2, 4), result)
     }
 
     @Test
-    fun `limitContext should handle multiple tool calls correctly`() {
-        val messages = mutableListOf<UIMessage>()
-
-        // Message 0: User message
-        messages.add(UIMessage(
-            role = MessageRole.USER,
-            parts = listOf(UIMessagePart.Text("Hello"))
-        ))
-
-        // Message 1: Assistant with multiple tool calls
-        messages.add(UIMessage(
-            role = MessageRole.ASSISTANT,
-            parts = listOf(
-                UIMessagePart.ToolCall("call_1", "search", "{}"),
-                UIMessagePart.ToolCall("call_2", "calculate", "{}")
-            )
-        ))
-
-        // Message 2: Tool results
-        messages.add(UIMessage(
-            role = MessageRole.TOOL,
-            parts = listOf(
-                UIMessagePart.ToolResult("call_1", "search", JsonPrimitive("result1"), JsonPrimitive("{}")),
-                UIMessagePart.ToolResult("call_2", "calculate", JsonPrimitive("result2"), JsonPrimitive("{}"))
-            )
-        ))
-
-        // Message 3: Final response
-        messages.add(UIMessage(
-            role = MessageRole.ASSISTANT,
-            parts = listOf(UIMessagePart.Text("Final answer"))
-        ))
+    fun `limitContext with tool call but no corresponding user message should not adjust further`() {
+        val messages = listOf(
+            UIMessage(role = MessageRole.ASSISTANT, parts = listOf(UIMessagePart.Text("Assistant 1"))),
+            UIMessage(
+                role = MessageRole.ASSISTANT, parts = listOf(
+                    UIMessagePart.ToolCall("call1", "test_tool", "{}")
+                )
+            ),
+            UIMessage(role = MessageRole.ASSISTANT, parts = listOf(UIMessagePart.Text("Assistant 2")))
+        )
 
         val result = messages.limitContext(2)
+        assertEquals(2, result.size)
+        assertEquals(messages.subList(1, 3), result)
+    }
 
-        // Should include the tool call message, tool result, and final response
-        assertEquals(3, result.size)
-        assertEquals(messages.subList(1, 4), result)
+    @Test
+    fun `limitContext with empty list should return empty list`() {
+        val messages = emptyList<UIMessage>()
+        val result = messages.limitContext(5)
+        assertEquals(emptyList<UIMessage>(), result)
+    }
+
+    @Test
+    fun `limitContext with single message should return that message`() {
+        val messages = listOf(
+            UIMessage(role = MessageRole.USER, parts = listOf(UIMessagePart.Text("Single message")))
+        )
+        val result = messages.limitContext(1)
+        assertEquals(1, result.size)
+        assertEquals(messages, result)
+    }
+
+    @Test
+    fun `limitContext with complex chain of tool calls and results`() {
+        val messages = listOf(
+            UIMessage(role = MessageRole.USER, parts = listOf(UIMessagePart.Text("Initial query"))),
+            UIMessage(
+                role = MessageRole.ASSISTANT, parts = listOf(
+                    UIMessagePart.ToolCall("call1", "tool1", "{}")
+                )
+            ),
+            UIMessage(
+                role = MessageRole.USER, parts = listOf(
+                    UIMessagePart.ToolResult("call1", "tool1", JsonPrimitive("result1"), JsonPrimitive("{}"))
+                )
+            ),
+            UIMessage(
+                role = MessageRole.ASSISTANT, parts = listOf(
+                    UIMessagePart.ToolCall("call2", "tool2", "{}")
+                )
+            ),
+            UIMessage(
+                role = MessageRole.USER, parts = listOf(
+                    UIMessagePart.ToolResult("call2", "tool2", JsonPrimitive("result2"), JsonPrimitive("{}"))
+                )
+            ),
+            UIMessage(role = MessageRole.ASSISTANT, parts = listOf(UIMessagePart.Text("Final response")))
+        )
+
+        // Request 3 messages starting from tool result, should include the whole chain
+        val result = messages.limitContext(3)
+        assertEquals(6, result.size)
+        assertEquals(messages, result)
     }
 
     private fun createTestMessages(count: Int): List<UIMessage> {

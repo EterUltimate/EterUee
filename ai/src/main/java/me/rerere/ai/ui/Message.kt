@@ -278,13 +278,38 @@ fun List<UIMessage>.limitContext(size: Int): List<UIMessage> {
     val startIndex = this.size - size
     var adjustedStartIndex = startIndex
 
-    // 如果第一个消息包含tool result，往前查找对应的tool call
-    if (this[startIndex].getToolResults().isNotEmpty()) {
-        // 向前查找，直到找到包含tool call的消息
-        for (i in startIndex - 1 downTo 0) {
-            if (this[i].getToolCalls().isNotEmpty()) {
-                adjustedStartIndex = i
-                break
+    // 循环往前查找，直到满足所有依赖条件
+    var needsAdjustment = true
+    val visitedIndices = mutableSetOf<Int>()
+
+    while (needsAdjustment && adjustedStartIndex > 0) {
+        needsAdjustment = false
+
+        // 防止无限循环
+        if (adjustedStartIndex in visitedIndices) break
+        visitedIndices.add(adjustedStartIndex)
+
+        val currentMessage = this[adjustedStartIndex]
+
+        // 如果当前消息包含tool result，往前查找对应的tool call
+        if (currentMessage.getToolResults().isNotEmpty()) {
+            for (i in adjustedStartIndex - 1 downTo 0) {
+                if (this[i].getToolCalls().isNotEmpty()) {
+                    adjustedStartIndex = i
+                    needsAdjustment = true
+                    break
+                }
+            }
+        }
+
+        // 如果当前消息包含tool call，往前查找对应的用户消息
+        if (currentMessage.getToolCalls().isNotEmpty()) {
+            for (i in adjustedStartIndex - 1 downTo 0) {
+                if (this[i].role == MessageRole.USER) {
+                    adjustedStartIndex = i
+                    needsAdjustment = true
+                    break
+                }
             }
         }
     }

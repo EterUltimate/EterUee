@@ -299,6 +299,13 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
                         put("thinking_mode", level.isEnabled)
                     }
 
+                    "api.siliconflow.cn" -> {
+                        // https://docs.siliconflow.cn/cn/userguide/capabilities/reasoning#3-1-api-%E5%8F%82%E6%95%B0
+                        if (level != ReasoningLevel.AUTO && level != ReasoningLevel.OFF) {
+                            put("thinking_budget", params.thinkingBudget?.coerceAtLeast(100) ?: 100)
+                        }
+                    }
+
                     else -> {
                         // OpenAI 官方
                         // 文档中，只支持 "low", "medium", "high"

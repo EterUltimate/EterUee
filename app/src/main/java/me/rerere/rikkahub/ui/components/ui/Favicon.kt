@@ -11,12 +11,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
+import com.composables.icons.lucide.Earth
+import com.composables.icons.lucide.Lucide
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 @Composable
@@ -27,7 +30,7 @@ fun Favicon(
 ) {
     val faviconUrl = remember(url) {
         url.toHttpUrlOrNull()?.host?.let { host ->
-            "https://icon.horse/icon/$host"
+            "https://favicone.com/$host"
         }
     }
     AsyncImage(
@@ -38,6 +41,8 @@ fun Favicon(
             .background(MaterialTheme.colorScheme.surfaceContainer),
         contentDescription = null,
         contentScale = ContentScale.Crop,
+        placeholder = rememberVectorPainter(Lucide.Earth),
+        fallback = rememberVectorPainter(Lucide.Earth),
     )
 }
 

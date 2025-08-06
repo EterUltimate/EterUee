@@ -62,6 +62,7 @@ import org.intellij.markdown.MarkdownElementTypes
 import org.intellij.markdown.MarkdownTokenTypes
 import org.intellij.markdown.ast.ASTNode
 import org.intellij.markdown.ast.LeafASTNode
+import org.intellij.markdown.ast.findChildOfType
 import org.intellij.markdown.flavours.gfm.GFMElementTypes
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.flavours.gfm.GFMTokenTypes
@@ -341,7 +342,9 @@ fun MarkdownNode(
         // 链接
         MarkdownElementTypes.INLINE_LINK -> {
             val linkText =
-                node.findChildOfType(MarkdownTokenTypes.TEXT)?.getTextInNode(content) ?: ""
+                node.findChildOfType(MarkdownElementTypes.LINK_TEXT)
+                    ?.findChildOfType(GFMTokenTypes.GFM_AUTOLINK)
+                    ?.getTextInNode(content) ?: ""
             val linkDest =
                 node.findChildOfType(MarkdownElementTypes.LINK_DESTINATION)?.getTextInNode(content)
                     ?: ""
@@ -832,7 +835,10 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
                 node.findChildOfType(MarkdownElementTypes.LINK_DESTINATION)?.getTextInNode(content)
                     ?: ""
             val linkText =
-                node.findChildOfType(MarkdownTokenTypes.TEXT)?.getTextInNode(content) ?: linkDest
+                node.findChildOfType(MarkdownElementTypes.LINK_TEXT)
+                    ?.findChildOfType(GFMTokenTypes.GFM_AUTOLINK)
+                    ?.getTextInNode(content)
+                    ?: linkDest
             if (linkText == "citation") {
                 // 如果是引用，则特殊处理
                 val splits = linkDest.split(":")

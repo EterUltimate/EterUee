@@ -31,6 +31,7 @@ import me.rerere.rikkahub.data.mcp.McpServerConfig
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.Avatar
 import me.rerere.rikkahub.data.model.Tag
+import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.theme.PresetThemeType
 import me.rerere.rikkahub.ui.theme.PresetThemes
 import me.rerere.rikkahub.utils.JsonInstant
@@ -399,15 +400,11 @@ private val DEFAULT_PROVIDERS = listOf(
         apiKey = "",
         builtIn = true,
         description = {
-            Text(
-                text = buildAnnotatedString {
-                    append("全球领先的 AI 能力提供商，加速 AGI 普惠人类。\n")
-                    append("官网: ")
-                    withLink(LinkAnnotation.Url("https://cloud.siliconflow.cn/i/u1Ia4Ycf")) {
-                        append("https://cloud.siliconflow.cn/")
-                    }
-                    append("\n")
-                }
+            MarkdownBlock(
+                content = """
+                    全球领先的 AI 能力提供商，加速 AGI 普惠人类。
+                    官网: [https://cloud.siliconflow.cn/](https://cloud.siliconflow.cn/i/u1Ia4Ycf)
+                """.trimIndent()
             )
         },
         models = listOf(

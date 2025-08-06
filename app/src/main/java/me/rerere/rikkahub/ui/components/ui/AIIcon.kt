@@ -104,7 +104,7 @@ private fun computeAIIconByName(name: String): String? {
         PATTERN_PERPLEXITY.containsMatchIn(lowerName) -> "perplexity-color.svg"
         PATTERN_ALIYUN.containsMatchIn(lowerName) -> "alibabacloud-color.svg"
         PATTERN_BYTEDANCE.containsMatchIn(lowerName) -> "bytedance-color.svg"
-        PATTERN_SILLICON_CLOUD.containsMatchIn(lowerName) -> "siliconcloud-color.svg"
+        PATTERN_SILLICON_CLOUD.containsMatchIn(lowerName) -> "siliconflow.svg"
         PATTERN_AIHUBMIX.containsMatchIn(lowerName) -> "aihubmix-color.svg"
         PATTERN_OLLAMA.containsMatchIn(lowerName) -> "ollama.svg"
         PATTERN_GITHUB.containsMatchIn(lowerName) -> "github.svg"

@@ -379,7 +379,7 @@ private val DEFAULT_PROVIDERS = listOf(
         id = Uuid.parse("1eeea727-9ee5-4cae-93e6-6fb01a4d051e"),
         name = "OpenAI",
         baseUrl = "https://api.openai.com/v1",
-        apiKey = "sk-",
+        apiKey = "",
         builtIn = true
     ),
     ProviderSetting.Google(
@@ -412,7 +412,7 @@ private val DEFAULT_PROVIDERS = listOf(
         id = Uuid.parse("f099ad5b-ef03-446d-8e78-7e36787f780b"),
         name = "DeepSeek",
         baseUrl = "https://api.deepseek.com/v1",
-        apiKey = "sk-",
+        apiKey = "",
         builtIn = true
     ),
     ProviderSetting.OpenAI(

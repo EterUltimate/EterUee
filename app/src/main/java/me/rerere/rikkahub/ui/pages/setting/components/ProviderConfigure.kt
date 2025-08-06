@@ -136,6 +136,7 @@ private fun ColumnScope.ProviderConfigureOpenAI(
                 Text(stringResource(id = R.string.setting_provider_page_api_path))
             },
             modifier = Modifier.fillMaxWidth(),
+            enabled = !provider.builtIn
         )
     }
 

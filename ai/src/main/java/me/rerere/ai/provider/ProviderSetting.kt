@@ -57,7 +57,7 @@ sealed class ProviderSetting {
         override var proxy: ProviderProxy = ProviderProxy.None,
         @Transient override val builtIn: Boolean = false,
         @Transient override val description: @Composable (() -> Unit) = {},
-        var apiKey: String = "sk-",
+        var apiKey: String = "",
         var baseUrl: String = "https://api.openai.com/v1",
         var chatCompletionsPath: String = "/chat/completions",
         var useResponseApi: Boolean = false,

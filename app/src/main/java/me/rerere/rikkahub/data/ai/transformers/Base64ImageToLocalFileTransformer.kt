@@ -1,4 +1,4 @@
-package me.rerere.rikkahub.data.ai
+package me.rerere.rikkahub.data.ai.transformers
 
 import android.content.Context
 import me.rerere.ai.provider.Model

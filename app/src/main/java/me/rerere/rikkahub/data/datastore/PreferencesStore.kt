@@ -382,7 +382,6 @@ fun Model.findProvider(providers: List<ProviderSetting>): ProviderSetting? {
 }
 
 private val SILICONFLOW_QWEN3_8B_ID = Uuid.parse("dd82297e-4237-4d3c-85b3-58d5c7084fc2")
-private val SILICONFLOW_QWEN2_5_ID = Uuid.parse("94d04067-dd1a-45d8-a6ca-c210c6a98a58")
 
 private val DEFAULT_PROVIDERS = listOf(
     ProviderSetting.OpenAI(
@@ -432,14 +431,6 @@ private val DEFAULT_PROVIDERS = listOf(
                 outputModalities = listOf(Modality.TEXT),
                 abilities = listOf(ModelAbility.TOOL, ModelAbility.REASONING),
             ),
-            Model(
-                id = SILICONFLOW_QWEN2_5_ID,
-                modelId = "Qwen/Qwen2.5-7B-Instruct",
-                displayName = "Qwen2.5-7B",
-                inputModalities = listOf(Modality.TEXT),
-                outputModalities = listOf(Modality.TEXT),
-                abilities = listOf(ModelAbility.TOOL),
-            )
         )
     ),
     ProviderSetting.OpenAI(

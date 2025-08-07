@@ -596,4 +596,8 @@
   <string name="language_french">🇫🇷 Français</string>
   <string name="language_german">🇩🇪 Deutsch</string>
   <string name="language_italian">🇮🇹 Italiano</string>
+
+  <!-- Donate -->
+  <string name="setting_page_donate">Donate</string>
+  <string name="setting_page_donate_desc">If you like it, sponsor the author\'s work</string>
 </resources>

@@ -19,6 +19,7 @@
 
 ## 🚀 下载
 
+🔗 [前往官网下载](https://rikka-ai.com/download)
 🔗 [前往 Google Play 下载](https://play.google.com/store/apps/details?id=me.rerere.rikkahub)
 
 ## ✨ 功能特色
@@ -29,12 +30,12 @@
 - 🔄 多种类型的供应商支持，自定义 API / URL / 模型（目前支持 OpenAI、Google、Anthropic）
 - 🖼️ 多模态输入支持
 - 📝 Markdown 渲染（支持代码高亮、数学公式、表格、Mermaid）
-- 🔍 搜索支持（Exa、Tavily、Zhipu）
+- 🔍 搜索功能（Exa、Tavily、Zhipu、LinkUp、Brave、..）
 - 🧩 Prompt 变量（模型名称、时间等）
 - 🤳 二维码导出和导入提供商
 - 🤖 智能体自定义
 - 🧠 类ChatGPT记忆功能
-- 📝 翻译页面
+- 📝 AI翻译
 - 🌐 自定义HTTP请求头和请求体
 
 ## ✨ 贡献
@@ -56,19 +57,27 @@
 - [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization) (Json序列化)
 - [compose-icons/lucide](https://composeicons.com/icon-libraries/lucide) (图标库)
 
-> 你需要在 `app` 文件夹下添加 `google-services.json` 文件才能构建应用
+> [!TIP]
+> 你需要在 `app` 文件夹下添加 `google-services.json` 文件才能构建应用。
 
-## 💖 捐赠
+> [!IMPORTANT]  
+> 以下PR将被拒绝：
+> 1. 添加新语言，因为添加新语言会增加后续本地化的工作量
+> 2. 添加新功能，这个项目是有态度的
+> 3. AI生成的大规模重构和更改
 
-如果你喜欢这个项目，可以请我喝杯咖啡 ☕
+## 💖 致谢
 
-<div>
-  <img src="docs/donate.png" alt="捐赠" width="200" />
-</div>
+* 感谢 [SiliconFlow](https://siliconflow.cn/) 与我们合作提供免费模型
 
-## Star History
+## 💰 捐赠
 
-如果喜欢这个项目，可以给个Star ⭐
+* [Patreon](https://patreon.com/rikkahub)
+* [爱发电](https://afdian.com/a/reovo)
+
+## ⭐ Star History
+
+如果喜欢这个项目，请给个Star ⭐
 
 [![Star History Chart](https://api.star-history.com/svg?repos=re-ovo/rikkahub&type=Date)](https://star-history.com/#re-ovo/rikkahub&Date)
 

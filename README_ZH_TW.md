@@ -4,9 +4,9 @@
 
 一個原生Android LLM 聊天客戶端，支持切換不同的供應商進行聊天 🤖💬
 
-[English](README.md) | 繁體中文 | [简体中文](README_ZH_CN.md)
+點擊加入我們的Discord伺服器 👉 [【RikkaHub】](https://discord.gg/9weBqxe5c4)
 
-點擊連結加入群聊 👉 [【RikkaHub】](https://qm.qq.com/q/I8MSU0FkOu)
+[English](README.md) | 繁體中文 | [简体中文](README_ZH_CN.md)
 
 </div>
 
@@ -19,6 +19,7 @@
 
 ## 🚀 下載
 
+🔗 [前往官網下載](https://rikka-ai.com/download)
 🔗 [前往 Google Play 下載](https://play.google.com/store/apps/details?id=me.rerere.rikkahub)
 
 ## ✨ 功能特色
@@ -29,7 +30,7 @@
 - 🔄 多種類型的供應商支持，自定義 API / URL / 模型（目前支持 OpenAI、Google、Anthropic）
 - 🖼️ 多模態輸入支持
 - 📝 Markdown 渲染（支持代碼高亮、數學公式、表格、Mermaid）
-- 🔍 搜索支持（Exa、Tavily、Zhipu）
+- 🔍 搜尋功能（Exa、Tavily、Zhipu、LinkUp、Brave、..）
 - 🧩 Prompt 變量（模型名稱、時間等）
 - 🤳 二維碼導出和導入提供商
 - 🤖 智能體自定義
@@ -56,17 +57,27 @@
 - [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization) (Json序列化)
 - [compose-icons/lucide](https://composeicons.com/icon-libraries/lucide) (圖標庫)
 
-> 你需要在 `app` 文件夹下添加 `google-services.json` 文件才能构建应用
+> [!TIP]
+> 你需要在 `app` 資料夾下添加 `google-services.json` 檔案才能構建應用。
 
-## 💖 捐贈
+> [!IMPORTANT]  
+> 以下PR將被拒絕：
+> 1. 添加新語言，因為添加新語言會增加後續本地化的工作量
+> 2. 添加新功能，這個項目是有態度的
+> 3. AI生成的大規模重構和更改
 
-如果你喜歡這個項目，可以請我喝杯咖啡 ☕
+## 💖 致謝
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/X8X71DVU91)
+* 感謝 [SiliconFlow](https://siliconflow.cn/) 與我們合作提供免費模型
 
-## Star History
+## 💰 捐贈
 
-如果喜歡這個項目，可以給個Star ⭐
+* [Patreon](https://patreon.com/rikkahub)
+* [愛發電](https://afdian.com/a/reovo)
+
+## ⭐ Star History
+
+如果喜歡這個項目，請給個Star ⭐
 
 [![Star History Chart](https://api.star-history.com/svg?repos=re-ovo/rikkahub&type=Date)](https://star-history.com/#re-ovo/rikkahub&Date)
 

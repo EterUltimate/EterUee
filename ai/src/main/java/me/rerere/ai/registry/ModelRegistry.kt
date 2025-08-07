@@ -10,9 +10,9 @@ fun interface ModelData<T> {
 object ModelRegistry {
     private val GPT4O = ModelMatcher.containsRegex("gpt-4o")
     private val GPT_4_1 = ModelMatcher.containsRegex("gpt-4\\.1")
-    private val OPENAI_O_MODELS = ModelMatcher.containsRegex("o\\d")
+    val OPENAI_O_MODELS = ModelMatcher.containsRegex("o\\d")
     private val GPT_OSS = ModelMatcher.containsRegex("gpt-oss")
-    private val GPT_5 = ModelMatcher.containsRegex("gpt-5")
+    val GPT_5 = ModelMatcher.containsRegex("gpt-5")
 
     private val GEMINI_20_FLASH = ModelMatcher.containsRegex("gemini-2.0-flash")
     private val GEMINI_2_5_FLASH = ModelMatcher.containsRegex("gemini-2.5-flash")

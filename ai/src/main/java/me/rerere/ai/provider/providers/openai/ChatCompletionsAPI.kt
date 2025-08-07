@@ -27,6 +27,7 @@ import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.TextGenerationParams
+import me.rerere.ai.registry.ModelRegistry
 import me.rerere.ai.ui.MessageChunk
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
@@ -337,8 +338,7 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
     }
 
     private fun isModelAllowTemperature(model: Model): Boolean {
-        // 不能是openai o-系列模型，例如o3, o4-mini
-        return !model.modelId.matches(Regex("o[0-9](-.+)?"))
+        return !ModelRegistry.OPENAI_O_MODELS.match(model.modelId) && !ModelRegistry.GPT_5.match(model.modelId)
     }
 
     private fun buildMessages(messages: List<UIMessage>) = buildJsonArray {

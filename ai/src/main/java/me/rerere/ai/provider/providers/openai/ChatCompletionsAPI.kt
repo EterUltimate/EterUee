@@ -301,8 +301,8 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
 
                     "api.siliconflow.cn" -> {
                         // https://docs.siliconflow.cn/cn/userguide/capabilities/reasoning#3-1-api-%E5%8F%82%E6%95%B0
-                        if (level != ReasoningLevel.AUTO && level != ReasoningLevel.OFF) {
-                            put("thinking_budget", params.thinkingBudget?.coerceAtLeast(100) ?: 100)
+                        if (level != ReasoningLevel.AUTO) {
+                            put("enable_thinking", level.isEnabled)
                         }
                     }
 

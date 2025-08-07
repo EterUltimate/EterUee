@@ -118,11 +118,11 @@ class SettingsStore(
                 chatModelId = preferences[SELECT_MODEL]?.let { Uuid.parse(it) }
                     ?: SILICONFLOW_QWEN3_8B_ID,
                 titleModelId = preferences[TITLE_MODEL]?.let { Uuid.parse(it) }
-                    ?: SILICONFLOW_QWEN2_5_ID,
+                    ?: SILICONFLOW_QWEN3_8B_ID,
                 translateModeId = preferences[TRANSLATE_MODEL]?.let { Uuid.parse(it) }
-                    ?: SILICONFLOW_QWEN2_5_ID,
+                    ?: SILICONFLOW_QWEN3_8B_ID,
                 suggestionModelId = preferences[SUGGESTION_MODEL]?.let { Uuid.parse(it) }
-                    ?: SILICONFLOW_QWEN2_5_ID,
+                    ?: SILICONFLOW_QWEN3_8B_ID,
                 titlePrompt = preferences[TITLE_PROMPT] ?: DEFAULT_TITLE_PROMPT,
                 translatePrompt = preferences[TRANSLATION_PROMPT] ?: DEFAULT_TRANSLATION_PROMPT,
                 suggestionPrompt = preferences[SUGGESTION_PROMPT] ?: DEFAULT_SUGGESTION_PROMPT,

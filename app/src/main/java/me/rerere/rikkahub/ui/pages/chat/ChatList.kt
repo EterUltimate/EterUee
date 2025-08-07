@@ -92,6 +92,7 @@ fun ChatList(
     onUpdateMessage: (MessageNode) -> Unit = {},
     onClickSuggestion: (String) -> Unit = {},
     onTranslate: ((UIMessage, java.util.Locale) -> Unit)? = null,
+    onClearTranslation: (UIMessage) -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
     val loadingState by rememberUpdatedState(loading)
@@ -204,7 +205,8 @@ fun ChatList(
                             onUpdate = {
                                 onUpdateMessage(it)
                             },
-                            onTranslate = onTranslate
+                            onTranslate = onTranslate,
+                            onClearTranslation = onClearTranslation
                         )
                     }
                     if (index == conversation.truncateIndex - 1) {

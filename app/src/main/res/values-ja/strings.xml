@@ -586,6 +586,7 @@
   <string name="expand_translation">翻訳を展開</string>
   <string name="collapse_translation">翻訳を折りたたむ</string>
   <string name="translation_model_not_configured">翻訳モデルが設定されていません</string>
+  <string name="translation_clear">翻訳をクリア</string>
   <string name="unknown_language">不明な言語</string>
   <string name="translating">翻訳中...</string>
 

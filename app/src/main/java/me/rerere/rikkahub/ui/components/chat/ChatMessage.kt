@@ -216,7 +216,8 @@ fun ChatMessage(
     onShare: () -> Unit,
     onDelete: () -> Unit,
     onUpdate: (MessageNode) -> Unit,
-    onTranslate: ((UIMessage, Locale) -> Unit)? = null
+    onTranslate: ((UIMessage, Locale) -> Unit)? = null,
+    onClearTranslation: (UIMessage) -> Unit = {},
 ) {
     val message = node.messages[node.selectIndex]
     val settings = LocalSettings.current.displaySetting
@@ -292,7 +293,8 @@ fun ChatMessage(
                     onOpenActionSheet = {
                         showActionsSheet = true
                     },
-                    onTranslate = onTranslate
+                    onTranslate = onTranslate,
+                    onClearTranslation = onClearTranslation
                 )
             }
         }
@@ -774,6 +776,7 @@ private fun ColumnScope.Actions(
     onRegenerate: () -> Unit,
     onOpenActionSheet: () -> Unit,
     onTranslate: ((UIMessage, Locale) -> Unit)? = null,
+    onClearTranslation: (UIMessage) -> Unit = {},
 ) {
     val context = LocalContext.current
     var showInformation by remember { mutableStateOf(false) }
@@ -882,9 +885,13 @@ private fun ColumnScope.Actions(
                 showTranslateDialog = false
                 onTranslate(message, language)
             },
+            onClearTranslation = {
+                showTranslateDialog = false
+                onClearTranslation(message)
+            },
             onDismissRequest = {
                 showTranslateDialog = false
-            }
+            },
         )
     }
 }

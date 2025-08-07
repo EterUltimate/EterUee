@@ -47,6 +47,8 @@ import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.ChevronUp
 import com.composables.icons.lucide.Languages
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.X
+import me.rerere.ai.ui.UIMessage
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import java.util.Locale
@@ -54,6 +56,7 @@ import java.util.Locale
 @Composable
 fun LanguageSelectionDialog(
     onLanguageSelected: (Locale) -> Unit,
+    onClearTranslation: () -> Unit = {},
     onDismissRequest: () -> Unit
 ) {
     // 支持的语言列表
@@ -134,9 +137,33 @@ fun LanguageSelectionDialog(
                         }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                item {
+                    Card(
+                        onClick = {
+                            onClearTranslation()
+                        },
+                        shape = MaterialTheme.shapes.medium
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth()
+                        ) {
+                            Icon(
+                                imageVector = Lucide.X,
+                                contentDescription = null,
+                            )
+                            Text(
+                                text = stringResource(R.string.translation_clear),
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

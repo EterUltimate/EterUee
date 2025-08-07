@@ -737,7 +737,7 @@ class ChatVM(
         updateConversation(currentConversation.copy(messageNodes = updatedNodes))
     }
 
-    private fun clearTranslationField(messageId: Uuid) {
+    fun clearTranslationField(messageId: Uuid) {
         val currentConversation = conversation.value
         val updatedNodes = currentConversation.messageNodes.map { node ->
             if (node.messages.any { it.id == messageId }) {

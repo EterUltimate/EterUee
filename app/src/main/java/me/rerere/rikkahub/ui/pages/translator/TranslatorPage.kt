@@ -223,6 +223,21 @@ private fun LanguageSelector(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
+    @Composable
+    fun getLanguageDisplayName(locale: Locale): String {
+        return when (locale) {
+            Locale.SIMPLIFIED_CHINESE -> stringResource(R.string.language_simplified_chinese)
+            Locale.ENGLISH -> stringResource(R.string.language_english)
+            Locale.TRADITIONAL_CHINESE -> stringResource(R.string.language_traditional_chinese)
+            Locale.JAPANESE -> stringResource(R.string.language_japanese)
+            Locale.KOREAN -> stringResource(R.string.language_korean)
+            Locale.FRENCH -> stringResource(R.string.language_french)
+            Locale.GERMAN -> stringResource(R.string.language_german)
+            Locale.ITALIAN -> stringResource(R.string.language_italian)
+            else -> locale.getDisplayLanguage(Locale.getDefault())
+        }
+    }
+
     Box(
         modifier = Modifier.padding(horizontal = 4.dp)
     ) {
@@ -251,7 +266,7 @@ private fun LanguageSelector(
             ) {
                 Locales.forEach { language ->
                     DropdownMenuItem(
-                        text = { Text(language.displayName) },
+                        text = { Text(getLanguageDisplayName(language)) },
                         onClick = {
                             onLanguageSelected(language)
                             expanded = false

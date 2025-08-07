@@ -505,6 +505,8 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
             promptTokens = jsonObject["prompt_tokens"]?.jsonPrimitive?.intOrNull ?: 0,
             completionTokens = jsonObject["completion_tokens"]?.jsonPrimitive?.intOrNull ?: 0,
             totalTokens = jsonObject["total_tokens"]?.jsonPrimitive?.intOrNull ?: 0,
+            cachedTokens = jsonObject["prompt_tokens_details"]?.jsonObject?.get("cached_tokens")?.jsonPrimitive?.intOrNull
+                ?: 0
         )
     }
 

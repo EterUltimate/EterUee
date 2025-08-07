@@ -436,7 +436,9 @@ class ChatVM(
                         messageNodes = conversation.value.messageNodes.map { node ->
                             node.copy(messages = node.messages.map { it.finishReasoning() } // 结束思考
                             )
-                        })
+                        },
+                        updateAt = Instant.now()
+                    )
                 )
             }.collect { chunk ->
                 when (chunk) {
@@ -644,9 +646,7 @@ class ChatVM(
     }
 
     suspend fun saveConversation(conversation: Conversation) {
-        val conversation = conversation.copy(
-            assistantId = settings.value.assistantId, updateAt = Instant.now()
-        )
+        val conversation = conversation.copy(assistantId = settings.value.assistantId)
         this.updateConversation(conversation)
         try {
             if (conversationRepo.getConversationById(conversation.id) == null) {

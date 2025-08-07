@@ -12,6 +12,7 @@ object ModelRegistry {
     private val GPT_4_1 = ModelMatcher.containsRegex("gpt-4\\.1")
     private val OPENAI_O_MODELS = ModelMatcher.containsRegex("o\\d")
     private val GPT_OSS = ModelMatcher.containsRegex("gpt-oss")
+    private val GPT_5 = ModelMatcher.containsRegex("gpt-5")
 
     private val GEMINI_20_FLASH = ModelMatcher.containsRegex("gemini-2.0-flash")
     private val GEMINI_2_5_FLASH = ModelMatcher.containsRegex("gemini-2.5-flash")
@@ -35,11 +36,11 @@ object ModelRegistry {
     val QWEN_MT = ModelMatcher.containsRegex("qwen-mt")
 
     val VISION_MODELS =
-        GPT4O + GPT_4_1 + OPENAI_O_MODELS + GEMINI_SERIES + CLAUDE_SERIES + DOUBAO_1_6 + GROK_4 + STEP_3 + INTERN_S1
+        GPT4O + GPT_4_1 + GPT_5 + OPENAI_O_MODELS + GEMINI_SERIES + CLAUDE_SERIES + DOUBAO_1_6 + GROK_4 + STEP_3 + INTERN_S1
     val TOOL_MODELS =
-        GPT4O + GPT_4_1 + GPT_OSS + OPENAI_O_MODELS + GEMINI_SERIES + CLAUDE_SERIES + QWEN_3 + DOUBAO_1_6 + GROK_4 + KIMI_K2 + STEP_3 + INTERN_S1 + GLM_4_5 + DEEPSEEK_R1 + DEEPSEEK_V3
+        GPT4O + GPT_4_1 + GPT_OSS + GPT_5 + OPENAI_O_MODELS + GEMINI_SERIES + CLAUDE_SERIES + QWEN_3 + DOUBAO_1_6 + GROK_4 + KIMI_K2 + STEP_3 + INTERN_S1 + GLM_4_5 + DEEPSEEK_R1 + DEEPSEEK_V3
     val REASONING_MODELS =
-        GPT_OSS + OPENAI_O_MODELS + GEMINI_2_5_FLASH + GEMINI_2_5_PRO + CLAUDE_SERIES + QWEN_3 + DOUBAO_1_6 + GROK_4 + STEP_3 + INTERN_S1 + GLM_4_5 + DEEPSEEK_R1
+        GPT_OSS + GPT_5 + OPENAI_O_MODELS + GEMINI_2_5_FLASH + GEMINI_2_5_PRO + CLAUDE_SERIES + QWEN_3 + DOUBAO_1_6 + GROK_4 + STEP_3 + INTERN_S1 + GLM_4_5 + DEEPSEEK_R1
 
     val MODEL_INPUT_MODALITIES = ModelData { modelId ->
         if (VISION_MODELS.match(modelId)) {

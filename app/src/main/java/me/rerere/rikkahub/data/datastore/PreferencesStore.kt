@@ -630,7 +630,7 @@ internal val DEFAULT_TITLE_PROMPT = """
 """.trimIndent()
 
 internal val DEFAULT_SUGGESTION_PROMPT = """
-    I will provide you with some dialogue content in the `<content>` block, including conversations between the user and the assistant.
+    I will provide you with some chat content in the `<content>` block, including conversations between the user and the AI assistant.
     You need to act as the user to reply to the assistant, generating 3~5 appropriate and contextually relevant responses to the assistant.
 
     Rules:
@@ -639,6 +639,7 @@ internal val DEFAULT_SUGGESTION_PROMPT = """
     3. Ensure each suggestion is valid.
     4. Each suggestion should not exceed 10 characters.
     5. Imitate the user's previous conversational style.
+    6. Act as a user, not an assistant
 
     <content>
     {content}

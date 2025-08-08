@@ -26,6 +26,7 @@ val viewModelModule = module {
             mcpManager = get(),
             updateChecker = get(),
             providerManager = get(),
+            localTools = get(),
         )
     }
     viewModelOf(::SettingVM)

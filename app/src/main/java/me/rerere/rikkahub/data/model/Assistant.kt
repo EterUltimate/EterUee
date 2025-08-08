@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import me.rerere.ai.provider.CustomBody
 import me.rerere.ai.provider.CustomHeader
 import me.rerere.ai.ui.UIMessage
+import me.rerere.rikkahub.data.ai.LocalToolOption
 import kotlin.uuid.Uuid
 
 @Serializable
@@ -28,6 +29,7 @@ data class Assistant(
     val customHeaders: List<CustomHeader> = emptyList(),
     val customBodies: List<CustomBody> = emptyList(),
     val mcpServers: Set<Uuid> = emptySet(),
+    val localTools: List<LocalToolOption>,
     val background: String? = null,
 )
 

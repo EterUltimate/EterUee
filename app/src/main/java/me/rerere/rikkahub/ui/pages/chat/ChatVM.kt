@@ -67,6 +67,7 @@ import me.rerere.rikkahub.utils.UiState
 import me.rerere.rikkahub.utils.UpdateChecker
 import me.rerere.rikkahub.utils.applyPlaceholders
 import kotlinx.coroutines.Dispatchers
+import me.rerere.rikkahub.data.ai.LocalTools
 import me.rerere.rikkahub.utils.deleteChatFiles
 import me.rerere.search.SearchService
 import me.rerere.search.SearchServiceOptions
@@ -100,6 +101,7 @@ class ChatVM(
     private val generationHandler: GenerationHandler,
     private val templateTransformer: TemplateTransformer,
     private val providerManager: ProviderManager,
+    private val localTools: LocalTools,
     val mcpManager: McpManager,
     val updateChecker: UpdateChecker,
 ) : ViewModel() {
@@ -416,6 +418,7 @@ class ChatVM(
                     if (enableWebSearch.value) {
                         add(searchTool)
                     }
+                    addAll(localTools.getTools(settings.value.getCurrentAssistant().localTools))
                     mcpManager.getAllAvailableTools().forEach { tool ->
                         add(
                             Tool(

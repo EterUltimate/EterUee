@@ -1,7 +1,6 @@
 package me.rerere.rikkahub.ui.pages.setting
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,7 +36,6 @@ import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearWavyProgressIndicator
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.MultiChoiceSegmentedButtonRow
@@ -123,7 +121,6 @@ import me.rerere.rikkahub.ui.pages.setting.components.ProviderConfigure
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.UiState
 import me.rerere.rikkahub.utils.plus
-import me.rerere.rikkahub.utils.toDp
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import sh.calvin.reorderable.ReorderableItem
@@ -1449,9 +1446,12 @@ private fun ModelCard(
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        if(model.providerOverwrite != null) {
+                        if (model.providerOverwrite != null) {
                             Tag(type = TagType.INFO) {
-                                Text(model.providerOverwrite?.javaClass?.simpleName ?: model.providerOverwrite?.name ?: "ProviderOverwrite")
+                                Text(
+                                    model.providerOverwrite?.javaClass?.simpleName ?: model.providerOverwrite?.name
+                                    ?: "ProviderOverwrite"
+                                )
                             }
                         }
                         ModelTypeTag(model = model)
@@ -1616,7 +1616,12 @@ private fun ProviderOverrideSettings(
         } else {
             Button(
                 onClick = {
-                    editingProvider = parentProvider?.copyProvider(id = Uuid.random(), builtIn = false)
+                    editingProvider = parentProvider?.copyProvider(
+                        id = Uuid.random(),
+                        builtIn = false,
+                        models = emptyList(), // 这里必须设置为空，不然会导致循环依赖JSON
+                        description = {},
+                    )
                     showProviderConfig = true
                 },
                 modifier = Modifier.fillMaxWidth()

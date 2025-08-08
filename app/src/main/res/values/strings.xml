@@ -601,4 +601,9 @@
   <!-- Donate -->
   <string name="setting_page_donate">Donate</string>
   <string name="setting_page_donate_desc">If you like it, sponsor the author\'s work</string>
+  <string name="donate_page_title">Donate</string>
+  <string name="donate_page_donation_methods">Donation Methods</string>
+  <string name="donate_page_sponsor_list">Sponsor List</string>
+  <string name="donate_page_patreon_desc">For global users, get Discord Role after sponsoring</string>
+  <string name="donate_page_afdian_desc">For 🇨🇳 users</string>
 </resources>

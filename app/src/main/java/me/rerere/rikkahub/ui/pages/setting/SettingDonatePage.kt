@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import me.rerere.rikkahub.R
@@ -49,7 +50,7 @@ fun SettingDonatePage() {
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "Donate")
+                    Text(text = stringResource(R.string.donate_page_title))
                 },
                 navigationIcon = {
                     BackButton()
@@ -65,7 +66,7 @@ fun SettingDonatePage() {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "赞助方式",
+                text = stringResource(R.string.donate_page_donation_methods),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary,
             )
@@ -74,7 +75,7 @@ fun SettingDonatePage() {
             Afdian()
 
             Text(
-                text = "赞助用户列表",
+                text = stringResource(R.string.donate_page_sponsor_list),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary,
             )
@@ -115,7 +116,7 @@ private fun Patreon() {
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(
-                    text = "适用于全球用户, 赞助后可以获得Discord Role",
+                    text = stringResource(R.string.donate_page_patreon_desc),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
@@ -150,7 +151,7 @@ private fun Afdian() {
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(
-                    text = "适用于🇨🇳用户",
+                    text = stringResource(R.string.donate_page_afdian_desc),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }

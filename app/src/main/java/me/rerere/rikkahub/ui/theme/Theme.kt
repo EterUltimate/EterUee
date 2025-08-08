@@ -12,10 +12,13 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import kotlinx.serialization.Serializable
+import me.rerere.rikkahub.ui.hooks.rememberAmoledDarkMode
 import me.rerere.rikkahub.ui.hooks.rememberColorMode
 import me.rerere.rikkahub.ui.hooks.rememberUserSettingsState
 
@@ -24,6 +27,8 @@ private val ExtendDarkColors = darkExtendColors()
 val LocalExtendColors = compositionLocalOf { ExtendLightColors }
 
 val LocalDarkMode = compositionLocalOf { false }
+
+private val AMOLED_DARK_BACKGROUND = Color(0xFF000000)
 
 @Serializable
 enum class ColorMode {
@@ -44,6 +49,7 @@ fun RikkahubTheme(
         ColorMode.LIGHT -> false
         ColorMode.DARK -> true
     }
+    val amoledDarkMode by rememberAmoledDarkMode()
 
     val colorScheme = when {
         settings.dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
@@ -60,6 +66,16 @@ fun RikkahubTheme(
             type = settings.themeType,
             dark = false
         )
+    }
+    val colorSchemeConverted = remember(darkTheme, amoledDarkMode, colorScheme) {
+        if (darkTheme && amoledDarkMode) {
+            colorScheme.copy(
+                background = AMOLED_DARK_BACKGROUND,
+                surface = AMOLED_DARK_BACKGROUND,
+            )
+        } else {
+            colorScheme
+        }
     }
     val extendColors = if (darkTheme) ExtendDarkColors else ExtendLightColors
 
@@ -80,7 +96,7 @@ fun RikkahubTheme(
         LocalExtendColors provides extendColors
     ) {
         MaterialTheme(
-            colorScheme = colorScheme,
+            colorScheme = colorSchemeConverted,
             typography = Typography,
             content = content
         )

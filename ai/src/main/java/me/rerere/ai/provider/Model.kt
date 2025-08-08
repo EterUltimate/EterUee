@@ -16,6 +16,7 @@ data class Model(
     val outputModalities: List<Modality> = listOf(Modality.TEXT),
     val abilities: List<ModelAbility> = emptyList(),
     val tools: Set<BuiltInTools> = emptySet(),
+    val providerOverwrite: ProviderSetting? = null,
 )
 
 @Serializable

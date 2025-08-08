@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -63,7 +64,7 @@ fun SettingDonatePage() {
                 .padding(paddings)
                 .padding(16.dp)
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
                 text = stringResource(R.string.donate_page_donation_methods),
@@ -92,7 +93,7 @@ fun SettingDonatePage() {
 @Composable
 private fun Patreon() {
     val context = LocalContext.current
-    Surface(
+    Card(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
         onClick = {
@@ -127,7 +128,7 @@ private fun Patreon() {
 @Composable
 private fun Afdian() {
     val context = LocalContext.current
-    Surface(
+    Card(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
         onClick = {

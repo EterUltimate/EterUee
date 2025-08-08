@@ -52,7 +52,7 @@ class RikkaHubApp : Application() {
         // Init remote config
         get<FirebaseRemoteConfig>().apply {
             setConfigSettingsAsync(remoteConfigSettings {
-                minimumFetchIntervalInSeconds = 3600
+                minimumFetchIntervalInSeconds = 1800
             })
             setDefaultsAsync(R.xml.remote_config_defaults)
             fetchAndActivate()

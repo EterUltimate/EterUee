@@ -1,9 +1,13 @@
 package me.rerere.rikkahub.data.ai
 
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import kotlinx.serialization.json.jsonObject
+import me.rerere.rikkahub.utils.JsonInstant
+import me.rerere.rikkahub.utils.jsonPrimitiveOrNull
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
+import kotlin.io.encoding.Base64
 
 class AIRequestInterceptor(private val remoteConfig: FirebaseRemoteConfig) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -28,9 +32,20 @@ class AIRequestInterceptor(private val remoteConfig: FirebaseRemoteConfig) : Int
                 "/v1/models"
             )
         ) {
-            return request.newBuilder()
-                .header("Authorization", "Bearer ${remoteConfig.getString("silicon_cloud_key")}")
-                .build()
+            val contentType = request.body?.contentType()
+            if (contentType?.type == "application" && contentType.subtype == "json") {
+                val buffer = okio.Buffer()
+                request.body?.writeTo(buffer)
+                val model =
+                    JsonInstant.parseToJsonElement(buffer.readUtf8()).jsonObject["model"]?.jsonPrimitiveOrNull?.content
+                val freeModels = remoteConfig.getString("silicon_cloud_free_models").split(",")
+                if (model in freeModels) {
+                    val apiKey = String(Base64.decode(remoteConfig.getString("silicon_cloud_api_key")))
+                    return request.newBuilder()
+                        .header("Authorization", "Bearer $apiKey")
+                        .build()
+                }
+            }
         }
 
         return request

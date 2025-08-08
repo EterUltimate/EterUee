@@ -197,7 +197,8 @@ class SettingsStore(
             )
         }
         .map { settings ->
-            // 去重
+            // 去重并清理无效引用
+            val validMcpServerIds = settings.mcpServers.map { it.id }.toSet()
             settings.copy(
                 providers = settings.providers.distinctBy { it.id }.map { provider ->
                     when (provider) {
@@ -214,7 +215,11 @@ class SettingsStore(
                         )
                     }
                 },
-                assistants = settings.assistants.distinctBy { it.id },
+                assistants = settings.assistants.distinctBy { it.id }.map { assistant ->
+                    assistant.copy(
+                        mcpServers = assistant.mcpServers.filter { it in validMcpServerIds }.toSet()
+                    )
+                },
                 ttsProviders = settings.ttsProviders.distinctBy { it.id },
                 favoriteModels = settings.favoriteModels.filter { uuid ->
                     settings.providers.flatMap { it.models }.any { it.id == uuid }

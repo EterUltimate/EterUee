@@ -44,6 +44,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":common"))
     implementation(project(":search"))
 
     implementation(libs.androidx.core.ktx)

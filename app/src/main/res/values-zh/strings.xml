@@ -432,6 +432,10 @@
   <string name="setting_provider_page_proxy_port">端口</string>
   <string name="setting_provider_page_proxy_username">用户名 (可选)</string>
   <string name="setting_provider_page_proxy_password">密码 (可选)</string>
+  <string name="setting_provider_page_provider_override">提供商重写</string>
+  <string name="setting_provider_page_provider_override_desc">为此特定模型配置自定义提供商设置。将从父提供商继承通用属性。</string>
+  <string name="setting_provider_page_add_provider_override">添加提供商重写</string>
+  <string name="setting_provider_page_configure_provider_override">配置提供商重写</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">创建了记忆</string>

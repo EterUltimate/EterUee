@@ -1562,12 +1562,12 @@ private fun ProviderOverrideSettings(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = "Provider Override",
+            text = stringResource(R.string.setting_provider_page_provider_override),
             style = MaterialTheme.typography.titleSmall
         )
 
         Text(
-            text = "Configure custom provider settings for this specific model. Will inherit common properties from parent provider.",
+            text = stringResource(R.string.setting_provider_page_provider_override_desc),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -1623,7 +1623,7 @@ private fun ProviderOverrideSettings(
             ) {
                 Icon(Lucide.Plus, contentDescription = null)
                 Spacer(modifier = Modifier.size(8.dp))
-                Text("Add Provider Override")
+                Text(stringResource(R.string.setting_provider_page_add_provider_override))
             }
         }
 
@@ -1646,7 +1646,7 @@ private fun ProviderOverrideSettings(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(
-                        text = "Configure Provider Override",
+                        text = stringResource(R.string.setting_provider_page_configure_provider_override),
                         style = MaterialTheme.typography.titleLarge,
                     )
 
@@ -1672,7 +1672,7 @@ private fun ProviderOverrideSettings(
                                 editingProvider = null
                             },
                         ) {
-                            Text("Cancel")
+                            Text(stringResource(R.string.cancel))
                         }
                         TextButton(
                             onClick = {
@@ -1681,7 +1681,7 @@ private fun ProviderOverrideSettings(
                                 editingProvider = null
                             },
                         ) {
-                            Text("Save")
+                            Text(stringResource(R.string.setting_provider_page_save))
                         }
                     }
                 }

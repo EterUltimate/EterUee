@@ -6,6 +6,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -582,24 +583,17 @@ private fun ModelItem(
                         overflow = TextOverflow.Ellipsis,
                     )
 
-                    Row(
+                    FlowRow(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(IntrinsicSize.Min),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(IntrinsicSize.Min),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            ModelTypeTag(model = model)
+                        ModelTypeTag(model = model)
 
-                            ModelModalityTag(model = model)
+                        ModelModalityTag(model = model)
 
-                            ModelAbilityTag(model = model)
-                        }
+                        ModelAbilityTag(model = model)
                     }
                 }
                 tail()

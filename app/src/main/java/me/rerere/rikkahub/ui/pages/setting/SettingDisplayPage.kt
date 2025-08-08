@@ -34,6 +34,7 @@ import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.DisplaySetting
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
+import me.rerere.rikkahub.ui.hooks.rememberAmoledDarkMode
 import me.rerere.rikkahub.ui.hooks.rememberSharedPreferenceBoolean
 import me.rerere.rikkahub.ui.hooks.rememberSharedPreferenceString
 import me.rerere.rikkahub.ui.pages.setting.components.PresetThemeButtonGroup
@@ -44,6 +45,7 @@ import org.koin.androidx.compose.koinViewModel
 fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
     val settings by vm.settings.collectAsStateWithLifecycle()
     var displaySetting by remember(settings) { mutableStateOf(settings.displaySetting) }
+    var amoledDarkMode by rememberAmoledDarkMode()
 
     fun updateDisplaySetting(setting: DisplaySetting) {
         displaySetting = setting
@@ -108,6 +110,29 @@ fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
                     )
                 }
             }
+
+            item {
+                Card {
+                    ListItem(
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        headlineContent = {
+                            Text(stringResource(R.string.setting_display_page_amoled_dark_mode_title))
+                        },
+                        supportingContent = {
+                            Text(stringResource(R.string.setting_display_page_amoled_dark_mode_desc))
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = amoledDarkMode,
+                                onCheckedChange = {
+                                    amoledDarkMode = it
+                                }
+                            )
+                        },
+                    )
+                }
+            }
+
             item {
                 Card {
                     ListItem(

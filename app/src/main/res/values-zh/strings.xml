@@ -308,6 +308,8 @@
   <string name="setting_display_page_font_size_preview">这是一个**示例**的聊天文本</string>
   <string name="setting_display_page_enable_message_generation_haptic_effect_title">消息生成触觉反馈</string>
   <string name="setting_display_page_enable_message_generation_haptic_effect_desc">消息生成时启用触觉反馈效果</string>
+  <string name="setting_display_page_amoled_dark_mode_title">AMOLED 暗色模式</string>
+  <string name="setting_display_page_amoled_dark_mode_desc">在暗色主题中使用纯黑背景，适合 AMOLED 屏幕</string>
   <string name="setting_display_page_title">显示设置</string>
 
   <!-- Share Handler Page -->

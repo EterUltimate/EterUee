@@ -612,4 +612,9 @@
   <string name="donate_page_sponsor_list">Sponsor List</string>
   <string name="donate_page_patreon_desc">For global users, get Discord Role after sponsoring</string>
   <string name="donate_page_afdian_desc">For 🇨🇳 users</string>
+
+  <!-- Silicon Flow -->
+  <string name="silicon_flow_description">**Leading global AI capability provider, accelerating AGI to benefit humanity.**</string>
+  <string name="silicon_flow_website">Website: [https://cloud.siliconflow.cn/](https://cloud.siliconflow.cn/i/u1Ia4Ycf)</string>
+  <string name="silicon_flow_built_in_models">* Built-in Silicon Flow free models are available without an API Key. For more powerful models, please apply and configure your own API Key.</string>
 </resources>

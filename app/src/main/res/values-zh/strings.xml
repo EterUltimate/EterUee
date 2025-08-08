@@ -613,4 +613,9 @@
   <string name="donate_page_sponsor_list">赞助用户列表</string>
   <string name="donate_page_patreon_desc">适用于全球用户, 赞助后可以获得Discord Role</string>
   <string name="donate_page_afdian_desc">适用于🇨🇳用户</string>
+
+  <!-- Silicon Flow -->
+  <string name="silicon_flow_description">**全球领先的 AI 能力提供商，加速 AGI 普惠人类。**</string>
+  <string name="silicon_flow_website">官网: [https://cloud.siliconflow.cn/](https://cloud.siliconflow.cn/i/u1Ia4Ycf)</string>
+  <string name="silicon_flow_built_in_models">* 已内置硅基流动免费模型，无需API Key即可使用，如果需要更强大的模型，请自行申请和配置自己的API Key。</string>
 </resources>

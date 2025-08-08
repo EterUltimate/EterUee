@@ -3,6 +3,7 @@ package me.rerere.rikkahub.data.datastore
 import android.content.Context
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -27,6 +28,7 @@ import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.rikkahub.AppScope
+import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.mcp.McpServerConfig
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.Avatar
@@ -416,10 +418,10 @@ private val DEFAULT_PROVIDERS = listOf(
         description = {
             MarkdownBlock(
                 content = """
-                    **全球领先的 AI 能力提供商，加速 AGI 普惠人类。**
-                    官网: [https://cloud.siliconflow.cn/](https://cloud.siliconflow.cn/i/u1Ia4Ycf)
+                    ${stringResource(R.string.silicon_flow_description)}
+                    ${stringResource(R.string.silicon_flow_website)}
 
-                    * 已内置硅基流动免费模型，无需API Key即可使用，如果需要更强大的模型，请自行申请和配置自己的API Key。
+                    ${stringResource(R.string.silicon_flow_built_in_models)}
                 """.trimIndent()
             )
         },

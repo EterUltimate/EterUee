@@ -614,4 +614,9 @@
   <string name="donate_page_sponsor_list">スポンサーリスト</string>
   <string name="donate_page_patreon_desc">グローバルユーザー向け、スポンサー後にDiscord Roleを取得できます</string>
   <string name="donate_page_afdian_desc">🇨🇳ユーザー向け</string>
+
+  <!-- Silicon Flow -->
+  <string name="silicon_flow_description">**世界をリードするAI能力プロバイダー、AGIの普及を加速して人類に貢献。**</string>
+  <string name="silicon_flow_website">公式サイト: [https://cloud.siliconflow.cn/](https://cloud.siliconflow.cn/i/u1Ia4Ycf)</string>
+  <string name="silicon_flow_built_in_models">* Silicon Flowの無料モデルが内蔵されており、API Keyなしで使用できます。より強力なモデルが必要な場合は、独自のAPI Keyを申請・設定してください。</string>
 </resources>

@@ -754,7 +754,7 @@ private fun ModelIcon(
                         if (settings.displaySetting.showTokenUsage) {
                             message.usage?.let { usage ->
                                 Text(
-                                    text = if (usage.cachedTokens == 0) "${usage.totalTokens} tokens" else "${usage.totalTokens} tokens (${usage.cachedTokens} cached)",
+                                    text = if (usage.cachedTokens == 0) "${usage.totalTokens.formatNumber()} tokens" else "${usage.totalTokens.formatNumber()} tokens (${usage.cachedTokens.formatNumber()} cached)",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = LocalContentColor.current.copy(alpha = 0.8f),
                                     maxLines = 1,

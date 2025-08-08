@@ -111,7 +111,11 @@ data class MessageNode(
     val messages: List<UIMessage>,
     val selectIndex: Int = 0,
 ) {
-    val currentMessage get() = messages[selectIndex]
+    val currentMessage get() = if (messages.isEmpty() || selectIndex !in messages.indices) {
+        throw IllegalStateException("MessageNode has no valid current message: messages.size=${messages.size}, selectIndex=$selectIndex")
+    } else {
+        messages[selectIndex]
+    }
 
     val role get() = messages.firstOrNull()?.role ?: MessageRole.USER
 

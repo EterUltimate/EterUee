@@ -570,14 +570,25 @@ class ChatVM(
                 messageNodes = conversation.messageNodes.filterIndexed { index, node -> index != nodeIndex })
         } else {
             // 更新node，删除这个消息
-            conversation.copy(
-                messageNodes = conversation.messageNodes.map { node ->
-                    val newNode = node.copy(
-                        messages = node.messages.filter { it.id != message.id })
-                    newNode.copy(
-                        selectIndex = newNode.messages.lastIndex // 更新selectIndex
+            val updatedNodes = conversation.messageNodes.mapNotNull { node ->
+                val newMessages = node.messages.filter { it.id != message.id }
+                if (newMessages.isEmpty()) {
+                    // 如果删除消息后该node为空，则移除该node
+                    null
+                } else {
+                    // 确保selectIndex在有效范围内
+                    val newSelectIndex = if (node.selectIndex >= newMessages.size) {
+                        newMessages.lastIndex
+                    } else {
+                        node.selectIndex
+                    }
+                    node.copy(
+                        messages = newMessages,
+                        selectIndex = newSelectIndex
                     )
-                })
+                }
+            }
+            conversation.copy(messageNodes = updatedNodes)
         }
         updateConversation(newConversation)
         viewModelScope.launch {

@@ -48,8 +48,9 @@ class HistoryVM(
     }
 
     fun deleteAllConversations() {
+        val assistant = assistant.value ?: return
         viewModelScope.launch {
-            conversationRepo.deleteAllConversations()
+            conversationRepo.deleteConversationOfAssistant(assistant.id)
         }
     }
 
@@ -61,7 +62,7 @@ class HistoryVM(
 
     fun getPinnedConversations(): Flow<List<Conversation>> =
         conversationRepo.getPinnedConversations()
-        
+
     fun restoreConversation(conversation: Conversation) {
         viewModelScope.launch {
             conversationRepo.insertConversation(conversation)

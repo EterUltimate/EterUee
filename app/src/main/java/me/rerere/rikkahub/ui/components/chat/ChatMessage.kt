@@ -3,14 +3,12 @@ package me.rerere.rikkahub.ui.components.chat
 import android.content.Intent
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.with
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -32,12 +30,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import kotlinx.coroutines.Dispatchers
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
@@ -87,7 +83,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
@@ -107,9 +102,9 @@ import com.composables.icons.lucide.Copy
 import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.Ellipsis
 import com.composables.icons.lucide.Expand
-import com.composables.icons.lucide.ExternalLink
 import com.composables.icons.lucide.File
 import com.composables.icons.lucide.GitFork
+import com.composables.icons.lucide.Languages
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.RefreshCw
@@ -119,26 +114,6 @@ import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.Volume2
 import com.composables.icons.lucide.Wrench
 import com.composables.icons.lucide.X
-import com.composables.icons.lucide.Languages
-import com.composables.icons.lucide.ChevronDown
-import com.composables.icons.lucide.ChevronUp
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.IconButton
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.text.font.FontWeight
-import androidx.core.graphics.translationMatrix
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -157,7 +132,6 @@ import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyUIMessage
-import me.rerere.ai.ui.handleMessageChunk
 import me.rerere.highlight.HighlightText
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.Screen
@@ -189,9 +163,6 @@ import me.rerere.rikkahub.utils.jsonPrimitiveOrNull
 import me.rerere.rikkahub.utils.openUrl
 import me.rerere.rikkahub.utils.toLocalString
 import me.rerere.rikkahub.utils.urlDecode
-import me.rerere.rikkahub.utils.applyPlaceholders
-import me.rerere.rikkahub.data.datastore.findModelById
-import me.rerere.rikkahub.data.datastore.findProvider
 import org.koin.compose.koinInject
 import java.util.Locale
 import kotlin.time.Clock
@@ -206,7 +177,6 @@ fun ChatMessage(
     conversation: Conversation,
     modifier: Modifier = Modifier,
     loading: Boolean = false,
-    showIcon: Boolean = true,
     model: Model? = null,
     assistant: Assistant? = null,
     showActions: Boolean,
@@ -244,7 +214,6 @@ fun ChatMessage(
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
             ) {
                 ModelIcon(
-                    showIcon = showIcon,
                     message = message,
                     model = model,
                     assistant = assistant,
@@ -680,7 +649,6 @@ private fun UserAvatar(
 
 @Composable
 private fun ModelIcon(
-    showIcon: Boolean,
     message: UIMessage,
     loading: Boolean,
     model: Model?,
@@ -688,19 +656,22 @@ private fun ModelIcon(
     modifier: Modifier = Modifier,
 ) {
     val settings = LocalSettings.current
-    if (showIcon && message.role == MessageRole.ASSISTANT && !message.parts.isEmptyUIMessage() && model != null) {
+    val showIcon = settings.displaySetting.showModelIcon
+    if (message.role == MessageRole.ASSISTANT && !message.parts.isEmptyUIMessage() && model != null) {
         Row(
             modifier = modifier,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (assistant?.useAssistantAvatar == true) {
-                UIAvatar(
-                    name = assistant.name,
-                    modifier = Modifier.size(36.dp),
-                    value = assistant.avatar,
-                    loading = loading,
-                )
+                if(showIcon) {
+                    UIAvatar(
+                        name = assistant.name,
+                        modifier = Modifier.size(36.dp),
+                        value = assistant.avatar,
+                        loading = loading,
+                    )
+                }
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
@@ -731,11 +702,13 @@ private fun ModelIcon(
                     }
                 }
             } else {
-                AutoAIIcon(
-                    name = model.modelId,
-                    modifier = Modifier.size(36.dp),
-                    loading = loading
-                )
+                if(showIcon) {
+                    AutoAIIcon(
+                        name = model.modelId,
+                        modifier = Modifier.size(36.dp),
+                        loading = loading
+                    )
+                }
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {

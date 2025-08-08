@@ -179,7 +179,6 @@ fun ChatList(
                         ChatMessage(
                             node = node,
                             conversation = conversation,
-                            showIcon = settings.displaySetting.showModelIcon,
                             model = node.currentMessage.modelId?.let { settings.findModelById(it) },
                             assistant = settings.getAssistantById(conversation.assistantId),
                             showActions = showActionsForThisMessage,

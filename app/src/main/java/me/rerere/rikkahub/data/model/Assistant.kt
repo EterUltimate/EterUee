@@ -29,7 +29,7 @@ data class Assistant(
     val customHeaders: List<CustomHeader> = emptyList(),
     val customBodies: List<CustomBody> = emptyList(),
     val mcpServers: Set<Uuid> = emptySet(),
-    val localTools: List<LocalToolOption>,
+    val localTools: List<LocalToolOption> = emptyList(),
     val background: String? = null,
 )
 

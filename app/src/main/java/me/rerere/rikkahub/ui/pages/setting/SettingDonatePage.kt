@@ -1,6 +1,5 @@
 package me.rerere.rikkahub.ui.pages.setting
 
-import android.view.Surface
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +13,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.Icon
@@ -23,29 +23,24 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import kotlinx.serialization.Serializable
-import me.rerere.ai.util.await
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.api.SponsorAPI
 import me.rerere.rikkahub.data.model.Sponsor
 import me.rerere.rikkahub.ui.components.nav.BackButton
-import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.utils.UiState
 import me.rerere.rikkahub.utils.onError
 import me.rerere.rikkahub.utils.onLoading
 import me.rerere.rikkahub.utils.onSuccess
 import me.rerere.rikkahub.utils.openUrl
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.koin.compose.koinInject
 
 @Composable
@@ -66,7 +61,7 @@ fun SettingDonatePage() {
             modifier = Modifier
                 .padding(paddings)
                 .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
+                .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
@@ -85,7 +80,9 @@ fun SettingDonatePage() {
             )
 
             Sponsors(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
             )
         }
     }
@@ -180,23 +177,29 @@ private fun Sponsors(modifier: Modifier = Modifier) {
         sponsors.onSuccess { value ->
             LazyVerticalGrid(
                 columns = GridCells.FixedSize(48.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(value) {
                     Surface {
-                        AsyncImage(
-                            model = it.avatar,
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp)
-                        )
-                        Text(
-                            text = it.userName,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(8.dp)
-                        )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            AsyncImage(
+                                model = it.avatar,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .size(48.dp)
+                            )
+                            Text(
+                                text = it.userName,
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1,
+                            )
+                        }
                     }
                 }
             }

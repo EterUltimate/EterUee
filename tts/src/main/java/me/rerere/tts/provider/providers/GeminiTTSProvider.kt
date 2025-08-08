@@ -85,7 +85,7 @@ class GeminiTTSProvider : TTSProvider<TTSProviderSetting.Gemini> {
         Log.i(TAG, "generateSpeech: $requestBody")
 
         val httpRequest = Request.Builder()
-            .url("https://generativelanguage.googleapis.com/v1beta/models/${providerSetting.model}:generateContent")
+            .url("${providerSetting.baseUrl}/models/${providerSetting.model}:generateContent")
             .addHeader("x-goog-api-key", providerSetting.apiKey)
             .addHeader("Content-Type", "application/json")
             .post(requestBody.toString().toRequestBody("application/json".toMediaType()))

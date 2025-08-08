@@ -41,6 +41,7 @@ sealed class TTSProviderSetting {
         override var id: Uuid = Uuid.random(),
         override var name: String = "Gemini TTS",
         val apiKey: String = "",
+        val baseUrl: String = "https://generativelanguage.googleapis.com/v1beta",
         val model: String = "gemini-2.5-flash-preview-tts",
         val voiceName: String = "Kore"
     ) : TTSProviderSetting() {

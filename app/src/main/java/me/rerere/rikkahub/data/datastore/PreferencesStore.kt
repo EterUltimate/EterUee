@@ -370,7 +370,16 @@ fun Settings.getSelectedTTSProvider(): TTSProviderSetting? {
     } ?: ttsProviders.firstOrNull()
 }
 
-fun Model.findProvider(providers: List<ProviderSetting>): ProviderSetting? {
+fun Model.findProvider(providers: List<ProviderSetting>, checkOverwrite: Boolean = true): ProviderSetting? {
+    val provider = findModelProviderFromList(providers) ?: return null
+    val providerOverwrite = this.providerOverwrite
+    if (checkOverwrite && providerOverwrite != null) {
+        return providerOverwrite.copyProvider(proxy = provider.proxy)
+    }
+    return provider
+}
+
+private fun Model.findModelProviderFromList(providers: List<ProviderSetting>): ProviderSetting? {
     providers.forEach { setting ->
         setting.models.forEach { model ->
             if (model.id == this.id) {

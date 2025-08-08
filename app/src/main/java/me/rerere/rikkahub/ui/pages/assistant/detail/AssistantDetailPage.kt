@@ -31,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryScrollableTabRow
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -146,7 +147,8 @@ fun AssistantDetailPage(id: String) {
         stringResource(R.string.assistant_page_tab_preset_messages),
         stringResource(R.string.assistant_page_tab_memory),
         stringResource(R.string.assistant_page_tab_request),
-        "MCP"
+        stringResource(R.string.assistant_page_tab_mcp),
+        stringResource(R.string.assistant_page_tab_local_tools)
     )
     val pagerState = rememberPagerState { tabs.size }
 
@@ -175,7 +177,8 @@ fun AssistantDetailPage(id: String) {
             SecondaryScrollableTabRow(
                 selectedTabIndex = pagerState.currentPage,
                 modifier = Modifier.fillMaxWidth(),
-                edgePadding = 24.dp,
+                edgePadding = 20.dp,
+                minTabWidth = 20.dp,
             ) {
                 tabs.fastForEachIndexed { index, tab ->
                     Tab(
@@ -240,6 +243,13 @@ fun AssistantDetailPage(id: String) {
                                 onUpdate(it)
                             },
                             mcpServerConfigs = mcpServerConfigs
+                        )
+                    }
+
+                    6 -> {
+                        LocalToolConfig(
+                            assistant = assistant,
+                            onUpdate = { onUpdate(it) }
                         )
                     }
                 }

@@ -180,6 +180,10 @@
   <string name="assistant_page_template_variable_date">日期</string>
   <string name="assistant_page_template_variables_label">變數:</string>
 
+  <!-- 本地工具 -->
+  <string name="assistant_page_local_tools_javascript_engine_title">JavaScript 引擎</string>
+  <string name="assistant_page_local_tools_javascript_engine_desc">使用 QuickJS 引擎執行 JavaScript 代碼，進行計算和腳本處理</string>
+
   <!-- Custom Headers and Bodies -->
   <string name="assistant_page_custom_headers">自定義 Headers</string>
   <string name="assistant_page_header_name">Header 名稱</string>
@@ -311,6 +315,8 @@
   <string name="assistant_page_tab_preset_messages">預設訊息</string>
   <string name="assistant_page_tab_memory">記憶</string>
   <string name="assistant_page_tab_request">自定義請求</string>
+  <string name="assistant_page_tab_mcp">MCP</string>
+  <string name="assistant_page_tab_local_tools">本地工具</string>
   <string name="assistant_page_stream_output">串流輸出</string>
   <string name="assistant_page_stream_output_desc">是否啟用訊息的串流輸出</string>
   <string name="assistant_page_use_assistant_avatar">使用助手頭像</string>

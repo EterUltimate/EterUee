@@ -181,6 +181,10 @@
   <string name="assistant_page_template_variable_date">Date</string>
   <string name="assistant_page_template_variables_label">Variables:</string>
 
+  <!-- Local Tools -->
+  <string name="assistant_page_local_tools_javascript_engine_title">JavaScript Engine</string>
+  <string name="assistant_page_local_tools_javascript_engine_desc">Execute JavaScript code with QuickJS engine for calculations and scripting</string>
+
   <!-- Custom Headers and Bodies -->
   <string name="assistant_page_custom_headers">Custom Headers</string>
   <string name="assistant_page_header_name">Header Name</string>
@@ -339,6 +343,8 @@
   <string name="assistant_page_tab_preset_messages">Preset Messages</string>
   <string name="assistant_page_tab_memory">Memory</string>
   <string name="assistant_page_tab_request">Custom Request</string>
+  <string name="assistant_page_tab_mcp">MCP</string>
+  <string name="assistant_page_tab_local_tools">Local Tools</string>
   <string name="assistant_page_stream_output">Stream Output</string>
   <string name="assistant_page_stream_output_desc">Whether to enable streaming output for messages</string>
   <string name="assistant_page_use_assistant_avatar">Use Assistant Avatar</string>

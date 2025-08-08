@@ -182,6 +182,10 @@
   <string name="assistant_page_template_variable_date">日付</string>
   <string name="assistant_page_template_variables_label">変数:</string>
 
+  <!-- ローカルツール -->
+  <string name="assistant_page_local_tools_javascript_engine_title">JavaScriptエンジン</string>
+  <string name="assistant_page_local_tools_javascript_engine_desc">QuickJSエンジンでJavaScriptコードを実行し、計算とスクリプト処理を行います</string>
+
   <!-- Custom Headers and Bodies -->
   <string name="assistant_page_custom_headers">カスタムヘッダー</string>
   <string name="assistant_page_header_name">ヘッダー名</string>
@@ -312,6 +316,8 @@
   <string name="assistant_page_tab_preset_messages">プリセットメッセージ</string>
   <string name="assistant_page_tab_memory">記憶</string>
   <string name="assistant_page_tab_request">カスタムリクエスト</string>
+  <string name="assistant_page_tab_mcp">MCP</string>
+  <string name="assistant_page_tab_local_tools">ローカルツール</string>
   <string name="assistant_page_stream_output">ストリーミング出力</string>
   <string name="assistant_page_stream_output_desc">メッセージをストリーミング出力するかどうか</string>
   <string name="assistant_page_use_assistant_avatar">アシスタントアバターを使用</string>

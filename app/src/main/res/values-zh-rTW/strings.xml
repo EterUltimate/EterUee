@@ -266,6 +266,8 @@
   <string name="setting_page_data_settings">資料設定</string>
   <string name="setting_page_data_backup">資料備份</string>
   <string name="setting_page_data_backup_desc">備份和恢復應用資料</string>
+  <string name="setting_page_donate">贊助</string>
+  <string name="setting_page_donate_desc">如果你喜歡這個應用，請贊助作者的工作</string>
   <string name="reasoning_off_desc">關閉推理功能，模型將直接回答問題。</string>
   <string name="reasoning_auto">自動</string>
   <string name="reasoning_auto_desc">讓模型自動決定推理級別。</string>

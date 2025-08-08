@@ -479,6 +479,8 @@
   <string name="setting_page_data_settings">データ設定</string>
   <string name="setting_page_data_backup">データバックアップ</string>
   <string name="setting_page_data_backup_desc">アプリデータのバックアップと復元</string>
+  <string name="setting_page_donate">寄付</string>
+  <string name="setting_page_donate_desc">このアプリを気に入った場合は、作者の作品をスポンサーしてください</string>
 
   <!-- Tag Input -->
   <string name="add">追加</string>

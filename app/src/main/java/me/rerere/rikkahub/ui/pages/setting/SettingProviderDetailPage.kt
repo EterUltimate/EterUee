@@ -168,7 +168,7 @@ fun SettingProviderDetailPage(id: Uuid, vm: SettingVM = koinViewModel()) {
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         AutoAIIcon(provider.name, modifier = Modifier.size(22.dp))
-                        Text(provider.name)
+                        Text(text = provider.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 },
                 actions = {

@@ -345,7 +345,7 @@ fun MarkdownNode(
         MarkdownElementTypes.INLINE_LINK -> {
             val linkText =
                 node.findChildOfType(MarkdownElementTypes.LINK_TEXT)
-                    ?.findChildOfType(GFMTokenTypes.GFM_AUTOLINK)
+                    ?.findChildOfType(GFMTokenTypes.GFM_AUTOLINK, MarkdownTokenTypes.TEXT)
                     ?.getTextInNode(content) ?: ""
             val linkDest =
                 node.findChildOfType(MarkdownElementTypes.LINK_DESTINATION)?.getTextInNode(content)
@@ -843,12 +843,13 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
         }
 
         node.type == MarkdownElementTypes.INLINE_LINK -> {
+            dumpAst(node, content)
             val linkDest =
                 node.findChildOfType(MarkdownElementTypes.LINK_DESTINATION)?.getTextInNode(content)
                     ?: ""
             val linkText =
                 node.findChildOfType(MarkdownElementTypes.LINK_TEXT)
-                    ?.findChildOfType(GFMTokenTypes.GFM_AUTOLINK)
+                    ?.findChildOfType(GFMTokenTypes.GFM_AUTOLINK, MarkdownTokenTypes.TEXT)
                     ?.getTextInNode(content)
                     ?: linkDest
             if (linkText == "citation") {

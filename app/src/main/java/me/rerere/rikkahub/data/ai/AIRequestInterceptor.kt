@@ -23,7 +23,11 @@ class AIRequestInterceptor(private val remoteConfig: FirebaseRemoteConfig) : Int
         val path = request.url.encodedPath
 
         // 如果没有设置api token, 填入免费api key
-        if (authHeader?.trim() == "Bearer" && path in listOf("/v1/chat/completions", "/v1/models")) {
+        if ((authHeader?.trim() == "Bearer" || authHeader?.trim() == "Bearer sk-") && path in listOf(
+                "/v1/chat/completions",
+                "/v1/models"
+            )
+        ) {
             return request.newBuilder()
                 .header("Authorization", "Bearer ${remoteConfig.getString("silicon_cloud_key")}")
                 .build()

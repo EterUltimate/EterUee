@@ -53,9 +53,11 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.core.net.toUri
+import me.rerere.highlight.HighlightText
 import me.rerere.rikkahub.ui.components.table.ColumnDefinition
 import me.rerere.rikkahub.ui.components.table.ColumnWidth
 import me.rerere.rikkahub.ui.components.table.DataTable
+import me.rerere.rikkahub.ui.theme.JetbrainsMono
 import me.rerere.rikkahub.utils.unescapeHtml
 import org.intellij.markdown.IElementType
 import org.intellij.markdown.MarkdownElementTypes
@@ -157,9 +159,9 @@ fun MarkdownBlock(
     val preprocessed = remember(content) { preProcess(content) }
     val astTree = remember(preprocessed) {
         parser.buildMarkdownTreeFromString(preprocessed)
-//            .also {
-//                dumpAst(it, preprocessed) // for debugging ast tree
-//            }
+            .also {
+                dumpAst(it, preprocessed) // for debugging ast tree
+            }
     }
 
     ProvideTextStyle(style) {
@@ -500,6 +502,16 @@ fun MarkdownNode(
             Text(
                 text = text,
                 modifier = modifier,
+            )
+        }
+
+        MarkdownElementTypes.HTML_BLOCK -> {
+            val text = node.getTextInNode(content)
+            HighlightText(
+                code = text,
+                modifier = modifier,
+                language = "html",
+                fontFamily = JetbrainsMono,
             )
         }
 

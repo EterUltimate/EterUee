@@ -139,43 +139,6 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                 )
             }
 
-            item {
-                ListItem(
-                    headlineContent = {
-                        Text(stringResource(R.string.setting_page_dynamic_color))
-                    },
-                    supportingContent = {
-                        Text(stringResource(R.string.setting_page_dynamic_color_desc))
-                    },
-                    trailingContent = {
-                        Switch(
-                            checked = settings.dynamicColor,
-                            onCheckedChange = {
-                                vm.updateSettings(settings.copy(dynamicColor = it))
-                            },
-                        )
-                    },
-                    leadingContent = {
-                        Icon(Lucide.Palette, null)
-                    }
-                )
-            }
-
-            if (!settings.dynamicColor) {
-                item {
-                    PresetThemeButtonGroup(
-                        themeId = settings.themeId,
-                        type = settings.themeType,
-                        modifier = Modifier.fillMaxWidth(),
-                        onChangeType = {
-                            vm.updateSettings(settings.copy(themeType = it))
-                        },
-                        onChangeTheme = {
-                            vm.updateSettings(settings.copy(themeId = it))
-                        }
-                    )
-                }
-            }
 
             item {
                 SettingItem(

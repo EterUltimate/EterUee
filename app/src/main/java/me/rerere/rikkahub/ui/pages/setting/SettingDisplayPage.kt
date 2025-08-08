@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LocalTextStyle
@@ -27,12 +28,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Palette
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.DisplaySetting
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import me.rerere.rikkahub.ui.hooks.rememberSharedPreferenceBoolean
 import me.rerere.rikkahub.ui.hooks.rememberSharedPreferenceString
+import me.rerere.rikkahub.ui.pages.setting.components.PresetThemeButtonGroup
 import me.rerere.rikkahub.utils.plus
 import org.koin.androidx.compose.koinViewModel
 
@@ -67,6 +71,43 @@ fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
             contentPadding = contentPadding + PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            item {
+                Card {
+                    ListItem(
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        headlineContent = {
+                            Text(stringResource(R.string.setting_page_dynamic_color))
+                        },
+                        supportingContent = {
+                            Text(stringResource(R.string.setting_page_dynamic_color_desc))
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = settings.dynamicColor,
+                                onCheckedChange = {
+                                    vm.updateSettings(settings.copy(dynamicColor = it))
+                                },
+                            )
+                        },
+                    )
+                }
+            }
+
+            if (!settings.dynamicColor) {
+                item {
+                    PresetThemeButtonGroup(
+                        themeId = settings.themeId,
+                        type = settings.themeType,
+                        modifier = Modifier.fillMaxWidth(),
+                        onChangeType = {
+                            vm.updateSettings(settings.copy(themeType = it))
+                        },
+                        onChangeTheme = {
+                            vm.updateSettings(settings.copy(themeId = it))
+                        }
+                    )
+                }
+            }
             item {
                 Card {
                     ListItem(

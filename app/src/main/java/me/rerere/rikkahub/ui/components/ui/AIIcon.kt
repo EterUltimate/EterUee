@@ -115,6 +115,7 @@ private fun computeAIIconByName(name: String): String? {
         PATTERN_XAI.containsMatchIn(lowerName) -> "xai.svg"
         PATTERN_JUHENEXT.containsMatchIn(lowerName) -> "juhenext.png"
         PATTERN_KIMI.containsMatchIn(lowerName) -> "kimi-color.svg"
+        PATTERN_MOONSHOT.containsMatchIn(lowerName) -> "moonshot.svg"
         PATTERN_302.containsMatchIn(lowerName) -> "302ai.svg"
         PATTERN_STEP.containsMatchIn(lowerName) -> "stepfun-color.svg"
         PATTERN_INTERN.containsMatchIn(lowerName) -> "internlm-color.svg"
@@ -163,6 +164,7 @@ private val PATTERN_MINIMAX = Regex("minimax")
 private val PATTERN_XAI = Regex("xai")
 private val PATTERN_JUHENEXT = Regex("juhenext")
 private val PATTERN_KIMI = Regex("kimi")
+private val PATTERN_MOONSHOT = Regex("moonshot")
 private val PATTERN_302 = Regex("302")
 private val PATTERN_STEP = Regex("step|阶跃")
 private val PATTERN_INTERN = Regex("intern|书生")

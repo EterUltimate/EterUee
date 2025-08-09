@@ -174,7 +174,6 @@ class SettingsStore(
                     provider.copyProvider(
                         builtIn = defaultProvider.builtIn,
                         description = defaultProvider.description,
-                        models = (defaultProvider.models + provider.models).distinctBy { model -> model.modelId },
                     )
                 } else provider
             }.toMutableList()

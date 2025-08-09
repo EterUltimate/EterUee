@@ -42,6 +42,7 @@ object ZhipuSearchService : SearchService<SearchServiceOptions.ZhipuOptions> {
             val body = buildJsonObject {
                 put("search_query", JsonPrimitive(query))
                 put("search_engine", JsonPrimitive("search_std"))
+                put("count", JsonPrimitive(commonOptions.resultSize))
             }
 
             val request = Request.Builder()

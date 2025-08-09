@@ -217,7 +217,10 @@ class SettingsStore(
                 },
                 assistants = settings.assistants.distinctBy { it.id }.map { assistant ->
                     assistant.copy(
-                        mcpServers = assistant.mcpServers.filter { it in validMcpServerIds }.toSet()
+                        // 过滤掉不存在的 MCP 服务器 ID
+                        mcpServers = assistant.mcpServers.filter { serverId ->
+                            serverId in validMcpServerIds
+                        }.toSet()
                     )
                 },
                 ttsProviders = settings.ttsProviders.distinctBy { it.id },

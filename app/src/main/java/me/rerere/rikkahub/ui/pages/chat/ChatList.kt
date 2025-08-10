@@ -147,7 +147,8 @@ fun ChatList(
             state = state,
             contentPadding = PaddingValues(16.dp) + PaddingValues(bottom = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize()
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.fillMaxSize(),
         ) {
             itemsIndexed(
                 items = conversation.messageNodes,

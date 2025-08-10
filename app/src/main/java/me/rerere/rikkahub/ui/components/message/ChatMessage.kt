@@ -1,4 +1,4 @@
-package me.rerere.rikkahub.ui.components.ai
+package me.rerere.rikkahub.ui.components.message
 
 import android.content.Intent
 import androidx.compose.animation.AnimatedContent
@@ -66,6 +66,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -1650,7 +1651,7 @@ fun ReasoningCard(
                                             drawRect(
                                                 brush = brush,
                                                 size = Size(size.width, size.height),
-                                                blendMode = androidx.compose.ui.graphics.BlendMode.DstIn // 用蒙版做透明渐变
+                                                blendMode = BlendMode.DstIn // 用蒙版做透明渐变
                                             )
                                         }
                                     }

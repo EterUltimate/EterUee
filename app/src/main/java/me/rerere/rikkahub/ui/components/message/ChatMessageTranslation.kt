@@ -1,4 +1,4 @@
-package me.rerere.rikkahub.ui.components.ai
+package me.rerere.rikkahub.ui.components.message
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize

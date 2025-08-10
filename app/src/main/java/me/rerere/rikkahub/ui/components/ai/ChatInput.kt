@@ -1,10 +1,12 @@
 package me.rerere.rikkahub.ui.components.ai
 
 import android.Manifest
+import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.LocalIndication
@@ -76,6 +78,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.FileProvider
+import androidx.core.net.toFile
 import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import com.composables.icons.lucide.ArrowUp
@@ -90,6 +93,7 @@ import com.composables.icons.lucide.X
 import com.dokar.sonner.ToastType
 import com.meticha.permissions_compose.AppPermission
 import com.meticha.permissions_compose.rememberAppPermissionState
+import com.yalantis.ucrop.UCrop
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -102,6 +106,7 @@ import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyInputMessage
+import me.rerere.common.android.appTempFolder
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.getCurrentAssistant
@@ -110,7 +115,6 @@ import me.rerere.rikkahub.data.mcp.McpManager
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.ui.components.ui.KeepScreenOn
-import me.rerere.rikkahub.ui.components.ui.ToggleSurface
 import me.rerere.rikkahub.ui.context.LocalSettings
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.utils.GetContentWithMultiMime
@@ -735,17 +739,63 @@ private fun FullScreenEditor(
 }
 
 @Composable
-private fun ImagePickButton(onAddImages: (List<Uri>) -> Unit = {}) {
+private fun useCropLauncher(
+    onCroppedImageReady: (Uri) -> Unit,
+    onCleanup: (() -> Unit)? = null
+): Pair<ActivityResultLauncher<Intent>, (Uri) -> Unit> {
     val context = LocalContext.current
-    val pickMedia =
-        rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
-            if (uris.isNotEmpty()) {
-                Log.d("PhotoPicker", "Selected URI: $uris")
-                onAddImages(context.createChatFilesByContents(uris))
-            } else {
-                Log.d("PhotoPicker", "No media selected")
+    var cropOutputUri by remember { mutableStateOf<Uri?>(null) }
+
+    val cropActivityLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            cropOutputUri?.let { croppedUri ->
+                onCroppedImageReady(croppedUri)
             }
         }
+        // Clean up crop output file
+        cropOutputUri?.toFile()?.delete()
+        cropOutputUri = null
+        onCleanup?.invoke()
+    }
+
+    val launchCrop: (Uri) -> Unit = { sourceUri ->
+        val outputFile = File(context.appTempFolder, "crop_output_${System.currentTimeMillis()}.jpg")
+        cropOutputUri = Uri.fromFile(outputFile)
+
+        val cropIntent = UCrop.of(sourceUri, cropOutputUri!!)
+            .getIntent(context)
+
+        cropActivityLauncher.launch(cropIntent)
+    }
+
+    return Pair(cropActivityLauncher, launchCrop)
+}
+
+@Composable
+private fun ImagePickButton(onAddImages: (List<Uri>) -> Unit = {}) {
+    val context = LocalContext.current
+
+    val (_, launchCrop) = useCropLauncher(
+        onCroppedImageReady = { croppedUri ->
+            onAddImages(context.createChatFilesByContents(listOf(croppedUri)))
+        }
+    )
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetMultipleContents()
+    ) { selectedUris ->
+        if (selectedUris.isNotEmpty()) {
+            Log.d("ImagePickButton", "Selected URIs: $selectedUris")
+            // Process first selected image (can be extended for multiple images)
+            val firstSelectedUri = selectedUris.first()
+            launchCrop(firstSelectedUri)
+        } else {
+            Log.d("ImagePickButton", "No images selected")
+        }
+    }
+
     BigIconTextButton(
         icon = {
             Icon(Lucide.Image, null)
@@ -754,7 +804,7 @@ private fun ImagePickButton(onAddImages: (List<Uri>) -> Unit = {}) {
             Text(stringResource(R.string.photo))
         }
     ) {
-        pickMedia.launch("image/*")
+        imagePickerLauncher.launch("image/*")
     }
 }
 
@@ -770,16 +820,33 @@ fun TakePicButton(onAddImages: (List<Uri>) -> Unit = {}) {
         )
     )
     val context = LocalContext.current
-    var providerUri by remember { mutableStateOf<Uri?>(null) }
-    var file by remember { mutableStateOf<File?>(null) }
-    val pickMedia =
-        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-            if (success) {
-                onAddImages(context.createChatFilesByContents(listOf(providerUri!!)))
-            }
-            // delete the temp file
-            file?.delete()
+    var cameraOutputUri by remember { mutableStateOf<Uri?>(null) }
+    var cameraOutputFile by remember { mutableStateOf<File?>(null) }
+
+    val (_, launchCrop) = useCropLauncher(
+        onCroppedImageReady = { croppedUri ->
+            onAddImages(context.createChatFilesByContents(listOf(croppedUri)))
+        },
+        onCleanup = {
+            // Clean up camera temp file after cropping is done
+            cameraOutputFile?.delete()
+            cameraOutputFile = null
+            cameraOutputUri = null
         }
+    )
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { captureSuccessful ->
+        if (captureSuccessful && cameraOutputUri != null) {
+            launchCrop(cameraOutputUri!!)
+        } else {
+            // Clean up camera temp file if capture failed
+            cameraOutputFile?.delete()
+            cameraOutputFile = null
+            cameraOutputUri = null
+        }
+    }
 
     BigIconTextButton(
         icon = {
@@ -791,13 +858,13 @@ fun TakePicButton(onAddImages: (List<Uri>) -> Unit = {}) {
     ) {
         permissionState.requestPermission()
         if (permissionState.allRequiredGranted()) {
-            file = context.cacheDir.resolve(Uuid.random().toString())
-            providerUri = FileProvider.getUriForFile(
+            cameraOutputFile = context.cacheDir.resolve("camera_${Uuid.random()}.jpg")
+            cameraOutputUri = FileProvider.getUriForFile(
                 context,
                 "${context.packageName}.fileprovider",
-                file!!
+                cameraOutputFile!!
             )
-            pickMedia.launch(providerUri!!)
+            cameraLauncher.launch(cameraOutputUri!!)
         }
     }
 }

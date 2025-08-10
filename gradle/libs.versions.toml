@@ -51,6 +51,7 @@ pebble = "3.2.4"
 browser = "1.9.0"
 appcompat = "1.7.1"
 material = "1.12.0"
+ucrop = "2.2.11-native"
 
 [libraries]
 androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "cameraCore" }
@@ -124,6 +125,7 @@ pebble = { module = "io.pebbletemplates:pebble", version.ref = "pebble" }
 androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "browser" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+ucrop = { group = "com.github.yalantis", name = "ucrop", version.ref = "ucrop" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

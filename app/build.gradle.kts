@@ -181,6 +181,9 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.serialization.json)
 
+    // ucrop
+    implementation(libs.ucrop)
+
     // pebble (template engine)
     implementation(libs.pebble)
 

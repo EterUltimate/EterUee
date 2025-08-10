@@ -8,6 +8,7 @@ import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import me.rerere.common.android.appTempFolder
 import me.rerere.tts.model.AudioFormat
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
@@ -71,7 +72,7 @@ class AudioPlayer(private val context: Context) {
                 stopCurrentPlayback()
 
                 // 创建临时文件使用与 RikkaHubApp 相同的临时文件夹
-                val tempDir = context.filesDir.resolve("temp")
+                val tempDir = context.appTempFolder
                 if (!tempDir.exists()) {
                     tempDir.mkdirs()
                 }

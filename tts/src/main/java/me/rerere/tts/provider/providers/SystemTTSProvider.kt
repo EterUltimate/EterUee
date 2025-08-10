@@ -5,6 +5,7 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import kotlinx.coroutines.suspendCancellableCoroutine
+import me.rerere.common.android.appTempFolder
 import me.rerere.tts.model.TTSRequest
 import me.rerere.tts.model.TTSResponse
 import me.rerere.tts.provider.TTSProvider
@@ -43,10 +44,7 @@ class SystemTTSProvider : TTSProvider<TTSProviderSetting.SystemTTS> {
                 ttsInstance.setPitch(providerSetting.pitch)
 
                 // Create temporary file for audio output using temp directory like RikkaHubApp
-                val tempDir = context.filesDir.resolve("temp")
-                if (!tempDir.exists()) {
-                    tempDir.mkdirs()
-                }
+                val tempDir = context.appTempFolder
                 val audioFile = File(tempDir, "tts_${System.currentTimeMillis()}.wav")
 
                 val utteranceId = UUID.randomUUID().toString()

@@ -70,6 +70,7 @@ import me.rerere.ai.ui.UIMessagePart
 import me.rerere.ai.ui.isEmptyUIMessage
 import me.rerere.ai.ui.toSortedMessageParts
 import me.rerere.ai.util.encodeBase64
+import me.rerere.common.android.appTempFolder
 import me.rerere.highlight.Highlighter
 import me.rerere.highlight.LocalHighlighter
 import me.rerere.rikkahub.R
@@ -257,10 +258,7 @@ private fun exportToMarkdown(
     }
 
     try {
-        val dir = context.filesDir.resolve("temp")
-        if (!dir.exists()) {
-            dir.mkdirs()
-        }
+        val dir = context.appTempFolder
         val file = dir.resolve(filename)
         if (!file.exists()) {
             file.createNewFile()
@@ -317,10 +315,7 @@ private suspend fun exportToImage(
     )
 
     try {
-        val dir = context.filesDir.resolve("temp")
-        if (!dir.exists()) {
-            dir.mkdirs()
-        }
+        val dir = context.appTempFolder
         val file = dir.resolve(filename)
         if (!file.exists()) {
             file.createNewFile()

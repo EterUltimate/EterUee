@@ -27,7 +27,6 @@ import java.io.OutputStream
 
 private const val TAG = "ContextUtil"
 
-
 /**
  * Read clipboard data as text
  */

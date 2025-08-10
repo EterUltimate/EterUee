@@ -70,7 +70,7 @@ import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.getAssistantById
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.model.MessageNode
-import me.rerere.rikkahub.ui.components.chat.ChatMessage
+import me.rerere.rikkahub.ui.components.ai.ChatMessage
 import me.rerere.rikkahub.ui.components.ui.ListSelectableItem
 import kotlin.uuid.Uuid
 

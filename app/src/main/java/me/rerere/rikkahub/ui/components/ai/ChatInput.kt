@@ -1,4 +1,4 @@
-package me.rerere.rikkahub.ui.components.chat
+package me.rerere.rikkahub.ui.components.ai
 
 import android.Manifest
 import android.net.Uri

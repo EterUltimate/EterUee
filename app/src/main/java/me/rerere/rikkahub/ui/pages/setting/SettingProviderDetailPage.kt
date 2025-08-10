@@ -101,10 +101,10 @@ import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.registry.ModelRegistry
 import me.rerere.ai.ui.UIMessage
 import me.rerere.rikkahub.R
-import me.rerere.rikkahub.ui.components.chat.ModelAbilityTag
-import me.rerere.rikkahub.ui.components.chat.ModelModalityTag
-import me.rerere.rikkahub.ui.components.chat.ModelSelector
-import me.rerere.rikkahub.ui.components.chat.ModelTypeTag
+import me.rerere.rikkahub.ui.components.ai.ModelAbilityTag
+import me.rerere.rikkahub.ui.components.ai.ModelModalityTag
+import me.rerere.rikkahub.ui.components.ai.ModelSelector
+import me.rerere.rikkahub.ui.components.ai.ModelTypeTag
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.ShareSheet

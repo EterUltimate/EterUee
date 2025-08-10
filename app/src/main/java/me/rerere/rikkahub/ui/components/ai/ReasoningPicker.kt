@@ -1,4 +1,4 @@
-package me.rerere.rikkahub.ui.components.chat
+package me.rerere.rikkahub.ui.components.ai
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement

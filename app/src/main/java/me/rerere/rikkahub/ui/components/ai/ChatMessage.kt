@@ -1,4 +1,4 @@
-package me.rerere.rikkahub.ui.components.chat
+package me.rerere.rikkahub.ui.components.ai
 
 import android.content.Intent
 import androidx.compose.animation.AnimatedContent
@@ -148,6 +148,7 @@ import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.components.ui.Favicon
 import me.rerere.rikkahub.ui.components.ui.FaviconRow
 import me.rerere.rikkahub.ui.components.ui.FormItem
+import me.rerere.rikkahub.ui.components.ui.UIAvatar
 import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalSettings
 import me.rerere.rikkahub.ui.context.LocalTTSState

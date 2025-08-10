@@ -88,12 +88,12 @@ import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.model.toMessageNode
-import me.rerere.rikkahub.ui.components.chat.ChatMessage
-import me.rerere.rikkahub.ui.components.chat.McpPicker
-import me.rerere.rikkahub.ui.components.chat.ModelSelector
-import me.rerere.rikkahub.ui.components.chat.ReasoningButton
+import me.rerere.rikkahub.ui.components.ai.ChatMessage
+import me.rerere.rikkahub.ui.components.ai.McpPicker
+import me.rerere.rikkahub.ui.components.ai.ModelSelector
+import me.rerere.rikkahub.ui.components.ai.ReasoningButton
 import me.rerere.rikkahub.ui.components.ui.TagsInput
-import me.rerere.rikkahub.ui.components.chat.UIAvatar
+import me.rerere.rikkahub.ui.components.ui.UIAvatar
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.Select

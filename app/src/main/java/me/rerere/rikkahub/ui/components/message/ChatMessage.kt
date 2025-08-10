@@ -104,6 +104,7 @@ fun ChatMessage(
     onClearTranslation: (UIMessage) -> Unit = {},
 ) {
     val message = node.messages[node.selectIndex]
+    val chatMessages = conversation.currentMessages
     val settings = LocalSettings.current.displaySetting
     val textStyle = LocalTextStyle.current.copy(
         fontSize = LocalTextStyle.current.fontSize * settings.fontSizeRatio,
@@ -147,8 +148,8 @@ fun ChatMessage(
                 role = message.role,
                 parts = message.parts,
                 annotations = message.annotations,
-                messages = conversation.currentMessages,
-                messageIndex = conversation.currentMessages.indexOf(message),
+                messages = chatMessages,
+                messageIndex = chatMessages.indexOf(message),
                 loading = loading,
                 model = model,
             )

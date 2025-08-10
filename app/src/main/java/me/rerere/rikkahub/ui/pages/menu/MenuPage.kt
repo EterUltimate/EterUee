@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.Screen
-import me.rerere.rikkahub.ui.components.chat.Greeting
+import me.rerere.rikkahub.ui.components.ui.Greeting
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.Favicon
 import me.rerere.rikkahub.ui.context.LocalNavController

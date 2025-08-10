@@ -1,4 +1,4 @@
-package me.rerere.rikkahub.ui.components.chat
+package me.rerere.rikkahub.ui.components.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastForEach
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.X
@@ -55,7 +56,7 @@ fun TagsInput(
         itemVerticalAlignment = Alignment.CenterVertically
     ) {
         // 显示已选择的tags
-        selectedTags.forEach { tag ->
+        selectedTags.fastForEach { tag ->
             InputChip(onClick = {}, label = {
                 Text(tag.name)
             }, selected = false, trailingIcon = {

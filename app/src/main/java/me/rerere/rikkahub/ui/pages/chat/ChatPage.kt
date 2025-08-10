@@ -83,7 +83,7 @@ import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.ui.components.chat.AssistantPicker
 import me.rerere.rikkahub.ui.components.chat.ChatInput
 import me.rerere.rikkahub.ui.components.chat.ChatInputState
-import me.rerere.rikkahub.ui.components.chat.Greeting
+import me.rerere.rikkahub.ui.components.ui.Greeting
 import me.rerere.rikkahub.ui.components.chat.UIAvatar
 import me.rerere.rikkahub.ui.components.chat.rememberChatInputState
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock

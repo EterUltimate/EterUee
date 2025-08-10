@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -36,6 +36,7 @@ import me.rerere.rikkahub.ui.components.chat.Greeting
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.Favicon
 import me.rerere.rikkahub.ui.context.LocalNavController
+import me.rerere.rikkahub.utils.openUrl
 import me.rerere.rikkahub.utils.plus
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
@@ -159,18 +160,19 @@ private fun FeaturesSection() {
 
 @Composable
 private fun LeaderBoard() {
-    val navController = LocalNavController.current
+    val context = LocalContext.current
 
     @Composable
     fun LeaderBoardItem(
         url: String,
         name: String,
+        modifier: Modifier = Modifier
     ) {
         Card(
             onClick = {
-                navController.navigate(Screen.WebView(url = url))
+                context.openUrl(url)
             },
-            modifier = Modifier.widthIn(min = 150.dp)
+            modifier = modifier.widthIn(min = 150.dp)
         ) {
             Column(
                 modifier = Modifier.padding(8.dp),
@@ -181,7 +183,7 @@ private fun LeaderBoard() {
                 )
                 Text(
                     text = name,
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleMedium,
                 )
                 Text(
                     text = url.toHttpUrl().host,
@@ -195,7 +197,7 @@ private fun LeaderBoard() {
     Column {
         Text(
             text = stringResource(id = R.string.menu_page_llm_leaderboard),
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(vertical = 16.dp)
         )
@@ -206,12 +208,14 @@ private fun LeaderBoard() {
         ) {
             LeaderBoardItem(
                 url = "https://lmarena.ai/leaderboard",
-                name = "LMArena"
+                name = "LMArena",
+                modifier = Modifier.weight(1f),
             )
 
             LeaderBoardItem(
                 url = "https://livebench.ai/#/",
-                name = "LiveBench"
+                name = "LiveBench",
+                modifier = Modifier.weight(1f),
             )
         }
     }

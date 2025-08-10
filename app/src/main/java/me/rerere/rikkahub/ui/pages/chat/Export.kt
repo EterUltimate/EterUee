@@ -346,7 +346,7 @@ private suspend fun exportToImage(
     } catch (e: Exception) {
         e.printStackTrace()
         withContext(Dispatchers.Main) {
-            Toast.makeText(context, "Failed to export image", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Failed to export image: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     } finally {
         bitmap.recycle()

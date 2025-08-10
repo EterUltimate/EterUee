@@ -330,7 +330,7 @@ private suspend fun exportToImage(
         }
 
         FileOutputStream(file).use { fos ->
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)
+            bitmap.compress(Bitmap.CompressFormat.PNG, 90, fos)
         }
 
         // Save to gallery

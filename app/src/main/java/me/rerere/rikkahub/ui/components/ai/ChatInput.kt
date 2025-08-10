@@ -882,57 +882,6 @@ private fun BigIconTextButton(
     }
 }
 
-@Composable
-private fun ChatActionItem(
-    modifier: Modifier = Modifier,
-    checked: Boolean,
-    icon: @Composable () -> Unit,
-    title: @Composable (() -> Unit)? = null,
-    tail: @Composable (() -> Unit)? = null,
-    onClick: () -> Unit
-) {
-    ToggleSurface(
-        modifier = modifier,
-        checked = checked,
-        onClick = {
-            onClick()
-        }
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(vertical = 8.dp, horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Box(
-                modifier = Modifier.size(24.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                icon()
-            }
-            if (checked) {
-                title?.let {
-                    Column(
-                        modifier = Modifier,
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        title()
-                    }
-                }
-            }
-            tail?.let {
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    tail()
-                }
-            }
-        }
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 private fun BigIconTextButtonPreview() {

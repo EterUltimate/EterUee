@@ -50,6 +50,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
 import com.composables.icons.lucide.BookDashed
 import com.composables.icons.lucide.BookHeart
 import com.composables.icons.lucide.Earth
@@ -391,8 +393,7 @@ private fun ExportedChatImage(
                             )
                         }
                         // Use painterResource for the logo
-                        val painter =
-                            androidx.compose.ui.res.painterResource(id = R.mipmap.ic_launcher_foreground)
+                        val painter = painterResource(id = R.mipmap.ic_launcher_foreground)
                         Image(
                             painter = painter,
                             contentDescription = "Logo",
@@ -415,6 +416,7 @@ private fun ExportedChatMessage(
     options: ImageExportOptions = ImageExportOptions()
 ) {
     if (message.parts.isEmptyUIMessage()) return
+    val context = LocalContext.current
 
     val arrangement = if (message.role == MessageRole.USER) Arrangement.End else Arrangement.Start
     Row(
@@ -451,7 +453,10 @@ private fun ExportedChatMessage(
 
                     is UIMessagePart.Image -> {
                         AsyncImage(
-                            model = part.url,
+                            model = ImageRequest.Builder(context)
+                                .data(part.url)
+                                .allowHardware(false)
+                                .build(),
                             contentDescription = "Image",
                             modifier = Modifier
                                 .sizeIn(maxHeight = 300.dp)

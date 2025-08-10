@@ -414,6 +414,7 @@
   <string name="setting_provider_page_model_type">Model Type</string>
   <string name="setting_provider_page_chat_model">Chat</string>
   <string name="setting_provider_page_embedding_model">Embedding</string>
+  <string name="setting_provider_page_image_model">Image</string>
   <string name="setting_provider_page_input_modality">Input Modality</string>
   <string name="setting_provider_page_output_modality">Output Modality</string>
   <string name="setting_provider_page_text">Text</string>

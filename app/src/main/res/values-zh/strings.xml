@@ -396,6 +396,7 @@
   <string name="setting_provider_page_model_type">模型类型</string>
   <string name="setting_provider_page_chat_model">聊天</string>
   <string name="setting_provider_page_embedding_model">嵌入</string>
+  <string name="setting_provider_page_image_model">图像</string>
   <string name="setting_provider_page_input_modality">输入模态</string>
   <string name="setting_provider_page_output_modality">输出模态</string>
   <string name="setting_provider_page_text">文本</string>

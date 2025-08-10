@@ -22,6 +22,7 @@ data class Model(
 @Serializable
 enum class ModelType {
     CHAT,
+    IMAGE,
     EMBEDDING,
 }
 

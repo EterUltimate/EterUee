@@ -387,6 +387,7 @@
   <string name="setting_provider_page_model_type">モデルタイプ</string>
   <string name="setting_provider_page_chat_model">チャット</string>
   <string name="setting_provider_page_embedding_model">埋め込み</string>
+  <string name="setting_provider_page_image_model">画像</string>
   <string name="setting_provider_page_input_modality">入力モダリティ</string>
   <string name="setting_provider_page_output_modality">出力モダリティ</string>
   <string name="setting_provider_page_text">テキスト</string>

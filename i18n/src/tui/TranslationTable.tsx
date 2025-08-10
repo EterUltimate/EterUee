@@ -177,15 +177,30 @@ export function TranslationTable({ module, config, onBack, onModuleUpdate }: Tra
     setViewMode('translating');
 
     try {
-      await batchTranslate(
+      const translatedStrings = await batchTranslate(
         missingStrings,
         selectedLocale,
         config,
         setTranslationProgress
       );
 
-      // Save translations
-      await saveTranslations();
+      // Update table data with translated results
+      const updatedTableData = tableData.map(row => {
+        const translation = translatedStrings.find(ts => ts.key === row.key);
+        if (translation && translation.value !== row.defaultValue) {
+          return {
+            ...row,
+            translatedValue: translation.value,
+            isTranslated: true
+          };
+        }
+        return row;
+      });
+      
+      setTableData(updatedTableData);
+
+      // Save translations to XML file
+      await saveTranslations(translatedStrings);
 
       // Reload module data
       const updatedModules = await loadModules(config);
@@ -201,20 +216,27 @@ export function TranslationTable({ module, config, onBack, onModuleUpdate }: Tra
     }
   };
 
-  const saveTranslations = async () => {
+  const saveTranslations = async (newTranslations?: StringResource[]) => {
     const translationPath = getStringResourcePath(module.modulePath, selectedLocale);
     const existingTranslations = await parseXmlFile(translationPath);
 
-    // Get current translations from table
-    const currentTranslations: StringResource[] = filteredData
-      .filter(row => row.isTranslated && row.translatedValue)
-      .map(row => ({
-        key: row.key,
-        value: row.translatedValue!,
-        translatable: row.translatable
-      }));
+    let translationsToSave: StringResource[];
 
-    const mergedTranslations = mergeTranslations(existingTranslations, currentTranslations);
+    if (newTranslations) {
+      // Use the provided new translations
+      translationsToSave = newTranslations;
+    } else {
+      // Get current translations from table (for manual edits)
+      translationsToSave = tableData
+        .filter(row => row.isTranslated && row.translatedValue)
+        .map(row => ({
+          key: row.key,
+          value: row.translatedValue!,
+          translatable: row.translatable
+        }));
+    }
+
+    const mergedTranslations = mergeTranslations(existingTranslations, translationsToSave);
     await writeXmlFile(translationPath, mergedTranslations);
   };
 

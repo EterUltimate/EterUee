@@ -22,7 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Surface
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -76,14 +76,12 @@ fun ToolCallItem(
     loading: Boolean = false,
 ) {
     var showResult by remember { mutableStateOf(false) }
-    Surface(
+    OutlinedCard(
         modifier = Modifier.animateContentSize(),
         onClick = {
             showResult = true
         },
         shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.primaryContainer,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -182,7 +180,7 @@ fun ToolCallItem(
         }
     }
     if (showResult && content != null) {
-        ToolCallPreviewDialog(
+        ToolCallPreviewSheet(
             toolName = toolName,
             arguments = arguments,
             content = content,
@@ -194,7 +192,7 @@ fun ToolCallItem(
 }
 
 @Composable
-private fun ToolCallPreviewDialog(
+private fun ToolCallPreviewSheet(
     toolName: String,
     arguments: JsonElement,
     content: JsonElement,

@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -38,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -105,6 +107,7 @@ fun ChatMessage(
 ) {
     val message = node.messages[node.selectIndex]
     val chatMessages = conversation.currentMessages
+    val messageIndex = chatMessages.indexOf(message)
     val settings = LocalSettings.current.displaySetting
     val textStyle = LocalTextStyle.current.copy(
         fontSize = LocalTextStyle.current.fontSize * settings.fontSizeRatio,
@@ -118,18 +121,19 @@ fun ChatMessage(
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = if (message.role == MessageRole.USER) Alignment.End else Alignment.Start,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         if (!message.parts.isEmptyUIMessage()) {
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                    .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
             ) {
                 ChatMessageAssistantAvatar(
                     message = message,
+                    messages = chatMessages,
+                    messageIndex = messageIndex,
                     model = model,
                     assistant = assistant,
                     loading = loading,
@@ -137,6 +141,8 @@ fun ChatMessage(
                 )
                 ChatMessageUserAvatar(
                     message = message,
+                    messages = chatMessages,
+                    messageIndex = messageIndex,
                     avatar = settings.userAvatar,
                     nickname = settings.userNickname,
                     modifier = Modifier.weight(1f)
@@ -149,7 +155,7 @@ fun ChatMessage(
                 parts = message.parts,
                 annotations = message.annotations,
                 messages = chatMessages,
-                messageIndex = chatMessages.indexOf(message),
+                messageIndex = messageIndex,
                 loading = loading,
                 model = model,
             )
@@ -384,83 +390,88 @@ private fun MessagePartsBlock(
     }
 
     // Images
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        val images = parts.filterIsInstance<UIMessagePart.Image>()
-        images.fastForEach {
-            ZoomableAsyncImage(
-                model = it.url,
-                contentDescription = null,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .height(72.dp)
-            )
+    val images = parts.filterIsInstance<UIMessagePart.Image>()
+    if(images.isNotEmpty()) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+
+            images.fastForEach {
+                ZoomableAsyncImage(
+                    model = it.url,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .height(72.dp)
+                )
+            }
         }
     }
 
     // Documents
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        val documents = parts.filterIsInstance<UIMessagePart.Document>()
-        documents.fastForEach {
-            Surface(
-                tonalElevation = 2.dp,
-                onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW)
-                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    intent.data = FileProvider.getUriForFile(
-                        context,
-                        "${context.packageName}.fileprovider",
-                        it.url.toUri().toFile()
-                    )
-                    val chooserIndent = Intent.createChooser(intent, null)
-                    context.startActivity(chooserIndent)
-                },
-                modifier = Modifier,
-                shape = RoundedCornerShape(50),
-                color = MaterialTheme.colorScheme.tertiaryContainer
-            ) {
-                ProvideTextStyle(MaterialTheme.typography.labelSmall) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        when (it.mime) {
-                            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" -> {
-                                Icon(
-                                    painter = painterResource(R.drawable.docx),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-
-                            "application/pdf" -> {
-                                Icon(
-                                    painter = painterResource(R.drawable.pdf),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-
-                            else -> {
-                                Icon(
-                                    imageVector = Lucide.File,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
-
-                        Text(
-                            text = it.fileName,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier
-                                .widthIn(max = 200.dp)
+    val documents = parts.filterIsInstance<UIMessagePart.Document>()
+    if(documents.isNotEmpty()) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            documents.fastForEach {
+                Surface(
+                    tonalElevation = 2.dp,
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_VIEW)
+                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        intent.data = FileProvider.getUriForFile(
+                            context,
+                            "${context.packageName}.fileprovider",
+                            it.url.toUri().toFile()
                         )
+                        val chooserIndent = Intent.createChooser(intent, null)
+                        context.startActivity(chooserIndent)
+                    },
+                    modifier = Modifier,
+                    shape = RoundedCornerShape(50),
+                    color = MaterialTheme.colorScheme.tertiaryContainer
+                ) {
+                    ProvideTextStyle(MaterialTheme.typography.labelSmall) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            when (it.mime) {
+                                "application/vnd.openxmlformats-officedocument.wordprocessingml.document" -> {
+                                    Icon(
+                                        painter = painterResource(R.drawable.docx),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+
+                                "application/pdf" -> {
+                                    Icon(
+                                        painter = painterResource(R.drawable.pdf),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+
+                                else -> {
+                                    Icon(
+                                        imageVector = Lucide.File,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+
+                            Text(
+                                text = it.fileName,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier
+                                    .widthIn(max = 200.dp)
+                            )
+                        }
                     }
                 }
             }

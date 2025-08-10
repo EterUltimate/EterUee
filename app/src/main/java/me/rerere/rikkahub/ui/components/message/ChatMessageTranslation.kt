@@ -172,7 +172,7 @@ fun CollapsibleTranslationText(
     content: String,
     onClickCitation: (String) -> Unit
 ) {
-    if (!content.isBlank()) {
+    if (content.isNotBlank()) {
         var isCollapsed by remember { mutableStateOf(false) }
 
         Spacer(modifier = Modifier.height(12.dp))

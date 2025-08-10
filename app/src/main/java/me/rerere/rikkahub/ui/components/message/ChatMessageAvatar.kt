@@ -3,6 +3,7 @@ package me.rerere.rikkahub.ui.components.message
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -29,14 +30,17 @@ import me.rerere.rikkahub.utils.toLocalString
 @Composable
 fun ChatMessageUserAvatar(
     message: UIMessage,
+    messages: List<UIMessage>,
+    messageIndex: Int,
     avatar: Avatar,
     nickname: String,
     modifier: Modifier = Modifier,
 ) {
     val settings = LocalSettings.current
-    if (message.role == MessageRole.USER && !message.parts.isEmptyUIMessage() && settings.displaySetting.showUserAvatar) {
+    val prevRole = if (messageIndex > 0) messages[messageIndex - 1].role else null
+    if (message.role == MessageRole.USER && prevRole != MessageRole.USER && !message.parts.isEmptyUIMessage() && settings.displaySetting.showUserAvatar) {
         Row(
-            modifier = modifier,
+            modifier = modifier.padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -69,6 +73,8 @@ fun ChatMessageUserAvatar(
 @Composable
 fun ChatMessageAssistantAvatar(
     message: UIMessage,
+    messages: List<UIMessage>,
+    messageIndex: Int,
     loading: Boolean,
     model: Model?,
     assistant: Assistant?,
@@ -76,9 +82,10 @@ fun ChatMessageAssistantAvatar(
 ) {
     val settings = LocalSettings.current
     val showIcon = settings.displaySetting.showModelIcon
-    if (message.role == MessageRole.ASSISTANT && !message.parts.isEmptyUIMessage() && model != null) {
+    val prevRole = if (messageIndex > 0) messages[messageIndex - 1].role else null
+    if (message.role == MessageRole.ASSISTANT && prevRole == MessageRole.USER && !message.parts.isEmptyUIMessage() && model != null) {
         Row(
-            modifier = modifier,
+            modifier = modifier.padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

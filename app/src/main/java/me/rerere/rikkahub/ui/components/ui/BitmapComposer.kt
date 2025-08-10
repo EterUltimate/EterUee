@@ -105,11 +105,31 @@ class BitmapComposer(private val mainScope: CoroutineScope) {
                 // now request a layout at origin
                 composeViewContainer.layout(0, 0, contentWidthInPixels, contentHeightInPixels)
 
-                val bitmap = composeView.drawToBitmap() // layout finished, draw to bitmap
-                continuation.resume(bitmap) // notify the caller with the bitmap
+                // Wait for async components to complete rendering before capturing bitmap
+                Handler(Looper.getMainLooper()).postDelayed({
+                    // Re-measure after async components have loaded to get proper height
+                    composeViewContainer.measure(
+                        View.MeasureSpec.makeMeasureSpec(
+                            contentWidthInPixels,
+                            widthMeasureSpecs
+                        ),
+                        View.MeasureSpec.makeMeasureSpec(
+                            contentHeightInPixels,
+                            heightMeasureSpecs
+                        )
+                    )
 
-                // Step 6: Clean up - remove the container
-                decorView.removeView(composeViewContainer)
+                    // Re-layout with the actual measured dimensions
+                    val actualWidth = composeViewContainer.measuredWidth
+                    val actualHeight = composeViewContainer.measuredHeight
+                    composeViewContainer.layout(0, 0, actualWidth, actualHeight)
+
+                    val bitmap = composeView.drawToBitmap() // layout finished, draw to bitmap
+                    continuation.resume(bitmap) // notify the caller with the bitmap
+
+                    // Step 6: Clean up - remove the container
+                    decorView.removeView(composeViewContainer)
+                }, 100) // delay to allow ComposeView to finish rendering
             }
         }
     }

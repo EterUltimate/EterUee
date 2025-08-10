@@ -52,6 +52,7 @@ import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
+import coil3.request.bitmapConfig
 import com.composables.icons.lucide.BookDashed
 import com.composables.icons.lucide.BookHeart
 import com.composables.icons.lucide.Earth
@@ -460,7 +461,7 @@ private fun ExportedChatMessage(
                             contentDescription = "Image",
                             modifier = Modifier
                                 .sizeIn(maxHeight = 300.dp)
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(12.dp)),
                         )
                     }
 

@@ -72,6 +72,7 @@ import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.model.MessageNode
 import me.rerere.rikkahub.ui.components.message.ChatMessage
 import me.rerere.rikkahub.ui.components.ui.ListSelectableItem
+import me.rerere.rikkahub.utils.plus
 import kotlin.uuid.Uuid
 
 private const val TAG = "ChatList"
@@ -144,7 +145,7 @@ fun ChatList(
 
         LazyColumn(
             state = state,
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(16.dp) + PaddingValues(bottom = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize()
         ) {

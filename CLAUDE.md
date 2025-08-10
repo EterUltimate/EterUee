@@ -17,6 +17,7 @@ Built with Jetpack Compose, Kotlin, and follows Material Design 3 principles.
 - **search**: Search functionality SDK (Exa, Tavily, Zhipu)
 - **rag**: RAG (Retrieval Augmented Generation) implementation
 - **tts**: Text-to-speech implementation for different providers
+- **common**: Common utilities and extensions
 
 ### Key Technologies
 
@@ -28,7 +29,7 @@ Built with Jetpack Compose, Kotlin, and follows Material Design 3 principles.
 - **Navigation Compose**: App navigation
 - **Kotlinx Serialization**: JSON handling
 
-### Core Packages
+### Core Packages (app module)
 
 - `data/`: Data layer with repositories, database entities, and API clients
 - `ui/pages/`: Screen implementations and ViewModels
@@ -80,7 +81,6 @@ Built with Jetpack Compose, Kotlin, and follows Material Design 3 principles.
 - `app/src/main/java/me/rerere/rikkahub/ui/pages/setting/SettingProviderPage.kt`: UI patterns
 - `app/src/main/java/me/rerere/rikkahub/data/datastore/PreferencesStore.kt`: Data storage
 - `ai/src/main/java/me/rerere/ai/provider/providers/OpenAIProvider.kt`: AI provider implementation
-- `.cursor/rules/`: Development guidelines and patterns
 
 ## Build Configuration
 
@@ -97,8 +97,3 @@ Built with Jetpack Compose, Kotlin, and follows Material Design 3 principles.
 - Target SDK: 36
 - Min SDK: 26
 - JVM Target: 11
-
-### Signing
-
-- Release builds require signing configuration in `local.properties`
-- Debug builds use `.debug` application ID suffix

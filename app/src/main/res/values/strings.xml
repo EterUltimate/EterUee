@@ -342,7 +342,6 @@
   <!-- Assistant Detail Page -->
   <string name="assistant_page_tab_basic">Basic Settings</string>
   <string name="assistant_page_tab_prompt">Prompts</string>
-  <string name="assistant_page_tab_preset_messages">Preset Messages</string>
   <string name="assistant_page_tab_memory">Memory</string>
   <string name="assistant_page_tab_request">Custom Request</string>
   <string name="assistant_page_tab_mcp">MCP</string>

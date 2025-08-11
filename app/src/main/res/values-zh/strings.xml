@@ -324,8 +324,7 @@
   <!-- Assistant Detail Page -->
   <string name="assistant_page_tab_basic">基础设定</string>
   <string name="assistant_page_tab_prompt">提示词</string>
-  <string name="assistant_page_tab_preset_messages">预设消息</string>
-  <string name="assistant_page_tab_memory">记忆</string>
+    <string name="assistant_page_tab_memory">记忆</string>
   <string name="assistant_page_tab_request">自定义请求</string>
   <string name="assistant_page_tab_mcp">MCP</string>
   <string name="assistant_page_tab_local_tools">本地工具</string>

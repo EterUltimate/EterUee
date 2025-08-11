@@ -143,7 +143,6 @@ fun AssistantDetailPage(id: String) {
     val tabs = listOf(
         stringResource(R.string.assistant_page_tab_basic),
         stringResource(R.string.assistant_page_tab_prompt),
-        stringResource(R.string.assistant_page_tab_preset_messages),
         stringResource(R.string.assistant_page_tab_memory),
         stringResource(R.string.assistant_page_tab_request),
         stringResource(R.string.assistant_page_tab_mcp),
@@ -213,12 +212,6 @@ fun AssistantDetailPage(id: String) {
                     }
 
                     2 -> {
-                        AssistantPresetMessageSettings(assistant = assistant) {
-                            onUpdate(it)
-                        }
-                    }
-
-                    3 -> {
                         AssistantMemorySettings(
                             assistant = assistant,
                             memories = memories,
@@ -229,13 +222,13 @@ fun AssistantDetailPage(id: String) {
                         )
                     }
 
-                    4 -> {
+                    3 -> {
                         AssistantCustomRequestSettings(assistant = assistant) {
                             onUpdate(it)
                         }
                     }
 
-                    5 -> {
+                    4 -> {
                         AssistantMcpSettings(
                             assistant = assistant,
                             onUpdate = {
@@ -245,7 +238,7 @@ fun AssistantDetailPage(id: String) {
                         )
                     }
 
-                    6 -> {
+                    5 -> {
                         LocalToolConfig(
                             assistant = assistant,
                             onUpdate = { onUpdate(it) }
@@ -859,22 +852,7 @@ private fun AssistantPromptSettings(
                 }
             }
         }
-    }
-}
 
-@Composable
-private fun AssistantPresetMessageSettings(
-    assistant: Assistant,
-    onUpdate: (Assistant) -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
-            .imePadding(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
         Card {
             FormItem(
                 modifier = Modifier.padding(16.dp),

@@ -315,8 +315,7 @@
   <!-- Assistant Detail Page -->
   <string name="assistant_page_tab_basic">基本設定</string>
   <string name="assistant_page_tab_prompt">プロンプト</string>
-  <string name="assistant_page_tab_preset_messages">プリセットメッセージ</string>
-  <string name="assistant_page_tab_memory">記憶</string>
+    <string name="assistant_page_tab_memory">記憶</string>
   <string name="assistant_page_tab_request">カスタムリクエスト</string>
   <string name="assistant_page_tab_mcp">MCP</string>
   <string name="assistant_page_tab_local_tools">ローカルツール</string>

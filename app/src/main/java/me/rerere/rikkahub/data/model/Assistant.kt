@@ -46,3 +46,11 @@ data class AssistantMemory(
     val id: Int,
     val content: String = "",
 )
+
+@Serializable
+data class AssistantGeneralSetting(
+    val userNick: String,
+    val userJob: String,
+    val preferences: String,
+    val traits: Set<String>,
+)

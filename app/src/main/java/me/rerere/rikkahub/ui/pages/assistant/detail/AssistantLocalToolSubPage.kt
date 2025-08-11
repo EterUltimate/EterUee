@@ -20,7 +20,7 @@ import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.ui.components.ui.FormItem
 
 @Composable
-fun LocalToolConfig(
+fun AssistantLocalToolSubPage(
     assistant: Assistant,
     onUpdate: (Assistant) -> Unit
 ) {

@@ -49,6 +49,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalScrollCaptureInProgress
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtLeast
@@ -295,15 +296,17 @@ fun ChatList(
                 .map { it.currentMessage }
         )
 
+        val captureProgress = LocalScrollCaptureInProgress.current
+
         // 消息快速跳转
         MessageJumper(
-            isRecentScroll = isRecentScroll && settings.displaySetting.showMessageJumper,
+            isRecentScroll = isRecentScroll && settings.displaySetting.showMessageJumper && !captureProgress,
             scope = scope,
             state = state
         )
 
         // Suggestion
-        if (conversation.chatSuggestions.isNotEmpty()) {
+        if (conversation.chatSuggestions.isNotEmpty() && !captureProgress) {
             LazyRow(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)

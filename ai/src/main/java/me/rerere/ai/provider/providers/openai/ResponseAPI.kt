@@ -383,6 +383,28 @@ class ResponseAPI(private val client: OkHttpClient) : OpenAIImpl {
                             )
                         )
                     )
+                } else if(type == "reasoning") {
+                    return MessageChunk(
+                        id = id,
+                        model = "",
+                        choices = listOf(
+                            UIMessageChoice(
+                                index = 0,
+                                message = null,
+                                delta = UIMessage(
+                                    role = MessageRole.ASSISTANT,
+                                    parts = listOf(
+                                        UIMessagePart.Reasoning(
+                                            reasoning = "",
+                                            createdAt = Clock.System.now(),
+                                            finishedAt = null,
+                                        )
+                                    )
+                                ),
+                                finishReason = null,
+                            )
+                        )
+                    )
                 }
             }
 

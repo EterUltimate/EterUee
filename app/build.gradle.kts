@@ -1,3 +1,4 @@
+import org.apache.tools.ant.taskdefs.condition.Os
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileInputStream
 import java.util.Properties
@@ -125,7 +126,7 @@ ksp {
 chaquopy {
     defaultConfig {
         version = "3.12"
-        buildPython("/Library/Frameworks/Python.framework/Versions/3.12/bin/python3")
+        if(Os.isFamily(Os.FAMILY_MAC)) buildPython("/Library/Frameworks/Python.framework/Versions/3.12/bin/python3")
         pip {
             install("pypdf")
             install("python-docx")

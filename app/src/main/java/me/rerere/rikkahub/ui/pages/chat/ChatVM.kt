@@ -67,6 +67,7 @@ import me.rerere.rikkahub.utils.UiState
 import me.rerere.rikkahub.utils.UpdateChecker
 import me.rerere.rikkahub.utils.applyPlaceholders
 import kotlinx.coroutines.Dispatchers
+import me.rerere.common.android.Logging
 import me.rerere.rikkahub.data.ai.LocalTools
 import me.rerere.rikkahub.utils.deleteChatFiles
 import me.rerere.search.SearchService
@@ -453,6 +454,8 @@ class ChatVM(
         }.onFailure {
             it.printStackTrace()
             errorFlow.emit(it)
+            Logging.log(TAG, "handleMessageComplete: $it")
+            Logging.log(TAG, it.stackTraceToString())
         }.onSuccess {
             saveConversation(conversation.value)
             generateTitle(conversation.value)

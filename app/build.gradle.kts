@@ -125,6 +125,7 @@ ksp {
 chaquopy {
     defaultConfig {
         version = "3.12"
+        buildPython("/Library/Frameworks/Python.framework/Versions/3.12/bin/python3")
         pip {
             install("pypdf")
             install("python-docx")

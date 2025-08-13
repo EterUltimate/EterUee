@@ -788,9 +788,13 @@ private fun ImagePickButton(onAddImages: (List<Uri>) -> Unit = {}) {
     ) { selectedUris ->
         if (selectedUris.isNotEmpty()) {
             Log.d("ImagePickButton", "Selected URIs: $selectedUris")
-            // Process first selected image (can be extended for multiple images)
-            val firstSelectedUri = selectedUris.first()
-            launchCrop(firstSelectedUri)
+            if (selectedUris.size == 1) {
+                // Single image - offer crop
+                launchCrop(selectedUris.first())
+            } else {
+                // Multiple images - no crop
+                onAddImages(context.createChatFilesByContents(selectedUris))
+            }
         } else {
             Log.d("ImagePickButton", "No images selected")
         }

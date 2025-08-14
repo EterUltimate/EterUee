@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilledTonalButton
@@ -247,12 +248,12 @@ private fun LanguageSelector(
             onExpandedChange = { expanded = it }
         ) {
             OutlinedTextField(
-                value = targetLanguage.displayName,
+                value = getLanguageDisplayName(targetLanguage),
                 onValueChange = {},
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 modifier = Modifier
-                    .menuAnchor(MenuAnchorType.PrimaryEditable)
+                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable)
                     .fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color.Transparent,

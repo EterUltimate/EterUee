@@ -8,35 +8,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryScrollableTabRow
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -44,17 +33,12 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.composables.icons.lucide.Cat
-import com.composables.icons.lucide.Glasses
-import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.MessageCircle
 import kotlinx.coroutines.launch
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.mcp.McpServerConfig
 import me.rerere.rikkahub.data.model.Assistant
-import me.rerere.rikkahub.data.model.AssistantMode
 import me.rerere.rikkahub.ui.components.ai.McpPicker
 import me.rerere.rikkahub.ui.components.ai.ModelSelector
 import me.rerere.rikkahub.ui.components.ai.ReasoningButton
@@ -112,14 +96,6 @@ fun AssistantDetailPage(id: String) {
                 navigationIcon = {
                     BackButton()
                 },
-                actions = {
-                    AssistantModePicker(
-                        assistant = assistant,
-                        onUpdate = {
-                            onUpdate(it)
-                        }
-                    )
-                }
             )
         },
     ) { innerPadding ->
@@ -208,82 +184,6 @@ fun AssistantDetailPage(id: String) {
         }
     }
 
-}
-
-@Composable
-private fun AssistantModePicker(
-    assistant: Assistant,
-    onUpdate: (Assistant) -> Unit
-) {
-    var showModeMenu by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(
-        expanded = showModeMenu,
-        onExpandedChange = { showModeMenu = it },
-    ) {
-        Surface(
-            onClick = {
-                showModeMenu = true
-            },
-            shape = CircleShape,
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text(
-                    text = when (assistant.mode) {
-                        AssistantMode.GENERAL -> "通用模式"
-                        AssistantMode.ADVANCED -> "高级模式"
-                        AssistantMode.ROLE_PLAY -> "扮演模式"
-                    },
-                    maxLines = 1,
-                    style = MaterialTheme.typography.labelMedium,
-
-                    )
-                ExposedDropdownMenuDefaults.TrailingIcon(
-                    expanded = showModeMenu,
-                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.SecondaryEditable),
-                )
-            }
-        }
-        ExposedDropdownMenu(
-            expanded = showModeMenu,
-            onDismissRequest = { showModeMenu = false },
-            modifier = Modifier.width(200.dp)
-        ) {
-            DropdownMenuItem(
-                text = { Text(text = "通用模式") },
-                onClick = {
-                    onUpdate(assistant.copy(mode = AssistantMode.GENERAL))
-                    showModeMenu = false
-                },
-                leadingIcon = {
-                    Icon(Lucide.MessageCircle, null)
-                }
-            )
-            DropdownMenuItem(
-                text = { Text(text = "高级模式") },
-                onClick = {
-                    onUpdate(assistant.copy(mode = AssistantMode.ADVANCED))
-                    showModeMenu = false
-                },
-                leadingIcon = {
-                    Icon(Lucide.Glasses, null)
-                }
-            )
-            DropdownMenuItem(
-                text = { Text(text = "角色扮演模式") },
-                onClick = {
-                    onUpdate(assistant.copy(mode = AssistantMode.ROLE_PLAY))
-                    showModeMenu = false
-                },
-                leadingIcon = {
-                    Icon(Lucide.Cat, null)
-                }
-            )
-        }
-    }
 }
 
 @Composable

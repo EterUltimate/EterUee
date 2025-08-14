@@ -8,16 +8,8 @@ import me.rerere.rikkahub.data.ai.LocalToolOption
 import kotlin.uuid.Uuid
 
 @Serializable
-enum class AssistantMode {
-    GENERAL, // 方便大多数用户使用，配置门槛低，直观
-    ADVANCED, // 适合高级用户，可配置项目多
-    ROLE_PLAY; // 适合角色扮演模式
-}
-
-@Serializable
 data class Assistant(
     val id: Uuid = Uuid.random(),
-    val mode: AssistantMode = AssistantMode.ADVANCED,
     val chatModelId: Uuid? = null, // 如果为null, 使用全局默认模型
     val name: String = "",
     val avatar: Avatar = Avatar.Dummy,
@@ -45,12 +37,4 @@ data class Assistant(
 data class AssistantMemory(
     val id: Int,
     val content: String = "",
-)
-
-@Serializable
-data class AssistantGeneralSetting(
-    val userNick: String,
-    val userJob: String,
-    val preferences: String,
-    val traits: Set<String>,
 )

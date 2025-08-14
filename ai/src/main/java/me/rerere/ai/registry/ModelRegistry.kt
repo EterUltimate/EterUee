@@ -24,8 +24,8 @@ object ModelRegistry {
     private val CLAUDE_4 = ModelMatcher.containsRegex("claude.*-4")
     val CLAUDE_SERIES = CLAUDE_SONNET_3_5 + CLAUDE_SONNET_3_7 + CLAUDE_4
 
-    private val DEEPSEEK_V3 = ModelMatcher.containsRegex("deepseek-v3")
-    private val DEEPSEEK_R1 = ModelMatcher.containsRegex("deepseek-r1")
+    private val DEEPSEEK_V3 = ModelMatcher.containsRegex("deepseek-(v3|chat)")
+    private val DEEPSEEK_R1 = ModelMatcher.containsRegex("deepseek-(r1|reasoner)")
     private val QWEN_3 = ModelMatcher.containsRegex("qwen-?3")
     private val DOUBAO_1_6 = ModelMatcher.containsRegex("doubao.+1([-.])6")
     private val GROK_4 = ModelMatcher.containsRegex("grok-4")

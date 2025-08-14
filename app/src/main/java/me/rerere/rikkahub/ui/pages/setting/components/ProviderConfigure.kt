@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.rikkahub.R
+import kotlin.reflect.KClass
 import kotlin.reflect.full.primaryConstructor
 
 @Composable
@@ -46,7 +47,7 @@ fun ProviderConfigure(
                         },
                         selected = provider::class == type,
                         onClick = {
-                            onEdit(type.primaryConstructor?.callBy(emptyMap())!!)
+                            onEdit(provider.convertTo(type))
                         }
                     )
                 }
@@ -70,6 +71,20 @@ fun ProviderConfigure(
                 ProviderConfigureClaude(provider, onEdit)
             }
         }
+    }
+}
+
+fun ProviderSetting.convertTo(type: KClass<out ProviderSetting>): ProviderSetting {
+    val apiKey = when (this) {
+        is ProviderSetting.OpenAI -> this.apiKey
+        is ProviderSetting.Google -> this.apiKey
+        is ProviderSetting.Claude -> this.apiKey
+    }
+    val newProvider = type.primaryConstructor!!.callBy(emptyMap())
+    return when (newProvider) {
+        is ProviderSetting.OpenAI -> newProvider.copy(apiKey = apiKey)
+        is ProviderSetting.Google -> newProvider.copy(apiKey = apiKey)
+        is ProviderSetting.Claude -> newProvider.copy(apiKey = apiKey)
     }
 }
 

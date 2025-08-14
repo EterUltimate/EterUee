@@ -388,7 +388,7 @@ class ChatVM(
             // memory tool
             if (!model.abilities.contains(ModelAbility.TOOL)) {
                 if (enableWebSearch.value || mcpManager.getAllAvailableTools()
-                        .isNotEmpty() || settings.value.getCurrentAssistant().enableMemory
+                        .isNotEmpty()
                 ) {
                     errorFlow.emit(IllegalStateException(context.getString(R.string.tools_warning)))
                 }

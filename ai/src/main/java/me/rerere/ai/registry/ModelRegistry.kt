@@ -8,7 +8,7 @@ fun interface ModelData<T> {
 }
 
 object ModelRegistry {
-    private val GPT4O = ModelMatcher.containsRegex("gpt-4o")
+    private val GPT4O = ModelMatcher.containsRegex("(?<!chat)gpt-4o")
     private val GPT_4_1 = ModelMatcher.containsRegex("gpt-4\\.1")
     val OPENAI_O_MODELS = ModelMatcher.containsRegex("o\\d")
     private val GPT_OSS = ModelMatcher.containsRegex("gpt-oss")

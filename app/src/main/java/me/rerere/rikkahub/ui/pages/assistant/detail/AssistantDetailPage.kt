@@ -16,7 +16,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -224,16 +226,26 @@ private fun AssistantModePicker(
             },
             shape = CircleShape,
         ) {
-            Text(
-                text = when (assistant.mode) {
-                    AssistantMode.GENERAL -> "通用模式"
-                    AssistantMode.ADVANCED -> "高级模式"
-                    AssistantMode.ROLE_PLAY -> "扮演模式"
-                },
-                maxLines = 1,
-                style = MaterialTheme.typography.labelMedium,
-                modifier = Modifier.padding(8.dp),
-            )
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = when (assistant.mode) {
+                        AssistantMode.GENERAL -> "通用模式"
+                        AssistantMode.ADVANCED -> "高级模式"
+                        AssistantMode.ROLE_PLAY -> "扮演模式"
+                    },
+                    maxLines = 1,
+                    style = MaterialTheme.typography.labelMedium,
+
+                    )
+                ExposedDropdownMenuDefaults.TrailingIcon(
+                    expanded = showModeMenu,
+                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.SecondaryEditable),
+                )
+            }
         }
         ExposedDropdownMenu(
             expanded = showModeMenu,

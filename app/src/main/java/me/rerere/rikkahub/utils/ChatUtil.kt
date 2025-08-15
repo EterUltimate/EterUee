@@ -92,19 +92,21 @@ fun Context.createChatFilesByContents(uris: List<Uri>): List<Uri> {
     }
     uris.forEach { uri ->
         val fileName = Uuid.random()
-        val newUri = dir
-            .resolve("$fileName")
-            .toUri()
+        val file = dir.resolve("$fileName")
+        if (!file.exists()) {
+            file.createNewFile()
+        }
+        val newUri = file.toUri()
         runCatching {
             this.contentResolver.openInputStream(uri)?.use { inputStream ->
-                this.contentResolver.openOutputStream(newUri)?.use { outputStream ->
+                file.outputStream().use { outputStream ->
                     inputStream.copyTo(outputStream)
                 }
             }
             newUris.add(newUri)
         }.onFailure {
             it.printStackTrace()
-            Log.e(TAG, "saveMessageImage: Failed to save image from $uri", it)
+            Log.e(TAG, "createChatFilesByContents: Failed to save image from $uri", it)
         }
     }
     return newUris
@@ -118,10 +120,12 @@ fun Context.createChatFilesByByteArrays(byteArrays: List<ByteArray>): List<Uri> 
     }
     byteArrays.forEach { byteArray ->
         val fileName = Uuid.random()
-        val newUri = dir
-            .resolve("$fileName")
-            .toUri()
-        this.contentResolver.openOutputStream(newUri)?.use { outputStream ->
+        val file = dir.resolve("$fileName")
+        if (!file.exists()) {
+            file.createNewFile()
+        }
+        val newUri = file.toUri()
+        file.outputStream().use { outputStream ->
             outputStream.write(byteArray)
         }
         newUris.add(newUri)

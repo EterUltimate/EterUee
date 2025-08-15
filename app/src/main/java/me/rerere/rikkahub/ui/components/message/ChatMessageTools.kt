@@ -23,6 +23,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -76,12 +77,14 @@ fun ToolCallItem(
     loading: Boolean = false,
 ) {
     var showResult by remember { mutableStateOf(false) }
-    OutlinedCard(
+    Surface(
         modifier = Modifier.animateContentSize(),
         onClick = {
             showResult = true
         },
         shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

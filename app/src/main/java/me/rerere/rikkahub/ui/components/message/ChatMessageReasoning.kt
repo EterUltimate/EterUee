@@ -29,6 +29,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -127,9 +128,11 @@ fun ChatMessageReasoning(
         }
     }
 
-    OutlinedCard(
+    Surface(
         modifier = modifier,
         shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     ) {
         Column(
             modifier = Modifier

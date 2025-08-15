@@ -127,7 +127,7 @@ class McpManager(
             StreamableHttpClientTransport(
                 url = config.url,
                 client = okHttpClient,
-                // headers = config.commonOptions.headers,
+                headers = config.commonOptions.headers,
             )
         }
     }

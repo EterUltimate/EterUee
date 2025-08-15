@@ -61,7 +61,8 @@ fun ReasoningButton(
         checked = ReasoningLevel.fromBudgetTokens(reasoningTokens).isEnabled,
         onClick = {
             showPicker = true
-        }
+        },
+        modifier = modifier,
     ) {
         Row(
             modifier = Modifier
@@ -78,7 +79,7 @@ fun ReasoningButton(
                     contentDescription = null,
                 )
             }
-            if (reasoningTokens > 0 && !onlyIcon) Text(stringResource(R.string.setting_provider_page_reasoning))
+            if (!onlyIcon) Text(stringResource(R.string.setting_provider_page_reasoning))
         }
     }
 }

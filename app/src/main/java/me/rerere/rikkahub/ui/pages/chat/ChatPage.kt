@@ -51,6 +51,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInputModeManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -138,11 +140,19 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>) {
     val enableWebSearch by vm.enableWebSearch.collectAsStateWithLifecycle()
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val softwareKeyboardController = LocalSoftwareKeyboardController.current
 
     // Handle back press when drawer is open
     BackHandler(enabled = drawerState.isOpen) {
         scope.launch {
             drawerState.close()
+        }
+    }
+
+    // Hide keyboard when drawer is open
+    LaunchedEffect(drawerState.isOpen) {
+        if (drawerState.isOpen) {
+            softwareKeyboardController?.hide()
         }
     }
 

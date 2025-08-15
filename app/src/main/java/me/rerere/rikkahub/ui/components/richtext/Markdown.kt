@@ -77,7 +77,10 @@ import org.intellij.markdown.flavours.gfm.GFMTokenTypes
 import org.intellij.markdown.parser.MarkdownParser
 
 private val flavour by lazy {
-    GFMFlavourDescriptor()
+    GFMFlavourDescriptor(
+        makeHttpsAutoLinks = true,
+        useSafeLinks = true
+    )
 }
 
 private val parser by lazy {
@@ -167,9 +170,9 @@ fun MarkdownBlock(
     val preprocessed = remember(content) { preProcess(content) }
     val astTree = remember(preprocessed) {
         parser.buildMarkdownTreeFromString(preprocessed)
-//            .also {
-//                dumpAst(it, preprocessed) // for debugging ast tree
-//            }
+            .also {
+                dumpAst(it, preprocessed) // for debugging ast tree
+            }
     }
 
     ProvideTextStyle(style) {
@@ -815,6 +818,15 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
     when {
         node.type == MarkdownTokenTypes.BLOCK_QUOTE -> {}
 
+        node.type == GFMTokenTypes.GFM_AUTOLINK -> {
+            val link = node.getTextInNode(content)
+            withLink(LinkAnnotation.Url(link)) {
+                withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
+                    append(link)
+                }
+            }
+        }
+
         node is LeafASTNode -> {
             append(
                 node
@@ -879,7 +891,6 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
         }
 
         node.type == MarkdownElementTypes.INLINE_LINK -> {
-            dumpAst(node, content)
             val linkDest =
                 node.findChildOfType(MarkdownElementTypes.LINK_DESTINATION)?.getTextInNode(content)
                     ?: ""
@@ -934,6 +945,19 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
                         )
                     ) {
                         append(linkText)
+                    }
+                }
+            }
+        }
+
+        node.type == MarkdownElementTypes.AUTOLINK -> {
+            val links = node.children
+                .trim(MarkdownTokenTypes.LT, 1)
+                .trim(MarkdownTokenTypes.GT, 1)
+            links.fastForEach { link ->
+                withLink(LinkAnnotation.Url(link.getTextInNode(content))) {
+                    withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
+                        append(link.getTextInNode(content))
                     }
                 }
             }

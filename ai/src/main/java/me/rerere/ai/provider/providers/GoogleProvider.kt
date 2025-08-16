@@ -384,7 +384,8 @@ class GoogleProvider(private val client: OkHttpClient) : Provider<ProviderSettin
                                                 "const",
                                                 "exclusiveMaximum",
                                                 "exclusiveMinimum",
-                                                "format"
+                                                "format",
+                                                "additionalProperties"
                                             )
                                         )
                                 )

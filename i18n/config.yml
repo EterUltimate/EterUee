@@ -4,6 +4,7 @@ targets:
   - zh
   - ja
   - zh-rTW
+  - ko-rKR
 
 # 项目根目录（用于扫描 Android 模块）
 workspaceRoot: ".."

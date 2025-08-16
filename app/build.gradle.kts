@@ -22,8 +22,8 @@ android {
         applicationId = "me.rerere.rikkahub"
         minSdk = 26
         targetSdk = 36
-        versionCode = 86
-        versionName = "1.4.12"
+        versionCode = 87
+        versionName = "1.4.13"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

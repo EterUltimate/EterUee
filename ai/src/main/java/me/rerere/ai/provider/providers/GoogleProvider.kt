@@ -63,7 +63,10 @@ private const val TAG = "GoogleProvider"
 
 class GoogleProvider(private val client: OkHttpClient) : Provider<ProviderSetting.Google> {
     private fun buildUrl(providerSetting: ProviderSetting.Google, path: String): HttpUrl {
-        val keys = providerSetting.apiKey.split(",")
+        val keys = providerSetting.apiKey
+            .split(",")
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
         return if (!providerSetting.vertexAI) {
             "${providerSetting.baseUrl}/$path".toHttpUrl()
                 .newBuilder()

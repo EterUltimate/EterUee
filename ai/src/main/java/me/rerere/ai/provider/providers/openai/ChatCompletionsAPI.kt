@@ -219,6 +219,7 @@ class ChatCompletionsAPI(private val client: OkHttpClient) : OpenAIImpl {
                 } catch (e: Throwable) {
                     Log.w(TAG, "onFailure: failed to parse from $bodyRaw")
                     e.printStackTrace()
+                    exception = e
                 } finally {
                     close(exception)
                 }

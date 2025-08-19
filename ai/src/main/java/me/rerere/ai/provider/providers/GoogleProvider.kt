@@ -294,6 +294,7 @@ class GoogleProvider(private val client: OkHttpClient) : Provider<ProviderSettin
                     }
                 } catch (e: Throwable) {
                     e.printStackTrace()
+                    exception = e
                 } finally {
                     close(exception ?: Exception("Stream failed"))
                 }

@@ -131,7 +131,7 @@ fun ChatMessageReasoning(
     Surface(
         modifier = modifier,
         shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
         contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     ) {
         Column(

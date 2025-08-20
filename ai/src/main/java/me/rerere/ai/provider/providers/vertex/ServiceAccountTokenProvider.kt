@@ -14,6 +14,7 @@ import java.security.Signature
 import java.security.spec.PKCS8EncodedKeySpec
 import java.time.Instant
 import java.util.Base64
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * 使用服务账号（email + private key PEM）换取 Google OAuth2 Access Token。
@@ -23,6 +24,31 @@ class ServiceAccountTokenProvider(
     private val http: OkHttpClient
 ) {
     private val json = Json { ignoreUnknownKeys = true }
+
+    // Token cache to avoid frequent token requests
+    private val tokenCache = ConcurrentHashMap<String, CachedToken>()
+
+    @Serializable
+    private data class CachedToken(
+        val token: String,
+        val expiresAt: Long // Unix timestamp in seconds
+    )
+
+    /**
+     * Generate cache key based on service account email and scopes
+     */
+    private fun generateCacheKey(serviceAccountEmail: String, scopes: List<String>): String {
+        return "$serviceAccountEmail:${scopes.sorted().joinToString(",")}"
+    }
+
+    /**
+     * Check if cached token is still valid (not expired with 5 minutes buffer)
+     */
+    private fun isCachedTokenValid(cachedToken: CachedToken): Boolean {
+        val now = Instant.now().epochSecond
+        val bufferSeconds = 300 // 5 minutes buffer before actual expiration
+        return cachedToken.expiresAt > (now + bufferSeconds)
+    }
 
     /**
      * @param serviceAccountEmail  形如 xxx@project-id.iam.gserviceaccount.com
@@ -35,6 +61,14 @@ class ServiceAccountTokenProvider(
         privateKeyPem: String,
         scopes: List<String> = listOf("https://www.googleapis.com/auth/cloud-platform")
     ): String = withContext(Dispatchers.IO) {
+        val cacheKey = generateCacheKey(serviceAccountEmail, scopes)
+
+        // Check cache first
+        tokenCache[cacheKey]?.let { cachedToken ->
+            if (isCachedTokenValid(cachedToken)) {
+                return@withContext cachedToken.token
+            }
+        }
         val now = Instant.now().epochSecond
         val exp = now + 3600 // 最长 1h
 
@@ -73,7 +107,14 @@ class ServiceAccountTokenProvider(
             }
             val body = resp.body.string()
             val tokenResp = json.decodeFromString(TokenResponse.serializer(), body)
-            tokenResp.accessToken ?: error("No access_token in response")
+            val accessToken = tokenResp.accessToken ?: error("No access_token in response")
+
+            // Cache the token with expiration time
+            val expiresIn = tokenResp.expiresIn ?: 3600 // Default 1 hour if not provided
+            val expiresAt = now + expiresIn
+            tokenCache[cacheKey] = CachedToken(accessToken, expiresAt)
+
+            accessToken
         }
     }
 

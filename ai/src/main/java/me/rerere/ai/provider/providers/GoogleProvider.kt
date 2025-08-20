@@ -86,8 +86,8 @@ class GoogleProvider(private val client: OkHttpClient) : Provider<ProviderSettin
     ): Request {
         return if (providerSetting.vertexAI) {
             val accessToken = serviceAccountTokenProvider.fetchAccessToken(
-                serviceAccountEmail = providerSetting.serviceAccountEmail,
-                privateKeyPem = providerSetting.privateKey,
+                serviceAccountEmail = providerSetting.serviceAccountEmail.trim(),
+                privateKeyPem = providerSetting.privateKey.trim(),
             )
             request.newBuilder()
                 .addHeader("Authorization", "Bearer $accessToken")

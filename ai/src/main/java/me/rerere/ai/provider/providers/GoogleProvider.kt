@@ -36,6 +36,7 @@ import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
 import me.rerere.ai.ui.UIMessageChoice
 import me.rerere.ai.ui.UIMessagePart
+import me.rerere.ai.util.KeyRoulette
 import me.rerere.ai.util.await
 import me.rerere.ai.util.configureClientWithProxy
 import me.rerere.ai.util.configureReferHeaders
@@ -61,19 +62,17 @@ import kotlin.uuid.Uuid
 private const val TAG = "GoogleProvider"
 
 class GoogleProvider(private val client: OkHttpClient) : Provider<ProviderSetting.Google> {
+    private val keyRoulette = KeyRoulette.default()
     private val serviceAccountTokenProvider by lazy {
         ServiceAccountTokenProvider(client)
     }
 
     private fun buildUrl(providerSetting: ProviderSetting.Google, path: String): HttpUrl {
-        val keys = providerSetting.apiKey
-            .split(",")
-            .map { it.trim() }
-            .filter { it.isNotBlank() }
         return if (!providerSetting.vertexAI) {
+            val key = keyRoulette.next(providerSetting.apiKey)
             "${providerSetting.baseUrl}/$path".toHttpUrl()
                 .newBuilder()
-                .addQueryParameter("key", keys.random())
+                .addQueryParameter("key", key)
                 .build()
         } else {
             "https://aiplatform.googleapis.com/v1/projects/${providerSetting.projectId}/locations/${providerSetting.location}/$path".toHttpUrl()

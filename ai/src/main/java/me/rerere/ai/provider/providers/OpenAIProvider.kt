@@ -15,6 +15,7 @@ import me.rerere.ai.provider.providers.openai.ChatCompletionsAPI
 import me.rerere.ai.provider.providers.openai.ResponseAPI
 import me.rerere.ai.ui.MessageChunk
 import me.rerere.ai.ui.UIMessage
+import me.rerere.ai.util.KeyRoulette
 import me.rerere.ai.util.await
 import me.rerere.ai.util.configureClientWithProxy
 import me.rerere.ai.util.json
@@ -26,14 +27,18 @@ import java.util.concurrent.TimeUnit
 class OpenAIProvider(
     private val client: OkHttpClient
 ) : Provider<ProviderSetting.OpenAI> {
-    private val chatCompletionsAPI = ChatCompletionsAPI(client = client)
+    private val keyRoulette = KeyRoulette.default()
+
+    private val chatCompletionsAPI = ChatCompletionsAPI(client = client, keyRoulette = keyRoulette)
     private val responseAPI = ResponseAPI(client = client)
+
 
     override suspend fun listModels(providerSetting: ProviderSetting.OpenAI): List<Model> =
         withContext(Dispatchers.IO) {
+            val key = keyRoulette.next(providerSetting.apiKey)
             val request = Request.Builder()
                 .url("${providerSetting.baseUrl}/models")
-                .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
+                .addHeader("Authorization", "Bearer $key")
                 .get()
                 .build()
 

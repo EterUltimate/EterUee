@@ -252,31 +252,6 @@ private fun ColumnScope.ProviderConfigureGoogle(
         modifier = Modifier.fillMaxWidth()
     )
 
-    OutlinedTextField(
-        value = provider.apiKey,
-        onValueChange = {
-            onEdit(provider.copy(apiKey = it.trim()))
-        },
-        label = {
-            Text(stringResource(id = R.string.setting_provider_page_api_key))
-        },
-        modifier = Modifier.fillMaxWidth(),
-        maxLines = 3,
-    )
-
-    if (!provider.vertexAI) {
-        OutlinedTextField(
-            value = provider.baseUrl,
-            onValueChange = {
-                onEdit(provider.copy(baseUrl = it.trim()))
-            },
-            label = {
-                Text(stringResource(id = R.string.setting_provider_page_api_base_url))
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
-
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -289,7 +264,30 @@ private fun ColumnScope.ProviderConfigureGoogle(
         )
     }
 
-    if (provider.vertexAI) {
+    if (!provider.vertexAI) {
+        OutlinedTextField(
+            value = provider.apiKey,
+            onValueChange = {
+                onEdit(provider.copy(apiKey = it.trim()))
+            },
+            label = {
+                Text(stringResource(id = R.string.setting_provider_page_api_key))
+            },
+            modifier = Modifier.fillMaxWidth(),
+            maxLines = 3,
+        )
+
+        OutlinedTextField(
+            value = provider.baseUrl,
+            onValueChange = {
+                onEdit(provider.copy(baseUrl = it.trim()))
+            },
+            label = {
+                Text(stringResource(id = R.string.setting_provider_page_api_base_url))
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+    } else {
         OutlinedTextField(
             value = provider.serviceAccountEmail,
             onValueChange = {

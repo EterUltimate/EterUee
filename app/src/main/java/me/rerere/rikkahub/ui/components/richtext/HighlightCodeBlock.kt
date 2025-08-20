@@ -2,6 +2,7 @@ package me.rerere.rikkahub.ui.components.richtext
 
 import android.content.ClipData
 import android.net.Uri
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -25,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -37,6 +39,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDateTime
@@ -98,87 +102,14 @@ fun HighlightCodeBlock(
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .padding(8.dp),
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = language,
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-                    .copy(alpha = 0.5f),
-            )
-            Spacer(Modifier.weight(1f))
-            Row(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(4.dp))
-                    .clickable {
-                        scope.launch {
-                            clipboardManager.setClipEntry(
-                                ClipEntry(
-                                    ClipData.newPlainText("code", code),
-                                )
-                            )
-                        }
-                    }
-                    .padding(1.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(
-                    text = stringResource(id = R.string.chat_page_save),
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    modifier = Modifier.clickable {
-                        val extension = when (language.lowercase()) {
-                            "kotlin" -> "kt"
-                            "java" -> "java"
-                            "python" -> "py"
-                            "javascript" -> "js"
-                            "typescript" -> "ts"
-                            "cpp", "c++" -> "cpp"
-                            "c" -> "c"
-                            "html" -> "html"
-                            "css" -> "css"
-                            "xml" -> "xml"
-                            "json" -> "json"
-                            "yaml", "yml" -> "yml"
-                            "markdown", "md" -> "md"
-                            "sql" -> "sql"
-                            "sh", "bash" -> "sh"
-                            else -> "txt"
-                        }
-                        createDocumentLauncher.launch(
-                            "code_${
-                                Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-                            }.$extension"
-                        )
-                    }
-                )
-
-                Text(
-                    text = stringResource(id = R.string.code_block_copy),
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    modifier = Modifier.clickable {
-                        scope.launch {
-                            clipboardManager.setClipEntry(ClipEntry(ClipData.newPlainText("code", code)))
-                        }
-                    }
-                )
-
-                if (language == "html") {
-                    Text(
-                        text = stringResource(id = R.string.code_block_preview),
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        modifier = Modifier
-                            .clickable {
-                                navController.navigate(Screen.WebView(content = code.base64Encode()))
-                            }
-                    )
-                }
-            }
-        }
+        HighlightCodeActions(
+            language = language,
+            scope = scope,
+            clipboardManager = clipboardManager,
+            code = code,
+            createDocumentLauncher = createDocumentLauncher,
+            navController = navController
+        )
         if (completeCodeBlock && language == "mermaid") {
             Mermaid(
                 code = code,
@@ -200,6 +131,98 @@ fun HighlightCodeBlock(
                 softWrap = false,
                 fontFamily = JetbrainsMono
             )
+        }
+    }
+}
+
+@Composable
+private fun HighlightCodeActions(
+    language: String,
+    scope: CoroutineScope,
+    clipboardManager: Clipboard,
+    code: String,
+    createDocumentLauncher: ManagedActivityResultLauncher<String, Uri?>,
+    navController: NavHostController
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = language,
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+                .copy(alpha = 0.5f),
+        )
+        Spacer(Modifier.weight(1f))
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(4.dp))
+                .clickable {
+                    scope.launch {
+                        clipboardManager.setClipEntry(
+                            ClipEntry(
+                                ClipData.newPlainText("code", code),
+                            )
+                        )
+                    }
+                }
+                .padding(1.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.chat_page_save),
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                modifier = Modifier.clickable {
+                    val extension = when (language.lowercase()) {
+                        "kotlin" -> "kt"
+                        "java" -> "java"
+                        "python" -> "py"
+                        "javascript" -> "js"
+                        "typescript" -> "ts"
+                        "cpp", "c++" -> "cpp"
+                        "c" -> "c"
+                        "html" -> "html"
+                        "css" -> "css"
+                        "xml" -> "xml"
+                        "json" -> "json"
+                        "yaml", "yml" -> "yml"
+                        "markdown", "md" -> "md"
+                        "sql" -> "sql"
+                        "sh", "bash" -> "sh"
+                        else -> "txt"
+                    }
+                    createDocumentLauncher.launch(
+                        "code_${
+                            Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                        }.$extension"
+                    )
+                }
+            )
+
+            Text(
+                text = stringResource(id = R.string.code_block_copy),
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                modifier = Modifier.clickable {
+                    scope.launch {
+                        clipboardManager.setClipEntry(ClipEntry(ClipData.newPlainText("code", code)))
+                    }
+                }
+            )
+
+            if (language == "html") {
+                Text(
+                    text = stringResource(id = R.string.code_block_preview),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier
+                        .clickable {
+                            navController.navigate(Screen.WebView(content = code.base64Encode()))
+                        }
+                )
+            }
         }
     }
 }

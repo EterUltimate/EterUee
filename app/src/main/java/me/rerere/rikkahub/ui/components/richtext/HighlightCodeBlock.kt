@@ -1,6 +1,9 @@
 package me.rerere.rikkahub.ui.components.richtext
 
 import android.content.ClipData
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -23,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -35,6 +39,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import me.rerere.highlight.HighlightText
 import me.rerere.highlight.Highlighter
 import me.rerere.highlight.buildHighlightText
@@ -46,6 +53,9 @@ import me.rerere.rikkahub.ui.theme.AtomOneLightPalette
 import me.rerere.rikkahub.ui.theme.JetbrainsMono
 import me.rerere.rikkahub.ui.theme.LocalDarkMode
 import me.rerere.rikkahub.utils.base64Encode
+import me.rerere.rikkahub.utils.exportImageFile
+import me.rerere.rikkahub.utils.saveMessageImage
+import kotlin.time.Clock
 
 @Composable
 fun HighlightCodeBlock(
@@ -64,6 +74,23 @@ fun HighlightCodeBlock(
     val clipboardManager = LocalClipboard.current
     val scope = rememberCoroutineScope()
     val navController = LocalNavController.current
+    val context = LocalContext.current
+
+    val createDocumentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/plain")
+    ) { uri: Uri? ->
+        uri?.let {
+            scope.launch {
+                try {
+                    context.contentResolver.openOutputStream(it)?.use { outputStream ->
+                        outputStream.write(code.toByteArray())
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
 
     Column(
         modifier = modifier
@@ -98,9 +125,45 @@ fun HighlightCodeBlock(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
+                    text = stringResource(id = R.string.chat_page_save),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.clickable {
+                        val extension = when (language.lowercase()) {
+                            "kotlin" -> "kt"
+                            "java" -> "java"
+                            "python" -> "py"
+                            "javascript" -> "js"
+                            "typescript" -> "ts"
+                            "cpp", "c++" -> "cpp"
+                            "c" -> "c"
+                            "html" -> "html"
+                            "css" -> "css"
+                            "xml" -> "xml"
+                            "json" -> "json"
+                            "yaml", "yml" -> "yml"
+                            "markdown", "md" -> "md"
+                            "sql" -> "sql"
+                            "sh", "bash" -> "sh"
+                            else -> "txt"
+                        }
+                        createDocumentLauncher.launch(
+                            "code_${
+                                Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                            }.$extension"
+                        )
+                    }
+                )
+
+                Text(
                     text = stringResource(id = R.string.code_block_copy),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.clickable {
+                        scope.launch {
+                            clipboardManager.setClipEntry(ClipEntry(ClipData.newPlainText("code", code)))
+                        }
+                    }
                 )
 
                 if (language == "html") {

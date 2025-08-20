@@ -291,6 +291,28 @@ private fun ColumnScope.ProviderConfigureGoogle(
 
     if (provider.vertexAI) {
         OutlinedTextField(
+            value = provider.serviceAccountEmail,
+            onValueChange = {
+                onEdit(provider.copy(serviceAccountEmail = it.trim()))
+            },
+            label = {
+                Text(stringResource(id = R.string.setting_provider_page_service_account_email))
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = provider.privateKey,
+            onValueChange = {
+                onEdit(provider.copy(privateKey = it.trim()))
+            },
+            label = {
+                Text(stringResource(id = R.string.setting_provider_page_private_key))
+            },
+            modifier = Modifier.fillMaxWidth(),
+            maxLines = 6,
+            minLines = 3,
+        )
+        OutlinedTextField(
             value = provider.location,
             onValueChange = {
                 onEdit(provider.copy(location = it.trim()))

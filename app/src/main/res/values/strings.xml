@@ -456,6 +456,8 @@
   <string name="setting_provider_page_provider_override_desc">Configure custom provider settings for this specific model. Will inherit common properties from parent provider.</string>
   <string name="setting_provider_page_add_provider_override">Add Provider Override</string>
   <string name="setting_provider_page_configure_provider_override">Configure Provider Override</string>
+  <string name="setting_provider_page_service_account_email">Service Account Email</string>
+  <string name="setting_provider_page_private_key">Private Key</string>
 
   <!-- TTS Settings -->
   <string name="setting_tts_page_title">Text-to-Speech</string>

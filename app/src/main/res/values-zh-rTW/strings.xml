@@ -426,6 +426,8 @@
   <string name="setting_provider_page_provider_override_desc">為此特定模型配置自訂提供商設定。將從父提供商繼承通用屬性。</string>
   <string name="setting_provider_page_add_provider_override">新增提供商覆寫</string>
   <string name="setting_provider_page_configure_provider_override">配置提供商覆寫</string>
+  <string name="setting_provider_page_service_account_email">服務帳戶郵箱</string>
+  <string name="setting_provider_page_private_key">私鑰</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">創建了記憶</string>

@@ -458,6 +458,8 @@
   <string name="setting_provider_page_provider_override_desc">이 특정 모델에 대한 사용자 정의 제공업체 설정 구성. 부모 제공업체의 일반 속성을 상속합니다</string>
   <string name="setting_provider_page_add_provider_override">제공업체 재정의 추가</string>
   <string name="setting_provider_page_configure_provider_override">제공업체 재정의 구성</string>
+  <string name="setting_provider_page_service_account_email">서비스 계정 이메일</string>
+  <string name="setting_provider_page_private_key">개인 키</string>
 
   <!-- TTS Settings -->
   <string name="setting_tts_page_title">텍스트-음성</string>

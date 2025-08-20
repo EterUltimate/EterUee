@@ -429,6 +429,8 @@
   <string name="setting_provider_page_provider_override_desc">この特定のモデル用にカスタムプロバイダー設定を構成します。親プロバイダーから共通プロパティを継承します。</string>
   <string name="setting_provider_page_add_provider_override">プロバイダーオーバーライドを追加</string>
   <string name="setting_provider_page_configure_provider_override">プロバイダーオーバーライドを構成</string>
+  <string name="setting_provider_page_service_account_email">サービスアカウントメール</string>
+  <string name="setting_provider_page_private_key">秘密鍵</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">記憶を作成しました</string>

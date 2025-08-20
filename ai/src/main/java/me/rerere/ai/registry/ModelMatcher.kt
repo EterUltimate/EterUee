@@ -12,7 +12,10 @@ interface ModelMatcher {
 
         fun regex(regex: String): ModelMatcher = RegexModelMatcher(regex.toRegex(RegexOption.IGNORE_CASE))
 
-        fun containsRegex(regex: String): ModelMatcher = ContainsRegexModelMatcher(regex.toRegex(RegexOption.IGNORE_CASE))
+        fun containsRegex(regex: String, negated: Boolean = false): ModelMatcher = ContainsRegexModelMatcher(
+            regex = regex.toRegex(RegexOption.IGNORE_CASE),
+            negated = negated
+        )
 
         fun regex(regex: Regex): ModelMatcher = RegexModelMatcher(regex)
 
@@ -21,6 +24,10 @@ interface ModelMatcher {
         fun and(vararg matchers: ModelMatcher): ModelMatcher = AndModelMatcher(matchers.toList())
     }
 }
+
+infix fun ModelMatcher.and(other: ModelMatcher): ModelMatcher = ModelMatcher.and(this, other)
+
+infix fun ModelMatcher.or(other: ModelMatcher): ModelMatcher = ModelMatcher.or(this, other)
 
 private class OrModelMatcher(
     val matchers: List<ModelMatcher>
@@ -47,10 +54,15 @@ private class RegexModelMatcher(
 }
 
 private class ContainsRegexModelMatcher(
-    val regex: Regex
+    val regex: Regex,
+    val negated: Boolean = false
 ) : ModelMatcher {
     override fun match(modelId: String): Boolean {
-        return regex.containsMatchIn(modelId)
+        return if (negated) {
+            !regex.containsMatchIn(modelId)
+        } else {
+            regex.containsMatchIn(modelId)
+        }
     }
 }
 

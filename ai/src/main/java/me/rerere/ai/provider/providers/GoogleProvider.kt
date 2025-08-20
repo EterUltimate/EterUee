@@ -76,7 +76,7 @@ class GoogleProvider(private val client: OkHttpClient) : Provider<ProviderSettin
                 .addQueryParameter("key", keys.random())
                 .build()
         } else {
-            "https://${providerSetting.location}-aiplatform.googleapis.com/v1/projects/${providerSetting.projectId}/locations/${providerSetting.location}/$path".toHttpUrl()
+            "https://aiplatform.googleapis.com/v1/projects/${providerSetting.projectId}/locations/${providerSetting.location}/$path".toHttpUrl()
         }
     }
 

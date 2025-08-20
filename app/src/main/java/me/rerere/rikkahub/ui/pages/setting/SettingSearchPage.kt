@@ -289,6 +289,13 @@ private fun SearchProviderCard(
                     }
                 }
 
+                is SearchServiceOptions.MetasoOptions -> {
+                    MetasoOptions(options as SearchServiceOptions.MetasoOptions) {
+                        options = it
+                        onUpdateService(options)
+                    }
+                }
+
                 is SearchServiceOptions.BingLocalOptions -> {}
             }
 
@@ -561,6 +568,31 @@ private fun SearchLinkUpPage(
 private fun BraveOptions(
     options: SearchServiceOptions.BraveOptions,
     onUpdateOptions: (SearchServiceOptions.BraveOptions) -> Unit
+) {
+    FormItem(
+        label = {
+            Text("API Key")
+        }
+    ) {
+        OutlinedTextField(
+            value = options.apiKey,
+            onValueChange = {
+                onUpdateOptions(
+                    options.copy(
+                        apiKey = it
+                    )
+                )
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+
+@Composable
+private fun MetasoOptions(
+    options: SearchServiceOptions.MetasoOptions,
+    onUpdateOptions: (SearchServiceOptions.MetasoOptions) -> Unit
 ) {
     FormItem(
         label = {

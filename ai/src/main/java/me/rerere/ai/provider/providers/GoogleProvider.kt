@@ -30,6 +30,7 @@ import me.rerere.ai.provider.ModelType
 import me.rerere.ai.provider.Provider
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.TextGenerationParams
+import me.rerere.ai.provider.providers.vertex.ServiceAccountTokenProvider
 import me.rerere.ai.ui.MessageChunk
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
@@ -51,17 +52,19 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
-import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.sse.EventSource
 import okhttp3.sse.EventSourceListener
 import okhttp3.sse.EventSources
-import java.util.concurrent.TimeUnit
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
 private const val TAG = "GoogleProvider"
 
 class GoogleProvider(private val client: OkHttpClient) : Provider<ProviderSetting.Google> {
+    private val serviceAccountTokenProvider by lazy {
+        ServiceAccountTokenProvider(client)
+    }
+
     private fun buildUrl(providerSetting: ProviderSetting.Google, path: String): HttpUrl {
         val keys = providerSetting.apiKey
             .split(",")
@@ -77,13 +80,17 @@ class GoogleProvider(private val client: OkHttpClient) : Provider<ProviderSettin
         }
     }
 
-    private fun transformRequest(
+    private suspend fun transformRequest(
         providerSetting: ProviderSetting.Google,
         request: Request
     ): Request {
         return if (providerSetting.vertexAI) {
+            val accessToken = serviceAccountTokenProvider.fetchAccessToken(
+                serviceAccountEmail = providerSetting.serviceAccountEmail,
+                privateKeyPem = providerSetting.privateKey,
+            )
             request.newBuilder()
-                .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
+                .addHeader("Authorization", "Bearer $accessToken")
                 .build()
         } else {
             request.newBuilder().build()

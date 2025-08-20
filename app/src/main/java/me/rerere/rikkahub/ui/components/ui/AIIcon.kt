@@ -175,7 +175,7 @@ private val PATTERN_SEARCH_BING = Regex("bing")
 private val PATTERN_SEARCH_TAVILY = Regex("tavily")
 private val PATTERN_SEARCH_EXA = Regex("exa")
 private val PATTERN_SEARCH_BRAVE = Regex("brave")
-private val PATTERN_SEARCH_METASO = Regex("metaso")
+private val PATTERN_SEARCH_METASO = Regex("metaso|秘塔")
 
 @Composable
 fun SiliconFlowPowerByIcon(modifier: Modifier = Modifier) {

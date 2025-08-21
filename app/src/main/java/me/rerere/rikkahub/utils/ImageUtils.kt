@@ -225,8 +225,18 @@ object ImageUtils {
     }
 
     /**
-     * 图片信息数据类
+     * 获取酒馆角色卡中的角色元数据（如果存在）
+     *
+     * @param context Android上下文
+     * @param uri 图片URI
+     * @return Result<String> 包含角色元数据的Result对象
      */
+    fun getTavernCharacterMeta(context: Context, uri: Uri): Result<String> = runCatching {
+        val exif = context.contentResolver.openInputStream(uri)?.use { ExifInterface(it) }
+        val chara = exif?.getAttribute("chara") ?: exif?.getAttribute("ccv3") ?: error("No character metadata found")
+        chara
+    }
+
     data class ImageInfo(
         val width: Int,
         val height: Int,

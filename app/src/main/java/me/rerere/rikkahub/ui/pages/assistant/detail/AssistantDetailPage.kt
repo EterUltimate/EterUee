@@ -217,6 +217,11 @@ private fun AssistantBasicSettings(
             )
         }
 
+        AssistantImporter(
+            assistant = assistant,
+            onUpdate = { onUpdate(it) }
+        )
+
         Card {
             FormItem(
                 label = {

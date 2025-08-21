@@ -168,6 +168,10 @@ dependencies {
     // DataStore
     implementation(libs.androidx.datastore.preferences)
 
+    // Image metadata extractor
+    // https://github.com/drewnoakes/metadata-extractor
+    implementation("com.drewnoakes:metadata-extractor:2.19.0")
+
     // koin
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.android)

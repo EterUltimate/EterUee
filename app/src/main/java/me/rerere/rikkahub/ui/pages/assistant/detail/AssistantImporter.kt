@@ -6,6 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,6 +26,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import me.rerere.ai.ui.UIMessage
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.utils.ImageUtils
@@ -36,13 +38,13 @@ fun AssistantImporter(
     modifier: Modifier = Modifier,
     onUpdate: (Assistant) -> Unit,
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier,
-    ) {
-        SillyTavernImporter(assistant = assistant, onImport = onUpdate)
-    }
+//    Row(
+//        verticalAlignment = Alignment.CenterVertically,
+//        horizontalArrangement = Arrangement.spacedBy(8.dp),
+//        modifier = modifier,
+//    ) {
+//        SillyTavernImporter(assistant = assistant, onImport = onUpdate)
+//    }
 }
 
 @Composable
@@ -80,8 +82,16 @@ private fun SillyTavernImporter(
                                 val data = json["data"]?.jsonObject ?: error("Missing data field")
                                 val name =
                                     data["name"]?.jsonPrimitiveOrNull?.contentOrNull ?: error("Missing name field")
+                                val firstMessagfe = data["first_mes"]?.jsonPrimitiveOrNull?.contentOrNull
 
-                                onImport(assistant.copy(name = name))
+                                onImport(assistant.copy(
+                                    name = name,
+                                    presetMessages = if (firstMessagfe != null) {
+                                        listOf(UIMessage.assistant( firstMessagfe))
+                                    } else {
+                                        emptyList()
+                                    },
+                                ))
                             }
                             // "chara_card_v3" -> {}
                             else -> error("Unsupported spec: $spec")
@@ -98,7 +108,7 @@ private fun SillyTavernImporter(
         }
     }
 
-    Button(
+    OutlinedButton(
         onClick = {
             imagePickerLauncher.launch("image/png")
         },

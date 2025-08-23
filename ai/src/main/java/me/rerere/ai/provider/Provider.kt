@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import me.rerere.ai.core.Tool
+import me.rerere.ai.ui.ImageGenerationResult
 import me.rerere.ai.ui.MessageChunk
 import me.rerere.ai.ui.UIMessage
 
@@ -23,6 +24,11 @@ interface Provider<T : ProviderSetting> {
         messages: List<UIMessage>,
         params: TextGenerationParams,
     ): Flow<MessageChunk>
+
+    suspend fun generateImage(
+        providerSetting: ProviderSetting,
+        params: ImageGenerationParams,
+    ): ImageGenerationResult
 }
 
 @Serializable
@@ -35,6 +41,13 @@ data class TextGenerationParams(
     val thinkingBudget: Int? = null,
     val customHeaders: List<CustomHeader> = emptyList(),
     val customBody: List<CustomBody> = emptyList(),
+)
+
+@Serializable
+data class ImageGenerationParams(
+    val model: Model,
+    val prompt: String,
+    val numOfImages: Int = 1,
 )
 
 @Serializable

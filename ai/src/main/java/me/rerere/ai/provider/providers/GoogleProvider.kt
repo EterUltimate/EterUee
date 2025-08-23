@@ -24,6 +24,7 @@ import me.rerere.ai.core.MessageRole
 import me.rerere.ai.core.TokenUsage
 import me.rerere.ai.provider.BuiltInTools
 import me.rerere.ai.provider.Modality
+import me.rerere.ai.provider.ImageGenerationParams
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ModelType
@@ -31,6 +32,8 @@ import me.rerere.ai.provider.Provider
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.provider.providers.vertex.ServiceAccountTokenProvider
+import me.rerere.ai.ui.ImageGenerationResult
+import me.rerere.ai.ui.ImageGenerationItem
 import me.rerere.ai.ui.MessageChunk
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessageAnnotation
@@ -608,5 +611,73 @@ class GoogleProvider(private val client: OkHttpClient) : Provider<ProviderSettin
             completionTokens = jsonObject["candidatesTokenCount"]?.jsonPrimitive?.intOrNull ?: 0,
             totalTokens = jsonObject["totalTokenCount"]?.jsonPrimitive?.intOrNull ?: 0
         )
+    }
+
+    override suspend fun generateImage(
+        providerSetting: ProviderSetting,
+        params: ImageGenerationParams
+    ): ImageGenerationResult = withContext(Dispatchers.IO) {
+        require(providerSetting is ProviderSetting.Google) {
+            "Expected Google provider setting"
+        }
+
+        val requestBody = buildJsonObject {
+            put("prompt", buildJsonObject {
+                put("text", params.prompt)
+            })
+            put("sampleCount", params.numOfImages)
+        }
+
+        val url = buildUrl(
+            providerSetting = providerSetting,
+            path = if (providerSetting.vertexAI) {
+                "publishers/google/models/${params.model.modelId}:predict"
+            } else {
+                "models/${params.model.modelId}:generateImage"
+            }
+        )
+
+        val request = transformRequest(
+            providerSetting = providerSetting,
+            request = Request.Builder()
+                .url(url)
+                .post(
+                    json.encodeToString(requestBody).toRequestBody("application/json".toMediaType())
+                )
+                .configureReferHeaders(providerSetting.baseUrl)
+                .build()
+        )
+
+        val response = client.configureClientWithProxy(providerSetting.proxy).newCall(request).await()
+        if (!response.isSuccessful) {
+            error("Failed to generate image: ${response.code} ${response.body?.string()}")
+        }
+
+        val bodyStr = response.body?.string() ?: ""
+        val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
+
+        val predictions = if (providerSetting.vertexAI) {
+            bodyJson["predictions"]?.jsonArray ?: error("No predictions in response")
+        } else {
+            bodyJson["candidates"]?.jsonArray ?: error("No candidates in response")
+        }
+
+        val items = predictions.mapNotNull { prediction ->
+            val predictionObj = prediction.jsonObject
+            val bytesBase64Encoded = if (providerSetting.vertexAI) {
+                predictionObj["bytesBase64Encoded"]?.jsonPrimitive?.contentOrNull
+            } else {
+                predictionObj["image"]?.jsonObject?.get("bytesBase64Encoded")?.jsonPrimitive?.contentOrNull
+            }
+
+            if (bytesBase64Encoded != null) {
+                ImageGenerationItem(
+                    data = bytesBase64Encoded,
+                    mimeType = "image/png"
+                )
+            } else null
+        }
+
+        ImageGenerationResult(items = items)
     }
 }

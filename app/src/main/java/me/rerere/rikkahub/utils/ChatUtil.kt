@@ -16,6 +16,7 @@ import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.rikkahub.Screen
 import java.io.ByteArrayOutputStream
+import java.io.File
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.uuid.Uuid
@@ -228,4 +229,33 @@ suspend fun Context.countChatFiles(): Pair<Int, Long> = withContext(Dispatchers.
     val count = files.size
     val size = files.sumOf { it.length() }
     Pair(count, size)
+}
+
+fun Context.getImagesDir(): File {
+    val dir = this.filesDir.resolve("images")
+    if (!dir.exists()) {
+        dir.mkdirs()
+    }
+    return dir
+}
+
+fun Context.createImageFileFromBase64(base64Data: String, filePath: String): File {
+    val data = if (base64Data.startsWith("data:image")) {
+        base64Data.substringAfter("base64,")
+    } else {
+        base64Data
+    }
+
+    val byteArray = Base64.decode(data.toByteArray())
+    val file = File(filePath)
+    file.parentFile?.mkdirs()
+    file.writeBytes(byteArray)
+    return file
+}
+
+fun Context.listImageFiles(): List<File> {
+    val imagesDir = getImagesDir()
+    return imagesDir.listFiles()
+        ?.filter { it.isFile && it.extension.lowercase() in listOf("png", "jpg", "jpeg", "webp") }?.toList()
+        ?: emptyList()
 }

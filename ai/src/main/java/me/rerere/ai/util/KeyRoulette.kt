@@ -8,9 +8,11 @@ interface KeyRoulette {
     }
 }
 
+private val SPLIT_KEY_REGEX=  "[\\s,]+".toRegex()//空格换行和逗号
+
 private fun splitKey(key: String): List<String> {
     return key
-        .split(",")
+        .split(SPLIT_KEY_REGEX)
         .map { it.trim() }
         .filter { it.isNotBlank() }
         .distinct()

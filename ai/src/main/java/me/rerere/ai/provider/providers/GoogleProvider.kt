@@ -56,6 +56,7 @@ import okhttp3.Response
 import okhttp3.sse.EventSource
 import okhttp3.sse.EventSourceListener
 import okhttp3.sse.EventSources
+import org.apache.commons.text.StringEscapeUtils
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
@@ -86,7 +87,7 @@ class GoogleProvider(private val client: OkHttpClient) : Provider<ProviderSettin
         return if (providerSetting.vertexAI) {
             val accessToken = serviceAccountTokenProvider.fetchAccessToken(
                 serviceAccountEmail = providerSetting.serviceAccountEmail.trim(),
-                privateKeyPem = providerSetting.privateKey.trim(),
+                privateKeyPem = StringEscapeUtils.unescapeJson(providerSetting.privateKey.trim()),
             )
             request.newBuilder()
                 .addHeader("Authorization", "Bearer $accessToken")

@@ -11,32 +11,37 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imeNestedScroll
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -59,6 +64,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Palette
 import com.composables.icons.lucide.Save
 import com.composables.icons.lucide.Send
+import com.composables.icons.lucide.Settings2
 import com.composables.icons.lucide.Trash2
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.CoroutineScope
@@ -75,6 +81,7 @@ import me.rerere.rikkahub.utils.saveMessageImage
 import org.koin.androidx.compose.koinViewModel
 import java.io.File
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImageGenPage(
     modifier: Modifier = Modifier,
@@ -103,8 +110,8 @@ fun ImageGenPage(
             modifier = modifier.padding(innerPadding)
         ) { page ->
             when (page) {
-                0 -> ImageGenScreen(vm)
-                1 -> ImageGalleryScreen(vm)
+                0 -> ImageGenScreen(vm = vm)
+                1 -> ImageGalleryScreen(vm = vm)
             }
         }
     }
@@ -160,6 +167,8 @@ private fun ImageGenScreen(
     val settings by vm.settingsStore.settingsFlow.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val toaster = LocalToaster.current
+    var showSettingsSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
 
     LaunchedEffect(error) {
         error?.let { errorMessage ->
@@ -170,15 +179,19 @@ private fun ImageGenScreen(
 
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.padding(16.dp)
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().weight(1f),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             generatedImages.take(2).forEach { image ->
                 var showPreview by remember { mutableStateOf(false) }
-
                 AsyncImage(
                     model = File(image.filePath),
                     contentDescription = null,
@@ -202,9 +215,19 @@ private fun ImageGenScreen(
             prompt = prompt,
             vm = vm,
             isGenerating = isGenerating,
+            onShowSettings = { showSettingsSheet = true },
+            modifier = Modifier.imePadding()
+        )
+    }
+
+    if (showSettingsSheet) {
+        SettingsBottomSheet(
+            vm = vm,
             settings = settings,
+            numberOfImages = numberOfImages,
             scope = scope,
-            numberOfImages = numberOfImages
+            sheetState = sheetState,
+            onDismiss = { showSettingsSheet = false }
         )
     }
 }
@@ -214,79 +237,44 @@ private fun InputBar(
     prompt: String,
     vm: ImgGenVM,
     isGenerating: Boolean,
-    settings: Settings,
-    scope: CoroutineScope,
-    numberOfImages: Int
+    onShowSettings: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.Bottom
     ) {
-        // 第一行：输入框和发送按钮
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.Bottom
-        ) {
-            OutlinedTextField(
-                value = prompt,
-                onValueChange = vm::updatePrompt,
-                placeholder = { Text("描述您想要生成的图片...") },
-                modifier = Modifier.weight(1f),
-                minLines = 1,
-                maxLines = 5,
-                shape = CircleShape,
-            )
+        OutlinedTextField(
+            value = prompt,
+            onValueChange = vm::updatePrompt,
+            placeholder = { Text("描述您想要生成的图片...") },
+            modifier = Modifier
+                .weight(1f),
+            minLines = 1,
+            maxLines = 5,
+            shape = CircleShape,
+        )
 
-            FilledTonalIconButton(
-                onClick = vm::generateImage,
-                enabled = !isGenerating && prompt.isNotBlank()
-            ) {
-                if (isGenerating) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Icon(
-                        imageVector = Lucide.Send,
-                        contentDescription = "生成图片"
-                    )
-                }
-            }
+        IconButton(
+            onClick = onShowSettings
+        ) {
+            Icon(Lucide.Settings2, null)
         }
 
-        // 第二行：配置
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+        FilledTonalIconButton(
+            onClick = vm::generateImage,
+            enabled = !isGenerating && prompt.isNotBlank()
         ) {
-            ModelSelector(
-                modelId = settings.imageGenerationModelId,
-                providers = settings.providers,
-                type = ModelType.IMAGE,
-                onlyIcon = true,
-                onSelect = { model ->
-                    scope.launch {
-                        vm.settingsStore.update { oldSettings ->
-                            Settings(imageGenerationModelId = model.id)
-                        }
-                    }
-                }
-            )
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = "数量:",
-                    style = MaterialTheme.typography.bodySmall
+            if (isGenerating) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp
                 )
-                OutlinedNumberInput(
-                    value = numberOfImages,
-                    onValueChange = vm::updateNumberOfImages,
-                    modifier = Modifier.width(80.dp)
+            } else {
+                Icon(
+                    imageVector = Lucide.Send,
+                    contentDescription = "生成图片"
                 )
             }
         }
@@ -414,6 +402,68 @@ private fun ImageGalleryScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun SettingsBottomSheet(
+    vm: ImgGenVM,
+    settings: Settings,
+    numberOfImages: Int,
+    scope: CoroutineScope,
+    sheetState: androidx.compose.material3.SheetState,
+    onDismiss: () -> Unit
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .imePadding(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "图片生成设置",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            FormItem(
+                label = { Text("模型选择") },
+                description = { Text("选择用于图片生成的AI模型") }
+            ) {
+                ModelSelector(
+                    modelId = settings.imageGenerationModelId,
+                    providers = settings.providers,
+                    type = ModelType.IMAGE,
+                    onlyIcon = false,
+                    onSelect = { model ->
+                        scope.launch {
+                            vm.settingsStore.update { oldSettings ->
+                                Settings(imageGenerationModelId = model.id)
+                            }
+                        }
+                    }
+                )
+            }
+
+            FormItem(
+                label = { Text("生成数量") },
+                description = { Text("每次生成的图片数量") }
+            ) {
+                OutlinedNumberInput(
+                    value = numberOfImages,
+                    onValueChange = vm::updateNumberOfImages,
+                    modifier = Modifier.width(120.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

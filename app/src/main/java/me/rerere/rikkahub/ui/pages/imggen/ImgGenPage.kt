@@ -164,7 +164,7 @@ private fun ImageGenScreen(
     val prompt by vm.prompt.collectAsStateWithLifecycle()
     val numberOfImages by vm.numberOfImages.collectAsStateWithLifecycle()
     val isGenerating by vm.isGenerating.collectAsStateWithLifecycle()
-    val generatedImages = vm.generatedImages.collectAsLazyPagingItems()
+    val currentGeneratedImages by vm.currentGeneratedImages.collectAsStateWithLifecycle()
     val error by vm.error.collectAsStateWithLifecycle()
     val settings by vm.settingsStore.settingsFlow.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -192,27 +192,25 @@ private fun ImageGenScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            (0 until minOf(2, generatedImages.itemCount)).forEach { index ->
-                val image = generatedImages[index]
-                image?.let {
-                    var showPreview by remember { mutableStateOf(false) }
-                    AsyncImage(
-                        model = File(it.filePath),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .weight(1f)
-                            .aspectRatio(1f)
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable { showPreview = true },
-                        contentScale = ContentScale.Crop
-                    )
+            (0 until minOf(2, currentGeneratedImages.size)).forEach { index ->
+                val image = currentGeneratedImages[index]
+                var showPreview by remember { mutableStateOf(false) }
+                AsyncImage(
+                    model = File(image.filePath),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .weight(1f)
+                        .aspectRatio(1f)
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable { showPreview = true },
+                    contentScale = ContentScale.Crop
+                )
 
-                    if (showPreview) {
-                        ImagePreviewDialog(
-                            images = listOf(it.filePath),
-                            onDismissRequest = { showPreview = false },
-                        )
-                    }
+                if (showPreview) {
+                    ImagePreviewDialog(
+                        images = listOf(image.filePath),
+                        onDismissRequest = { showPreview = false },
+                    )
                 }
             }
         }

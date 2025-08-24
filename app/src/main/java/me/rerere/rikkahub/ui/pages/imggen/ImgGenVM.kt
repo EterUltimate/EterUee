@@ -68,6 +68,9 @@ class ImgGenVM(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
+    private val _currentGeneratedImages = MutableStateFlow<List<GeneratedImage>>(emptyList())
+    val currentGeneratedImages: StateFlow<List<GeneratedImage>> = _currentGeneratedImages
+
     val pager = Pager(
         config = PagingConfig(pageSize = 20, enablePlaceholders = false),
         pagingSourceFactory = { genMediaRepository.getAllMedia() }
@@ -95,6 +98,7 @@ class ImgGenVM(
             try {
                 _isGenerating.value = true
                 _error.value = null
+                _currentGeneratedImages.value = emptyList()
 
                 val settings = settingsStore.settingsFlow.first()
                 val model = settings.findModelById(settings.imageGenerationModelId)
@@ -133,6 +137,8 @@ class ImgGenVM(
                     )
                     newImages.add(generatedImage)
                 }
+
+                _currentGeneratedImages.value = newImages
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to generate image", e)
                 _error.value = e.message ?: "Unknown error occurred"

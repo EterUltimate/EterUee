@@ -1,6 +1,8 @@
 package me.rerere.tts.player
 
 import android.content.Context
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.AudioTrack
 import android.media.MediaPlayer
@@ -85,6 +87,14 @@ class AudioPlayer(private val context: Context) {
 
                 player.apply {
                     reset()
+                    try {
+                        setAudioAttributes(
+                            AudioAttributes.Builder()
+                                .setUsage(AudioAttributes.USAGE_MEDIA)
+                                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                                .build()
+                        )
+                    } catch (_: Exception) { }
                     setDataSource(tempFile.absolutePath)
 
                     setOnCompletionListener {
@@ -106,8 +116,9 @@ class AudioPlayer(private val context: Context) {
                     }
 
                     setOnPreparedListener {
+                        val focus = requestAudioFocus()
                         it.start()
-                        Log.d(TAG, "Audio playback started")
+                        Log.d(TAG, "Audio playback started (focus=$focus)")
                     }
 
                     prepareAsync()
@@ -171,15 +182,30 @@ class AudioPlayer(private val context: Context) {
                     }
                 }
 
-                track.play()
-                Log.d(TAG, "PCM playback started")
+                val focus = requestAudioFocus()
 
-                val bytesWritten = track.write(pcmData, 0, pcmData.size)
-                if (bytesWritten != pcmData.size) {
-                    Log.w(TAG, "Not all PCM data was written: $bytesWritten/${pcmData.size}")
+                track.play()
+                Log.d(TAG, "PCM playback started (focus=$focus)")
+
+                // 循环阻塞写入直至所有数据写完
+                var offset = 0
+                val chunk = maxOf(minBufferSize, 2048)
+                while (offset < pcmData.size) {
+                    val toWrite = minOf(chunk, pcmData.size - offset)
+                    val written = track.write(pcmData, offset, toWrite)
+                    if (written <= 0) {
+                        throw IllegalStateException("AudioTrack write failed: $written")
+                    }
+                    offset += written
                 }
 
-                // 等待播放完成
+                // 等待播放头消耗完所有帧
+                val framesTotal = pcmData.size / 2 // 16bit mono
+                while (track.playbackHeadPosition < framesTotal) {
+                    if (!continuation.isActive) break
+                    try { Thread.sleep(10) } catch (_: InterruptedException) { }
+                }
+
                 track.stop()
                 Log.i(TAG, "PCM playback completed")
 
@@ -257,14 +283,21 @@ class AudioPlayer(private val context: Context) {
         }
 
         return audioTrack ?: run {
-            val newTrack = AudioTrack(
-                AudioManager.STREAM_MUSIC,
-                sampleRate,
-                android.media.AudioFormat.CHANNEL_OUT_MONO,
-                android.media.AudioFormat.ENCODING_PCM_16BIT,
-                bufferSize,
-                AudioTrack.MODE_STREAM
-            )
+            val attrs = AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                .build()
+            val format = android.media.AudioFormat.Builder()
+                .setSampleRate(sampleRate)
+                .setEncoding(android.media.AudioFormat.ENCODING_PCM_16BIT)
+                .setChannelMask(android.media.AudioFormat.CHANNEL_OUT_MONO)
+                .build()
+            val newTrack = AudioTrack.Builder()
+                .setAudioAttributes(attrs)
+                .setAudioFormat(format)
+                .setBufferSizeInBytes(bufferSize)
+                .setTransferMode(AudioTrack.MODE_STREAM)
+                .build()
             audioTrack = newTrack
             newTrack
         }
@@ -331,4 +364,33 @@ class AudioPlayer(private val context: Context) {
             AudioFormat.PCM -> ".pcm"
         }
     }
+
+    // region Audio Focus
+    private fun requestAudioFocus(): Boolean {
+        return try {
+            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                val req = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+                    .setAudioAttributes(
+                        AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_MEDIA)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                            .build()
+                    )
+                    .build()
+                val res = audioManager.requestAudioFocus(req)
+                res == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+            } else {
+                val res = audioManager.requestAudioFocus(
+                    null,
+                    AudioManager.STREAM_MUSIC,
+                    AudioManager.AUDIOFOCUS_GAIN_TRANSIENT
+                )
+                res == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+            }
+        } catch (_: Exception) {
+            false
+        }
+    }
+    // endregion
 }

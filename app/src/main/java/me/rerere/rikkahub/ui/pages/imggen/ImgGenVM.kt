@@ -105,6 +105,8 @@ class ImgGenVM(
     }
 
     fun generateImage() {
+        if(prompt.value.isBlank()) return
+        cancelJob?.cancel()
         cancelJob = viewModelScope.launch {
             try {
                 _isGenerating.value = true

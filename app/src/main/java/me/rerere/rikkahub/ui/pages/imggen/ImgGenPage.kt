@@ -319,7 +319,6 @@ private fun InputBar(
                     vm.cancelGeneration()
                 }
             },
-            enabled = !isGenerating && prompt.isNotBlank()
         ) {
             if (isGenerating) {
                 CircularProgressIndicator(

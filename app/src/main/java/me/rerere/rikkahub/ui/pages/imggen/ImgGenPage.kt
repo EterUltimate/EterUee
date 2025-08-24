@@ -248,8 +248,14 @@ private fun InputBar(
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.Bottom
+        verticalAlignment = Alignment.CenterVertically,
     ) {
+        IconButton(
+            onClick = onShowSettings
+        ) {
+            Icon(Lucide.Settings2, null)
+        }
+
         OutlinedTextField(
             value = prompt,
             onValueChange = vm::updatePrompt,
@@ -260,12 +266,6 @@ private fun InputBar(
             maxLines = 5,
             shape = CircleShape,
         )
-
-        IconButton(
-            onClick = onShowSettings
-        ) {
-            Icon(Lucide.Settings2, null)
-        }
 
         FilledTonalIconButton(
             onClick = vm::generateImage,

@@ -12,6 +12,8 @@ data class GenMediaEntity(
     val path: String,
     @ColumnInfo("model_id")
     val modelId: String,
+    @ColumnInfo("prompt")
+    val prompt: String,
     @ColumnInfo("create_at")
     val createAt: Long,
 )

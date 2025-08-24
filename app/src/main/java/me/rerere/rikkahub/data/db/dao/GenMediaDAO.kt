@@ -11,6 +11,9 @@ interface GenMediaDAO {
     @Query("SELECT * FROM genmediaentity")
     fun getAll(): PagingSource<Int, GenMediaEntity>
 
+    @Query("SELECT * FROM genmediaentity ORDER BY create_at DESC")
+    suspend fun getAllMedia(): List<GenMediaEntity>
+
     @Insert
     suspend fun insert(media: GenMediaEntity)
 

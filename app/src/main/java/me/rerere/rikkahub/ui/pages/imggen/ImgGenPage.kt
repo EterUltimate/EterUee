@@ -11,14 +11,12 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imeNestedScroll
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -29,7 +27,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,8 +36,11 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -58,6 +58,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemContentType
+import androidx.paging.compose.itemKey
 import coil3.compose.AsyncImage
 import com.composables.icons.lucide.Images
 import com.composables.icons.lucide.Lucide
@@ -81,7 +84,6 @@ import me.rerere.rikkahub.utils.saveMessageImage
 import org.koin.androidx.compose.koinViewModel
 import java.io.File
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImageGenPage(
     modifier: Modifier = Modifier,
@@ -162,7 +164,7 @@ private fun ImageGenScreen(
     val prompt by vm.prompt.collectAsStateWithLifecycle()
     val numberOfImages by vm.numberOfImages.collectAsStateWithLifecycle()
     val isGenerating by vm.isGenerating.collectAsStateWithLifecycle()
-    val generatedImages by vm.generatedImages.collectAsStateWithLifecycle()
+    val generatedImages = vm.generatedImages.collectAsLazyPagingItems()
     val error by vm.error.collectAsStateWithLifecycle()
     val settings by vm.settingsStore.settingsFlow.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -190,24 +192,27 @@ private fun ImageGenScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            generatedImages.take(2).forEach { image ->
-                var showPreview by remember { mutableStateOf(false) }
-                AsyncImage(
-                    model = File(image.filePath),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .weight(1f)
-                        .aspectRatio(1f)
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { showPreview = true },
-                    contentScale = ContentScale.Crop
-                )
-
-                if (showPreview) {
-                    ImagePreviewDialog(
-                        images = listOf(image.filePath),
-                        onDismissRequest = { showPreview = false },
+            (0 until minOf(2, generatedImages.itemCount)).forEach { index ->
+                val image = generatedImages[index]
+                image?.let {
+                    var showPreview by remember { mutableStateOf(false) }
+                    AsyncImage(
+                        model = File(it.filePath),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .weight(1f)
+                            .aspectRatio(1f)
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { showPreview = true },
+                        contentScale = ContentScale.Crop
                     )
+
+                    if (showPreview) {
+                        ImagePreviewDialog(
+                            images = listOf(it.filePath),
+                            onDismissRequest = { showPreview = false },
+                        )
+                    }
                 }
             }
         }
@@ -285,121 +290,141 @@ private fun InputBar(
 private fun ImageGalleryScreen(
     vm: ImgGenVM,
 ) {
-    val generatedImages by vm.generatedImages.collectAsStateWithLifecycle()
+    val generatedImages = vm.generatedImages.collectAsLazyPagingItems()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val toaster = LocalToaster.current
+    val pullToRefreshState = rememberPullToRefreshState()
 
-    if (generatedImages.isEmpty()) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
+    PullToRefreshBox(
+        isRefreshing = false,
+        onRefresh = { generatedImages.refresh() },
+        state = pullToRefreshState
+    ) {
+        if (generatedImages.itemCount == 0) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Lucide.Images,
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "暂无生成的图片",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-    } else {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            items(generatedImages) { image ->
-                var showPreview by remember { mutableStateOf(false) }
-
-                Card(
-                    modifier = Modifier.fillMaxWidth()
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column {
-                        AsyncImage(
-                            model = File(image.filePath),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(1f)
-                                .clickable { showPreview = true },
-                            contentScale = ContentScale.Crop
-                        )
+                    Icon(
+                        imageVector = Lucide.Images,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "暂无生成的图片",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                contentPadding = PaddingValues(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                items(
+                    count = generatedImages.itemCount,
+                    key = generatedImages.itemKey { it.id },
+                    contentType = generatedImages.itemContentType { "GeneratedImage" }
+                ) { index ->
+                    val image = generatedImages[index]
+                    image?.let {
+                        var showPreview by remember { mutableStateOf(false) }
 
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        Card(
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Column {
-                                Text(
-                                    text = image.model,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary
+                                AsyncImage(
+                                    model = File(it.filePath),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .aspectRatio(1f)
+                                        .clickable { showPreview = true },
+                                    contentScale = ContentScale.Crop
                                 )
-                                Text(
-                                    text = image.prompt.take(20) + if (image.prompt.length > 20) "..." else "",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 2
-                                )
-                            }
 
-                            Row {
-                                IconButton(
-                                    onClick = {
-                                        scope.launch {
-                                            try {
-                                                context.saveMessageImage("file://${image.filePath}")
-                                                toaster.show(message = "图片已保存到相册", type = ToastType.Success)
-                                            } catch (e: Exception) {
-                                                toaster.show(message = "保存失败: ${e.message}", type = ToastType.Error)
-                                            }
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Column {
+                                        Text(
+                                            text = it.model,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                        Text(
+                                            text = it.prompt.take(20) + if (it.prompt.length > 20) "..." else "",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 2
+                                        )
+                                    }
+
+                                    Row {
+                                        IconButton(
+                                            onClick = {
+                                                scope.launch {
+                                                    try {
+                                                        context.saveMessageImage("file://${it.filePath}")
+                                                        toaster.show(
+                                                            message = "图片已保存到相册",
+                                                            type = ToastType.Success
+                                                        )
+                                                    } catch (e: Exception) {
+                                                        toaster.show(
+                                                            message = "保存失败: ${e.message}",
+                                                            type = ToastType.Error
+                                                        )
+                                                    }
+                                                }
+                                            },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Lucide.Save,
+                                                contentDescription = "保存",
+                                                modifier = Modifier.size(16.dp)
+                                            )
                                         }
-                                    },
-                                    modifier = Modifier.size(32.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Lucide.Save,
-                                        contentDescription = "保存",
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
 
-                                IconButton(
-                                    onClick = { vm.deleteImage(image) },
-                                    modifier = Modifier.size(32.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Lucide.Trash2,
-                                        contentDescription = "删除",
-                                        modifier = Modifier.size(16.dp),
-                                        tint = MaterialTheme.colorScheme.error
-                                    )
+                                        IconButton(
+                                            onClick = { vm.deleteImage(it) },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Lucide.Trash2,
+                                                contentDescription = "删除",
+                                                modifier = Modifier.size(16.dp),
+                                                tint = MaterialTheme.colorScheme.error
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
-                    }
-                }
 
-                if (showPreview) {
-                    ImagePreviewDialog(
-                        images = listOf(image.filePath),
-                        onDismissRequest = { showPreview = false }
-                    )
+                        if (showPreview) {
+                            ImagePreviewDialog(
+                                images = listOf(it.filePath),
+                                onDismissRequest = { showPreview = false }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -412,7 +437,7 @@ private fun SettingsBottomSheet(
     settings: Settings,
     numberOfImages: Int,
     scope: CoroutineScope,
-    sheetState: androidx.compose.material3.SheetState,
+    sheetState: SheetState,
     onDismiss: () -> Unit
 ) {
     ModalBottomSheet(
@@ -445,7 +470,7 @@ private fun SettingsBottomSheet(
                     onSelect = { model ->
                         scope.launch {
                             vm.settingsStore.update { oldSettings ->
-                                Settings(imageGenerationModelId = model.id)
+                                oldSettings.copy(imageGenerationModelId = model.id)
                             }
                         }
                     }

@@ -4,6 +4,10 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -15,16 +19,15 @@ import me.rerere.ai.ui.ImageGenerationItem
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.findProvider
+import me.rerere.rikkahub.data.db.entity.GenMediaEntity
 import me.rerere.rikkahub.data.repository.GenMediaRepository
 import me.rerere.rikkahub.utils.createImageFileFromBase64
 import me.rerere.rikkahub.utils.getImagesDir
-import me.rerere.rikkahub.utils.listImageFiles
 import java.io.File
-import kotlin.uuid.Uuid
 
 @Serializable
 data class GeneratedImage(
-    val id: String,
+    val id: Int,
     val prompt: String,
     val filePath: String,
     val timestamp: Long,
@@ -49,12 +52,14 @@ class ImgGenVM(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
-    private val _generatedImages = MutableStateFlow<List<GeneratedImage>>(emptyList())
-    val generatedImages: StateFlow<List<GeneratedImage>> = _generatedImages
+    val generatedImages: Flow<PagingData<GeneratedImage>> = Pager(
+        config = PagingConfig(pageSize = 20, enablePlaceholders = false),
+        pagingSourceFactory = {
+            GeneratedImagePagingSource(repository = genMediaRepository, context = getApplication())
+        }
+    ).flow
 
-    init {
-        loadGeneratedImages()
-    }
+    // No init needed - PagingSource handles loading automatically
 
     fun updatePrompt(prompt: String) {
         _prompt.value = prompt
@@ -103,7 +108,7 @@ class ImgGenVM(
                         index = index
                     )
                     val generatedImage = GeneratedImage(
-                        id = Uuid.random().toString(),
+                        id = 0, // Will be updated after database insertion
                         prompt = _prompt.value,
                         filePath = imageFile.absolutePath,
                         timestamp = System.currentTimeMillis(),
@@ -111,9 +116,6 @@ class ImgGenVM(
                     )
                     newImages.add(generatedImage)
                 }
-
-                _generatedImages.value = newImages + _generatedImages.value
-
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to generate image", e)
                 _error.value = e.message ?: "Unknown error occurred"
@@ -123,7 +125,12 @@ class ImgGenVM(
         }
     }
 
-    private fun saveImageToStorage(item: ImageGenerationItem, prompt: String, modelName: String, index: Int): File {
+    private suspend fun saveImageToStorage(
+        item: ImageGenerationItem,
+        prompt: String,
+        modelName: String,
+        index: Int
+    ): File {
         val context = getApplication<Application>()
         val imagesDir = context.getImagesDir()
 
@@ -131,35 +138,19 @@ class ImgGenVM(
         val filename = "${timestamp}_${modelName}_$index.png"
         val imageFile = File(imagesDir, filename)
 
-        return context.createImageFileFromBase64(item.data, imageFile.absolutePath)
-    }
+        val createdFile = context.createImageFileFromBase64(item.data, imageFile.absolutePath)
 
-    fun loadGeneratedImages() {
-        viewModelScope.launch {
-            try {
-                val context = getApplication<Application>()
-                val imageFiles = context.listImageFiles()
+        // Save to database with relative path
+        val relativePath = "images/${imageFile.name}"
+        val entity = GenMediaEntity(
+            path = relativePath,
+            modelId = modelName,
+            prompt = prompt,
+            createAt = timestamp
+        )
+        genMediaRepository.insertMedia(entity)
 
-                val images = imageFiles.map { file ->
-                    // Parse filename to extract metadata
-                    val parts = file.nameWithoutExtension.split("_")
-                    val timestamp = parts.getOrNull(0)?.toLongOrNull() ?: file.lastModified()
-                    val model = if (parts.size > 1) parts.subList(1, parts.size - 1).joinToString("_") else "Unknown"
-
-                    GeneratedImage(
-                        id = file.name,
-                        prompt = "Generated Image",
-                        filePath = file.absolutePath,
-                        timestamp = timestamp,
-                        model = model
-                    )
-                }.sortedByDescending { it.timestamp }
-
-                _generatedImages.value = images
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to load generated images", e)
-            }
-        }
+        return createdFile
     }
 
     fun deleteImage(image: GeneratedImage) {
@@ -167,7 +158,11 @@ class ImgGenVM(
             try {
                 val file = File(image.filePath)
                 if (file.exists() && file.delete()) {
-                    _generatedImages.value = _generatedImages.value.filter { it.id != image.id }
+                    // Delete from database if it has a valid ID
+                    if (image.id > 0) {
+                        genMediaRepository.deleteMedia(image.id)
+                    }
+                    // PagingSource will automatically update UI
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to delete image", e)

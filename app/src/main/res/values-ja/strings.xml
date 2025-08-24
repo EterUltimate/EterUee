@@ -165,6 +165,7 @@
   <string name="assistant_page_temperature_value">温度: %s</string>
   <string name="assistant_page_memory_count">記憶: %d</string>
   <string name="assistant_page_no_system_prompt">システムプロンプトなし</string>
+  <string name="assistant_page_clone">複製</string>
   <string name="assistant_page_top_p_value">Top P: %s</string>
   <string name="assistant_page_thinking_budget">思考バジェット</string>
   <string name="assistant_page_thinking_budget_default">デフォルト</string>

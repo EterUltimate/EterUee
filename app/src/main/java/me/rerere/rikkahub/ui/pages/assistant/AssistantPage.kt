@@ -18,7 +18,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -51,6 +53,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.composables.icons.lucide.Copy
 import com.composables.icons.lucide.GripHorizontal
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Pencil
@@ -195,6 +198,9 @@ fun AssistantPage(vm: AssistantVM = koinViewModel()) {
                         onDelete = {
                             vm.removeAssistant(assistant)
                         },
+                        onCopy = {
+                            vm.copyAssistant(assistant)
+                        },
                         modifier = Modifier
                             .scale(if (isDragging) 0.95f else 1f)
                             .animateItem(),
@@ -303,6 +309,7 @@ private fun AssistantItem(
     memories: List<AssistantMemory>,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
+    onCopy: () -> Unit,
     dragHandle: @Composable () -> Unit
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -410,29 +417,44 @@ private fun AssistantItem(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Spacer(Modifier.weight(1f))
-
                 // Right
-                TextButton(
+                IconButton(
                     onClick = {
                         showDeleteDialog = true
                     },
                     enabled = assistant.id !in DEFAULT_ASSISTANTS_IDS
                 ) {
                     Icon(
-                        Lucide.Trash2,
-                        stringResource(R.string.assistant_page_delete),
+                        imageVector = Lucide.Trash2,
+                        contentDescription = stringResource(R.string.assistant_page_delete),
+                        modifier = Modifier
+                            .padding(end = 4.dp)
+                            .size(18.dp),
+                        tint = MaterialTheme.colorScheme.error.copy(alpha = 0.65f),
+                    )
+                }
+
+                TextButton(
+                    onClick = {
+                        onCopy()
+                    }
+                ) {
+                    Icon(
+                        imageVector = Lucide.Copy,
+                        contentDescription = stringResource(R.string.assistant_page_clone),
                         modifier = Modifier
                             .padding(end = 4.dp)
                             .size(18.dp)
                     )
-                    Text(stringResource(R.string.assistant_page_delete))
+                    Text(stringResource(R.string.assistant_page_clone))
                 }
+
+                Spacer(modifier = Modifier.weight(1f))
 
                 Button(
                     onClick = {
                         onEdit()
-                    }
+                    },
                 ) {
                     Icon(
                         Lucide.Pencil,

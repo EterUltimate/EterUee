@@ -163,6 +163,7 @@
   <string name="assistant_page_temperature_value">溫度: %s</string>
   <string name="assistant_page_memory_count">記憶: %d</string>
   <string name="assistant_page_no_system_prompt">無系統提示詞</string>
+  <string name="assistant_page_clone">複製</string>
   <string name="assistant_page_top_p_value">Top P: %s</string>
   <string name="assistant_page_thinking_budget">思考預算</string>
   <string name="assistant_page_thinking_budget_default">預設</string>

@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.model.Assistant
+import me.rerere.rikkahub.data.model.Avatar
 import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.data.repository.MemoryRepository
 
@@ -47,6 +48,22 @@ class AssistantVM(
             )
             memoryRepository.deleteMemoriesOfAssistant(assistant.id.toString())
             conversationRepo.deleteConversationOfAssistant(assistant.id)
+        }
+    }
+
+    fun copyAssistant(assistant: Assistant) {
+        viewModelScope.launch {
+            val settings = settings.value
+            val copiedAssistant = assistant.copy(
+                id = kotlin.uuid.Uuid.random(),
+                name = "${assistant.name} (Clone)",
+                avatar = if(assistant.avatar is Avatar.Image) Avatar.Dummy else assistant.avatar,
+            )
+            settingsStore.update(
+                settings.copy(
+                    assistants = settings.assistants.plus(copiedAssistant)
+                )
+            )
         }
     }
 

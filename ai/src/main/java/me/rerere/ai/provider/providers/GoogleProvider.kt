@@ -609,11 +609,16 @@ class GoogleProvider(private val client: OkHttpClient) : Provider<ProviderSettin
         if (jsonObject == null) {
             return null
         }
+        val promptTokens = jsonObject["promptTokenCount"]?.jsonPrimitiveOrNull?.intOrNull ?: 0
+        val thoughtTokens = jsonObject["thoughtsTokenCount"]?.jsonPrimitiveOrNull?.intOrNull ?: 0
+        val cachedTokens = jsonObject["cachedContentTokenCount"]?.jsonPrimitiveOrNull?.intOrNull ?: 0
+        val candidatesTokens = jsonObject["candidatesTokenCount"]?.jsonPrimitiveOrNull?.intOrNull ?: 0
+        val totalTokens = jsonObject["totalTokenCount"]?.jsonPrimitiveOrNull?.intOrNull ?: 0
         return TokenUsage(
-            promptTokens = jsonObject["promptTokenCount"]?.jsonPrimitive?.intOrNull ?: 0,
-            completionTokens = jsonObject["candidatesTokenCount"]?.jsonPrimitive?.intOrNull ?: 0,
-            totalTokens = jsonObject["totalTokenCount"]?.jsonPrimitive?.intOrNull ?: 0,
-            cachedTokens = jsonObject["cachedContentTokenCount"]?.jsonPrimitiveOrNull?.intOrNull ?: 0
+            promptTokens = promptTokens,
+            completionTokens = candidatesTokens + thoughtTokens,
+            totalTokens = totalTokens,
+            cachedTokens = cachedTokens
         )
     }
 

@@ -20,6 +20,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.putJsonObject
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.core.TokenUsage
 import me.rerere.ai.provider.BuiltInTools
@@ -622,10 +623,14 @@ class GoogleProvider(private val client: OkHttpClient) : Provider<ProviderSettin
         }
 
         val requestBody = buildJsonObject {
-            put("prompt", buildJsonObject {
-                put("text", params.prompt)
-            })
-            put("sampleCount", params.numOfImages)
+            putJsonArray("instances") {
+                add(buildJsonObject {
+                    put("prompt", params.prompt)
+                })
+            }
+            putJsonObject("parameters") {
+                put("sampleCount", params.numOfImages)
+            }
         }
 
         val url = buildUrl(
@@ -633,7 +638,7 @@ class GoogleProvider(private val client: OkHttpClient) : Provider<ProviderSettin
             path = if (providerSetting.vertexAI) {
                 "publishers/google/models/${params.model.modelId}:predict"
             } else {
-                "models/${params.model.modelId}:generateImage"
+                "models/${params.model.modelId}:predict"
             }
         )
 
@@ -650,25 +655,17 @@ class GoogleProvider(private val client: OkHttpClient) : Provider<ProviderSettin
 
         val response = client.configureClientWithProxy(providerSetting.proxy).newCall(request).await()
         if (!response.isSuccessful) {
-            error("Failed to generate image: ${response.code} ${response.body?.string()}")
+            error("Failed to generate image: ${response.code} ${response.body.string()}")
         }
 
-        val bodyStr = response.body?.string() ?: ""
+        val bodyStr = response.body.string()
         val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
 
-        val predictions = if (providerSetting.vertexAI) {
-            bodyJson["predictions"]?.jsonArray ?: error("No predictions in response")
-        } else {
-            bodyJson["candidates"]?.jsonArray ?: error("No candidates in response")
-        }
+        val predictions =  bodyJson["predictions"]?.jsonArray ?: error("No predictions in response")
 
         val items = predictions.mapNotNull { prediction ->
             val predictionObj = prediction.jsonObject
-            val bytesBase64Encoded = if (providerSetting.vertexAI) {
-                predictionObj["bytesBase64Encoded"]?.jsonPrimitive?.contentOrNull
-            } else {
-                predictionObj["image"]?.jsonObject?.get("bytesBase64Encoded")?.jsonPrimitive?.contentOrNull
-            }
+            val bytesBase64Encoded = predictionObj["bytesBase64Encoded"]?.jsonPrimitive?.contentOrNull
 
             if (bytesBase64Encoded != null) {
                 ImageGenerationItem(

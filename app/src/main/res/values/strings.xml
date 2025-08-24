@@ -625,4 +625,29 @@
   <string name="silicon_flow_description">**Leading global AI capability provider, accelerating AGI to benefit humanity.**</string>
   <string name="silicon_flow_website">Website: [https://cloud.siliconflow.cn/](https://cloud.siliconflow.cn/i/u1Ia4Ycf)</string>
   <string name="silicon_flow_built_in_models">* Built-in Silicon Flow free models are available without an API Key. For more powerful models, please apply and configure your own API Key.</string>
+
+  <!-- Image Generation Page -->
+  <string name="imggen_page_title">Image Generation</string>
+  <string name="imggen_page_cancel_generation_title">Cancel Generation</string>
+  <string name="imggen_page_cancel_generation_message">Are you sure you want to cancel image generation?</string>
+  <string name="imggen_page_confirm">Confirm</string>
+  <string name="imggen_page_cancel">Cancel</string>
+  <string name="imggen_page_gallery">Gallery</string>
+  <string name="imggen_page_prompt_placeholder">Describe the image you want to generate...</string>
+  <string name="imggen_page_generate_image">Generate Image</string>
+  <string name="imggen_page_no_generated_images">No generated images</string>
+  <string name="imggen_page_image_saved_success">Image saved to gallery</string>
+  <string name="imggen_page_save_failed">Save failed: %1$s</string>
+  <string name="imggen_page_save">Save</string>
+  <string name="imggen_page_delete">Delete</string>
+  <string name="imggen_page_settings_title">Image Generation Settings</string>
+  <string name="imggen_page_model_selection">Model Selection</string>
+  <string name="imggen_page_model_selection_desc">Select AI model for image generation</string>
+  <string name="imggen_page_generation_count">Generation Count</string>
+  <string name="imggen_page_generation_count_desc">Number of images to generate each time</string>
+  <string name="imggen_page_aspect_ratio">Image Aspect Ratio</string>
+  <string name="imggen_page_aspect_ratio_desc">Select aspect ratio for generated images</string>
+  <string name="imggen_page_aspect_ratio_square">1:1 Square</string>
+  <string name="imggen_page_aspect_ratio_landscape">16:9 Landscape</string>
+  <string name="imggen_page_aspect_ratio_portrait">9:16 Portrait</string>
 </resources>

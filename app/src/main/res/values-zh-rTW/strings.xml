@@ -625,4 +625,29 @@
   <string name="silicon_flow_description">**全球領先的 AI 能力提供商，加速 AGI 普惠人類。**</string>
   <string name="silicon_flow_website">官網: [https://cloud.siliconflow.cn/](https://cloud.siliconflow.cn/i/u1Ia4Ycf)</string>
   <string name="silicon_flow_built_in_models">* 已內建矽基流動免費模型，無需API Key即可使用，如需更強大的模型，請自行申請和配置自己的API Key。</string>
+
+  <!-- Image Generation Page -->
+  <string name="imggen_page_title">圖片生成</string>
+  <string name="imggen_page_cancel_generation_title">取消生成</string>
+  <string name="imggen_page_cancel_generation_message">您確定要取消圖片生成嗎？</string>
+  <string name="imggen_page_confirm">確定</string>
+  <string name="imggen_page_cancel">取消</string>
+  <string name="imggen_page_gallery">相簿</string>
+  <string name="imggen_page_prompt_placeholder">描述您想要生成的圖片...</string>
+  <string name="imggen_page_generate_image">生成圖片</string>
+  <string name="imggen_page_no_generated_images">暂無生成的圖片</string>
+  <string name="imggen_page_image_saved_success">圖片已保存到相簿</string>
+  <string name="imggen_page_save_failed">保存失敗： %1$s</string>
+  <string name="imggen_page_save">保存</string>
+  <string name="imggen_page_delete">刪除</string>
+  <string name="imggen_page_settings_title">圖片生成設定</string>
+  <string name="imggen_page_model_selection">模型選擇</string>
+  <string name="imggen_page_model_selection_desc">選擇用於圖片生成的AI模型</string>
+  <string name="imggen_page_generation_count">生成數量</string>
+  <string name="imggen_page_generation_count_desc">每次生成的圖片數量</string>
+  <string name="imggen_page_aspect_ratio">圖片比例</string>
+  <string name="imggen_page_aspect_ratio_desc">選擇生成圖片的寬高比</string>
+  <string name="imggen_page_aspect_ratio_square">1:1 正方形</string>
+  <string name="imggen_page_aspect_ratio_landscape">16:9 橫屏</string>
+  <string name="imggen_page_aspect_ratio_portrait">9:16 竖屏</string>
 </resources>

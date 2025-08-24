@@ -627,4 +627,29 @@
   <string name="silicon_flow_description">**세계를 선도하는 AI 서비스 제공업체로, 인공 일반 지능(AGI)의 발전을 통해 인류에 기여합니다.**</string>
   <string name="silicon_flow_website">웹사이트: [https://cloud.siliconflow.cn/](https://cloud.siliconflow.cn/i/u1Ia4Ycf)</string>
   <string name="silicon_flow_built_in_models">* 내장된 Silicon Flow의 무료 모델은 API 키 없이도 사용 가능합니다. 더 강력한 모델을 위해선 직접 API 키를 신청하고 설정하세요.</string>
+
+  <!-- Image Generation Page -->
+  <string name="imggen_page_title">이미지 생성</string>
+  <string name="imggen_page_cancel_generation_title">생성 취소</string>
+  <string name="imggen_page_cancel_generation_message">이미지 생성을 취소하시겠습니까?</string>
+  <string name="imggen_page_confirm">확인</string>
+  <string name="imggen_page_cancel">취소</string>
+  <string name="imggen_page_gallery">갤러리</string>
+  <string name="imggen_page_prompt_placeholder">생성하고 싶은 이미지를 설명하세요...</string>
+  <string name="imggen_page_generate_image">이미지 생성</string>
+  <string name="imggen_page_no_generated_images">생성된 이미지가 없습니다</string>
+  <string name="imggen_page_image_saved_success">이미지가 갤러리에 저장되었습니다</string>
+  <string name="imggen_page_save_failed">저장 실패: %1$s</string>
+  <string name="imggen_page_save">저장</string>
+  <string name="imggen_page_delete">삭제</string>
+  <string name="imggen_page_settings_title">이미지 생성 설정</string>
+  <string name="imggen_page_model_selection">모델 선택</string>
+  <string name="imggen_page_model_selection_desc">이미지 생성에 사용할 AI 모델 선택</string>
+  <string name="imggen_page_generation_count">생성 개수</string>
+  <string name="imggen_page_generation_count_desc">한 번에 생성할 이미지 수</string>
+  <string name="imggen_page_aspect_ratio">이미지 비율</string>
+  <string name="imggen_page_aspect_ratio_desc">생성할 이미지의 가로세로 비율 선택</string>
+  <string name="imggen_page_aspect_ratio_square">1:1 정사각형</string>
+  <string name="imggen_page_aspect_ratio_landscape">16:9 가로형</string>
+  <string name="imggen_page_aspect_ratio_portrait">9:16 세로형</string>
 </resources>

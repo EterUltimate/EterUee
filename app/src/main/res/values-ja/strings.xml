@@ -627,4 +627,29 @@
   <string name="silicon_flow_description">**世界をリードするAI能力プロバイダー、AGIの普及を加速して人類に貢献。**</string>
   <string name="silicon_flow_website">公式サイト: [https://cloud.siliconflow.cn/](https://cloud.siliconflow.cn/i/u1Ia4Ycf)</string>
   <string name="silicon_flow_built_in_models">* Silicon Flowの無料モデルが内蔵されており、API Keyなしで使用できます。より強力なモデルが必要な場合は、独自のAPI Keyを申請・設定してください。</string>
+
+  <!-- Image Generation Page -->
+  <string name="imggen_page_title">画像生成</string>
+  <string name="imggen_page_cancel_generation_title">生成をキャンセル</string>
+  <string name="imggen_page_cancel_generation_message">画像生成をキャンセルしますか？</string>
+  <string name="imggen_page_confirm">確認</string>
+  <string name="imggen_page_cancel">キャンセル</string>
+  <string name="imggen_page_gallery">ギャラリー</string>
+  <string name="imggen_page_prompt_placeholder">生成したい画像を説明してください...</string>
+  <string name="imggen_page_generate_image">画像を生成</string>
+  <string name="imggen_page_no_generated_images">生成された画像がありません</string>
+  <string name="imggen_page_image_saved_success">画像をギャラリーに保存しました</string>
+  <string name="imggen_page_save_failed">保存に失敗しました: %1$s</string>
+  <string name="imggen_page_save">保存</string>
+  <string name="imggen_page_delete">削除</string>
+  <string name="imggen_page_settings_title">画像生成設定</string>
+  <string name="imggen_page_model_selection">モデル選択</string>
+  <string name="imggen_page_model_selection_desc">画像生成に使用するAIモデルを選択</string>
+  <string name="imggen_page_generation_count">生成数</string>
+  <string name="imggen_page_generation_count_desc">一度に生成する画像の数</string>
+  <string name="imggen_page_aspect_ratio">画像のアスペクト比</string>
+  <string name="imggen_page_aspect_ratio_desc">生成する画像のアスペクト比を選択</string>
+  <string name="imggen_page_aspect_ratio_square">1:1 正方形</string>
+  <string name="imggen_page_aspect_ratio_landscape">16:9 横向き</string>
+  <string name="imggen_page_aspect_ratio_portrait">9:16 縦向き</string>
 </resources>

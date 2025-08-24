@@ -8,7 +8,7 @@ import me.rerere.rikkahub.data.db.entity.GenMediaEntity
 
 @Dao
 interface GenMediaDAO {
-    @Query("SELECT * FROM genmediaentity")
+    @Query("SELECT * FROM genmediaentity ORDER BY create_at DESC")
     fun getAll(): PagingSource<Int, GenMediaEntity>
 
     @Query("SELECT * FROM genmediaentity ORDER BY create_at DESC")

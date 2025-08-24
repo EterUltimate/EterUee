@@ -7,10 +7,13 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import androidx.paging.map
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import me.rerere.ai.provider.ImageGenerationParams
@@ -34,6 +37,19 @@ data class GeneratedImage(
     val model: String
 )
 
+private fun GenMediaEntity.toGeneratedImage(context: Application): GeneratedImage {
+    val imagesDir = context.getImagesDir()
+    val fullPath = File(imagesDir, this.path.removePrefix("images/")).absolutePath
+
+    return GeneratedImage(
+        id = this.id,
+        prompt = this.prompt,
+        filePath = fullPath,
+        timestamp = this.createAt,
+        model = this.modelId
+    )
+}
+
 class ImgGenVM(
     context: Application,
     val settingsStore: SettingsStore,
@@ -52,14 +68,15 @@ class ImgGenVM(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
-    val generatedImages: Flow<PagingData<GeneratedImage>> = Pager(
+    val pager = Pager(
         config = PagingConfig(pageSize = 20, enablePlaceholders = false),
-        pagingSourceFactory = {
-            GeneratedImagePagingSource(repository = genMediaRepository, context = getApplication())
+        pagingSourceFactory = { genMediaRepository.getAllMedia() }
+    )
+    val generatedImages: Flow<PagingData<GeneratedImage>> = pager.flow
+        .map { pagingData ->
+            pagingData.map { entity -> entity.toGeneratedImage(getApplication()) }
         }
-    ).flow
-
-    // No init needed - PagingSource handles loading automatically
+        .cachedIn(viewModelScope)
 
     fun updatePrompt(prompt: String) {
         _prompt.value = prompt
@@ -156,13 +173,13 @@ class ImgGenVM(
     fun deleteImage(image: GeneratedImage) {
         viewModelScope.launch {
             try {
+                // Delete from database first
+                genMediaRepository.deleteMedia(image.id)
+
+                // Then delete the file
                 val file = File(image.filePath)
-                if (file.exists() && file.delete()) {
-                    // Delete from database if it has a valid ID
-                    if (image.id > 0) {
-                        genMediaRepository.deleteMedia(image.id)
-                    }
-                    // PagingSource will automatically update UI
+                if (file.exists()) {
+                    file.delete()
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to delete image", e)

@@ -51,12 +51,12 @@ Built with Jetpack Compose, Kotlin, and follows Material Design 3 principles.
 
 ### Internationalization
 
-- Support for English (default), Chinese(zh), Japanese(ja), and Traditional Chinese(zh-rTW)
 - String resources located in `app/src/main/res/values-*/strings.xml`
 - Use `stringResource(R.string.key_name)` in Compose
 - Page-specific strings should use page prefix (e.g., `setting_page_`)
 - If the user does not explicitly request localization, prioritize implementing functionality without considering
   localization. (e.g `Text("Hello world")`)
+- If the user explicitly requests localization, all languages should be supported.
 
 ### Database
 

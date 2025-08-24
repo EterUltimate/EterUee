@@ -9,6 +9,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,6 +29,7 @@ import me.rerere.rikkahub.data.repository.GenMediaRepository
 import me.rerere.rikkahub.utils.createImageFileFromBase64
 import me.rerere.rikkahub.utils.getImagesDir
 import java.io.File
+import kotlin.coroutines.cancellation.CancellationException
 
 @Serializable
 data class GeneratedImage(
@@ -68,6 +70,7 @@ class ImgGenVM(
 
     private val _isGenerating = MutableStateFlow(false)
     val isGenerating: StateFlow<Boolean> = _isGenerating
+    private var cancelJob: Job? = null
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
@@ -102,7 +105,7 @@ class ImgGenVM(
     }
 
     fun generateImage() {
-        viewModelScope.launch {
+        cancelJob = viewModelScope.launch {
             try {
                 _isGenerating.value = true
                 _error.value = null
@@ -149,12 +152,17 @@ class ImgGenVM(
 
                 _currentGeneratedImages.value = newImages
             } catch (e: Exception) {
+                if(e is CancellationException) return@launch
                 Log.e(TAG, "Failed to generate image", e)
                 _error.value = e.message ?: "Unknown error occurred"
             } finally {
                 _isGenerating.value = false
             }
         }
+    }
+
+    fun cancelGeneration() {
+        cancelJob?.cancel()
     }
 
     private suspend fun saveImageToStorage(

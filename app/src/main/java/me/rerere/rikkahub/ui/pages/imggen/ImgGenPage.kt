@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.ui.pages.imggen
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,6 +27,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -41,6 +43,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -96,6 +99,21 @@ fun ImageGenPage(
     val pagerState = rememberPagerState { 2 }
     val scope = rememberCoroutineScope()
 
+    val isGenerating by vm.isGenerating.collectAsStateWithLifecycle()
+    var showCancelDialog by remember { mutableStateOf(false) }
+    BackHandler(isGenerating) {
+        showCancelDialog = true
+    }
+    if (showCancelDialog) {
+        CancelDialog(
+            onDismiss = { showCancelDialog = false },
+            onConfirm = {
+                showCancelDialog = false
+                vm.cancelGeneration()
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -121,6 +139,28 @@ fun ImageGenPage(
             }
         }
     }
+}
+
+@Composable
+private fun CancelDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("取消生成") },
+        text = { Text("您确定要取消图片生成吗？") },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("确定")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("取消")
+            }
+        }
+    )
 }
 
 @Composable

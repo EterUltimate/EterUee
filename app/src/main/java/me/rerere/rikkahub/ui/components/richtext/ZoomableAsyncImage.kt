@@ -10,8 +10,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.DefaultAlpha
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.request.placeholder
+import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.ui.ImagePreviewDialog
+import me.rerere.rikkahub.ui.modifier.shimmer
+import me.rerere.rikkahub.ui.theme.LocalDarkMode
 
 @Composable
 fun ZoomableAsyncImage(
@@ -23,19 +30,37 @@ fun ZoomableAsyncImage(
     alpha: Float = DefaultAlpha,
 ) {
     var showImageViewer by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val placeholder = if(LocalDarkMode.current) R.drawable.placeholder_dark else R.drawable.placeholder
+    val coilModel = ImageRequest.Builder(context)
+        .data(model)
+        .placeholder(placeholder)
+        .crossfade(true)
+        .build()
+    var loading by remember { mutableStateOf(false) }
     AsyncImage(
-        model = model,
+        model = coilModel,
         contentDescription = contentDescription,
         modifier = modifier
+            .shimmer(isLoading = loading)
             .clickable {
                 showImageViewer = true
             },
         contentScale = contentScale,
         alpha = alpha,
         alignment = alignment,
+        onLoading = {
+            loading = true
+        },
+        onSuccess = {
+            loading = false
+        },
+        onError = {
+            loading = false
+        },
     )
     if (showImageViewer) {
-        ImagePreviewDialog(listOf(model ?: "")) {
+        ImagePreviewDialog(images = listOf(model ?: "")) {
             showImageViewer = false
         }
     }

@@ -33,6 +33,7 @@ import me.rerere.ai.provider.Provider
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.provider.providers.vertex.ServiceAccountTokenProvider
+import me.rerere.ai.ui.ImageAspectRatio
 import me.rerere.ai.ui.ImageGenerationResult
 import me.rerere.ai.ui.ImageGenerationItem
 import me.rerere.ai.ui.MessageChunk
@@ -630,6 +631,11 @@ class GoogleProvider(private val client: OkHttpClient) : Provider<ProviderSettin
             }
             putJsonObject("parameters") {
                 put("sampleCount", params.numOfImages)
+                put("aspectRatio", when(params.aspectRatio) {
+                    ImageAspectRatio.SQUARE -> "1:1"
+                    ImageAspectRatio.LANDSCAPE -> "16:9"
+                    ImageAspectRatio.PORTRAIT -> "9:16"
+                })
             }
         }
 

@@ -13,3 +13,9 @@ data class ImageGenerationItem(
     val mimeType: String,
 )
 
+@Serializable
+enum class ImageAspectRatio {
+    SQUARE,
+    LANDSCAPE,
+    PORTRAIT
+}

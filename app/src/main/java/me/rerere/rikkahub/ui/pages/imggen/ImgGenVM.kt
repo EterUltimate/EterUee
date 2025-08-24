@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import me.rerere.ai.provider.ImageGenerationParams
 import me.rerere.ai.provider.ProviderManager
+import me.rerere.ai.ui.ImageAspectRatio
 import me.rerere.ai.ui.ImageGenerationItem
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.findModelById
@@ -62,6 +63,9 @@ class ImgGenVM(
     private val _numberOfImages = MutableStateFlow(1)
     val numberOfImages: StateFlow<Int> = _numberOfImages
 
+    private val _aspectRatio = MutableStateFlow(ImageAspectRatio.SQUARE)
+    val aspectRatio: StateFlow<ImageAspectRatio> = _aspectRatio
+
     private val _isGenerating = MutableStateFlow(false)
     val isGenerating: StateFlow<Boolean> = _isGenerating
 
@@ -89,6 +93,10 @@ class ImgGenVM(
         _numberOfImages.value = count.coerceIn(1, 4)
     }
 
+    fun updateAspectRatio(aspectRatio: ImageAspectRatio) {
+        _aspectRatio.value = aspectRatio
+    }
+
     fun clearError() {
         _error.value = null
     }
@@ -113,7 +121,8 @@ class ImgGenVM(
                 val params = ImageGenerationParams(
                     model = model,
                     prompt = _prompt.value,
-                    numOfImages = _numberOfImages.value
+                    numOfImages = _numberOfImages.value,
+                    aspectRatio = _aspectRatio.value
                 )
 
                 val result = providerManager.getProviderByType(provider)

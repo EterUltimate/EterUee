@@ -4,6 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +30,7 @@ import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -73,6 +76,7 @@ import com.dokar.sonner.ToastType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import me.rerere.ai.provider.ModelType
+import me.rerere.ai.ui.ImageAspectRatio
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.ui.components.ai.ModelSelector
 import me.rerere.rikkahub.ui.components.nav.BackButton
@@ -163,6 +167,7 @@ private fun ImageGenScreen(
 ) {
     val prompt by vm.prompt.collectAsStateWithLifecycle()
     val numberOfImages by vm.numberOfImages.collectAsStateWithLifecycle()
+    val aspectRatio by vm.aspectRatio.collectAsStateWithLifecycle()
     val isGenerating by vm.isGenerating.collectAsStateWithLifecycle()
     val currentGeneratedImages by vm.currentGeneratedImages.collectAsStateWithLifecycle()
     val error by vm.error.collectAsStateWithLifecycle()
@@ -228,6 +233,7 @@ private fun ImageGenScreen(
             vm = vm,
             settings = settings,
             numberOfImages = numberOfImages,
+            aspectRatio = aspectRatio,
             scope = scope,
             sheetState = sheetState,
             onDismiss = { showSettingsSheet = false }
@@ -429,11 +435,13 @@ private fun ImageGalleryScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SettingsBottomSheet(
     vm: ImgGenVM,
     settings: Settings,
     numberOfImages: Int,
+    aspectRatio: ImageAspectRatio,
     scope: CoroutineScope,
     sheetState: SheetState,
     onDismiss: () -> Unit
@@ -484,6 +492,32 @@ private fun SettingsBottomSheet(
                     onValueChange = vm::updateNumberOfImages,
                     modifier = Modifier.width(120.dp)
                 )
+            }
+
+            FormItem(
+                label = { Text("图片比例") },
+                description = { Text("选择生成图片的宽高比") }
+            ) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    ImageAspectRatio.entries.forEach { ratio ->
+                        FilterChip(
+                            selected = aspectRatio == ratio,
+                            onClick = { vm.updateAspectRatio(ratio) },
+                            label = {
+                                Text(
+                                    when (ratio) {
+                                        ImageAspectRatio.SQUARE -> "1:1 正方形"
+                                        ImageAspectRatio.LANDSCAPE -> "16:9 横屏"
+                                        ImageAspectRatio.PORTRAIT -> "9:16 竖屏"
+                                    }
+                                )
+                            }
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))

@@ -16,6 +16,7 @@ import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.provider.providers.openai.ChatCompletionsAPI
 import me.rerere.ai.provider.providers.openai.ResponseAPI
+import me.rerere.ai.ui.ImageAspectRatio
 import me.rerere.ai.ui.ImageGenerationResult
 import me.rerere.ai.ui.ImageGenerationItem
 import me.rerere.ai.ui.MessageChunk
@@ -124,7 +125,11 @@ class OpenAIProvider(
                 put("prompt", params.prompt)
                 put("n", params.numOfImages)
                 put("response_format", "b64_json")
-                put("size", "1024x1024")
+                put("size", when(params.aspectRatio) {
+                    ImageAspectRatio.SQUARE -> "1024x1024"
+                    ImageAspectRatio.LANDSCAPE -> "1536x1024"
+                    ImageAspectRatio.PORTRAIT -> "1024x1536"
+                })
             }
         )
 

@@ -33,8 +33,6 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -59,15 +57,16 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Palette
 import com.composables.icons.lucide.Save
 import com.composables.icons.lucide.Trash2
+import com.dokar.sonner.ToastType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import me.rerere.ai.provider.ModelType
-import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.ui.components.ai.ModelSelector
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.ImagePreviewDialog
 import me.rerere.rikkahub.ui.components.ui.OutlinedNumberInput
+import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.utils.saveMessageImage
 import org.koin.androidx.compose.koinViewModel
 import java.io.File
@@ -79,7 +78,6 @@ fun ImageGenPage(
 ) {
     val pagerState = rememberPagerState { 2 }
     val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
         topBar = {
@@ -95,15 +93,14 @@ fun ImageGenPage(
         bottomBar = {
             BottomBar(pagerState, scope)
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         HorizontalPager(
             state = pagerState,
             modifier = modifier.padding(innerPadding)
         ) { page ->
             when (page) {
-                0 -> ImageGenScreen(vm, snackbarHostState)
-                1 -> ImageGalleryScreen(vm, snackbarHostState)
+                0 -> ImageGenScreen(vm)
+                1 -> ImageGalleryScreen(vm)
             }
         }
     }
@@ -150,7 +147,6 @@ private fun BottomBar(
 @Composable
 private fun ImageGenScreen(
     vm: ImgGenVM,
-    snackbarHostState: SnackbarHostState
 ) {
     val prompt by vm.prompt.collectAsStateWithLifecycle()
     val numberOfImages by vm.numberOfImages.collectAsStateWithLifecycle()
@@ -159,10 +155,11 @@ private fun ImageGenScreen(
     val error by vm.error.collectAsStateWithLifecycle()
     val settings by vm.settingsStore.settingsFlow.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
+    val toaster = LocalToaster.current
 
     LaunchedEffect(error) {
         error?.let { errorMessage ->
-            snackbarHostState.showSnackbar(errorMessage)
+            toaster.show(message = errorMessage, type = ToastType.Error)
             vm.clearError()
         }
     }
@@ -300,11 +297,11 @@ private fun ImageGenScreen(
 @Composable
 private fun ImageGalleryScreen(
     vm: ImgGenVM,
-    snackbarHostState: SnackbarHostState
 ) {
     val generatedImages by vm.generatedImages.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val toaster = LocalToaster.current
 
     if (generatedImages.isEmpty()) {
         Box(
@@ -354,16 +351,13 @@ private fun ImageGalleryScreen(
                             contentScale = ContentScale.Crop
                         )
 
-                        Row(
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Column(
-                                modifier = Modifier.weight(1f)
-                            ) {
+                            Column {
                                 Text(
                                     text = image.model,
                                     style = MaterialTheme.typography.labelSmall,
@@ -372,7 +366,8 @@ private fun ImageGalleryScreen(
                                 Text(
                                     text = image.prompt.take(20) + if (image.prompt.length > 20) "..." else "",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 2
                                 )
                             }
 
@@ -382,9 +377,9 @@ private fun ImageGalleryScreen(
                                         scope.launch {
                                             try {
                                                 context.saveMessageImage("file://${image.filePath}")
-                                                snackbarHostState.showSnackbar("图片已保存到相册")
+                                                toaster.show(message = "图片已保存到相册", type = ToastType.Success)
                                             } catch (e: Exception) {
-                                                snackbarHostState.showSnackbar("保存失败: ${e.message}")
+                                                toaster.show(message = "保存失败: ${e.message}", type = ToastType.Error)
                                             }
                                         }
                                     },

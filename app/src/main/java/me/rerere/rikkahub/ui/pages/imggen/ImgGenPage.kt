@@ -312,7 +312,13 @@ private fun InputBar(
         )
 
         FilledTonalIconButton(
-            onClick = vm::generateImage,
+            onClick = {
+                if(!isGenerating) {
+                    vm.generateImage()
+                } else {
+                    vm.cancelGeneration()
+                }
+            },
             enabled = !isGenerating && prompt.isNotBlank()
         ) {
             if (isGenerating) {

@@ -15,6 +15,7 @@ import me.rerere.ai.ui.ImageGenerationItem
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.findProvider
+import me.rerere.rikkahub.data.repository.GenMediaRepository
 import me.rerere.rikkahub.utils.createImageFileFromBase64
 import me.rerere.rikkahub.utils.getImagesDir
 import me.rerere.rikkahub.utils.listImageFiles
@@ -33,7 +34,8 @@ data class GeneratedImage(
 class ImgGenVM(
     context: Application,
     val settingsStore: SettingsStore,
-    val providerManager: ProviderManager
+    val providerManager: ProviderManager,
+    val genMediaRepository: GenMediaRepository,
 ) : AndroidViewModel(context) {
     private val _prompt = MutableStateFlow("")
     val prompt: StateFlow<String> = _prompt

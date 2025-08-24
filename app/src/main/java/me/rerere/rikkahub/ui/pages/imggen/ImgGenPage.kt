@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -60,12 +61,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import me.rerere.rikkahub.R
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
@@ -82,6 +82,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import me.rerere.ai.provider.ModelType
 import me.rerere.ai.ui.ImageAspectRatio
+import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.ui.components.ai.ModelSelector
 import me.rerere.rikkahub.ui.components.nav.BackButton
@@ -133,7 +134,9 @@ fun ImageGenPage(
     ) { innerPadding ->
         HorizontalPager(
             state = pagerState,
-            modifier = modifier.padding(innerPadding)
+            modifier = modifier
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
         ) { page ->
             when (page) {
                 0 -> ImageGenScreen(vm = vm)
@@ -231,6 +234,7 @@ private fun ImageGenScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
+            .imePadding()
     ) {
         Row(
             modifier = Modifier
@@ -266,7 +270,7 @@ private fun ImageGenScreen(
             vm = vm,
             isGenerating = isGenerating,
             onShowSettings = { showSettingsSheet = true },
-            modifier = Modifier.imePadding()
+            modifier = Modifier
         )
     }
 
@@ -315,7 +319,7 @@ private fun InputBar(
 
         FilledTonalIconButton(
             onClick = {
-                if(!isGenerating) {
+                if (!isGenerating) {
                     vm.generateImage()
                 } else {
                     vm.cancelGeneration()
@@ -438,7 +442,10 @@ private fun ImageGalleryScreen(
                                                         )
                                                     } catch (e: Exception) {
                                                         toaster.show(
-                                                            message = context.getString(R.string.imggen_page_save_failed, e.message),
+                                                            message = context.getString(
+                                                                R.string.imggen_page_save_failed,
+                                                                e.message
+                                                            ),
                                                             type = ToastType.Error
                                                         )
                                                     }
@@ -555,11 +562,13 @@ private fun SettingsBottomSheet(
                             onClick = { vm.updateAspectRatio(ratio) },
                             label = {
                                 Text(
-                                    stringResource(when (ratio) {
-                                        ImageAspectRatio.SQUARE -> R.string.imggen_page_aspect_ratio_square
-                                        ImageAspectRatio.LANDSCAPE -> R.string.imggen_page_aspect_ratio_landscape
-                                        ImageAspectRatio.PORTRAIT -> R.string.imggen_page_aspect_ratio_portrait
-                                    })
+                                    stringResource(
+                                        when (ratio) {
+                                            ImageAspectRatio.SQUARE -> R.string.imggen_page_aspect_ratio_square
+                                            ImageAspectRatio.LANDSCAPE -> R.string.imggen_page_aspect_ratio_landscape
+                                            ImageAspectRatio.PORTRAIT -> R.string.imggen_page_aspect_ratio_portrait
+                                        }
+                                    )
                                 )
                             }
                         )

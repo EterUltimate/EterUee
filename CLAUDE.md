@@ -46,6 +46,8 @@ Built with Jetpack Compose, Kotlin, and follows Material Design 3 principles.
 - Reference `SettingProviderPage.kt` for page layout patterns
 - Use `FormItem` for consistent form layouts
 - Implement proper state management with ViewModels
+- Use `Lucide.XXX` for icons, and import `import com.composables.icons.lucide.XXX` for each icon
+- Use `LocalToaster.current` for toast messages
 
 ### Internationalization
 

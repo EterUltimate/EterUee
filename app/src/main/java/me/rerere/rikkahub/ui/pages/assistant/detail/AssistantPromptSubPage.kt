@@ -161,7 +161,7 @@ fun AssistantPromptSubPage(
                                     linkInteractionListener = {
                                         onUpdate(
                                             assistant.copy(
-                                                systemPrompt = assistant.systemPrompt + k
+                                                systemPrompt = assistant.systemPrompt + "{{$k}}"
                                             )
                                         )
                                     }

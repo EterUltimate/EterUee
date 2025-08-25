@@ -612,9 +612,22 @@ internal val DEFAULT_ASSISTANTS = listOf(
     ),
     Assistant(
         id = Uuid.parse("3d47790c-c415-4b90-9388-751128adb0a0"),
-        name = "示例助手",
+        name = "",
         temperature = 0.6f,
-        systemPrompt = "你是{model_name}, 一个人工智能助手，乐意为用户提供准确，有益的帮助。现在时间是{cur_datetime}，用户设备语言为\"{locale}\"，时区为{timezone}，用户正在使用{device_info}，版本{system_version}。如果用户没有明确说明，请使用用户设备语言和用户对话。"
+        systemPrompt = """
+            You are a helpful assistant, called {{char}}, based on model {{model_name}}.
+
+            ## Info
+            - Time: {{cur_datetime}}
+            - Locale: {{locale}}
+            - Timezone: {{timezone}}
+            - Device Info: {{device_info}}
+            - System Version: {{system_version}}
+            - User Nickname: {{user}}
+
+            ## Hint
+            - If the user does not specify a language, reply in the user's primary language.
+        """.trimIndent()
     ),
 )
 
@@ -643,8 +656,8 @@ internal val DEFAULT_TITLE_PROMPT = """
 """.trimIndent()
 
 internal val DEFAULT_SUGGESTION_PROMPT = """
-    I will provide you with some chat content in the `<content>` block, including conversations between the user and the AI assistant.
-    You need to act as the user to reply to the assistant, generating 3~5 appropriate and contextually relevant responses to the assistant.
+    I will provide you with some chat content in the `<content>` block, including conversations between the User and the AI assistant.
+    You need to act as the **User** to reply to the assistant, generating 3~5 appropriate and contextually relevant responses to the assistant.
 
     Rules:
     1. Reply directly with suggestions, do not add any formatting, and separate suggestions with newlines, no need to add markdown list formats.
@@ -652,7 +665,7 @@ internal val DEFAULT_SUGGESTION_PROMPT = """
     3. Ensure each suggestion is valid.
     4. Each suggestion should not exceed 10 characters.
     5. Imitate the user's previous conversational style.
-    6. Act as a user, not an assistant
+    6. Act as a User, not an Assistant!
 
     <content>
     {content}

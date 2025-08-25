@@ -8,6 +8,7 @@ import me.rerere.ai.ui.InputMessageTransformer
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.rikkahub.data.datastore.SettingsStore
+import me.rerere.rikkahub.data.datastore.getCurrentAssistant
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import java.time.LocalDate
@@ -21,17 +22,33 @@ import java.util.TimeZone
 
 object PlaceholderTransformer : InputMessageTransformer, KoinComponent {
     val Placeholders = mapOf(
-        "{cur_date}" to "日期",
-        "{cur_time}" to "时间",
-        "{cur_datetime}" to "日期和时间",
-        "{model_id}" to "模型ID",
-        "{model_name}" to "模型名称",
-        "{locale}" to "语言环境",
-        "{timezone}" to "时区",
-        "{system_version}" to "系统版本",
-        "{device_info}" to "设备信息",
-        "{battery_level}" to "电池电量",
-        "{nickname}" to "用户昵称"
+        "cur_date" to "日期",
+        "cur_time" to "时间",
+        "cur_datetime" to "日期和时间",
+        "model_id" to "模型ID",
+        "model_name" to "模型名称",
+        "locale" to "语言环境",
+        "timezone" to "时区",
+        "system_version" to "系统版本",
+        "device_info" to "设备信息",
+        "battery_level" to "电池电量",
+        "nickname" to "用户昵称"
+    )
+
+    private val placeholderResolvers: Map<String, (Context, SettingsStore, Model) -> String> = mapOf(
+        "cur_date" to { _, _, _ -> LocalDate.now().toDateString() },
+        "cur_time" to { _, _, _ -> LocalTime.now().toTimeString() },
+        "cur_datetime" to { _, _, _ -> LocalDateTime.now().toDateTimeString() },
+        "model_id" to { _, _, model -> model.modelId },
+        "model_name" to { _, _, model -> model.displayName },
+        "locale" to { _, _, _ -> Locale.getDefault().displayName },
+        "timezone" to { _, _, _ -> TimeZone.getDefault().displayName },
+        "system_version" to { _, _, _ -> "Android SDK v${Build.VERSION.SDK_INT} (${Build.VERSION.RELEASE})" },
+        "device_info" to { _, _, _ -> "${Build.BRAND} ${Build.MODEL}" },
+        "battery_level" to { context, _, _ -> context.batteryLevel().toString() },
+        "nickname" to { _, settingsStore, _ -> settingsStore.settingsFlow.value.displaySetting.userNickname.ifBlank { "user" } },
+        "char" to { _, settingsStore, _ -> settingsStore.settingsFlow.value.getCurrentAssistant().name.ifBlank { "assistant" } },
+        "user" to { _, settingsStore, _ -> settingsStore.settingsFlow.value.displaySetting.userNickname.ifBlank { "user" } },
     )
 
     override suspend fun transform(
@@ -39,27 +56,13 @@ object PlaceholderTransformer : InputMessageTransformer, KoinComponent {
         messages: List<UIMessage>,
         model: Model
     ): List<UIMessage> {
-        val settings = get<SettingsStore>().settingsFlow.value
+        val settingsStore = get<SettingsStore>()
         return messages.map {
             it.copy(
                 parts = it.parts.map { part ->
                     if (part is UIMessagePart.Text) {
                         part.copy(
-                            text = part.text
-                                .replace("{cur_date}", LocalDate.now().toDateString())
-                                .replace("{cur_time}", LocalTime.now().toTimeString())
-                                .replace("{cur_datetime}", LocalDateTime.now().toDateTimeString())
-                                .replace("{model_id}", model.modelId)
-                                .replace("{model_name}", model.displayName)
-                                .replace("{locale}", Locale.getDefault().displayName)
-                                .replace("{timezone}", TimeZone.getDefault().displayName)
-                                .replace(
-                                    "{system_version}",
-                                    "Android SDK v${Build.VERSION.SDK_INT} (${Build.VERSION.RELEASE}"
-                                )
-                                .replace("{device_info}", "${Build.BRAND} ${Build.MODEL}")
-                                .replace("{battery_level}", context.batteryLevel().toString())
-                                .replace("{nickname}", settings.displaySetting.userNickname)
+                            text = replacePlaceholders(part.text, context, settingsStore, model)
                         )
                     } else {
                         part
@@ -67,6 +70,24 @@ object PlaceholderTransformer : InputMessageTransformer, KoinComponent {
                 }
             )
         }
+    }
+
+    private fun replacePlaceholders(
+        text: String,
+        context: Context,
+        settingsStore: SettingsStore,
+        model: Model
+    ): String {
+        var result = text
+
+        placeholderResolvers.forEach { (key, resolver) ->
+            val value = resolver(context, settingsStore, model)
+            result = result
+                .replace("{{$key}}", value)
+                .replace("{$key}", value)
+        }
+
+        return result
     }
 
     private fun Temporal.toDateString() = DateTimeFormatter

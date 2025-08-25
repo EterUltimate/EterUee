@@ -5,7 +5,9 @@ import android.os.BatteryManager
 import android.os.Build
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import me.rerere.ai.provider.Model
+import me.rerere.rikkahub.R
 import me.rerere.ai.ui.InputMessageTransformer
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
@@ -57,55 +59,55 @@ fun buildPlaceholders(block: PlaceholderBuilder.() -> Unit): Map<String, Placeho
 
 object DefaultPlaceholderProvider : PlaceholderProvider {
     override val placeholders: Map<String, PlaceholderInfo> = buildPlaceholders {
-        placeholder("cur_date", { Text("日期") }) {
+        placeholder("cur_date", { Text(stringResource(R.string.placeholder_current_date)) }) {
             LocalDate.now().toDateString()
         }
 
-        placeholder("cur_time", { Text("时间") }) {
+        placeholder("cur_time", { Text(stringResource(R.string.placeholder_current_time)) }) {
             LocalTime.now().toTimeString()
         }
 
-        placeholder("cur_datetime", { Text("日期和时间") }) {
+        placeholder("cur_datetime", { Text(stringResource(R.string.placeholder_current_datetime)) }) {
             LocalDateTime.now().toDateTimeString()
         }
 
-        placeholder("model_id", { Text("模型ID") }) {
+        placeholder("model_id", { Text(stringResource(R.string.placeholder_model_id)) }) {
             it.model.modelId
         }
 
-        placeholder("model_name", { Text("模型名称") }) {
+        placeholder("model_name", { Text(stringResource(R.string.placeholder_model_name)) }) {
             it.model.displayName
         }
 
-        placeholder("locale", { Text("语言环境") }) {
+        placeholder("locale", { Text(stringResource(R.string.placeholder_locale)) }) {
             Locale.getDefault().displayName
         }
 
-        placeholder("timezone", { Text("时区") }) {
+        placeholder("timezone", { Text(stringResource(R.string.placeholder_timezone)) }) {
             TimeZone.getDefault().displayName
         }
 
-        placeholder("system_version", { Text("系统版本") }) {
+        placeholder("system_version", { Text(stringResource(R.string.placeholder_system_version)) }) {
             "Android SDK v${Build.VERSION.SDK_INT} (${Build.VERSION.RELEASE})"
         }
 
-        placeholder("device_info", { Text("设备信息") }) {
+        placeholder("device_info", { Text(stringResource(R.string.placeholder_device_info)) }) {
             "${Build.BRAND} ${Build.MODEL}"
         }
 
-        placeholder("battery_level", { Text("电池电量") }) {
+        placeholder("battery_level", { Text(stringResource(R.string.placeholder_battery_level)) }) {
             it.context.batteryLevel().toString()
         }
 
-        placeholder("nickname", { Text("用户昵称") }) {
+        placeholder("nickname", { Text(stringResource(R.string.placeholder_nickname)) }) {
             it.settingsStore.settingsFlow.value.displaySetting.userNickname.ifBlank { "user" }
         }
 
-        placeholder("char", { Text("助手名称") }) {
+        placeholder("char", { Text(stringResource(R.string.placeholder_char)) }) {
             it.settingsStore.settingsFlow.value.getCurrentAssistant().name.ifBlank { "assistant" }
         }
 
-        placeholder("user", { Text("用户") }) {
+        placeholder("user", { Text(stringResource(R.string.placeholder_user)) }) {
             it.settingsStore.settingsFlow.value.displaySetting.userNickname.ifBlank { "user" }
         }
     }

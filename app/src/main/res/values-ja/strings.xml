@@ -653,4 +653,19 @@
   <string name="imggen_page_aspect_ratio_square">1:1 正方形</string>
   <string name="imggen_page_aspect_ratio_landscape">16:9 横向き</string>
   <string name="imggen_page_aspect_ratio_portrait">9:16 縦向き</string>
+
+  <!-- Placeholder Names -->
+  <string name="placeholder_current_date">日付</string>
+  <string name="placeholder_current_time">時間</string>
+  <string name="placeholder_current_datetime">日付と時間</string>
+  <string name="placeholder_model_id">モデルID</string>
+  <string name="placeholder_model_name">モデル名</string>
+  <string name="placeholder_locale">ロケール</string>
+  <string name="placeholder_timezone">タイムゾーン</string>
+  <string name="placeholder_system_version">システムバージョン</string>
+  <string name="placeholder_device_info">デバイス情報</string>
+  <string name="placeholder_battery_level">バッテリー残量</string>
+  <string name="placeholder_nickname">ユーザーニックネーム</string>
+  <string name="placeholder_char">アシスタント名</string>
+  <string name="placeholder_user">ユーザー</string>
 </resources>

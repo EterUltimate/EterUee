@@ -651,4 +651,19 @@
   <string name="imggen_page_aspect_ratio_square">1:1 Square</string>
   <string name="imggen_page_aspect_ratio_landscape">16:9 Landscape</string>
   <string name="imggen_page_aspect_ratio_portrait">9:16 Portrait</string>
+
+  <!-- Placeholder Names -->
+  <string name="placeholder_current_date">Date</string>
+  <string name="placeholder_current_time">Time</string>
+  <string name="placeholder_current_datetime">Date and Time</string>
+  <string name="placeholder_model_id">Model ID</string>
+  <string name="placeholder_model_name">Model Name</string>
+  <string name="placeholder_locale">Locale</string>
+  <string name="placeholder_timezone">Timezone</string>
+  <string name="placeholder_system_version">System Version</string>
+  <string name="placeholder_device_info">Device Info</string>
+  <string name="placeholder_battery_level">Battery Level</string>
+  <string name="placeholder_nickname">User Nickname</string>
+  <string name="placeholder_char">Assistant Name</string>
+  <string name="placeholder_user">User</string>
 </resources>

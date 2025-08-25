@@ -651,4 +651,19 @@
   <string name="imggen_page_aspect_ratio_square">1:1 正方形</string>
   <string name="imggen_page_aspect_ratio_landscape">16:9 橫屏</string>
   <string name="imggen_page_aspect_ratio_portrait">9:16 竖屏</string>
+
+  <!-- Placeholder Names -->
+  <string name="placeholder_current_date">日期</string>
+  <string name="placeholder_current_time">時間</string>
+  <string name="placeholder_current_datetime">日期和時間</string>
+  <string name="placeholder_model_id">模型ID</string>
+  <string name="placeholder_model_name">模型名稱</string>
+  <string name="placeholder_locale">語言環境</string>
+  <string name="placeholder_timezone">時區</string>
+  <string name="placeholder_system_version">系統版本</string>
+  <string name="placeholder_device_info">設備資訊</string>
+  <string name="placeholder_battery_level">電池電量</string>
+  <string name="placeholder_nickname">用戶暱稱</string>
+  <string name="placeholder_char">助手名稱</string>
+  <string name="placeholder_user">用戶</string>
 </resources>

@@ -653,4 +653,19 @@
   <string name="imggen_page_aspect_ratio_square">1:1 정사각형</string>
   <string name="imggen_page_aspect_ratio_landscape">16:9 가로형</string>
   <string name="imggen_page_aspect_ratio_portrait">9:16 세로형</string>
+
+  <!-- Placeholder Names -->
+  <string name="placeholder_current_date">날짜</string>
+  <string name="placeholder_current_time">시간</string>
+  <string name="placeholder_current_datetime">날짜와 시간</string>
+  <string name="placeholder_model_id">모델 ID</string>
+  <string name="placeholder_model_name">모델명</string>
+  <string name="placeholder_locale">로케일</string>
+  <string name="placeholder_timezone">시간대</string>
+  <string name="placeholder_system_version">시스템 버전</string>
+  <string name="placeholder_device_info">기기 정보</string>
+  <string name="placeholder_battery_level">배터리 잔량</string>
+  <string name="placeholder_nickname">사용자 닉네임</string>
+  <string name="placeholder_char">어시스턴트명</string>
+  <string name="placeholder_user">사용자</string>
 </resources>

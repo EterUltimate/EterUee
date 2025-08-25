@@ -21,6 +21,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -147,6 +148,8 @@ class RouteActivity : ComponentActivity() {
                     state = toastState,
                     darkTheme = LocalDarkMode.current,
                     richColors = true,
+                    alignment = Alignment.TopCenter,
+                    showCloseButton = true,
                 )
                 NavHost(
                     modifier = Modifier

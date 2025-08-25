@@ -4,11 +4,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,34 +27,38 @@ fun FormItem(
     tail: @Composable () -> Unit = {},
     content: @Composable ColumnScope.() -> Unit = {}
 ) {
-    Row(
-        modifier = modifier.padding(4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    Column(
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = modifier.fillMaxWidth()
     ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.weight(1f)
+        ProvideTextStyle(
+            MaterialTheme.typography.labelMedium.copy(
+                color = MaterialTheme.colorScheme.primary
+            )
         ) {
-            ProvideTextStyle(
-                MaterialTheme.typography.labelMedium.copy(
-                    color = MaterialTheme.colorScheme.primary
-                )
+            label()
+        }
+        Row(
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                label()
+                content()
             }
-            content()
-            ProvideTextStyle(
-                MaterialTheme.typography.labelSmall.copy(
-                    color = LocalContentColor.current.copy(alpha = 0.6f)
-                )
-            ) {
-                Column {
-                    description?.invoke()
-                }
+            tail()
+        }
+        ProvideTextStyle(
+            MaterialTheme.typography.labelSmall.copy(
+                color = LocalContentColor.current.copy(alpha = 0.6f)
+            )
+        ) {
+            Column {
+                description?.invoke()
             }
         }
-        tail()
     }
 }
 
@@ -68,6 +75,13 @@ private fun FormItemPreview() {
         },
         description = {
             Text("Description")
-        }
+        },
+        tail = {
+            Switch(
+                checked = true,
+                onCheckedChange = {}
+            )
+        },
+        modifier = Modifier.padding(4.dp),
     )
 }

@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
+import com.dokar.sonner.ToastType
 import com.dokar.sonner.ToasterState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -154,7 +155,8 @@ private class CharaCardV2Parser : TavernCardParser {
 
     override fun parse(context: Context, json: JsonObject, background: String?): Assistant {
         val data = json["data"]?.jsonObject ?: error(context.getString(R.string.assistant_importer_missing_data_field))
-        val name = data["name"]?.jsonPrimitiveOrNull?.contentOrNull ?: error(context.getString(R.string.assistant_importer_missing_name_field))
+        val name = data["name"]?.jsonPrimitiveOrNull?.contentOrNull
+            ?: error(context.getString(R.string.assistant_importer_missing_name_field))
         val firstMessage = data["first_mes"]?.jsonPrimitiveOrNull?.contentOrNull
         val system = data["system_prompt"]?.jsonPrimitiveOrNull?.contentOrNull
         val description = data["description"]?.jsonPrimitiveOrNull?.contentOrNull
@@ -197,7 +199,8 @@ private fun parseAssistantFromJson(
     json: JsonObject,
     background: String?,
 ): Assistant {
-    val spec = json["spec"]?.jsonPrimitive?.contentOrNull ?: error(context.getString(R.string.assistant_importer_missing_spec_field))
+    val spec = json["spec"]?.jsonPrimitive?.contentOrNull
+        ?: error(context.getString(R.string.assistant_importer_missing_spec_field))
     val parser = TAVERN_PARSERS[spec] ?: error(context.getString(R.string.assistant_importer_unsupported_spec, spec))
     return parser.parse(context = context, json = json, background = background)
 }
@@ -225,7 +228,8 @@ private suspend fun importAssistantFromUri(
 
                 "application/json" -> {
                     val json = context.contentResolver.openInputStream(uri)?.bufferedReader()
-                        .use { it?.readText() } ?: error(context.getString(R.string.assistant_importer_read_json_failed))
+                        .use { it?.readText() }
+                        ?: error(context.getString(R.string.assistant_importer_read_json_failed))
                     json to null
                 }
 
@@ -237,6 +241,9 @@ private suspend fun importAssistantFromUri(
         onImport(assistant)
     } catch (exception: Exception) {
         exception.printStackTrace()
-        toaster.show(exception.message ?: context.getString(R.string.assistant_importer_import_failed))
+        toaster.show(
+            message = exception.message ?: context.getString(R.string.assistant_importer_import_failed),
+            type = ToastType.Error
+        )
     }
 }

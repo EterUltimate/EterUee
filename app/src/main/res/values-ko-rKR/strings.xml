@@ -668,4 +668,16 @@
   <string name="placeholder_nickname">사용자 닉네임</string>
   <string name="placeholder_char">어시스턴트명</string>
   <string name="placeholder_user">사용자</string>
+
+  <!-- Assistant Importer -->
+  <string name="assistant_importer_importing">가져오는 중...</string>
+  <string name="assistant_importer_import_tavern_png">타번 캐릭터 카드 가져오기 (PNG)</string>
+  <string name="assistant_importer_import_tavern_json">타번 캐릭터 카드 가져오기 (JSON)</string>
+  <string name="assistant_importer_import_failed">가져오기 실패</string>
+  <string name="assistant_importer_missing_data_field">데이터 필드가 누락됨</string>
+  <string name="assistant_importer_missing_name_field">이름 필드가 누락됨</string>
+  <string name="assistant_importer_missing_spec_field">spec 필드가 누락됨</string>
+  <string name="assistant_importer_unsupported_spec">지원되지 않는 사양: %s</string>
+  <string name="assistant_importer_read_json_failed">JSON 읽기 실패</string>
+  <string name="assistant_importer_unsupported_file_type">지원되지 않는 파일 형식: %s</string>
 </resources>

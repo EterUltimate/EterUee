@@ -668,4 +668,16 @@
   <string name="placeholder_nickname">ユーザーニックネーム</string>
   <string name="placeholder_char">アシスタント名</string>
   <string name="placeholder_user">ユーザー</string>
+
+  <!-- Assistant Importer -->
+  <string name="assistant_importer_importing">インポート中...</string>
+  <string name="assistant_importer_import_tavern_png">タバーンキャラクターカードをインポート (PNG)</string>
+  <string name="assistant_importer_import_tavern_json">タバーンキャラクターカードをインポート (JSON)</string>
+  <string name="assistant_importer_import_failed">インポートに失敗しました</string>
+  <string name="assistant_importer_missing_data_field">データフィールドが不足しています</string>
+  <string name="assistant_importer_missing_name_field">名前フィールドが不足しています</string>
+  <string name="assistant_importer_missing_spec_field">specフィールドが不足しています</string>
+  <string name="assistant_importer_unsupported_spec">サポートされていない仕様: %s</string>
+  <string name="assistant_importer_read_json_failed">JSONの読み取りに失敗しました</string>
+  <string name="assistant_importer_unsupported_file_type">サポートされていないファイルタイプ: %s</string>
 </resources>

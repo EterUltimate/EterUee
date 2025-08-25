@@ -666,4 +666,16 @@
   <string name="placeholder_nickname">User Nickname</string>
   <string name="placeholder_char">Assistant Name</string>
   <string name="placeholder_user">User</string>
+
+  <!-- Assistant Importer -->
+  <string name="assistant_importer_importing">Importing...</string>
+  <string name="assistant_importer_import_tavern_png">Import Tavern Character Card (PNG)</string>
+  <string name="assistant_importer_import_tavern_json">Import Tavern Character Card (JSON)</string>
+  <string name="assistant_importer_import_failed">Import failed</string>
+  <string name="assistant_importer_missing_data_field">Missing data field</string>
+  <string name="assistant_importer_missing_name_field">Missing name field</string>
+  <string name="assistant_importer_missing_spec_field">Missing spec field</string>
+  <string name="assistant_importer_unsupported_spec">Unsupported spec: %s</string>
+  <string name="assistant_importer_read_json_failed">Failed to read JSON</string>
+  <string name="assistant_importer_unsupported_file_type">Unsupported file type: %s</string>
 </resources>

@@ -128,7 +128,7 @@ private fun SillyTavernImporter(
             enabled = !isLoading
         ) {
             AutoAIIcon(name = "tavern", modifier = Modifier.padding(end = 8.dp))
-            Text(if (isLoading) stringResource(R.string.assistant_importer_importing) else stringResource(R.string.assistant_importer_import_tavern_png))
+            Text(text = if (isLoading) stringResource(R.string.assistant_importer_importing) else stringResource(R.string.assistant_importer_import_tavern_png))
         }
 
         OutlinedButton(
@@ -138,7 +138,7 @@ private fun SillyTavernImporter(
             enabled = !isLoading
         ) {
             AutoAIIcon(name = "tavern", modifier = Modifier.padding(end = 8.dp))
-            Text(if (isLoading) stringResource(R.string.assistant_importer_importing) else stringResource(R.string.assistant_importer_import_tavern_json))
+            Text(text = if (isLoading) stringResource(R.string.assistant_importer_importing) else stringResource(R.string.assistant_importer_import_tavern_json))
         }
     }
 }
@@ -189,9 +189,17 @@ private class CharaCardV2Parser : TavernCardParser {
     }
 }
 
+private class CharaCardV3Parser : TavernCardParser {
+    override val specName: String = "chara_card_v3"
+
+    override fun parse(context: Context, json: JsonObject, background: String?): Assistant {
+        TODO("Not yet implemented")
+    }
+}
+
 private val TAVERN_PARSERS: Map<String, TavernCardParser> = listOf(
     CharaCardV2Parser(),
-    // 未来支持: CharaCardV3Parser()
+    CharaCardV3Parser()
 ).associateBy { it.specName }
 
 private fun parseAssistantFromJson(

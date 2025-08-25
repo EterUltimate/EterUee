@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
@@ -29,12 +30,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -72,6 +75,7 @@ import me.rerere.rikkahub.ui.components.ui.Select
 import me.rerere.rikkahub.ui.theme.JetbrainsMono
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.UiState
+import me.rerere.rikkahub.utils.insertAtCursor
 import me.rerere.rikkahub.utils.onError
 import me.rerere.rikkahub.utils.onSuccess
 import org.koin.compose.koinInject
@@ -105,17 +109,20 @@ fun AssistantPromptSubPage(
                     Text(stringResource(R.string.assistant_page_system_prompt))
                 },
             ) {
-                OutlinedTextField(
-                    value = assistant.systemPrompt,
-                    onValueChange = {
+                val systemPromptValue = rememberTextFieldState(
+                    initialText = assistant.systemPrompt,
+                )
+                LaunchedEffect(Unit) {
+                    snapshotFlow { systemPromptValue.text }.collect {
                         onUpdate(
                             assistant.copy(
-                                systemPrompt = it
+                                systemPrompt = it.toString()
                             )
                         )
-                    },
-                    minLines = 6,
-                    maxLines = 15,
+                    }
+                }
+                OutlinedTextField(
+                    state = systemPromptValue,
                     modifier = Modifier
                         .fillMaxWidth()
                         .onFocusChanged {
@@ -159,11 +166,7 @@ fun AssistantPromptSubPage(
                                 LinkAnnotation.Clickable(
                                     tag = k,
                                     linkInteractionListener = {
-                                        onUpdate(
-                                            assistant.copy(
-                                                systemPrompt = assistant.systemPrompt + "{{$k}}"
-                                            )
-                                        )
+                                        systemPromptValue.insertAtCursor("{{$k}}")
                                     }
                                 )) {
                                 withStyle(SpanStyle(color = MaterialTheme.extendColors.blue6)) {

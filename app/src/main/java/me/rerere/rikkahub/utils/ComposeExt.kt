@@ -3,6 +3,8 @@ package me.rerere.rikkahub.utils
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.insert
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
@@ -39,4 +41,10 @@ fun Dp.toSp(): TextUnit = with(LocalDensity.current) {
 @Composable
 fun TextUnit.toDp(): Dp = with(LocalDensity.current) {
     this@toDp.toDp()
+}
+
+fun TextFieldState.insertAtCursor(text: String) {
+    this.edit {
+        insert(selection.start, text)
+    }
 }

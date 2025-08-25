@@ -3,6 +3,7 @@ package me.rerere.rikkahub.ui.pages.assistant.detail
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -64,6 +65,7 @@ import me.rerere.ai.provider.Model
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.data.ai.transformers.DefaultPlaceholderProvider
 import me.rerere.rikkahub.data.ai.transformers.PlaceholderTransformer
 import me.rerere.rikkahub.data.ai.transformers.TemplateTransformer
 import me.rerere.rikkahub.data.model.Assistant
@@ -72,6 +74,7 @@ import me.rerere.rikkahub.data.model.toMessageNode
 import me.rerere.rikkahub.ui.components.message.ChatMessage
 import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.Select
+import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.theme.JetbrainsMono
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.UiState
@@ -156,29 +159,27 @@ fun AssistantPromptSubPage(
                     }
                 }
 
-                Text(
-                    text = buildAnnotatedString {
-                        append(stringResource(R.string.assistant_page_available_variables))
-                        PlaceholderTransformer.Placeholders.entries.forEach { (k, v) ->
-                            append(v)
-                            append(": ")
-                            withLink(
-                                LinkAnnotation.Clickable(
-                                    tag = k,
-                                    linkInteractionListener = {
-                                        systemPromptValue.insertAtCursor("{{$k}}")
-                                    }
-                                )) {
-                                withStyle(SpanStyle(color = MaterialTheme.extendColors.blue6)) {
-                                    append(k)
+                Column {
+                    Text(
+                        text = stringResource(R.string.assistant_page_available_variables),
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        DefaultPlaceholderProvider.placeholders.forEach { (k, info) ->
+                            Tag(
+                                onClick = {
+                                    systemPromptValue.insertAtCursor("{{$k}}")
                                 }
+                            ) {
+                                info.displayName()
+                                Text(": {{$k}}")
                             }
-                            append(", ")
                         }
-                    },
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
-                )
+                    }
+                }
             }
         }
 

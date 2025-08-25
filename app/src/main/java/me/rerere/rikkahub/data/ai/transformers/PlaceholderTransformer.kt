@@ -3,6 +3,8 @@ package me.rerere.rikkahub.data.ai.transformers
 import android.content.Context
 import android.os.BatteryManager
 import android.os.Build
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import me.rerere.ai.provider.Model
 import me.rerere.ai.ui.InputMessageTransformer
 import me.rerere.ai.ui.UIMessage
@@ -20,36 +22,117 @@ import java.time.temporal.Temporal
 import java.util.Locale
 import java.util.TimeZone
 
-object PlaceholderTransformer : InputMessageTransformer, KoinComponent {
-    val Placeholders = mapOf(
-        "cur_date" to "日期",
-        "cur_time" to "时间",
-        "cur_datetime" to "日期和时间",
-        "model_id" to "模型ID",
-        "model_name" to "模型名称",
-        "locale" to "语言环境",
-        "timezone" to "时区",
-        "system_version" to "系统版本",
-        "device_info" to "设备信息",
-        "battery_level" to "电池电量",
-        "nickname" to "用户昵称"
-    )
+data class PlaceholderCtx(
+    val context: Context,
+    val settingsStore: SettingsStore,
+    val model: Model
+)
 
-    private val placeholderResolvers: Map<String, (Context, SettingsStore, Model) -> String> = mapOf(
-        "cur_date" to { _, _, _ -> LocalDate.now().toDateString() },
-        "cur_time" to { _, _, _ -> LocalTime.now().toTimeString() },
-        "cur_datetime" to { _, _, _ -> LocalDateTime.now().toDateTimeString() },
-        "model_id" to { _, _, model -> model.modelId },
-        "model_name" to { _, _, model -> model.displayName },
-        "locale" to { _, _, _ -> Locale.getDefault().displayName },
-        "timezone" to { _, _, _ -> TimeZone.getDefault().displayName },
-        "system_version" to { _, _, _ -> "Android SDK v${Build.VERSION.SDK_INT} (${Build.VERSION.RELEASE})" },
-        "device_info" to { _, _, _ -> "${Build.BRAND} ${Build.MODEL}" },
-        "battery_level" to { context, _, _ -> context.batteryLevel().toString() },
-        "nickname" to { _, settingsStore, _ -> settingsStore.settingsFlow.value.displaySetting.userNickname.ifBlank { "user" } },
-        "char" to { _, settingsStore, _ -> settingsStore.settingsFlow.value.getCurrentAssistant().name.ifBlank { "assistant" } },
-        "user" to { _, settingsStore, _ -> settingsStore.settingsFlow.value.displaySetting.userNickname.ifBlank { "user" } },
-    )
+interface PlaceholderProvider {
+    val placeholders: Map<String, PlaceholderInfo>
+}
+
+data class PlaceholderInfo(
+    val displayName: @Composable () -> Unit,
+    val resolver: (PlaceholderCtx) -> String
+)
+
+class PlaceholderBuilder {
+    private val placeholders = mutableMapOf<String, PlaceholderInfo>()
+
+    fun placeholder(
+        key: String,
+        displayName: @Composable () -> Unit,
+        resolver: (PlaceholderCtx) -> String
+    ) {
+        placeholders[key] = PlaceholderInfo(displayName, resolver)
+    }
+
+    fun build(): Map<String, PlaceholderInfo> = placeholders.toMap()
+}
+
+fun buildPlaceholders(block: PlaceholderBuilder.() -> Unit): Map<String, PlaceholderInfo> {
+    return PlaceholderBuilder().apply(block).build()
+}
+
+object DefaultPlaceholderProvider : PlaceholderProvider {
+    override val placeholders: Map<String, PlaceholderInfo> = buildPlaceholders {
+        placeholder("cur_date", { Text("日期") }) {
+            LocalDate.now().toDateString()
+        }
+
+        placeholder("cur_time", { Text("时间") }) {
+            LocalTime.now().toTimeString()
+        }
+
+        placeholder("cur_datetime", { Text("日期和时间") }) {
+            LocalDateTime.now().toDateTimeString()
+        }
+
+        placeholder("model_id", { Text("模型ID") }) {
+            it.model.modelId
+        }
+
+        placeholder("model_name", { Text("模型名称") }) {
+            it.model.displayName
+        }
+
+        placeholder("locale", { Text("语言环境") }) {
+            Locale.getDefault().displayName
+        }
+
+        placeholder("timezone", { Text("时区") }) {
+            TimeZone.getDefault().displayName
+        }
+
+        placeholder("system_version", { Text("系统版本") }) {
+            "Android SDK v${Build.VERSION.SDK_INT} (${Build.VERSION.RELEASE})"
+        }
+
+        placeholder("device_info", { Text("设备信息") }) {
+            "${Build.BRAND} ${Build.MODEL}"
+        }
+
+        placeholder("battery_level", { Text("电池电量") }) {
+            it.context.batteryLevel().toString()
+        }
+
+        placeholder("nickname", { Text("用户昵称") }) {
+            it.settingsStore.settingsFlow.value.displaySetting.userNickname.ifBlank { "user" }
+        }
+
+        placeholder("char", { Text("助手名称") }) {
+            it.settingsStore.settingsFlow.value.getCurrentAssistant().name.ifBlank { "assistant" }
+        }
+
+        placeholder("user", { Text("用户") }) {
+            it.settingsStore.settingsFlow.value.displaySetting.userNickname.ifBlank { "user" }
+        }
+    }
+
+    private fun Temporal.toDateString() = DateTimeFormatter
+        .ofLocalizedDate(FormatStyle.MEDIUM)
+        .withLocale(Locale.getDefault())
+        .format(this)
+
+    private fun Temporal.toTimeString() = DateTimeFormatter
+        .ofLocalizedTime(FormatStyle.MEDIUM)
+        .withLocale(Locale.getDefault())
+        .format(this)
+
+    private fun Temporal.toDateTimeString() = DateTimeFormatter
+        .ofLocalizedDateTime(FormatStyle.MEDIUM)
+        .withLocale(Locale.getDefault())
+        .format(this)
+
+    private fun Context.batteryLevel(): Int {
+        val batteryManager = getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+        return batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+    }
+}
+
+object PlaceholderTransformer : InputMessageTransformer, KoinComponent {
+    private val defaultProvider = DefaultPlaceholderProvider
 
     override suspend fun transform(
         context: Context,
@@ -80,33 +163,14 @@ object PlaceholderTransformer : InputMessageTransformer, KoinComponent {
     ): String {
         var result = text
 
-        placeholderResolvers.forEach { (key, resolver) ->
-            val value = resolver(context, settingsStore, model)
+        val ctx = PlaceholderCtx(context, settingsStore, model)
+        defaultProvider.placeholders.forEach { (key, placeholderInfo) ->
+            val value = placeholderInfo.resolver(ctx)
             result = result
                 .replace("{{$key}}", value)
                 .replace("{$key}", value)
         }
 
         return result
-    }
-
-    private fun Temporal.toDateString() = DateTimeFormatter
-        .ofLocalizedDate(FormatStyle.MEDIUM)
-        .withLocale(Locale.getDefault())
-        .format(this)
-
-    private fun Temporal.toTimeString() = DateTimeFormatter
-        .ofLocalizedTime(FormatStyle.MEDIUM)
-        .withLocale(Locale.getDefault())
-        .format(this)
-
-    private fun Temporal.toDateTimeString() = DateTimeFormatter
-        .ofLocalizedDateTime(FormatStyle.MEDIUM)
-        .withLocale(Locale.getDefault())
-        .format(this)
-
-    private fun Context.batteryLevel(): Int {
-        val batteryManager = getSystemService(Context.BATTERY_SERVICE) as BatteryManager
-        return batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
     }
 }

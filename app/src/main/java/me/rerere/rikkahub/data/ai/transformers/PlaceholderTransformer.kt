@@ -169,8 +169,8 @@ object PlaceholderTransformer : InputMessageTransformer, KoinComponent {
         defaultProvider.placeholders.forEach { (key, placeholderInfo) ->
             val value = placeholderInfo.resolver(ctx)
             result = result
-                .replace("{{$key}}", value)
-                .replace("{$key}", value)
+                .replace(oldValue = "{{$key}}", newValue = value, ignoreCase = true)
+                .replace(oldValue = "{$key}", newValue = value, ignoreCase = true)
         }
 
         return result

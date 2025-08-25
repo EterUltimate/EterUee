@@ -89,20 +89,22 @@ private fun SillyTavernImporter(
                                 val personality = data["personality"]?.jsonPrimitiveOrNull?.contentOrNull
                                 val scenario = data["scenario"]?.jsonPrimitiveOrNull?.contentOrNull
 
-                                val prompt = """
-                                    You are roleplaying as ${name}.
-
-                                    ${system ?: ""}
-
-                                    ## Description of the character
-                                    ${description ?: "Empty"}
-
-                                    ## Personality of the character
-                                    ${personality ?: "Empty"}
-
-                                    ## Scenario
-                                    ${scenario ?: "Empty"}
-                                """.trimIndent()
+                                val prompt = buildString {
+                                    appendLine("You are roleplaying as $name.")
+                                    appendLine()
+                                    if (!system.isNullOrBlank()) {
+                                        appendLine(system)
+                                        appendLine()
+                                    }
+                                    appendLine("## Description of the character")
+                                    appendLine(description ?: "Empty")
+                                    appendLine()
+                                    appendLine("## Personality of the character")
+                                    appendLine(personality ?: "Empty")
+                                    appendLine()
+                                    appendLine("## Scenario")
+                                    append(scenario ?: "Empty")
+                                }
                                 val background = context.createChatFilesByContents(listOf(uri)).first()
 
                                 onImport(

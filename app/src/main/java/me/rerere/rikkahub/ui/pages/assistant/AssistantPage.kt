@@ -74,6 +74,7 @@ import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.hooks.EditState
 import me.rerere.rikkahub.ui.hooks.EditStateContent
 import me.rerere.rikkahub.ui.hooks.useEditState
+import me.rerere.rikkahub.ui.pages.assistant.detail.AssistantImporter
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.plus
 import org.koin.androidx.compose.koinViewModel
@@ -275,7 +276,13 @@ private fun AssistantCreationSheet(
                         )
                     }
 
-                    HorizontalDivider()
+                    AssistantImporter(
+                        onUpdate = {
+                            update(it)
+                            state.confirm()
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),

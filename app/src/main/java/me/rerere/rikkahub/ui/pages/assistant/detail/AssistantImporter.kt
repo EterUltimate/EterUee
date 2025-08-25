@@ -5,6 +5,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -28,6 +29,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import me.rerere.ai.ui.UIMessage
 import me.rerere.rikkahub.data.model.Assistant
+import me.rerere.rikkahub.ui.components.ui.AutoAIIcon
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.utils.ImageUtils
 import me.rerere.rikkahub.utils.createChatFilesByContents
@@ -35,7 +37,6 @@ import me.rerere.rikkahub.utils.jsonPrimitiveOrNull
 
 @Composable
 fun AssistantImporter(
-    assistant: Assistant,
     modifier: Modifier = Modifier,
     onUpdate: (Assistant) -> Unit,
 ) {
@@ -44,13 +45,12 @@ fun AssistantImporter(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier,
     ) {
-        SillyTavernImporter(assistant = assistant, onImport = onUpdate)
+        SillyTavernImporter(onImport = onUpdate)
     }
 }
 
 @Composable
 private fun SillyTavernImporter(
-    assistant: Assistant,
     onImport: (Assistant) -> Unit
 ) {
     val context = LocalContext.current
@@ -108,7 +108,7 @@ private fun SillyTavernImporter(
                                 val background = context.createChatFilesByContents(listOf(uri)).first()
 
                                 onImport(
-                                    assistant.copy(
+                                    Assistant(
                                         name = name,
                                         presetMessages = if (firstMessage != null) {
                                             listOf(UIMessage.assistant(firstMessage))
@@ -141,6 +141,7 @@ private fun SillyTavernImporter(
         },
         enabled = !isLoading
     ) {
+        AutoAIIcon(name = "tavern", modifier = Modifier.padding(end = 8.dp))
         Text(if (isLoading) "导入中..." else "导入酒馆角色卡")
     }
 }

@@ -30,6 +30,7 @@ import me.rerere.ai.ui.UIMessage
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.utils.ImageUtils
+import me.rerere.rikkahub.utils.createChatFilesByContents
 import me.rerere.rikkahub.utils.jsonPrimitiveOrNull
 
 @Composable
@@ -38,13 +39,13 @@ fun AssistantImporter(
     modifier: Modifier = Modifier,
     onUpdate: (Assistant) -> Unit,
 ) {
-//    Row(
-//        verticalAlignment = Alignment.CenterVertically,
-//        horizontalArrangement = Arrangement.spacedBy(8.dp),
-//        modifier = modifier,
-//    ) {
-//        SillyTavernImporter(assistant = assistant, onImport = onUpdate)
-//    }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier,
+    ) {
+        SillyTavernImporter(assistant = assistant, onImport = onUpdate)
+    }
 }
 
 @Composable
@@ -82,16 +83,40 @@ private fun SillyTavernImporter(
                                 val data = json["data"]?.jsonObject ?: error("Missing data field")
                                 val name =
                                     data["name"]?.jsonPrimitiveOrNull?.contentOrNull ?: error("Missing name field")
-                                val firstMessagfe = data["first_mes"]?.jsonPrimitiveOrNull?.contentOrNull
+                                val firstMessage = data["first_mes"]?.jsonPrimitiveOrNull?.contentOrNull
+                                val system = data["system_prompt"]?.jsonPrimitiveOrNull?.contentOrNull
+                                val description = data["description"]?.jsonPrimitiveOrNull?.contentOrNull
+                                val personality = data["personality"]?.jsonPrimitiveOrNull?.contentOrNull
+                                val scenario = data["scenario"]?.jsonPrimitiveOrNull?.contentOrNull
 
-                                onImport(assistant.copy(
-                                    name = name,
-                                    presetMessages = if (firstMessagfe != null) {
-                                        listOf(UIMessage.assistant( firstMessagfe))
-                                    } else {
-                                        emptyList()
-                                    },
-                                ))
+                                val prompt = """
+                                    You are roleplaying as ${name}.
+
+                                    ${system ?: ""}
+
+                                    ## Description of the character
+                                    ${description ?: "Empty"}
+
+                                    ## Personality of the character
+                                    ${personality ?: "Empty"}
+
+                                    ## Scenario
+                                    ${scenario ?: "Empty"}
+                                """.trimIndent()
+                                val background = context.createChatFilesByContents(listOf(uri)).first()
+
+                                onImport(
+                                    assistant.copy(
+                                        name = name,
+                                        presetMessages = if (firstMessage != null) {
+                                            listOf(UIMessage.assistant(firstMessage))
+                                        } else {
+                                            emptyList()
+                                        },
+                                        systemPrompt = prompt,
+                                        background = background.toString()
+                                    )
+                                )
                             }
                             // "chara_card_v3" -> {}
                             else -> error("Unsupported spec: $spec")

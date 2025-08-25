@@ -35,8 +35,8 @@ interface Provider<T : ProviderSetting> {
 @Serializable
 data class TextGenerationParams(
     val model: Model,
-    val temperature: Float? = 0.6f,
-    val topP: Float? = 1f,
+    val temperature: Float? = null,
+    val topP: Float? = null,
     val maxTokens: Int? = null,
     val tools: List<Tool> = emptyList(),
     val thinkingBudget: Int? = null,

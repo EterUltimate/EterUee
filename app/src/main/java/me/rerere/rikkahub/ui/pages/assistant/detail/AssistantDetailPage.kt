@@ -316,53 +316,67 @@ private fun AssistantBasicSettings(
                 label = {
                     Text(stringResource(R.string.assistant_page_temperature))
                 },
-            ) {
-                Slider(
-                    value = assistant.temperature,
-                    onValueChange = {
-                        onUpdate(
-                            assistant.copy(
-                                temperature = it.toFixed(2).toFloatOrNull() ?: 0.6f
+                tail = {
+                    Switch(
+                        checked = assistant.temperature != null,
+                        onCheckedChange = { enabled ->
+                            onUpdate(
+                                assistant.copy(
+                                    temperature = if (enabled) 1.0f else null
+                                )
                             )
-                        )
-                    },
-                    valueRange = 0f..2f,
-                    steps = 19,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    val currentTemperature = assistant.temperature
-                    val tagType = when (currentTemperature) {
-                        in 0.0f..0.3f -> TagType.INFO
-                        in 0.3f..1.0f -> TagType.SUCCESS
-                        in 1.0f..1.5f -> TagType.WARNING
-                        in 1.5f..2.0f -> TagType.ERROR
-                        else -> TagType.ERROR
-                    }
-                    Tag(
-                        type = TagType.INFO
+                        }
+                    )
+                }
+            ) {
+                if (assistant.temperature != null) {
+                    Slider(
+                        value = assistant.temperature,
+                        onValueChange = {
+                            onUpdate(
+                                assistant.copy(
+                                    temperature = it.toFixed(2).toFloatOrNull() ?: 0.6f
+                                )
+                            )
+                        },
+                        valueRange = 0f..2f,
+                        steps = 19,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(
-                            text = "$currentTemperature"
-                        )
-                    }
+                        val currentTemperature = assistant.temperature
+                        val tagType = when (currentTemperature) {
+                            in 0.0f..0.3f -> TagType.INFO
+                            in 0.3f..1.0f -> TagType.SUCCESS
+                            in 1.0f..1.5f -> TagType.WARNING
+                            in 1.5f..2.0f -> TagType.ERROR
+                            else -> TagType.ERROR
+                        }
+                        Tag(
+                            type = TagType.INFO
+                        ) {
+                            Text(
+                                text = "$currentTemperature"
+                            )
+                        }
 
-                    Tag(
-                        type = tagType
-                    ) {
-                        Text(
-                            text = when (currentTemperature) {
-                                in 0.0f..0.3f -> stringResource(R.string.assistant_page_strict)
-                                in 0.3f..1.0f -> stringResource(R.string.assistant_page_balanced)
-                                in 1.0f..1.5f -> stringResource(R.string.assistant_page_creative)
-                                in 1.5f..2.0f -> stringResource(R.string.assistant_page_chaotic)
-                                else -> "?"
-                            }
-                        )
+                        Tag(
+                            type = tagType
+                        ) {
+                            Text(
+                                text = when (currentTemperature) {
+                                    in 0.0f..0.3f -> stringResource(R.string.assistant_page_strict)
+                                    in 0.3f..1.0f -> stringResource(R.string.assistant_page_balanced)
+                                    in 1.0f..1.5f -> stringResource(R.string.assistant_page_creative)
+                                    in 1.5f..2.0f -> stringResource(R.string.assistant_page_chaotic)
+                                    else -> "?"
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -380,29 +394,43 @@ private fun AssistantBasicSettings(
                             append(stringResource(R.string.assistant_page_top_p_warning))
                         }
                     )
+                },
+                tail = {
+                    Switch(
+                        checked = assistant.topP != null,
+                        onCheckedChange = { enabled ->
+                            onUpdate(
+                                assistant.copy(
+                                    topP = if (enabled) 1.0f else null
+                                )
+                            )
+                        }
+                    )
                 }
             ) {
-                Slider(
-                    value = assistant.topP,
-                    onValueChange = {
-                        onUpdate(
-                            assistant.copy(
-                                topP = it.toFixed(2).toFloatOrNull() ?: 1.0f
+                assistant.topP?.let { topP ->
+                    Slider(
+                        value = topP,
+                        onValueChange = {
+                            onUpdate(
+                                assistant.copy(
+                                    topP = it.toFixed(2).toFloatOrNull() ?: 1.0f
+                                )
                             )
-                        )
-                    },
-                    valueRange = 0f..1f,
-                    steps = 0,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Text(
-                    text = stringResource(
-                        R.string.assistant_page_top_p_value,
-                        assistant.topP.toString()
-                    ),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
-                )
+                        },
+                        valueRange = 0f..1f,
+                        steps = 0,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        text = stringResource(
+                            R.string.assistant_page_top_p_value,
+                            topP.toString()
+                        ),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
+                    )
+                }
             }
         }
 

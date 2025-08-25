@@ -16,8 +16,8 @@ data class Assistant(
     val useAssistantAvatar: Boolean = false, // 使用助手头像替代模型头像
     val tags: List<Uuid> = emptyList(),
     val systemPrompt: String = "",
-    val temperature: Float = 1.0f,
-    val topP: Float = 1.0f,
+    val temperature: Float? = null,
+    val topP: Float? = null,
     val contextMessageSize: Int = 64,
     val streamOutput: Boolean = true,
     val enableMemory: Boolean = false,

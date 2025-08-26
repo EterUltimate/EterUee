@@ -315,6 +315,8 @@
   <string name="setting_display_page_show_user_avatar_desc">채팅 메시지에 사용자 아바타를 표시할지 여부</string>
   <string name="setting_display_page_chat_list_model_icon_title">채팅 목록 모델 아이콘</string>
   <string name="setting_display_page_chat_list_model_icon_desc">채팅 목록 메시지에 모델 아이콘을 표시할지 여부</string>
+  <string name="setting_display_page_show_model_name_title">모델 이름 표시</string>
+  <string name="setting_display_page_show_model_name_desc">채팅 메시지에 모델 이름을 표시할지 여부</string>
   <string name="setting_display_page_show_token_usage_title">토큰 및 컨텍스트 통계 표시</string>
   <string name="setting_display_page_show_token_usage_desc">토큰 사용량과 메시지 수를 표시합니다</string>
   <string name="setting_display_page_auto_collapse_thinking_title">사고 자동 접기</string>

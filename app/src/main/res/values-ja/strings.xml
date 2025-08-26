@@ -289,6 +289,8 @@
   <string name="setting_display_page_show_user_avatar_desc">チャットメッセージにユーザーアバターを表示するかどうか</string>
   <string name="setting_display_page_chat_list_model_icon_title">チャットリストのモデルアイコン</string>
   <string name="setting_display_page_chat_list_model_icon_desc">チャットリストのメッセージにモデルアイコンを表示するかどうか</string>
+  <string name="setting_display_page_show_model_name_title">モデル名を表示</string>
+  <string name="setting_display_page_show_model_name_desc">チャットメッセージにモデル名を表示するかどうか</string>
   <string name="setting_display_page_show_token_usage_title">トークンとコンテキスト統計を表示</string>
   <string name="setting_display_page_show_token_usage_desc">トークン使用量とメッセージ数を表示</string>
   <string name="setting_display_page_auto_collapse_thinking_title">思考を自動折りたたむ</string>

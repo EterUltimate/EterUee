@@ -322,6 +322,7 @@ data class DisplaySetting(
     val userNickname: String = "",
     val showUserAvatar: Boolean = true,
     val showModelIcon: Boolean = true,
+    val showModelName: Boolean = true,
     val showTokenUsage: Boolean = true,
     val autoCloseThinking: Boolean = true,
     val showUpdates: Boolean = true,

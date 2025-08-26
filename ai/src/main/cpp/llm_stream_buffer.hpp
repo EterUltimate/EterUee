@@ -7,11 +7,9 @@
 class LlmStreamBuffer : public std::streambuf {
 public:
     using CallBack = std::function<void(const char *str, size_t len)>;;
-
     explicit LlmStreamBuffer(CallBack
-    callback) :
-            callback_(std::move(callback)) {
-    }
+                             callback) :
+            callback_(std::move(callback)) {}
 
 protected:
 

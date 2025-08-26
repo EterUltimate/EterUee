@@ -308,9 +308,7 @@ class ChatCompletionsAPI(
 
                     "api.siliconflow.cn" -> {
                         // https://docs.siliconflow.cn/cn/userguide/capabilities/reasoning#3-1-api-%E5%8F%82%E6%95%B0
-                        if (level == ReasoningLevel.OFF) {
-                            put("enable_thinking", level.isEnabled)
-                        }
+                        put("enable_thinking", level.isEnabled)
                     }
 
                     else -> {

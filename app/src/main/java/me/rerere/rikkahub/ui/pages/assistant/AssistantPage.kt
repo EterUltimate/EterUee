@@ -247,14 +247,12 @@ private fun AssistantCreationSheet(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(300.dp)
                     .padding(horizontal = 16.dp, vertical = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
+                        .fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {

@@ -193,7 +193,37 @@ private class CharaCardV3Parser : TavernCardParser {
     override val specName: String = "chara_card_v3"
 
     override fun parse(context: Context, json: JsonObject, background: String?): Assistant {
-        TODO("Not yet implemented")
+        val data = json["data"]?.jsonObject ?: error(context.getString(R.string.assistant_importer_missing_data_field))
+        val name = data["name"]?.jsonPrimitiveOrNull?.contentOrNull ?: error(context.getString(R.string.assistant_importer_missing_name_field))
+        val description = data["description"]?.jsonPrimitiveOrNull?.contentOrNull
+        val firstMessage = data["first_mes"]?.jsonPrimitiveOrNull?.contentOrNull
+        val system = data["system_prompt"]?.jsonPrimitiveOrNull?.contentOrNull
+        val personality = data["personality"]?.jsonPrimitiveOrNull?.contentOrNull
+        val scenario = data["scenario"]?.jsonPrimitiveOrNull?.contentOrNull
+
+        val prompt = buildString {
+            appendLine("You are roleplaying as $name.")
+            appendLine()
+            if (!system.isNullOrBlank()) {
+                appendLine(system)
+                appendLine()
+            }
+            appendLine("## Description of the character")
+            appendLine(description ?: "Empty")
+            appendLine()
+            appendLine("## Personality of the character")
+            appendLine(personality ?: "Empty")
+            appendLine()
+            appendLine("## Scenario")
+            append(scenario ?: "Empty")
+        }
+
+        return Assistant(
+            name = name,
+            presetMessages = if (firstMessage != null) listOf(UIMessage.assistant(firstMessage)) else emptyList(),
+            systemPrompt = prompt,
+            background = background
+        )
     }
 }
 

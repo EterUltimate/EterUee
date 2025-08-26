@@ -219,13 +219,58 @@ private fun ColumnScope.ModelList(
 
     val favoriteModels = settings.value.favoriteModels.mapNotNull { modelId ->
         val model = settings.value.providers.findModelById(modelId) ?: return@mapNotNull null
+        if (model.type != modelType) return@mapNotNull null
         val provider = model.findProvider(providers = settings.value.providers, checkOverwrite = false) ?: return@mapNotNull null
         model to provider
     }
 
     var searchKeywords by remember { mutableStateOf("") }
 
-    val lazyListState = rememberLazyListState()
+    // 计算当前选中模型的位置
+    val selectedModelPosition = remember(currentModel, favoriteModels, providers, modelType) {
+        if (currentModel == null) return@remember 0
+        
+        var position = 0
+        
+        // 跳过无providers提示
+        if (providers.isEmpty()) {
+            position += 1
+        }
+        
+        // 检查是否在收藏列表中
+        val favoriteIndex = favoriteModels.indexOfFirst { it.first.id == currentModel }
+        if (favoriteIndex >= 0) {
+            if (favoriteModels.isNotEmpty()) {
+                position += 1 // favorite header
+            }
+            position += favoriteIndex
+            return@remember position
+        }
+        
+        // 跳过收藏列表
+        if (favoriteModels.isNotEmpty()) {
+            position += 1 // favorite header
+            position += favoriteModels.size
+        }
+        
+        // 在providers中查找
+        for (provider in providers) {
+            position += 1 // provider header
+            val models = provider.models.filter { it.type == modelType }
+            val modelIndex = models.indexOfFirst { it.id == currentModel }
+            if (modelIndex >= 0) {
+                position += modelIndex
+                return@remember position
+            }
+            position += models.size
+        }
+        
+        0
+    }
+    
+    val lazyListState = rememberLazyListState(
+        initialFirstVisibleItemIndex = selectedModelPosition
+    )
     val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
         // 计算favorite models在列表中的位置偏移
         var favoriteStartIndex = 0

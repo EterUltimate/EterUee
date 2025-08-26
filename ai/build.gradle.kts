@@ -59,18 +59,22 @@ dependencies {
     implementation(project(":common"))
     implementation(project(":search"))
 
+    // Compose
     implementation(libs.androidx.core.ktx)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.material3)
 
+    // okhttp
     api(libs.okhttp)
     api(libs.okhttp.sse)
     api(libs.okhttp.logging)
 
+    // kotlinx
     api(libs.kotlinx.serialization.json)
     api(libs.kotlinx.coroutines.core)
     api(libs.kotlinx.datetime)
 
+    // tests
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

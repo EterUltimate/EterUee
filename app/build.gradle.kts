@@ -170,7 +170,7 @@ dependencies {
 
     // Image metadata extractor
     // https://github.com/drewnoakes/metadata-extractor
-    implementation("com.drewnoakes:metadata-extractor:2.19.0")
+    implementation(libs.metadata.extractor)
 
     // koin
     implementation(platform(libs.koin.bom))

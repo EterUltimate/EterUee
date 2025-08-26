@@ -59,7 +59,8 @@ Technology stack documentation:
 - [compose-icons/lucide](https://composeicons.com/icon-libraries/lucide) (Icon library)
 
 > [!TIP]
-> You need a `google-services.json` file at `app` folder to build the app.
+> 1. You need a `google-services.json` file at `app` folder to build the app.
+> 2. You need to setup MNN environment and build it before building the app. check [ai/README.md](ai/README.md)
 
 > [!IMPORTANT]  
 > The following PRs will be rejected: 

@@ -1,10 +1,12 @@
 package me.rerere.rikkahub.ui.pages.chat
 
 import android.app.Application
+import android.os.Bundle
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.analytics.FirebaseAnalytics
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -105,6 +107,7 @@ class ChatVM(
     private val localTools: LocalTools,
     val mcpManager: McpManager,
     val updateChecker: UpdateChecker,
+    private val analytics: FirebaseAnalytics,
 ) : ViewModel() {
     private val _conversationId: Uuid = Uuid.parse(id)
     private val _conversation = MutableStateFlow(Conversation.ofId(_conversationId))
@@ -222,6 +225,7 @@ class ChatVM(
             }, required = listOf("query")
         ),
         execute = {
+            analytics.logEvent("ai_search_web", null)
             val query = it.jsonObject["query"]!!.jsonPrimitive.content
             val options = settings.value.searchServices.getOrElse(
                 index = settings.value.searchServiceSelected,
@@ -287,6 +291,8 @@ class ChatVM(
 
     fun handleMessageSend(content: List<UIMessagePart>) {
         if (content.isEmptyInputMessage()) return
+
+        analytics.logEvent("ai_send_message", null)
 
         this.conversationJob.value?.cancel()
         val job = viewModelScope.launch {
@@ -444,6 +450,14 @@ class ChatVM(
                         updateAt = Instant.now()
                     )
                 )
+
+                val usage = conversation.value.currentMessages.lastOrNull()?.usage
+                analytics.logEvent("ai_generated_done", Bundle().apply {
+                    putInt("inputTokens", usage?.promptTokens ?: 0)
+                    putInt("outputTokens", usage?.completionTokens ?: 0)
+                    putInt("cachedTokens", usage?.cachedTokens ?: 0)
+                    putInt("totalTokens", usage?.totalTokens ?: 0)
+                })
             }.collect { chunk ->
                 when (chunk) {
                     is GenerationChunk.Messages -> {
@@ -602,6 +616,7 @@ class ChatVM(
     fun regenerateAtMessage(
         message: UIMessage, regenerateAssistantMsg: Boolean = true
     ) {
+        analytics.logEvent("ai_regenerate_at_message", null)
         viewModelScope.launch {
             if (message.role == MessageRole.USER) {
                 // 如果是用户消息，则截止到当前消息

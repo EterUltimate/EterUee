@@ -549,11 +549,9 @@ fun MarkdownNode(
 
         MarkdownElementTypes.HTML_BLOCK -> {
             val text = node.getTextInNode(content)
-            HighlightText(
-                code = text,
-                modifier = modifier,
-                language = "html",
-                fontFamily = JetbrainsMono,
+            SimpleHtmlBlock(
+                html = text,
+                modifier = modifier
             )
         }
 

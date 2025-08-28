@@ -431,6 +431,7 @@
   <string name="setting_provider_page_configure_provider_override">配置提供商覆寫</string>
   <string name="setting_provider_page_service_account_email">服務帳戶郵箱</string>
   <string name="setting_provider_page_private_key">私鑰</string>
+  <string name="setting_provider_page_response_api_warning">Response API是OpenAI新一代API，大部分提供商並不支持，如果你不知道這是什麼，不要開啟</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">創建了記憶</string>

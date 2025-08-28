@@ -434,6 +434,7 @@
   <string name="setting_provider_page_configure_provider_override">プロバイダーオーバーライドを構成</string>
   <string name="setting_provider_page_service_account_email">サービスアカウントメール</string>
   <string name="setting_provider_page_private_key">秘密鍵</string>
+  <string name="setting_provider_page_response_api_warning">Response APIはOpenAIの次世代APIです。ほとんどのプロバイダーはサポートしていません。これが何かわからない場合は、有効にしないでください。</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">記憶を作成しました</string>

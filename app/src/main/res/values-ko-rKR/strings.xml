@@ -463,6 +463,7 @@
   <string name="setting_provider_page_configure_provider_override">제공업체 재정의 구성</string>
   <string name="setting_provider_page_service_account_email">서비스 계정 이메일</string>
   <string name="setting_provider_page_private_key">개인 키</string>
+  <string name="setting_provider_page_response_api_warning">Response API는 OpenAI의 차세대 API입니다. 대부분의 제공업체에서 지원하지 않습니다. 이것이 무엇인지 모르는 경우 활성화하지 마세요.</string>
 
   <!-- TTS Settings -->
   <string name="setting_tts_page_title">텍스트-음성</string>

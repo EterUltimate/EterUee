@@ -443,6 +443,7 @@
   <string name="setting_provider_page_configure_provider_override">配置提供商重写</string>
   <string name="setting_provider_page_service_account_email">服务账户邮箱</string>
   <string name="setting_provider_page_private_key">私钥</string>
+  <string name="setting_provider_page_response_api_warning">Response API是OpenAI新一代API，大部分提供商并不支持，如果你不知道这是什么，不要开启</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">创建了记忆</string>

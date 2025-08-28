@@ -310,11 +310,11 @@ private fun InputBar(
             value = prompt,
             onValueChange = vm::updatePrompt,
             placeholder = { Text(stringResource(R.string.imggen_page_prompt_placeholder)) },
-            modifier = Modifier
-                .weight(1f),
+            modifier = Modifier.weight(1f),
             minLines = 1,
             maxLines = 5,
-            shape = CircleShape,
+            shape = MaterialTheme.shapes.large,
+            textStyle = MaterialTheme.typography.bodySmall,
         )
 
         FilledTonalIconButton(

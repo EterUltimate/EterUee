@@ -12,13 +12,12 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import me.rerere.ai.util.await
+import me.rerere.common.http.await
 import me.rerere.rikkahub.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.Request
 
 private const val API_URL = "https://updates.rikka-ai.com/"
-// private const val REPO_URL = "https://github.com/re-ovo/rikkahub"
 
 class UpdateChecker(private val client: OkHttpClient) {
     private val json = Json { ignoreUnknownKeys = true }
@@ -39,7 +38,7 @@ class UpdateChecker(private val client: OkHttpClient) {
                             .build()
                     ).await()
                     if (response.isSuccessful) {
-                        json.decodeFromString<UpdateInfo>(response.body!!.string())
+                        json.decodeFromString<UpdateInfo>(response.body.string())
                     } else {
                         throw Exception("Failed to fetch update info")
                     }

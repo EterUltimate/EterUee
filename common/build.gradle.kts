@@ -33,13 +33,23 @@ android {
 }
 
 dependencies {
+    // okhttp
+    api(libs.okhttp)
+    api(libs.okhttp.sse)
+    api(libs.okhttp.logging)
+
+    // kotlinx
+    api(libs.kotlinx.serialization.json)
+    api(libs.kotlinx.coroutines.core)
+    api(libs.kotlinx.datetime)
+
+    // apache commons
     api(libs.commons.text)
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.okhttp)
-    implementation(libs.okhttp.sse)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

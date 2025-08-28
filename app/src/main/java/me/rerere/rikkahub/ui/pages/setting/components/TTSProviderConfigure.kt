@@ -51,6 +51,7 @@ fun TTSProviderConfigure(
                         is TTSProviderSetting.OpenAI -> "OpenAI"
                         is TTSProviderSetting.Gemini -> "Gemini"
                         is TTSProviderSetting.SystemTTS -> "System TTS"
+                        is TTSProviderSetting.MiniMax -> "MiniMax"
                     },
                     onValueChange = {},
                     readOnly = true,
@@ -124,6 +125,7 @@ fun TTSProviderConfigure(
         when (setting) {
             is TTSProviderSetting.OpenAI -> OpenAITTSConfiguration(setting, onValueChange)
             is TTSProviderSetting.Gemini -> GeminiTTSConfiguration(setting, onValueChange)
+            is TTSProviderSetting.MiniMax -> MiniMaxTTSConfiguration(setting, onValueChange)
             is TTSProviderSetting.SystemTTS -> SystemTTSConfiguration(setting, onValueChange)
         }
     }
@@ -219,6 +221,14 @@ private fun OpenAITTSConfiguration(
             }
         }
     }
+}
+
+@Composable
+private fun MiniMaxTTSConfiguration(
+    setting: TTSProviderSetting.MiniMax,
+    onValueChange: (TTSProviderSetting) -> Unit
+) {
+
 }
 
 @Composable

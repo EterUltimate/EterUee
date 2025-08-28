@@ -14,7 +14,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
-import me.rerere.ai.util.await
+import me.rerere.common.http.await
 import me.rerere.rikkahub.data.mcp.McpJson
 import okhttp3.Headers
 import okhttp3.MediaType.Companion.toMediaType

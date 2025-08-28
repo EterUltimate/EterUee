@@ -287,7 +287,13 @@ private fun ColumnScope.ProviderConfigureGoogle(
             label = {
                 Text(stringResource(id = R.string.setting_provider_page_api_base_url))
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            isError = !provider.baseUrl.endsWith("/v1beta"),
+            supportingText = if (!provider.baseUrl.endsWith("/v1beta")) {
+                {
+                    Text("The base URL usually ends with `/v1beta`")
+                }
+            } else null
         )
     } else {
         OutlinedTextField(

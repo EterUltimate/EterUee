@@ -58,7 +58,7 @@ object LinkUpService : SearchService<SearchServiceOptions.LinkUpOptions> {
             val query = params["query"]?.jsonPrimitive?.content ?: error("query is required")
             val body = buildJsonObject {
                 put("q", JsonPrimitive(query))
-                put("depth", JsonPrimitive("standard"))
+                put("depth", JsonPrimitive(serviceOptions.depth))
                 put("outputType", JsonPrimitive("sourcedAnswer"))
                 put("includeImages", JsonPrimitive("false"))
             }

@@ -279,7 +279,7 @@ private fun SearchProviderCard(
                 }
 
                 is SearchServiceOptions.LinkUpOptions -> {
-                    SearchLinkUpPage(options as SearchServiceOptions.LinkUpOptions) {
+                    SearchLinkUpOptions(options as SearchServiceOptions.LinkUpOptions) {
                         options = it
                         onUpdateService(options)
                     }
@@ -356,7 +356,7 @@ private fun TavilyOptions(
             modifier = Modifier.fillMaxWidth()
         )
     }
-    
+
     FormItem(
         label = {
             Text("Depth")
@@ -571,7 +571,7 @@ private fun SearXNGOptions(
 }
 
 @Composable
-private fun SearchLinkUpPage(
+private fun SearchLinkUpOptions(
     options: SearchServiceOptions.LinkUpOptions,
     onUpdateOptions: (SearchServiceOptions.LinkUpOptions) -> Unit
 ) {
@@ -591,6 +591,33 @@ private fun SearchLinkUpPage(
             },
             modifier = Modifier.fillMaxWidth()
         )
+    }
+
+    FormItem(
+        label = {
+            Text("Depth")
+        }
+    ) {
+        val depthOptions = listOf("standard", "deep")
+        SingleChoiceSegmentedButtonRow(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            depthOptions.forEachIndexed { index, depth ->
+                SegmentedButton(
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = depthOptions.size),
+                    onClick = {
+                        onUpdateOptions(
+                            options.copy(
+                                depth = depth
+                            )
+                        )
+                    },
+                    selected = options.depth == depth
+                ) {
+                    Text(depth.replaceFirstChar { it.uppercase() })
+                }
+            }
+        }
     }
 }
 

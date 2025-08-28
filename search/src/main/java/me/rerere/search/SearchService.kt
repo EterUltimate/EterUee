@@ -140,6 +140,7 @@ sealed class SearchServiceOptions {
     data class LinkUpOptions(
         override val id: Uuid = Uuid.random(),
         val apiKey: String = "",
+        val depth: String = "standard",
     ) : SearchServiceOptions()
 
     @Serializable

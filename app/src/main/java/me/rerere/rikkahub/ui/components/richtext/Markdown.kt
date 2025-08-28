@@ -28,8 +28,13 @@ import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,6 +66,12 @@ import androidx.compose.ui.util.fastForEach
 import androidx.core.net.toUri
 import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.Lucide
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import me.rerere.highlight.HighlightText
 import me.rerere.rikkahub.ui.components.table.ColumnDefinition
 import me.rerere.rikkahub.ui.components.table.ColumnWidth
@@ -169,14 +180,30 @@ fun MarkdownBlock(
     style: TextStyle = LocalTextStyle.current,
     onClickCitation: (String) -> Unit = {}
 ) {
-    val preprocessed = remember(content) { preProcess(content) }
-    val astTree = remember(preprocessed) {
-        parser.buildMarkdownTreeFromString(preprocessed)
-//            .also {
-//                dumpAst(it, preprocessed) // for debugging ast tree
-//            }
+    var (data, setData) = remember {
+        val preprocessed = preProcess(content)
+        val astTree = parser.buildMarkdownTreeFromString(preprocessed)
+        mutableStateOf(preprocessed to astTree)
     }
 
+    // 监听内容变化，重新解析AST树
+    // 这里在后台线程解析AST树, 防止频繁更新的时候掉帧
+    LaunchedEffect(Unit) {
+        snapshotFlow { content }
+            .mapLatest {
+                val preprocessed = preProcess(it)
+                val astTree = parser.buildMarkdownTreeFromString(preprocessed)
+                ensureActive()
+                preprocessed to astTree
+            }
+            .flowOn(Dispatchers.Default) // 在后台线程解析AST树
+            .catch { exception -> exception.printStackTrace() }
+            .collect {
+                setData(it)
+            }
+    }
+
+    val (preprocessed, astTree) = data
     ProvideTextStyle(style) {
         Column(
             modifier = modifier.padding(start = 4.dp)
@@ -239,7 +266,7 @@ object HeaderStyle {
 }
 
 @Composable
-fun MarkdownNode(
+private fun MarkdownNode(
     node: ASTNode,
     content: String,
     modifier: Modifier = Modifier,
@@ -463,7 +490,9 @@ fun MarkdownNode(
                 ZoomableAsyncImage(
                     model = imageUrl,
                     contentDescription = altText,
-                    modifier = Modifier.widthIn(min = 120.dp).heightIn(min = 120.dp),
+                    modifier = Modifier
+                        .widthIn(min = 120.dp)
+                        .heightIn(min = 120.dp),
                 )
             }
         }

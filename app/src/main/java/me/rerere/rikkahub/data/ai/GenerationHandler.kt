@@ -290,15 +290,17 @@ class GenerationHandler(
         Tool(
             name = "create_memory",
             description = "create a memory record",
-            parameters = InputSchema.Obj(
-                properties = buildJsonObject {
-                    put("content", buildJsonObject {
-                        put("type", "string")
-                        put("description", "The content of the memory record")
-                    })
-                },
-                required = listOf("content")
-            ),
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("content", buildJsonObject {
+                            put("type", "string")
+                            put("description", "The content of the memory record")
+                        })
+                    },
+                    required = listOf("content")
+                )
+            },
             execute = {
                 val params = it.jsonObject
                 val content =
@@ -309,19 +311,21 @@ class GenerationHandler(
         Tool(
             name = "edit_memory",
             description = "update a memory record",
-            parameters = InputSchema.Obj(
-                properties = buildJsonObject {
-                    put("id", buildJsonObject {
-                        put("type", "integer")
-                        put("description", "The id of the memory record")
-                    })
-                    put("content", buildJsonObject {
-                        put("type", "string")
-                        put("description", "The content of the memory record")
-                    })
-                },
-                required = listOf("id", "content"),
-            ),
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("id", buildJsonObject {
+                            put("type", "integer")
+                            put("description", "The id of the memory record")
+                        })
+                        put("content", buildJsonObject {
+                            put("type", "string")
+                            put("description", "The content of the memory record")
+                        })
+                    },
+                    required = listOf("id", "content"),
+                )
+            },
             execute = {
                 val params = it.jsonObject
                 val id = params["id"]?.jsonPrimitive?.intOrNull ?: error("id is required")
@@ -335,15 +339,17 @@ class GenerationHandler(
         Tool(
             name = "delete_memory",
             description = "delete a memory record",
-            parameters = InputSchema.Obj(
-                properties = buildJsonObject {
-                    put("id", buildJsonObject {
-                        put("type", "integer")
-                        put("description", "The id of the memory record")
-                    })
-                },
-                required = listOf("id")
-            ),
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("id", buildJsonObject {
+                            put("type", "integer")
+                            put("description", "The id of the memory record")
+                        })
+                    },
+                    required = listOf("id")
+                )
+            },
             execute = {
                 val params = it.jsonObject
                 val id = params["id"]?.jsonPrimitive?.intOrNull ?: error("id is required")

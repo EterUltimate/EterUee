@@ -10,7 +10,7 @@ import me.rerere.ai.provider.Model
 data class Tool(
     val name: String,
     val description: String,
-    val parameters: InputSchema? = null,
+    val parameters: () -> InputSchema? = { null },
     val systemPrompt: (model: Model) -> String = { "" },
     val execute: suspend (JsonElement) -> JsonElement
 )

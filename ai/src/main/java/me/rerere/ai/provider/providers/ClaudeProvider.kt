@@ -306,7 +306,7 @@ class ClaudeProvider(private val client: OkHttpClient) : Provider<ProviderSettin
                         add(buildJsonObject {
                             put("name", tool.name)
                             put("description", tool.description)
-                            put("input_schema", json.encodeToJsonElement(tool.parameters))
+                            put("input_schema", json.encodeToJsonElement(tool.parameters()))
                         })
                     }
                 }

@@ -26,14 +26,16 @@ class LocalTools(private val context: Context) {
         Tool(
             name = "eval_javascript",
             description = "Execute JavaScript code with QuickJS. If use this tool to calculate math, better to add `toFixed` to the code.",
-            parameters = InputSchema.Obj(
-                properties = buildJsonObject {
-                    put("code", buildJsonObject {
-                        put("type", "string")
-                        put("description", "The JavaScript code to execute")
-                    })
-                },
-            ),
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("code", buildJsonObject {
+                            put("type", "string")
+                            put("description", "The JavaScript code to execute")
+                        })
+                    },
+                )
+            },
             execute = {
                 val context = QuickJSContext.create()
                 val code = it.jsonObject["code"]?.jsonPrimitive?.contentOrNull

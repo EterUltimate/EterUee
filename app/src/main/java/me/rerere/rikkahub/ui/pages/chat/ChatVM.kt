@@ -216,14 +216,16 @@ class ChatVM(
     private val searchTool = Tool(
         name = "search_web",
         description = "search web for information",
-        parameters = InputSchema.Obj(
-            buildJsonObject {
-                put("query", buildJsonObject {
-                    put("type", "string")
-                    put("description", "search keyword")
-                })
-            }, required = listOf("query")
-        ),
+        parameters = {
+            InputSchema.Obj(
+                buildJsonObject {
+                    put("query", buildJsonObject {
+                        put("type", "string")
+                        put("description", "search keyword")
+                    })
+                }, required = listOf("query")
+            )
+        },
         execute = {
             analytics.logEvent("ai_search_web", null)
             val query = it.jsonObject["query"]!!.jsonPrimitive.content
@@ -249,7 +251,7 @@ class ChatVM(
                 }
             results
         }, systemPrompt = { model ->
-            if(model.tools.isNotEmpty()) return@Tool  ""
+            if (model.tools.isNotEmpty()) return@Tool ""
             """
             ## search_web 工具使用说明
 
@@ -431,10 +433,11 @@ class ChatVM(
                             Tool(
                                 name = tool.name,
                                 description = tool.description ?: "",
-                                parameters = tool.inputSchema,
+                                parameters = { tool.inputSchema },
                                 execute = {
                                     mcpManager.callTool(tool.name, it.jsonObject)
-                                })
+                                },
+                            )
                         )
                     }
                 },

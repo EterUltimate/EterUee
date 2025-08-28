@@ -209,7 +209,7 @@ class ResponseAPI(private val client: OkHttpClient) : OpenAIImpl {
                             put(
                                 "parameters",
                                 json.encodeToJsonElement(
-                                    tool.parameters
+                                    tool.parameters()
                                 )
                             )
                         })

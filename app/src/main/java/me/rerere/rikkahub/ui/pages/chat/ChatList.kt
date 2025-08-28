@@ -73,6 +73,7 @@ import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.model.MessageNode
 import me.rerere.rikkahub.ui.components.message.ChatMessage
 import me.rerere.rikkahub.ui.components.ui.ListSelectableItem
+import me.rerere.rikkahub.ui.hooks.ImeLazyListAutoScroller
 import me.rerere.rikkahub.utils.plus
 import kotlin.uuid.Uuid
 
@@ -143,6 +144,9 @@ fun ChatList(
                 isRecentScroll = false
             }
         }
+
+        // 自动跟随键盘滚动
+        ImeLazyListAutoScroller(lazyListState = state)
 
         LazyColumn(
             state = state,

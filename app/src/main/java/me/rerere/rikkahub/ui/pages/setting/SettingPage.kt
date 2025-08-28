@@ -292,7 +292,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                     description = { Text(stringResource(R.string.setting_page_documentation_desc)) },
                     icon = { Icon(Lucide.Library, stringResource(R.string.setting_page_documentation)) },
                     onClick = {
-                        context.openUrl("https://rikka-ai.com/docs/basic/get-started.html")
+                        context.openUrl("https://docs.rikka-ai.com/docs/basic/get-started")
                     }
                 )
             }

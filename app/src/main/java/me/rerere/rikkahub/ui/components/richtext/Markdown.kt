@@ -227,7 +227,6 @@ fun MarkdownBlock(
             .flowOn(Dispatchers.Default) // 在后台线程解析AST树
             .collect {
                 setData(it)
-                println("setData:${it.first}")
             }
     }
 

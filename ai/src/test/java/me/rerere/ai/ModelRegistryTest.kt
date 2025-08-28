@@ -1,5 +1,6 @@
 package me.rerere.ai
 
+import me.rerere.ai.provider.Modality
 import me.rerere.ai.registry.ModelRegistry
 import org.junit.Test
 
@@ -15,5 +16,15 @@ class ModelRegistryTest {
         assert(!ModelRegistry.GPT_5.match("gpt-4o"))
         assert(!ModelRegistry.GPT_5.match("gpt-5.0"))
         assert(!ModelRegistry.GPT_5.match("gpt-6"))
+    }
+
+    @Test
+    fun testGemini25() {
+        assert(ModelRegistry.GEMINI_2_5_FLASH.match("gemini-2.5-flash"))
+        assert(!ModelRegistry.GEMINI_2_5_FLASH.match("gemini-2.5-pro"))
+        assert(!ModelRegistry.GEMINI_2_5_FLASH.match("gemini-2.5-flash-image-preview"))
+        assert(ModelRegistry.GEMINI_2_5_IMAGE.match("gemini-2.5-flash-image"))
+        assert(ModelRegistry.MODEL_OUTPUT_MODALITIES.getData("gemini-2.5-flash-image") == listOf(Modality.TEXT, Modality.IMAGE))
+        assert(ModelRegistry.MODEL_OUTPUT_MODALITIES.getData("gemini-2.5-flash") == listOf(Modality.TEXT))
     }
 }

@@ -29,10 +29,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SnapshotMutationPolicy
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -69,6 +72,7 @@ import com.composables.icons.lucide.Lucide
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
@@ -112,12 +116,12 @@ private fun preProcess(content: String): String {
     CODE_BLOCK_REGEX.findAll(content).forEach { match ->
         codeBlocks.add(match.range)
     }
-    
+
     // 检查位置是否在代码块内
     fun isInCodeBlock(position: Int): Boolean {
         return codeBlocks.any { range -> position in range }
     }
-    
+
     // 替换行内公式 \( ... \) 到 $ ... $，但跳过代码块内的内容
     var result = INLINE_LATEX_REGEX.replace(content) { matchResult ->
         if (isInCodeBlock(matchResult.range.first)) {
@@ -202,23 +206,28 @@ fun MarkdownBlock(
     var (data, setData) = remember {
         val preprocessed = preProcess(content)
         val astTree = parser.buildMarkdownTreeFromString(preprocessed)
-        mutableStateOf(preprocessed to astTree)
+        mutableStateOf(
+            value = preprocessed to astTree,
+            policy = referentialEqualityPolicy(),
+        )
     }
 
     // 监听内容变化，重新解析AST树
     // 这里在后台线程解析AST树, 防止频繁更新的时候掉帧
+    val updatedContent by rememberUpdatedState(content)
     LaunchedEffect(Unit) {
-        snapshotFlow { content }
+        snapshotFlow { updatedContent }
+            .distinctUntilChanged()
             .mapLatest {
                 val preprocessed = preProcess(it)
                 val astTree = parser.buildMarkdownTreeFromString(preprocessed)
-                ensureActive()
                 preprocessed to astTree
             }
-            .flowOn(Dispatchers.Default) // 在后台线程解析AST树
             .catch { exception -> exception.printStackTrace() }
+            .flowOn(Dispatchers.Default) // 在后台线程解析AST树
             .collect {
                 setData(it)
+                println("setData:${it.first}")
             }
     }
 

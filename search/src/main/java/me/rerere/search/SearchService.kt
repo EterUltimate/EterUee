@@ -114,6 +114,7 @@ sealed class SearchServiceOptions {
     data class TavilyOptions(
         override val id: Uuid = Uuid.random(),
         val apiKey: String = "",
+        val depth: String = "advanced",
     ) : SearchServiceOptions()
 
     @Serializable

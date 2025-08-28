@@ -22,6 +22,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -352,6 +355,33 @@ private fun TavilyOptions(
             },
             modifier = Modifier.fillMaxWidth()
         )
+    }
+    
+    FormItem(
+        label = {
+            Text("Depth")
+        }
+    ) {
+        val depthOptions = listOf("basic", "advanced")
+        SingleChoiceSegmentedButtonRow(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            depthOptions.forEachIndexed { index, depth ->
+                SegmentedButton(
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = depthOptions.size),
+                    onClick = {
+                        onUpdateOptions(
+                            options.copy(
+                                depth = depth
+                            )
+                        )
+                    },
+                    selected = options.depth == depth
+                ) {
+                    Text(depth.replaceFirstChar { it.uppercase() })
+                }
+            }
+        }
     }
 }
 

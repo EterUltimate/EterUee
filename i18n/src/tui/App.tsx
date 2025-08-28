@@ -6,9 +6,6 @@ import { TranslationTable } from './TranslationTable';
 import { loadModules, ModuleInfo } from '../module-loader';
 import { I18nConfig } from '../config';
 
-// Load environment variables
-dotenvConfig();
-
 interface AppProps {
   config: I18nConfig;
 }

@@ -19,5 +19,5 @@ modules:
 
 # 翻译提供者
 provider:
-  type: google
-  model: gemini-2.5-flash
+  type: openai
+  model: moonshotai/kimi-k2

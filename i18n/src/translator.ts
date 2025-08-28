@@ -1,5 +1,5 @@
 import { google } from '@ai-sdk/google';
-import { openai } from '@ai-sdk/openai';
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { generateText } from 'ai';
 import { StringResource } from './xml-parser';
 import { I18nConfig } from './config';
@@ -47,12 +47,18 @@ function getLanguageName(locale: string): string {
 }
 
 function getModel(config: I18nConfig) {
+  const openaiProvider = createOpenAICompatible({
+    apiKey: process.env.OPENAI_API_KEY,
+    baseURL: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
+    name: 'openai',
+  })
+  
   switch (config.provider.type.toLowerCase()) {
     case 'google':
     case 'gemini':
       return google(config.provider.model);
     case 'openai':
-      return openai(config.provider.model);
+      return openaiProvider(config.provider.model);
     default:
       throw new Error(`Unsupported provider: ${config.provider.type}`);
   }
@@ -65,7 +71,7 @@ export async function translateString(
   context?: string
 ): Promise<string> {
   logToFile(`Starting translation - Target: ${targetLocale}, Text: "${text}"`);
-  
+
   try {
     const model = getModel(config);
     const targetLanguage = getLanguageName(targetLocale);
@@ -112,7 +118,7 @@ export async function batchTranslate(
   onProgress?: ProgressCallback
 ): Promise<StringResource[]> {
   logToFile(`Starting batch translation - Target: ${targetLocale}, Total strings: ${strings.length}`);
-  
+
   const results: StringResource[] = [];
   const total = strings.length;
   let successCount = 0;
@@ -123,7 +129,7 @@ export async function batchTranslate(
 
     try {
       logToFile(`Processing string ${i + 1}/${total} - Key: ${stringResource.key}`);
-      
+
       onProgress?.({
         current: i + 1,
         total,

@@ -401,7 +401,7 @@ private fun MessagePartsBlock(
                     model = it.url,
                     contentDescription = null,
                     modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(MaterialTheme.shapes.medium)
                         .height(72.dp)
                 )
             }

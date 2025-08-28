@@ -511,6 +511,11 @@
   <string name="setting_tts_page_model_placeholder_openai">gpt-4o-mini-tts</string>
   <string name="setting_tts_page_model_placeholder_gemini">gemini-2.5-flash-preview-tts</string>
   <string name="setting_tts_page_voice_name_placeholder">Kore</string>
+  <string name="setting_tts_page_voice_id">Voice ID</string>
+  <string name="setting_tts_page_voice_id_description">Voice ID for speech synthesis</string>
+  <string name="setting_tts_page_emotion">Emotion</string>
+  <string name="setting_tts_page_emotion_description">Emotion style for speech synthesis</string>
+  <string name="setting_tts_page_emotion_placeholder">happy</string>
 
   <!-- Chat Message Tool Calls -->
   <string name="chat_message_tool_create_memory">Created memory</string>

@@ -15,7 +15,6 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 private const val TAG = "MiniMaxTTSProvider"
@@ -64,7 +63,10 @@ class MiniMaxTTSProvider : TTSProvider<TTSProviderSetting.MiniMax> {
         .readTimeout(60, TimeUnit.SECONDS)
         .build()
 
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+    }
 
     override suspend fun generateSpeech(
         context: Context,
@@ -87,7 +89,10 @@ class MiniMaxTTSProvider : TTSProvider<TTSProviderSetting.MiniMax> {
             .url("${providerSetting.baseUrl}/t2a_v2")
             .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
             .addHeader("Content-Type", "application/json")
-            .post(json.encodeToString(MiniMaxRequestBody.serializer(), requestBody).toRequestBody("application/json".toMediaType()))
+            .post(
+                json.encodeToString(MiniMaxRequestBody.serializer(), requestBody)
+                    .toRequestBody("application/json".toMediaType())
+            )
             .build()
 
         val response = httpClient.newCall(httpRequest).execute()
@@ -111,6 +116,7 @@ class MiniMaxTTSProvider : TTSProvider<TTSProviderSetting.MiniMax> {
         // Download the audio file from the URL
         val audioRequest = Request.Builder()
             .url(audioUrl)
+            .get()
             .build()
 
         val audioResponse = httpClient.newCall(audioRequest).await()

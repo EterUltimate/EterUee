@@ -215,26 +215,22 @@ class ChatVM(
     // Search Tool
     private val searchTool = Tool(
         name = "search_web",
-        description = "search web for information",
+        description = "search web for latest information",
         parameters = {
-            InputSchema.Obj(
-                buildJsonObject {
-                    put("query", buildJsonObject {
-                        put("type", "string")
-                        put("description", "search keyword")
-                    })
-                }, required = listOf("query")
-            )
+            val options = settings.value.searchServices.getOrElse(
+                index = settings.value.searchServiceSelected,
+                defaultValue = { SearchServiceOptions.DEFAULT })
+            val service = SearchService.getService(options)
+            service.parameters
         },
         execute = {
             analytics.logEvent("ai_search_web", null)
-            val query = it.jsonObject["query"]!!.jsonPrimitive.content
             val options = settings.value.searchServices.getOrElse(
                 index = settings.value.searchServiceSelected,
                 defaultValue = { SearchServiceOptions.DEFAULT })
             val service = SearchService.getService(options)
             val result = service.search(
-                query = query,
+                params = it.jsonObject,
                 commonOptions = settings.value.searchCommonOptions,
                 serviceOptions = options,
             )

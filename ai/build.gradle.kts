@@ -57,7 +57,6 @@ android {
 
 dependencies {
     implementation(project(":common"))
-    implementation(project(":search"))
 
     // Compose
     implementation(libs.androidx.core.ktx)

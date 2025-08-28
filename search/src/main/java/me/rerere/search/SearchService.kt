@@ -5,6 +5,8 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import me.rerere.ai.core.InputSchema
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
@@ -17,11 +19,13 @@ import kotlin.uuid.Uuid
 interface SearchService<T : SearchServiceOptions> {
     val name: String
 
+    val parameters: InputSchema?
+
     @Composable
     fun Description()
 
     suspend fun search(
-        query: String,
+        params: JsonObject,
         commonOptions: SearchCommonOptions,
         serviceOptions: T
     ): Result<SearchResult>

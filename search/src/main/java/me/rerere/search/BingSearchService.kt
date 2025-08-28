@@ -5,6 +5,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
+import me.rerere.ai.core.InputSchema
 import me.rerere.search.SearchResult.SearchResultItem
 import org.jsoup.Jsoup
 import java.net.URLEncoder
@@ -18,12 +23,24 @@ object BingSearchService : SearchService<SearchServiceOptions.BingLocalOptions> 
         Text(stringResource(R.string.bing_desc))
     }
 
+    override val parameters: InputSchema?
+        get() = InputSchema.Obj(
+            properties = buildJsonObject {
+                put("query", buildJsonObject {
+                    put("type", "string")
+                    put("description", "search keyword")
+                })
+            },
+            required = listOf("query")
+        )
+
     override suspend fun search(
-        query: String,
+        params: JsonObject,
         commonOptions: SearchCommonOptions,
         serviceOptions: SearchServiceOptions.BingLocalOptions
     ): Result<SearchResult> = withContext(Dispatchers.IO) {
         runCatching {
+            val query = params["query"]?.jsonPrimitive?.content ?: error("query is required")
             val url = "https://www.bing.com/search?q=" + URLEncoder.encode(query, "UTF-8")
             val locale = Locale.getDefault()
             val acceptLanguage = "${locale.language}-${locale.country},${locale.language}"

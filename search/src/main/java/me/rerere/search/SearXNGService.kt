@@ -8,6 +8,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
+import me.rerere.ai.core.InputSchema
 import me.rerere.search.SearchResult.SearchResultItem
 import me.rerere.search.SearchService.Companion.httpClient
 import me.rerere.search.SearchService.Companion.json
@@ -27,8 +34,19 @@ object SearXNGService : SearchService<SearchServiceOptions.SearXNGOptions> {
         Text(stringResource(R.string.searxng_desc_2))
     }
 
+    override val parameters: InputSchema?
+        get() = InputSchema.Obj(
+            properties = buildJsonObject {
+                put("query", buildJsonObject {
+                    put("type", "string")
+                    put("description", "search keyword")
+                })
+            },
+            required = listOf("query")
+        )
+
     override suspend fun search(
-        query: String,
+        params: JsonObject,
         commonOptions: SearchCommonOptions,
         serviceOptions: SearchServiceOptions.SearXNGOptions
     ): Result<SearchResult> = withContext(Dispatchers.IO) {
@@ -36,6 +54,8 @@ object SearXNGService : SearchService<SearchServiceOptions.SearXNGOptions> {
             require(serviceOptions.url.isNotBlank()) {
                 "SearXNG URL cannot be empty"
             }
+
+            val query = params["query"]?.jsonPrimitive?.content ?: error("query is required")
 
             // 构建查询URL
             val baseUrl = serviceOptions.url.trimEnd('/')

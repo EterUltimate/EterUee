@@ -8,8 +8,15 @@ import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
+import me.rerere.ai.core.InputSchema
 import me.rerere.search.SearchResult.SearchResultItem
 import me.rerere.search.SearchService.Companion.httpClient
 import me.rerere.search.SearchService.Companion.json
@@ -33,16 +40,47 @@ object TavilySearchService : SearchService<SearchServiceOptions.TavilyOptions> {
         }
     }
 
+    override val parameters: InputSchema?
+        get() = InputSchema.Obj(
+            properties = buildJsonObject {
+                put("query", buildJsonObject {
+                    put("type", "string")
+                    put("description", "search keyword")
+                })
+                put("topic", buildJsonObject {
+                    put("type", "string")
+                    put("description", "search topic (one of `general`, `news`, `finance`)")
+                    put("enum", buildJsonArray {
+                        add("general")
+                        add("news")
+                        add("finance")
+                    })
+                })
+            },
+            required = listOf("query")
+        )
+
     override suspend fun search(
-        query: String,
+        params: JsonObject,
         commonOptions: SearchCommonOptions,
         serviceOptions: SearchServiceOptions.TavilyOptions
     ): Result<SearchResult> = withContext(Dispatchers.IO) {
         runCatching {
-            val body = buildJsonObject {
-                put("query", JsonPrimitive(query))
-                put("max_results", JsonPrimitive(commonOptions.resultSize))
+            val query = params["query"]?.jsonPrimitive?.content ?: error("query is required")
+            val topic = params["topic"]?.jsonPrimitive?.contentOrNull ?: "general"
+
+            // Validate topic
+            if (topic !in listOf("general", "news", "finance")) {
+                error("topic must be one of `general`, `news`, `finance`")
             }
+
+            val body = buildJsonObject {
+                put("query", query)
+                put("max_results", commonOptions.resultSize)
+                put("search_depth", "advanced")
+                put("topic", topic)
+            }
+
             val request = Request.Builder()
                 .url("https://api.tavily.com/search")
                 .post(body.toString().toRequestBody())

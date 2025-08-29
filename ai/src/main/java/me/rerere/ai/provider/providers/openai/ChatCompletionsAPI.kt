@@ -10,6 +10,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -23,6 +24,7 @@ import kotlinx.serialization.json.putJsonArray
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.core.ReasoningLevel
 import me.rerere.ai.core.TokenUsage
+import me.rerere.ai.provider.Modality
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ProviderSetting
@@ -269,6 +271,16 @@ class ChatCompletionsAPI(
                 }
             }
 
+            // open router适配
+            if(host == "openrouter.ai") {
+                if(params.model.outputModalities.contains(Modality.IMAGE)) {
+                    put("modalities", buildJsonArray {
+                        add("image")
+                        add("text")
+                    })
+                }
+            }
+
             if (params.model.abilities.contains(ModelAbility.REASONING)) {
                 val level = ReasoningLevel.fromBudgetTokens(params.thinkingBudget)
                 when (host) {
@@ -447,6 +459,7 @@ class ChatCompletionsAPI(
         val reasoning = jsonObject["reasoning_content"]?.jsonPrimitive?.contentOrNull
             ?: jsonObject["reasoning"]?.jsonPrimitive?.contentOrNull
         val toolCalls = jsonObject["tool_calls"] as? JsonArray ?: JsonArray(emptyList())
+        val images = jsonObject["images"] as? JsonArray ?: JsonArray(emptyList())
 
         return UIMessage(
             role = role,
@@ -477,6 +490,14 @@ class ChatCompletionsAPI(
                     )
                 }
                 add(UIMessagePart.Text(content))
+                images.forEach { image ->
+                    val imageObject = image.jsonObjectOrNull ?: return@forEach
+                    val type = imageObject["type"]?.jsonPrimitive?.contentOrNull ?: return@forEach
+                    if (type != "image_url") return@forEach
+                    val url = imageObject["image_url"]?.jsonObjectOrNull?.get("url")?.jsonPrimitive?.contentOrNull ?: return@forEach
+                    require(url.startsWith("data:image")) { "Only data uri is supported" }
+                    add(UIMessagePart.Image(url.substringAfter("data:image/png;base64,")))
+                }
             },
             annotations = parseAnnotations(
                 jsonObject["annotations"]?.jsonArray ?: JsonArray(

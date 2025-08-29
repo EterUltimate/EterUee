@@ -48,7 +48,9 @@ fun SimpleHtmlBlock(
     modifier: Modifier = Modifier
 ) {
     val document = remember(html) {
-        Jsoup.parse(html)
+        runCatching {  Jsoup.parse(html) }.getOrElse {
+            Jsoup.parse("<p>Error parsing HTML: ${it.message}</p>")
+        }
     }
 
     val uriHandler = LocalUriHandler.current

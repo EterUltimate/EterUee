@@ -75,7 +75,7 @@ val dataSourceModule = module {
     single<OkHttpClient> {
         OkHttpClient.Builder()
             .connectTimeout(20, TimeUnit.SECONDS)
-            .readTimeout(120, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.MINUTES)
             .writeTimeout(120, TimeUnit.SECONDS)
             .followSslRedirects(true)
             .followRedirects(true)

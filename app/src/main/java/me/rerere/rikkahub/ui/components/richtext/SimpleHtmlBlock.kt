@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -43,6 +44,7 @@ import org.jsoup.nodes.Element
 import org.jsoup.nodes.Node
 import org.jsoup.nodes.TextNode
 import androidx.core.graphics.toColorInt
+import me.rerere.rikkahub.ui.components.table.DataTable
 
 @Composable
 fun SimpleHtmlBlock(
@@ -143,6 +145,12 @@ private fun RenderNode(
                 }
                 "img" -> {
                     RenderImage(node)
+                }
+                "progress" -> {
+                    RenderProgress(node)
+                }
+                "table" -> {
+                    RenderTable(node, onLinkClick)
                 }
                 "br" -> {
                     Spacer(modifier = Modifier.height(8.dp))
@@ -546,5 +554,125 @@ private fun parseFontWeight(weightString: String): FontWeight? {
         "800" -> FontWeight.W800
         "900" -> FontWeight.W900
         else -> null
+    }
+}
+
+@Composable
+private fun RenderProgress(
+    progressElement: Element
+) {
+    val value = progressElement.attr("value").toFloatOrNull() ?: 0f
+    val max = progressElement.attr("max").toFloatOrNull() ?: 100f
+    val progress = if (max > 0) (value / max).coerceIn(0f, 1f) else 0f
+
+    // Check for width in style attribute first, then width attribute
+    val style = progressElement.attr("style")
+    var width = ""
+    if (style.isNotEmpty()) {
+        val properties = style.split(";")
+            .mapNotNull { property ->
+                val parts = property.split(":")
+                if (parts.size == 2) {
+                    parts[0].trim() to parts[1].trim()
+                } else null
+            }
+            .toMap()
+        width = properties["width"] ?: ""
+    }
+    if (width.isEmpty()) {
+        width = progressElement.attr("width")
+    }
+
+    val widthModifier = if (width.isNotEmpty()) {
+        when {
+            width.endsWith("%") -> {
+                val percentage = width.removeSuffix("%").toFloatOrNull()
+                if (percentage != null && percentage > 0) {
+                    Modifier.fillMaxWidth(percentage / 100f)
+                } else {
+                    Modifier.fillMaxWidth()
+                }
+            }
+            width.endsWith("px") -> {
+                val pixels = width.removeSuffix("px").toIntOrNull()
+                if (pixels != null && pixels > 0) {
+                    Modifier.width(pixels.dp)
+                } else {
+                    Modifier.fillMaxWidth()
+                }
+            }
+            else -> {
+                val pixels = width.toIntOrNull()
+                if (pixels != null && pixels > 0) {
+                    Modifier.width(pixels.dp)
+                } else {
+                    Modifier.fillMaxWidth()
+                }
+            }
+        }
+    } else {
+        Modifier.fillMaxWidth()
+    }
+
+    LinearProgressIndicator(
+        progress = { progress },
+        modifier = widthModifier,
+    )
+}
+
+@Composable
+private fun RenderTable(
+    tableElement: Element,
+    onLinkClick: (String) -> Unit
+) {
+    val rows = mutableListOf<List<@Composable () -> Unit>>()
+    var headers = emptyList<@Composable () -> Unit>()
+
+    // Extract table headers and rows
+    tableElement.select("tr").forEach { tr ->
+        val cells = mutableListOf<@Composable () -> Unit>()
+
+        tr.select("th, td").forEach { cell ->
+            cells.add {
+                val annotatedString = buildAnnotatedStringFromElement(cell, onLinkClick)
+                if (annotatedString.text.isNotBlank()) {
+                    Text(
+                        text = annotatedString,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = LocalContentColor.current
+                        )
+                    )
+                }
+            }
+        }
+
+        if (cells.isNotEmpty()) {
+            // Check if this row contains header cells (th)
+            val isHeaderRow = tr.select("th").isNotEmpty()
+            if (isHeaderRow && headers.isEmpty()) {
+                headers = cells
+            } else {
+                rows.add(cells)
+            }
+        }
+    }
+
+    // If no headers found, create empty headers for consistency
+    if (headers.isEmpty() && rows.isNotEmpty()) {
+        headers = rows.firstOrNull()?.mapIndexed { _, _ ->
+            @Composable { Text("") }
+        } ?: emptyList()
+    }
+
+    if (headers.isNotEmpty() || rows.isNotEmpty()) {
+        Box(modifier = Modifier.padding(vertical = 8.dp)) {
+            DataTable(
+                headers = headers,
+                rows = rows,
+                cellBorder = null,
+                headerBackground = Color.Transparent,
+                zebraStriping = false
+            )
+        }
     }
 }

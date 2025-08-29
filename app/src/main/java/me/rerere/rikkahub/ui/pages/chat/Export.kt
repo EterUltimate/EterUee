@@ -188,14 +188,22 @@ fun ChatExportSheet(
                             Button(
                                 onClick = {
                                     scope.launch {
-                                        exportToImage(
-                                            context,
-                                            scope,
-                                            density,
-                                            conversation,
-                                            selectedMessages,
-                                            imageExportOptions
-                                        )
+                                        runCatching {
+                                            exportToImage(
+                                                context,
+                                                scope,
+                                                density,
+                                                conversation,
+                                                selectedMessages,
+                                                imageExportOptions
+                                            )
+                                        }.onFailure {
+                                            it.printStackTrace()
+                                            toaster.show(
+                                                message = "Failed to export image: ${it.message}",
+                                                type = ToastType.Error
+                                            )
+                                        }
                                     }
                                     toaster.show(
                                         imageSuccessMessage,

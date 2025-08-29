@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package me.rerere.rikkahub.ui.components.table
 
 import androidx.compose.foundation.BorderStroke
@@ -5,311 +7,215 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.layout.SubcomposeLayout
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastForEachIndexed
-import me.rerere.rikkahub.ui.theme.RikkahubTheme
 import kotlin.math.max
 
-private const val DEFAULT_SAMPLE_SIZE = 8 // Number of rows to measure for adaptive width
-private val DEFAULT_CELL_PADDING = 8.dp
-
+/**
+ * DataTable（自定义布局 + 横向滚动 + 行内等高）
+ * - 使用 SubcomposeLayout 两阶段测量，避免 Lookahead 下的重复测量异常
+ * - 高度自适应内容（不提供纵向滚动）
+ * - 宽度可超出视口，外层内置 horizontalScroll
+ */
 @Composable
-fun <T> DataTable(
-    columns: List<ColumnDefinition<T>>,
-    data: List<T>,
+fun DataTable(
+    headers: List<@Composable () -> Unit>,
+    rows: List<List<@Composable () -> Unit>>,
     modifier: Modifier = Modifier,
-    cellPadding: PaddingValues = PaddingValues(DEFAULT_CELL_PADDING),
-    border: BorderStroke = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(0.5f)),
-    adaptiveWidthSampleSize: Int = DEFAULT_SAMPLE_SIZE // Number of rows to sample for adaptive width calculation
+    cellPadding: Dp = 12.dp,
+    cellBorder: BorderStroke? = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant),
+    headerBackground: Color = MaterialTheme.colorScheme.surfaceVariant,
+    zebraStriping: Boolean = true,
+    columnMinWidths: List<Dp> = emptyList(),
+    cellAlignment: Alignment = Alignment.CenterStart,
 ) {
-    var calculatedColumnWidths by remember(
-        columns,
-        data.size
-    ) { // Recalculate if columns or data size change significantly
-        mutableStateOf<List<Dp>?>(null)
-    }
+    val hScroll = rememberScrollState()
+    val surfaceContainer = MaterialTheme.colorScheme.surfaceContainer
 
-    val density = LocalDensity.current
+    Box(modifier = modifier.horizontalScroll(hScroll)) {
+        SubcomposeLayout { constraints ->
+            val columnCount = max(headers.size, rows.maxOfOrNull { it.size } ?: 0)
+            val rowCount = rows.size
+            if (columnCount == 0) return@SubcomposeLayout layout(0, 0) {}
 
-    // Phase 1: Calculate Column Widths using SubcomposeLayout
-    // This composable doesn't render anything visible itself, it just measures.
-    SubcomposeColumnWidthCalculator(
-        columns = columns,
-        data = data,
-        adaptiveWidthSampleSize = adaptiveWidthSampleSize,
-        density = density,
-        onWidthsCalculated = { widthsPx ->
-            // Convert pixel widths back to Dp and store them
-            calculatedColumnWidths = widthsPx.map { with(density) { it.toDp() } }
-        }
-    )
+            // ---------- 参数 & 中间结果容器 ----------
+            val infinity = Constraints.Infinity
+            val unbounded = Constraints(0, infinity, 0, infinity)
+            val minWidthsPx = IntArray(columnCount) { i -> columnMinWidths.getOrNull(i)?.roundToPx() ?: 0 }
+            val colWidths = IntArray(columnCount) { 0 }
+            val headerP1 = arrayOfNulls<Placeable>(columnCount)
+            val bodyP1 = arrayOfNulls<Placeable>(rowCount * columnCount)
 
-    // Phase 2: Render the Table using the calculated widths
-    val horizontalScrollState = rememberScrollState()
-
-    // Only render when widths are calculated
-    if (calculatedColumnWidths != null) {
-        Column(
-            modifier = modifier
-                .wrapContentSize()
-                .clip(MaterialTheme.shapes.small)
-                .border(border, MaterialTheme.shapes.small)
-        ) {
-            // Use HorizontalScroll for tables wider than the screen
-            Column(
-                modifier = Modifier.horizontalScroll(horizontalScrollState)
-            ) {
-                // --- Header Row ---
-                TableHeaderRow(
-                    columns = columns,
-                    columnWidths = calculatedColumnWidths!!, // Not null here
-                    cellPadding = cellPadding,
-                    border = border
-                )
-
-                // --- Data Rows ---
-                data.fastForEachIndexed { rowIndex, rowData ->
-                    key(rowIndex) {
-                        TableRow(
-                            rowData = rowData,
-                            columns = columns,
-                            columnWidths = calculatedColumnWidths!!,
-                            cellPadding = cellPadding,
-                            border = border,
-                        )
+            // ---------- 第一阶段：自然尺寸测量（估列宽、算行高） ----------
+            fun subcomposeHeaderOnce(c: Int): Placeable {
+                val measurables = subcompose("h1_$c") {
+                    CellBox(
+                        padding = cellPadding,
+                        border = cellBorder,
+                        background = headerBackground,
+                        alignment = cellAlignment
+                    ) {
+                        headers.getOrNull(c)?.invoke()
                     }
                 }
-            } // End Inner Column
-        } // End Outer Column
-    }
-}
+                val p = measurables.first().measure(unbounded)
+                colWidths[c] = max(colWidths[c], max(p.width, minWidthsPx[c]))
+                return p
+            }
 
-
-// --- Helper Composables ---
-
-/**
- * Calculates column widths using SubcomposeLayout. Does not render anything itself.
- */
-@Composable
-private fun <T> SubcomposeColumnWidthCalculator(
-    columns: List<ColumnDefinition<T>>,
-    data: List<T>,
-    adaptiveWidthSampleSize: Int,
-    density: Density,
-    onWidthsCalculated: (List<Int>) -> Unit
-) {
-    SubcomposeLayout { constraints ->
-        val measuredWidths = IntArray(columns.size)
-        val sampleData = data.take(adaptiveWidthSampleSize.coerceAtLeast(0)) // Take a sample
-
-        columns.fastForEachIndexed { colIndex, column ->
-            when (val widthDef = column.width) {
-                is ColumnWidth.Fixed -> {
-                    // Use fixed width directly
-                    measuredWidths[colIndex] = with(density) { widthDef.width.roundToPx() }
-                }
-
-                is ColumnWidth.Adaptive -> {
-                    var maxContentWidth = 0
-
-                    // Measure Header
-                    val headerPlaceables = subcompose("h_$colIndex") { column.header() }
-                    headerPlaceables.forEach {
-                        maxContentWidth =
-                            max(maxContentWidth, it.maxIntrinsicWidth(Constraints.Infinity))
+            fun subcomposeBodyOnce(r: Int, c: Int): Placeable {
+                val bg = if (zebraStriping && r % 2 == 1) surfaceContainer else Color.Transparent
+                val measurables = subcompose("b1_${r}_$c") {
+                    CellBox(padding = cellPadding, border = cellBorder, background = bg, alignment = cellAlignment) {
+                        rows[r].getOrNull(c)?.invoke()
                     }
-
-                    // Measure Sample Data Cells
-                    sampleData.forEachIndexed { sampleRowIndex, rowData ->
-                        // Unique slotId for each cell being measured
-                        val cellSlotId = "c_${colIndex}_${sampleRowIndex}"
-                        val cellPlaceables = subcompose(cellSlotId) { column.cell(rowData) }
-                        cellPlaceables.forEach {
-                            maxContentWidth =
-                                max(maxContentWidth, it.maxIntrinsicWidth(Constraints.Infinity))
-                        }
-                    }
-
-                    // Apply constraints
-                    val minPx = with(density) { widthDef.min.roundToPx() }
-                    val maxPx =
-                        with(density) { if (widthDef.max == Dp.Infinity) Int.MAX_VALUE else widthDef.max.roundToPx() }
-                    measuredWidths[colIndex] = maxContentWidth.coerceIn(minPx, maxPx)
                 }
-                // Add other width types (like Weighted) here if needed
+                val p = measurables.first().measure(unbounded)
+                colWidths[c] = max(colWidths[c], max(p.width, minWidthsPx[c]))
+                return p
+            }
+
+            for (c in 0 until columnCount) headerP1[c] = subcomposeHeaderOnce(c)
+            for (r in 0 until rowCount) for (c in 0 until columnCount) bodyP1[r * columnCount + c] =
+                subcomposeBodyOnce(r, c)
+
+            val rowHeights = IntArray(rowCount) { r ->
+                var h = 0
+                for (c in 0 until columnCount) {
+                    h = max(h, bodyP1[r * columnCount + c]!!.height)
+                }
+                h
+            }
+            val headerHeight = headerP1.maxOf { it?.height ?: 0 }
+
+            // ---------- 第二阶段：固定列宽 + 统一行高重新测量 ----------
+            fun constraintsFor(colWidth: Int, minH: Int) = Constraints(
+                minWidth = colWidth,
+                maxWidth = colWidth,
+                minHeight = minH,
+                maxHeight = infinity,
+            )
+
+            val headerPlaceables = Array(columnCount) { c ->
+                val measurables = subcompose("h2_$c") {
+                    CellBox(
+                        padding = cellPadding,
+                        border = cellBorder,
+                        background = headerBackground,
+                        alignment = cellAlignment
+                    ) {
+                        headers.getOrNull(c)?.invoke()
+                    }
+                }
+                measurables.first().measure(constraintsFor(colWidths[c], headerHeight))
+            }
+
+            val bodyPlaceables = Array(rowCount * columnCount) { i ->
+                val r = i / columnCount
+                val c = i % columnCount
+                val bg =
+                    if (zebraStriping && r % 2 == 1) surfaceContainer else Color.Transparent
+                val measurables = subcompose("b2_${r}_$c") {
+                    CellBox(padding = cellPadding, border = cellBorder, background = bg, alignment = cellAlignment) {
+                        rows[r].getOrNull(c)?.invoke()
+                    }
+                }
+                measurables.first().measure(constraintsFor(colWidths[c], rowHeights[r]))
+            }
+
+            val tableWidth = colWidths.sum()
+            val tableHeight = headerHeight + rowHeights.sum()
+            val finalWidth = tableWidth.coerceIn(constraints.minWidth, constraints.maxWidth)
+            val finalHeight = tableHeight.coerceIn(constraints.minHeight, constraints.maxHeight)
+
+            // ---------- 放置 ----------
+            layout(finalWidth, finalHeight) {
+                var x = 0
+                for (c in 0 until columnCount) {
+                    headerPlaceables[c].placeRelative(x, 0)
+                    x += colWidths[c]
+                }
+                var y = headerHeight
+                for (r in 0 until rowCount) {
+                    x = 0
+                    for (c in 0 until columnCount) {
+                        bodyPlaceables[r * columnCount + c].placeRelative(x, y)
+                        x += colWidths[c]
+                    }
+                    y += rowHeights[r]
+                }
             }
         }
-
-        // Report calculated widths (in pixels)
-        onWidthsCalculated(measuredWidths.toList())
-
-        // Layout phase - we don't actually place anything here
-        layout(0, 0) {}
     }
 }
 
-/**
- * Renders the Header Row.
- */
 @Composable
-private fun <T> TableHeaderRow(
-    columns: List<ColumnDefinition<T>>,
-    columnWidths: List<Dp>,
-    cellPadding: PaddingValues,
-    border: BorderStroke
+private fun CellBox(
+    padding: Dp,
+    border: BorderStroke?,
+    background: Color,
+    alignment: Alignment,
+    content: @Composable () -> Unit,
 ) {
-    Row(
+    Box(
         modifier = Modifier
-            .border(border)
-            .background(MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)),
-        verticalAlignment = Alignment.CenterVertically
+            .then(if (background != Color.Transparent) Modifier.background(background) else Modifier)
+            .then(if (border != null) Modifier.border(border) else Modifier)
+            .padding(padding),
+        contentAlignment = alignment,
     ) {
-        columns.fastForEachIndexed { index, column ->
-            Box(
-                modifier = Modifier
-                    .width(columnWidths[index])
-                    .padding(cellPadding)
-            ) {
-                column.header()
-            }
-        }
+        content()
     }
 }
 
-/**
- * Renders a single Data Row.
- */
+// -------------------- 示例 --------------------
+@Preview(showBackground = true, widthDp = 360)
 @Composable
-private fun <T> TableRow(
-    rowData: T,
-    columns: List<ColumnDefinition<T>>,
-    columnWidths: List<Dp>,
-    cellPadding: PaddingValues,
-    border: BorderStroke,
-) {
-    Row(
-        modifier = Modifier
-            .border(border),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        columns.fastForEachIndexed { index, column ->
-            key(index) {
-                Box(
-                    modifier = Modifier
-                        .width(columnWidths[index])
-                        .padding(cellPadding)
-                ) {
-                    column.cell(rowData)
-                }
-            }
-        }
-    }
-}
-
-
-// Sample Data Class
-private data class User(val id: Int, val name: String, val email: String, val status: String)
-
-// Sample Data
-private val sampleUsers = List(50) { index ->
-    User(
-        id = index + 1,
-        name = "User Name ${index + 1}".let { if (index % 5 == 0) it.repeat(3) else it }, // Make some names long
-        email = "user${index + 1}@example.com",
-        status = if (index % 3 == 0) "Active" else if (index % 3 == 1) "Inactive" else "Pending Review"
-    )
-}
-
-@Composable
-private fun MyDataTableScreen() {
-    val columns = listOf(
-        ColumnDefinition<User>(
-            header = { Text("ID", fontWeight = FontWeight.Bold) },
-            cell = { user -> Text(user.id.toString()) },
-            // Fixed width for ID column
-            width = ColumnWidth.Fixed(80.dp)
-        ),
-        ColumnDefinition(
-            header = { Text("Name", fontWeight = FontWeight.Bold) },
-            cell = { user -> Text(user.name) },
-            // Adaptive width for Name, with a minimum
-            width = ColumnWidth.Adaptive(min = 100.dp)
-        ),
-        ColumnDefinition(
-            header = { Text("Email", fontWeight = FontWeight.Bold) },
-            cell = { user -> Text(user.email) },
-            // Fully adaptive width for Email
-            width = ColumnWidth.Adaptive()
-        ),
-        ColumnDefinition(
-            header = { Text("Status", fontWeight = FontWeight.Bold) },
-            cell = { user ->
-                Text(
-                    text = user.status,
-                    color = when (user.status) {
-                        "Active" -> Color.Green.copy(alpha = 0.8f)
-                        "Inactive" -> Color.Red.copy(alpha = 0.7f)
-                        else -> Color.Gray
-                    }
-                )
-            },
-            // Adaptive width with min and max constraints
-            width = ColumnWidth.Adaptive(min = 80.dp, max = 150.dp)
+private fun DataTablePreview() {
+    Surface {
+        val headers = listOf<@Composable () -> Unit>(
+            { Text("Semester", style = MaterialTheme.typography.labelLarge) },
+            { Text("Attendance", style = MaterialTheme.typography.labelLarge) },
+            { Text("Notes / Example", style = MaterialTheme.typography.labelLarge) },
         )
-    )
-    DataTable(
-        columns = columns,
-        data = sampleUsers,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-    )
-}
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun DefaultPreview() {
-    RikkahubTheme {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("Data Table Example") },
-                )
-            }
-        ) {
-            Box(Modifier.padding(it)) {
-                MyDataTableScreen()
-            }
-        }
+        val rows = listOf<List<@Composable () -> Unit>>(
+            listOf<@Composable () -> Unit>(
+                { Text("Fall 2024") },
+                { Text("Excellent", style = MaterialTheme.typography.bodyMedium) },
+                { Text("x² + y² = 1") },
+            ),
+            listOf(
+                { Text("Fall 2024") },
+                { Text("Good", style = MaterialTheme.typography.bodyMedium) },
+                { Text("∑ k = n(n+1)/2", maxLines = 2, overflow = TextOverflow.Ellipsis) },
+            ),
+            listOf(
+                { Text("Fall 2024") },
+                { Text("Fair", style = MaterialTheme.typography.bodyMedium) },
+                { Text("∫₀¹ x² dx = 1/3\n这行更高会把整行拉齐") },
+            ),
+        )
+
+        DataTable(
+            headers = headers,
+            rows = rows,
+            columnMinWidths = listOf(96.dp, 120.dp, 240.dp),
+            cellAlignment = Alignment.CenterStart,
+        )
     }
 }

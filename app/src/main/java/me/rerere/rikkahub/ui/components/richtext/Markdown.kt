@@ -77,8 +77,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import me.rerere.highlight.HighlightText
-import me.rerere.rikkahub.ui.components.table.ColumnDefinition
-import me.rerere.rikkahub.ui.components.table.ColumnWidth
 import me.rerere.rikkahub.ui.components.table.DataTable
 import me.rerere.rikkahub.ui.theme.JetbrainsMono
 import me.rerere.rikkahub.utils.toDp
@@ -837,31 +835,34 @@ private fun TableNode(node: ASTNode, content: String, modifier: Modifier = Modif
             .map { it.getTextInNode(content).trim() }
     }
 
-    // 创建列定义
-    val columns = List(columnCount) { columnIndex ->
-        ColumnDefinition<List<String>>(
-            header = {
-                MarkdownBlock(
-                    content = if (columnIndex < headerCells.size) headerCells[columnIndex] else "",
-                )
-            },
-            cell = { rowData ->
+    // 创建表头composable列表
+    val headers = List(columnCount) { columnIndex ->
+        @Composable {
+            MarkdownBlock(
+                content = if (columnIndex < headerCells.size) headerCells[columnIndex] else "",
+            )
+        }
+    }
+
+    // 创建行数据composable列表
+    val rowComposables = rows.map { rowData ->
+        List(columnCount) { columnIndex ->
+            @Composable {
                 MarkdownBlock(
                     content = if (columnIndex < rowData.size) rowData[columnIndex] else "",
                 )
-            },
-            width = ColumnWidth.Adaptive(min = 80.dp)
-        )
+            }
+        }
     }
 
     // 渲染表格
     DataTable(
-        columns = columns,
-        data = rows,
+        headers = headers,
+        rows = rowComposables,
         modifier = modifier
             .padding(vertical = 8.dp)
-            .fillMaxWidth()
-
+            .fillMaxWidth(),
+        columnMinWidths = List(columnCount) { 80.dp }
     )
 }
 

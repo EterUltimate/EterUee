@@ -8,6 +8,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -15,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.layout.SubcomposeLayout
@@ -36,17 +38,22 @@ fun DataTable(
     headers: List<@Composable () -> Unit>,
     rows: List<List<@Composable () -> Unit>>,
     modifier: Modifier = Modifier,
-    cellPadding: Dp = 12.dp,
+    cellPadding: Dp = 4.dp,
     cellBorder: BorderStroke? = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant),
     headerBackground: Color = MaterialTheme.colorScheme.surfaceVariant,
-    zebraStriping: Boolean = true,
+    zebraStriping: Boolean = false,
     columnMinWidths: List<Dp> = emptyList(),
     cellAlignment: Alignment = Alignment.CenterStart,
 ) {
     val hScroll = rememberScrollState()
     val surfaceContainer = MaterialTheme.colorScheme.surfaceContainer
 
-    Box(modifier = modifier.horizontalScroll(hScroll)) {
+    Box(
+        modifier = modifier
+            .clip(MaterialTheme.shapes.small)
+            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant), MaterialTheme.shapes.small)
+            .horizontalScroll(hScroll)
+    ) {
         SubcomposeLayout { constraints ->
             val columnCount = max(headers.size, rows.maxOfOrNull { it.size } ?: 0)
             val rowCount = rows.size

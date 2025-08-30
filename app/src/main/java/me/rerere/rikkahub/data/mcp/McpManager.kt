@@ -25,6 +25,7 @@ import me.rerere.rikkahub.data.mcp.transport.SseClientTransport
 import me.rerere.rikkahub.data.mcp.transport.StreamableHttpClientTransport
 import me.rerere.rikkahub.utils.checkDifferent
 import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 
@@ -35,6 +36,10 @@ class McpManager(
     private val appScope: AppScope,
 ) {
     private val okHttpClient: OkHttpClient = OkHttpClient.Builder()
+        .connectTimeout(20, TimeUnit.SECONDS)
+        .readTimeout(10, TimeUnit.MINUTES)
+        .writeTimeout(120, TimeUnit.SECONDS)
+        .followSslRedirects(true)
         .followRedirects(true)
         .build()
 

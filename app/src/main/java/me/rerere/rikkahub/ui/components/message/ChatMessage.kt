@@ -33,7 +33,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,6 +59,9 @@ import androidx.core.net.toFile
 import androidx.core.net.toUri
 import com.composables.icons.lucide.File
 import com.composables.icons.lucide.Lucide
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.time.debounce
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -84,6 +89,7 @@ import me.rerere.rikkahub.utils.base64Encode
 import me.rerere.rikkahub.utils.openUrl
 import me.rerere.rikkahub.utils.urlDecode
 import java.util.Locale
+import kotlin.time.Duration.Companion.milliseconds
 
 private val EmptyJson = JsonObject(emptyMap())
 
@@ -230,6 +236,7 @@ fun ChatMessage(
     }
 }
 
+@OptIn(FlowPreview::class)
 @Composable
 private fun MessagePartsBlock(
     role: MessageRole,
@@ -264,10 +271,15 @@ private fun MessagePartsBlock(
     // 消息输出HapticFeedback
     val hapticFeedback = LocalHapticFeedback.current
     val settings = LocalSettings.current
-    LaunchedEffect(parts) {
-        if (parts.isNotEmpty() && loading && settings.displaySetting.enableMessageGenerationHapticEffect) {
-            hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-        }
+    val partsState by rememberUpdatedState(parts)
+    LaunchedEffect(settings.displaySetting) {
+        snapshotFlow { partsState }
+            .debounce(50.milliseconds)
+            .collect { parts ->
+                if(parts.isNotEmpty() && loading && settings.displaySetting.enableMessageGenerationHapticEffect) {
+                    hapticFeedback.performHapticFeedback(HapticFeedbackType.KeyboardTap)
+                }
+            }
     }
 
     // Reasoning

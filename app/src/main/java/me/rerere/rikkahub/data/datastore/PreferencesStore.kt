@@ -453,7 +453,7 @@ private val DEFAULT_PROVIDERS = listOf(
                 displayName = "GLM-4.1V-9B",
                 inputModalities = listOf(Modality.TEXT, Modality.IMAGE),
                 outputModalities = listOf(Modality.TEXT),
-                abilities = listOf(ModelAbility.REASONING),
+                abilities = listOf(),
             ),
         )
     ),

@@ -48,6 +48,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -86,7 +87,9 @@ import com.composables.icons.lucide.Camera
 import com.composables.icons.lucide.Eraser
 import com.composables.icons.lucide.Files
 import com.composables.icons.lucide.Fullscreen
+import com.composables.icons.lucide.GraduationCap
 import com.composables.icons.lucide.Image
+import com.composables.icons.lucide.ListCheck
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.X
@@ -240,6 +243,7 @@ fun ChatInput(
 
     val context = LocalContext.current
     val toaster = LocalToaster.current
+    val assistant = settings.getCurrentAssistant()
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -477,7 +481,7 @@ fun ChatInput(
                 ) {
                     // Model Picker
                     ModelSelector(
-                        modelId = settings.getCurrentAssistant().chatModelId ?: settings.chatModelId,
+                        modelId = assistant.chatModelId ?: settings.chatModelId,
                         providers = settings.providers,
                         onSelect = {
                             onUpdateChatModel(it)
@@ -514,7 +518,6 @@ fun ChatInput(
                     // Reasoning
                     val model = settings.getCurrentChatModel()
                     if (model?.abilities?.contains(ModelAbility.REASONING) == true) {
-                        val assistant = settings.getCurrentAssistant()
                         ReasoningButton(
                             reasoningTokens = assistant.thinkingBudget ?: 0,
                             onUpdateReasoningTokens = {
@@ -527,7 +530,7 @@ fun ChatInput(
                     // MCP
                     if (settings.mcpServers.isNotEmpty()) {
                         McpPickerButton(
-                            assistant = settings.getCurrentAssistant(),
+                            assistant = assistant,
                             servers = settings.mcpServers,
                             mcpManager = mcpManager,
                             onUpdateAssistant = {
@@ -589,7 +592,9 @@ fun ChatInput(
                         FilesPicker(
                             conversation = conversation,
                             state = state,
+                            assistant = assistant,
                             onClearContext = onClearContext,
+                            onUpdateAssistant = onUpdateAssistant,
                             onDismiss = { dismissExpand() }
                         )
                     }
@@ -602,8 +607,10 @@ fun ChatInput(
 @Composable
 private fun FilesPicker(
     conversation: Conversation,
+    assistant: Assistant,
     state: ChatInputState,
     onClearContext: () -> Unit,
+    onUpdateAssistant: (Assistant) -> Unit,
     onDismiss: () -> Unit
 ) {
     Column(
@@ -640,6 +647,29 @@ private fun FilesPicker(
         ListItem(
             leadingContent = {
                 Icon(
+                    imageVector = Lucide.GraduationCap,
+                    contentDescription = stringResource(R.string.chat_page_learning_mode),
+                )
+            },
+            headlineContent = {
+                Text(stringResource(R.string.chat_page_learning_mode))
+            },
+            supportingContent = {
+                Text(stringResource(R.string.chat_page_learning_mode_desc))
+            },
+            trailingContent = {
+                Switch(
+                    checked = assistant.learningMode,
+                    onCheckedChange = {
+                        onUpdateAssistant(assistant.copy(learningMode = it))
+                    }
+                )
+            },
+        )
+
+        ListItem(
+            leadingContent = {
+                Icon(
                     imageVector = Lucide.Eraser,
                     contentDescription = stringResource(R.string.chat_page_clear_context),
                 )
@@ -651,7 +681,7 @@ private fun FilesPicker(
                 // Context Size
                 val settings = LocalSettings.current
                 if (settings.displaySetting.showTokenUsage && conversation.messageNodes.isNotEmpty()) {
-                    val configuredContextSize = settings.getCurrentAssistant().contextMessageSize
+                    val configuredContextSize = assistant.contextMessageSize
                     val effectiveMessagesAfterTruncation =
                         conversation.messageNodes.size - conversation.truncateIndex.coerceAtLeast(0)
                     val actualContextMessageCount =

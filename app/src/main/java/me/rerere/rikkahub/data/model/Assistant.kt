@@ -31,6 +31,7 @@ data class Assistant(
     val mcpServers: Set<Uuid> = emptySet(),
     val localTools: List<LocalToolOption> = emptyList(),
     val background: String? = null,
+    val learningMode: Boolean = false,
 )
 
 @Serializable

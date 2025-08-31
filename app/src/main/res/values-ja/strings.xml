@@ -188,6 +188,8 @@
   <string name="chat_page_export_share_via">共有方法</string>
   <string name="chat_page_export_success">%1$sにエクスポートしました</string>
   <string name="chat_page_history">チャット履歴</string>
+  <string name="chat_page_learning_mode">学習モード</string>
+  <string name="chat_page_learning_mode_desc">知識を段階的に学習できるようにサポートします</string>
   <string name="chat_page_new_chat">新しいチャット</string>
   <string name="chat_page_new_message">新しいメッセージ</string>
   <string name="chat_page_nickname_placeholder">ニックネームを入力してください</string>

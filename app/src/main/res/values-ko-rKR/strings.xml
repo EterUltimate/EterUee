@@ -188,6 +188,8 @@
   <string name="chat_page_export_share_via">공유 방법</string>
   <string name="chat_page_export_success">%1$s(으)로 내보내기 완료</string>
   <string name="chat_page_history">채팅 기록</string>
+  <string name="chat_page_learning_mode">학습 모드</string>
+  <string name="chat_page_learning_mode_desc">지식을 단계별로 배울 수 있도록 도와드립니다</string>
   <string name="chat_page_new_chat">새 채팅</string>
   <string name="chat_page_new_message">새 메시지</string>
   <string name="chat_page_nickname_placeholder">이름을 입력하세요</string>

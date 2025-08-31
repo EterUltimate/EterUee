@@ -214,6 +214,13 @@ class GenerationHandler(
                         append(buildRecentChatsPrompt(assistant))
                     }
 
+                    // 学习模式
+                    if(assistant.learningMode) {
+                        appendLine()
+                        append(LEARNING_MODE_PROMPT)
+                        appendLine()
+                    }
+
                     // 工具prompt
                     tools.forEach { tool ->
                         appendLine()

@@ -286,6 +286,8 @@
   <string name="no_text_content_to_copy">복사할 텍스트 콘텐츠가 없습니다</string>
   <string name="notification_channel_chat_completed">채팅 완료</string>
   <string name="photo">사진</string>
+  <string name="pin_chat">채팅 고정</string>
+  <string name="pinned_chats">고정된 채팅</string>
   <string name="placeholder_battery_level">배터리 잔량</string>
   <string name="placeholder_char">어시스턴트명</string>
   <string name="placeholder_current_date">날짜</string>
@@ -595,6 +597,7 @@
   <string name="translator_page_translate">번역</string>
   <string name="tts">TTS</string>
   <string name="unknown_language">알 수 없는 언어</string>
+  <string name="unpin_chat">채팅 고정 해제</string>
   <string name="upload_file">파일 업로드</string>
   <string name="use_web_search">웹 검색 사용</string>
   <string name="user_default_name">사용자</string>

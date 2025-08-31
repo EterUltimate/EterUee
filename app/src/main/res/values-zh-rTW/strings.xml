@@ -286,6 +286,8 @@
   <string name="no_text_content_to_copy">暫無可複製的文字內容</string>
   <string name="notification_channel_chat_completed">聊天完成</string>
   <string name="photo">照片</string>
+  <string name="pin_chat">置頂聊天</string>
+  <string name="pinned_chats">置頂對話</string>
   <string name="placeholder_battery_level">電池電量</string>
   <string name="placeholder_char">助手名稱</string>
   <string name="placeholder_current_date">日期</string>
@@ -595,6 +597,7 @@
   <string name="translator_page_translate">翻譯</string>
   <string name="tts">語音</string>
   <string name="unknown_language">未知語言</string>
+  <string name="unpin_chat">取消釘選聊天</string>
   <string name="upload_file">上傳檔案</string>
   <string name="use_web_search">網路搜尋</string>
   <string name="user_default_name">用戶</string>

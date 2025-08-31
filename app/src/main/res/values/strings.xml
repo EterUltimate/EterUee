@@ -686,4 +686,7 @@
   <string name="assistant_importer_unsupported_spec">Unsupported spec: %s</string>
   <string name="assistant_importer_read_json_failed">Failed to read JSON</string>
   <string name="assistant_importer_unsupported_file_type">Unsupported file type: %s</string>
+  <string name="pinned_chats">Pinned Chats</string>
+  <string name="unpin_chat">Unpin the Chat</string>
+  <string name="pin_chat">Pin the Chat</string>
 </resources>

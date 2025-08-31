@@ -286,6 +286,8 @@
   <string name="no_text_content_to_copy">コピーできるテキストコンテンツがありません</string>
   <string name="notification_channel_chat_completed">チャット完了</string>
   <string name="photo">写真</string>
+  <string name="pin_chat">チャットをピン留め</string>
+  <string name="pinned_chats">固定チャット</string>
   <string name="placeholder_battery_level">バッテリー残量</string>
   <string name="placeholder_char">アシスタント名</string>
   <string name="placeholder_current_date">日付</string>
@@ -595,6 +597,7 @@
   <string name="translator_page_translate">翻訳</string>
   <string name="tts">音声</string>
   <string name="unknown_language">不明な言語</string>
+  <string name="unpin_chat">チャットのピン留めを解除</string>
   <string name="upload_file">ファイルをアップロード</string>
   <string name="use_web_search">ウェブ検索を</string>
   <string name="user_default_name">ユーザー</string>

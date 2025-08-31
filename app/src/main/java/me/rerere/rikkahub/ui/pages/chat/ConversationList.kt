@@ -216,7 +216,7 @@ private fun PinnedHeader() {
         )
         Spacer(Modifier.size(8.dp))
         Text(
-            text = "置顶对话",
+            text = stringResource(R.string.pinned_chats),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
@@ -334,7 +334,7 @@ private fun ConversationItem(
                 DropdownMenuItem(
                     text = {
                         Text(
-                            if (conversation.isPinned) "取消置顶" else "置顶对话"
+                            if (conversation.isPinned) stringResource(R.string.unpin_chat) else stringResource(R.string.pin_chat)
                         )
                     },
                     onClick = {

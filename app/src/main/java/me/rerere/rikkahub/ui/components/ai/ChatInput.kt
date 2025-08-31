@@ -776,6 +776,7 @@ private fun useCropLauncher(
 @Composable
 private fun ImagePickButton(onAddImages: (List<Uri>) -> Unit = {}) {
     val context = LocalContext.current
+    val settings = LocalSettings.current
 
     val (_, launchCrop) = useCropLauncher(
         onCroppedImageReady = { croppedUri ->
@@ -788,12 +789,19 @@ private fun ImagePickButton(onAddImages: (List<Uri>) -> Unit = {}) {
     ) { selectedUris ->
         if (selectedUris.isNotEmpty()) {
             Log.d("ImagePickButton", "Selected URIs: $selectedUris")
-            if (selectedUris.size == 1) {
-                // Single image - offer crop
-                launchCrop(selectedUris.first())
-            } else {
-                // Multiple images - no crop
+            // Check if we should skip crop based on settings
+            if (settings.displaySetting.skipCropImage) {
+                // Skip crop, directly add images
                 onAddImages(context.createChatFilesByContents(selectedUris))
+            } else {
+                // Show crop interface
+                if (selectedUris.size == 1) {
+                    // Single image - offer crop
+                    launchCrop(selectedUris.first())
+                } else {
+                    // Multiple images - no crop
+                    onAddImages(context.createChatFilesByContents(selectedUris))
+                }
             }
         } else {
             Log.d("ImagePickButton", "No images selected")
@@ -824,6 +832,7 @@ fun TakePicButton(onAddImages: (List<Uri>) -> Unit = {}) {
         )
     )
     val context = LocalContext.current
+    val settings = LocalSettings.current
     var cameraOutputUri by remember { mutableStateOf<Uri?>(null) }
     var cameraOutputFile by remember { mutableStateOf<File?>(null) }
 
@@ -843,7 +852,18 @@ fun TakePicButton(onAddImages: (List<Uri>) -> Unit = {}) {
         ActivityResultContracts.TakePicture()
     ) { captureSuccessful ->
         if (captureSuccessful && cameraOutputUri != null) {
-            launchCrop(cameraOutputUri!!)
+            // Check if we should skip crop based on settings
+            if (settings.displaySetting.skipCropImage) {
+                // Skip crop, directly add image
+                onAddImages(context.createChatFilesByContents(listOf(cameraOutputUri!!)))
+                // Clean up camera temp file
+                cameraOutputFile?.delete()
+                cameraOutputFile = null
+                cameraOutputUri = null
+            } else {
+                // Show crop interface
+                launchCrop(cameraOutputUri!!)
+            }
         } else {
             // Clean up camera temp file if capture failed
             cameraOutputFile?.delete()

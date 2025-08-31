@@ -310,6 +310,28 @@ fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
             }
 
             item {
+                Card {
+                    ListItem(
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        headlineContent = {
+                            Text(stringResource(R.string.setting_display_page_skip_crop_image_title))
+                        },
+                        supportingContent = {
+                            Text(stringResource(R.string.setting_display_page_skip_crop_image_desc))
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = displaySetting.skipCropImage,
+                                onCheckedChange = {
+                                    updateDisplaySetting(displaySetting.copy(skipCropImage = it))
+                                }
+                            )
+                        },
+                    )
+                }
+            }
+
+            item {
                 var createNewConversationOnStart by rememberSharedPreferenceBoolean(
                     "create_new_conversation_on_start",
                     true

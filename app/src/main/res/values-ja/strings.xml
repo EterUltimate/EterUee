@@ -374,6 +374,8 @@
   <string name="setting_mcp_page_url_label">URL</string>
   <string name="setting_model_page_chat_model">チャットモデル</string>
   <string name="setting_model_page_chat_model_desc">グローバルデフォルトチャットモデル</string>
+  <string name="setting_model_page_learning_mode">学習モードプロンプト</string>
+  <string name="setting_model_page_learning_mode_desc">学習モードで使用するプロンプトを設定します</string>
   <string name="setting_model_page_prompt">プロンプト</string>
   <string name="setting_model_page_reset_to_default">デフォルトにリセット</string>
   <string name="setting_model_page_suggestion_model">チャット提案モデル</string>

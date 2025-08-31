@@ -374,6 +374,8 @@
   <string name="setting_mcp_page_url_label">URL</string>
   <string name="setting_model_page_chat_model">聊天模型</string>
   <string name="setting_model_page_chat_model_desc">全域預設聊天模型</string>
+  <string name="setting_model_page_learning_mode">學習模式提示</string>
+  <string name="setting_model_page_learning_mode_desc">設定學習模式所使用的提示詞</string>
   <string name="setting_model_page_prompt">提示詞</string>
   <string name="setting_model_page_reset_to_default">重置為預設值</string>
   <string name="setting_model_page_suggestion_model">聊天建議模型</string>

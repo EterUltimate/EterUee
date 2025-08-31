@@ -41,6 +41,7 @@ import me.rerere.ai.ui.onGenerationFinish
 import me.rerere.ai.ui.transforms
 import me.rerere.ai.ui.truncate
 import me.rerere.ai.ui.visualTransforms
+import me.rerere.rikkahub.data.ai.prompts.DEFAULT_LEARNING_MODE_PROMPT
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.findModelById
 import me.rerere.rikkahub.data.datastore.findProvider
@@ -63,7 +64,7 @@ class GenerationHandler(
     private val providerManager: ProviderManager,
     private val json: Json,
     private val memoryRepo: MemoryRepository,
-    private val conversationRepo: ConversationRepository
+    private val conversationRepo: ConversationRepository,
 ) {
     fun generateText(
         settings: Settings,
@@ -105,6 +106,7 @@ class GenerationHandler(
 
             generateInternal(
                 assistant = assistant,
+                settings = settings,
                 messages = messages,
                 onUpdateMessages = {
                     messages = it.transforms(
@@ -184,6 +186,7 @@ class GenerationHandler(
 
     private suspend fun generateInternal(
         assistant: Assistant?,
+        settings: Settings,
         messages: List<UIMessage>,
         onUpdateMessages: suspend (List<UIMessage>) -> Unit,
         transformers: List<MessageTransformer>,
@@ -217,7 +220,7 @@ class GenerationHandler(
                     // 学习模式
                     if(assistant.learningMode) {
                         appendLine()
-                        append(LEARNING_MODE_PROMPT)
+                        append(settings.learningModePrompt.ifEmpty { DEFAULT_LEARNING_MODE_PROMPT })
                         appendLine()
                     }
 

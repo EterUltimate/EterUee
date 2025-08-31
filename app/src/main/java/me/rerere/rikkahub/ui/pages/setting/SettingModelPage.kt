@@ -35,6 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Earth
+import com.composables.icons.lucide.GraduationCap
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.MessageCircle
 import com.composables.icons.lucide.MessageSquareMore
@@ -45,6 +46,7 @@ import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.datastore.DEFAULT_SUGGESTION_PROMPT
 import me.rerere.rikkahub.data.datastore.DEFAULT_TITLE_PROMPT
 import me.rerere.rikkahub.data.datastore.DEFAULT_TRANSLATION_PROMPT
+import me.rerere.rikkahub.data.ai.prompts.DEFAULT_LEARNING_MODE_PROMPT
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.ui.components.ai.ModelSelector
 import me.rerere.rikkahub.ui.components.nav.BackButton
@@ -86,6 +88,10 @@ fun SettingModelPage(vm: SettingVM = koinViewModel()) {
 
             item {
                 DefaultTranslationModelSetting(settings = settings, vm = vm)
+            }
+
+            item {
+                LearningModePromptSetting(settings = settings, vm = vm)
             }
         }
     }
@@ -407,6 +413,80 @@ private fun DefaultChatModelSetting(
             }
         }
     )
+}
+
+@Composable
+private fun LearningModePromptSetting(
+    settings: Settings,
+    vm: SettingVM
+) {
+    var showModal by remember { mutableStateOf(false) }
+    ModelFeatureCard(
+        title = {
+            Text(stringResource(R.string.setting_model_page_learning_mode), maxLines = 1)
+        },
+        description = {
+            Text(stringResource(R.string.setting_model_page_learning_mode_desc))
+        },
+        icon = {
+            Icon(Lucide.GraduationCap, null)
+        },
+        actions = {
+            IconButton(
+                onClick = {
+                    showModal = true
+                }
+            ) {
+                Icon(Lucide.Settings2, null)
+            }
+        }
+    )
+
+    if (showModal) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                showModal = false
+            },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                FormItem(
+                    label = {
+                        Text(stringResource(R.string.setting_model_page_prompt))
+                    },
+                ) {
+                    OutlinedTextField(
+                        value = settings.learningModePrompt,
+                        onValueChange = {
+                            vm.updateSettings(
+                                settings.copy(
+                                    learningModePrompt = it
+                                )
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 10,
+                    )
+                    TextButton(
+                        onClick = {
+                            vm.updateSettings(
+                                settings.copy(
+                                    learningModePrompt = DEFAULT_LEARNING_MODE_PROMPT
+                                )
+                            )
+                        }
+                    ) {
+                        Text(stringResource(R.string.setting_model_page_reset_to_default))
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable

@@ -12,6 +12,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +36,7 @@ import me.rerere.ai.provider.CustomHeader
 import me.rerere.highlight.LocalHighlighter
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.richtext.HighlightCodeVisualTransformation
+import me.rerere.rikkahub.ui.theme.JetbrainsMono
 import me.rerere.rikkahub.ui.theme.LocalDarkMode
 
 private val jsonLenient = Json {
@@ -186,7 +188,8 @@ fun CustomBodies(customBodies: List<CustomBody>, onUpdate: (List<CustomBody>) ->
                                 language = "json",
                                 highlighter = LocalHighlighter.current,
                                 darkMode = LocalDarkMode.current
-                            )
+                            ),
+                            textStyle = LocalTextStyle.current.merge(fontFamily = JetbrainsMono),
                         )
                     }
                     IconButton(onClick = {

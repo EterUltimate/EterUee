@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -16,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
@@ -29,14 +29,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SnapshotMutationPolicy
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,13 +68,10 @@ import androidx.core.net.toUri
 import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.Lucide
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
-import me.rerere.highlight.HighlightText
 import me.rerere.rikkahub.ui.components.table.DataTable
 import me.rerere.rikkahub.ui.theme.JetbrainsMono
 import me.rerere.rikkahub.utils.toDp
@@ -959,15 +954,15 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
                     ?.findChildOfTypeRecursive(GFMTokenTypes.GFM_AUTOLINK, MarkdownTokenTypes.TEXT)
                     ?.getTextInNode(content)
                     ?: linkDest
-            if (linkText == "citation") {
+            if (linkText.startsWith("citation,")) {
                 // 如果是引用，则特殊处理
-                val splits = linkDest.split(":")
-                if (splits.size == 2) {
-                    val (index, id) = splits
+                val domain = linkText.substringAfter("citation,")
+                val id = linkDest
+                if (id.length == 6) {
                     inlineContents.putIfAbsent(
                         "citation:$linkDest", InlineTextContent(
                             placeholder = Placeholder(
-                                width = 1.em,
+                                width = (domain.length * 7).sp,
                                 height = 1.em,
                                 placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter,
                             ),
@@ -978,17 +973,19 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
                                             onClickCitation(id.trim())
                                         }
                                         .fillMaxSize()
-                                        .clip(RoundedCornerShape(20))
-                                        .background(colorScheme.primary.copy(0.2f)),
+                                        .clip(CircleShape)
+                                        .background(colorScheme.tertiaryContainer.copy(0.2f)),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = index.toString(),
+                                        text = domain,
                                         modifier = Modifier.wrapContentSize(),
                                         style = TextStyle(
-                                            fontSize = 12.sp,
-                                            lineHeight = 12.sp,
-                                            fontWeight = FontWeight.SemiBold
+                                            fontSize = 10.sp,
+                                            lineHeight = 10.sp,
+                                            fontFamily = JetbrainsMono,
+                                            color = colorScheme.onTertiaryContainer,
+                                            fontWeight = FontWeight.Thin
                                         ),
                                     )
                                 }

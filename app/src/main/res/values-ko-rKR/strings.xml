@@ -409,7 +409,7 @@
   <string name="setting_page_data_backup">데이터 백업</string>
   <string name="setting_page_data_backup_desc">앱 데이터 백업 및 복원</string>
   <string name="setting_page_data_settings">데이터 설정</string>
-  <string name="setting_page_default_model">기본 모델</string>
+  <string name="setting_page_default_model">기본 모델 및 프롬프트</string>
   <string name="setting_page_default_model_desc">각 기능의 기본 모델 설정</string>
   <string name="setting_page_display_setting">디스플레이 설정</string>
   <string name="setting_page_display_setting_desc">디스플레이 설정 관리</string>

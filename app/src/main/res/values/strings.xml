@@ -66,7 +66,7 @@
   <string name="setting_page_dynamic_color_desc">Use dynamic color</string>
   <string name="setting_page_general_settings">General Settings</string>
   <string name="setting_page_model_and_services">Models &amp; Services</string>
-  <string name="setting_page_default_model">Default Model</string>
+  <string name="setting_page_default_model">Default Model and Prompt</string>
   <string name="setting_page_default_model_desc">Set default models for each feature</string>
   <string name="setting_page_providers">Providers</string>
   <string name="setting_page_providers_desc">Configure AI providers</string>

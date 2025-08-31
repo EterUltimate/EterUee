@@ -41,6 +41,7 @@ import com.composables.icons.lucide.Bot
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Database
 import com.composables.icons.lucide.Earth
+import com.composables.icons.lucide.Hammer
 import com.composables.icons.lucide.HardDrive
 import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.Library
@@ -174,7 +175,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                     navController = navController,
                     title = { Text(stringResource(R.string.setting_page_default_model)) },
                     description = { Text(stringResource(R.string.setting_page_default_model_desc)) },
-                    icon = { Icon(Lucide.Heart, "Default Model") },
+                    icon = { Icon(Lucide.Hammer, stringResource(R.string.setting_page_default_model)) },
                     link = Screen.SettingModels
                 )
             }

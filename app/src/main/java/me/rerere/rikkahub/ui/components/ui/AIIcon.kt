@@ -120,6 +120,8 @@ private fun computeAIIconByName(name: String): String? {
         PATTERN_INTERN.containsMatchIn(lowerName) -> "internlm-color.svg"
         PATTERN_COHERE.containsMatchIn(lowerName) -> "cohere-color.svg"
         PATTERN_TAVERN.containsMatchIn(lowerName) -> "tavern.png"
+        PATTERN_CEREBRAS.containsMatchIn(lowerName) -> "cerebras-color.svg"
+        PATTERN_NVIDIA.containsMatchIn(lowerName) -> "nvidia-color.svg"
 
         PATTERN_SEARCH_LINKUP.containsMatchIn(lowerName) -> "linkup.png"
         PATTERN_SEARCH_BING.containsMatchIn(lowerName) -> "bing.png"
@@ -171,6 +173,8 @@ private val PATTERN_STEP = Regex("step|阶跃")
 private val PATTERN_INTERN = Regex("intern|书生")
 private val PATTERN_COHERE = Regex("cohere|command-.+")
 private val PATTERN_TAVERN = Regex("tavern")
+private val PATTERN_CEREBRAS = Regex("cerebras")
+private val PATTERN_NVIDIA = Regex("nvidia")
 
 private val PATTERN_SEARCH_LINKUP = Regex("linkup")
 private val PATTERN_SEARCH_BING = Regex("bing")

@@ -219,6 +219,7 @@
   <string name="emoji_picker_search_placeholder">이모지 검색...</string>
   <string name="emoji_picker_select_skin_tone">스킨 톤 선택</string>
   <string name="expand_translation">번역 확장</string>
+  <string name="export_image_warning">위 내용은 인공지능이 생성한 것으로 부정확할 수 있습니다.</string>
   <string name="history_page_cancel">취소</string>
   <string name="history_page_clear">지우기</string>
   <string name="history_page_conversation_deleted">대화 삭제됨</string>

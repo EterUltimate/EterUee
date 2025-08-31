@@ -329,6 +329,7 @@ data class DisplaySetting(
     val showMessageJumper: Boolean = true,
     val fontSizeRatio: Float = 1.0f,
     val enableMessageGenerationHapticEffect: Boolean = false,
+    val skipCropImage: Boolean = false,
 )
 
 @Serializable

@@ -35,6 +35,7 @@ internal class MyWebChromeClient(private val state: WebViewState) : WebChromeCli
     }
 
     override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
+        state.pushConsoleMessage(consoleMessage)
         if (consoleMessage.messageLevel() == ConsoleMessage.MessageLevel.ERROR || consoleMessage.messageLevel() == ConsoleMessage.MessageLevel.WARNING) {
             Log.e(
                 TAG,
@@ -202,6 +203,10 @@ class WebViewState(
     var canGoForward: Boolean by mutableStateOf(false)
         internal set
 
+    // --- Console Message ---
+    var consoleMessages: List<ConsoleMessage> by mutableStateOf(emptyList())
+        internal set
+
     // --- Settings ---
     var javaScriptEnabled: Boolean by mutableStateOf(true) // Example setting
 
@@ -261,6 +266,13 @@ class WebViewState(
 
     fun clearHistory() {
         webView?.clearHistory()
+    }
+
+    fun pushConsoleMessage(message: ConsoleMessage) {
+        consoleMessages = consoleMessages + message
+        if (consoleMessages.size > 64) { // Limit to 64 messages
+            consoleMessages = consoleMessages.takeLast(64)
+        }
     }
 }
 

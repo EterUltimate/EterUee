@@ -23,12 +23,20 @@ sealed class ProviderProxy {
 }
 
 @Serializable
+data class BalanceOption(
+    val enabled: Boolean = false, // 是否开启余额获取功能
+    val apiPath: String = "/credits", // 余额获取API路径
+    val resultPath: String = "data.total_usage", // 余额获取JSON路径
+)
+
+@Serializable
 sealed class ProviderSetting {
     abstract val id: Uuid
     abstract val enabled: Boolean
     abstract val name: String
     abstract val models: List<Model>
     abstract val proxy: ProviderProxy
+    abstract val balanceOption: BalanceOption
 
     abstract val builtIn: Boolean
     abstract val description: @Composable() () -> Unit
@@ -43,6 +51,7 @@ sealed class ProviderSetting {
         name: String = this.name,
         models: List<Model> = this.models,
         proxy: ProviderProxy = this.proxy,
+        balanceOption: BalanceOption = this.balanceOption,
         builtIn: Boolean = this.builtIn,
         description: @Composable (() -> Unit) = this.description,
     ): ProviderSetting
@@ -55,6 +64,7 @@ sealed class ProviderSetting {
         override var name: String = "OpenAI",
         override var models: List<Model> = emptyList(),
         override var proxy: ProviderProxy = ProviderProxy.None,
+        override val balanceOption: BalanceOption = BalanceOption(),
         @Transient override val builtIn: Boolean = false,
         @Transient override val description: @Composable (() -> Unit) = {},
         var apiKey: String = "",
@@ -90,6 +100,7 @@ sealed class ProviderSetting {
             name: String,
             models: List<Model>,
             proxy: ProviderProxy,
+            balanceOption: BalanceOption,
             builtIn: Boolean,
             description: @Composable (() -> Unit)
         ): ProviderSetting {
@@ -100,7 +111,8 @@ sealed class ProviderSetting {
                 models = models,
                 builtIn = builtIn,
                 description = description,
-                proxy = proxy
+                proxy = proxy,
+                balanceOption = balanceOption
             )
         }
     }
@@ -113,6 +125,7 @@ sealed class ProviderSetting {
         override var name: String = "Google",
         override var models: List<Model> = emptyList(),
         override var proxy: ProviderProxy = ProviderProxy.None,
+        override val balanceOption: BalanceOption = BalanceOption(),
         @Transient override val builtIn: Boolean = false,
         @Transient override val description: @Composable (() -> Unit) = {},
         var apiKey: String = "",
@@ -151,6 +164,7 @@ sealed class ProviderSetting {
             name: String,
             models: List<Model>,
             proxy: ProviderProxy,
+            balanceOption: BalanceOption,
             builtIn: Boolean,
             description: @Composable (() -> Unit)
         ): ProviderSetting {
@@ -161,7 +175,8 @@ sealed class ProviderSetting {
                 models = models,
                 builtIn = builtIn,
                 description = description,
-                proxy = proxy
+                proxy = proxy,
+                balanceOption = balanceOption
             )
         }
     }
@@ -174,6 +189,7 @@ sealed class ProviderSetting {
         override var name: String = "Claude",
         override var models: List<Model> = emptyList(),
         override var proxy: ProviderProxy = ProviderProxy.None,
+        override val balanceOption: BalanceOption = BalanceOption(),
         @Transient override val builtIn: Boolean = false,
         @Transient override val description: @Composable (() -> Unit) = {},
         var apiKey: String = "",
@@ -207,6 +223,7 @@ sealed class ProviderSetting {
             name: String,
             models: List<Model>,
             proxy: ProviderProxy,
+            balanceOption: BalanceOption,
             builtIn: Boolean,
             description: @Composable (() -> Unit)
         ): ProviderSetting {
@@ -215,9 +232,10 @@ sealed class ProviderSetting {
                 enabled = enabled,
                 name = name,
                 models = models,
+                proxy = proxy,
+                balanceOption = balanceOption,
                 builtIn = builtIn,
                 description = description,
-                proxy = proxy
             )
         }
     }

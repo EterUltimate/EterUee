@@ -8,11 +8,16 @@ import me.rerere.ai.ui.ImageAspectRatio
 import me.rerere.ai.ui.ImageGenerationResult
 import me.rerere.ai.ui.MessageChunk
 import me.rerere.ai.ui.UIMessage
+import java.math.BigDecimal
 
 // 提供商实现
 // 采用无状态设计，使用时除了需要传入需要的参数外，还需要传入provider setting作为参数
 interface Provider<T : ProviderSetting> {
     suspend fun listModels(providerSetting: T): List<Model>
+
+    suspend fun getBalance(providerSetting: T): String {
+        return "TODO"
+    }
 
     suspend fun generateText(
         providerSetting: T,

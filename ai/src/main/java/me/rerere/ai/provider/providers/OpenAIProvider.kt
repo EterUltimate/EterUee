@@ -25,10 +25,13 @@ import me.rerere.ai.util.KeyRoulette
 import me.rerere.ai.util.configureClientWithProxy
 import me.rerere.ai.util.json
 import me.rerere.common.http.await
+import me.rerere.common.http.getByKey
+import me.rerere.common.http.jsonPrimitiveOrNull
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.math.BigDecimal
 
 class OpenAIProvider(
     private val client: OkHttpClient
@@ -68,6 +71,30 @@ class OpenAIProvider(
                 )
             }
         }
+
+    override suspend fun getBalance(providerSetting: ProviderSetting.OpenAI): String = withContext(Dispatchers.IO) {
+        val key = keyRoulette.next(providerSetting.apiKey)
+        val request = Request.Builder()
+            .url("${providerSetting.baseUrl}${providerSetting.balanceOption.apiPath}")
+            .addHeader("Authorization", "Bearer $key")
+            .get()
+            .build()
+        val response = client.configureClientWithProxy(providerSetting.proxy).newCall(request).await()
+        if (!response.isSuccessful) {
+            error("Failed to get balance: ${response.code} ${response.body?.string()}")
+        }
+
+        val bodyStr = response.body.string()
+        val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
+        val value = bodyJson.getByKey(providerSetting.balanceOption.resultPath)?.jsonPrimitiveOrNull?.content
+            ?: error("No balance in response")
+        val digitalValue = value.toFloatOrNull()
+        if(digitalValue != null) {
+            "%.2f".format(digitalValue)
+        } else {
+            value
+        }
+    }
 
     override suspend fun streamText(
         providerSetting: ProviderSetting.OpenAI,
@@ -121,11 +148,13 @@ class OpenAIProvider(
                 put("prompt", params.prompt)
                 put("n", params.numOfImages)
                 put("response_format", "b64_json")
-                put("size", when(params.aspectRatio) {
-                    ImageAspectRatio.SQUARE -> "1024x1024"
-                    ImageAspectRatio.LANDSCAPE -> "1536x1024"
-                    ImageAspectRatio.PORTRAIT -> "1024x1536"
-                })
+                put(
+                    "size", when (params.aspectRatio) {
+                        ImageAspectRatio.SQUARE -> "1024x1024"
+                        ImageAspectRatio.LANDSCAPE -> "1536x1024"
+                        ImageAspectRatio.PORTRAIT -> "1024x1536"
+                    }
+                )
             }
         )
 

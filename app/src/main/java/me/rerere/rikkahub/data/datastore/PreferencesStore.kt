@@ -413,7 +413,7 @@ private fun Model.findModelProviderFromList(providers: List<ProviderSetting>): P
 
 private val SILICONFLOW_QWEN3_8B_ID = Uuid.parse("dd82297e-4237-4d3c-85b3-58d5c7084fc2")
 
-private val DEFAULT_PROVIDERS = listOf(
+val DEFAULT_PROVIDERS = listOf(
     ProviderSetting.OpenAI(
         id = Uuid.parse("1eeea727-9ee5-4cae-93e6-6fb01a4d051e"),
         name = "OpenAI",

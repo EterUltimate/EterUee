@@ -292,6 +292,7 @@ private fun SettingProviderConfigPage(
 
         if (internalProvider is ProviderSetting.OpenAI) {
             SettingProviderBalanceOption(
+                provider = internalProvider,
                 balanceOption = internalProvider.balanceOption,
                 onEdit = { internalProvider = internalProvider.copyProvider(balanceOption = it) }
             )

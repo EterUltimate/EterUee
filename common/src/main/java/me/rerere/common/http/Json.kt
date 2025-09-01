@@ -15,9 +15,5 @@ val JsonElement.jsonPrimitiveOrNull: JsonPrimitive?
     get() = this as? JsonPrimitive
 
 fun JsonObject.getByKey(key: String): String {
-    return try {
-        evaluateJsonExpr(key, this)
-    } catch (e: Exception) {
-        e.message ?: e.javaClass.simpleName
-    }
+    return evaluateJsonExpr(key, this)
 }

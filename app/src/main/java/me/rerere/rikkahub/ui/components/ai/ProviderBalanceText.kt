@@ -24,11 +24,10 @@ import me.rerere.ai.provider.ProviderSetting
 import me.rerere.rikkahub.utils.toDp
 import org.koin.compose.koinInject
 import java.util.concurrent.TimeUnit
-import kotlin.uuid.Uuid
 
 private val cache = CacheBuilder.newBuilder()
     .expireAfterWrite(2, TimeUnit.MINUTES)
-    .build<Uuid, String>()
+    .build<String, String>()
 
 @Composable
 fun ProviderBalanceText(
@@ -46,7 +45,7 @@ fun ProviderBalanceText(
 
     val value = produceState(initialValue = "~", key1 = providerSetting.id, key2 = providerSetting.balanceOption) {
         // Check cache first
-        val cachedBalance = cache.getIfPresent(providerSetting.id)
+        val cachedBalance = cache.getIfPresent("${providerSetting.id},${providerSetting.balanceOption.hashCode()}")
         if (cachedBalance != null) {
             value = cachedBalance
         } else {
@@ -54,7 +53,7 @@ fun ProviderBalanceText(
             runCatching {
                 val balance = providerManager.getProviderByType(providerSetting).getBalance(providerSetting)
                 // Cache the result
-                cache.put(providerSetting.id, balance)
+                cache.put("${providerSetting.id},${providerSetting.balanceOption.hashCode()}", balance)
                 value = balance
             }.onFailure {
                 // Handle error

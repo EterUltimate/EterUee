@@ -454,6 +454,9 @@
   <string name="setting_provider_page_api_base_url">API Base Url</string>
   <string name="setting_provider_page_api_key">API Key</string>
   <string name="setting_provider_page_api_path">API 路径</string>
+  <string name="setting_provider_page_balance_api_path">余额 API 路径</string>
+  <string name="setting_provider_page_balance_info">获取账户余额</string>
+  <string name="setting_provider_page_balance_json_key">结果 JSON 键</string>
   <string name="setting_provider_page_basic_settings">基本设置</string>
   <string name="setting_provider_page_chat_model">聊天</string>
   <string name="setting_provider_page_configuration">配置</string>

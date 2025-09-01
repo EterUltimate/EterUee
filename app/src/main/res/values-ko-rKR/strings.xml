@@ -454,6 +454,9 @@
   <string name="setting_provider_page_api_base_url">API 기본 URL</string>
   <string name="setting_provider_page_api_key">API 키</string>
   <string name="setting_provider_page_api_path">API 경로</string>
+  <string name="setting_provider_page_balance_api_path">잔액 API 경로</string>
+  <string name="setting_provider_page_balance_info">계정 잔액 확인</string>
+  <string name="setting_provider_page_balance_json_key">결과 Json 키</string>
   <string name="setting_provider_page_basic_settings">기본 설정</string>
   <string name="setting_provider_page_chat_model">채팅</string>
   <string name="setting_provider_page_configuration">구성</string>

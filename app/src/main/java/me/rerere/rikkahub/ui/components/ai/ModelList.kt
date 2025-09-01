@@ -1,6 +1,7 @@
 package me.rerere.rikkahub.ui.components.ai
 
 import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -229,14 +231,14 @@ private fun ColumnScope.ModelList(
     // 计算当前选中模型的位置
     val selectedModelPosition = remember(currentModel, favoriteModels, providers, modelType) {
         if (currentModel == null) return@remember 0
-        
+
         var position = 0
-        
+
         // 跳过无providers提示
         if (providers.isEmpty()) {
             position += 1
         }
-        
+
         // 检查是否在收藏列表中
         val favoriteIndex = favoriteModels.indexOfFirst { it.first.id == currentModel }
         if (favoriteIndex >= 0) {
@@ -246,13 +248,13 @@ private fun ColumnScope.ModelList(
             position += favoriteIndex
             return@remember position
         }
-        
+
         // 跳过收藏列表
         if (favoriteModels.isNotEmpty()) {
             position += 1 // favorite header
             position += favoriteModels.size
         }
-        
+
         // 在providers中查找
         for (provider in providers) {
             position += 1 // provider header
@@ -264,10 +266,10 @@ private fun ColumnScope.ModelList(
             }
             position += models.size
         }
-        
+
         0
     }
-    
+
     val lazyListState = rememberLazyListState(
         initialFirstVisibleItemIndex = selectedModelPosition
     )
@@ -438,14 +440,27 @@ private fun ColumnScope.ModelList(
         }
 
         providers.fastForEach { providerSetting ->
-            stickyHeader {
-                Text(
-                    text = providerSetting.name,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
+            stickyHeader(key = "header:${providerSetting.id}") {
+                Row(
                     modifier = Modifier
+                        .padding(horizontal = 8.dp)
                         .padding(bottom = 4.dp, top = 8.dp),
-                )
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = providerSetting.name,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    ProviderBalanceText(
+                        providerSetting = providerSetting,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
 
             items(

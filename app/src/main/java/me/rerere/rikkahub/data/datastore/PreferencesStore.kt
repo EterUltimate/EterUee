@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.serialization.Serializable
+import me.rerere.ai.provider.BalanceOption
 import me.rerere.ai.provider.Modality
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
@@ -460,7 +461,12 @@ private val DEFAULT_PROVIDERS = listOf(
                 outputModalities = listOf(Modality.TEXT),
                 abilities = listOf(),
             ),
-        )
+        ),
+        balanceOption = BalanceOption(
+            enabled = true,
+            apiPath = "/user/info",
+            resultPath = "data.totalBalance",
+        ),
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("f099ad5b-ef03-446d-8e78-7e36787f780b"),
@@ -474,7 +480,12 @@ private val DEFAULT_PROVIDERS = listOf(
         name = "OpenRouter",
         baseUrl = "https://openrouter.ai/api/v1",
         apiKey = "",
-        builtIn = true
+        builtIn = true,
+        balanceOption = BalanceOption(
+            enabled = true,
+            apiPath = "/credits",
+            resultPath = "data.total_usage",
+        )
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("f76cae46-069a-4334-ab8e-224e4979e58c"),

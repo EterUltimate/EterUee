@@ -14,10 +14,17 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Coins
 import com.composables.icons.lucide.Lucide
+import com.google.common.cache.CacheBuilder
 import me.rerere.ai.provider.ProviderManager
 import me.rerere.ai.provider.ProviderSetting
 import me.rerere.rikkahub.utils.toDp
 import org.koin.compose.koinInject
+import java.util.concurrent.TimeUnit
+import kotlin.uuid.Uuid
+
+private val cache = CacheBuilder.newBuilder()
+    .expireAfterWrite(2, TimeUnit.MINUTES)
+    .build<Uuid, String>()
 
 @Composable
 fun ProviderBalanceText(
@@ -32,13 +39,24 @@ fun ProviderBalanceText(
 
     val providerManager = koinInject<ProviderManager>()
 
-    val value = produceState(initialValue = "", key1 = providerSetting) {
-        // Fetch balance from API
-        runCatching {
-            value = providerManager.getProviderByType(providerSetting).getBalance(providerSetting)
-        }.onFailure {
-            // Handle error
-            value = "Error: ${it.message}"
+    val value = produceState(initialValue = "", key1 = providerSetting.id) {
+        // Check cache first
+        val cachedBalance = cache.getIfPresent(providerSetting.id)
+        if (cachedBalance != null) {
+            value = cachedBalance
+        } else {
+            // Fetch balance from API
+            runCatching {
+                val balance = providerManager.getProviderByType(providerSetting).getBalance(providerSetting)
+                // Cache the result
+                cache.put(providerSetting.id, balance)
+                value = balance
+            }.onFailure {
+                // Handle error
+                val errorMsg = "Error: ${it.message}"
+                // Don't cache error messages
+                value = errorMsg
+            }
         }
     }
 

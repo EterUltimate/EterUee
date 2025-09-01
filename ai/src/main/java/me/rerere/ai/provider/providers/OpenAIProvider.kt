@@ -86,8 +86,7 @@ class OpenAIProvider(
 
         val bodyStr = response.body.string()
         val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
-        val value = bodyJson.getByKey(providerSetting.balanceOption.resultPath)?.jsonPrimitiveOrNull?.content
-            ?: error("No balance in response")
+        val value = bodyJson.getByKey(providerSetting.balanceOption.resultPath)
         val digitalValue = value.toFloatOrNull()
         if(digitalValue != null) {
             "%.2f".format(digitalValue)

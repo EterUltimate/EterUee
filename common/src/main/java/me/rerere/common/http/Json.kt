@@ -14,16 +14,10 @@ val JsonElement.jsonArrayOrNull: JsonArray?
 val JsonElement.jsonPrimitiveOrNull: JsonPrimitive?
     get() = this as? JsonPrimitive
 
-fun JsonObject.getByKey(key: String): JsonElement? {
-    val keys = key.split(".")
-    var current: JsonElement = this
-    
-    for (k in keys) {
-        current = when (current) {
-            is JsonObject -> current[k] ?: return null
-            else -> return null
-        }
+fun JsonObject.getByKey(key: String): String {
+    return try {
+        evaluateJsonExpr(key, this)
+    } catch (e: Exception) {
+        e.message ?: e.javaClass.simpleName
     }
-    
-    return current
 }

@@ -484,7 +484,7 @@ private val DEFAULT_PROVIDERS = listOf(
         balanceOption = BalanceOption(
             enabled = true,
             apiPath = "/credits",
-            resultPath = "data.total_usage",
+            resultPath = "data.total_credits - data.total_usage",
         )
     ),
     ProviderSetting.OpenAI(

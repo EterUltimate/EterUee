@@ -44,7 +44,7 @@ fun ProviderBalanceText(
 
     val providerManager = koinInject<ProviderManager>()
 
-    val value = produceState(initialValue = "~", key1 = providerSetting.id) {
+    val value = produceState(initialValue = "~", key1 = providerSetting.id, key2 = providerSetting.balanceOption) {
         // Check cache first
         val cachedBalance = cache.getIfPresent(providerSetting.id)
         if (cachedBalance != null) {

@@ -26,7 +26,9 @@ import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.ChevronUp
 import com.composables.icons.lucide.Lucide
 import me.rerere.ai.provider.BalanceOption
+import me.rerere.common.http.isJsonExprValid
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.ui.theme.JetbrainsMono
 
 private val JsonKeyRegex = Regex("""^[^.\s\[\]]+(?:\.[^.\s\[\]]+)*$""")
 private val ApiPathRegex = Regex("""^/[^ \t\n\r]*$""")
@@ -88,8 +90,9 @@ fun SettingProviderBalanceOption(
                     value = balanceOption.resultPath,
                     onValueChange = { onEdit(balanceOption.copy(resultPath = it)) },
                     label = { Text(stringResource(R.string.setting_provider_page_balance_json_key)) },
-                    isError = !balanceOption.resultPath.matches(JsonKeyRegex),
-                    modifier = Modifier.fillMaxWidth()
+                    isError = !isJsonExprValid(balanceOption.resultPath),
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = JetbrainsMono)
                 )
             }
         }

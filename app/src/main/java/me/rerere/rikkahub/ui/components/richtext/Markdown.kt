@@ -886,7 +886,6 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
             append(
                 node
                     .getTextInNode(content)
-                    .unescapeHtml()
                     .let { if (trim) it.trim() else it }
             )
         }

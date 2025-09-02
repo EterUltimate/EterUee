@@ -61,7 +61,6 @@ import com.composables.icons.lucide.ChevronUp
 import com.composables.icons.lucide.ChevronsDown
 import com.composables.icons.lucide.ChevronsUp
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.MousePointer
 import com.composables.icons.lucide.MousePointer2
 import com.composables.icons.lucide.X
 import kotlinx.coroutines.CoroutineScope
@@ -77,6 +76,7 @@ import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.model.MessageNode
 import me.rerere.rikkahub.ui.components.message.ChatMessage
 import me.rerere.rikkahub.ui.components.ui.ListSelectableItem
+import me.rerere.rikkahub.ui.components.ui.Tooltip
 import me.rerere.rikkahub.ui.hooks.ImeLazyListAutoScroller
 import me.rerere.rikkahub.utils.plus
 import kotlin.uuid.Uuid
@@ -269,36 +269,54 @@ fun ChatList(
             HorizontalFloatingToolbar(
                 expanded = true,
             ) {
-                IconButton(
-                    onClick = {
-                        selecting = false
-                        selectedItems.clear()
+                Tooltip(
+                    tooltip = {
+                        Text("Clear selection")
                     }
                 ) {
-                    Icon(Lucide.X, null)
-                }
-                IconButton(
-                    onClick = {
-                        if (selectedItems.isNotEmpty()) {
+                    IconButton(
+                        onClick = {
+                            selecting = false
                             selectedItems.clear()
-                        } else {
-                            selectedItems.addAll(conversation.messageNodes.map { it.id })
                         }
+                    ) {
+                        Icon(Lucide.X, null)
                     }
-                ) {
-                    Icon(Lucide.MousePointer2, null)
                 }
-                FilledIconButton(
-                    onClick = {
-                        selecting = false
-                        val messages =
-                            conversation.messageNodes.filter { it.id in selectedItems && it.currentMessage.isValidToShowActions() }
-                        if (messages.isNotEmpty()) {
-                            showExportSheet = true
-                        }
+                Tooltip(
+                    tooltip = {
+                        Text("Select all")
                     }
                 ) {
-                    Icon(Lucide.Check, null)
+                    IconButton(
+                        onClick = {
+                            if (selectedItems.isNotEmpty()) {
+                                selectedItems.clear()
+                            } else {
+                                selectedItems.addAll(conversation.messageNodes.map { it.id })
+                            }
+                        }
+                    ) {
+                        Icon(Lucide.MousePointer2, null)
+                    }
+                }
+                Tooltip(
+                    tooltip = {
+                        Text("Confirm")
+                    }
+                ) {
+                    FilledIconButton(
+                        onClick = {
+                            selecting = false
+                            val messages =
+                                conversation.messageNodes.filter { it.id in selectedItems && it.currentMessage.isValidToShowActions() }
+                            if (messages.isNotEmpty()) {
+                                showExportSheet = true
+                            }
+                        }
+                    ) {
+                        Icon(Lucide.Check, null)
+                    }
                 }
             }
         }

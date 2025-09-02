@@ -35,6 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Earth
+import com.composables.icons.lucide.Eye
 import com.composables.icons.lucide.GraduationCap
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.MessageCircle
@@ -43,10 +44,11 @@ import com.composables.icons.lucide.NotebookTabs
 import com.composables.icons.lucide.Settings2
 import me.rerere.ai.provider.ModelType
 import me.rerere.rikkahub.R
-import me.rerere.rikkahub.data.datastore.DEFAULT_SUGGESTION_PROMPT
-import me.rerere.rikkahub.data.datastore.DEFAULT_TITLE_PROMPT
-import me.rerere.rikkahub.data.datastore.DEFAULT_TRANSLATION_PROMPT
 import me.rerere.rikkahub.data.ai.prompts.DEFAULT_LEARNING_MODE_PROMPT
+import me.rerere.rikkahub.data.ai.prompts.DEFAULT_OCR_PROMPT
+import me.rerere.rikkahub.data.ai.prompts.DEFAULT_SUGGESTION_PROMPT
+import me.rerere.rikkahub.data.ai.prompts.DEFAULT_TITLE_PROMPT
+import me.rerere.rikkahub.data.ai.prompts.DEFAULT_TRANSLATION_PROMPT
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.ui.components.ai.ModelSelector
 import me.rerere.rikkahub.ui.components.nav.BackButton
@@ -92,6 +94,10 @@ fun SettingModelPage(vm: SettingVM = koinViewModel()) {
 
             item {
                 LearningModePromptSetting(settings = settings, vm = vm)
+            }
+
+            item {
+                DefaultOcrModelSetting(settings = settings, vm = vm)
             }
         }
     }
@@ -477,6 +483,101 @@ private fun LearningModePromptSetting(
                             vm.updateSettings(
                                 settings.copy(
                                     learningModePrompt = DEFAULT_LEARNING_MODE_PROMPT
+                                )
+                            )
+                        }
+                    ) {
+                        Text(stringResource(R.string.setting_model_page_reset_to_default))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DefaultOcrModelSetting(
+    settings: Settings,
+    vm: SettingVM
+) {
+    var showModal by remember { mutableStateOf(false) }
+    ModelFeatureCard(
+        title = {
+            Text(
+                stringResource(R.string.setting_model_page_ocr_model),
+                maxLines = 1
+            )
+        },
+        description = {
+            Text(stringResource(R.string.setting_model_page_ocr_model_desc))
+        },
+        icon = {
+            Icon(Lucide.Eye, null)
+        },
+        actions = {
+            Box(modifier = Modifier.weight(1f)) {
+                ModelSelector(
+                    modelId = settings.ocrModelId,
+                    type = ModelType.CHAT,
+                    onSelect = {
+                        vm.updateSettings(
+                            settings.copy(
+                                ocrModelId = it.id
+                            )
+                        )
+                    },
+                    providers = settings.providers,
+                    modifier = Modifier.wrapContentWidth()
+                )
+            }
+            IconButton(
+                onClick = {
+                    showModal = true
+                }
+            ) {
+                Icon(Lucide.Settings2, null)
+            }
+        }
+    )
+
+    if (showModal) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                showModal = false
+            },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                FormItem(
+                    label = {
+                        Text(stringResource(R.string.setting_model_page_prompt))
+                    },
+                    description = {
+                        Text(stringResource(R.string.setting_model_page_ocr_prompt_vars))
+                    }
+                ) {
+                    OutlinedTextField(
+                        value = settings.ocrPrompt,
+                        onValueChange = {
+                            vm.updateSettings(
+                                settings.copy(
+                                    ocrPrompt = it
+                                )
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 10,
+                    )
+                    TextButton(
+                        onClick = {
+                            vm.updateSettings(
+                                settings.copy(
+                                    ocrPrompt = DEFAULT_OCR_PROMPT
                                 )
                             )
                         }

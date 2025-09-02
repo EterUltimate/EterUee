@@ -31,6 +31,10 @@ import me.rerere.ai.provider.ProviderSetting
 import me.rerere.rikkahub.AppScope
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.ai.prompts.DEFAULT_LEARNING_MODE_PROMPT
+import me.rerere.rikkahub.data.ai.prompts.DEFAULT_OCR_PROMPT
+import me.rerere.rikkahub.data.ai.prompts.DEFAULT_SUGGESTION_PROMPT
+import me.rerere.rikkahub.data.ai.prompts.DEFAULT_TITLE_PROMPT
+import me.rerere.rikkahub.data.ai.prompts.DEFAULT_TRANSLATION_PROMPT
 import me.rerere.rikkahub.data.mcp.McpServerConfig
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.Avatar
@@ -81,6 +85,8 @@ class SettingsStore(
         val TRANSLATION_PROMPT = stringPreferencesKey("translation_prompt")
         val SUGGESTION_PROMPT = stringPreferencesKey("suggestion_prompt")
         val LEARNING_MODE_PROMPT = stringPreferencesKey("learning_mode_prompt")
+        val OCR_MODEL = stringPreferencesKey("ocr_model")
+        val OCR_PROMPT = stringPreferencesKey("ocr_prompt")
 
         // 提供商
         val PROVIDERS = stringPreferencesKey("providers")
@@ -134,6 +140,8 @@ class SettingsStore(
                 translatePrompt = preferences[TRANSLATION_PROMPT] ?: DEFAULT_TRANSLATION_PROMPT,
                 suggestionPrompt = preferences[SUGGESTION_PROMPT] ?: DEFAULT_SUGGESTION_PROMPT,
                 learningModePrompt = preferences[LEARNING_MODE_PROMPT] ?: DEFAULT_LEARNING_MODE_PROMPT,
+                ocrModelId = preferences[OCR_MODEL]?.let { Uuid.parse(it) } ?: Uuid.random(),
+                ocrPrompt = preferences[OCR_PROMPT] ?: DEFAULT_OCR_PROMPT,
                 assistantId = preferences[SELECT_ASSISTANT]?.let { Uuid.parse(it) }
                     ?: DEFAULT_ASSISTANT_ID,
                 assistantTags = preferences[ASSISTANT_TAGS]?.let {
@@ -261,6 +269,8 @@ class SettingsStore(
             preferences[TRANSLATION_PROMPT] = settings.translatePrompt
             preferences[SUGGESTION_PROMPT] = settings.suggestionPrompt
             preferences[LEARNING_MODE_PROMPT] = settings.learningModePrompt
+            preferences[OCR_MODEL] = settings.ocrModelId.toString()
+            preferences[OCR_PROMPT] = settings.ocrPrompt
 
             preferences[PROVIDERS] = JsonInstant.encodeToString(settings.providers)
 
@@ -309,6 +319,8 @@ data class Settings(
     val suggestionModelId: Uuid = Uuid.random(),
     val suggestionPrompt: String = DEFAULT_SUGGESTION_PROMPT,
     val learningModePrompt: String = DEFAULT_LEARNING_MODE_PROMPT,
+    val ocrModelId: Uuid = Uuid.random(),
+    val ocrPrompt: String = DEFAULT_OCR_PROMPT,
     val assistantId: Uuid = DEFAULT_ASSISTANT_ID,
     val providers: List<ProviderSetting> = DEFAULT_PROVIDERS,
     val assistants: List<Assistant> = DEFAULT_ASSISTANTS,
@@ -663,45 +675,3 @@ private val DEFAULT_TTS_PROVIDERS = listOf(
 )
 
 internal val DEFAULT_ASSISTANTS_IDS = DEFAULT_ASSISTANTS.map { it.id }
-
-internal val DEFAULT_TITLE_PROMPT = """
-    I will give you some dialogue content in the `<content>` block.
-    You need to summarize the conversation between user and assistant into a short title.
-    1. The title language should be consistent with the user's primary language
-    2. Do not use punctuation or other special symbols
-    3. Reply directly with the title
-    4. Summarize using {locale} language
-    5. The title should not exceed 10 characters
-
-    <content>
-    {content}
-    </content>
-""".trimIndent()
-
-internal val DEFAULT_SUGGESTION_PROMPT = """
-    I will provide you with some chat content in the `<content>` block, including conversations between the User and the AI assistant.
-    You need to act as the **User** to reply to the assistant, generating 3~5 appropriate and contextually relevant responses to the assistant.
-
-    Rules:
-    1. Reply directly with suggestions, do not add any formatting, and separate suggestions with newlines, no need to add markdown list formats.
-    2. Use {locale} language.
-    3. Ensure each suggestion is valid.
-    4. Each suggestion should not exceed 10 characters.
-    5. Imitate the user's previous conversational style.
-    6. Act as a User, not an Assistant!
-
-    <content>
-    {content}
-    </content>
-""".trimIndent()
-
-internal val DEFAULT_TRANSLATION_PROMPT = """
-    You are a translation expert, skilled in translating various languages, and maintaining accuracy, faithfulness, and elegance in translation.
-    Next, I will send you text. Please translate it into {target_lang}, and return the translation result directly, without adding any explanations or other content.
-
-    Please translate the <source_text> section:
-
-    <source_text>
-    {source_text}
-    </source_text>
-""".trimIndent()

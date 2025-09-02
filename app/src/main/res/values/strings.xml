@@ -696,6 +696,9 @@
   <string name="chat_page_learning_mode_desc">Help you learn knowledge step by step</string>
   <string name="setting_model_page_learning_mode">Learning Mode Prompt</string>
   <string name="setting_model_page_learning_mode_desc">Configure the prompt used for learning mode</string>
+  <string name="setting_model_page_ocr_model">OCR Model</string>
+  <string name="setting_model_page_ocr_model_desc">Model used for optical character recognition on images</string>
+  <string name="setting_model_page_ocr_prompt_vars">Variables: Image data: {images}</string>
     <string name="setting_provider_page_balance_api_path">Balance API Path</string>
   <string name="setting_provider_page_balance_json_key">Result Json Key</string>
   <string name="setting_provider_page_balance_info">"Get account balance "</string>

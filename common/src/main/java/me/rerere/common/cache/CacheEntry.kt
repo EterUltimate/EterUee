@@ -1,5 +1,6 @@
 package me.rerere.common.cache
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.serializer
@@ -16,6 +17,7 @@ data class CacheEntry<V>(val value: V, val expiresAt: Long? = null) {
     fun isExpired(nowMillis: Long): Boolean = expiresAt?.let { nowMillis >= it } ?: false
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 internal fun <V> cacheEntrySerializer(valueSerializer: KSerializer<V>): KSerializer<CacheEntry<V>> =
     object : KSerializer<CacheEntry<V>> {
         override val descriptor: SerialDescriptor = buildClassSerialDescriptor("CacheEntry") {

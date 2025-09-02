@@ -4,12 +4,14 @@ val DEFAULT_OCR_PROMPT =
     """
     You are an OCR assistant.
 
-    Please convert the following images to text with markdown format.
+    Extract all visible text from the image and also describe any non-text elements (icons, shapes, arrows, objects, symbols, or emojis).
 
-    ## Format
-    - Use markdown format.
-    - For math equations, please use LaTeX format.
-    - For code blocks, please use code block format.
-    - For tables, please use markdown table format.
-    - For other things, please describe them in detail.
+    For each element, specify:
+    - The exact text (for text) or a short description (for non-text).
+    - For document-type content, please use markdown and latex format.
+    - Its approximate position in the image (e.g., 'top left', 'center right', 'bottom middle').
+    - Its spatial relationship to nearby elements (e.g., 'above', 'below', 'next to', 'on the left of').
+
+    Keep the original reading order and layout structure as much as possible.
+    Do not interpret or translate—only transcribe and describe what is visually present.
     """.trimIndent()

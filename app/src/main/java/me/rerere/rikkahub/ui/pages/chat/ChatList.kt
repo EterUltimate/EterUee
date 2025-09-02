@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListItemInfo
@@ -27,6 +28,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FloatingToolbarDefaults.ScreenOffset
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
@@ -59,6 +61,8 @@ import com.composables.icons.lucide.ChevronUp
 import com.composables.icons.lucide.ChevronsDown
 import com.composables.icons.lucide.ChevronsUp
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.MousePointer
+import com.composables.icons.lucide.MousePointer2
 import com.composables.icons.lucide.X
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -254,7 +258,7 @@ fun ChatList(
             visible = selecting,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 48.dp),
+                .offset(-ScreenOffset),
             enter = slideInVertically(
                 initialOffsetY = { it * 2 },
             ),
@@ -272,6 +276,17 @@ fun ChatList(
                     }
                 ) {
                     Icon(Lucide.X, null)
+                }
+                IconButton(
+                    onClick = {
+                        if (selectedItems.isNotEmpty()) {
+                            selectedItems.clear()
+                        } else {
+                            selectedItems.addAll(conversation.messageNodes.map { it.id })
+                        }
+                    }
+                ) {
+                    Icon(Lucide.MousePointer2, null)
                 }
                 FilledIconButton(
                     onClick = {

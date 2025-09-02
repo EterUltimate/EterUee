@@ -27,38 +27,34 @@ fun FormItem(
     tail: @Composable () -> Unit = {},
     content: @Composable ColumnScope.() -> Unit = {}
 ) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-        modifier = modifier.fillMaxWidth()
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        ProvideTextStyle(
-            MaterialTheme.typography.labelMedium.copy(
-                color = MaterialTheme.colorScheme.primary
-            )
+        Column(
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = modifier.weight(1f)
         ) {
-            label()
-        }
-        Row(
-            verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ProvideTextStyle(
+                MaterialTheme.typography.labelMedium.copy(
+                    color = MaterialTheme.colorScheme.primary
+                )
             ) {
-                content()
+                label()
             }
-            tail()
-        }
-        ProvideTextStyle(
-            MaterialTheme.typography.labelSmall.copy(
-                color = LocalContentColor.current.copy(alpha = 0.6f)
-            )
-        ) {
-            Column {
-                description?.invoke()
+            ProvideTextStyle(
+                MaterialTheme.typography.labelSmall.copy(
+                    color = LocalContentColor.current.copy(alpha = 0.6f)
+                )
+            ) {
+                Column {
+                    description?.invoke()
+                }
             }
+            content()
         }
+        tail()
     }
 }
 

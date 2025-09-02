@@ -43,6 +43,7 @@ val dataSourceModule = module {
         PebbleEngine.Builder()
             .loader(get<AssistantTemplateLoader>())
             .defaultLocale(Locale.getDefault())
+            .autoEscaping(false)
             .build()
     }
 

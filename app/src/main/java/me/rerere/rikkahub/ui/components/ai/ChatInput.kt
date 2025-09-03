@@ -2,6 +2,7 @@ package me.rerere.rikkahub.ui.components.ai
 
 import android.Manifest
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.BackHandler
@@ -97,6 +98,7 @@ import com.dokar.sonner.ToastType
 import com.meticha.permissions_compose.AppPermission
 import com.meticha.permissions_compose.rememberAppPermissionState
 import com.yalantis.ucrop.UCrop
+import com.yalantis.ucrop.UCropActivity
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -795,6 +797,17 @@ private fun useCropLauncher(
         cropOutputUri = Uri.fromFile(outputFile)
 
         val cropIntent = UCrop.of(sourceUri, cropOutputUri!!)
+            .withOptions(UCrop.Options().apply {
+                setFreeStyleCropEnabled(true)
+                setAllowedGestures(
+                    UCropActivity.SCALE,
+                    UCropActivity.ROTATE,
+                    UCropActivity.NONE
+                )
+                setCompressionQuality(90)
+                setCompressionFormat(Bitmap.CompressFormat.WEBP_LOSSLESS)
+            })
+            .withMaxResultSize(4096, 4096)
             .getIntent(context)
 
         cropActivityLauncher.launch(cropIntent)

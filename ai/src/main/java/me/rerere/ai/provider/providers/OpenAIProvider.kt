@@ -74,8 +74,13 @@ class OpenAIProvider(
 
     override suspend fun getBalance(providerSetting: ProviderSetting.OpenAI): String = withContext(Dispatchers.IO) {
         val key = keyRoulette.next(providerSetting.apiKey)
+        val url = if (providerSetting.balanceOption.apiPath.startsWith("http")) {
+            providerSetting.balanceOption.apiPath
+        } else {
+            "${providerSetting.baseUrl}${providerSetting.balanceOption.apiPath}"
+        }
         val request = Request.Builder()
-            .url("${providerSetting.baseUrl}${providerSetting.balanceOption.apiPath}")
+            .url(url)
             .addHeader("Authorization", "Bearer $key")
             .get()
             .build()

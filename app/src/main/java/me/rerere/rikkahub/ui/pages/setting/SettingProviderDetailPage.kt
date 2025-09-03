@@ -296,6 +296,7 @@ private fun SettingProviderConfigPage(
                 balanceOption = internalProvider.balanceOption,
                 onEdit = { internalProvider = internalProvider.copyProvider(balanceOption = it) }
             )
+            ProviderBalanceText(providerSetting = provider, style = MaterialTheme.typography.labelSmall)
         }
 
         Row(
@@ -308,8 +309,6 @@ private fun SettingProviderConfigPage(
                 internalProvider = internalProvider,
                 scope = scope
             )
-
-            ProviderBalanceText(providerSetting = provider)
 
             Spacer(Modifier.weight(1f))
 

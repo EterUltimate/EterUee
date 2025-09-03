@@ -65,7 +65,7 @@ fun ProviderBalanceText(
     }
 
     Row(
-        modifier = modifier.widthIn(max = 100.dp),
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {

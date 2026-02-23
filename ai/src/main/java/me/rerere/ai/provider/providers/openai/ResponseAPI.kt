@@ -396,7 +396,7 @@ class ResponseAPI(private val client: OkHttpClient) : OpenAIImpl {
                 )
             }
 
-            "response.reasoning_summary_text.delta" -> {
+            "response.reasoning_summary_text.delta", "response.reasoning_text.delta" -> {
                 return MessageChunk(
                     id = jsonObject["item_id"]?.jsonPrimitive?.contentOrNull ?: "",
                     model = "",

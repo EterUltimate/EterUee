@@ -860,5 +860,9 @@
   <string name="setting_page_sponsor_alert_confirm">Пожертвовать</string>
   <string name="setting_page_sponsor_alert_dismiss">Не сейчас</string>
   <string name="db_migrating">Перенос базы данных…</string>
+  <string name="notification_channel_web_server">Веб-сервер</string>
+  <string name="notification_web_server_starting">Запуск…</string>
+  <string name="notification_web_server_running">Веб-сервер запущен</string>
+  <string name="notification_web_server_stop">Остановить</string>
 </resources>
 

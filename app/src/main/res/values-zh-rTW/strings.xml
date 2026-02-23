@@ -865,5 +865,9 @@
   <string name="setting_page_sponsor_alert_confirm">捐款</string>
   <string name="setting_page_sponsor_alert_dismiss">稍後再說</string>
   <string name="db_migrating">正在移轉資料庫...</string>
+  <string name="notification_channel_web_server">網頁伺服器</string>
+  <string name="notification_web_server_starting">啟動中…</string>
+  <string name="notification_web_server_running">Web 伺服器運行中</string>
+  <string name="notification_web_server_stop">停止</string>
 </resources>
 

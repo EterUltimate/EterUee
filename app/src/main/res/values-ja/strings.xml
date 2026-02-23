@@ -867,5 +867,9 @@ mDNSアドレス: .localホスト名を使用し、IPを知らなくても同じ
   <string name="setting_page_sponsor_alert_confirm">寄付</string>
   <string name="setting_page_sponsor_alert_dismiss">今はしない</string>
   <string name="db_migrating">データベースを移行しています…</string>
+  <string name="notification_channel_web_server">Webサーバー</string>
+  <string name="notification_web_server_starting">起動中…</string>
+  <string name="notification_web_server_running">Webサーバーが実行中</string>
+  <string name="notification_web_server_stop">停止</string>
 </resources>
 

@@ -164,7 +164,7 @@ class RikkaHubApp : Application() {
 
         val webServerChannel = NotificationChannelCompat
             .Builder(WEB_SERVER_NOTIFICATION_CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_LOW)
-            .setName("Web Server")
+            .setName(getString(R.string.notification_channel_web_server))
             .setVibrationEnabled(false)
             .setShowBadge(false)
             .build()

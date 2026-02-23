@@ -867,5 +867,9 @@ mDNS 주소: .local 호스트네임을 사용하며, IP를 몰라도 같은 네�
   <string name="setting_page_sponsor_alert_confirm">기부하기</string>
   <string name="setting_page_sponsor_alert_dismiss">나중에</string>
   <string name="db_migrating">데이터베이스 마이그레이션 중...</string>
+  <string name="notification_channel_web_server">웹 서버</string>
+  <string name="notification_web_server_starting">시작 중...</string>
+  <string name="notification_web_server_running">웹 서버 실행 중</string>
+  <string name="notification_web_server_stop">중지</string>
 </resources>
 

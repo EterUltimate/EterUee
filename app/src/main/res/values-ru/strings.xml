@@ -866,5 +866,7 @@
   <string name="notification_web_server_stop">Остановить</string>
   <string name="assistant_page_local_tools_tts_title">Преобразование текста в речь</string>
   <string name="assistant_page_local_tools_tts_desc">Позвольте ИИ озвучить текст с помощью системного движка TTS устройства</string>
+  <string name="setting_display_page_show_thinking_content_title">Показывать содержание размышлений</string>
+  <string name="setting_display_page_show_thinking_content_desc">Расширять и показывать процесс мышления по умолчанию во время генерации</string>
 </resources>
 

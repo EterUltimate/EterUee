@@ -871,5 +871,7 @@
   <string name="notification_web_server_stop">停止</string>
   <string name="assistant_page_local_tools_tts_title">文字轉語音</string>
   <string name="assistant_page_local_tools_tts_desc">讓 AI 使用裝置的 TTS 引擎為您朗讀文字</string>
+  <string name="setting_display_page_show_thinking_content_title">顯示思考內容</string>
+  <string name="setting_display_page_show_thinking_content_desc">是否在生成時預設展開並顯示思考過程</string>
 </resources>
 

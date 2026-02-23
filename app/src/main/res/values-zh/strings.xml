@@ -873,5 +873,7 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="notification_web_server_stop">停止</string>
   <string name="assistant_page_local_tools_tts_title">文字转语音</string>
   <string name="assistant_page_local_tools_tts_desc">让AI使用设备TTS引擎为您朗读文本</string>
+  <string name="setting_display_page_show_thinking_content_title">显示思考内容</string>
+  <string name="setting_display_page_show_thinking_content_desc">是否在生成过程中默认展开并显示思考过程</string>
 </resources>
 

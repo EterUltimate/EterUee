@@ -75,7 +75,7 @@ fun ChainOfThoughtScope.ChatMessageReasoningStep(
 
     LaunchedEffect(reasoning.reasoning, loading) {
         if (loading) {
-            if (!expandState.expanded) expandState = ReasoningCardState.Preview
+            if (!expandState.expanded && settings.displaySetting.showThinkingContent) expandState = ReasoningCardState.Preview
             scrollState.animateScrollTo(scrollState.maxValue)
         } else {
             if (expandState.expanded) {

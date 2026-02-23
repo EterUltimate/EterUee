@@ -103,9 +103,12 @@ import me.rerere.rikkahub.ui.theme.LocalDarkMode
 import me.rerere.rikkahub.ui.theme.RikkahubTheme
 import androidx.compose.foundation.layout.Arrangement
 import me.rerere.rikkahub.data.db.DatabaseMigrationTracker
+import me.rerere.rikkahub.data.event.AppEventBus
+import me.rerere.rikkahub.data.event.AppEvent
 import me.rerere.rikkahub.data.db.MigrationState
 import okhttp3.OkHttpClient
 import org.koin.android.ext.android.inject
+import org.koin.compose.koinInject
 import kotlin.uuid.Uuid
 
 private const val TAG = "RouteActivity"
@@ -181,6 +184,14 @@ class RouteActivity : ComponentActivity() {
         val toastState = rememberToasterState()
         val settings by settingsStore.settingsFlow.collectAsStateWithLifecycle()
         val tts = rememberCustomTtsState()
+        val eventBus = koinInject<AppEventBus>()
+        LaunchedEffect(tts) {
+            eventBus.events.collect { event ->
+                when (event) {
+                    is AppEvent.Speak -> tts.speak(event.text)
+                }
+            }
+        }
         val migrationState by DatabaseMigrationTracker.state.collectAsStateWithLifecycle()
 
         val startScreen = Screen.Chat(

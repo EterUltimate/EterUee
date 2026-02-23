@@ -869,5 +869,7 @@
   <string name="notification_web_server_starting">啟動中…</string>
   <string name="notification_web_server_running">Web 伺服器運行中</string>
   <string name="notification_web_server_stop">停止</string>
+  <string name="assistant_page_local_tools_tts_title">文字轉語音</string>
+  <string name="assistant_page_local_tools_tts_desc">讓 AI 使用裝置的 TTS 引擎為您朗讀文字</string>
 </resources>
 

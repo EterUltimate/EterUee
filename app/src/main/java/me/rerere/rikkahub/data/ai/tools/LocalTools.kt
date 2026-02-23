@@ -15,6 +15,8 @@ import kotlinx.serialization.json.put
 import me.rerere.ai.core.InputSchema
 import me.rerere.ai.core.Tool
 import me.rerere.ai.ui.UIMessagePart
+import me.rerere.rikkahub.data.event.AppEvent
+import me.rerere.rikkahub.data.event.AppEventBus
 import me.rerere.rikkahub.utils.readClipboardText
 import me.rerere.rikkahub.utils.writeClipboardText
 import java.time.ZonedDateTime
@@ -34,9 +36,13 @@ sealed class LocalToolOption {
     @Serializable
     @SerialName("clipboard")
     data object Clipboard : LocalToolOption()
+
+    @Serializable
+    @SerialName("tts")
+    data object Tts : LocalToolOption()
 }
 
-class LocalTools(private val context: Context) {
+class LocalTools(private val context: Context, private val eventBus: AppEventBus) {
     val javascriptTool by lazy {
         Tool(
             name = "eval_javascript",
@@ -188,6 +194,38 @@ class LocalTools(private val context: Context) {
         )
     }
 
+    val ttsTool by lazy {
+        Tool(
+            name = "text_to_speech",
+            description = """
+                Speak text aloud to the user using the device's text-to-speech engine.
+                Use this when the user asks you to read something aloud, or when audio output is appropriate.
+                The tool returns immediately; audio plays in the background on the device.
+                Provide natural, readable text without markdown formatting.
+            """.trimIndent().replace("\n", " "),
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("text", buildJsonObject {
+                            put("type", "string")
+                            put("description", "The text to speak aloud")
+                        })
+                    },
+                    required = listOf("text")
+                )
+            },
+            execute = {
+                val text = it.jsonObject["text"]?.jsonPrimitive?.contentOrNull
+                    ?: error("text is required")
+                eventBus.emit(AppEvent.Speak(text))
+                val payload = buildJsonObject {
+                    put("success", true)
+                }
+                listOf(UIMessagePart.Text(payload.toString()))
+            }
+        )
+    }
+
     fun getTools(options: List<LocalToolOption>): List<Tool> {
         val tools = mutableListOf<Tool>()
         if (options.contains(LocalToolOption.JavascriptEngine)) {
@@ -198,6 +236,9 @@ class LocalTools(private val context: Context) {
         }
         if (options.contains(LocalToolOption.Clipboard)) {
             tools.add(clipboardTool)
+        }
+        if (options.contains(LocalToolOption.Tts)) {
+            tools.add(ttsTool)
         }
         return tools
     }

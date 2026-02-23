@@ -50,8 +50,10 @@ import com.composables.icons.lucide.ClipboardPaste
 import com.composables.icons.lucide.Clock
 import com.composables.icons.lucide.Earth
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.RotateCcw
 import com.composables.icons.lucide.Search
 import com.composables.icons.lucide.Trash2
+import com.composables.icons.lucide.Volume2
 import com.composables.icons.lucide.Wrench
 import com.composables.icons.lucide.X
 import kotlinx.coroutines.launch
@@ -67,6 +69,8 @@ import me.rerere.ai.ui.UIMessagePart
 import me.rerere.common.http.jsonObjectOrNull
 import me.rerere.highlight.HighlightText
 import me.rerere.rikkahub.R
+import me.rerere.rikkahub.data.event.AppEvent
+import me.rerere.rikkahub.data.event.AppEventBus
 import me.rerere.rikkahub.data.repository.MemoryRepository
 import me.rerere.rikkahub.ui.components.richtext.HighlightCodeBlock
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
@@ -89,6 +93,7 @@ private object ToolNames {
     const val SCRAPE_WEB = "scrape_web"
     const val GET_TIME_INFO = "get_time_info"
     const val CLIPBOARD = "clipboard_tool"
+    const val TTS = "text_to_speech"
 }
 
 private object MemoryActions {
@@ -117,6 +122,7 @@ private fun getToolIcon(toolName: String, action: String?) = when (toolName) {
         ClipboardActions.WRITE -> Lucide.ClipboardPaste
         else -> Lucide.Clipboard
     }
+    ToolNames.TTS -> Lucide.Volume2
 
     else -> Lucide.Wrench
 }
@@ -133,6 +139,8 @@ fun ChainOfThoughtScope.ChatMessageToolStep(
     var showResult by remember { mutableStateOf(false) }
     var showDenyDialog by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(true) }
+    val eventBus: AppEventBus = koinInject()
+    val scope = rememberCoroutineScope()
     val isPending = tool.approvalState is ToolApprovalState.Pending
     val isDenied = tool.approvalState is ToolApprovalState.Denied
     val arguments = tool.inputAsJson()
@@ -169,6 +177,13 @@ fun ChainOfThoughtScope.ChatMessageToolStep(
             else -> stringResource(R.string.chat_message_tool_call_generic, tool.toolName)
         }
 
+        ToolNames.TTS -> {
+            val preview = arguments.getStringContent("text")?.let { text ->
+                if (text.length > 24) text.take(24) + "…" else text
+            } ?: ""
+            "Speaking: $preview"
+        }
+
         else -> stringResource(R.string.chat_message_tool_call_generic, tool.toolName)
     }
 
@@ -181,6 +196,7 @@ fun ChainOfThoughtScope.ChatMessageToolStep(
             (content?.jsonObject?.get("items")?.jsonArray?.isNotEmpty() == true)
 
         ToolNames.SCRAPE_WEB -> arguments.getStringContent("url") != null
+        ToolNames.TTS -> arguments.getStringContent("text") != null
         else -> false
     } || isDenied || images.isNotEmpty()
 
@@ -299,6 +315,33 @@ fun ChainOfThoughtScope.ChatMessageToolStep(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
                         )
+                    }
+                    if (tool.toolName == ToolNames.TTS) {
+                        val text = arguments.getStringContent("text") ?: ""
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text(
+                                text = text,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f),
+                            )
+                            FilledTonalIconButton(
+                                onClick = { scope.launch { eventBus.emit(AppEvent.Speak(text)) } },
+                                modifier = Modifier.size(28.dp),
+                            ) {
+                                Icon(
+                                    imageVector = Lucide.RotateCcw,
+                                    contentDescription = "Replay",
+                                    modifier = Modifier.size(14.dp),
+                                )
+                            }
+                        }
                     }
                     if (images.isNotEmpty()) {
                         LazyRow(

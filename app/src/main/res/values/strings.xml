@@ -869,5 +869,7 @@
   <string name="notification_web_server_starting">Starting...</string>
   <string name="notification_web_server_running">Web Server Running</string>
   <string name="notification_web_server_stop">Stop</string>
+  <string name="assistant_page_local_tools_tts_title">Text to Speech</string>
+  <string name="assistant_page_local_tools_tts_desc">Let the AI speak text aloud to you using the device TTS engine</string>
 </resources>
 

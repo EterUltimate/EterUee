@@ -115,6 +115,21 @@ private fun AssistantLocalToolContent(
                 onUpdate(assistant.copy(localTools = newLocalTools))
             }
         )
+
+        // TTS工具卡片
+        LocalToolCard(
+            title = stringResource(R.string.assistant_page_local_tools_tts_title),
+            description = stringResource(R.string.assistant_page_local_tools_tts_desc),
+            isEnabled = assistant.localTools.contains(LocalToolOption.Tts),
+            onToggle = { enabled ->
+                val newLocalTools = if (enabled) {
+                    assistant.localTools + LocalToolOption.Tts
+                } else {
+                    assistant.localTools - LocalToolOption.Tts
+                }
+                onUpdate(assistant.copy(localTools = newLocalTools))
+            }
+        )
     }
 }
 

@@ -871,5 +871,7 @@ mDNS 주소: .local 호스트네임을 사용하며, IP를 몰라도 같은 네�
   <string name="notification_web_server_starting">시작 중...</string>
   <string name="notification_web_server_running">웹 서버 실행 중</string>
   <string name="notification_web_server_stop">중지</string>
+  <string name="assistant_page_local_tools_tts_title">텍스트 음성 변환</string>
+  <string name="assistant_page_local_tools_tts_desc">AI가 기기의 TTS 엔진을 사용해 텍스트를 음성으로 읽어줍니다</string>
 </resources>
 

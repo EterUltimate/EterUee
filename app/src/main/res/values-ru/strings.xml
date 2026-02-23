@@ -864,5 +864,7 @@
   <string name="notification_web_server_starting">Запуск…</string>
   <string name="notification_web_server_running">Веб-сервер запущен</string>
   <string name="notification_web_server_stop">Остановить</string>
+  <string name="assistant_page_local_tools_tts_title">Преобразование текста в речь</string>
+  <string name="assistant_page_local_tools_tts_desc">Позвольте ИИ озвучить текст с помощью системного движка TTS устройства</string>
 </resources>
 

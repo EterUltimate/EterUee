@@ -871,5 +871,7 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="notification_web_server_starting">正在启动...</string>
   <string name="notification_web_server_running">Web服务器运行中</string>
   <string name="notification_web_server_stop">停止</string>
+  <string name="assistant_page_local_tools_tts_title">文字转语音</string>
+  <string name="assistant_page_local_tools_tts_desc">让AI使用设备TTS引擎为您朗读文本</string>
 </resources>
 

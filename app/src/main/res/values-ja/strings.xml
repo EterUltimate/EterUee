@@ -30,6 +30,9 @@
   <string name="assistant_page_add_body">ボディを追加</string>
   <string name="assistant_page_add_header">ヘッダーを追加</string>
   <string name="assistant_page_available_variables">"利用可能な変数: "</string>
+  <string name="assistant_page_background_opacity">背景の透明度</string>
+  <string name="assistant_page_background_opacity_desc">チャット背景画像の表示透明度を調整します</string>
+  <string name="assistant_page_background_opacity_value">透明度: %1$d%%</string>
   <string name="assistant_page_background_set">背景画像が設定されました</string>
   <string name="assistant_page_balanced">バランス</string>
   <string name="assistant_page_body_key">ボディキー</string>
@@ -876,4 +879,3 @@ mDNSアドレス: .localホスト名を使用し、IPを知らなくても同じ
   <string name="setting_display_page_show_thinking_content_title">思考内容を表示</string>
   <string name="setting_display_page_show_thinking_content_desc">生成中に思考プロセスをデフォルトで展開して表示するかどうか</string>
 </resources>
-

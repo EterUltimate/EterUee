@@ -36,6 +36,7 @@ data class Assistant(
     val mcpServers: Set<Uuid> = emptySet(),
     val localTools: List<LocalToolOption> = listOf(LocalToolOption.TimeInfo),
     val background: String? = null,
+    val backgroundOpacity: Float = 1.0f,
     val modeInjectionIds: Set<Uuid> = emptySet(),      // 关联的模式注入 ID
     val lorebookIds: Set<Uuid> = emptySet(),            // 关联的 Lorebook ID
     val enableTimeReminder: Boolean = false,            // 时间间隔提醒注入

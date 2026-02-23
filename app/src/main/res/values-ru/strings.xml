@@ -30,6 +30,9 @@
   <string name="assistant_page_add_body">Добавить текст</string>
   <string name="assistant_page_add_header">Добавить заголовок</string>
   <string name="assistant_page_available_variables">Доступные переменные:</string>
+  <string name="assistant_page_background_opacity">Прозрачность фона</string>
+  <string name="assistant_page_background_opacity_desc">Настройте видимость фонового изображения чата</string>
+  <string name="assistant_page_background_opacity_value">Прозрачность: %1$d%%</string>
   <string name="assistant_page_background_set">Фоновое изображение установлено</string>
   <string name="assistant_page_balanced">Сбалансированный</string>
   <string name="assistant_page_body_key">Ключ тела</string>
@@ -869,4 +872,3 @@
   <string name="setting_display_page_show_thinking_content_title">Показывать содержание размышлений</string>
   <string name="setting_display_page_show_thinking_content_desc">Расширять и показывать процесс мышления по умолчанию во время генерации</string>
 </resources>
-

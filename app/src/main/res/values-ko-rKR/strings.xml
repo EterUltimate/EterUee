@@ -30,6 +30,9 @@
   <string name="assistant_page_add_body">본문 추가</string>
   <string name="assistant_page_add_header">헤더 추가</string>
   <string name="assistant_page_available_variables">사용 가능한 변수: </string>
+  <string name="assistant_page_background_opacity">배경 투명도</string>
+  <string name="assistant_page_background_opacity_desc">채팅 배경 이미지의 표시 투명도를 조절합니다</string>
+  <string name="assistant_page_background_opacity_value">투명도: %1$d%%</string>
   <string name="assistant_page_background_set">배경 이미지 설정됨</string>
   <string name="assistant_page_balanced">균형</string>
   <string name="assistant_page_body_key">본문 키</string>
@@ -876,4 +879,3 @@ mDNS 주소: .local 호스트네임을 사용하며, IP를 몰라도 같은 네�
   <string name="setting_display_page_show_thinking_content_title">생각 내용 표시</string>
   <string name="setting_display_page_show_thinking_content_desc">생성 중 기본적으로 사고 과정을 펼쳐서 표시할지 여부</string>
 </resources>
-

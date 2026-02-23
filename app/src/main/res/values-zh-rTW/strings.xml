@@ -30,6 +30,9 @@
   <string name="assistant_page_add_body">添加 Body</string>
   <string name="assistant_page_add_header">添加 Header</string>
   <string name="assistant_page_available_variables">"可用變數: "</string>
+  <string name="assistant_page_background_opacity">背景透明度</string>
+  <string name="assistant_page_background_opacity_desc">調整聊天背景圖片顯示透明度</string>
+  <string name="assistant_page_background_opacity_value">透明度：%1$d%%</string>
   <string name="assistant_page_background_set">已設定背景圖片</string>
   <string name="assistant_page_balanced">平衡</string>
   <string name="assistant_page_body_key">Body Key</string>
@@ -874,4 +877,3 @@
   <string name="setting_display_page_show_thinking_content_title">顯示思考內容</string>
   <string name="setting_display_page_show_thinking_content_desc">是否在生成時預設展開並顯示思考過程</string>
 </resources>
-

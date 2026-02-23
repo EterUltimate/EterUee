@@ -456,6 +456,7 @@ internal fun AssistantBasicContent(
             BackgroundPicker(
                 modifier = Modifier.padding(8.dp),
                 background = assistant.background,
+                backgroundOpacity = assistant.backgroundOpacity,
                 onUpdate = { background ->
                     onUpdate(
                         assistant.copy(
@@ -464,6 +465,42 @@ internal fun AssistantBasicContent(
                     )
                 }
             )
+
+            if (assistant.background != null) {
+                val backgroundOpacity = assistant.backgroundOpacity.coerceIn(0f, 1f)
+                HorizontalDivider()
+                FormItem(
+                    modifier = Modifier.padding(8.dp),
+                    label = {
+                        Text(stringResource(R.string.assistant_page_background_opacity))
+                    },
+                    description = {
+                        Text(stringResource(R.string.assistant_page_background_opacity_desc))
+                    }
+                ) {
+                    Slider(
+                        value = backgroundOpacity,
+                        onValueChange = {
+                            onUpdate(
+                                assistant.copy(
+                                    backgroundOpacity = it.toFixed(2).toFloatOrNull()?.coerceIn(0f, 1f) ?: 1.0f
+                                )
+                            )
+                        },
+                        valueRange = 0f..1f,
+                        steps = 19,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        text = stringResource(
+                            R.string.assistant_page_background_opacity_value,
+                            (backgroundOpacity * 100).roundToInt()
+                        ),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
+                    )
+                }
+            }
         }
     }
 }

@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -34,6 +35,7 @@ import org.koin.compose.koinInject
 fun BackgroundPicker(
     modifier: Modifier = Modifier,
     background: String?,
+    backgroundOpacity: Float = 1.0f,
     onUpdate: (String?) -> Unit
 ) {
     val filesManager: FilesManager = koinInject()
@@ -51,6 +53,8 @@ fun BackgroundPicker(
             }
         }
     }
+
+    val previewOpacity = backgroundOpacity.coerceIn(0f, 1f)
 
     FormItem(
         modifier = modifier,
@@ -100,7 +104,9 @@ fun BackgroundPicker(
             AsyncImage(
                 model = background,
                 contentDescription = null,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .alpha(previewOpacity)
             )
         }
     }

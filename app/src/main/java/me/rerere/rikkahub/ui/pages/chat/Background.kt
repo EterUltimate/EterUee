@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
@@ -17,6 +18,7 @@ fun AssistantBackground(setting: Settings) {
     val assistant = setting.getCurrentAssistant()
     if (assistant.background != null) {
         val backgroundColor = MaterialTheme.colorScheme.background
+        val backgroundOpacity = assistant.backgroundOpacity.coerceIn(0f, 1f)
         Box {
             AsyncImage(
                 model = assistant.background,
@@ -24,6 +26,7 @@ fun AssistantBackground(setting: Settings) {
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
+                    .alpha(backgroundOpacity)
             )
 
             // 全屏渐变遮罩

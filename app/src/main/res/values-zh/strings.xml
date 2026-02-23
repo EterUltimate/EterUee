@@ -30,6 +30,9 @@
   <string name="assistant_page_add_body">添加 Body</string>
   <string name="assistant_page_add_header">添加 Header</string>
   <string name="assistant_page_available_variables">"可用变量: "</string>
+  <string name="assistant_page_background_opacity">背景透明度</string>
+  <string name="assistant_page_background_opacity_desc">调整聊天背景图显示透明度</string>
+  <string name="assistant_page_background_opacity_value">透明度：%1$d%%</string>
   <string name="assistant_page_background_set">已设置背景图片</string>
   <string name="assistant_page_balanced">平衡</string>
   <string name="assistant_page_body_key">Body Key</string>
@@ -876,4 +879,3 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="setting_display_page_show_thinking_content_title">显示思考内容</string>
   <string name="setting_display_page_show_thinking_content_desc">是否在生成过程中默认展开并显示思考过程</string>
 </resources>
-

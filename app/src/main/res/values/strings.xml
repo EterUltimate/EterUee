@@ -30,6 +30,9 @@
   <string name="assistant_page_add_body">Add Body</string>
   <string name="assistant_page_add_header">Add Header</string>
   <string name="assistant_page_available_variables">"Available variables: "</string>
+  <string name="assistant_page_background_opacity">Background Opacity</string>
+  <string name="assistant_page_background_opacity_desc">Adjust chat background image visibility</string>
+  <string name="assistant_page_background_opacity_value">Opacity: %1$d%%</string>
   <string name="assistant_page_background_set">Background image set</string>
   <string name="assistant_page_balanced">Balanced</string>
   <string name="assistant_page_body_key">Body Key</string>
@@ -874,4 +877,3 @@
   <string name="setting_display_page_show_thinking_content_title">Show Thinking Content</string>
   <string name="setting_display_page_show_thinking_content_desc">Whether to expand and show the thinking process by default during generation</string>
 </resources>
-

@@ -56,7 +56,10 @@ class StatsVM(
         val conversationsPerDay = withContext(Dispatchers.IO) {
             messageNodeDAO
                 .getMessageCountPerDay(startDate)
-                .associate { LocalDate.parse(it.day) to it.count }
+                .mapNotNull { entry ->
+                    runCatching { LocalDate.parse(entry.day) to entry.count }.getOrNull()
+                }
+                .toMap()
         }
 
         val totalConversations = conversationDAO.countAll()

@@ -138,7 +138,7 @@ fun UIAvatar(
                             ),
                             lineHeight = 0.8.em,
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(8.dp)
+                            modifier = Modifier.padding(5.dp)
                         )
                     }
 

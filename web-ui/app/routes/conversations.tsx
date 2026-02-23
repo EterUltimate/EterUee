@@ -175,7 +175,7 @@ function toEditDraft(message: MessageDto): EditDraft | null {
       {
         ...part,
         metadata: {
-          ...(part.metadata ?? {}),
+          ...part.metadata,
           [EDIT_DRAFT_ATTACHMENT_MARK]: true,
           [EDIT_DRAFT_SOURCE_INDEX]: index,
         },

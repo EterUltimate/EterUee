@@ -376,8 +376,8 @@ class ChatVM(
     }
 
     fun updateConversation(newConversation: Conversation) {
-        viewModelScope.launch {
-            chatService.saveConversation(_conversationId, newConversation)
+        chatService.updateConversationState(_conversationId) {
+            newConversation
         }
     }
 

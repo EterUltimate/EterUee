@@ -33,3 +33,15 @@
 # Android 不包含这些类，需要告知 R8 忽略
 -dontwarn java.lang.management.ManagementFactory
 -dontwarn java.lang.management.RuntimeMXBean
+
+# java.beans is not available on Android; Jackson references it only on JVM
+-dontwarn java.beans.ConstructorProperties
+-dontwarn java.beans.Transient
+
+# auth0/jackson: TypeReference subclasses rely on runtime generic signatures.
+# R8 strips Signature/InnerClasses/EnclosingMethod by default, and its class
+# merging/inlining optimizations can destroy the anonymous class hierarchy that
+# TypeReference.<init> depends on via getClass().getGenericSuperclass().
+-keepattributes Signature, InnerClasses, EnclosingMethod
+-keep class com.fasterxml.jackson.** { *; }
+-keep class com.auth0.jwt.** { *; }

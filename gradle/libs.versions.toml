@@ -58,6 +58,7 @@ profileinstaller = "1.4.1"
 ktor = "3.4.0"
 sqlite-vector = "0.9.85"
 jmdns = "3.6.3"
+slf4j = "2.0.17"
 sqlite-android = "-SNAPSHOT"
 
 [libraries]
@@ -160,6 +161,8 @@ ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
 ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
 sqlite-vector = { module = "ai.sqlite:vector", version.ref = "sqlite-vector" }
 jmdns = { module = "org.jmdns:jmdns", version.ref = "jmdns" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+slf4j-android = { module = "uk.uuid.slf4j:slf4j-android", version = "2.0.17-0" }
 sqlite-android = { module = "com.github.rikkahub:sqlite-android", version.ref = "sqlite-android" }
 
 [plugins]

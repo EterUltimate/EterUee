@@ -9,6 +9,7 @@ export interface DisplaySetting {
   showModelIcon?: boolean;
   showModelName: boolean;
   showTokenUsage: boolean;
+  showThinkingContent: boolean;
   autoCloseThinking: boolean;
   codeBlockAutoWrap: boolean;
   codeBlockAutoCollapse: boolean;

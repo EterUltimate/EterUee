@@ -7,6 +7,8 @@ import type { ReasoningPart as UIReasoningPart } from "~/types";
 import Think from "~/assets/think.svg?react";
 import { serverNow } from "~/lib/utils";
 
+import { useSettingsStore } from "~/stores";
+
 import { ControlledChainOfThoughtStep } from "../chain-of-thought";
 
 interface ReasoningStepPartProps {
@@ -39,6 +41,7 @@ function formatDuration(createdAt?: string, finishedAt?: string | null): number 
 export function ReasoningStepPart({ reasoning, isFirst, isLast }: ReasoningStepPartProps) {
   const loading = reasoning.finishedAt == null;
   const { t } = useTranslation("message");
+  const displaySetting = useSettingsStore((state) => state.settings?.displaySetting);
   const [expandState, setExpandState] = React.useState<ReasoningCardState>(
     ReasoningCardState.Collapsed,
   );
@@ -46,16 +49,21 @@ export function ReasoningStepPart({ reasoning, isFirst, isLast }: ReasoningStepP
 
   React.useEffect(() => {
     if (loading) {
-      setExpandState((state) =>
-        state === ReasoningCardState.Collapsed ? ReasoningCardState.Preview : state,
-      );
+      if (displaySetting?.showThinkingContent) {
+        setExpandState((state) =>
+          state === ReasoningCardState.Collapsed ? ReasoningCardState.Preview : state,
+        );
+      }
       return;
     }
 
-    setExpandState((state) =>
-      state === ReasoningCardState.Collapsed ? state : ReasoningCardState.Collapsed,
-    );
-  }, [loading, reasoning.reasoning]);
+    setExpandState((state) => {
+      if (state === ReasoningCardState.Collapsed) return state;
+      return (displaySetting?.autoCloseThinking ?? true)
+        ? ReasoningCardState.Collapsed
+        : ReasoningCardState.Expanded;
+    });
+  }, [loading, reasoning.reasoning, displaySetting?.showThinkingContent, displaySetting?.autoCloseThinking]);
 
   React.useEffect(() => {
     if (loading && expandState === ReasoningCardState.Preview && contentRef.current) {

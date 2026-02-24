@@ -871,4 +871,14 @@
   <string name="assistant_page_local_tools_tts_desc">Позвольте ИИ озвучить текст с помощью системного движка TTS устройства</string>
   <string name="setting_display_page_show_thinking_content_title">Показывать содержание размышлений</string>
   <string name="setting_display_page_show_thinking_content_desc">Расширять и показывать процесс мышления по умолчанию во время генерации</string>
+  <string name="error_title_send_message">Не удалось отправить сообщение</string>
+  <string name="error_title_regenerate_message">Не удалось повторно сгенерировать сообщение</string>
+  <string name="error_title_tool_approval">Сбой обработки вызова инструмента</string>
+  <string name="error_title_tool_unavailable">Инструмент недоступен</string>
+  <string name="error_title_generation">Ошибка генерации сообщения</string>
+  <string name="error_title_generate_title">Не удалось автоматически сгенерировать заголовок</string>
+  <string name="error_title_translate_message">Ошибка перевода сообщения</string>
+  <string name="error_title_compress_conversation">Сжатие переписки не удалось</string>
+  <string name="error_title_operation">Операция не выполнена</string>
 </resources>
+

@@ -876,4 +876,14 @@
   <string name="assistant_page_local_tools_tts_desc">Let the AI speak text aloud to you using the device TTS engine</string>
   <string name="setting_display_page_show_thinking_content_title">Show Thinking Content</string>
   <string name="setting_display_page_show_thinking_content_desc">Whether to expand and show the thinking process by default during generation</string>
+  <string name="error_title_send_message">Message send failed</string>
+  <string name="error_title_regenerate_message">Message regeneration failed</string>
+  <string name="error_title_tool_approval">Tool call processing failed</string>
+  <string name="error_title_tool_unavailable">Tool unavailable</string>
+  <string name="error_title_generation">Message generation failed</string>
+  <string name="error_title_generate_title">Auto title generation failed</string>
+  <string name="error_title_translate_message">Message translation failed</string>
+  <string name="error_title_compress_conversation">Conversation compression failed</string>
+  <string name="error_title_operation">Operation failed</string>
 </resources>
+

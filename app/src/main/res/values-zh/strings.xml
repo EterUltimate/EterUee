@@ -878,4 +878,14 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="assistant_page_local_tools_tts_desc">让AI使用设备TTS引擎为您朗读文本</string>
   <string name="setting_display_page_show_thinking_content_title">显示思考内容</string>
   <string name="setting_display_page_show_thinking_content_desc">是否在生成过程中默认展开并显示思考过程</string>
+  <string name="error_title_send_message">消息发送失败</string>
+  <string name="error_title_regenerate_message">消息重新生成失败</string>
+  <string name="error_title_tool_approval">工具调用处理失败</string>
+  <string name="error_title_tool_unavailable">工具不可用</string>
+  <string name="error_title_generation">消息生成失败</string>
+  <string name="error_title_generate_title">自动生成标题失败</string>
+  <string name="error_title_translate_message">消息翻译失败</string>
+  <string name="error_title_compress_conversation">对话压缩失败</string>
+  <string name="error_title_operation">操作失败</string>
 </resources>
+

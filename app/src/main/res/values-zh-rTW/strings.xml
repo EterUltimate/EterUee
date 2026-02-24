@@ -876,4 +876,14 @@
   <string name="assistant_page_local_tools_tts_desc">讓 AI 使用裝置的 TTS 引擎為您朗讀文字</string>
   <string name="setting_display_page_show_thinking_content_title">顯示思考內容</string>
   <string name="setting_display_page_show_thinking_content_desc">是否在生成時預設展開並顯示思考過程</string>
+  <string name="error_title_send_message">訊息傳送失敗</string>
+  <string name="error_title_regenerate_message">訊息重新產生失敗</string>
+  <string name="error_title_tool_approval">工具呼叫處理失敗</string>
+  <string name="error_title_tool_unavailable">工具無法使用</string>
+  <string name="error_title_generation">訊息產生失敗</string>
+  <string name="error_title_generate_title">自動產生標題失敗</string>
+  <string name="error_title_translate_message">訊息翻譯失敗</string>
+  <string name="error_title_compress_conversation">對話壓縮失敗</string>
+  <string name="error_title_operation">操作失敗</string>
 </resources>
+

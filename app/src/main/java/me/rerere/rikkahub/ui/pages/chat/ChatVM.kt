@@ -282,7 +282,7 @@ class ChatVM(
                 targetTokens,
                 keepRecentMessages
             ).onFailure {
-                chatService.addError(it)
+                chatService.addError(it, title = context.getString(R.string.error_title_compress_conversation))
             }
         }
     }
@@ -300,7 +300,8 @@ class ChatVM(
     fun showDeleteBlockedWhileGeneratingError() {
         chatService.addError(
             error = IllegalStateException("请先停止生成再删除消息"),
-            conversationId = _conversationId
+            conversationId = _conversationId,
+            title = context.getString(R.string.error_title_operation)
         )
     }
 

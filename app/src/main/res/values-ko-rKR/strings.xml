@@ -878,4 +878,14 @@ mDNS 주소: .local 호스트네임을 사용하며, IP를 몰라도 같은 네�
   <string name="assistant_page_local_tools_tts_desc">AI가 기기의 TTS 엔진을 사용해 텍스트를 음성으로 읽어줍니다</string>
   <string name="setting_display_page_show_thinking_content_title">생각 내용 표시</string>
   <string name="setting_display_page_show_thinking_content_desc">생성 중 기본적으로 사고 과정을 펼쳐서 표시할지 여부</string>
+  <string name="error_title_send_message">메시지 전송 실패</string>
+  <string name="error_title_regenerate_message">메시지 재생성 실패</string>
+  <string name="error_title_tool_approval">도구 호출 처리 실패</string>
+  <string name="error_title_tool_unavailable">도구를 사용할 수 없음</string>
+  <string name="error_title_generation">메시지 생성 실패</string>
+  <string name="error_title_generate_title">자동 제목 생성 실패</string>
+  <string name="error_title_translate_message">메시지 번역 실패</string>
+  <string name="error_title_compress_conversation">대화 압축 실패</string>
+  <string name="error_title_operation">작업 실패</string>
 </resources>
+

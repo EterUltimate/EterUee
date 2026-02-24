@@ -111,7 +111,7 @@ export default function Markdown({
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex, rehypeRaw]}
         plugins={{ cjk: cjk }}
-        animated={{ animation: "blurIn", sep: 'word', duration: 300 }}
+        animated={{ animation: "fadeIn", sep: 'word', duration: 150 }}
         isAnimating={isAnimating}
         controls={{code: false, mermaid: false}}
         components={{

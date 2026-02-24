@@ -118,7 +118,7 @@ export function ReasoningStepPart({ reasoning, isFirst, isLast }: ReasoningStepP
         ref={contentRef}
         className={preview ? "styled-scrollbar relative max-h-24 overflow-y-auto" : undefined}
       >
-        <Markdown content={reasoning.reasoning} className="text-xs" />
+        <Markdown content={reasoning.reasoning} className="text-xs" isAnimating={loading} />
       </div>
     </ControlledChainOfThoughtStep>
   );

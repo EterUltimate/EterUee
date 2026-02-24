@@ -45,7 +45,6 @@ import {
   type UIMessagePart,
 } from "~/types";
 import { MessageSquare } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
 import type { PanelImperativeHandle } from "react-resizable-panels";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -995,21 +994,12 @@ function ConversationsPageInner() {
         </div>
       )}
 
-      <motion.div layout="position" transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}>
-        <AnimatePresence>
-          {isNewChat && (
-            <motion.div
-              key="welcome"
-              className="mb-4 text-center"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
-              <p className="text-lg text-muted-foreground">{t("conversations.welcome_prompt")}</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      <div>
+        {isNewChat && (
+          <div className="mb-4 text-center">
+            <p className="text-lg text-muted-foreground">{t("conversations.welcome_prompt")}</p>
+          </div>
+        )}
         <ChatInput
           value={inputText}
           attachments={inputAttachments}
@@ -1027,7 +1017,7 @@ function ConversationsPageInner() {
           onSend={handleSend}
           onStop={activeId ? handleStop : undefined}
         />
-      </motion.div>
+      </div>
     </div>
   );
 

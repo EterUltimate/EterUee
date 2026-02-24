@@ -74,6 +74,16 @@ type MarkdownProps = {
   isAnimating?: boolean;
 };
 
+function getNodeText(node: React.ReactNode): string {
+  if (node == null || typeof node === "boolean") return "";
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(getNodeText).join("");
+  if (React.isValidElement<{ children?: React.ReactNode }>(node)) {
+    return getNodeText(node.props.children);
+  }
+  return "";
+}
+
 export default function Markdown({
   content,
   className,
@@ -145,12 +155,12 @@ export default function Markdown({
             );
           },
           a: ({ href, children, ...props }) => {
-            const childText = typeof children === "string" ? children : "";
+            const childText = getNodeText(children).trim();
 
             // Citation format: [citation,domain](id)
             if (childText.startsWith("citation,")) {
               const domain = childText.substring("citation,".length);
-              const id = href || "";
+              const id = (href || "").trim();
 
               if (id.length === 6) {
                 return (
@@ -161,6 +171,21 @@ export default function Markdown({
                   >
                     {domain}
                   </span>
+                );
+              }
+
+              if (href) {
+                return (
+                  <a
+                    className="citation-badge"
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={domain}
+                    {...props}
+                  >
+                    {domain}
+                  </a>
                 );
               }
             }

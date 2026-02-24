@@ -67,16 +67,18 @@ interface MessagePartsProps {
   parts: UIMessagePart[];
   loading?: boolean;
   onToolApproval?: (toolCallId: string, approved: boolean, reason: string) => void | Promise<void>;
+  onClickCitation?: (id: string) => void;
 }
 
 function renderContentPart(
   part: UIMessagePart,
   t: (key: string, options?: Record<string, unknown>) => string,
   loading?: boolean,
+  onClickCitation?: (id: string) => void,
 ) {
   switch (part.type) {
     case "text":
-      return <TextPart text={part.text} isAnimating={loading} />;
+      return <TextPart text={part.text} isAnimating={loading} onClickCitation={onClickCitation} />;
     case "image":
       return <ImagePart url={part.url} />;
     case "video":
@@ -96,7 +98,12 @@ function renderContentPart(
   }
 }
 
-export const MessageParts = React.memo(({ parts, loading = false, onToolApproval }: MessagePartsProps) => {
+export const MessageParts = React.memo(({
+  parts,
+  loading = false,
+  onToolApproval,
+  onClickCitation,
+}: MessagePartsProps) => {
   const { t } = useTranslation("message");
   const groupedParts = React.useMemo(() => groupMessageParts(parts), [parts]);
 
@@ -146,7 +153,7 @@ export const MessageParts = React.memo(({ parts, loading = false, onToolApproval
 
         return (
           <React.Fragment key={`content-${block.index}`}>
-            {renderContentPart(block.part, t, loading)}
+            {renderContentPart(block.part, t, loading, onClickCitation)}
           </React.Fragment>
         );
       })}
@@ -158,8 +165,16 @@ interface MessagePartProps {
   part: UIMessagePart;
   loading?: boolean;
   onToolApproval?: (toolCallId: string, approved: boolean, reason: string) => void | Promise<void>;
+  onClickCitation?: (id: string) => void;
 }
 
-export function MessagePart({ part, loading, onToolApproval }: MessagePartProps) {
-  return <MessageParts parts={[part]} loading={loading} onToolApproval={onToolApproval} />;
+export function MessagePart({ part, loading, onToolApproval, onClickCitation }: MessagePartProps) {
+  return (
+    <MessageParts
+      parts={[part]}
+      loading={loading}
+      onToolApproval={onToolApproval}
+      onClickCitation={onClickCitation}
+    />
+  );
 }

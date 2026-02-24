@@ -178,6 +178,52 @@ function getNerdStats(
   return stats;
 }
 
+function parseToolOutputJson(text: string): unknown {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    // Some models wrap JSON in fenced blocks.
+    const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+    if (!fenced) return null;
+    try {
+      return JSON.parse(fenced[1]);
+    } catch {
+      return null;
+    }
+  }
+}
+
+function buildCitationUrlMap(parts: UIMessagePart[]): Map<string, string> {
+  const map = new Map<string, string>();
+
+  parts.forEach((part) => {
+    if (part.type !== "tool" || part.toolName !== "search_web") return;
+    const outputText = part.output
+      .filter((outputPart): outputPart is { type: "text"; text: string } => outputPart.type === "text")
+      .map((outputPart) => outputPart.text)
+      .join("\n");
+    const parsed = parseToolOutputJson(outputText);
+    if (!parsed || typeof parsed !== "object") return;
+    const items = (parsed as { items?: unknown }).items;
+    if (!Array.isArray(items)) return;
+
+    items.forEach((item) => {
+      if (!item || typeof item !== "object") return;
+      const id = String((item as { id?: unknown }).id ?? "").trim();
+      const url = String((item as { url?: unknown }).url ?? "").trim();
+      if (!id || !url) return;
+      if (!map.has(id)) {
+        map.set(id, url);
+      }
+    });
+  });
+
+  return map;
+}
+
 const ChatMessageActionsRow = React.memo(({
   node,
   message,
@@ -456,6 +502,15 @@ export const ChatMessage = React.memo(({
   const isUser = message.role === "USER";
   const hasMessageContent = message.parts.some(hasRenderablePart);
   const showActions = isLastMessage ? !loading : hasMessageContent;
+  const citationUrlMap = React.useMemo(() => buildCitationUrlMap(message.parts), [message.parts]);
+  const handleClickCitation = React.useCallback(
+    (citationId: string) => {
+      const url = citationUrlMap.get(citationId.trim());
+      if (!url || typeof window === "undefined") return;
+      window.open(url, "_blank", "noopener,noreferrer");
+    },
+    [citationUrlMap],
+  );
 
   return (
     <div className={cn("flex flex-col gap-4", isUser ? "items-end" : "items-start")}>
@@ -475,7 +530,12 @@ export const ChatMessage = React.memo(({
               isUser ? "max-w-[85%] rounded-lg bg-muted px-4 py-3" : "w-full",
             )}
           >
-            <MessageParts parts={message.parts} loading={loading} onToolApproval={onToolApproval} />
+            <MessageParts
+              parts={message.parts}
+              loading={loading}
+              onToolApproval={onToolApproval}
+              onClickCitation={handleClickCitation}
+            />
           </div>
         </div>
       </div>

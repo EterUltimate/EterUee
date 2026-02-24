@@ -64,6 +64,8 @@ type ConversationSummaryUpdater = (update: ReturnType<typeof toConversationSumma
 
 const EDIT_DRAFT_ATTACHMENT_MARK = "__from_message_attachment";
 const EDIT_DRAFT_SOURCE_INDEX = "__from_message_source_index";
+const EMPTY_INPUT_ATTACHMENTS: UIMessagePart[] = [];
+const EMPTY_SUGGESTIONS: string[] = [];
 
 interface EditDraft {
   text: string;
@@ -437,7 +439,7 @@ function useDraftInputController({
   const clearDraft = useChatInputStore((state) => state.clearDraft);
 
   const inputText = draft?.text ?? "";
-  const inputAttachments = draft?.parts ?? [];
+  const inputAttachments = draft?.parts ?? EMPTY_INPUT_ATTACHMENTS;
 
   const handleInputTextChange = React.useCallback(
     (text: string) => {
@@ -725,7 +727,7 @@ function ConversationsPageInner() {
   });
 
   const activeConversation = conversations.find((item) => item.id === activeId);
-  const chatSuggestions = detail?.chatSuggestions ?? [];
+  const chatSuggestions = detail?.chatSuggestions ?? EMPTY_SUGGESTIONS;
 
   React.useEffect(() => {
     const base = t("conversations.meta.title");
@@ -737,10 +739,7 @@ function ConversationsPageInner() {
   const isNewChat = isHomeRoute && !activeId;
   const showSuggestions =
     Boolean(activeId) && !detailLoading && !detailError && chatSuggestions.length > 0;
-  const displaySuggestions = React.useMemo(
-    () => (showSuggestions ? chatSuggestions : []),
-    [chatSuggestions, showSuggestions],
-  );
+  const displaySuggestions = showSuggestions ? chatSuggestions : EMPTY_SUGGESTIONS;
 
   const handleSelect = React.useCallback(
     (id: string) => {

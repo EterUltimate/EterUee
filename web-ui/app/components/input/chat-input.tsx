@@ -157,7 +157,7 @@ function hasFilesInDataTransfer(dataTransfer: DataTransfer | null): boolean {
   return Array.from(dataTransfer.items).some((item) => item.kind === "file");
 }
 
-export function ChatInput({
+function ChatInputInner({
   value,
   attachments,
   suggestions = [],
@@ -630,6 +630,9 @@ export function ChatInput({
     </div>
   );
 }
+
+export const ChatInput = React.memo(ChatInputInner);
+ChatInput.displayName = "ChatInput";
 
 type QuickMessageOption = {
   title: string;

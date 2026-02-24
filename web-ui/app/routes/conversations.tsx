@@ -45,6 +45,7 @@ import {
   type UIMessagePart,
 } from "~/types";
 import { MessageSquare } from "lucide-react";
+import Logo from "~/components/logo";
 import type { PanelImperativeHandle } from "react-resizable-panels";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -996,6 +997,11 @@ function ConversationsPageInner() {
       <div>
         {isNewChat && (
           <div className="mb-4 text-center">
+            <div className="mb-3 flex justify-center">
+              <div className="[&>svg]:size-16">
+                <Logo className="size-16 text-primary"/>
+              </div>
+            </div>
             <p className="text-lg text-muted-foreground">{t("conversations.welcome_prompt")}</p>
           </div>
         )}

@@ -269,6 +269,7 @@ class ClaudeProvider(private val client: OkHttpClient) : Provider<ProviderSettin
             if (params.topP != null) put("top_p", params.topP)
 
             put("stream", stream)
+            put("cache_control", buildJsonObject { put("type", "ephemeral") })
 
             // system prompt
             val systemMessage = messages.firstOrNull { it.role == MessageRole.SYSTEM }

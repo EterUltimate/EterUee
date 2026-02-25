@@ -96,38 +96,40 @@ export function ReasoningStepPart({ reasoning, isFirst, isLast }: ReasoningStepP
   const preview = expandState === ReasoningCardState.Preview;
 
   return (
-    <ControlledChainOfThoughtStep
-      expanded={expandState === ReasoningCardState.Expanded}
-      onExpandedChange={onExpandedChange}
-      isFirst={isFirst}
-      isLast={isLast}
-      icon={
-        loading ? (
-          <Sparkles className="h-4 w-4 animate-pulse text-primary" />
-        ) : (
-          <Think className="h-4 w-4 text-primary" />
-        )
-      }
-      label={
-        <span className="text-foreground text-xs font-medium">
-          {duration !== null
-            ? t("message_parts.thinking_seconds", { seconds: duration.toFixed(1) })
-            : t("message_parts.deep_thinking")}
-        </span>
-      }
-      extra={
-        loading && duration !== null
-          ? <span className="text-muted-foreground text-xs">{duration.toFixed(1)}s</span>
-          : undefined
-      }
-      contentVisible={expandState !== ReasoningCardState.Collapsed}
-    >
-      <div
-        ref={contentRef}
-        className={preview ? "styled-scrollbar relative max-h-24 overflow-y-auto" : undefined}
+    <div data-part="reasoning" data-reasoning-loading={loading || undefined}>
+      <ControlledChainOfThoughtStep
+        expanded={expandState === ReasoningCardState.Expanded}
+        onExpandedChange={onExpandedChange}
+        isFirst={isFirst}
+        isLast={isLast}
+        icon={
+          loading ? (
+            <Sparkles className="h-4 w-4 animate-pulse text-primary" />
+          ) : (
+            <Think className="h-4 w-4 text-primary" />
+          )
+        }
+        label={
+          <span className="text-foreground text-xs font-medium">
+            {duration !== null
+              ? t("message_parts.thinking_seconds", { seconds: duration.toFixed(1) })
+              : t("message_parts.deep_thinking")}
+          </span>
+        }
+        extra={
+          loading && duration !== null
+            ? <span className="text-muted-foreground text-xs">{duration.toFixed(1)}s</span>
+            : undefined
+        }
+        contentVisible={expandState !== ReasoningCardState.Collapsed}
       >
-        <Markdown content={reasoning.reasoning} className="text-xs" isAnimating={loading} />
-      </div>
-    </ControlledChainOfThoughtStep>
+        <div
+          ref={contentRef}
+          className={preview ? "styled-scrollbar relative max-h-24 overflow-y-auto" : undefined}
+        >
+          <Markdown content={reasoning.reasoning} className="text-xs" isAnimating={loading} />
+        </div>
+      </ControlledChainOfThoughtStep>
+    </div>
   );
 }

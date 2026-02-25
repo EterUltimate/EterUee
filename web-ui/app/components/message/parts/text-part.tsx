@@ -8,5 +8,9 @@ interface TextPartProps {
 
 export function TextPart({ text, isAnimating, onClickCitation }: TextPartProps) {
   if (!text) return null;
-  return <Markdown content={text} isAnimating={isAnimating} onClickCitation={onClickCitation} />;
+  return (
+    <div data-part="text">
+      <Markdown content={text} isAnimating={isAnimating} onClickCitation={onClickCitation} />
+    </div>
+  );
 }

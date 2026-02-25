@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { copyTextToClipboard } from "~/lib/clipboard";
 import { cn } from "~/lib/utils";
 
 const MAX_SHIKI_CODE_LENGTH = 12000;
@@ -495,17 +496,12 @@ export function CodeBlockCopyButton({
   const { code } = React.useContext(CodeBlockContext);
 
   const copyToClipboard = React.useCallback(async () => {
-    if (typeof window === "undefined" || !navigator?.clipboard?.writeText) {
-      onError?.(new Error(t("code_block.clipboard_not_available")));
-      return;
-    }
-
     if (isCopied) {
       return;
     }
 
     try {
-      await navigator.clipboard.writeText(code);
+      await copyTextToClipboard(code);
       setIsCopied(true);
       onCopy?.();
       timeoutRef.current = window.setTimeout(() => {
@@ -514,7 +510,7 @@ export function CodeBlockCopyButton({
     } catch (error) {
       onError?.(error as Error);
     }
-  }, [code, isCopied, onCopy, onError, t, timeout]);
+  }, [code, isCopied, onCopy, onError, timeout]);
 
   React.useEffect(
     () => () => {

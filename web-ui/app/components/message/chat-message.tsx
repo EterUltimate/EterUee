@@ -27,6 +27,7 @@ import type {
   UIMessagePart,
 } from "~/types";
 
+import { copyTextToClipboard } from "~/lib/clipboard";
 import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import {
@@ -253,8 +254,13 @@ const ChatMessageActionsRow = React.memo(({
 
   const handleCopy = React.useCallback(async () => {
     const text = buildCopyText(message.parts, t);
-    if (!text || typeof navigator === "undefined" || !navigator.clipboard) return;
-    await navigator.clipboard.writeText(text);
+    if (!text) return;
+
+    try {
+      await copyTextToClipboard(text);
+    } catch {
+      // Ignore copy failures to keep action row interaction uninterrupted.
+    }
   }, [message.parts, t]);
 
   const handleRegenerate = React.useCallback(async () => {

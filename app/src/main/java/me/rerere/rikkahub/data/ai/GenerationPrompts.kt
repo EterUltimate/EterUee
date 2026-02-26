@@ -11,7 +11,7 @@ import me.rerere.rikkahub.utils.toLocalDate
 internal fun buildMemoryPrompt(memories: List<AssistantMemory>) =
     buildString {
         appendLine()
-        append("## Memories")
+        append("**Memories**")
         appendLine()
         append("These are memories stored via the memory_tool that you can reference in future conversations.")
         appendLine()
@@ -38,7 +38,7 @@ internal suspend fun buildRecentChatsPrompt(
     if (recentConversations.isNotEmpty()) {
         return buildString {
             appendLine()
-            append("## Recent Chats")
+            append("**Recent Chats**")
             appendLine()
             append("These are some of the user's recent conversations. You can use them to understand user preferences:")
             appendLine()

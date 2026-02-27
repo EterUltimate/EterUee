@@ -31,7 +31,8 @@ data class UIMessage(
 ) {
     private fun appendChunk(chunk: MessageChunk): UIMessage {
         val choice = chunk.choices.getOrNull(0)
-        return choice?.delta?.let { delta ->
+        val message = choice?.delta ?: choice?.message ?: throw Exception("appendChunk: delta/message is null")
+        return message.let { delta ->
             // Handle Parts
             var newParts = delta.parts.fold(parts) { acc, deltaPart ->
                 when (deltaPart) {
@@ -143,7 +144,7 @@ data class UIMessage(
                 parts = newParts,
                 annotations = newAnnotations,
             )
-        } ?: this
+        }
     }
 
     fun summaryAsText(): String {

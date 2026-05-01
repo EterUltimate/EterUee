@@ -1,0 +1,587 @@
+﻿package com.eterultimate.eteruee.ai.provider.providers
+
+import android.content.Context
+import android.util.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonArrayBuilder
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import com.eterultimate.eteruee.ai.core.MessageRole
+import com.eterultimate.eteruee.ai.core.ReasoningLevel
+import com.eterultimate.eteruee.ai.core.TokenUsage
+import com.eterultimate.eteruee.ai.provider.ImageGenerationParams
+import com.eterultimate.eteruee.ai.provider.Model
+import com.eterultimate.eteruee.ai.provider.ModelAbility
+import com.eterultimate.eteruee.ai.provider.Provider
+import com.eterultimate.eteruee.ai.provider.ProviderSetting
+import com.eterultimate.eteruee.ai.provider.TextGenerationParams
+import com.eterultimate.eteruee.ai.ui.ImageGenerationResult
+import com.eterultimate.eteruee.ai.ui.MessageChunk
+import com.eterultimate.eteruee.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessageChoice
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.ai.util.KeyRoulette
+import com.eterultimate.eteruee.ai.util.configureReferHeaders
+import com.eterultimate.eteruee.ai.util.encodeBase64
+import com.eterultimate.eteruee.ai.util.json
+import com.eterultimate.eteruee.ai.util.mergeCustomBody
+import com.eterultimate.eteruee.ai.util.parseErrorDetail
+import com.eterultimate.eteruee.ai.util.stringSafe
+import com.eterultimate.eteruee.ai.util.toHeaders
+import me.rerere.common.http.await
+import me.rerere.common.http.jsonPrimitiveOrNull
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import okhttp3.sse.EventSource
+import okhttp3.sse.EventSourceListener
+import okhttp3.sse.EventSources
+import kotlin.time.Clock
+
+private const val TAG = "ClaudeProvider"
+private const val ANTHROPIC_VERSION = "2023-06-01"
+
+class ClaudeProvider(private val client: OkHttpClient, context: Context? = null) : Provider<ProviderSetting.Claude> {
+    private val keyRoulette = if (context != null) KeyRoulette.lru(context) else KeyRoulette.default()
+
+    override suspend fun listModels(providerSetting: ProviderSetting.Claude): List<Model> =
+        withContext(Dispatchers.IO) {
+            val request = Request.Builder()
+                .url("${providerSetting.baseUrl}/models")
+                .addHeader("x-api-key", keyRoulette.next(providerSetting.apiKey, providerSetting.id.toString()))
+                .addHeader("anthropic-version", ANTHROPIC_VERSION)
+                .get()
+                .build()
+
+            val response = client.newCall(request).execute()
+            if (!response.isSuccessful) {
+                error("Failed to get models: ${response.code} ${response.body?.string()}")
+            }
+
+            val bodyStr = response.body?.string() ?: ""
+            val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
+            val data = bodyJson["data"]?.jsonArray ?: return@withContext emptyList()
+
+            data.mapNotNull { modelJson ->
+                val modelObj = modelJson.jsonObject
+                val id = modelObj["id"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
+                val displayName = modelObj["display_name"]?.jsonPrimitive?.contentOrNull ?: id
+
+                Model(
+                    modelId = id,
+                    displayName = displayName,
+                )
+            }
+        }
+
+    override suspend fun generateImage(
+        providerSetting: ProviderSetting,
+        params: ImageGenerationParams
+    ): ImageGenerationResult {
+        error("Claude provider does not support image generation")
+    }
+
+    override suspend fun generateText(
+        providerSetting: ProviderSetting.Claude,
+        messages: List<UIMessage>,
+        params: TextGenerationParams
+    ): MessageChunk = withContext(Dispatchers.IO) {
+        val requestBody = buildMessageRequest(providerSetting, messages, params)
+        val request = Request.Builder()
+            .url("${providerSetting.baseUrl}/messages")
+            .headers(params.customHeaders.toHeaders())
+            .post(json.encodeToString(requestBody).toRequestBody("application/json".toMediaType()))
+            .addHeader("x-api-key", keyRoulette.next(providerSetting.apiKey, providerSetting.id.toString()))
+            .addHeader("anthropic-version", ANTHROPIC_VERSION)
+            .configureReferHeaders(providerSetting.baseUrl)
+            .build()
+
+        Log.i(TAG, "generateText: ${json.encodeToString(requestBody)}")
+
+        val response = client.newCall(request).await()
+        if (!response.isSuccessful) {
+            throw Exception("Failed to get response: ${response.code} ${response.body?.string()}")
+        }
+
+        val bodyStr = response.body?.string() ?: ""
+        val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
+
+        // 浠?JsonObject 涓彁鍙栧繀瑕佺殑淇℃伅
+        val id = bodyJson["id"]?.jsonPrimitive?.contentOrNull ?: ""
+        val model = bodyJson["model"]?.jsonPrimitive?.contentOrNull ?: ""
+        val content = bodyJson["content"]?.jsonArray ?: JsonArray(emptyList())
+        val stopReason = bodyJson["stop_reason"]?.jsonPrimitive?.contentOrNull ?: "unknown"
+        val usage = parseTokenUsage(bodyJson)
+
+        MessageChunk(
+            id = id,
+            model = model,
+            choices = listOf(
+                UIMessageChoice(
+                    index = 0,
+                    delta = null,
+                    message = parseMessage(content),
+                    finishReason = stopReason
+                )
+            ),
+            usage = usage
+        )
+    }
+
+    override suspend fun streamText(
+        providerSetting: ProviderSetting.Claude,
+        messages: List<UIMessage>,
+        params: TextGenerationParams
+    ): Flow<MessageChunk> = callbackFlow {
+        val requestBody = buildMessageRequest(providerSetting, messages, params, stream = true)
+        val request = Request.Builder()
+            .url("${providerSetting.baseUrl}/messages")
+            .headers(params.customHeaders.toHeaders())
+            .post(json.encodeToString(requestBody).toRequestBody("application/json".toMediaType()))
+            .addHeader("x-api-key", keyRoulette.next(providerSetting.apiKey, providerSetting.id.toString()))
+            .addHeader("anthropic-version", ANTHROPIC_VERSION)
+            .addHeader("Content-Type", "application/json")
+            .configureReferHeaders(providerSetting.baseUrl)
+            .build()
+
+        Log.i(TAG, "streamText: ${json.encodeToString(requestBody)}")
+
+        requestBody["messages"]!!.jsonArray.forEach {
+            Log.i(TAG, "streamText: $it")
+        }
+
+        val listener = object : EventSourceListener() {
+            override fun onEvent(
+                eventSource: EventSource,
+                id: String?,
+                type: String?,
+                data: String
+            ) {
+                Log.d(TAG, "onEvent: type=$type, data=$data")
+                if (data == "[DONE]") {
+                    return
+                }
+
+                val dataJson = json.parseToJsonElement(data).jsonObject
+                val deltaMessage = parseMessage(buildJsonArray {
+                    val contentBlockObj = dataJson["content_block"]?.jsonObject
+                    val deltaObj = dataJson["delta"]?.jsonObject
+                    if (contentBlockObj != null) {
+                        add(contentBlockObj)
+                    }
+                    if (deltaObj != null) {
+                        add(deltaObj)
+                    }
+                })
+                val tokenUsage = parseTokenUsage(dataJson)
+                val messageChunk = MessageChunk(
+                    id = id ?: "",
+                    model = "",
+                    choices = listOf(
+                        UIMessageChoice(
+                            index = 0,
+                            delta = deltaMessage,
+                            message = null,
+                            finishReason = null
+                        )
+                    ),
+                    usage = tokenUsage
+                )
+
+                when (type) {
+                    "message_stop" -> {
+                        Log.d(TAG, "Stream ended")
+                        close()
+                    }
+
+                    "error" -> {
+                        val eventData = json.parseToJsonElement(data).jsonObject
+                        val error = eventData["error"]?.parseErrorDetail()
+                        close(error)
+                    }
+                }
+
+                trySend(messageChunk)
+            }
+
+            override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
+                var exception = t
+
+                t?.printStackTrace()
+                Log.e(TAG, "onFailure: ${t?.javaClass?.name} ${t?.message} / $response")
+
+                val bodyRaw = response?.body?.stringSafe()
+                try {
+                    if (!bodyRaw.isNullOrBlank()) {
+                        val bodyElement = Json.parseToJsonElement(bodyRaw)
+                        Log.i(TAG, "Error response: $bodyElement")
+                        exception = bodyElement.parseErrorDetail()
+                    }
+                } catch (e: Throwable) {
+                    Log.w(TAG, "onFailure: failed to parse from $bodyRaw")
+                    e.printStackTrace()
+                } finally {
+                    close(exception)
+                }
+            }
+
+            override fun onClosed(eventSource: EventSource) {
+                close()
+            }
+        }
+
+        val eventSource = EventSources.createFactory(client)
+            .newEventSource(request, listener)
+
+        awaitClose {
+            Log.d(TAG, "Closing eventSource")
+            eventSource.cancel()
+        }
+    }
+
+    private fun buildMessageRequest(
+        providerSetting: ProviderSetting.Claude,
+        messages: List<UIMessage>,
+        params: TextGenerationParams,
+        stream: Boolean = false
+    ): JsonObject {
+        fun cacheControlEphemeral() = buildJsonObject { put("type", "ephemeral") }
+
+        return buildJsonObject {
+            put("model", params.model.modelId)
+            put("messages", buildMessages(messages, providerSetting.promptCaching))
+            put("max_tokens", params.maxTokens ?: 64_000)
+
+            if (params.temperature != null && !params.reasoningLevel.isEnabled) put(
+                "temperature",
+                params.temperature
+            )
+            if (params.topP != null) put("top_p", params.topP)
+
+            put("stream", stream)
+
+            // system prompt
+            val systemMessage = messages.firstOrNull { it.role == MessageRole.SYSTEM }
+            val systemTextParts = systemMessage?.parts?.filterIsInstance<UIMessagePart.Text>().orEmpty()
+            if (systemTextParts.isNotEmpty()) {
+                put("system", buildJsonArray {
+                    systemTextParts.forEachIndexed { index, part ->
+                        add(buildJsonObject {
+                            put("type", "text")
+                            put("text", part.text)
+                            if (providerSetting.promptCaching && index == systemTextParts.lastIndex) {
+                                put("cache_control", cacheControlEphemeral())
+                            }
+                        })
+                    }
+                })
+            }
+
+            // 澶勭悊 thinking
+            // Anthropic 鏂?API: adaptive 妯″紡 + output_config.effort 鎺у埗寮哄害
+            // 鏃х殑 type=enabled + budget_tokens 鍦?Opus 4.7+ 涓婂凡涓嶆敮鎸?
+            if (params.model.abilities.contains(ModelAbility.REASONING)) {
+                when (params.reasoningLevel) {
+                    ReasoningLevel.OFF -> {
+                        put("thinking", buildJsonObject { put("type", "disabled") })
+                    }
+
+                    ReasoningLevel.AUTO -> {
+                        put("thinking", buildJsonObject {
+                            put("type", "adaptive")
+                            put("display", "summarized")
+                        })
+                    }
+
+                    else -> {
+                        put("thinking", buildJsonObject {
+                            put("type", "adaptive")
+                            put("display", "summarized")
+                        })
+                        put("output_config", buildJsonObject {
+                            put("effort", params.reasoningLevel.effort)
+                        })
+                    }
+                }
+            }
+
+            // 澶勭悊宸ュ叿
+            if (params.model.abilities.contains(ModelAbility.TOOL) && params.tools.isNotEmpty()) {
+                putJsonArray("tools") {
+                    params.tools.forEachIndexed { index, tool ->
+                        add(buildJsonObject {
+                            put("name", tool.name)
+                            put("description", tool.description)
+                            put("input_schema", json.encodeToJsonElement(tool.parameters()))
+                            if (providerSetting.promptCaching && index == params.tools.lastIndex) {
+                                put("cache_control", cacheControlEphemeral())
+                            }
+                        })
+                    }
+                }
+            }
+        }.mergeCustomBody(params.customBody)
+    }
+
+    private fun buildMessages(messages: List<UIMessage>, promptCaching: Boolean) = buildJsonArray {
+        messages
+            .filter { it.isValidToUpload() && it.role != MessageRole.SYSTEM }
+            .forEach { message ->
+                if (message.role == MessageRole.ASSISTANT) {
+                    addAssistantMessage(message)
+                } else {
+                    addUserMessage(message)
+                }
+            }
+    }.let { messagesArray ->
+        if (!promptCaching) return@let messagesArray
+        insertMessagesCacheControl(messagesArray)
+    }
+
+    /**
+     * 鍦ㄥ€掓暟绗簩鏉￠潪 tool_result 鐨?user message 鐨勬渶鍚庝竴涓?content block 涓婃彃鍏?cache_control
+     */
+    private fun insertMessagesCacheControl(messages: JsonArray): JsonArray {
+        // 鎵惧嚭鎵€鏈夐潪 tool_result 鐨?user message 鐨勭储寮?
+        val realUserIndices = messages.mapIndexedNotNull { index, msg ->
+            val obj = msg.jsonObject
+            if (obj["role"]?.jsonPrimitive?.contentOrNull == "user") {
+                val content = obj["content"]?.jsonArray
+                val isToolResult = content?.any {
+                    it.jsonObject["type"]?.jsonPrimitive?.contentOrNull == "tool_result"
+                } == true
+                if (!isToolResult) index else null
+            } else null
+        }
+
+        // 鍙栧€掓暟绗簩鏉?
+        val targetIndex = if (realUserIndices.size >= 2) {
+            realUserIndices[realUserIndices.size - 2]
+        } else return messages
+
+        // 鍦ㄧ洰鏍?message 鐨勬渶鍚庝竴涓?content block 涓婃坊鍔?cache_control
+        return JsonArray(messages.mapIndexed { index, msg ->
+            if (index == targetIndex) {
+                val obj = msg.jsonObject
+                val content = obj["content"]?.jsonArray ?: return@mapIndexed msg
+                val newContent = JsonArray(content.mapIndexed { contentIndex, block ->
+                    if (contentIndex == content.lastIndex) {
+                        JsonObject(block.jsonObject + mapOf("cache_control" to buildJsonObject {
+                            put(
+                                "type",
+                                "ephemeral"
+                            )
+                        }))
+                    } else block
+                })
+                JsonObject(obj + mapOf("content" to newContent))
+            } else msg
+        })
+    }
+
+    private fun JsonArrayBuilder.addAssistantMessage(message: UIMessage) {
+        val groups = groupPartsByToolBoundary(message.parts)
+        val contentBuffer = mutableListOf<JsonObject>()
+
+        for (group in groups) {
+            when (group) {
+                is PartGroup.Content -> {
+                    group.parts.mapNotNull { it.toContentBlock() }.forEach { contentBuffer.add(it) }
+                }
+
+                is PartGroup.Tools -> {
+                    // 娣诲姞 tool_use 鍒板唴瀹圭紦鍐?
+                    group.tools.forEach { contentBuffer.add(it.toToolUseBlock()) }
+
+                    // 杈撳嚭 assistant 娑堟伅
+                    add(buildJsonObject {
+                        put("role", "assistant")
+                        putJsonArray("content") { contentBuffer.forEach { add(it) } }
+                    })
+                    contentBuffer.clear()
+
+                    // 绱ц窡 tool_result
+                    add(buildJsonObject {
+                        put("role", "user")
+                        putJsonArray("content") {
+                            group.tools.forEach { add(it.toToolResultBlock()) }
+                        }
+                    })
+                }
+            }
+        }
+
+        // 杈撳嚭鍓╀綑鍐呭
+        if (contentBuffer.isNotEmpty()) {
+            add(buildJsonObject {
+                put("role", "assistant")
+                putJsonArray("content") { contentBuffer.forEach { add(it) } }
+            })
+        }
+    }
+
+    private fun JsonArrayBuilder.addUserMessage(message: UIMessage) {
+        add(buildJsonObject {
+            put("role", message.role.name.lowercase())
+            putJsonArray("content") {
+                message.parts.mapNotNull { it.toContentBlock() }.forEach { add(it) }
+            }
+        })
+    }
+
+    private fun UIMessagePart.toContentBlock(): JsonObject? = when (this) {
+        is UIMessagePart.Text -> buildJsonObject {
+            put("type", "text")
+            put("text", text)
+        }
+
+        is UIMessagePart.Image -> buildJsonObject {
+            encodeBase64(withPrefix = false).onSuccess { encoded ->
+                put("type", "image")
+                put("source", buildJsonObject {
+                    put("type", "base64")
+                    put("media_type", encoded.mimeType)
+                    put("data", encoded.base64)
+                })
+            }.onFailure {
+                Log.w(TAG, "encode image failed: $url", it)
+                put("type", "text")
+                put("text", "")
+            }
+        }
+
+        is UIMessagePart.Reasoning -> buildJsonObject {
+            put("type", "thinking")
+            put("thinking", reasoning)
+            metadata?.forEach { (key, value) -> put(key, value) }
+        }
+
+        else -> null
+    }
+
+    private fun UIMessagePart.Tool.toToolUseBlock() = buildJsonObject {
+        put("type", "tool_use")
+        put("id", toolCallId)
+        put("name", toolName)
+        put("input", json.parseToJsonElement(input.ifBlank { "{}" }))
+    }
+
+    private fun UIMessagePart.Tool.toToolResultBlock() = buildJsonObject {
+        put("type", "tool_result")
+        put("tool_use_id", toolCallId)
+        putJsonArray("content") {
+            output.mapNotNull { it.toContentBlock() }.forEach { add(it) }
+        }
+    }
+
+    private fun parseMessage(content: JsonArray): UIMessage {
+        val parts = mutableListOf<UIMessagePart>()
+
+        content.forEach { contentBlock ->
+            val block = contentBlock.jsonObject
+            val type = block["type"]?.jsonPrimitive?.contentOrNull
+
+            when (type) {
+                "text", "text_delta" -> {
+                    val text = block["text"]?.jsonPrimitive?.contentOrNull ?: ""
+                    if (text.isNotEmpty()) {
+                        parts.add(UIMessagePart.Text(text))
+                    }
+                }
+
+                "thinking", "thinking_delta", "signature_delta" -> {
+                    val thinking = block["thinking"]?.jsonPrimitive?.contentOrNull ?: ""
+                    val signature = block["signature"]?.jsonPrimitive?.contentOrNull
+                    if (thinking.isNotEmpty() || signature != null) {
+                        val reasoning = UIMessagePart.Reasoning(
+                            reasoning = thinking,
+                            createdAt = Clock.System.now(),
+                            finishedAt = null
+                        )
+                        if (signature != null) {
+                            reasoning.metadata = buildJsonObject {
+                                put("signature", signature)
+                            }
+                        }
+                        parts.add(reasoning)
+                    }
+                }
+
+                "redacted_thinking" -> {
+                    val data = block["data"]?.jsonPrimitiveOrNull?.contentOrNull
+                    println(data)
+                }
+
+                "tool_use" -> {
+                    val id = block["id"]?.jsonPrimitive?.contentOrNull ?: ""
+                    val name = block["name"]?.jsonPrimitive?.contentOrNull ?: ""
+                    val input = block["input"]?.jsonObject ?: JsonObject(emptyMap())
+                    parts.add(
+                        UIMessagePart.Tool(
+                            toolCallId = id,
+                            toolName = name,
+                            input = if (input.isEmpty()) "" else json.encodeToString(input),
+                            output = emptyList()
+                        )
+                    )
+                }
+
+                "input_json_delta" -> {
+                    val input = block["partial_json"]?.jsonPrimitive?.contentOrNull
+                    parts.add(
+                        UIMessagePart.Tool(
+                            toolCallId = "",
+                            toolName = "",
+                            input = input ?: "",
+                            output = emptyList()
+                        )
+                    )
+                }
+            }
+        }
+
+        return UIMessage(
+            role = MessageRole.ASSISTANT,
+            parts = parts
+        )
+    }
+
+    private fun parseTokenUsage(bodyJson: JsonObject?): TokenUsage? {
+        if (bodyJson == null) return null
+
+        // 鍥為€€鍒版爣鍑?usage 瀛楁
+        val usageJson = bodyJson["usage"]?.jsonObject
+            ?: bodyJson["message"]?.jsonObject?.get("usage")?.jsonObject
+            ?: return null
+        val inputTokens = usageJson["input_tokens"]?.jsonPrimitive?.intOrNull ?: 0
+        val cachedInputTokens = usageJson["cache_read_input_tokens"]?.jsonPrimitiveOrNull?.intOrNull ?: 0
+        val cachedCreationTokens = usageJson["cache_creation_input_tokens"]?.jsonPrimitiveOrNull?.intOrNull ?: 0
+        val completionTokens = usageJson["output_tokens"]?.jsonPrimitive?.intOrNull ?: 0
+        val promptTokens = inputTokens + cachedInputTokens + cachedCreationTokens
+        return TokenUsage(
+            promptTokens = promptTokens,
+            completionTokens = completionTokens,
+            totalTokens = promptTokens + completionTokens,
+            cachedTokens = cachedInputTokens,
+        )
+    }
+}
+

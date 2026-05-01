@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "me.rerere.tts"
+    namespace = "com.eterultimate.eteruee.tts"
     compileSdk = 36
 
     defaultConfig {

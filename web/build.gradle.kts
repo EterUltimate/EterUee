@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "me.rerere.rikkahub.web"
+    namespace = "com.eterultimate.eteruee.web"
     compileSdk {
         version = release(36)
     }

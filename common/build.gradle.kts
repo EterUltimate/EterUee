@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "me.rerere.common"
+    namespace = "com.eterultimate.eteruee.common"
     compileSdk = 36
 
     defaultConfig {

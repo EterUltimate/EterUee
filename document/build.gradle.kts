@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "me.rerere.document"
+    namespace = "com.eterultimate.eteruee.document"
     compileSdk = 36
 
     defaultConfig {

@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "me.rerere.highlight"
+    namespace = "com.eterultimate.eteruee.highlight"
     compileSdk = 36
 
     defaultConfig {

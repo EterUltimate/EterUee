@@ -126,7 +126,7 @@ enum class ColorMode {
 }
 
 @Composable
-fun RikkahubTheme(
+fun EterUeeTheme(
     content: @Composable () -> Unit
 ) {
     val settings by rememberUserSettingsState()
@@ -154,7 +154,7 @@ fun RikkahubTheme(
     val extendColors = if (darkTheme) ExtendDarkColors else ExtendLightColors
 
     // 璋冭瘯鏃ュ織锛氱‘璁や富棰樺姞杞?
-    Log.d("RikkahubTheme", "Theme loaded: dark=$darkTheme, amoled=$amoledDarkMode, " +
+    Log.d("EterUeeTheme", "Theme loaded: dark=$darkTheme, amoled=$amoledDarkMode, " +
             "bg=${colorSchemeConverted.background}, primary=${colorSchemeConverted.primary}")
 
     // 鏇存柊鐘舵€佹爮鍥炬爣棰滆壊

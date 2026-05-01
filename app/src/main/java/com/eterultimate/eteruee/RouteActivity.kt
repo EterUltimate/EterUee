@@ -113,7 +113,7 @@ import com.eterultimate.eteruee.ui.pages.stats.StatsPage
 import com.eterultimate.eteruee.ui.pages.translator.TranslatorPage
 import com.eterultimate.eteruee.ui.pages.webview.WebViewPage
 import com.eterultimate.eteruee.ui.theme.LocalDarkMode
-import com.eterultimate.eteruee.ui.theme.RikkahubTheme
+import com.eterultimate.eteruee.ui.theme.EterUeeTheme
 import com.eterultimate.eteruee.utils.CrashHandler
 import okhttp3.OkHttpClient
 import org.koin.android.ext.android.inject
@@ -154,7 +154,7 @@ class RouteActivity : ComponentActivity() {
             return
         }
         setContent {
-            RikkahubTheme {
+            EterUeeTheme {
                 setSingletonImageLoaderFactory { context ->
                     ImageLoader.Builder(context)
                         .crossfade(true)

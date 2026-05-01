@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "me.rerere.ai"
+    namespace = "com.eterultimate.eteruee.ai"
     compileSdk = 36
 
     defaultConfig {

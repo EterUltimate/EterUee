@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "me.rerere.search"
+    namespace = "com.eterultimate.eteruee.search"
     compileSdk = 36
 
     defaultConfig {

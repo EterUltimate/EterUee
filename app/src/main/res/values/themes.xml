@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-<style name="Theme.Rikkahub" parent="Theme.Material3.DayNight.NoActionBar">
+<style name="Theme.EterUee" parent="Theme.Material3.DayNight.NoActionBar">
     <!-- 赛博朋克主题：禁用所有默认圆角 -->
     <item name="cornerFamily">rounded</item>
     <item name="cornerSize">0dp</item>

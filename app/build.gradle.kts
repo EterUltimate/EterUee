@@ -14,11 +14,11 @@ plugins {
 }
 
 android {
-    namespace = "me.rerere.rikkahub"
+    namespace = "com.eterultimate.eteruee"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "me.rerere.rikkahub"
+        applicationId = "com.eterultimate.eteruee"
         minSdk = 26
         targetSdk = 37
         versionCode = 154

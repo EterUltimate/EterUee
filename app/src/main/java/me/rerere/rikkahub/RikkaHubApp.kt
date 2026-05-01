@@ -38,18 +38,18 @@ import org.koin.android.ext.koin.androidLogger
 import org.koin.androidx.workmanager.koin.workManagerFactory
 import org.koin.core.context.startKoin
 
-private const val TAG = "RikkaHubApp"
+private const val TAG = "EterUeeApp"
 
 const val CHAT_COMPLETED_NOTIFICATION_CHANNEL_ID = "chat_completed"
 const val CHAT_LIVE_UPDATE_NOTIFICATION_CHANNEL_ID = "chat_live_update"
 const val WEB_SERVER_NOTIFICATION_CHANNEL_ID = "web_server"
 
-class RikkaHubApp : Application() {
+class EterUeeApp : Application() {
     override fun onCreate() {
         super.onCreate()
         startKoin {
             androidLogger()
-            androidContext(this@RikkaHubApp)
+            androidContext(this@EterUeeApp)
             workManagerFactory()
             modules(appModule, viewModelModule, dataSourceModule, repositoryModule)
         }
@@ -125,14 +125,14 @@ class RikkaHubApp : Application() {
                 if (settings.webServerEnabled) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                         ContextCompat.checkSelfPermission(
-                            this@RikkaHubApp,
+                            this@EterUeeApp,
                             android.Manifest.permission.POST_NOTIFICATIONS
                         ) != PackageManager.PERMISSION_GRANTED
                     ) {
                         Log.w(TAG, "startWebServerIfEnabled: notification permission not granted, skipping")
                         return@launch
                     }
-                    val intent = Intent(this@RikkaHubApp, WebServerService::class.java).apply {
+                    val intent = Intent(this@EterUeeApp, WebServerService::class.java).apply {
                         action = WebServerService.ACTION_START
                         putExtra(WebServerService.EXTRA_PORT, settings.webServerPort)
                         putExtra(WebServerService.EXTRA_LOCALHOST_ONLY, settings.webServerLocalhostOnly)

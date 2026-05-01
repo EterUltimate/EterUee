@@ -17,10 +17,10 @@ import com.eterultimate.eteruee.search.SearchService.Companion.json
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 
-private const val TAG = "RikkaHubSearchService"
+private const val TAG = "EterUeeSearchService"
 
-object RikkaHubSearchService : SearchService<SearchServiceOptions.RikkaHubOptions> {
-    override val name: String = "RikkaHub"
+object EterUeeSearchService : SearchService<SearchServiceOptions.EterUeeOptions> {
+    override val name: String = "EterUee"
 
     @Composable
     override fun Description() {
@@ -43,7 +43,7 @@ object RikkaHubSearchService : SearchService<SearchServiceOptions.RikkaHubOption
     override suspend fun search(
         params: JsonObject,
         commonOptions: SearchCommonOptions,
-        serviceOptions: SearchServiceOptions.RikkaHubOptions
+        serviceOptions: SearchServiceOptions.EterUeeOptions
     ): Result<SearchResult> = withContext(Dispatchers.IO) {
         runCatching {
             val query = params["query"]?.jsonPrimitive?.content ?: error("query is required")
@@ -66,7 +66,7 @@ object RikkaHubSearchService : SearchService<SearchServiceOptions.RikkaHubOption
             val response = httpClient.newCall(request).await()
             if (response.isSuccessful) {
                 val responseBody = response.body.string().let {
-                    json.decodeFromString<RikkaHubSearchResponse>(it)
+                    json.decodeFromString<EterUeeSearchResponse>(it)
                 }
 
                 return@withContext Result.success(
@@ -90,13 +90,13 @@ object RikkaHubSearchService : SearchService<SearchServiceOptions.RikkaHubOption
     override suspend fun scrape(
         params: JsonObject,
         commonOptions: SearchCommonOptions,
-        serviceOptions: SearchServiceOptions.RikkaHubOptions
+        serviceOptions: SearchServiceOptions.EterUeeOptions
     ): Result<ScrapedResult> {
-        error("RikkaHub does not support scraping")
+        error("EterUee does not support scraping")
     }
 
     @Serializable
-    data class RikkaHubSearchResponse(
+    data class EterUeeSearchResponse(
         val answer: String,
         val sources: List<Source>
     )
@@ -108,4 +108,3 @@ object RikkaHubSearchService : SearchService<SearchServiceOptions.RikkaHubOption
         val snippet: String
     )
 }
-

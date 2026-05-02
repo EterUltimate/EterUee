@@ -368,8 +368,8 @@ private fun SearchProviderCard(
                             }
                         }
 
-                        is SearchServiceOptions.RikkaHubOptions -> {
-                            RikkaHubOptions(options as SearchServiceOptions.RikkaHubOptions) {
+                        is SearchServiceOptions.EterUeeOptions -> {
+                            EterUeeOptions(options as SearchServiceOptions.EterUeeOptions) {
                                 options = it
                                 onUpdateService(options)
                             }
@@ -1004,9 +1004,9 @@ private fun BochaOptions(
 }
 
 @Composable
-private fun RikkaHubOptions(
-    options: SearchServiceOptions.RikkaHubOptions,
-    onUpdateOptions: (SearchServiceOptions.RikkaHubOptions) -> Unit
+private fun EterUeeOptions(
+    options: SearchServiceOptions.EterUeeOptions,
+    onUpdateOptions: (SearchServiceOptions.EterUeeOptions) -> Unit
 ) {
     FormItem(
         label = {

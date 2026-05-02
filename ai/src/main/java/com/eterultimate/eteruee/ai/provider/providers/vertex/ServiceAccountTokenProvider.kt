@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ai.provider.providers.vertex
+package com.eterultimate.eteruee.ai.provider.providers.vertex
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -17,8 +17,8 @@ import java.util.Base64
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * 浣跨敤鏈嶅姟璐﹀彿锛坋mail + private key PEM锛夋崲鍙?Google OAuth2 Access Token銆?
- * 鏋勯€犳椂浼犲叆 OkHttpClient锛涜皟鐢ㄦ椂浼?email銆佺閽?PEM 涓?scopes銆?
+ * 使用服务账号（email + private key PEM）换取 Google OAuth2 Access Token。
+ * 构造时传入 OkHttpClient；调用时传 email、私钥 PEM 与 scopes。
  */
 class ServiceAccountTokenProvider(
     private val http: OkHttpClient
@@ -51,10 +51,10 @@ class ServiceAccountTokenProvider(
     }
 
     /**
-     * @param serviceAccountEmail  褰㈠ xxx@project-id.iam.gserviceaccount.com
-     * @param privateKeyPem        鏈嶅姟璐﹀彿 JSON 涓殑 private_key 瀛楁锛圥KCS#8 PEM, 鍚?-----BEGIN PRIVATE KEY-----锛?
-     * @param scopes               OAuth scopes锛岄粯璁?cloud-platform锛涘涓?scope 鐢?List 浼犲叆
-     * @return                     access token 瀛楃涓?
+     * @param serviceAccountEmail  形如 xxx@project-id.iam.gserviceaccount.com
+     * @param privateKeyPem        服务账号 JSON 中的 private_key 字段（PKCS#8 PEM, 含 -----BEGIN PRIVATE KEY-----）
+     * @param scopes               OAuth scopes，默认 cloud-platform；多个 scope 用 List 传入
+     * @return                     access token 字符串
      */
     suspend fun fetchAccessToken(
         serviceAccountEmail: String,
@@ -70,7 +70,7 @@ class ServiceAccountTokenProvider(
             }
         }
         val now = Instant.now().epochSecond
-        val exp = now + 3600 // 鏈€闀?1h
+        val exp = now + 3600 // 最长 1h
 
         val headerJson = """{"alg":"RS256","typ":"JWT"}"""
         val claimJson = """{
@@ -148,4 +148,3 @@ class ServiceAccountTokenProvider(
         return sig.sign()
     }
 }
-

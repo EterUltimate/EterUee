@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.utils
+package com.eterultimate.eteruee.utils
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -13,7 +13,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.eterultimate.eteruee.R
 
 /**
- * 閫氱煡鏋勫缓鍣ㄧ殑閰嶇疆 DSL
+ * 通知构建器的配置 DSL
  */
 class NotificationConfig {
     var title: String = ""
@@ -28,18 +28,18 @@ class NotificationConfig {
     var contentIntent: PendingIntent? = null
     var useBigTextStyle: Boolean = false
 
-    // Live Update 鐩稿叧
+    // Live Update 相关
     var requestPromotedOngoing: Boolean = false
     var shortCriticalText: String? = null
 
-    // 榛樿閫氱煡鏁堟灉
+    // 默认通知效果
     var useDefaults: Boolean = false
 }
 
 object NotificationUtil {
 
     /**
-     * 妫€鏌ユ槸鍚︽湁閫氱煡鏉冮檺
+     * 检查是否有通知权限
      */
     fun hasNotificationPermission(context: Context): Boolean {
         return ActivityCompat.checkSelfPermission(
@@ -49,13 +49,13 @@ object NotificationUtil {
     }
 
     /**
-     * 浣跨敤 DSL 椋庢牸鍒涘缓骞跺彂閫侀€氱煡
+     * 使用 DSL 风格创建并发送通知
      *
-     * @param context 涓婁笅鏂?
-     * @param channelId 閫氱煡娓犻亾 ID
-     * @param notificationId 閫氱煡 ID
-     * @param config 閫氱煡閰嶇疆 lambda
-     * @return 鏄惁鎴愬姛鍙戦€?
+     * @param context 上下文
+     * @param channelId 通知渠道 ID
+     * @param notificationId 通知 ID
+     * @param config 通知配置 lambda
+     * @return 是否成功发送
      */
     @SuppressLint("MissingPermission")
     fun notify(
@@ -76,7 +76,7 @@ object NotificationUtil {
     }
 
     /**
-     * 鏋勫缓閫氱煡
+     * 构建通知
      */
     fun buildNotification(
         context: Context,
@@ -104,12 +104,12 @@ object NotificationUtil {
                 setDefaults(NotificationCompat.DEFAULT_ALL)
             }
 
-            // Android 15+ Live Update 鏀寔
+            // Android 15+ Live Update 支持
             if (config.requestPromotedOngoing && Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
                 setRequestPromotedOngoing(true)
             }
 
-            // Android 16+ 鐘舵€佹爮 chip 鏂囨湰
+            // Android 16+ 状态栏 chip 文本
             if (config.shortCriticalText != null && Build.VERSION.SDK_INT >= 36) {
                 setShortCriticalText(config.shortCriticalText!!)
             }
@@ -117,14 +117,14 @@ object NotificationUtil {
     }
 
     /**
-     * 鍙栨秷閫氱煡
+     * 取消通知
      */
     fun cancel(context: Context, notificationId: Int) {
         NotificationManagerCompat.from(context).cancel(notificationId)
     }
 
     /**
-     * 鍙栨秷鎵€鏈夐€氱煡
+     * 取消所有通知
      */
     fun cancelAll(context: Context) {
         NotificationManagerCompat.from(context).cancelAll()
@@ -132,7 +132,7 @@ object NotificationUtil {
 }
 
 /**
- * Context 鎵╁睍鍑芥暟锛岀畝鍖栭€氱煡鍙戦€?
+ * Context 扩展函数，简化通知发送
  */
 fun Context.sendNotification(
     channelId: String,
@@ -141,9 +141,8 @@ fun Context.sendNotification(
 ): Boolean = NotificationUtil.notify(this, channelId, notificationId, config)
 
 /**
- * Context 鎵╁睍鍑芥暟锛屽彇娑堥€氱煡
+ * Context 扩展函数，取消通知
  */
 fun Context.cancelNotification(notificationId: Int) {
     NotificationUtil.cancel(this, notificationId)
 }
-

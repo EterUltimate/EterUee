@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.utils
+package com.eterultimate.eteruee.utils
 
 import android.Manifest
 import android.app.Activity
@@ -39,20 +39,20 @@ fun Context.readClipboardText(): String {
 }
 
 /**
- * 鍙戣捣娣诲姞缇ゆ祦绋?
+ * 发起添加群流程
  *
- * @param key 鐢卞畼缃戠敓鎴愮殑key
- * @return 杩斿洖true琛ㄧず鍛艰捣鎵婹鎴愬姛锛岃繑鍥瀎alse琛ㄧず鍛艰捣澶辫触
+ * @param key 由官网生成的key
+ * @return 返回true表示呼起手Q成功，返回false表示呼起失败
  */
 fun Context.joinQQGroup(key: String?): Boolean {
     val intent = Intent(Intent.ACTION_VIEW)
     intent.setData(("mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D$key").toUri())
-    // 姝lag鍙牴鎹叿浣撲骇鍝侀渶瑕佽嚜瀹氫箟锛屽璁剧疆锛屽垯鍦ㄥ姞缇ょ晫闈㈡寜杩斿洖锛岃繑鍥炴墜Q涓荤晫闈紝涓嶈缃紝鎸夎繑鍥炰細杩斿洖鍒板懠璧蜂骇鍝佺晫闈?   //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    // 此Flag可根据具体产品需要自定义，如设置，则在加群界面按返回，返回手Q主界面，不设置，按返回会返回到呼起产品界面    //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     try {
         startActivity(intent)
         return true
     } catch (e: java.lang.Exception) {
-        // 鏈畨瑁呮墜Q鎴栧畨瑁呯殑鐗堟湰涓嶆敮鎸?
+        // 未安装手Q或安装的版本不支持
         return false
     }
 }
@@ -115,7 +115,7 @@ fun Context.exportImage(
     bitmap: Bitmap,
     fileName: String = "EterUee_${System.currentTimeMillis()}.png"
 ) {
-    // 妫€鏌ュ瓨鍌ㄦ潈闄愶紙Android 9鍙婁互涓嬮渶瑕侊級
+    // 检查存储权限（Android 9及以下需要）
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
             != PackageManager.PERMISSION_GRANTED
@@ -129,11 +129,11 @@ fun Context.exportImage(
         }
     }
 
-    // 淇濆瓨鍒扮浉鍐?
+    // 保存到相册
     var outputStream: OutputStream? = null
     try {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // Android 10鍙婁互涓婁娇鐢∕ediaStore API
+            // Android 10及以上使用MediaStore API
             val contentValues = ContentValues().apply {
                 put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
                 put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
@@ -145,13 +145,13 @@ fun Context.exportImage(
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream!!)
             }
         } else {
-            // Android 9鍙婁互涓嬬洿鎺ュ啓鍏ユ枃浠?
+            // Android 9及以下直接写入文件
             val imagesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
             val image = File(imagesDir, fileName)
             outputStream = FileOutputStream(image)
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
 
-            // 閫氱煡鍥惧簱鏇存柊
+            // 通知图库更新
             val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
             mediaScanIntent.data = Uri.fromFile(image)
             sendBroadcast(mediaScanIntent)
@@ -169,7 +169,7 @@ fun Context.exportImageFile(
     file: File,
     fileName: String = "EterUee_${System.currentTimeMillis()}.png"
 ) {
-    // 妫€鏌ュ瓨鍌ㄦ潈闄愶紙Android 9鍙婁互涓嬮渶瑕侊級
+    // 检查存储权限（Android 9及以下需要）
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
             != PackageManager.PERMISSION_GRANTED
@@ -183,11 +183,11 @@ fun Context.exportImageFile(
         }
     }
 
-    // 淇濆瓨鍒扮浉鍐?
+    // 保存到相册
     var outputStream: OutputStream? = null
     try {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // Android 10鍙婁互涓婁娇鐢∕ediaStore API
+            // Android 10及以上使用MediaStore API
             val contentValues = ContentValues().apply {
                 put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
                 put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
@@ -199,12 +199,12 @@ fun Context.exportImageFile(
                 file.inputStream().copyTo(outputStream!!)
             }
         } else {
-            // Android 9鍙婁互涓嬬洿鎺ュ啓鍏ユ枃浠?
+            // Android 9及以下直接写入文件
             val imagesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
             val image = File(imagesDir, fileName)
             file.copyTo(image, overwrite = true)
 
-            // 閫氱煡鍥惧簱鏇存柊
+            // 通知图库更新
             val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
             mediaScanIntent.data = Uri.fromFile(image)
             sendBroadcast(mediaScanIntent)
@@ -216,4 +216,3 @@ fun Context.exportImageFile(
         outputStream?.close()
     }
 }
-

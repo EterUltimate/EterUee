@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.richtext
+package com.eterultimate.eteruee.ui.components.richtext
 
 import android.content.Intent
 import androidx.compose.foundation.background
@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material3.ColorScheme
@@ -83,7 +85,6 @@ import org.intellij.markdown.flavours.gfm.GFMElementTypes
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.flavours.gfm.GFMTokenTypes
 import org.intellij.markdown.parser.MarkdownParser
-import androidx.compose.ui.graphics.RectangleShape
 
 private val flavour by lazy {
     GFMFlavourDescriptor(
@@ -101,32 +102,32 @@ val THINKING_REGEX = Regex("<think>([\\s\\S]*?)(?:</think>|$)", RegexOption.DOT_
 private val CODE_BLOCK_REGEX = Regex("```[\\s\\S]*?```|`[^`\n]*`", RegexOption.DOT_MATCHES_ALL)
 private val BREAK_LINE_REGEX = Regex("(?i)<br\\s*/?>")
 
-// 棰勫鐞唌arkdown鍐呭
+// 预处理markdown内容
 private fun preProcess(content: String): String {
-    // 鍏堟壘鍑烘墍鏈変唬鐮佸潡鐨勪綅缃?
+    // 先找出所有代码块的位置
     val codeBlocks = mutableListOf<IntRange>()
     CODE_BLOCK_REGEX.findAll(content).forEach { match ->
         codeBlocks.add(match.range)
     }
 
-    // 妫€鏌ヤ綅缃槸鍚﹀湪浠ｇ爜鍧楀唴
+    // 检查位置是否在代码块内
     fun isInCodeBlock(position: Int): Boolean {
         return codeBlocks.any { range -> position in range }
     }
 
-    // 鏇挎崲琛屽唴鍏紡 \( ... \) 鍒?$ ... $锛屼絾璺宠繃浠ｇ爜鍧楀唴鐨勫唴瀹?
+    // 替换行内公式 \( ... \) 到 $ ... $，但跳过代码块内的内容
     var result = INLINE_LATEX_REGEX.replace(content) { matchResult ->
         if (isInCodeBlock(matchResult.range.first)) {
-            matchResult.value // 淇濇寔鍘熸牱
+            matchResult.value // 保持原样
         } else {
             "$" + matchResult.groupValues[1] + "$"
         }
     }
 
-    // 鏇挎崲鍧楃骇鍏紡 \[ ... \] 鍒?$$ ... $$锛屼絾璺宠繃浠ｇ爜鍧楀唴鐨勫唴瀹?
+    // 替换块级公式 \[ ... \] 到 $$ ... $$，但跳过代码块内的内容
     result = BLOCK_LATEX_REGEX.replace(result) { matchResult ->
         if (isInCodeBlock(matchResult.range.first)) {
-            matchResult.value // 淇濇寔鍘熸牱
+            matchResult.value // 保持原样
         } else {
             "$$" + matchResult.groupValues[1] + "$$"
         }
@@ -149,7 +150,7 @@ private fun MarkdownPreview() {
             )
             MarkdownBlock(
                 content = """
-                    ### 馃實 This is Markdown Test This Markdown Test
+                    ### 🌍 This is Markdown Test This Markdown Test
                     1. How many roads must a man walk down
                         * the slings and arrows of outrageous fortune, Or to take arms against a sea of troubles,
                         * by opposing end them.
@@ -208,8 +209,8 @@ fun MarkdownBlock(
 ) {
     var (data, setData) = remember { mutableStateOf(parseMarkdown(content)) }
 
-    // 鐩戝惉鍐呭鍙樺寲锛岄噸鏂拌В鏋怉ST鏍?
-    // 杩欓噷鍦ㄥ悗鍙扮嚎绋嬭В鏋怉ST鏍? 闃叉棰戠箒鏇存柊鐨勬椂鍊欐帀甯?
+    // 监听内容变化，重新解析AST树
+    // 这里在后台线程解析AST树, 防止频繁更新的时候掉帧
     val updatedContent by rememberUpdatedState(content)
     LaunchedEffect(Unit) {
         snapshotFlow { updatedContent }
@@ -285,7 +286,7 @@ private fun MarkdownNode(
     listLevel: Int = 0
 ) {
     when (node.type) {
-        // 鏂囦欢鏍硅妭鐐?
+        // 文件根节点
         MarkdownElementTypes.MARKDOWN_FILE -> {
             node.children.fastForEach { child ->
                 MarkdownNode(
@@ -294,14 +295,14 @@ private fun MarkdownNode(
             }
         }
 
-        // 娈佃惤
+        // 段落
         MarkdownElementTypes.PARAGRAPH -> {
             Paragraph(
                 node = node, content = content, modifier = modifier, onClickCitation = onClickCitation
             )
         }
 
-        // 鏍囬
+        // 标题
         MarkdownElementTypes.ATX_1, MarkdownElementTypes.ATX_2, MarkdownElementTypes.ATX_3, MarkdownElementTypes.ATX_4, MarkdownElementTypes.ATX_5, MarkdownElementTypes.ATX_6 -> {
             val style = when (node.type) {
                 MarkdownElementTypes.ATX_1 -> HeaderStyle.H1
@@ -338,7 +339,7 @@ private fun MarkdownNode(
             }
         }
 
-        // 鍒楄〃
+        // 列表
         MarkdownElementTypes.UNORDERED_LIST -> {
             UnorderedListNode(
                 node = node,
@@ -363,7 +364,7 @@ private fun MarkdownNode(
         GFMTokenTypes.CHECK_BOX -> {
             val isChecked = node.getTextInNode(content).trim() == "[x]"
             Surface(
-                shape = RectangleShape,
+                shape = RoundedCornerShape(2.dp),
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                 modifier = modifier,
             ) {
@@ -384,7 +385,7 @@ private fun MarkdownNode(
             }
         }
 
-        // 寮曠敤鍧?
+        // 引用块
         MarkdownElementTypes.BLOCK_QUOTE -> {
             ProvideTextStyle(LocalTextStyle.current.copy(fontStyle = FontStyle.Italic)) {
                 val borderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
@@ -410,7 +411,7 @@ private fun MarkdownNode(
             }
         }
 
-        // 閾炬帴
+        // 链接
         MarkdownElementTypes.INLINE_LINK -> {
             val linkText = node.findChildOfTypeRecursive(MarkdownElementTypes.LINK_TEXT)
                 ?.findChildOfTypeRecursive(GFMTokenTypes.GFM_AUTOLINK, MarkdownTokenTypes.TEXT)?.getTextInNode(content)
@@ -428,7 +429,7 @@ private fun MarkdownNode(
                 })
         }
 
-        // 鍔犵矖鍜屾枩浣?
+        // 加粗和斜体
         MarkdownElementTypes.EMPH -> {
             ProvideTextStyle(TextStyle(fontStyle = FontStyle.Italic)) {
                 node.children.fastForEach { child ->
@@ -449,7 +450,7 @@ private fun MarkdownNode(
             }
         }
 
-        // GFM 鐗规畩鍏冪礌
+        // GFM 特殊元素
         GFMElementTypes.STRIKETHROUGH -> {
             Text(
                 text = node.getTextInNode(content), textDecoration = TextDecoration.LineThrough, modifier = modifier
@@ -468,7 +469,7 @@ private fun MarkdownNode(
             )
         }
 
-        // 鍥剧墖
+        // 图片
         MarkdownElementTypes.IMAGE -> {
             val altText = node.findChildOfTypeRecursive(MarkdownElementTypes.LINK_TEXT)?.getTextInNode(content) ?: ""
             val imageUrl =
@@ -476,12 +477,12 @@ private fun MarkdownNode(
             Column(
                 modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // 杩欓噷鍙互浣跨敤Coil绛夊浘鐗囧姞杞藉簱鍔犺浇鍥剧墖
+                // 这里可以使用Coil等图片加载库加载图片
                 ZoomableAsyncImage(
                     model = imageUrl,
                     contentDescription = altText,
                     modifier = Modifier
-                        .clip(RectangleShape)
+                        .clip(RoundedCornerShape(8.dp))
                         .widthIn(min = 120.dp)
                         .heightIn(min = 120.dp),
                 )
@@ -539,10 +540,10 @@ private fun MarkdownNode(
             )
         }
 
-        // 浠ｇ爜鍧?
+        // 代码块
         MarkdownElementTypes.CODE_FENCE -> {
-            // 杩欓噷涓嶈兘鐩存帴鍙朇ODE_FENCE_CONTENT鐨勫唴瀹癸紝鍥犱负棣栬indent娌℃湁鍖呭惈鍦ㄥ唴
-            // 鍥犳锛岄渶瑕佸線涓婃壘鍒版渶鍚庝竴涓狤OL鍏冪礌锛岀敤瀹冩潵浣滀负浠ｇ爜鍧楃殑璧峰offset
+            // 这里不能直接取CODE_FENCE_CONTENT的内容，因为首行indent没有包含在内
+            // 因此，需要往上找到最后一个EOL元素，用它来作为代码块的起始offset
             val contentStartIndex = node.children.indexOfFirst { it.type == MarkdownTokenTypes.CODE_FENCE_CONTENT }
             if (contentStartIndex == -1) return
             val eolElement =
@@ -583,9 +584,9 @@ private fun MarkdownNode(
             )
         }
 
-        // 鍏朵粬绫诲瀷鐨勮妭鐐癸紝閫掑綊澶勭悊瀛愯妭鐐?
+        // 其他类型的节点，递归处理子节点
         else -> {
-            // 閫掑綊澶勭悊鍏朵粬鑺傜偣鐨勫瓙鑺傜偣
+            // 递归处理其他节点的子节点
             node.children.fastForEach { child ->
                 MarkdownNode(
                     node = child, content = content, modifier = modifier, onClickCitation = onClickCitation
@@ -604,9 +605,9 @@ private fun UnorderedListNode(
     level: Int = 0
 ) {
     val bulletStyle = when (level % 3) {
-        0 -> "鈥?"
-        1 -> "鈼?"
-        else -> "鈻?"
+        0 -> "• "
+        1 -> "◦ "
+        else -> "▪ "
     }
 
     Column(
@@ -658,9 +659,9 @@ private fun ListItemNode(
     node: ASTNode, content: String, bulletText: String, onClickCitation: (String) -> Unit = {}, level: Int
 ) {
     Column {
-        // 鍒嗙鍒楄〃椤圭殑鐩存帴鍐呭鍜屽祵濂楀垪琛?
+        // 分离列表项的直接内容和嵌套列表
         val (directContent, nestedLists) = separateContentAndLists(node)
-        // directContent 娓叉煋澶勭悊
+        // directContent 渲染处理
         if (directContent.isNotEmpty()) {
             Row {
                 Text(
@@ -683,16 +684,16 @@ private fun ListItemNode(
                 }
             }
         }
-        // nestedLists 娓叉煋澶勭悊
+        // nestedLists 渲染处理
         nestedLists.fastForEach { nestedList ->
             MarkdownNode(
-                node = nestedList, content = content, onClickCitation = onClickCitation, listLevel = level + 1 // 澧炲姞灞傜骇
+                node = nestedList, content = content, onClickCitation = onClickCitation, listLevel = level + 1 // 增加层级
             )
         }
     }
 }
 
-// 鍒嗙鍒楄〃椤圭殑鐩存帴鍐呭鍜屽祵濂楀垪琛?
+// 分离列表项的直接内容和嵌套列表
 private fun separateContentAndLists(listItemNode: ASTNode): Pair<List<ASTNode>, List<ASTNode>> {
     val directContent = mutableListOf<ASTNode>()
     val nestedLists = mutableListOf<ASTNode>()
@@ -779,27 +780,27 @@ private fun Paragraph(
 
 @Composable
 private fun TableNode(node: ASTNode, content: String, modifier: Modifier = Modifier) {
-    // 鎻愬彇琛ㄦ牸鐨勬爣棰樿鍜屾暟鎹
+    // 提取表格的标题行和数据行
     val headerNode = node.children.find { it.type == GFMElementTypes.HEADER }
     val rowNodes = node.children.filter { it.type == GFMElementTypes.ROW }
 
-    // 璁＄畻鍒楁暟锛堜粠鏍囬琛岃幏鍙栵級
+    // 计算列数（从标题行获取）
     val columnCount = headerNode?.children?.count { it.type == GFMTokenTypes.CELL } ?: 0
 
-    // 妫€鏌ユ槸鍚︽湁瓒冲鐨勫垪鏉ユ樉绀鸿〃鏍?
+    // 检查是否有足够的列来显示表格
     if (columnCount == 0) return
 
-    // 鎻愬彇琛ㄥご鍗曞厓鏍兼枃鏈?
+    // 提取表头单元格文本
     val headerCells =
         headerNode?.children?.filter { it.type == GFMTokenTypes.CELL }?.map { it.getTextInNode(content).trim() }
             ?: emptyList()
 
-    // 鎻愬彇鎵€鏈夎鐨勬暟鎹?
+    // 提取所有行的数据
     val rows = rowNodes.map { rowNode ->
         rowNode.children.filter { it.type == GFMTokenTypes.CELL }.map { it.getTextInNode(content).trim() }
     }
 
-    // 鍒涘缓琛ㄥごcomposable鍒楄〃
+    // 创建表头composable列表
     val headers = List(columnCount) { columnIndex ->
         @Composable {
             MarkdownBlock(
@@ -808,7 +809,7 @@ private fun TableNode(node: ASTNode, content: String, modifier: Modifier = Modif
         }
     }
 
-    // 鍒涘缓琛屾暟鎹甤omposable鍒楄〃
+    // 创建行数据composable列表
     val rowComposables = rows.map { rowData ->
         List(columnCount) { columnIndex ->
             @Composable {
@@ -819,7 +820,7 @@ private fun TableNode(node: ASTNode, content: String, modifier: Modifier = Modif
         }
     }
 
-    // 娓叉煋琛ㄦ牸
+    // 渲染表格
     DataTable(
         headers = headers,
         rows = rowComposables,
@@ -922,7 +923,7 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
             val linkText = node.findChildOfTypeRecursive(MarkdownElementTypes.LINK_TEXT)?.getTextInNode(content)
                 ?.trim { it == '[' || it == ']' } ?: linkDest
             if (linkText.startsWith("citation,")) {
-                // 濡傛灉鏄紩鐢紝鍒欑壒娈婂鐞?
+                // 如果是引用，则特殊处理
                 val domain = linkText.substringAfter("citation,")
                 val id = linkDest
                 if (id.length == 6) {
@@ -939,7 +940,7 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
                                             onClickCitation(id.trim())
                                         }
                                         .fillMaxSize()
-                                        .clip(RectangleShape)
+                                        .clip(CircleShape)
                                         .background(colorScheme.tertiaryContainer.copy(0.2f)),
                                     contentAlignment = Alignment.Center) {
                                     Text(
@@ -1017,7 +1018,7 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
                     })
                 )
             } else {
-                // 绂佺敤 LaTeX 娓叉煋鏃讹紝浠ョ瓑瀹藉瓧浣撴樉绀哄師濮嬪叕寮?
+                // 禁用 LaTeX 渲染时，以等宽字体显示原始公式
                 val formula = node.getTextInNode(content)
                 withStyle(
                     SpanStyle(
@@ -1030,7 +1031,7 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
             }
         }
 
-        // 鍏朵粬绫诲瀷缁х画閫掑綊澶勭悊
+        // 其他类型继续递归处理
         else -> {
             node.children.fastForEach {
                 appendMarkdownNodeContent(
@@ -1103,13 +1104,13 @@ private fun List<ASTNode>.trim(type: IElementType, size: Int): List<ASTNode> {
     if (this.isEmpty() || size <= 0) return this
     var start = 0
     var end = this.size
-    // 浠庡ご瑁佸壀
+    // 从头裁剪
     var trimmed = 0
     while (start < end && trimmed < size && this[start].type == type) {
         start++
         trimmed++
     }
-    // 浠庡熬瑁佸壀
+    // 从尾裁剪
     trimmed = 0
     while (end > start && trimmed < size && this[end - 1].type == type) {
         end--
@@ -1117,4 +1118,3 @@ private fun List<ASTNode>.trim(type: IElementType, size: Int): List<ASTNode> {
     }
     return this.subList(start, end)
 }
-

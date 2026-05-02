@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.ui.permission
+package com.eterultimate.eteruee.ui.components.ui.permission
 
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -13,36 +13,36 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 
 /**
- * 鍒涘缓骞惰浣忔潈闄愮姸鎬?
+ * 创建并记住权限状态
  *
- * @param permissions 鏉冮檺淇℃伅闆嗗悎
- * @return PermissionState 鏉冮檺鐘舵€佺鐞嗗璞?
+ * @param permissions 权限信息集合
+ * @return PermissionState 权限状态管理对象
  *
- * 浣跨敤绀轰緥:
+ * 使用示例:
  * ```
  * val permissionState = rememberPermissionState(
  *     permissions = setOf(
  *         PermissionInfo(
  *             permission = Manifest.permission.CAMERA,
- *             usage = { Text("闇€瑕佺浉鏈烘潈闄愭潵鎷嶇収") },
+ *             usage = { Text("需要相机权限来拍照") },
  *             required = true
  *         ),
  *         PermissionInfo(
  *             permission = Manifest.permission.RECORD_AUDIO,
- *             usage = { Text("闇€瑕佸綍闊虫潈闄愭潵褰曞埗瑙嗛") },
+ *             usage = { Text("需要录音权限来录制视频") },
  *             required = false
  *         )
  *     )
  * )
  *
- * // 璇锋眰鏉冮檺
+ * // 请求权限
  * Button(onClick = { permissionState.requestPermissions() }) {
- *     Text("璇锋眰鏉冮檺")
+ *     Text("请求权限")
  * }
  *
- * // 妫€鏌ユ潈闄愮姸鎬?
+ * // 检查权限状态
  * if (permissionState.allRequiredPermissionsGranted) {
- *     Text("鎵€鏈夊繀闇€鏉冮檺宸叉巿鏉?)
+ *     Text("所有必需权限已授权")
  * }
  * ```
  */
@@ -52,25 +52,25 @@ fun rememberPermissionState(
 ): PermissionState {
     val context = LocalContext.current
     val activity = context as? ComponentActivity
-        ?: throw IllegalStateException("rememberPermissionState 蹇呴』鍦?ComponentActivity 涓娇鐢?)
+        ?: throw IllegalStateException("rememberPermissionState 必须在 ComponentActivity 中使用")
 
-    // 鍒涘缓鏉冮檺鐘舵€佸璞?
+    // 创建权限状态对象
     val permissionState = remember(permissions) {
         PermissionState(permissions, context, activity)
     }
 
-    // 澶氫釜鏉冮檺璇锋眰鍚姩鍣?
+    // 多个权限请求启动器
     val multiplePermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { results ->
         permissionState.handlePermissionResult(results)
     }
 
-    // 鍗曚釜鏉冮檺璇锋眰鍚姩鍣?
+    // 单个权限请求启动器
     val singlePermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
-        // 鑾峰彇鏈€鍚庤姹傜殑鏉冮檺锛堥€氳繃褰撳墠rationale鏉冮檺鎴栬€卍enied鏉冮檺鎺ㄦ柇锛?
+        // 获取最后请求的权限（通过当前rationale权限或者denied权限推断）
         val lastRequestedPermission = permissionState.currentRationalePermissions.firstOrNull()?.permission
             ?: permissionState.deniedPermissions.firstOrNull()?.permission
 
@@ -79,25 +79,25 @@ fun rememberPermissionState(
         }
     }
 
-    // 璁剧疆鍚姩鍣?
+    // 设置启动器
     LaunchedEffect(multiplePermissionLauncher, singlePermissionLauncher) {
         permissionState.setPermissionLaunchers(multiplePermissionLauncher, singlePermissionLauncher)
     }
 
-    // 鐩戝惉鐢熷懡鍛ㄦ湡鍙樺寲锛屾洿鏂版潈闄愮姸鎬?
+    // 监听生命周期变化，更新权限状态
     val lifecycleOwner = LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_START -> {
-                    // 搴旂敤浠庡悗鍙板洖鍒板墠鍙版椂寮哄埗鍒锋柊鏉冮檺鐘舵€?
-                    // 杩欓噷浣跨敤 refreshPermissionStates 鏉ュ鐞嗙敤鎴峰彲鑳藉湪璁剧疆涓慨鏀圭殑鏉冮檺
+                    // 应用从后台回到前台时强制刷新权限状态
+                    // 这里使用 refreshPermissionStates 来处理用户可能在设置中修改的权限
                     permissionState.refreshPermissionStates()
                 }
 
                 Lifecycle.Event.ON_RESUME -> {
-                    // 鎭㈠鏃朵篃鍒锋柊涓€娆★紝纭繚鐘舵€佹渶鏂?
+                    // 恢复时也刷新一次，确保状态最新
                     permissionState.refreshPermissionStates()
                 }
 
@@ -112,7 +112,7 @@ fun rememberPermissionState(
         }
     }
 
-    // 鍒濆鍖栨椂鏇存柊鏉冮檺鐘舵€?
+    // 初始化时更新权限状态
     LaunchedEffect(Unit) {
         permissionState.updatePermissionStates()
     }
@@ -121,12 +121,12 @@ fun rememberPermissionState(
 }
 
 /**
- * 鍒涘缓骞惰浣忓崟涓潈闄愮姸鎬?
+ * 创建并记住单个权限状态
  *
- * @param permission 鏉冮檺瀛楃涓?
- * @param usage 鏉冮檺浣跨敤璇存槑
- * @param required 鏄惁涓哄繀闇€鏉冮檺
- * @return PermissionState 鏉冮檺鐘舵€佺鐞嗗璞?
+ * @param permission 权限字符串
+ * @param usage 权限使用说明
+ * @param required 是否为必需权限
+ * @return PermissionState 权限状态管理对象
  */
 @Composable
 fun rememberPermissionState(
@@ -155,4 +155,3 @@ fun rememberPermissionState(
         permissions = setOf(info)
     )
 }
-

@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.assistant.detail
+package com.eterultimate.eteruee.ui.pages.assistant.detail
 
 import android.util.Log
 import androidx.core.net.toUri
@@ -114,7 +114,7 @@ class AssistantDetailVM(
             val settings = settings.value
             val validTagIds = settings.assistantTags.map { it.id }.toSet()
 
-            // 娓呯悊 assistant 涓殑鏃犳晥 tag id
+            // 清理 assistant 中的无效 tag id
             val cleanedAssistants = settings.assistants.map { assistant ->
                 val validTags = assistant.tags.filter { tagId ->
                     validTagIds.contains(tagId)
@@ -126,15 +126,15 @@ class AssistantDetailVM(
                 }
             }
 
-            // 鑾峰彇娓呯悊鍚庣殑 assistant 涓娇鐢ㄧ殑 tag id
+            // 获取清理后的 assistant 中使用的 tag id
             val usedTagIds = cleanedAssistants.flatMap { it.tags }.toSet()
 
-            // 娓呯悊鏈娇鐢ㄧ殑 tags
+            // 清理未使用的 tags
             val cleanedTags = settings.assistantTags.filter { tag ->
                 usedTagIds.contains(tag.id)
             }
 
-            // 妫€鏌ユ槸鍚﹂渶瑕佹洿鏂?
+            // 检查是否需要更新
             val needUpdateAssistants = cleanedAssistants != settings.assistants
             val needUpdateTags = cleanedTags.size != settings.assistantTags.size
 
@@ -156,8 +156,8 @@ class AssistantDetailVM(
                 settings = settings.copy(
                     assistants = settings.assistants.map {
                         if (it.id == assistant.id) {
-                            checkAvatarDelete(old = it, new = assistant) // 鍒犻櫎鏃уご鍍?
-                            checkBackgroundDelete(old = it, new = assistant) // 鍒犻櫎鏃ц儗鏅?
+                            checkAvatarDelete(old = it, new = assistant) // 删除旧头像
+                            checkBackgroundDelete(old = it, new = assistant) // 删除旧背景
                             assistant
                         } else {
                             it
@@ -215,4 +215,3 @@ class AssistantDetailVM(
         }
     }
 }
-

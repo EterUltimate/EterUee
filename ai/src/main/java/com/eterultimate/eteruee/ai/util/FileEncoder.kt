@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ai.util
+package com.eterultimate.eteruee.ai.util
 
 import android.media.ExifInterface
 import android.graphics.Bitmap
@@ -59,7 +59,7 @@ fun UIMessagePart.Image.encodeBase64(withPrefix: Boolean = true): Result<Encoded
                 throw IllegalArgumentException("File does not exist: ${this.url}")
             }
             val mimeType = file.guessMimeType().getOrThrow()
-            // 缁熶竴杩涜鍘嬬缉澶勭悊
+            // 统一进行压缩处理
             val (encoded, outputMimeType) = file.compressAndEncode(mimeType)
             EncodedImage(
                 base64 = if (withPrefix) "data:$outputMimeType;base64,$encoded" else encoded,
@@ -68,12 +68,12 @@ fun UIMessagePart.Image.encodeBase64(withPrefix: Boolean = true): Result<Encoded
         }
 
         this.url.startsWith("data:") -> {
-            // 浠?data URL 鎻愬彇 mime type
+            // 从 data URL 提取 mime type
             val mimeType = url.substringAfter("data:").substringBefore(";")
             EncodedImage(base64 = url, mimeType = mimeType)
         }
         this.url.startsWith("http") -> {
-            // HTTP URL 鏃犳硶纭畾 mime type锛岄粯璁や娇鐢?image/png
+            // HTTP URL 无法确定 mime type，默认使用 image/png
             EncodedImage(base64 = url, mimeType = "image/png")
         }
         else -> throw IllegalArgumentException("Unsupported URL format: $url")
@@ -119,18 +119,18 @@ private fun File.compressAndEncode(
     maxDimension: Int = 2048,
     quality: Int = 85
 ): Pair<String, String> {
-    // GIF 淇濇寔鍘熸牱锛堝彲鑳芥槸鍔ㄥ浘锛?
+    // GIF 保持原样（可能是动图）
     if (mimeType == "image/gif") {
         return Pair(encodeToBase64Streaming(), mimeType)
     }
 
-    // 璇诲彇鍥剧墖灏哄
+    // 读取图片尺寸
     val options = BitmapFactory.Options().apply {
         inJustDecodeBounds = true
     }
     BitmapFactory.decodeFile(absolutePath, options)
 
-    // 寮哄埗鍘嬬缉澶勭悊
+    // 强制压缩处理
     options.inSampleSize = calculateInSampleSize(options, maxDimension, maxDimension)
     options.inJustDecodeBounds = false
 
@@ -140,7 +140,7 @@ private fun File.compressAndEncode(
 
     return try {
         val byteArrayOutputStream = ByteArrayOutputStream()
-        // 寮哄埗浣跨敤 JPEG 鏍煎紡锛屽洜涓哄緢澶氭彁渚涘晢涓嶆敮鎸?webp
+        // 强制使用 JPEG 格式，因为很多提供商不支持 webp
         Base64OutputStream(byteArrayOutputStream, Base64.NO_WRAP).use { base64Stream ->
             normalizedBitmap.compress(Bitmap.CompressFormat.JPEG, quality, base64Stream)
         }
@@ -216,17 +216,17 @@ private fun File.guessMimeType(): Result<String> = runCatching {
         val read = input.read(bytes)
         if (read < 12) error("File too short to determine MIME type")
 
-        // 鍒ゆ柇 HEIC 鏍煎紡锛氬寘鍚?"ftypheic"
+        // 判断 HEIC 格式：包含 "ftypheic"
         if (bytes.copyOfRange(4, 12).toString(Charsets.US_ASCII) == "ftypheic") {
             return@runCatching "image/heic"
         }
 
-        // 鍒ゆ柇 JPEG 鏍煎紡锛氬紑澶翠负 0xFF 0xD8
+        // 判断 JPEG 格式：开头为 0xFF 0xD8
         if (bytes[0] == 0xFF.toByte() && bytes[1] == 0xD8.toByte()) {
             return@runCatching "image/jpeg"
         }
 
-        // 鍒ゆ柇 PNG 鏍煎紡锛氬紑澶翠负 89 50 4E 47 0D 0A 1A 0A
+        // 判断 PNG 格式：开头为 89 50 4E 47 0D 0A 1A 0A
         if (bytes.copyOfRange(0, 8).contentEquals(
                 byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A)
             )
@@ -234,14 +234,14 @@ private fun File.guessMimeType(): Result<String> = runCatching {
             return@runCatching "image/png"
         }
 
-        // 鍒ゆ柇WebP鏍煎紡锛氬紑澶翠负 "RIFF" + 4瀛楄妭闀垮害 + "WEBP"
+        // 判断WebP格式：开头为 "RIFF" + 4字节长度 + "WEBP"
         if (bytes.copyOfRange(0, 4).toString(Charsets.US_ASCII) == "RIFF" && bytes.copyOfRange(8, 12)
                 .toString(Charsets.US_ASCII) == "WEBP"
         ) {
             return@runCatching "image/webp"
         }
 
-        // 鍒ゆ柇 GIF 鏍煎紡锛氬紑澶翠负 "GIF89a" 鎴?"GIF87a"
+        // 判断 GIF 格式：开头为 "GIF89a" 或 "GIF87a"
         val header = bytes.copyOfRange(0, 6).toString(Charsets.US_ASCII)
         if (header == "GIF89a" || header == "GIF87a") {
             return@runCatching "image/gif"
@@ -256,4 +256,3 @@ private fun File.guessMimeType(): Result<String> = runCatching {
         )
     }
 }
-

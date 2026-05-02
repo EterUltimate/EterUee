@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.tts.provider
+package com.eterultimate.eteruee.tts.provider
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -164,7 +164,7 @@ sealed class TTSProviderSetting {
 
     @Serializable
     @SerialName("mimo")
-    // 榛樿鍊间粎鐢ㄤ簬蹇嵎璧锋 鍙湪璁剧疆椤典换鎰忎慨鏀?
+    // 默认值仅用于快捷起步 可在设置页任意修改
     data class MiMo(
         override var id: Uuid = Uuid.random(),
         override var name: String = "MiMo TTS",
@@ -199,4 +199,3 @@ sealed class TTSProviderSetting {
         }
     }
 }
-

@@ -1,11 +1,11 @@
-﻿package com.eterultimate.eteruee.ai.provider.providers
+package com.eterultimate.eteruee.ai.provider.providers
 
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
 
 /**
- * 娑堟伅 parts 鎸夊伐鍏疯竟鐣屽垎缁勭殑缁撴灉
- * - Content: 鏅€氬唴瀹癸紙Text銆両mage銆丷easoning 绛夛級
- * - Tools: 杩炵画鐨勫凡鎵ц宸ュ叿
+ * 消息 parts 按工具边界分组的结果
+ * - Content: 普通内容（Text、Image、Reasoning 等）
+ * - Tools: 连续的已执行工具
  */
 internal sealed class PartGroup {
     data class Content(val parts: List<UIMessagePart>) : PartGroup()
@@ -13,15 +13,15 @@ internal sealed class PartGroup {
 }
 
 /**
- * 灏嗘秷鎭?parts 鎸夊伐鍏疯竟鐣屽垎缁?
+ * 将消息 parts 按工具边界分组
  *
- * 渚嬪 [Text1, Tool1, Tool2, Text2, Tool3] 浼氬垎缁勪负:
+ * 例如 [Text1, Tool1, Tool2, Text2, Tool3] 会分组为:
  * - Content([Text1])
  * - Tools([Tool1, Tool2])
  * - Content([Text2])
  * - Tools([Tool3])
  *
- * 杩欐牱鍙互纭繚 tool_use/functionCall 鍚庨潰绱ц窡 tool_result/functionResponse
+ * 这样可以确保 tool_use/functionCall 后面紧跟 tool_result/functionResponse
  */
 internal fun groupPartsByToolBoundary(parts: List<UIMessagePart>): List<PartGroup> {
     val groups = mutableListOf<PartGroup>()
@@ -56,4 +56,3 @@ internal fun groupPartsByToolBoundary(parts: List<UIMessagePart>): List<PartGrou
     flushTools()
     return groups
 }
-

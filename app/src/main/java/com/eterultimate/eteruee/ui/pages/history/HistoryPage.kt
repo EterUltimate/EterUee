@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.history;
+package com.eterultimate.eteruee.ui.pages.history;
 
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Pin
@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -56,7 +57,6 @@ import com.eterultimate.eteruee.utils.navigateToChatPage
 import com.eterultimate.eteruee.utils.plus
 import com.eterultimate.eteruee.utils.toLocalDateTime
 import org.koin.androidx.compose.koinViewModel
-import androidx.compose.ui.graphics.RectangleShape
 
 @Composable
 fun HistoryPage(vm: HistoryVM = koinViewModel()) {
@@ -115,7 +115,7 @@ fun HistoryPage(vm: HistoryVM = koinViewModel()) {
                     },
                     onDelete = {
                         scope.launch {
-                            // 鍏堣幏鍙栧畬鏁寸殑瀵硅瘽鏁版嵁锛堝寘鍚?messageNodes锛夛紝鐢ㄤ簬鎾ら攢鎭㈠
+                            // 先获取完整的对话数据（包含 messageNodes），用于撤销恢复
                             val fullConversation = vm.getFullConversation(conversation.id) ?: conversation
                             vm.deleteConversation(conversation)
                             val result = snackbarHostState.showSnackbar(
@@ -197,7 +197,7 @@ private fun SwipeableConversationItem(
                     .fillMaxSize()
                     .background(
                         MaterialTheme.colorScheme.errorContainer,
-                        RectangleShape
+                        RoundedCornerShape(25)
                     )
                     .padding(horizontal = 20.dp),
                 contentAlignment = Alignment.CenterEnd
@@ -230,7 +230,7 @@ private fun ConversationItem(
     Surface(
         onClick = onClick,
         tonalElevation = 2.dp,
-        shape = RectangleShape,
+        shape = RoundedCornerShape(25),
         modifier = modifier
     ) {
         ListItem(
@@ -274,4 +274,3 @@ private fun ConversationItem(
         )
     }
 }
-

@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.search
+package com.eterultimate.eteruee.search
 
 import android.util.Log
 import androidx.compose.material3.Text
@@ -12,7 +12,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
-import me.rerere.ai.core.InputSchema
+import com.eterultimate.eteruee.ai.core.InputSchema
 import com.eterultimate.eteruee.search.SearchResult.SearchResultItem
 import com.eterultimate.eteruee.search.SearchService.Companion.httpClient
 import com.eterultimate.eteruee.search.SearchService.Companion.json
@@ -57,7 +57,7 @@ object SearXNGService : SearchService<SearchServiceOptions.SearXNGOptions> {
 
             val query = params["query"]?.jsonPrimitive?.content ?: error("query is required")
 
-            // 鏋勫缓鏌ヨURL
+            // 构建查询URL
             val baseUrl = serviceOptions.url.trimEnd('/')
             val encodedQuery = URLEncoder.encode(query, "UTF-8")
             val url = "$baseUrl/search?q=$encodedQuery&format=json"
@@ -73,12 +73,12 @@ object SearXNGService : SearchService<SearchServiceOptions.SearXNGOptions> {
                 }
                 .build()
 
-            // 鍙戦€佽姹?
+            // 发送请求
             val request = Request.Builder()
                 .url(url)
                 .get()
                 .apply {
-                    // 娣诲姞HTTP Basic Auth鏀寔
+                    // 添加HTTP Basic Auth支持
                     if (serviceOptions.username.isNotBlank() && serviceOptions.password.isNotBlank()) {
                         header("Authorization", Credentials.basic(serviceOptions.username, serviceOptions.password))
                     }
@@ -98,7 +98,7 @@ object SearXNGService : SearchService<SearchServiceOptions.SearXNGOptions> {
                     error("Failed to decode SearXNG response: ${it.message}")
                 }.getOrThrow()
 
-                // 杞崲涓烘爣鍑嗘牸寮忥紝鍙栧墠 N 涓粨鏋?
+                // 转换为标准格式，取前 N 个结果
                 val items = searchResponse.results
                     .take(commonOptions.resultSize)
                     .map { result ->
@@ -171,4 +171,3 @@ object SearXNGService : SearchService<SearchServiceOptions.SearXNGOptions> {
         val iframeSrc: String? = null
     )
 }
-

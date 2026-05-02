@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.data.datastore
+package com.eterultimate.eteruee.data.datastore
 
 import android.content.Context
 import android.util.Log
@@ -17,10 +17,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import me.rerere.ai.core.MessageRole
-import me.rerere.ai.core.ReasoningLevel
-import me.rerere.ai.provider.Model
-import me.rerere.ai.provider.ProviderSetting
+import com.eterultimate.eteruee.ai.core.MessageRole
+import com.eterultimate.eteruee.ai.core.ReasoningLevel
+import com.eterultimate.eteruee.ai.provider.Model
+import com.eterultimate.eteruee.ai.provider.ProviderSetting
 import com.eterultimate.eteruee.AppScope
 import com.eterultimate.eteruee.data.ai.mcp.McpServerConfig
 import com.eterultimate.eteruee.data.ai.prompts.DEFAULT_COMPRESS_PROMPT
@@ -32,8 +32,6 @@ import com.eterultimate.eteruee.data.ai.prompts.LEARNING_MODE_PROMPT
 import com.eterultimate.eteruee.data.datastore.migration.PreferenceStoreV1Migration
 import com.eterultimate.eteruee.data.datastore.migration.PreferenceStoreV2Migration
 import com.eterultimate.eteruee.data.datastore.migration.PreferenceStoreV3Migration
-import com.eterultimate.eteruee.data.datastore.migration.PreferenceStoreV4Migration
-import com.eterultimate.eteruee.data.datastore.migration.PreferenceStoreV5Migration
 import com.eterultimate.eteruee.data.model.Assistant
 import com.eterultimate.eteruee.data.model.Avatar
 import com.eterultimate.eteruee.data.model.InjectionPosition
@@ -45,9 +43,9 @@ import com.eterultimate.eteruee.data.sync.s3.S3Config
 import com.eterultimate.eteruee.ui.theme.PresetThemes
 import com.eterultimate.eteruee.utils.JsonInstant
 import com.eterultimate.eteruee.utils.toMutableStateFlow
-import me.rerere.search.SearchCommonOptions
-import me.rerere.search.SearchServiceOptions
-import me.rerere.tts.provider.TTSProviderSetting
+import com.eterultimate.eteruee.search.SearchCommonOptions
+import com.eterultimate.eteruee.search.SearchServiceOptions
+import com.eterultimate.eteruee.tts.provider.TTSProviderSetting
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import kotlin.uuid.Uuid
@@ -60,9 +58,7 @@ private val Context.settingsStore by preferencesDataStore(
         listOf(
             PreferenceStoreV1Migration(),
             PreferenceStoreV2Migration(),
-            PreferenceStoreV3Migration(),
-            PreferenceStoreV4Migration(),
-            PreferenceStoreV5Migration()
+            PreferenceStoreV3Migration()
         )
     }
 )
@@ -72,16 +68,16 @@ class SettingsStore(
     scope: AppScope,
 ) : KoinComponent {
     companion object {
-        // 鐗堟湰鍙?
+        // 版本号
         val VERSION = intPreferencesKey("data_version")
 
-        // UI璁剧疆
+        // UI设置
         val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
         val THEME_ID = stringPreferencesKey("theme_id")
         val DISPLAY_SETTING = stringPreferencesKey("display_setting")
         val DEVELOPER_MODE = booleanPreferencesKey("developer_mode")
 
-        // 妯″瀷閫夋嫨
+        // 模型选择
         val ENABLE_WEB_SEARCH = booleanPreferencesKey("enable_web_search")
         val FAVORITE_MODELS = stringPreferencesKey("favorite_models")
         val SELECT_MODEL = stringPreferencesKey("chat_model")
@@ -98,15 +94,15 @@ class SettingsStore(
         val COMPRESS_MODEL = stringPreferencesKey("compress_model")
         val COMPRESS_PROMPT = stringPreferencesKey("compress_prompt")
 
-        // 鎻愪緵鍟?
+        // 提供商
         val PROVIDERS = stringPreferencesKey("providers")
 
-        // 鍔╂墜
+        // 助手
         val SELECT_ASSISTANT = stringPreferencesKey("select_assistant")
         val ASSISTANTS = stringPreferencesKey("assistants")
         val ASSISTANT_TAGS = stringPreferencesKey("assistant_tags")
 
-        // 鎼滅储
+        // 搜索
         val SEARCH_SERVICES = stringPreferencesKey("search_services")
         val SEARCH_COMMON = stringPreferencesKey("search_common")
         val SEARCH_SELECTED = intPreferencesKey("search_selected")
@@ -131,18 +127,18 @@ class SettingsStore(
         val WEB_SERVER_ACCESS_PASSWORD = stringPreferencesKey("web_server_access_password")
         val WEB_SERVER_LOCALHOST_ONLY = booleanPreferencesKey("web_server_localhost_only")
 
-        // 鎻愮ず璇嶆敞鍏?
+        // 提示词注入
         val MODE_INJECTIONS = stringPreferencesKey("mode_injections")
         val LOREBOOKS = stringPreferencesKey("lorebooks")
         val QUICK_MESSAGES = stringPreferencesKey("quick_messages")
 
-        // 澶囦唤鎻愰啋
+        // 备份提醒
         val BACKUP_REMINDER_CONFIG = stringPreferencesKey("backup_reminder_config")
 
-        // 缁熻
+        // 统计
         val LAUNCH_COUNT = intPreferencesKey("launch_count")
 
-        // 璧炲姪鎻愰啋
+        // 赞助提醒
         val SPONSOR_ALERT_DISMISSED_AT = intPreferencesKey("sponsor_alert_dismissed_at")
     }
 
@@ -185,8 +181,8 @@ class SettingsStore(
                 } ?: emptyList(),
                 providers = JsonInstant.decodeFromString(preferences[PROVIDERS] ?: "[]"),
                 assistants = JsonInstant.decodeFromString(preferences[ASSISTANTS] ?: "[]"),
-                dynamicColor = preferences[DYNAMIC_COLOR] == true,
-                themeId = "cyberpunk", // 寮哄埗浣跨敤 Cyberpunk 涓婚
+                dynamicColor = preferences[DYNAMIC_COLOR] != false,
+                themeId = preferences[THEME_ID] ?: PresetThemes[0].id,
                 developerMode = preferences[DEVELOPER_MODE] == true,
                 displaySetting = JsonInstant.decodeFromString(preferences[DISPLAY_SETTING] ?: "{}"),
                 searchServices = preferences[SEARCH_SERVICES]?.let {
@@ -267,7 +263,7 @@ class SettingsStore(
             )
         }
         .map { settings ->
-            // 鍘婚噸骞舵竻鐞嗘棤鏁堝紩鐢?
+            // 去重并清理无效引用
             val validMcpServerIds = settings.mcpServers.map { it.id }.toSet()
             val validModeInjectionIds = settings.modeInjections.map { it.id }.toSet()
             val validLorebookIds = settings.lorebooks.map { it.id }.toSet()
@@ -290,19 +286,19 @@ class SettingsStore(
                 },
                 assistants = settings.assistants.distinctBy { it.id }.map { assistant ->
                     assistant.copy(
-                        // 杩囨护鎺変笉瀛樺湪鐨?MCP 鏈嶅姟鍣?ID
+                        // 过滤掉不存在的 MCP 服务器 ID
                         mcpServers = assistant.mcpServers.filter { serverId ->
                             serverId in validMcpServerIds
                         }.toSet(),
-                        // 杩囨护鎺変笉瀛樺湪鐨勬ā寮忔敞鍏?ID
+                        // 过滤掉不存在的模式注入 ID
                         modeInjectionIds = assistant.modeInjectionIds.filter { id ->
                             id in validModeInjectionIds
                         }.toSet(),
-                        // 杩囨护鎺変笉瀛樺湪鐨?Lorebook ID
+                        // 过滤掉不存在的 Lorebook ID
                         lorebookIds = assistant.lorebookIds.filter { id ->
                             id in validLorebookIds
                         }.toSet(),
-                        // 杩囨护鎺変笉瀛樺湪鐨勫揩鎹锋秷鎭?ID
+                        // 过滤掉不存在的快捷消息 ID
                         quickMessageIds = assistant.quickMessageIds.filter { id ->
                             id in validQuickMessageIds
                         }.toSet()
@@ -464,7 +460,7 @@ class SettingsStore(
 data class Settings(
     @Transient
     val init: Boolean = false,
-    val dynamicColor: Boolean = false,
+    val dynamicColor: Boolean = true,
     val themeId: String = PresetThemes[0].id,
     val developerMode: Boolean = false,
     val displaySetting: DisplaySetting = DisplaySetting(),
@@ -508,7 +504,7 @@ data class Settings(
     val sponsorAlertDismissedAt: Int = 0,
 ) {
     companion object {
-        // 鏋勯€犱竴涓敤浜庡垵濮嬪寲鐨剆ettings, 浣嗗畠涓嶈兘鐢ㄤ簬淇濆瓨锛岄槻姝娇鐢ㄥ垵濮嬪€煎瓨鍌?
+        // 构造一个用于初始化的settings, 但它不能用于保存，防止使用初始值存储
         fun dummy() = Settings(init = true)
     }
 }
@@ -696,4 +692,3 @@ val DEFAULT_MODE_INJECTIONS = listOf(
         name = "Learning Mode"
     )
 )
-

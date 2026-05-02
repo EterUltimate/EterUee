@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.richtext
+package com.eterultimate.eteruee.ui.components.richtext
 
 import android.graphics.BitmapFactory
 import android.util.Base64
@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,6 +33,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.dokar.sonner.ToastType
+import com.google.common.cache.CacheBuilder
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Cancel01
 import me.rerere.hugeicons.stroke.Download01
@@ -44,9 +46,10 @@ import com.eterultimate.eteruee.ui.theme.LocalDarkMode
 import com.eterultimate.eteruee.utils.escapeHtml
 import com.eterultimate.eteruee.utils.exportImage
 import com.eterultimate.eteruee.utils.toCssHex
-import androidx.compose.ui.graphics.RectangleShape
 
-private val mermaidHeightCache = LinkedHashMap<String, Int>(100, 0.75f, true)
+private val mermaidHeightCache = CacheBuilder.newBuilder()
+    .maximumSize(100)
+    .build<String, Int>()
 
 /**
  * A component that renders Mermaid diagrams.
@@ -66,26 +69,22 @@ fun Mermaid(
     val activity = LocalActivity.current
     val toaster = LocalToaster.current
 
-    var contentHeight by remember { mutableIntStateOf(mermaidHeightCache[code] ?: 150) }
+    var contentHeight by remember { mutableIntStateOf(mermaidHeightCache.getIfPresent(code) ?: 150) }
     val height = with(density) {
         contentHeight.toDp()
     }
     val jsInterface = remember {
         MermaidInterface(
             onHeightChanged = { height ->
-                // 闇€瑕佷箻浠ensity
+                // 需要乘以density
                 // https://stackoverflow.com/questions/43394498/how-to-get-the-full-height-of-in-android-webview
                 contentHeight = (height * density.density).toInt()
-                mermaidHeightCache[code] = contentHeight
-                // LRU eviction: keep max 100 entries
-                if (mermaidHeightCache.size > 100) {
-                    mermaidHeightCache.remove(mermaidHeightCache.keys.first())
-                }
+                mermaidHeightCache.put(code, contentHeight)
             },
             onExportImage = { base64Image ->
                 runCatching {
                     activity?.let {
-                        // 瑙ｇ爜Base64鍥惧儚骞朵繚瀛?
+                        // 解码Base64图像并保存
                         try {
                             val imageBytes = Base64.decode(base64Image, Base64.DEFAULT)
                             val bitmap =
@@ -142,7 +141,7 @@ fun Mermaid(
         WebView(
             state = webViewState,
             modifier = Modifier
-                .clip(RectangleShape)
+                .clip(RoundedCornerShape(4.dp))
                 .animateContentSize()
                 .height(height),
             onUpdated = {
@@ -150,7 +149,7 @@ fun Mermaid(
             }
         )
 
-        // 瀵煎嚭鍥剧墖鎸夐挳
+        // 导出图片按钮
         if (activity != null) {
             Row(
                 modifier = Modifier
@@ -231,7 +230,7 @@ fun Mermaid(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(400.dp)
-                        .clip(RectangleShape)
+                        .clip(RoundedCornerShape(4.dp))
                 )
             }
         }
@@ -264,7 +263,7 @@ private fun buildMermaidHtml(
     theme: MermaidTheme,
     colorScheme: ColorScheme,
 ): String {
-    // 灏?ColorScheme 棰滆壊杞负 HEX 瀛楃涓?
+    // 将 ColorScheme 颜色转为 HEX 字符串
     val primaryColor = colorScheme.primaryContainer.toCssHex()
     val secondaryColor = colorScheme.secondaryContainer.toCssHex()
     val tertiaryColor = colorScheme.tertiaryContainer.toCssHex()
@@ -335,19 +334,19 @@ private fun buildMermaidHtml(
                         clusterBkg: '${surface}',
                         clusterBorder: '${primaryColor}',
 
-                        // 搴忓垪鍥惧彉閲?
+                        // 序列图变量
                         actorBorder: '${primaryColor}',
                         actorBkg: '${surface}',
                         actorTextColor: '${onBackground}',
                         actorLineColor: '${primaryColor}',
 
-                        // 鐢樼壒鍥惧彉閲?
+                        // 甘特图变量
                         taskBorderColor: '${primaryColor}',
                         taskBkgColor: '${primaryColor}',
                         taskTextLightColor: '${onPrimary}',
                         taskTextDarkColor: '${onBackground}',
 
-                        // 鐘舵€佸浘鍙橀噺
+                        // 状态图变量
                         labelColor: '${onBackground}',
                         errorBkgColor: '${errorColor}',
                         errorTextColor: '${onErrorColor}'
@@ -355,13 +354,13 @@ private fun buildMermaidHtml(
               });
 
               function calculateAndSendHeight() {
-                    // 鑾峰彇瀹為檯鍐呭楂樺害锛岃€冭檻缂╂斁鍥犵礌
+                    // 获取实际内容高度，考虑缩放因素
                     const contentElement = document.querySelector('.mermaid');
                     const contentBox = contentElement.getBoundingClientRect();
-                    // 娣诲姞鍐呰竟璺濆拰涓€鐐归澶栫┖闂翠互纭繚瀹屾暣鏄剧ず
+                    // 添加内边距和一点额外空间以确保完整显示
                     const height = Math.ceil(contentBox.height) + 20;
 
-                    // 澶勭悊绉诲姩璁惧鐨勫垵濮嬬缉鏀?
+                    // 处理移动设备的初始缩放
                     const visualViewportScale = window.visualViewport ? window.visualViewport.scale : 1;
                     console.warn('visualViewportScale', visualViewportScale)
                     const adjustedHeight = Math.ceil(height * visualViewportScale);
@@ -377,10 +376,10 @@ private fun buildMermaidHtml(
                 calculateAndSendHeight();
               });
 
-              // 鐩戝惉绐楀彛澶у皬鍙樺寲浠ラ噸鏂拌绠楅珮搴?
+              // 监听窗口大小变化以重新计算高度
               window.addEventListener('resize', calculateAndSendHeight);
 
-              // 瀵煎嚭SVG涓篜NG鍥惧儚
+              // 导出SVG为PNG图像
               window.exportSvgToPng = function() {
                 try {
                     const svgElement = document.querySelector('.mermaid svg');
@@ -420,7 +419,7 @@ private fun buildMermaidHtml(
                         // Draw watermark
                         ctx.font = '14px Arial';
                         ctx.fillStyle = '${onBackground}';
-                        ctx.fillText('rikka-ai.com', 20, canvas.height - 10);
+                        ctx.fillText('eteruee.com', 20, canvas.height - 10);
 
                         // Get PNG image as base64
                         const pngBase64 = canvas.toDataURL('image/png').split(',')[1];
@@ -449,4 +448,3 @@ enum class MermaidTheme(val value: String) {
     DEFAULT("default"),
     DARK("dark"),
 }
-

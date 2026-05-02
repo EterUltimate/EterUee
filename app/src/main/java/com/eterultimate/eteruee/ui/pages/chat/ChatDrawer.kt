@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.chat
+package com.eterultimate.eteruee.ui.pages.chat
 
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -82,7 +83,6 @@ import com.eterultimate.eteruee.utils.toDp
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import kotlin.uuid.Uuid
-import androidx.compose.ui.graphics.RectangleShape
 
 @Composable
 fun ChatDrawerContent(
@@ -120,7 +120,7 @@ fun ChatDrawerContent(
         initialValue = emptyMap(),
     )
 
-    // 鏄电О缂栬緫鐘舵€?
+    // 昵称编辑状态
     val nicknameEditState = useEditState<String> { newNickname ->
         vm.updateSettings(
             settings.copy(
@@ -131,12 +131,12 @@ fun ChatDrawerContent(
         )
     }
 
-    // 绉诲姩瀵硅瘽鐘舵€?
+    // 移动对话状态
     var showMoveToAssistantSheet by remember { mutableStateOf(false) }
     var conversationToMove by remember { mutableStateOf<Conversation?>(null) }
     val bottomSheetState = rememberModalBottomSheetState()
 
-    // Menu popup 鐘舵€?
+    // Menu popup 状态
     var showMenuPopup by remember { mutableStateOf(false) }
 
     ModalDrawerSheet(
@@ -155,7 +155,7 @@ fun ChatDrawerContent(
                 onClick = { navController.navigate(Screen.Backup) },
             )
 
-            // 鐢ㄦ埛澶村儚鍜屾樀绉拌嚜瀹氫箟鍖哄煙
+            // 用户头像和昵称自定义区域
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -247,7 +247,7 @@ fun ChatDrawerContent(
                 }
             )
 
-            // 鍔╂墜閫夋嫨鍣?
+            // 助手选择器
             AssistantPicker(
                 settings = settings,
                 onUpdateSettings = {
@@ -342,10 +342,10 @@ fun ChatDrawerContent(
 
                 DrawerAction(
                     icon = {
-                        Icon(HugeIcons.ChartColumn, "缁熻鏁版嵁")
+                        Icon(HugeIcons.ChartColumn, "统计数据")
                     },
                     label = {
-                        Text("缁熻鏁版嵁")
+                        Text("统计数据")
                     },
                     onClick = {
                         navController.navigate(Screen.Stats)
@@ -367,7 +367,7 @@ fun ChatDrawerContent(
         }
     }
 
-    // 鏄电О缂栬緫瀵硅瘽妗?
+    // 昵称编辑对话框
     nicknameEditState.EditStateContent { nickname, onUpdate ->
         AlertDialog(
             onDismissRequest = {
@@ -406,7 +406,7 @@ fun ChatDrawerContent(
         )
     }
 
-    // 绉诲姩鍒板姪鎵?Bottom Sheet
+    // 移动到助手 Bottom Sheet
     if (showMoveToAssistantSheet) {
         ModalBottomSheet(
             onDismissRequest = {
@@ -456,7 +456,7 @@ fun ChatDrawerContent(
 @Composable
 private fun DrawerActions(navController: Navigator) {
     Column {
-        // 鎼滅储鍏ュ彛
+        // 搜索入口
         Surface(
             onClick = { navController.navigate(Screen.MessageSearch) },
             modifier = Modifier
@@ -486,7 +486,7 @@ private fun DrawerActions(navController: Navigator) {
             }
         }
 
-        // 鍘嗗彶璁板綍鍏ュ彛
+        // 历史记录入口
         Surface(
             onClick = { navController.navigate(Screen.History) },
             modifier = Modifier
@@ -529,7 +529,7 @@ private fun DrawerAction(
         onClick = onClick,
         modifier = modifier,
         color = MaterialTheme.colorScheme.primaryContainer,
-        shape = RectangleShape,
+        shape = CircleShape,
         contentColor = MaterialTheme.colorScheme.onSurface,
     ) {
         Tooltip(
@@ -598,4 +598,3 @@ private fun AssistantItem(
         }
     }
 }
-

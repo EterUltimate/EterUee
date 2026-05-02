@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.utils
+package com.eterultimate.eteruee.utils
 
 import android.content.Context
 import android.util.Log
@@ -45,7 +45,6 @@ object CrashHandler {
             .edit(commit = true) {
                 putBoolean(KEY_CRASHED, true)
                 putString(KEY_STACKTRACE, stackTrace)
-            } // commit() 鍚屾鍐欏叆锛岀‘淇濆穿婧冨墠鍐欏畬
+            } // commit() 同步写入，确保崩溃前写完
     }
 }
-

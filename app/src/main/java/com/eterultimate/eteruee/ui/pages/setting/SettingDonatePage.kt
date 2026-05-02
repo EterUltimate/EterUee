@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.setting
+package com.eterultimate.eteruee.ui.pages.setting
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
@@ -42,7 +43,6 @@ import com.eterultimate.eteruee.utils.onLoading
 import com.eterultimate.eteruee.utils.onSuccess
 import com.eterultimate.eteruee.utils.openUrl
 import org.koin.compose.koinInject
-import androidx.compose.ui.graphics.RectangleShape
 
 @Composable
 fun SettingDonatePage() {
@@ -116,7 +116,7 @@ private fun DonateMethodsCardGroup() {
                 )
             },
             supportingContent = { Text(stringResource(R.string.donate_page_afdian_desc)) },
-            headlineContent = { Text("鐖卞彂鐢?) },
+            headlineContent = { Text("爱发电") },
         )
     }
 }
@@ -153,7 +153,7 @@ private fun Sponsors(modifier: Modifier = Modifier) {
                             model = it.avatar,
                             contentDescription = null,
                             modifier = Modifier
-                                .clip(RectangleShape)
+                                .clip(CircleShape)
                                 .size(48.dp)
                         )
                         Text(
@@ -174,4 +174,3 @@ private fun Sponsors(modifier: Modifier = Modifier) {
         }
     }
 }
-

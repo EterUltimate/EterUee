@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.ui.permission
+package com.eterultimate.eteruee.ui.components.ui.permission
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -30,10 +31,9 @@ import androidx.compose.ui.window.Dialog
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.AlertCircle
 import com.eterultimate.eteruee.R
-import androidx.compose.ui.graphics.RectangleShape
 
 /**
- * 鏉冮檺璇锋眰璇存槑瀵硅瘽妗?
+ * 权限请求说明对话框
  */
 @Composable
 internal fun PermissionRationaleDialog(
@@ -51,7 +51,7 @@ internal fun PermissionRationaleDialog(
             modifier = modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            shape = RectangleShape,
+            shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface
             )
@@ -62,7 +62,7 @@ internal fun PermissionRationaleDialog(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // 鏍囬鍥炬爣
+                // 标题图标
                 Icon(
                     imageVector = HugeIcons.AlertCircle,
                     contentDescription = null,
@@ -72,7 +72,7 @@ internal fun PermissionRationaleDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 鏍囬
+                // 标题
                 val hasPermanentlyDenied = permanentlyDeniedPermissions.isNotEmpty()
                 Text(
                     text = stringResource(R.string.permission_diaog_title),
@@ -83,7 +83,7 @@ internal fun PermissionRationaleDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // 璇存槑鏂囧瓧
+                // 说明文字
                 Text(
                     text = if (hasPermanentlyDenied) {
                         stringResource(R.string.permission_desc_goto_setting)
@@ -97,7 +97,7 @@ internal fun PermissionRationaleDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 鏉冮檺鍒楄〃
+                // 权限列表
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -113,9 +113,9 @@ internal fun PermissionRationaleDialog(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // 鎸夐挳缁?
+                // 按钮组
                 if (hasPermanentlyDenied) {
-                    // 鏈夋案涔呮嫆缁濈殑鏉冮檺锛屽彧鏄剧ず鍓嶅線璁剧疆鍜屽彇娑堟寜閽?
+                    // 有永久拒绝的权限，只显示前往设置和取消按钮
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -128,14 +128,14 @@ internal fun PermissionRationaleDialog(
                         }
 
                         Button(
-                            onClick = onProceed, // 杩欓噷浼氳烦杞埌璁剧疆
+                            onClick = onProceed, // 这里会跳转到设置
                             modifier = Modifier.weight(1f)
                         ) {
                             Text(stringResource(R.string.permission_go_to_settings))
                         }
                     }
                 } else {
-                    // 娌℃湁姘镐箙鎷掔粷鐨勬潈闄愶紝鏄剧ず姝ｅ父鐨勬巿鏉冩寜閽?
+                    // 没有永久拒绝的权限，显示正常的授权按钮
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -161,7 +161,7 @@ internal fun PermissionRationaleDialog(
 }
 
 /**
- * 鍗曚釜鏉冮檺椤圭粍浠?
+ * 单个权限项组件
  */
 @Composable
 private fun PermissionItem(
@@ -174,14 +174,14 @@ private fun PermissionItem(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
         ),
-        shape = RectangleShape
+        shape = RoundedCornerShape(8.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp)
         ) {
-            // 鏉冮檺鍚嶇О
+            // 权限名称
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -199,7 +199,7 @@ private fun PermissionItem(
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.errorContainer
                             ),
-                            shape = RectangleShape
+                            shape = RoundedCornerShape(4.dp)
                         ) {
                             Text(
                                 text = stringResource(R.string.permission_required),
@@ -215,7 +215,7 @@ private fun PermissionItem(
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.8f)
                             ),
-                            shape = RectangleShape
+                            shape = RoundedCornerShape(4.dp)
                         ) {
                             Text(
                                 text = stringResource(R.string.permission_permanently_denied),
@@ -230,11 +230,10 @@ private fun PermissionItem(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // 鏉冮檺浣跨敤璇存槑
+            // 权限使用说明
             ProvideTextStyle(value = MaterialTheme.typography.bodySmall) {
                 permissionInfo.usage()
             }
         }
     }
 }
-

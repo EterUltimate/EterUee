@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.ui
+package com.eterultimate.eteruee.ui.components.ui
 
 import android.content.ClipData
 import androidx.compose.animation.AnimatedVisibility
@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -36,7 +37,6 @@ import me.rerere.hugeicons.stroke.Delete01
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.service.ChatError
 import kotlin.uuid.Uuid
-import androidx.compose.ui.graphics.RectangleShape
 
 @Composable
 fun ErrorCardsDisplay(
@@ -55,11 +55,11 @@ fun ErrorCardsDisplay(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.End,
         ) {
-            // 娓呴櫎鍏ㄩ儴鎸夐挳锛堝綋鏈夊涓敊璇椂鏄剧ず锛?
+            // 清除全部按钮（当有多个错误时显示）
             if (errors.size > 1) {
                 Surface(
                     onClick = onClearAllErrors,
-                    shape = RectangleShape,
+                    shape = RoundedCornerShape(8.dp),
                     color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f),
                 ) {
                     Row(
@@ -82,7 +82,7 @@ fun ErrorCardsDisplay(
                 }
             }
 
-            // 閿欒鍗＄墖鍒楄〃
+            // 错误卡片列表
             errors.forEach { error ->
                 ErrorCard(
                     error = error,
@@ -102,7 +102,7 @@ fun ErrorCard(
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
 
-    // 5 绉掑悗鑷姩娑堝け
+    // 5 秒后自动消失
     LaunchedEffect(error.id) {
         delay(5000)
         onDismiss()
@@ -110,7 +110,7 @@ fun ErrorCard(
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RectangleShape,
+        shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.errorContainer,
         shadowElevation = 4.dp,
     ) {
@@ -174,4 +174,3 @@ fun ErrorCard(
         }
     }
 }
-

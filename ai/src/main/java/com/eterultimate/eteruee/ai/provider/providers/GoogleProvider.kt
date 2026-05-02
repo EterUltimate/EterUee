@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ai.provider.providers
+package com.eterultimate.eteruee.ai.provider.providers
 
 import android.content.Context
 import android.util.Log
@@ -53,8 +53,8 @@ import com.eterultimate.eteruee.ai.util.mergeCustomBody
 import com.eterultimate.eteruee.ai.util.removeElements
 import com.eterultimate.eteruee.ai.util.stringSafe
 import com.eterultimate.eteruee.ai.util.toHeaders
-import me.rerere.common.http.await
-import me.rerere.common.http.jsonPrimitiveOrNull
+import com.eterultimate.eteruee.common.http.await
+import com.eterultimate.eteruee.common.http.jsonPrimitiveOrNull
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
@@ -133,7 +133,7 @@ class GoogleProvider(private val client: OkHttpClient, context: Context? = null)
                 models.mapNotNull {
                     val modelObject = it.jsonObject
 
-                    // 蹇界暐闈瀋hat/embedding妯″瀷
+                    // 忽略非chat/embedding模型
                     val supportedGenerationMethods =
                         modelObject["supportedGenerationMethods"]!!.jsonArray
                             .map { method -> method.jsonPrimitive.content }
@@ -290,7 +290,7 @@ class GoogleProvider(private val client: OkHttpClient, context: Context? = null)
                     trySend(messageChunk)
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    println("[onEvent] 瑙ｆ瀽閿欒: $data")
+                    println("[onEvent] 解析错误: $data")
                 }
             }
 
@@ -302,7 +302,7 @@ class GoogleProvider(private val client: OkHttpClient, context: Context? = null)
                 var exception = t
 
                 t?.printStackTrace()
-                println("[onFailure] 鍙戠敓閿欒: ${t?.message}")
+                println("[onFailure] 发生错误: ${t?.message}")
 
                 try {
                     if (t == null && response != null) {
@@ -329,7 +329,7 @@ class GoogleProvider(private val client: OkHttpClient, context: Context? = null)
             }
 
             override fun onClosed(eventSource: EventSource) {
-                println("[onClosed] 杩炴帴宸插叧闂?)
+                println("[onClosed] 连接已关闭")
                 close()
             }
         }
@@ -338,7 +338,7 @@ class GoogleProvider(private val client: OkHttpClient, context: Context? = null)
                 .newEventSource(request, listener)
 
         awaitClose {
-            println("[awaitClose] 鍏抽棴eventSource")
+            println("[awaitClose] 关闭eventSource")
             eventSource.cancel()
         }
     }
@@ -381,7 +381,7 @@ class GoogleProvider(private val client: OkHttpClient, context: Context? = null)
                         params.model.modelId.contains(Regex("2\\.5.*pro", RegexOption.IGNORE_CASE))
 
                     when (params.reasoningLevel) {
-                        ReasoningLevel.AUTO -> {} // 鑷姩妯″紡锛屼笉璁剧疆鍙傛暟
+                        ReasoningLevel.AUTO -> {} // 自动模式，不设置参数
 
                         ReasoningLevel.OFF -> {
                             if (ModelRegistry.GEMINI_3_SERIES.match(modelId = params.model.modelId)) {
@@ -444,7 +444,7 @@ class GoogleProvider(private val client: OkHttpClient, context: Context? = null)
             })
         }
         // Model BuiltIn Tools
-        // 鐩墠涓嶈兘鍜屽伐鍏疯皟鐢ㄥ吋瀹?
+        // 目前不能和工具调用兼容
         if (params.model.tools.isNotEmpty()) {
             put("tools", buildJsonArray {
                 params.model.tools.forEach { builtInTool ->
@@ -497,7 +497,7 @@ class GoogleProvider(private val client: OkHttpClient, context: Context? = null)
             MessageRole.USER -> "user"
             MessageRole.SYSTEM -> "system"
             MessageRole.ASSISTANT -> "model"
-            MessageRole.TOOL -> "user" // google api涓? tool缁撴灉鏄敤鎴穜ole鍙戦€佺殑
+            MessageRole.TOOL -> "user" // google api中, tool结果是用户role发送的
         }
     }
 
@@ -579,7 +579,7 @@ class GoogleProvider(private val client: OkHttpClient, context: Context? = null)
                 require(mime.startsWith("image/")) {
                     "Only image mime type is supported"
                 }
-                // 濡傛灉鏄€濊€冭繃绋嬩腑鐨勮崏绋垮浘锛岀洿鎺ュ拷鐣?
+                // 如果是思考过程中的草稿图，直接忽略
                 if (thought) {
                     return UIMessagePart.Reasoning(
                         reasoning = "[Draft Image]\n",
@@ -624,17 +624,17 @@ class GoogleProvider(private val client: OkHttpClient, context: Context? = null)
                 }
 
                 is PartGroup.Tools -> {
-                    // 娣诲姞 functionCall 鍒?parts 缂撳啿
+                    // 添加 functionCall 到 parts 缓冲
                     group.tools.forEach { partsBuffer.add(it.toFunctionCallPart()) }
 
-                    // 杈撳嚭 model 娑堟伅
+                    // 输出 model 消息
                     add(buildJsonObject {
                         put("role", "model")
                         putJsonArray("parts") { partsBuffer.forEach { add(it) } }
                     })
                     partsBuffer.clear()
 
-                    // 绱ц窡 functionResponse
+                    // 紧跟 functionResponse
                     add(buildJsonObject {
                         put("role", "user")
                         putJsonArray("parts") {
@@ -645,7 +645,7 @@ class GoogleProvider(private val client: OkHttpClient, context: Context? = null)
             }
         }
 
-        // 杈撳嚭鍓╀綑鍐呭
+        // 输出剩余内容
         if (partsBuffer.isNotEmpty()) {
             add(buildJsonObject {
                 put("role", "model")
@@ -819,4 +819,3 @@ class GoogleProvider(private val client: OkHttpClient, context: Context? = null)
         ImageGenerationResult(items = items)
     }
 }
-

@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ai.ui
+package com.eterultimate.eteruee.ai.ui
 
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -15,7 +15,7 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
-// 鍏叡娑堟伅鎶借薄, 鍏蜂綋鐨凱rovider瀹炵幇浼氳浆鎹负API鎺ュ彛闇€瑕佺殑DTO
+// 公共消息抽象, 具体的Provider实现会转换为API接口需要的DTO
 @Serializable
 data class UIMessage(
     val id: Uuid = Uuid.random(),
@@ -210,12 +210,12 @@ data class UIMessage(
 }
 
 /**
- * 澶勭悊MessageChunk鍚堝苟
+ * 处理MessageChunk合并
  *
- * @receiver 宸叉湁娑堟伅鍒楄〃
- * @param chunk 娑堟伅chunk
- * @param model 妯″瀷, 鍙互涓嶄紶锛屽鏋滀紶浜嗭紝浼氭妸妯″瀷id鍐欏叆鍒版秷鎭紝鏍囪鏄摢涓ā鍨嬭緭鍑虹殑娑堟伅
- * @return 鏂版秷鎭垪琛?
+ * @receiver 已有消息列表
+ * @param chunk 消息chunk
+ * @param model 模型, 可以不传，如果传了，会把模型id写入到消息，标记是哪个模型输出的消息
+ * @return 新消息列表
  */
 fun List<UIMessage>.handleMessageChunk(chunk: MessageChunk, model: Model? = null): List<UIMessage> {
     require(this.isNotEmpty()) {
@@ -232,9 +232,9 @@ fun List<UIMessage>.handleMessageChunk(chunk: MessageChunk, model: Model? = null
 }
 
 /**
- * 鍒ゆ柇杩欎釜娑堟伅鏄惁鏈夋湁浠讳綍鐢ㄦ埛**鍙緭鍏ュ唴瀹?*
+ * 判断这个消息是否有有任何用户**可输入内容**
  *
- * 渚嬪: 鏂囨湰锛屽浘鐗? 鏂囨。
+ * 例如: 文本，图片, 文档
  */
 fun List<UIMessagePart>.isEmptyInputMessage(): Boolean {
     if (this.isEmpty()) return true
@@ -251,7 +251,7 @@ fun List<UIMessagePart>.isEmptyInputMessage(): Boolean {
 }
 
 /**
- * 鍒ゆ柇杩欎釜娑堟伅鍦║I涓婃槸鍚︽樉绀轰换浣曞唴瀹?
+ * 判断这个消息在UI上是否显示任何内容
  */
 fun List<UIMessagePart>.isEmptyUIMessage(): Boolean {
     if (this.isEmpty()) return true
@@ -274,20 +274,20 @@ fun List<UIMessage>.limitContext(size: Int): List<UIMessage> {
     val startIndex = this.size - size
     var adjustedStartIndex = startIndex
 
-    // 寰幆寰€鍓嶆煡鎵撅紝鐩村埌婊¤冻鎵€鏈変緷璧栨潯浠?
+    // 循环往前查找，直到满足所有依赖条件
     var needsAdjustment = true
     val visitedIndices = mutableSetOf<Int>()
 
     while (needsAdjustment && adjustedStartIndex > 0) {
         needsAdjustment = false
 
-        // 闃叉鏃犻檺寰幆
+        // 防止无限循环
         if (adjustedStartIndex in visitedIndices) break
         visitedIndices.add(adjustedStartIndex)
 
         val currentMessage = this[adjustedStartIndex]
 
-        // 濡傛灉褰撳墠娑堟伅鍖呭惈宸叉墽琛岀殑tool锛堟湁output锛夛紝寰€鍓嶆煡鎵惧搴旂殑tool call
+        // 如果当前消息包含已执行的tool（有output），往前查找对应的tool call
         if (currentMessage.getTools().any { it.isExecuted }) {
             for (i in adjustedStartIndex - 1 downTo 0) {
                 if (this[i].getTools().any { !it.isExecuted }) {
@@ -298,7 +298,7 @@ fun List<UIMessage>.limitContext(size: Int): List<UIMessage> {
             }
         }
 
-        // 濡傛灉褰撳墠娑堟伅鍖呭惈鏈墽琛岀殑tool call锛屽線鍓嶆煡鎵惧搴旂殑鐢ㄦ埛娑堟伅
+        // 如果当前消息包含未执行的tool call，往前查找对应的用户消息
         if (currentMessage.getTools().any { !it.isExecuted }) {
             for (i in adjustedStartIndex - 1 downTo 0) {
                 if (this[i].role == MessageRole.USER) {
@@ -790,4 +790,3 @@ data class UIMessageChoice(
     val message: UIMessage?,
     val finishReason: String?
 )
-

@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.backup.tabs
+package com.eterultimate.eteruee.ui.pages.backup.tabs
 
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.File01
@@ -47,10 +47,10 @@ fun ImportExportTab(
     var isExporting by remember { mutableStateOf(false) }
     var isRestoring by remember { mutableStateOf(false) }
 
-    // 瀵煎叆绫诲瀷锛歭ocal 涓烘湰鍦板浠斤紝chatbox 涓?Chatbox 瀵煎叆锛宑herry 涓?Cherry Studio 瀵煎叆
+    // 导入类型：local 为本地备份，chatbox 为 Chatbox 导入，cherry 为 Cherry Studio 导入
     var importType by remember { mutableStateOf("local") }
 
-    // 鍒涘缓鏂囦欢淇濆瓨鐨刲auncher
+    // 创建文件保存的launcher
     val createDocumentLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/zip")
     ) { uri ->
@@ -58,17 +58,17 @@ fun ImportExportTab(
             scope.launch {
                 isExporting = true
                 runCatching {
-                    // 瀵煎嚭鏂囦欢
+                    // 导出文件
                     val exportFile = vm.exportToFile()
 
-                    // 澶嶅埗鍒扮敤鎴烽€夋嫨鐨勪綅缃?
+                    // 复制到用户选择的位置
                     context.contentResolver.openOutputStream(targetUri)?.use { outputStream ->
                         FileInputStream(exportFile).use { inputStream ->
                             inputStream.copyTo(outputStream)
                         }
                     }
 
-                    // 娓呯悊涓存椂鏂囦欢
+                    // 清理临时文件
                     exportFile.delete()
 
                     toaster.show(
@@ -87,7 +87,7 @@ fun ImportExportTab(
         }
     }
 
-    // 鍒涘缓鏂囦欢閫夋嫨鐨刲auncher
+    // 创建文件选择的launcher
     val openDocumentLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
@@ -97,7 +97,7 @@ fun ImportExportTab(
                 runCatching {
                     when (importType) {
                         "local" -> {
-                            // 鏈湴澶囦唤瀵煎叆锛氬鐞唞ip鏂囦欢
+                            // 本地备份导入：处理zip文件
                             val tempFile =
                                 File(context.cacheDir, "temp_restore_${System.currentTimeMillis()}.zip")
 
@@ -107,15 +107,15 @@ fun ImportExportTab(
                                 }
                             }
 
-                            // 浠庝复鏃舵枃浠舵仮澶?
+                            // 从临时文件恢复
                             vm.restoreFromLocalFile(tempFile)
 
-                            // 娓呯悊涓存椂鏂囦欢
+                            // 清理临时文件
                             tempFile.delete()
                         }
 
                         "chatbox" -> {
-                            // Chatbox瀵煎叆锛氬鐞唈son鏂囦欢
+                            // Chatbox导入：处理json文件
                             val tempFile =
                                 File(context.cacheDir, "temp_chatbox_${System.currentTimeMillis()}.json")
 
@@ -125,15 +125,15 @@ fun ImportExportTab(
                                 }
                             }
 
-                            // 浠嶤hatbox鏂囦欢鎭㈠
+                            // 从Chatbox文件恢复
                             vm.restoreFromChatBox(tempFile)
 
-                            // 娓呯悊涓存椂鏂囦欢
+                            // 清理临时文件
                             tempFile.delete()
                         }
 
                         "cherry" -> {
-                            // Cherry Studio瀵煎叆锛氬鐞唞ip鏂囦欢
+                            // Cherry Studio导入：处理zip文件
                             val tempFile =
                                 File(context.cacheDir, "temp_cherry_${System.currentTimeMillis()}.zip")
 
@@ -143,10 +143,10 @@ fun ImportExportTab(
                                 }
                             }
 
-                            // 浠嶤herry Studio澶囦唤鎭㈠
+                            // 从Cherry Studio备份恢复
                             vm.restoreFromCherryStudio(tempFile)
 
-                            // 娓呯悊涓存椂鏂囦欢
+                            // 清理临时文件
                             tempFile.delete()
                         }
                     }
@@ -283,4 +283,3 @@ fun ImportExportTab(
         }
     }
 }
-

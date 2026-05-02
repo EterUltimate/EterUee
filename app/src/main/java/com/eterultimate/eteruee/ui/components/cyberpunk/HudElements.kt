@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.cyberpunk
+package com.eterultimate.eteruee.ui.components.cyberpunk
 
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -38,7 +38,7 @@ import com.eterultimate.eteruee.ui.theme.presets.TextPrimary
 import com.eterultimate.eteruee.ui.theme.presets.TextSecondary
 
 /**
- * HUD 椋庢牸椤堕儴鏍?- 纭湕鐗堟湰
+ * HUD 风格顶部栏 - 硬朗版本
  */
 @Composable
 fun HudTopBar(
@@ -75,7 +75,7 @@ fun HudTopBar(
 }
 
 /**
- * 鍦ㄧ嚎鐘舵€佹寚绀哄櫒 - 鏂瑰舰
+ * 在线状态指示器 - 方形
  */
 @Composable
 fun StatusIndicatorOnline(
@@ -115,7 +115,7 @@ fun StatusIndicatorOnline(
 }
 
 /**
- * 绂荤嚎鐘舵€佹寚绀哄櫒 - 鏂瑰舰
+ * 离线状态指示器 - 方形
  */
 @Composable
 fun StatusIndicatorOffline(
@@ -143,7 +143,7 @@ fun StatusIndicatorOffline(
 }
 
 /**
- * HUD 鏁版嵁闈㈡澘 - 纭湕鐗堟湰
+ * HUD 数据面板 - 硬朗版本
  */
 @Composable
 fun HudDataPanel(
@@ -192,7 +192,7 @@ fun HudDataPanel(
 }
 
 /**
- * HUD 鍒嗗壊绾?- 纭湕
+ * HUD 分割线 - 硬朗
  */
 @Composable
 fun HudDivider(
@@ -214,7 +214,7 @@ fun HudDivider(
 }
 
 /**
- * 璀﹀憡闈㈡澘
+ * 警告面板
  */
 @Composable
 fun WarningPanel(
@@ -247,7 +247,7 @@ fun WarningPanel(
 }
 
 /**
- * 绯荤粺鏃ュ織鏉＄洰
+ * 系统日志条目
  */
 @Composable
 fun LogEntry(
@@ -296,4 +296,3 @@ fun LogEntry(
         )
     }
 }
-

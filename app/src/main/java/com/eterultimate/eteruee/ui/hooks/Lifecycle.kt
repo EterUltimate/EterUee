@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.hooks
+package com.eterultimate.eteruee.ui.hooks
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -21,32 +21,31 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
  */
 @Composable
 fun rememberAppLifecycleState(): State<Lifecycle.State> {
-    // 1. 鑾峰彇褰撳墠鐨?LifecycleOwner銆?
-    // LocalLifecycleOwner 鏄竴涓?CompositionLocal锛屾彁渚涗簡褰撳墠缁勫悎涓婁笅鏂囩殑 LifecycleOwner銆?
+    // 1. 获取当前的 LifecycleOwner。
+    // LocalLifecycleOwner 是一个 CompositionLocal，提供了当前组合上下文的 LifecycleOwner。
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
-    // 2. 浣跨敤 remember 鍒涘缓涓€涓?MutableState锛岀敤浜庡瓨鍌ㄥ綋鍓嶇殑鐢熷懡鍛ㄦ湡鐘舵€併€?
-    // 鍒濆鍖栫姸鎬佷负褰撳墠鐨勭敓鍛藉懆鏈熺姸鎬併€?
+    // 2. 使用 remember 创建一个 MutableState，用于存储当前的生命周期状态。
+    // 初始化状态为当前的生命周期状态。
     val lifecycleState = remember { mutableStateOf(lifecycleOwner.lifecycle.currentState) }
-    // 3. 浣跨敤 DisposableEffect 娣诲姞鍜岀Щ闄や竴涓?LifecycleObserver銆?
-    // DisposableEffect 閫傜敤浜庨渶瑕佸湪 Composable 杩涘叆鎴栫寮€缁勫悎鏃舵墽琛屽壇浣滅敤鍜屾竻鐞嗘搷浣滅殑鍦烘櫙銆?
-    // key 璁剧疆涓?lifecycleOwner.lifecycle锛岀‘淇濆綋 lifecycle 瀵硅薄鏈韩鏀瑰彉鏃讹紙鏋佸皯瑙侊級鏁堟灉鑳芥纭鐞嗐€?
+    // 3. 使用 DisposableEffect 添加和移除一个 LifecycleObserver。
+    // DisposableEffect 适用于需要在 Composable 进入或离开组合时执行副作用和清理操作的场景。
+    // key 设置为 lifecycleOwner.lifecycle，确保当 lifecycle 对象本身改变时（极少见）效果能正确处理。
     DisposableEffect(lifecycleOwner.lifecycle) {
-        // 鍒涘缓涓€涓?LifecycleEventObserver銆?
-        // 褰撲换浣曠敓鍛藉懆鏈熶簨浠跺彂鐢熸椂锛宱nStateChanged 浼氳璋冪敤銆?
+        // 创建一个 LifecycleEventObserver。
+        // 当任何生命周期事件发生时，onStateChanged 会被调用。
         val observer = LifecycleEventObserver { _, _ ->
-            // 鍦ㄧ敓鍛藉懆鏈熶簨浠跺彂鐢熷悗锛屾洿鏂?lifecycleState 鐨勫€煎埌褰撳墠鐨勭敓鍛藉懆鏈熺姸鎬併€?
-            // 杩欎細瑙﹀彂浣跨敤 lifecycleState 鐨?Composable 杩涜閲嶇粍銆?
+            // 在生命周期事件发生后，更新 lifecycleState 的值到当前的生命周期状态。
+            // 这会触发使用 lifecycleState 的 Composable 进行重组。
             lifecycleState.value = lifecycleOwner.lifecycle.currentState
         }
-        // 灏嗚瀵熻€呮坊鍔犲埌鐢熷懡鍛ㄦ湡銆?
+        // 将观察者添加到生命周期。
         lifecycleOwner.lifecycle.addObserver(observer)
-        // onDispose 鍧椾細鍦?Composable 绂诲紑缁勫悎鏃惰璋冪敤锛岀敤浜庢竻鐞嗚祫婧愩€?
+        // onDispose 块会在 Composable 离开组合时被调用，用于清理资源。
         onDispose {
-            // 绉婚櫎瑙傚療鑰咃紝闃叉鍐呭瓨娉勬紡銆?
+            // 移除观察者，防止内存泄漏。
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
-    // 4. 杩斿洖瀛樺偍鐢熷懡鍛ㄦ湡鐘舵€佺殑 State 瀵硅薄銆?
+    // 4. 返回存储生命周期状态的 State 对象。
     return lifecycleState
 }
-

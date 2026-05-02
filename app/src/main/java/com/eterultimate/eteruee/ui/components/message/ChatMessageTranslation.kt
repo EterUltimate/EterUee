@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.message
+package com.eterultimate.eteruee.ui.components.message
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -58,7 +58,7 @@ fun LanguageSelectionDialog(
     onClearTranslation: () -> Unit = {},
     onDismissRequest: () -> Unit
 ) {
-    // 鏀寔鐨勮瑷€鍒楄〃
+    // 支持的语言列表
     val languages = remember {
         listOf(
             Locale.SIMPLIFIED_CHINESE,
@@ -73,7 +73,7 @@ fun LanguageSelectionDialog(
         )
     }
 
-    // 璇█鍚嶇О鏄犲皠鍑芥暟锛屽師鏈夌殑 locale.displayName 鏂规硶鏃犳硶鑾峰彇 emoji
+    // 语言名称映射函数，原有的 locale.displayName 方法无法获取 emoji
     @Composable
     fun getLanguageDisplayName(locale: Locale): String {
         return when (locale) {
@@ -100,14 +100,14 @@ fun LanguageSelectionDialog(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // 鏍囬
+            // 标题
             Text(
                 text = stringResource(R.string.translation_language_selection_title),
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // 璇█鍒楄〃
+            // 语言列表
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -208,7 +208,7 @@ fun CollapsibleTranslationText(
                 )
             }
 
-            // 鎶樺彔/灞曞紑鎸夐挳
+            // 折叠/展开按钮
             IconButton(
                 onClick = { isCollapsed = !isCollapsed },
                 modifier = Modifier.size(32.dp)
@@ -289,4 +289,3 @@ fun CollapsibleTranslationText(
         }
     }
 }
-

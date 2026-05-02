@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.service
+package com.eterultimate.eteruee.service
 
 import android.app.PendingIntent
 import android.app.Service
@@ -57,11 +57,11 @@ class WebServerService : Service() {
                 serviceScope.launch {
                     settingsStore.update { it.copy(webServerEnabled = false) }
                 }
-                // 涓嶇珛鍗?stopSelf锛岀瓑鐘舵€佹祦妫€娴嬪埌鍋滄鍚庡啀缁撴潫
+                // 不立即 stopSelf，等状态流检测到停止后再结束
             }
 
             null -> {
-                // START_STICKY 閲嶅惎鏃?intent 涓?null
+                // START_STICKY 重启时 intent 为 null
                 startForegroundCompat()
                 serviceScope.launch {
                     val settings = settingsStore.settingsFlowRaw.first()
@@ -164,4 +164,3 @@ class WebServerService : Service() {
             .build()
     }
 }
-

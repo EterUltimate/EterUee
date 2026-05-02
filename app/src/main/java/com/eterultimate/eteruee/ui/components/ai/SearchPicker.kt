@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.ai
+package com.eterultimate.eteruee.ui.components.ai
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -36,9 +36,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import me.rerere.ai.provider.BuiltInTools
-import me.rerere.ai.provider.Model
-import me.rerere.ai.registry.ModelRegistry
+import com.eterultimate.eteruee.ai.provider.BuiltInTools
+import com.eterultimate.eteruee.ai.provider.Model
+import com.eterultimate.eteruee.ai.registry.ModelRegistry
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.GlobalSearch
 import me.rerere.hugeicons.stroke.AiSearch02
@@ -53,7 +53,7 @@ import com.eterultimate.eteruee.ui.components.ui.ToggleSurface
 import com.eterultimate.eteruee.ui.context.LocalNavController
 import com.eterultimate.eteruee.ui.context.Navigator
 import com.eterultimate.eteruee.ui.pages.setting.SearchAbilityTagLine
-import me.rerere.search.SearchServiceOptions
+import com.eterultimate.eteruee.search.SearchServiceOptions
 import org.koin.compose.koinInject
 
 @Composable
@@ -157,12 +157,12 @@ private fun SearchPicker(
 ) {
     val navBackStack = LocalNavController.current
 
-    // 妯″瀷鍐呯疆鎼滅储
+    // 模型内置搜索
     if (model != null && (ModelRegistry.GEMINI_SERIES.match(model.modelId) || model.modelId.contains("gpt-"))) {
         BuiltInSearchSetting(model = model)
     }
 
-    // 濡傛灉娌℃湁寮€鍚唴缃悳绱紝鏄剧ず鎼滅储鏈嶅姟閫夋嫨
+    // 如果没有开启内置搜索，显示搜索服务选择
     if (model?.tools?.contains(BuiltInTools.Search) != true) {
         AppSearchSettings(
             enableSearch = enableSearch,
@@ -338,4 +338,3 @@ private fun BuiltInSearchSetting(model: Model) {
         }
     }
 }
-

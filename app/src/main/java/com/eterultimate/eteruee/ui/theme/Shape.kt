@@ -1,12 +1,12 @@
-﻿package com.eterultimate.eteruee.ui.theme
+package com.eterultimate.eteruee.ui.theme
 
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
 import androidx.compose.ui.unit.dp
 
-// 璧涘崥鏈嬪厠涓婚锛氶浂鍦嗚锛屽叏鐩磋
-// 浣跨敤 0.dp 鐨?RoundedCornerShape 浣滀负 CornerBasedShape 鐨勫疄渚?
+// 赛博朋克主题：零圆角，全直角
+// 使用 0.dp 的 RoundedCornerShape 作为 CornerBasedShape 的实例
 val CyberpunkShapes = Shapes(
     extraSmall = RoundedCornerShape(0.dp),
     small = RoundedCornerShape(0.dp),
@@ -15,6 +15,5 @@ val CyberpunkShapes = Shapes(
     extraLarge = RoundedCornerShape(0.dp)
 )
 
-// MaterialExpressiveTheme 浣跨敤 expressive shapes (largeIncreased 绛?
-// 杩欎簺閫氳繃 Shapes() 鏋勯€犲嚱鏁扮殑 large/extraLarge 宸茶鐩栦负 0.dp
-
+// MaterialExpressiveTheme 使用 expressive shapes (largeIncreased 等)
+// 这些通过 Shapes() 构造函数的 large/extraLarge 已覆盖为 0.dp

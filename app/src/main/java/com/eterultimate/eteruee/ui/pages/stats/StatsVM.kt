@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.stats
+package com.eterultimate.eteruee.ui.pages.stats
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -46,13 +46,13 @@ class StatsVM(
 
         val today = LocalDate.now()
 
-        // 鐑姏鍥捐捣濮嬫棩鏈燂紙52 鍛ㄥ墠鐨勫懆鏃ワ級锛屾牸寮?"yyyy-MM-dd" 鐩存帴涓?JSON 涓殑 LocalDateTime 鍓嶇紑姣旇緝
+        // 热力图起始日期（52 周前的周日），格式 "yyyy-MM-dd" 直接与 JSON 中的 LocalDateTime 前缀比较
         val startDate = today
             .with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
             .minusWeeks(52)
             .toString()
 
-        // 鍩轰簬鐢ㄦ埛娑堟伅鐨?createdAt 缁熻姣忔棩娲昏穬娑堟伅鏁帮紝SQLite 渚?GROUP BY锛岃繑鍥?鈮?71 琛?
+        // 基于用户消息的 createdAt 统计每日活跃消息数，SQLite 侧 GROUP BY，返回 ≤371 行
         val conversationsPerDay = withContext(Dispatchers.IO) {
             messageNodeDAO
                 .getMessageCountPerDay(startDate)
@@ -64,7 +64,7 @@ class StatsVM(
 
         val totalConversations = conversationDAO.countAll()
 
-        // json_each() + json_extract() 鍦?SQLite 渚ц仛鍚堬紝涓嶅啀鍔犺浇瀹屾暣 JSON 鍒?Kotlin
+        // json_each() + json_extract() 在 SQLite 侧聚合，不再加载完整 JSON 到 Kotlin
         val tokenStats = messageNodeDAO.getTokenStats()
 
         val launchCount = settingsStore.settingsFlow.value.launchCount
@@ -81,4 +81,3 @@ class StatsVM(
         )
     }
 }
-

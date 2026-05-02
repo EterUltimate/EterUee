@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.chat
+package com.eterultimate.eteruee.ui.pages.chat
 
 import android.net.Uri
 import androidx.activity.compose.BackHandler
@@ -44,8 +44,8 @@ import com.dokar.sonner.ToastType
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import me.rerere.ai.provider.Model
-import me.rerere.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.ai.provider.Model
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Cancel01
 import me.rerere.hugeicons.stroke.LeftToRightListBullet
@@ -115,7 +115,7 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>, nodeId: Uuid? = null) {
 
     val inputState = vm.inputState
 
-    // 鍒濆鍖栬緭鍏ョ姸鎬侊紙澶勭悊浼犲叆鐨?files 鍜?text 鍙傛暟锛?
+    // 初始化输入状态（处理传入的 files 和 text 参数）
     LaunchedEffect(files, text) {
         if (files.isNotEmpty()) {
             val localFiles = filesManager.createChatFilesByContents(files)
@@ -296,7 +296,7 @@ private fun ChatPageContent(
                     },
                     onSendClick = {
                         if (currentChatModel == null) {
-                            toaster.show("璇峰厛閫夋嫨妯″瀷", type = ToastType.Error)
+                            toaster.show("请先选择模型", type = ToastType.Error)
                             return@ChatInput
                         }
                         if (inputState.isEditing()) {
@@ -552,4 +552,3 @@ private fun TopBar(
         )
     }
 }
-

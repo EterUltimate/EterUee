@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.ai
+package com.eterultimate.eteruee.ui.components.ai
 
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.combinedClickable
@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -59,11 +60,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import me.rerere.ai.provider.Modality
-import me.rerere.ai.provider.Model
-import me.rerere.ai.provider.ModelAbility
-import me.rerere.ai.provider.ModelType
-import me.rerere.ai.provider.ProviderSetting
+import com.eterultimate.eteruee.ai.provider.Modality
+import com.eterultimate.eteruee.ai.provider.Model
+import com.eterultimate.eteruee.ai.provider.ModelAbility
+import com.eterultimate.eteruee.ai.provider.ModelType
+import com.eterultimate.eteruee.ai.provider.ProviderSetting
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.ArrowRight01
 import me.rerere.hugeicons.stroke.Brain02
@@ -90,7 +91,6 @@ import org.koin.compose.koinInject
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import kotlin.uuid.Uuid
-import androidx.compose.ui.graphics.RectangleShape
 
 @Composable
 fun ModelSelector(
@@ -243,18 +243,18 @@ private fun ColumnScope.ModelList(
         }
     }
 
-    // 璁＄畻褰撳墠閫変腑妯″瀷鐨勪綅缃?
+    // 计算当前选中模型的位置
     val selectedModelPosition = remember(currentModel, favoriteModels, providers, typeFilteredModelsByProvider) {
         if (currentModel == null) return@remember 0
 
         var position = 0
 
-        // 璺宠繃鏃爌roviders鎻愮ず
+        // 跳过无providers提示
         if (providers.isEmpty()) {
             position += 1
         }
 
-        // 妫€鏌ユ槸鍚﹀湪鏀惰棌鍒楄〃涓?
+        // 检查是否在收藏列表中
         val favoriteIndex = favoriteModels.indexOfFirst { it.first.id == currentModel }
         if (favoriteIndex >= 0) {
             if (favoriteModels.isNotEmpty()) {
@@ -264,13 +264,13 @@ private fun ColumnScope.ModelList(
             return@remember position
         }
 
-        // 璺宠繃鏀惰棌鍒楄〃
+        // 跳过收藏列表
         if (favoriteModels.isNotEmpty()) {
             position += 1 // favorite header
             position += favoriteModels.size
         }
 
-        // 鍦╬roviders涓煡鎵?
+        // 在providers中查找
         for (provider in providers) {
             position += 1 // provider header
             val models = typeFilteredModelsByProvider[provider.id].orEmpty()
@@ -289,7 +289,7 @@ private fun ColumnScope.ModelList(
         initialFirstVisibleItemIndex = selectedModelPosition
     )
     val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
-        // 璁＄畻favorite models鍦ㄥ垪琛ㄤ腑鐨勪綅缃亸绉?
+        // 计算favorite models在列表中的位置偏移
         var favoriteStartIndex = 0
         if (providers.isEmpty()) {
             favoriteStartIndex = 1 // no providers item
@@ -301,7 +301,7 @@ private fun ColumnScope.ModelList(
         val fromIndex = from.index - favoriteStartIndex
         val toIndex = to.index - favoriteStartIndex
 
-        // 鍙鐞唂avorite models鑼冨洿鍐呯殑鎷栨嫿
+        // 只处理favorite models范围内的拖拽
         if (fromIndex >= 0 && toIndex >= 0 &&
             fromIndex < favoriteModels.size && toIndex < favoriteModels.size
         ) {
@@ -336,7 +336,7 @@ private fun ColumnScope.ModelList(
     }
 
     Surface(
-        shape = RectangleShape,
+        shape = RoundedCornerShape(50),
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp),
@@ -350,7 +350,7 @@ private fun ColumnScope.ModelList(
                     text = stringResource(R.string.model_list_search_placeholder),
                 )
             },
-            shape = RectangleShape,
+            shape = RoundedCornerShape(50),
             colors = TextFieldDefaults.colors(
                 unfocusedIndicatorColor = Color.Transparent,
                 focusedIndicatorColor = Color.Transparent,
@@ -530,13 +530,13 @@ private fun ColumnScope.ModelList(
         }
     }
 
-    // 渚涘簲鍟咮adge琛?
+    // 供应商Badge行
     val providerBadgeListState = rememberLazyListState()
     LaunchedEffect(lazyListState) {
-        // 褰揕azyColumn婊氬姩鏃讹紝LazyRow涔熻窡闅忔粴鍔?
+        // 当LazyColumn滚动时，LazyRow也跟随滚动
         snapshotFlow { lazyListState.firstVisibleItemIndex }
             .distinctUntilChanged()
-            .debounce(100) // 闃叉姈澶勭悊
+            .debounce(100) // 防抖处理
             .collect { index ->
                 if (index > 0) {
                     val currentProvider = providerPositions.entries.findLast {
@@ -753,4 +753,3 @@ fun ModelAbilityTag(model: Model) {
         }
     }
 }
-

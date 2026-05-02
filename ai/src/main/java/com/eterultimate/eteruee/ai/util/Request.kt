@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ai.util
+package com.eterultimate.eteruee.ai.util
 
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -51,15 +51,15 @@ fun JsonObject.mergeCustomBody(bodies: List<CustomBody>): JsonObject {
     val content = toMutableMap()
     bodies.forEach { body ->
         if (body.key.isNotBlank()) {
-            // 濡傛灉宸插瓨鍦ㄧ浉鍚岄敭涓斾袱鑰呴兘鏄疛sonObject锛屽垯闇€瑕侀€掑綊鍚堝苟
+            // 如果已存在相同键且两者都是JsonObject，则需要递归合并
             val existingValue = content[body.key]
             val newValue = body.value
 
             if (existingValue is JsonObject && newValue is JsonObject) {
-                // 閫掑綊鍚堝苟涓や釜JsonObject
+                // 递归合并两个JsonObject
                 content[body.key] = mergeJsonObjects(existingValue, newValue)
             } else {
-                // 鐩存帴鏇挎崲鎴栨坊鍔?
+                // 直接替换或添加
                 content[body.key] = newValue
             }
         }
@@ -68,7 +68,7 @@ fun JsonObject.mergeCustomBody(bodies: List<CustomBody>): JsonObject {
 }
 
 /**
- * 閫掑綊鍚堝苟涓や釜JsonObject
+ * 递归合并两个JsonObject
  */
 private fun mergeJsonObjects(base: JsonObject, overlay: JsonObject): JsonObject {
     val result = base.toMutableMap()
@@ -77,10 +77,10 @@ private fun mergeJsonObjects(base: JsonObject, overlay: JsonObject): JsonObject 
         val baseValue = result[key]
 
         result[key] = if (baseValue is JsonObject && value is JsonObject) {
-            // 濡傛灉涓よ€呴兘鏄疛sonObject锛岄€掑綊鍚堝苟
+            // 如果两者都是JsonObject，递归合并
             mergeJsonObjects(baseValue, value)
         } else {
-            // 鍚﹀垯浣跨敤鏂板€兼浛鎹㈡棫鍊?
+            // 否则使用新值替换旧值
             value
         }
     }
@@ -89,25 +89,25 @@ private fun mergeJsonObjects(base: JsonObject, overlay: JsonObject): JsonObject 
 }
 
 /**
- * 浠?JsonElement 涓Щ闄ゆ垨淇濈暀鎸囧畾鐨勯敭
- * @param keys 瑕佹搷浣滅殑閿垪琛?
- * @param keepOnly 濡傛灉涓?true锛屽垯鍙繚鐣欐寚瀹氱殑閿紱濡傛灉涓?false锛屽垯绉婚櫎鎸囧畾鐨勯敭
- * @return 澶勭悊鍚庣殑 JsonElement
+ * 从 JsonElement 中移除或保留指定的键
+ * @param keys 要操作的键列表
+ * @param keepOnly 如果为 true，则只保留指定的键；如果为 false，则移除指定的键
+ * @return 处理后的 JsonElement
  */
 fun JsonElement.removeElements(keys: List<String>, keepOnly: Boolean = false): JsonElement {
     return when (this) {
         is JsonObject -> {
             val newContent = if (keepOnly) {
-                // 鍙繚鐣欐寚瀹氱殑閿紙涓旈敭瀛樺湪锛?
+                // 只保留指定的键（且键存在）
                 keys.mapNotNull { key ->
                     get(key)?.let { key to it }
                 }.toMap()
             } else {
-                // 绉婚櫎鎸囧畾鐨勯敭
+                // 移除指定的键
                 toMap().filterKeys { key -> key !in keys }
             }
 
-            // 閫掑綊澶勭悊宓屽鐨?JsonElement
+            // 递归处理嵌套的 JsonElement
             JsonObject(newContent.mapValues { (_, value) ->
                 value.removeElements(keys, keepOnly)
             })
@@ -117,7 +117,6 @@ fun JsonElement.removeElements(keys: List<String>, keepOnly: Boolean = false): J
             JsonArray(map { it.removeElements(keys, keepOnly) })
         }
 
-        else -> this // 鍩烘湰绫诲瀷鐩存帴杩斿洖
+        else -> this // 基本类型直接返回
     }
 }
-

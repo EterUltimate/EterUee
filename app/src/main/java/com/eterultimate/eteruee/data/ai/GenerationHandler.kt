@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.data.ai
+package com.eterultimate.eteruee.data.ai
 
 import android.content.Context
 import android.util.Log
@@ -14,22 +14,22 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import me.rerere.ai.core.MessageRole
-import me.rerere.ai.core.ReasoningLevel
-import me.rerere.ai.core.Tool
-import me.rerere.ai.core.merge
-import me.rerere.ai.provider.CustomBody
-import me.rerere.ai.provider.Model
-import me.rerere.ai.provider.Provider
-import me.rerere.ai.provider.ProviderManager
-import me.rerere.ai.provider.ProviderSetting
-import me.rerere.ai.provider.TextGenerationParams
-import me.rerere.ai.registry.ModelRegistry
-import me.rerere.ai.ui.UIMessage
-import me.rerere.ai.ui.UIMessagePart
-import me.rerere.ai.ui.ToolApprovalState
-import me.rerere.ai.ui.handleMessageChunk
-import me.rerere.ai.ui.limitContext
+import com.eterultimate.eteruee.ai.core.MessageRole
+import com.eterultimate.eteruee.ai.core.ReasoningLevel
+import com.eterultimate.eteruee.ai.core.Tool
+import com.eterultimate.eteruee.ai.core.merge
+import com.eterultimate.eteruee.ai.provider.CustomBody
+import com.eterultimate.eteruee.ai.provider.Model
+import com.eterultimate.eteruee.ai.provider.Provider
+import com.eterultimate.eteruee.ai.provider.ProviderManager
+import com.eterultimate.eteruee.ai.provider.ProviderSetting
+import com.eterultimate.eteruee.ai.provider.TextGenerationParams
+import com.eterultimate.eteruee.ai.registry.ModelRegistry
+import com.eterultimate.eteruee.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.ai.ui.ToolApprovalState
+import com.eterultimate.eteruee.ai.ui.handleMessageChunk
+import com.eterultimate.eteruee.ai.ui.limitContext
 import com.eterultimate.eteruee.data.ai.transformers.InputMessageTransformer
 import com.eterultimate.eteruee.data.ai.transformers.MessageTransformer
 import com.eterultimate.eteruee.data.ai.transformers.OutputMessageTransformer
@@ -338,12 +338,12 @@ class GenerationHandler(
     ) {
         val internalMessages = buildList {
             val system = buildString {
-                // 濡傛灉鍔╂墜鏈夌郴缁熸彁绀猴紝鍒欐坊鍔犲埌娑堟伅涓?
+                // 如果助手有系统提示，则添加到消息中
                 if (assistant.systemPrompt.isNotBlank()) {
                     append(assistant.systemPrompt)
                 }
 
-                // 璁板繂
+                // 记忆
                 if (assistant.enableMemory) {
                     appendLine()
                     append(buildMemoryPrompt(memories = memories))
@@ -353,7 +353,7 @@ class GenerationHandler(
                     append(buildRecentChatsPrompt(assistant, conversationRepo))
                 }
 
-                // 宸ュ叿prompt
+                // 工具prompt
                 tools.forEach { tool ->
                     appendLine()
                     append(tool.systemPrompt(model, messages))
@@ -515,4 +515,3 @@ class GenerationHandler(
         }
     }.flowOn(Dispatchers.IO)
 }
-

@@ -1,21 +1,21 @@
-﻿package com.eterultimate.eteruee.data.ai.transformers
+package com.eterultimate.eteruee.data.ai.transformers
 
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import me.rerere.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessage
 import com.eterultimate.eteruee.utils.toLocalDateTime
 import java.time.ZoneId
 import java.time.format.TextStyle
 import java.util.Locale
 import kotlin.time.toJavaInstant
 
-private const val TIME_GAP_THRESHOLD_SECONDS = 3600L // 1 灏忔椂
+private const val TIME_GAP_THRESHOLD_SECONDS = 3600L // 1 小时
 
 /**
- * 鏃堕棿鎻愰啋娉ㄥ叆杞崲鍣?
+ * 时间提醒注入转换器
  *
- * 鍦ㄦ椂闂撮棿闅旇緝澶х殑娑堟伅涔嬪墠鑷姩娉ㄥ叆 <time_reminder>锛屽府鍔?AI 浜嗚В瀵硅瘽鐨勬椂闂撮棿闅?
+ * 在时间间隔较大的消息之前自动注入 <time_reminder>，帮助 AI 了解对话的时间间隔
  */
 object TimeReminderTransformer : InputMessageTransformer {
     override suspend fun transform(
@@ -66,4 +66,3 @@ private fun formatGap(seconds: Long): String {
         else -> "${seconds / 86400} d"
     }
 }
-

@@ -1,22 +1,22 @@
-﻿package com.eterultimate.eteruee.data.model
+package com.eterultimate.eteruee.data.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import me.rerere.ai.core.MessageRole
-import me.rerere.ai.provider.CustomBody
-import me.rerere.ai.provider.CustomHeader
-import me.rerere.ai.ui.UIMessage
-import me.rerere.ai.core.ReasoningLevel
+import com.eterultimate.eteruee.ai.core.MessageRole
+import com.eterultimate.eteruee.ai.provider.CustomBody
+import com.eterultimate.eteruee.ai.provider.CustomHeader
+import com.eterultimate.eteruee.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.core.ReasoningLevel
 import com.eterultimate.eteruee.data.ai.tools.LocalToolOption
 import kotlin.uuid.Uuid
 
 @Serializable
 data class Assistant(
     val id: Uuid = Uuid.random(),
-    val chatModelId: Uuid? = null, // 濡傛灉涓簄ull, 浣跨敤鍏ㄥ眬榛樿妯″瀷
+    val chatModelId: Uuid? = null, // 如果为null, 使用全局默认模型
     val name: String = "",
     val avatar: Avatar = Avatar.Dummy,
-    val useAssistantAvatar: Boolean = false, // 浣跨敤鍔╂墜澶村儚鏇夸唬妯″瀷澶村儚
+    val useAssistantAvatar: Boolean = false, // 使用助手头像替代模型头像
     val tags: List<Uuid> = emptyList(),
     val systemPrompt: String = "",
     val temperature: Float? = null,
@@ -24,7 +24,7 @@ data class Assistant(
     val contextMessageSize: Int = 0,
     val streamOutput: Boolean = true,
     val enableMemory: Boolean = false,
-    val useGlobalMemory: Boolean = false, // 浣跨敤鍏ㄥ眬鍏变韩璁板繂鑰岄潪鍔╂墜闅旂璁板繂
+    val useGlobalMemory: Boolean = false, // 使用全局共享记忆而非助手隔离记忆
     val enableRecentChatsReference: Boolean = false,
     val messageTemplate: String = "{{ message }}",
     val presetMessages: List<UIMessage> = emptyList(),
@@ -38,10 +38,10 @@ data class Assistant(
     val localTools: List<LocalToolOption> = listOf(LocalToolOption.TimeInfo),
     val background: String? = null,
     val backgroundOpacity: Float = 1.0f,
-    val modeInjectionIds: Set<Uuid> = emptySet(),      // 鍏宠仈鐨勬ā寮忔敞鍏?ID
-    val lorebookIds: Set<Uuid> = emptySet(),            // 鍏宠仈鐨?Lorebook ID
-    val enabledSkills: Set<String> = emptySet(),        // 鍚敤鐨?skill 鍚嶇О鍒楄〃
-    val enableTimeReminder: Boolean = false,            // 鏃堕棿闂撮殧鎻愰啋娉ㄥ叆
+    val modeInjectionIds: Set<Uuid> = emptySet(),      // 关联的模式注入 ID
+    val lorebookIds: Set<Uuid> = emptySet(),            // 关联的 Lorebook ID
+    val enabledSkills: Set<String> = emptySet(),        // 启用的 skill 名称列表
+    val enableTimeReminder: Boolean = false,            // 时间间隔提醒注入
 )
 
 @Serializable
@@ -68,10 +68,10 @@ data class AssistantRegex(
     val id: Uuid,
     val name: String = "",
     val enabled: Boolean = true,
-    val findRegex: String = "", // 姝ｅ垯琛ㄨ揪寮?
-    val replaceString: String = "", // 鏇挎崲瀛楃涓?
+    val findRegex: String = "", // 正则表达式
+    val replaceString: String = "", // 替换字符串
     val affectingScope: Set<AssistantAffectScope> = setOf(),
-    val visualOnly: Boolean = false, // 鏄惁浠呭湪瑙嗚涓婂奖鍝?
+    val visualOnly: Boolean = false, // 是否仅在视觉上影响
 )
 
 fun String.replaceRegexes(
@@ -92,7 +92,7 @@ fun String.replaceRegexes(
                 result
             } catch (e: Exception) {
                 e.printStackTrace()
-                // 濡傛灉姝ｅ垯琛ㄨ揪寮忔牸寮忛敊璇紝杩斿洖鍘熷瓧绗︿覆
+                // 如果正则表达式格式错误，返回原字符串
                 acc
             }
         } else {
@@ -102,31 +102,31 @@ fun String.replaceRegexes(
 }
 
 /**
- * 娉ㄥ叆浣嶇疆
+ * 注入位置
  */
 @Serializable
 enum class InjectionPosition {
     @SerialName("before_system_prompt")
-    BEFORE_SYSTEM_PROMPT,   // 绯荤粺鎻愮ず璇嶄箣鍓?
+    BEFORE_SYSTEM_PROMPT,   // 系统提示词之前
 
     @SerialName("after_system_prompt")
-    AFTER_SYSTEM_PROMPT,    // 绯荤粺鎻愮ず璇嶄箣鍚庯紙鏈€甯哥敤锛?
+    AFTER_SYSTEM_PROMPT,    // 系统提示词之后（最常用）
 
     @SerialName("top_of_chat")
-    TOP_OF_CHAT,            // 瀵硅瘽鏈€寮€澶达紙绗竴鏉＄敤鎴锋秷鎭箣鍓嶏級
+    TOP_OF_CHAT,            // 对话最开头（第一条用户消息之前）
 
     @SerialName("bottom_of_chat")
-    BOTTOM_OF_CHAT,         // 鏈€鏂版秷鎭箣鍓嶏紙褰撳墠鐢ㄦ埛杈撳叆涔嬪墠锛?
+    BOTTOM_OF_CHAT,         // 最新消息之前（当前用户输入之前）
 
     @SerialName("at_depth")
-    AT_DEPTH,               // 鍦ㄦ寚瀹氭繁搴︿綅缃彃鍏ワ紙浠庢渶鏂版秷鎭線鍓嶆暟锛?
+    AT_DEPTH,               // 在指定深度位置插入（从最新消息往前数）
 }
 
 /**
- * 鎻愮ず璇嶆敞鍏?
+ * 提示词注入
  *
- * - ModeInjection: 鍩轰簬妯″紡寮€鍏崇殑娉ㄥ叆锛堝瀛︿範妯″紡锛?
- * - RegexInjection: 鍩轰簬姝ｅ垯鍖归厤鐨勬敞鍏ワ紙Lorebook锛?
+ * - ModeInjection: 基于模式开关的注入（如学习模式）
+ * - RegexInjection: 基于正则匹配的注入（Lorebook）
  */
 @Serializable
 sealed class PromptInjection {
@@ -136,11 +136,11 @@ sealed class PromptInjection {
     abstract val priority: Int
     abstract val position: InjectionPosition
     abstract val content: String
-    abstract val injectDepth: Int  // 褰?position 涓?AT_DEPTH 鏃朵娇鐢紝琛ㄧず浠庢渶鏂版秷鎭線鍓嶆暟鐨勪綅缃?
-    abstract val role: MessageRole  // 娉ㄥ叆瑙掕壊锛歎SER 鎴?ASSISTANT
+    abstract val injectDepth: Int  // 当 position 为 AT_DEPTH 时使用，表示从最新消息往前数的位置
+    abstract val role: MessageRole  // 注入角色：USER 或 ASSISTANT
 
     /**
-     * 妯″紡娉ㄥ叆 - 鍩轰簬寮€鍏崇姸鎬佽Е鍙?
+     * 模式注入 - 基于开关状态触发
      */
     @Serializable
     @SerialName("mode")
@@ -156,7 +156,7 @@ sealed class PromptInjection {
     ) : PromptInjection()
 
     /**
-     * 姝ｅ垯娉ㄥ叆 - 鍩轰簬鍐呭鍖归厤瑙﹀彂锛堜笘鐣屼功锛?
+     * 正则注入 - 基于内容匹配触发（世界书）
      */
     @Serializable
     @SerialName("regex")
@@ -169,16 +169,16 @@ sealed class PromptInjection {
         override val content: String = "",
         override val injectDepth: Int = 4,
         override val role: MessageRole = MessageRole.USER,
-        val keywords: List<String> = emptyList(),  // 瑙﹀彂鍏抽敭璇?
-        val useRegex: Boolean = false,             // 鏄惁浣跨敤姝ｅ垯鍖归厤
-        val caseSensitive: Boolean = false,        // 澶у皬鍐欐晱鎰?
-        val scanDepth: Int = 4,                    // 鎵弿鏈€杩慛鏉℃秷鎭?
-        val constantActive: Boolean = false,       // 甯搁┗婵€娲伙紙鏃犻渶鍖归厤锛?
+        val keywords: List<String> = emptyList(),  // 触发关键词
+        val useRegex: Boolean = false,             // 是否使用正则匹配
+        val caseSensitive: Boolean = false,        // 大小写敏感
+        val scanDepth: Int = 4,                    // 扫描最近N条消息
+        val constantActive: Boolean = false,       // 常驻激活（无需匹配）
     ) : PromptInjection()
 }
 
 /**
- * Lorebook - 缁勭粐绠＄悊澶氫釜 RegexInjection
+ * Lorebook - 组织管理多个 RegexInjection
  */
 @Serializable
 data class Lorebook(
@@ -190,10 +190,10 @@ data class Lorebook(
 )
 
 /**
- * 妫€鏌?RegexInjection 鏄惁琚Е鍙?
+ * 检查 RegexInjection 是否被触发
  *
- * @param context 瑕佹壂鎻忕殑涓婁笅鏂囨枃鏈?
- * @return 鏄惁瑙﹀彂
+ * @param context 要扫描的上下文文本
+ * @return 是否触发
  */
 fun PromptInjection.RegexInjection.isTriggered(context: String): Boolean {
     if (!enabled) return false
@@ -219,11 +219,11 @@ fun PromptInjection.RegexInjection.isTriggered(context: String): Boolean {
 }
 
 /**
- * 浠庢秷鎭垪琛ㄤ腑鎻愬彇鐢ㄤ簬鍖归厤鐨勪笂涓嬫枃鏂囨湰
+ * 从消息列表中提取用于匹配的上下文文本
  *
- * @param messages 娑堟伅鍒楄〃
- * @param scanDepth 鎵弿娣卞害锛堟渶杩慛鏉℃秷鎭級
- * @return 鎷兼帴鐨勬枃鏈唴瀹?
+ * @param messages 消息列表
+ * @param scanDepth 扫描深度（最近N条消息）
+ * @return 拼接的文本内容
  */
 fun extractContextForMatching(
     messages: List<UIMessage>,
@@ -235,11 +235,11 @@ fun extractContextForMatching(
 }
 
 /**
- * 鑾峰彇鎵€鏈夎瑙﹀彂鐨勬敞鍏ワ紝鎸変紭鍏堢骇鎺掑簭
+ * 获取所有被触发的注入，按优先级排序
  *
- * @param injections 鎵€鏈夋敞鍏ヨ鍒?
- * @param context 涓婁笅鏂囨枃鏈?
- * @return 琚Е鍙戠殑娉ㄥ叆鍒楄〃锛屾寜浼樺厛绾ч檷搴忔帓鍒?
+ * @param injections 所有注入规则
+ * @param context 上下文文本
+ * @return 被触发的注入列表，按优先级降序排列
  */
 fun getTriggeredInjections(
     injections: List<PromptInjection.RegexInjection>,
@@ -249,4 +249,3 @@ fun getTriggeredInjections(
         .filter { it.isTriggered(context) }
         .sortedByDescending { it.priority }
 }
-

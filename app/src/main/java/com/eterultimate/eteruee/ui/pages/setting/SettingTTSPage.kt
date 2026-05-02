@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.setting
+package com.eterultimate.eteruee.ui.pages.setting
 
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Tick01
@@ -67,7 +67,7 @@ import com.eterultimate.eteruee.ui.context.LocalTTSState
 import com.eterultimate.eteruee.ui.pages.setting.components.TTSProviderConfigure
 import com.eterultimate.eteruee.ui.theme.CustomColors
 import com.eterultimate.eteruee.utils.plus
-import me.rerere.tts.provider.TTSProviderSetting
+import com.eterultimate.eteruee.tts.provider.TTSProviderSetting
 import org.koin.androidx.compose.koinViewModel
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -391,7 +391,7 @@ private fun TTSProviderItem(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 鐘舵€佹爣绛?
+                // 状态标签
                 if (isSelected) {
                     Tag(type = TagType.SUCCESS) {
                         Text(stringResource(R.string.setting_tts_page_selected))
@@ -400,7 +400,7 @@ private fun TTSProviderItem(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                // TTS娴嬭瘯鎾斁鎸夐挳
+                // TTS测试播放按钮
                 if (isSelected && isAvailable) {
                     val testText = stringResource(R.string.setting_tts_page_test_text)
                     IconButton(
@@ -458,4 +458,3 @@ private fun TTSProviderItem(
         }
     }
 }
-

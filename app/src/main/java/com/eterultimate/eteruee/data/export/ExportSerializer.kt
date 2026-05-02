@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.data.export
+package com.eterultimate.eteruee.data.export
 
 import android.content.Context
 import android.net.Uri
@@ -28,15 +28,15 @@ interface ExportSerializer<T> {
     fun export(data: T): ExportData
     fun import(context: Context, uri: Uri): Result<T>
 
-    // 鑾峰彇瀵煎嚭鏂囦欢鍚?
+    // 获取导出文件名
     fun getExportFileName(data: T): String = "${type}.json"
 
-    // 渚挎嵎鏂规硶锛氱洿鎺ュ鍑轰负 JSON 瀛楃涓?
+    // 便捷方法：直接导出为 JSON 字符串
     fun exportToJson(data: T, json: Json = DefaultJson): String {
         return json.encodeToString(ExportData.serializer(), export(data))
     }
 
-    // 璇诲彇 URI 鍐呭鐨勪究鎹锋柟娉?
+    // 读取 URI 内容的便捷方法
     fun readUri(context: Context, uri: Uri): String {
         return context.contentResolver.openInputStream(uri)
             ?.bufferedReader()
@@ -79,7 +79,7 @@ object ModeInjectionSerializer : ExportSerializer<PromptInjection.ModeInjection>
     override fun import(context: Context, uri: Uri): Result<PromptInjection.ModeInjection> {
         return runCatching {
             val json = readUri(context, uri)
-            // 棣栧厛灏濊瘯瑙ｆ瀽涓鸿嚜宸辩殑鏍煎紡
+            // 首先尝试解析为自己的格式
             tryImportNative(json)
                 ?: throw IllegalArgumentException("Unsupported format")
         }
@@ -116,9 +116,9 @@ object LorebookSerializer : ExportSerializer<Lorebook> {
     override fun import(context: Context, uri: Uri): Result<Lorebook> {
         return runCatching {
             val json = readUri(context, uri)
-            // 棣栧厛灏濊瘯瑙ｆ瀽涓鸿嚜宸辩殑鏍煎紡
+            // 首先尝试解析为自己的格式
             tryImportNative(json)
-            // 鐒跺悗灏濊瘯瑙ｆ瀽涓?SillyTavern 鏍煎紡
+            // 然后尝试解析为 SillyTavern 格式
                 ?: tryImportSillyTavern(json, getUriFileName(context, uri)?.removeSuffix(".json"))
                 ?: throw IllegalArgumentException("Unsupported format")
         }
@@ -163,7 +163,7 @@ object LorebookSerializer : ExportSerializer<Lorebook> {
                         injectDepth = entry.depth,
                         content = entry.content,
                         keywords = entry.key,
-                        useRegex = false, // SillyTavern 鏍煎紡涓嶆敮鎸?useRegex
+                        useRegex = false, // SillyTavern 格式不支持 useRegex
                         caseSensitive = entry.caseSensitive ?: false,
                         scanDepth = entry.scanDepth ?: 4,
                         constantActive = entry.constant,
@@ -178,8 +178,8 @@ object LorebookSerializer : ExportSerializer<Lorebook> {
             0 -> InjectionPosition.BEFORE_SYSTEM_PROMPT
             1 -> InjectionPosition.AFTER_SYSTEM_PROMPT
             2 -> InjectionPosition.TOP_OF_CHAT
-            3 -> InjectionPosition.TOP_OF_CHAT // After Examples -> 鑱婂ぉ鍘嗗彶寮€澶?
-            4 -> InjectionPosition.AT_DEPTH    // @Depth 妯″紡
+            3 -> InjectionPosition.TOP_OF_CHAT // After Examples -> 聊天历史开头
+            4 -> InjectionPosition.AT_DEPTH    // @Depth 模式
             else -> InjectionPosition.AFTER_SYSTEM_PROMPT
         }
     }
@@ -203,4 +203,3 @@ private data class SillyTavernEntry(
     val scanDepth: Int? = null,
     val caseSensitive: Boolean? = null,
 )
-

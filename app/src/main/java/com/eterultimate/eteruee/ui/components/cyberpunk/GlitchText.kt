@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.cyberpunk
+package com.eterultimate.eteruee.ui.components.cyberpunk
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -21,8 +21,8 @@ import com.eterultimate.eteruee.ui.theme.presets.NeonPink
 import com.eterultimate.eteruee.ui.theme.presets.TextPrimary
 
 /**
- * 纭湕鏁呴殰鏂囧瓧鏁堟灉
- * 閿愬埄鍋忕Щ + 鏃犲钩婊戣繃娓★紝宸ヤ笟鎰?
+ * 硬朗故障文字效果
+ * 锐利偏移 + 无平滑过渡，工业感
  */
 @Composable
 fun GlitchText(
@@ -43,21 +43,21 @@ fun GlitchText(
     )
 
     Box(modifier = modifier) {
-        // 闈掕壊鍋忕Щ灞?
+        // 青色偏移层
         Text(
             text = text,
             style = style.copy(fontWeight = FontWeight.Black),
             color = NeonCyan.copy(alpha = 0.8f),
             modifier = Modifier.offset(x = (offsetX * glitchIntensity).dp)
         )
-        // 绮夎壊鍋忕Щ灞?
+        // 粉色偏移层
         Text(
             text = text,
             style = style.copy(fontWeight = FontWeight.Black),
             color = NeonPink.copy(alpha = 0.8f),
             modifier = Modifier.offset(x = (-offsetX * glitchIntensity).dp)
         )
-        // 涓绘枃瀛楀眰
+        // 主文字层
         Text(
             text = text,
             style = style.copy(fontWeight = FontWeight.Black),
@@ -67,7 +67,7 @@ fun GlitchText(
 }
 
 /**
- * 闈欐€佹晠闅滄枃瀛楋紙鏃犲姩鐢伙級
+ * 静态故障文字（无动画）
  */
 @Composable
 fun GlitchTextStatic(
@@ -97,4 +97,3 @@ fun GlitchTextStatic(
         )
     }
 }
-

@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.message
+package com.eterultimate.eteruee.ui.components.message
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.toJavaLocalDateTime
-import me.rerere.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessage
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Clock02
 import me.rerere.hugeicons.stroke.Download04
@@ -29,7 +29,7 @@ import com.eterultimate.eteruee.utils.toFixed
 import java.time.Duration
 
 /**
- * 鏄剧ず娑堟伅鐨勬妧鏈粺璁′俊鎭紙濡?token 浣跨敤閲忥級
+ * 显示消息的技术统计信息（如 token 使用量）
  */
 @Composable
 fun ChatMessageNerdLine(
@@ -134,4 +134,3 @@ fun StatsItem(
         content()
     }
 }
-

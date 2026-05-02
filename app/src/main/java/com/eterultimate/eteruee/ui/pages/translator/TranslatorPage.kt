@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.translator
+package com.eterultimate.eteruee.ui.pages.translator
 
 import android.content.ClipData
 import me.rerere.hugeicons.HugeIcons
@@ -53,7 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.launch
-import me.rerere.ai.provider.ModelType
+import com.eterultimate.eteruee.ai.provider.ModelType
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.ui.components.ai.ModelSelector
 import com.eterultimate.eteruee.ui.components.nav.BackButton
@@ -73,10 +73,10 @@ fun TranslatorPage(vm: TranslatorVM = koinViewModel()) {
     val toaster = LocalToaster.current
     val scope = rememberCoroutineScope()
 
-    // 澶勭悊閿欒
+    // 处理错误
     LaunchedEffect(Unit) {
         vm.errorFlow.collect { error ->
-            toaster.show(error.message ?: "閿欒", type = ToastType.Error)
+            toaster.show(error.message ?: "错误", type = ToastType.Error)
         }
     }
 
@@ -126,7 +126,7 @@ fun TranslatorPage(vm: TranslatorVM = koinViewModel()) {
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 杈撳叆鍖哄煙
+            // 输入区域
             Column {
                 OutlinedTextField(
                     value = inputText,
@@ -152,11 +152,11 @@ fun TranslatorPage(vm: TranslatorVM = koinViewModel()) {
                     }
                 ) {
                     Icon(HugeIcons.Clipboard, null)
-                    Text("绮樿创鏂囨湰", modifier = Modifier.padding(start = 4.dp))
+                    Text("粘贴文本", modifier = Modifier.padding(start = 4.dp))
                 }
             }
 
-            // 缈昏瘧杩涘害鏉?
+            // 翻译进度条
             Crossfade(translating) { isTranslating ->
                 if (isTranslating) {
                     LinearWavyProgressIndicator(
@@ -169,7 +169,7 @@ fun TranslatorPage(vm: TranslatorVM = koinViewModel()) {
                 }
             }
 
-            // 缈昏瘧缁撴灉
+            // 翻译结果
             SelectionContainer {
                 Text(
                     text = translatedText.ifEmpty {
@@ -197,7 +197,7 @@ fun TranslatorPage(vm: TranslatorVM = koinViewModel()) {
                     }
                 ) {
                     Icon(HugeIcons.Clipboard, null)
-                    Text("澶嶅埗缈昏瘧缁撴灉", modifier = Modifier.padding(start = 4.dp))
+                    Text("复制翻译结果", modifier = Modifier.padding(start = 4.dp))
                 }
             }
         }
@@ -291,7 +291,7 @@ private fun BottomBar(
 ) {
     BottomAppBar(
         actions = {
-            // 鐩爣璇█閫夋嫨
+            // 目标语言选择
             LanguageSelector(
                 targetLanguage = targetLanguage,
                 onLanguageSelected = { onLanguageSelected(it) }
@@ -332,4 +332,3 @@ private fun BottomBar(
         }
     )
 }
-

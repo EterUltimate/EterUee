@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.data.datastore
+package com.eterultimate.eteruee.data.datastore
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -8,11 +8,11 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
-import me.rerere.ai.provider.BalanceOption
-import me.rerere.ai.provider.Modality
-import me.rerere.ai.provider.Model
-import me.rerere.ai.provider.ModelAbility
-import me.rerere.ai.provider.ProviderSetting
+import com.eterultimate.eteruee.ai.provider.BalanceOption
+import com.eterultimate.eteruee.ai.provider.Modality
+import com.eterultimate.eteruee.ai.provider.Model
+import com.eterultimate.eteruee.ai.provider.ModelAbility
+import com.eterultimate.eteruee.ai.provider.ProviderSetting
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.ui.components.richtext.MarkdownBlock
 import kotlin.uuid.Uuid
@@ -23,7 +23,7 @@ val DEFAULT_PROVIDERS = listOf(
     ProviderSetting.OpenAI(
         id = Uuid.parse("a8d2d463-e8c0-41f2-b89e-f5eb8e716cce"),
         name = "EterUee",
-        baseUrl = "https://api.rikka-ai.com/v1",
+        baseUrl = "https://api.eteruee.com/v1",
         apiKey = "",
         enabled = true,
         builtIn = true,
@@ -65,16 +65,16 @@ val DEFAULT_PROVIDERS = listOf(
         description = {
             Text(
                 text = buildAnnotatedString {
-                    append("鎻愪緵 OpenAI銆丆laude銆丟oogle Gemini 绛変富娴佹ā鍨嬬殑楂樺苟鍙戝拰绋冲畾鏈嶅姟")
+                    append("提供 OpenAI、Claude、Google Gemini 等主流模型的高并发和稳定服务")
                     appendLine()
-                    append("瀹樼綉锛?)
+                    append("官网：")
                     withLink(LinkAnnotation.Url("https://aihubmix.com?aff=pG7r")) {
                         withStyle(SpanStyle(MaterialTheme.colorScheme.primary)) {
                             append("https://aihubmix.com")
                         }
                     }
                     appendLine()
-                    append("鍏呭€? ")
+                    append("充值: ")
                     withLink(LinkAnnotation.Url("https://console.aihubmix.com/topup")) {
                         withStyle(SpanStyle(MaterialTheme.colorScheme.primary)) {
                             append("https://console.aihubmix.com/topup")
@@ -85,13 +85,13 @@ val DEFAULT_PROVIDERS = listOf(
         },
         shortDescription = {
             Text(
-                text = "鏀寔gpt, claude, gemini绛?00+妯″瀷"
+                text = "支持gpt, claude, gemini等200+模型"
             )
         },
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("56a94d29-c88b-41c5-8e09-38a7612d6cf8"),
-        name = "纭呭熀娴佸姩",
+        name = "硅基流动",
         baseUrl = "https://api.siliconflow.cn/v1",
         apiKey = "",
         builtIn = true,
@@ -148,7 +148,7 @@ val DEFAULT_PROVIDERS = listOf(
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("da020a90-f7b3-4c29-b90e-c511a0630630"),
-        name = "灏忛┈绠楀姏",
+        name = "小马算力",
         baseUrl = "https://api.tokenpony.cn/v1",
         apiKey = "",
         enabled = false,
@@ -156,15 +156,15 @@ val DEFAULT_PROVIDERS = listOf(
         description = {
             MarkdownBlock(
                 content = """
-                    灏忛┈绠楀姏鏄竴瀹舵彁渚涘浗浜фā鍨嬬殑API缃戝叧鏈嶅姟锛屼娇鐢ㄧ粺涓€鎺ュ彛鎺ュ叆澶氱妯″瀷
-                    瀹樼綉: [tokenpony.cn](https://www.tokenpony.cn/79clb)
+                    小马算力是一家提供国产模型的API网关服务，使用统一接口接入多种模型
+                    官网: [tokenpony.cn](https://www.tokenpony.cn/79clb)
                 """.trimIndent()
             )
         }
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("f76cae46-069a-4334-ab8e-224e4979e58c"),
-        name = "闃块噷浜戠櫨鐐?,
+        name = "阿里云百炼",
         baseUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1",
         apiKey = "",
         enabled = false,
@@ -172,7 +172,7 @@ val DEFAULT_PROVIDERS = listOf(
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("3dfd6f9b-f9d9-417f-80c1-ff8d77184191"),
-        name = "鐏北寮曟搸",
+        name = "火山引擎",
         baseUrl = "https://ark.cn-beijing.volces.com/api/v3",
         apiKey = "",
         enabled = false,
@@ -180,7 +180,7 @@ val DEFAULT_PROVIDERS = listOf(
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("d6c4d8c6-3f62-4ca9-a6f3-7ade6b15ecc3"),
-        name = "鏈堜箣鏆楅潰",
+        name = "月之暗面",
         baseUrl = "https://api.moonshot.cn/v1",
         apiKey = "",
         enabled = false,
@@ -193,7 +193,7 @@ val DEFAULT_PROVIDERS = listOf(
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("3bc40dc1-b11a-46fa-863b-6306971223be"),
-        name = "鏅鸿氨AI寮€鏀惧钩鍙?,
+        name = "智谱AI开放平台",
         baseUrl = "https://open.bigmodel.cn/api/paas/v4",
         apiKey = "",
         enabled = false,
@@ -201,7 +201,7 @@ val DEFAULT_PROVIDERS = listOf(
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("f4f8870e-82d3-495b-9b64-d58e508b3b2c"),
-        name = "闃惰穬鏄熻景",
+        name = "阶跃星辰",
         baseUrl = "https://api.stepfun.com/v1",
         apiKey = "",
         enabled = false,
@@ -217,7 +217,7 @@ val DEFAULT_PROVIDERS = listOf(
         description = {
             Text(
                 text = buildAnnotatedString {
-                    append("浼佷笟绾I鏈嶅姟, 瀹樼綉锛?)
+                    append("企业级AI服务, 官网：")
                     withLink(LinkAnnotation.Url("https://302.ai/")) {
                         withStyle(SpanStyle(MaterialTheme.colorScheme.primary)) {
                             append("https://302.ai/")
@@ -229,7 +229,7 @@ val DEFAULT_PROVIDERS = listOf(
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("ef5d149b-8e34-404b-818c-6ec242e5c3c5"),
-        name = "鑵捐Hunyuan",
+        name = "腾讯Hunyuan",
         baseUrl = "https://api.hunyuan.cloud.tencent.com/v1",
         apiKey = "",
         enabled = false,
@@ -255,8 +255,8 @@ val DEFAULT_PROVIDERS = listOf(
             Text(
                 text = buildAnnotatedString {
                     append(
-                        "鎵€鏈堿I澶фā鍨嬪叏閮藉彲浠ョ敤锛佹棤闇€缈诲锛佷环鏍兼槸瀹樻柟5鎶橈紒\n" +
-                            "瀹樼綉锛?
+                        "所有AI大模型全都可以用！无需翻墙！价格是官方5折！\n" +
+                            "官网："
                     )
                     withLink(LinkAnnotation.Url("https://ackai.fun/register?aff=jxpP")) {
                         withStyle(SpanStyle(MaterialTheme.colorScheme.primary)) {
@@ -277,7 +277,7 @@ val DEFAULT_PROVIDERS = listOf(
         description = {
             Text(
                 text = buildAnnotatedString {
-                    append("涓€绔欏紡LLM API涓浆骞冲彴璐ф簮绔橽n瀹樼綉锛?)
+                    append("一站式LLM API中转平台货源站\n官网：")
                     withLink(LinkAnnotation.Url("https://www.unifyllm.com/")) {
                         withStyle(SpanStyle(MaterialTheme.colorScheme.primary)) {
                             append("https://www.unifyllm.com/")
@@ -288,4 +288,3 @@ val DEFAULT_PROVIDERS = listOf(
         }
     ),
 )
-

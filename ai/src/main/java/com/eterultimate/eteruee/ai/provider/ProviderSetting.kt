@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ai.provider
+package com.eterultimate.eteruee.ai.provider
 
 import androidx.compose.runtime.Composable
 import kotlinx.serialization.SerialName
@@ -8,9 +8,9 @@ import kotlin.uuid.Uuid
 
 @Serializable
 data class BalanceOption(
-    val enabled: Boolean = false, // 鏄惁寮€鍚綑棰濊幏鍙栧姛鑳?
-    val apiPath: String = "/credits", // 浣欓鑾峰彇API璺緞
-    val resultPath: String = "data.total_usage", // 浣欓鑾峰彇JSON璺緞
+    val enabled: Boolean = false, // 是否开启余额获取功能
+    val apiPath: String = "/credits", // 余额获取API路径
+    val resultPath: String = "data.total_usage", // 余额获取JSON路径
 )
 
 @Serializable
@@ -236,4 +236,3 @@ sealed class ProviderSetting {
         }
     }
 }
-

@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.debug
+package com.eterultimate.eteruee.ui.pages.debug
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -6,9 +6,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import me.rerere.ai.core.MessageRole
-import me.rerere.ai.ui.UIMessage
-import me.rerere.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.ai.core.MessageRole
+import com.eterultimate.eteruee.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.data.datastore.DEFAULT_ASSISTANT_ID
 import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.data.datastore.SettingsStore
@@ -35,8 +35,8 @@ class DebugVM(
     }
 
     /**
-     * 鍒涘缓涓€涓秴澶х殑瀵硅瘽鐢ㄤ簬娴嬭瘯 CursorWindow 闄愬埗
-     * @param sizeMB 鐩爣澶у皬锛圡B锛?
+     * 创建一个超大的对话用于测试 CursorWindow 限制
+     * @param sizeMB 目标大小（MB）
      */
     fun createOversizedConversation(sizeMB: Int = 3) {
         viewModelScope.launch {
@@ -44,14 +44,14 @@ class DebugVM(
             val messageNodes = mutableListOf<MessageNode>()
             var currentSize = 0
 
-            // 鐢熸垚澶ч噺娑堟伅鐩村埌杈惧埌鐩爣澶у皬
+            // 生成大量消息直到达到目标大小
             var index = 0
             while (currentSize < targetSize) {
-                // 鐢熸垚涓€涓寘鍚ぇ閲忔枃鏈殑娑堟伅锛堢害 100KB 姣忔潯锛?
+                // 生成一个包含大量文本的消息（约 100KB 每条）
                 val largeText = buildString {
                     repeat(100) {
-                        append("杩欐槸涓€娈靛緢闀跨殑娴嬭瘯鏂囨湰锛岀敤浜庢祴璇?CursorWindow 鐨勫ぇ灏忛檺鍒躲€?)
-                        append("Row too big to fit into CursorWindow 閿欒閫氬父鍙戠敓鍦ㄥ崟琛屾暟鎹秴杩?2MB 鏃躲€?)
+                        append("这是一段很长的测试文本，用于测试 CursorWindow 的大小限制。")
+                        append("Row too big to fit into CursorWindow 错误通常发生在单行数据超过 2MB 时。")
                         append("Lorem ipsum dolor sit amet, consectetur adipiscing elit. ")
                         append("Index: $index, Block: $it. ")
                     }
@@ -66,21 +66,21 @@ class DebugVM(
                 val assistantMessage = UIMessage(
                     id = Uuid.random(),
                     role = MessageRole.ASSISTANT,
-                    parts = listOf(UIMessagePart.Text("鍥炲: $largeText")),
+                    parts = listOf(UIMessagePart.Text("回复: $largeText")),
                     createdAt = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
                 )
 
                 messageNodes.add(MessageNode.of(userMessage))
                 messageNodes.add(MessageNode.of(assistantMessage))
 
-                currentSize += largeText.length * 2 * 2 // 澶х害浼扮畻
+                currentSize += largeText.length * 2 * 2 // 大约估算
                 index++
             }
 
             val conversation = Conversation(
                 id = Uuid.random(),
                 assistantId = DEFAULT_ASSISTANT_ID,
-                title = "瓒呭ぇ瀵硅瘽娴嬭瘯 (${sizeMB}MB)",
+                title = "超大对话测试 (${sizeMB}MB)",
                 messageNodes = messageNodes,
             )
 
@@ -106,7 +106,7 @@ class DebugVM(
             val conversation = Conversation(
                 id = Uuid.random(),
                 assistantId = DEFAULT_ASSISTANT_ID,
-                title = "${messageCount}鏉℃秷鎭祴璇?,
+                title = "${messageCount}条消息测试",
                 messageNodes = messageNodes,
             )
 
@@ -116,13 +116,12 @@ class DebugVM(
 
     private fun randomMessageText(index: Int, role: MessageRole): String {
         val fragments = listOf(
-            "蹇€?, "闅忔満", "娑堟伅", "鏍蜂緥", "鐢ㄤ簬", "娴嬭瘯", "鍒楄〃", "娓叉煋", "婊氬姩", "鎬ц兘",
-            "鑱婂ぉ", "瀵硅瘽", "鍐呭", "缁撴瀯", "楠岃瘉", "鍒嗛〉", "椤哄簭", "绋冲畾", "绯荤粺",
+            "快速", "随机", "消息", "样例", "用于", "测试", "列表", "渲染", "滚动", "性能",
+            "聊天", "对话", "内容", "结构", "验证", "分页", "顺序", "稳定", "系统",
         )
         val wordCount = Random.nextInt(6, 14)
-        val prefix = if (role == MessageRole.USER) "鐢ㄦ埛" else "鍔╂墜"
+        val prefix = if (role == MessageRole.USER) "用户" else "助手"
         val body = List(wordCount) { fragments.random() }.joinToString(" ")
         return "$prefix#${index + 1}: $body"
     }
 }
-

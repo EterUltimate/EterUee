@@ -1,14 +1,14 @@
-﻿package com.eterultimate.eteruee.data.datastore.migration
+package com.eterultimate.eteruee.data.datastore.migration
 
 import androidx.datastore.core.DataMigration
 import androidx.datastore.preferences.core.Preferences
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 
 /**
- * V4 杩佺Щ锛氬己鍒跺叧闂姩鎬侀鑹诧紝鍚敤 Cyberpunk 涓婚
+ * V4 迁移：强制关闭动态颜色，启用 Cyberpunk 主题
  * 
- * 鍘熷洜锛氶」鐩凡閲嶆瀯涓哄彧淇濈暀 Cyberpunk 涓婚锛屼絾涔嬪墠淇濆瓨鐨勭敤鎴疯缃腑
- * dynamicColor 鍙兘涓?true锛屽鑷翠娇鐢ㄧ郴缁熷姩鎬侀鑹茶€岄潪 Cyberpunk 涓婚銆?
+ * 原因：项目已重构为只保留 Cyberpunk 主题，但之前保存的用户设置中
+ * dynamicColor 可能为 true，导致使用系统动态颜色而非 Cyberpunk 主题。
  */
 class PreferenceStoreV4Migration : DataMigration<Preferences> {
     override suspend fun shouldMigrate(currentData: Preferences): Boolean {
@@ -19,13 +19,13 @@ class PreferenceStoreV4Migration : DataMigration<Preferences> {
     override suspend fun migrate(currentData: Preferences): Preferences {
         val prefs = currentData.toMutablePreferences()
         
-        // 寮哄埗鍏抽棴鍔ㄦ€侀鑹?
+        // 强制关闭动态颜色
         prefs[SettingsStore.DYNAMIC_COLOR] = false
         
-        // 寮哄埗璁剧疆涓婚涓?Cyberpunk锛堥」鐩凡閲嶆瀯涓哄崟涓€涓婚锛?
+        // 强制设置主题为 Cyberpunk（项目已重构为单一主题）
         prefs[SettingsStore.THEME_ID] = "cyberpunk"
         
-        // 鏇存柊鐗堟湰鍙?
+        // 更新版本号
         prefs[SettingsStore.VERSION] = 4
         
         return prefs.toPreferences()
@@ -33,4 +33,3 @@ class PreferenceStoreV4Migration : DataMigration<Preferences> {
 
     override suspend fun cleanUp() {}
 }
-

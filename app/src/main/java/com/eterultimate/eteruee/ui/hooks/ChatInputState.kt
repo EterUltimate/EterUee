@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.hooks
+package com.eterultimate.eteruee.ui.hooks
 
 import android.net.Uri
 import androidx.compose.foundation.text.input.TextFieldState
@@ -6,7 +6,7 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import me.rerere.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import kotlin.uuid.Uuid
 
 class ChatInputState {
@@ -120,8 +120,8 @@ class ChatInputState {
     }
 
     /**
-     * 浠呭垹闄ゅ綋鍓嶈緭鍏ョ粍浠朵复鏃舵柊澧炵殑鏈湴鏂囦欢銆?
-     * 缂栬緫鍘嗗彶娑堟伅鏃讹紝鍘熸湁闄勪欢涓嶅湪杩欓噷鍒犻櫎锛岀敱浼氳瘽灞傜粺涓€鍋氬樊寮傛竻鐞嗐€?
+     * 仅删除当前输入组件临时新增的本地文件。
+     * 编辑历史消息时，原有附件不在这里删除，由会话层统一做差异清理。
      */
     fun shouldDeleteFileOnRemove(part: UIMessagePart): Boolean {
         val url = part.attachmentUrlOrNull() ?: return false
@@ -139,4 +139,3 @@ class ChatInputState {
         }
     }
 }
-

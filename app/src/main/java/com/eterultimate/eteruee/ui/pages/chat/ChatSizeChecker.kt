@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.chat
+package com.eterultimate.eteruee.ui.pages.chat
 
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Alert01
@@ -10,11 +10,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource
-import me.rerere.ai.core.MessageRole
+import com.eterultimate.eteruee.ai.core.MessageRole
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.model.Conversation
 
-// 娑堟伅鑺傜偣鏁伴噺璀﹀憡闃堝€?
+// 消息节点数量警告阈值
 const val MESSAGE_NODE_WARNING_THRESHOLD = 768
 const val LAST_ASSISTANT_INPUT_TOKEN_WARNING_THRESHOLD = 300_000
 
@@ -83,4 +83,3 @@ fun ConversationSizeWarningDialog(
         }
     )
 }
-

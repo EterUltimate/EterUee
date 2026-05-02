@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.data.repository
+package com.eterultimate.eteruee.data.repository
 
 import android.database.sqlite.SQLiteBlobTooBigException
 import androidx.paging.Pager
@@ -10,7 +10,7 @@ import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import me.rerere.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessage
 import com.eterultimate.eteruee.data.db.AppDatabase
 import com.eterultimate.eteruee.data.db.fts.MessageFtsManager
 import com.eterultimate.eteruee.data.db.dao.ConversationDAO
@@ -53,7 +53,7 @@ class ConversationRepository(
             .getConversationsOfAssistant(assistantId.toString())
             .map { flow ->
                 flow.map { entity ->
-                    // 鍒楄〃瑙嗗浘涓嶉渶瑕佸畬鏁寸殑 nodes锛屼娇鐢ㄧ┖鍒楄〃
+                    // 列表视图不需要完整的 nodes，使用空列表
                     conversationEntityToConversation(entity, emptyList())
                 }
             }
@@ -217,7 +217,7 @@ class ConversationRepository(
             conversationDAO.update(
                 conversationToConversationEntity(conversation)
             )
-            // 鍒犻櫎鏃х殑鑺傜偣锛屾彃鍏ユ柊鐨勮妭鐐?
+            // 删除旧的节点，插入新的节点
             messageNodeDAO.deleteByConversation(conversation.id.toString())
             saveMessageNodes(conversation.id.toString(), conversation.messageNodes)
         }
@@ -225,7 +225,7 @@ class ConversationRepository(
     }
 
     suspend fun deleteConversation(conversation: Conversation) {
-        // 鑾峰彇瀹屾暣鐨?Conversation锛堝寘鍚?messageNodes锛変互姝ｇ‘娓呯悊鏂囦欢
+        // 获取完整的 Conversation（包含 messageNodes）以正确清理文件
         val fullConversation = if (conversation.messageNodes.isEmpty()) {
             getConversationById(conversation.id) ?: conversation
         } else {
@@ -233,7 +233,7 @@ class ConversationRepository(
         }
         messageFtsManager.deleteConversation(conversation.id.toString())
         database.withTransaction {
-            // message_node 浼氶€氳繃 CASCADE 鑷姩鍒犻櫎
+            // message_node 会通过 CASCADE 自动删除
             conversationDAO.delete(
                 conversationToConversationEntity(conversation)
             )
@@ -267,7 +267,7 @@ class ConversationRepository(
         return ConversationEntity(
             id = conversation.id.toString(),
             title = conversation.title,
-            nodes = "[]",  // nodes 鐜板湪瀛樺偍鍦ㄥ崟鐙殑琛ㄤ腑
+            nodes = "[]",  // nodes 现在存储在单独的表中
             createAt = conversation.createAt.toEpochMilli(),
             updateAt = conversation.updateAt.toEpochMilli(),
             assistantId = conversation.assistantId.toString(),
@@ -373,7 +373,7 @@ class ConversationRepository(
 }
 
 /**
- * 杞婚噺绾х殑浼氳瘽鏌ヨ缁撴灉锛屼笉鍖呭惈 nodes 鍜?suggestions 瀛楁
+ * 轻量级的会话查询结果，不包含 nodes 和 suggestions 字段
  */
 data class LightConversationEntity(
     val id: String,
@@ -388,4 +388,3 @@ data class ConversationPageResult(
     val items: List<Conversation>,
     val nextOffset: Int?,
 )
-

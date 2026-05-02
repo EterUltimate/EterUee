@@ -1,4 +1,4 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package com.eterultimate.eteruee.utils
 
@@ -17,22 +17,22 @@ import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 
 /**
- * 鍥剧墖澶勭悊宸ュ叿绫?
- * 鎻愪緵鍥剧墖鍘嬬缉銆佹棆杞慨姝ｃ€佷簩缁寸爜瑙ｆ瀽绛夊姛鑳?
+ * 图片处理工具类
+ * 提供图片压缩、旋转修正、二维码解析等功能
  */
 object ImageUtils {
 
     /**
-     * 浼樺寲鐨勫浘鐗囧姞杞芥柟娉曪紝閬垮厤OOM
-     * 1. 鍏堣幏鍙栧浘鐗囧昂瀵?
-     * 2. 璁＄畻鍚堥€傜殑閲囨牱鐜?
-     * 3. 鍔犺浇鍘嬬缉鍚庣殑鍥剧墖
-     * 4. 澶勭悊鍥剧墖鏃嬭浆
+     * 优化的图片加载方法，避免OOM
+     * 1. 先获取图片尺寸
+     * 2. 计算合适的采样率
+     * 3. 加载压缩后的图片
+     * 4. 处理图片旋转
      *
-     * @param context Android涓婁笅鏂?
-     * @param uri 鍥剧墖URI
-     * @param maxSize 鏈€澶у昂瀵搁檺鍒讹紝榛樿1024px
-     * @return 鍘嬬缉鍚庣殑Bitmap锛屽け璐ヨ繑鍥瀗ull
+     * @param context Android上下文
+     * @param uri 图片URI
+     * @param maxSize 最大尺寸限制，默认1024px
+     * @return 压缩后的Bitmap，失败返回null
      */
     fun loadOptimizedBitmap(
         context: Context,
@@ -40,7 +40,7 @@ object ImageUtils {
         maxSize: Int = 1024
     ): Bitmap? {
         return runCatching {
-            // 绗竴姝ワ細鑾峰彇鍥剧墖鐨勫師濮嬪昂瀵革紝涓嶅姞杞藉埌鍐呭瓨
+            // 第一步：获取图片的原始尺寸，不加载到内存
             val options = BitmapFactory.Options().apply {
                 inJustDecodeBounds = true
             }
@@ -49,20 +49,20 @@ object ImageUtils {
                 BitmapFactory.decodeStream(inputStream, null, options)
             }
 
-            // 璁＄畻鍚堥€傜殑閲囨牱鐜?
+            // 计算合适的采样率
             val sampleSize = calculateInSampleSize(options, maxSize, maxSize)
 
-            // 绗簩姝ワ細浣跨敤閲囨牱鐜囧姞杞藉帇缂╁悗鐨勫浘鐗?
+            // 第二步：使用采样率加载压缩后的图片
             val loadOptions = BitmapFactory.Options().apply {
                 inSampleSize = sampleSize
-                inPreferredConfig = Bitmap.Config.RGB_565 // 浣跨敤RGB_565鍑忓皯鍐呭瓨鍗犵敤
+                inPreferredConfig = Bitmap.Config.RGB_565 // 使用RGB_565减少内存占用
             }
 
             val bitmap = context.contentResolver.openInputStream(uri)?.use { inputStream ->
                 BitmapFactory.decodeStream(inputStream, null, loadOptions)
             }
 
-            // 绗笁姝ワ細澶勭悊鍥剧墖鏃嬭浆锛堝鏋滈渶瑕侊級
+            // 第三步：处理图片旋转（如果需要）
             bitmap?.let { correctImageOrientation(context, uri, it) }
         }.onFailure {
             it.printStackTrace()
@@ -70,12 +70,12 @@ object ImageUtils {
     }
 
     /**
-     * 璁＄畻鍚堥€傜殑閲囨牱鐜?
+     * 计算合适的采样率
      *
-     * @param options BitmapFactory.Options鍖呭惈鍘熷鍥剧墖灏哄淇℃伅
-     * @param reqWidth 鐩爣瀹藉害
-     * @param reqHeight 鐩爣楂樺害
-     * @return 閲囨牱鐜囷紙2鐨勫箓锛?
+     * @param options BitmapFactory.Options包含原始图片尺寸信息
+     * @param reqWidth 目标宽度
+     * @param reqHeight 目标高度
+     * @return 采样率（2的幂）
      */
     fun calculateInSampleSize(
         options: BitmapFactory.Options,
@@ -90,7 +90,7 @@ object ImageUtils {
             val halfHeight = height / 2
             val halfWidth = width / 2
 
-            // 璁＄畻鏈€澶х殑inSampleSize鍊硷紝璇ュ€兼槸2鐨勫箓锛屽苟涓斾繚鎸侀珮搴﹀拰瀹藉害閮藉ぇ浜庤姹傜殑楂樺害鍜屽搴?
+            // 计算最大的inSampleSize值，该值是2的幂，并且保持高度和宽度都大于请求的高度和宽度
             while ((halfHeight / inSampleSize) >= reqHeight && (halfWidth / inSampleSize) >= reqWidth) {
                 inSampleSize *= 2
             }
@@ -100,13 +100,13 @@ object ImageUtils {
     }
 
     /**
-     * 淇鍥剧墖鏃嬭浆
-     * 鏍规嵁EXIF淇℃伅鑷姩鏃嬭浆鍥剧墖鍒版纭柟鍚?
+     * 修正图片旋转
+     * 根据EXIF信息自动旋转图片到正确方向
      *
-     * @param context Android涓婁笅鏂?
-     * @param uri 鍥剧墖URI
-     * @param bitmap 鍘熷bitmap
-     * @return 鏃嬭浆鍚庣殑bitmap
+     * @param context Android上下文
+     * @param uri 图片URI
+     * @param bitmap 原始bitmap
+     * @return 旋转后的bitmap
      */
     fun correctImageOrientation(context: Context, uri: Uri, bitmap: Bitmap): Bitmap {
         return runCatching {
@@ -126,12 +126,12 @@ object ImageUtils {
                 ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
                 ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.postScale(-1f, 1f)
                 ExifInterface.ORIENTATION_FLIP_VERTICAL -> matrix.postScale(1f, -1f)
-                else -> return bitmap // 涓嶉渶瑕佹棆杞?
+                else -> return bitmap // 不需要旋转
             }
 
             val rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
             if (rotatedBitmap != bitmap) {
-                bitmap.recycle() // 鍥炴敹鍘熷bitmap
+                bitmap.recycle() // 回收原始bitmap
             }
             rotatedBitmap
         }.onFailure {
@@ -140,10 +140,10 @@ object ImageUtils {
     }
 
     /**
-     * 浠庡浘鐗囦腑瑙ｆ瀽浜岀淮鐮?
+     * 从图片中解析二维码
      *
-     * @param bitmap 瑕佽В鏋愮殑鍥剧墖
-     * @return 浜岀淮鐮佸唴瀹癸紝瑙ｆ瀽澶辫触杩斿洖null
+     * @param bitmap 要解析的图片
+     * @return 二维码内容，解析失败返回null
      */
     fun decodeQRCodeFromBitmap(bitmap: Bitmap): String? {
         return runCatching {
@@ -165,12 +165,12 @@ object ImageUtils {
     }
 
     /**
-     * 浠嶶RI鍔犺浇鍥剧墖骞惰В鏋愪簩缁寸爜锛堢粍鍚堟柟娉曪級
+     * 从URI加载图片并解析二维码（组合方法）
      *
-     * @param context Android涓婁笅鏂?
-     * @param uri 鍥剧墖URI
-     * @param maxSize 鏈€澶у昂瀵搁檺鍒讹紝榛樿1024px
-     * @return 浜岀淮鐮佸唴瀹癸紝瑙ｆ瀽澶辫触杩斿洖null
+     * @param context Android上下文
+     * @param uri 图片URI
+     * @param maxSize 最大尺寸限制，默认1024px
+     * @return 二维码内容，解析失败返回null
      */
     fun decodeQRCodeFromUri(
         context: Context,
@@ -181,14 +181,14 @@ object ImageUtils {
         return try {
             decodeQRCodeFromBitmap(bitmap)
         } finally {
-            bitmap.recycle() // 纭繚閲婃斁鍐呭瓨
+            bitmap.recycle() // 确保释放内存
         }
     }
 
     /**
-     * 瀹夊叏鍦板洖鏀禕itmap鍐呭瓨
+     * 安全地回收Bitmap内存
      *
-     * @param bitmap 瑕佸洖鏀剁殑bitmap
+     * @param bitmap 要回收的bitmap
      */
     fun recycleBitmapSafely(bitmap: Bitmap?) {
         bitmap?.let {
@@ -199,11 +199,11 @@ object ImageUtils {
     }
 
     /**
-     * 鑾峰彇鍥剧墖鐨勫熀鏈俊鎭紙涓嶅姞杞藉埌鍐呭瓨锛?
+     * 获取图片的基本信息（不加载到内存）
      *
-     * @param context Android涓婁笅鏂?
-     * @param uri 鍥剧墖URI
-     * @return ImageInfo鍖呭惈瀹藉害銆侀珮搴︺€丮IME绫诲瀷绛変俊鎭?
+     * @param context Android上下文
+     * @param uri 图片URI
+     * @return ImageInfo包含宽度、高度、MIME类型等信息
      */
     fun getImageInfo(context: Context, uri: Uri): ImageInfo? {
         return runCatching {
@@ -228,11 +228,11 @@ object ImageUtils {
     }
 
     /**
-     * 鑾峰彇閰掗瑙掕壊鍗′腑鐨勮鑹插厓鏁版嵁锛堝鏋滃瓨鍦級
+     * 获取酒馆角色卡中的角色元数据（如果存在）
      *
-     * @param context Android涓婁笅鏂?
-     * @param uri 鍥剧墖URI
-     * @return Result<String> 鍖呭惈瑙掕壊鍏冩暟鎹殑Result瀵硅薄
+     * @param context Android上下文
+     * @param uri 图片URI
+     * @return Result<String> 包含角色元数据的Result对象
      */
     fun getTavernCharacterMeta(context: Context, uri: Uri): Result<String> = runCatching {
         val metadata = context.contentResolver.openInputStream(uri)?.use { ImageMetadataReader.readMetadata(it) }
@@ -257,4 +257,3 @@ object ImageUtils {
         val mimeType: String?
     )
 }
-

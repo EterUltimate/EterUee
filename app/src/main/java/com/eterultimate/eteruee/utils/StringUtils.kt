@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.utils
+package com.eterultimate.eteruee.utils
 
 import org.apache.commons.text.StringEscapeUtils
 import java.net.URLDecoder
@@ -92,18 +92,18 @@ fun Float.toFixed(digits: Int = 0) = "%.${digits}f".format(this)
 fun Double.toFixed(digits: Int = 0) = "%.${digits}f".format(this)
 
 /**
- * 鎻愬彇瀛楃涓蹭腑鎵€鏈夊紩鍙峰唴鐨勫唴瀹?
- * 鏀寔澶氱寮曞彿绫诲瀷锛氳嫳鏂囧弻寮曞彿 "..."銆佽嫳鏂囧崟寮曞彿 '...'銆佷腑鏂囧弻寮曞彿 "..."銆佷腑鏂囧崟寮曞彿 '...'
- * @return 鎵€鏈夊紩鍙峰唴鍐呭鐨勫垪琛?
+ * 提取字符串中所有引号内的内容
+ * 支持多种引号类型：英文双引号 "..."、英文单引号 '...'、中文双引号 "..."、中文单引号 '...'
+ * @return 所有引号内内容的列表
  */
 fun String.extractQuotedContent(): List<String> {
     val result = mutableListOf<String>()
-    // 鍖归厤澶氱寮曞彿绫诲瀷
+    // 匹配多种引号类型
     val patterns = listOf(
-        """"([^"]*?)"""",  // 涓枃鍙屽紩鍙?
-        """'([^']*?)'""",  // 涓枃鍗曞紩鍙?
-        """"([^"]*?)"""",  // 鑻辨枃鍙屽紩鍙?
-        """'([^']*?)'""",  // 鑻辨枃鍗曞紩鍙?
+        """"([^"]*?)"""",  // 中文双引号
+        """'([^']*?)'""",  // 中文单引号
+        """"([^"]*?)"""",  // 英文双引号
+        """'([^']*?)'""",  // 英文单引号
     )
     for (pattern in patterns) {
         val regex = Regex(pattern)
@@ -118,9 +118,9 @@ fun String.extractQuotedContent(): List<String> {
 }
 
 /**
- * 鎻愬彇瀛楃涓蹭腑鎵€鏈夊紩鍙峰唴鐨勫唴瀹瑰苟鍚堝苟涓轰竴涓瓧绗︿覆
- * @param separator 鍒嗛殧绗︼紝榛樿涓烘崲琛?
- * @return 鍚堝苟鍚庣殑瀛楃涓诧紝濡傛灉娌℃湁寮曞彿鍐呭鍒欒繑鍥?null
+ * 提取字符串中所有引号内的内容并合并为一个字符串
+ * @param separator 分隔符，默认为换行
+ * @return 合并后的字符串，如果没有引号内容则返回 null
  */
 fun String.extractQuotedContentAsText(separator: String = "\n"): String? {
     val contents = extractQuotedContent()
@@ -130,4 +130,3 @@ fun String.extractQuotedContentAsText(separator: String = "\n"): String? {
         null
     }
 }
-

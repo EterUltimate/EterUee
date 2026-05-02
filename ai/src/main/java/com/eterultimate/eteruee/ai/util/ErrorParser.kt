@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ai.util
+package com.eterultimate.eteruee.ai.util
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -14,17 +14,17 @@ class HttpException(
 fun JsonElement.parseErrorDetail(): HttpException {
     return when (this) {
         is JsonObject -> {
-            // 灏濊瘯鑾峰彇甯歌鐨勯敊璇瓧娈?
+            // 尝试获取常见的错误字段
             val errorFields = listOf("error", "detail", "message", "description")
 
-            // 鏌ユ壘绗竴涓瓨鍦ㄧ殑閿欒瀛楁
+            // 查找第一个存在的错误字段
             val foundField = errorFields.firstOrNull { this[it] != null }
 
             if (foundField != null) {
-                // 閫掑綊瑙ｆ瀽鎵惧埌鐨勫瓧娈靛€?
+                // 递归解析找到的字段值
                 this[foundField]!!.parseErrorDetail()
             } else {
-                // 濡傛灉娌℃湁鎵惧埌浠讳綍閿欒瀛楁锛屽簭鍒楀寲鏁翠釜瀵硅薄
+                // 如果没有找到任何错误字段，序列化整个对象
                 HttpException(Json.encodeToString(JsonElement.serializer(), this))
             }
         }
@@ -33,20 +33,19 @@ fun JsonElement.parseErrorDetail(): HttpException {
             if (this.isEmpty()) {
                 HttpException("Unknown error: Empty JSON array")
             } else {
-                // 閫掑綊瑙ｆ瀽鏁扮粍鐨勭涓€涓厓绱?
+                // 递归解析数组的第一个元素
                 this.first().parseErrorDetail()
             }
         }
 
         is JsonPrimitive -> {
-            // 瀵逛簬鍩烘湰绫诲瀷锛岀洿鎺ヤ娇鐢ㄥ叾鍐呭
+            // 对于基本类型，直接使用其内容
             HttpException(this.jsonPrimitive.content)
         }
 
         else -> {
-            // 鍏朵粬鎯呭喌锛屽簭鍒楀寲鏁翠釜鍏冪礌
+            // 其他情况，序列化整个元素
             HttpException(Json.encodeToString(JsonElement.serializer(), this))
         }
     }
 }
-

@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.setting.components
+package com.eterultimate.eteruee.ui.pages.setting.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.ui.components.ui.FormItem
 import com.eterultimate.eteruee.ui.components.ui.OutlinedNumberInput
-import me.rerere.tts.provider.TTSProviderSetting
+import com.eterultimate.eteruee.tts.provider.TTSProviderSetting
 
 @Composable
 fun TTSProviderConfigure(
@@ -266,7 +266,7 @@ private fun MiMoTTSConfiguration(
     setting: TTSProviderSetting.MiMo,
     onValueChange: (TTSProviderSetting) -> Unit
 ) {
-    // MiMo 閰嶇疆鍧囦负鑷敱杈撳叆 榛樿鍊煎彧鏄崰浣?
+    // MiMo 配置均为自由输入 默认值只是占位
     // API Key
     FormItem(
         label = { Text(stringResource(R.string.setting_tts_page_api_key)) },
@@ -969,4 +969,3 @@ private fun XAITTSConfiguration(
         }
     }
 }
-

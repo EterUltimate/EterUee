@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.common.http
+package com.eterultimate.eteruee.common.http
 
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -30,27 +30,27 @@ fun parseExpression(input: String): ParseResult {
 fun isJsonExprValid(input: String): Boolean = parseExpression(input).success
 
 /**
- * 閽堝缁欏畾鐨勬牴JSON瀵硅薄璇勪及JSON琛ㄨ揪寮忥紝骞跺皢缁撴灉浣滀负瀛楃涓茶繑鍥炪€?
+ * 针对给定的根JSON对象评估JSON表达式，并将结果作为字符串返回。
  *
- * 鏀寔鐨勮瑷€鐗规€э細
- * - 璺緞瀵艰埅锛歚field`銆乣field.sub`銆乣array[0]`
- * - 甯﹁浆涔夌殑瀛楃涓插瓧闈㈤噺锛歚"text"`锛屾敮鎸乣\n`銆乣\r`銆乣\t`銆乣\\`銆乣\"`
- * - 鏁板瓧锛氭暣鏁板拰灏忔暟锛堜緥濡傦紝`1`銆乣3.14`锛?
- * - 涓€鍏冭繍绠楃锛歚+expr`銆乣-expr`
- * - 绠楁湳杩愮畻绗︼細`+`銆乣-`銆乣*`銆乣/`锛坄x`浣滀负`*`鐨勫埆鍚嶏級
- * - 瀛楃涓茶繛鎺ワ細`++`锛堟搷浣滄暟琚己鍒惰浆鎹负瀛楃涓诧級
+ * 支持的语言特性：
+ * - 路径导航：`field`、`field.sub`、`array[0]`
+ * - 带转义的字符串字面量：`"text"`，支持`\n`、`\r`、`\t`、`\\`、`\"`
+ * - 数字：整数和小数（例如，`1`、`3.14`）
+ * - 一元运算符：`+expr`、`-expr`
+ * - 算术运算符：`+`、`-`、`*`、`/`（`x`作为`*`的别名）
+ * - 字符串连接：`++`（操作数被强制转换为字符串）
  *
- * 瑙ｆ瀽鍜屽己鍒惰浆鎹㈣鍒欙細
- * - 缂哄け鐨勫瓧娈?绱㈠紩瑙ｆ瀽涓虹┖瀛楃涓层€?
- * - JSON鍩烘湰绫诲瀷锛氬瓧绗︿覆淇濇寔涓嶅彉锛涙暟瀛楄繘琛屾渶灏忓寲鏍煎紡鍖栵紙渚嬪锛宍3.0` -> `"3"`锛夈€?
- * - JSON瀵硅薄/鏁扮粍浠ュ叾JSON瀛楃涓茶〃绀哄舰寮忚繑鍥炪€?
+ * 解析和强制转换规则：
+ * - 缺失的字段/索引解析为空字符串。
+ * - JSON基本类型：字符串保持不变；数字进行最小化格式化（例如，`3.0` -> `"3"`）。
+ * - JSON对象/数组以其JSON字符串表示形式返回。
  *
- * 閿欒锛?
- * - 瀵逛簬鏃犳晥璇硶鎴栦笉鏀寔鐨勮繍绠楃锛屾姏鍑篬ParseException]銆?
+ * 错误：
+ * - 对于无效语法或不支持的运算符，抛出[ParseException]。
  *
- * @param input 瑕佽瘎浼扮殑琛ㄨ揪寮忋€?
- * @param root 鐢ㄤ簬瑙ｆ瀽璺緞鐨勬牴[JsonObject]銆?
- * @return 浣滀负瀛楃涓茬殑璇勪及鍊笺€?
+ * @param input 要评估的表达式。
+ * @param root 用于解析路径的根[JsonObject]。
+ * @return 作为字符串的评估值。
  */
 fun evaluateJsonExpr(input: String, root: JsonObject): String {
     val lexer = Lexer(input)
@@ -380,4 +380,3 @@ private fun formatNumber(d: Double): String {
     val asLong = d.toLong()
     return if (d == asLong.toDouble()) asLong.toString() else d.toString()
 }
-

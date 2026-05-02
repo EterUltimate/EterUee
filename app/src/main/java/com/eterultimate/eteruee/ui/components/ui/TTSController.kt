@@ -1,9 +1,10 @@
-﻿package com.eterultimate.eteruee.ui.components.ui
+package com.eterultimate.eteruee.ui.components.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -34,9 +35,8 @@ import me.rerere.hugeicons.stroke.Pause
 import me.rerere.hugeicons.stroke.Play
 import com.eterultimate.eteruee.ui.context.LocalTTSState
 import com.eterultimate.eteruee.ui.hooks.CustomTtsState
-import me.rerere.tts.model.PlaybackState
-import me.rerere.tts.model.PlaybackStatus
-import androidx.compose.ui.graphics.RectangleShape
+import com.eterultimate.eteruee.tts.model.PlaybackState
+import com.eterultimate.eteruee.tts.model.PlaybackStatus
 
 @Composable
 fun TTSController() {
@@ -48,7 +48,7 @@ fun TTSController() {
 
     LaunchedEffect(isSpeaking) {
         if (isSpeaking) {
-            // 濡傛灉寮€鍚紝鏄剧ず鎮诞绐?
+            // 如果开启，显示悬浮窗
             isVisible = true
         }
     }
@@ -60,7 +60,7 @@ fun TTSController() {
         val playbackState by ttsState.playbackState.collectAsState()
         var expand by remember { mutableStateOf(false) }
         Surface(
-            shape = RectangleShape,
+            shape = CircleShape,
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 4.dp,
             modifier = Modifier.padding(8.dp),
@@ -214,4 +214,3 @@ private fun SpeedButton(
         Text(text = "x${"%.1f".format(playbackState.speed)}")
     }
 }
-

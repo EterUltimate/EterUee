@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.ai
+package com.eterultimate.eteruee.ui.components.ai
 
 import android.content.Intent
 import android.graphics.Bitmap
@@ -43,6 +43,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.material3.BasicAlertDialog
@@ -99,12 +101,12 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import me.rerere.ai.provider.Model
-import me.rerere.ai.provider.ModelAbility
-import me.rerere.ai.provider.ModelType
-import me.rerere.ai.provider.ProviderSetting
-import me.rerere.ai.ui.UIMessagePart
-import me.rerere.common.android.appTempFolder
+import com.eterultimate.eteruee.ai.provider.Model
+import com.eterultimate.eteruee.ai.provider.ModelAbility
+import com.eterultimate.eteruee.ai.provider.ModelType
+import com.eterultimate.eteruee.ai.provider.ProviderSetting
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.common.android.appTempFolder
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Add01
 import me.rerere.hugeicons.stroke.ArrowUp01
@@ -145,7 +147,6 @@ import org.koin.compose.koinInject
 import java.io.File
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
-import androidx.compose.ui.graphics.RectangleShape
 
 enum class ExpandState {
     Collapsed, Files,
@@ -498,7 +499,7 @@ fun ChatInput(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
                                 .size(36.dp)
-                                .clip(RectangleShape)
+                                .clip(CircleShape)
                                 .combinedClickable(
                                     enabled = loading || !state.isEmpty(),
                                     onClick = {
@@ -511,18 +512,18 @@ fun ChatInput(
                                 )
                         ) {
                             val containerColor = when {
-                                loading -> MaterialTheme.colorScheme.errorContainer // 鍔犺浇鏃讹紝绾㈣壊
-                                state.isEmpty() -> MaterialTheme.colorScheme.surfaceContainerHigh // 绂佺敤鏃?杈撳叆涓虹┖)锛岀伆鑹?
-                                else -> MaterialTheme.colorScheme.primary // 鍚敤鏃?杈撳叆闈炵┖)锛岀豢鑹?涓婚鑹?
+                                loading -> MaterialTheme.colorScheme.errorContainer // 加载时，红色
+                                state.isEmpty() -> MaterialTheme.colorScheme.surfaceContainerHigh // 禁用时(输入为空)，灰色
+                                else -> MaterialTheme.colorScheme.primary // 启用时(输入非空)，绿色/主题色
                             }
                             val contentColor = when {
                                 loading -> MaterialTheme.colorScheme.onErrorContainer
-                                state.isEmpty() -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) // 绂佺敤鏃讹紝鍐呭鐢ㄥ甫閫忔槑搴︾殑鐏拌壊
+                                state.isEmpty() -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) // 禁用时，内容用带透明度的灰色
                                 else -> MaterialTheme.colorScheme.onPrimary
                             }
                             Surface(
                                 modifier = Modifier.fillMaxSize(),
-                                shape = RectangleShape,
+                                shape = CircleShape,
                                 color = containerColor,
                                 content = {})
                             if (loading) {
@@ -559,7 +560,7 @@ fun ChatInput(
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RectangleShape)
+                            .clip(RoundedCornerShape(20.dp))
                             .then(
                                 if (settings.displaySetting.enableBlurEffect) Modifier.hazeEffect(
                                     state = hazeState,
@@ -567,7 +568,7 @@ fun ChatInput(
                                 )
                                 else Modifier
                             ),
-                        shape = RectangleShape,
+                        shape = RoundedCornerShape(20.dp),
                         tonalElevation = 0.dp,
                         color = if (settings.displaySetting.enableBlurEffect) Color.Transparent else hazeTintColor,
                     ) {
@@ -603,7 +604,7 @@ private fun ActionIconButton(
     Surface(
         onClick = onClick,
         modifier = Modifier.size(36.dp),
-        shape = RectangleShape,
+        shape = CircleShape,
         tonalElevation = 0.dp,
         color = Color.Transparent,
     ) {
@@ -633,7 +634,7 @@ private fun TextInputRow(
     ) {
         if (state.isEditing()) {
             Surface(
-                shape = RectangleShape,
+                shape = RoundedCornerShape(16.dp),
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
             ) {
                 Row(
@@ -831,7 +832,7 @@ private fun MediaFileInputRow(
                         leading = {
                             Surface(
                                 modifier = Modifier.size(34.dp),
-                                shape = RectangleShape,
+                                shape = RoundedCornerShape(10.dp),
                                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
                             ) {
                                 AsyncImage(
@@ -898,7 +899,7 @@ private fun AttachmentChip(
     onRemove: () -> Unit,
 ) {
     Surface(
-        shape = RectangleShape,
+        shape = RoundedCornerShape(18.dp),
         tonalElevation = 1.dp,
         shadowElevation = 0.dp,
         color = MaterialTheme.colorScheme.surface,
@@ -921,7 +922,7 @@ private fun AttachmentChip(
             )
             Box(
                 modifier = Modifier
-                    .clip(RectangleShape)
+                    .clip(CircleShape)
                     .size(26.dp)
                     .clickable(onClick = onRemove),
                 contentAlignment = Alignment.Center
@@ -943,7 +944,7 @@ private fun AttachmentLeadingIcon(
 ) {
     Surface(
         modifier = Modifier.size(34.dp),
-        shape = RectangleShape,
+        shape = RoundedCornerShape(10.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
         Box(
@@ -1128,7 +1129,7 @@ private fun FullScreenEditor(
                 modifier = Modifier
                     .widthIn(max = 800.dp)
                     .fillMaxHeight(0.9f),
-                shape = RectangleShape
+                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
             ) {
                 Column(
                     modifier = Modifier
@@ -1150,7 +1151,7 @@ private fun FullScreenEditor(
                         modifier = Modifier
                             .padding(bottom = 2.dp)
                             .fillMaxSize(),
-                        shape = RectangleShape,
+                        shape = RoundedCornerShape(32.dp),
                         placeholder = {
                             Text(stringResource(R.string.chat_input_placeholder))
                         },
@@ -1221,7 +1222,7 @@ private fun ImagePickButton(onClick: () -> Unit = {}) {
 fun TakePicButton(onLaunchCamera: () -> Unit = {}) {
     val cameraPermission = rememberPermissionState(PermissionCamera)
 
-    // 浣跨敤鏉冮檺绠＄悊鍣ㄥ寘瑁?
+    // 使用权限管理器包装
     PermissionManager(
         permissionState = cameraPermission
     ) {
@@ -1233,7 +1234,7 @@ fun TakePicButton(onLaunchCamera: () -> Unit = {}) {
             if (cameraPermission.allRequiredPermissionsGranted) {
                 onLaunchCamera()
             } else {
-                // 璇锋眰鏉冮檺
+                // 请求权限
                 cameraPermission.requestPermissions()
             }
         }
@@ -1284,7 +1285,7 @@ private fun BigIconTextButton(
     val interactionSource = remember { MutableInteractionSource() }
     Column(
         modifier = modifier
-            .clip(RectangleShape)
+            .clip(RoundedCornerShape(8.dp))
             .clickable(
                 interactionSource = interactionSource, indication = LocalIndication.current, onClick = onClick
             )
@@ -1295,7 +1296,7 @@ private fun BigIconTextButton(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Surface(
-            tonalElevation = 2.dp, shape = RectangleShape
+            tonalElevation = 2.dp, shape = RoundedCornerShape(8.dp)
         ) {
             Box(
                 modifier = Modifier.padding(horizontal = 32.dp, vertical = 16.dp)
@@ -1372,4 +1373,3 @@ private fun BigIconTextButtonPreview() {
         }) {}
     }
 }
-

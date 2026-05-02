@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.utils
+package com.eterultimate.eteruee.utils
 
 import android.content.Context
 import kotlinx.serialization.json.jsonArray
@@ -49,7 +49,7 @@ object EmojiUtils {
     }
 
     /**
-     * 灏哢nicode code points杞崲涓篹moji瀛楃
+     * 将Unicode code points转换为emoji字符
      */
     fun codeToEmoji(codes: List<String>): String {
         return codes.joinToString("") { code ->
@@ -59,8 +59,8 @@ object EmojiUtils {
     }
 
     /**
-     * 妫€鏌ヤ袱涓猠moji鏄惁鏄悓涓€涓熀纭€emoji鐨勪笉鍚屽彉浣?
-     * 閫氳繃姣旇緝瀹冧滑鐨勫熀纭€code鐐癸紙蹇界暐鑲よ壊淇グ绗︼級鏉ュ垽鏂?
+     * 检查两个emoji是否是同一个基础emoji的不同变体
+     * 通过比较它们的基础code点（忽略肤色修饰符）来判断
      */
     fun areEmojiVariants(emoji1: Emoji, emoji2: Emoji): Boolean {
         val skinToneModifiers = setOf("1F3FB", "1F3FC", "1F3FD", "1F3FE", "1F3FF")
@@ -72,8 +72,8 @@ object EmojiUtils {
     }
 
     /**
-     * 灏唀moji鍒楄〃鎸夊彉浣撳垎缁?
-     * 杩斿洖Map锛宬ey鏄熀纭€emoji锛堥€氬父鏄涓€涓彉浣擄級锛寁alue鏄墍鏈夊彉浣撶殑鍒楄〃
+     * 将emoji列表按变体分组
+     * 返回Map，key是基础emoji（通常是第一个变体），value是所有变体的列表
      */
     fun groupEmojisByVariants(emojis: List<Emoji>): Map<Emoji, List<Emoji>> {
         val grouped = mutableMapOf<Emoji, MutableList<Emoji>>()
@@ -84,7 +84,7 @@ object EmojiUtils {
 
             val variants = mutableListOf(emoji)
 
-            // 鏌ユ壘鎵€鏈夊彉浣?
+            // 查找所有变体
             for (otherEmoji in emojis) {
                 if (otherEmoji != emoji && areEmojiVariants(emoji, otherEmoji)) {
                     variants.add(otherEmoji)
@@ -92,7 +92,7 @@ object EmojiUtils {
                 }
             }
 
-            // 鎸夎偆鑹查『搴忔帓搴忥紙濡傛灉鏈夎偆鑹蹭慨楗扮锛?
+            // 按肤色顺序排序（如果有肤色修饰符）
             variants.sortBy { variant ->
                 val skinToneOrder = listOf("1F3FB", "1F3FC", "1F3FD", "1F3FE", "1F3FF")
                 val skinTone = variant.code.find { it in skinToneOrder }
@@ -112,7 +112,7 @@ data class EmojiData(
     val categories: List<EmojiCategory>,
 ) {
     /**
-     * 鑾峰彇鎵€鏈塭moji鐨勫彉浣撳垎缁?
+     * 获取所有emoji的变体分组
      */
     fun getAllEmojiVariants(): Map<Emoji, List<Emoji>> {
         val allEmojis = categories.flatMap { category ->
@@ -129,7 +129,7 @@ data class EmojiCategory(
     val subCategories: List<EmojiSubCategory>,
 ) {
     /**
-     * 鑾峰彇璇ュ垎绫讳笅鎵€鏈塭moji鐨勫彉浣撳垎缁?
+     * 获取该分类下所有emoji的变体分组
      */
     fun getEmojiVariants(): Map<Emoji, List<Emoji>> {
         val allEmojis = subCategories.flatMap { it.emojis }
@@ -147,4 +147,3 @@ data class Emoji(
     val emoji: String,
     val code: List<String>, // Unicode code points (for example, ["1F600"] for grinning face)
 )
-

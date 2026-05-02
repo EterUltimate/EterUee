@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.ui
+package com.eterultimate.eteruee.ui.components.ui
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
@@ -46,24 +47,23 @@ import me.rerere.hugeicons.stroke.ArrowUp01
 import me.rerere.hugeicons.stroke.Search01
 import me.rerere.hugeicons.stroke.Sparkles
 import com.eterultimate.eteruee.R
-import androidx.compose.ui.graphics.RectangleShape
 
 private val LocalCardColor = staticCompositionLocalOf { Color.White }
 
 /**
- * 浠ユ椂闂寸嚎/姝ラ鍗＄墖鐨勫舰寮忓睍绀轰竴缁勬€濊€冭繃绋嬨€?
+ * 以时间线/步骤卡片的形式展示一组思考过程。
  *
- * 閫傜敤浜庢壙杞芥帹鐞嗘楠ゃ€佸伐鍏疯皟鐢ㄦ楠わ紝鎴栦袱鑰呮贩鍚堢殑閾惧紡鍐呭銆傜粍浠舵敮鎸侊細
- * - 鍦ㄦ楠よ緝澶氭椂鑷姩鎶樺彔锛屼粎灞曠ず鏈€鍚庤嫢骞叉
- * - 鐐瑰嚮椤堕儴鎺у埗鏉″睍寮€/鏀惰捣鍏ㄩ儴姝ラ
- * - 閫氳繃 [collapsedAdaptiveWidth] 鎺у埗鎶樺彔鎬佹槸鍚︿繚鎸佽嚜閫傚簲瀹藉害
+ * 适用于承载推理步骤、工具调用步骤，或两者混合的链式内容。组件支持：
+ * - 在步骤较多时自动折叠，仅展示最后若干步
+ * - 点击顶部控制条展开/收起全部步骤
+ * - 通过 [collapsedAdaptiveWidth] 控制折叠态是否保持自适应宽度
  *
- * @param modifier 澶栧眰鍗＄墖鐨勪慨楗扮
- * @param cardColors 鍗＄墖閰嶈壊
- * @param steps 闇€瑕佹覆鏌撶殑姝ラ鏁版嵁鍒楄〃
- * @param collapsedVisibleCount 鎶樺彔鏃朵繚鐣欏彲瑙佺殑灏鹃儴姝ラ鏁?
- * @param collapsedAdaptiveWidth 鏄惁鍦ㄦ姌鍙犳€佷笅浣跨敤鍐呭鑷€傚簲瀹藉害
- * @param content 姣忎釜姝ラ鐨勫叿浣?UI锛岀敱 [ChainOfThoughtScope] 鎻愪緵姝ラ鏋勫缓鑳藉姏
+ * @param modifier 外层卡片的修饰符
+ * @param cardColors 卡片配色
+ * @param steps 需要渲染的步骤数据列表
+ * @param collapsedVisibleCount 折叠时保留可见的尾部步骤数
+ * @param collapsedAdaptiveWidth 是否在折叠态下使用内容自适应宽度
+ * @param content 每个步骤的具体 UI，由 [ChainOfThoughtScope] 提供步骤构建能力
  */
 @Composable
 fun <T> ChainOfThought(
@@ -100,7 +100,7 @@ fun <T> ChainOfThought(
                     steps.takeLast(collapsedVisibleCount)
                 }
 
-                // 鏄剧ず灞曞紑/鎶樺彔鎸夐挳锛堢粺涓€鍦ㄩ《閮級
+                // 显示展开/折叠按钮（统一在顶部）
                 if (canCollapse) {
                     Row(
                         modifier = Modifier
@@ -116,7 +116,7 @@ fun <T> ChainOfThought(
                             .padding(vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        // 宸︿晶锛氬浘鏍囧尯鍩燂紙24.dp锛屽拰姝ラ鍥炬爣瀵归綈锛?
+                        // 左侧：图标区域（24.dp，和步骤图标对齐）
                         Box(
                             modifier = Modifier.width(24.dp),
                             contentAlignment = Alignment.Center,
@@ -129,7 +129,7 @@ fun <T> ChainOfThought(
                             )
                         }
 
-                        // 鍙充晶锛氭枃瀛楀尯鍩燂紙8.dp 闂磋窛鍚庡紑濮嬶紝鍜屾楠?label 瀵归綈锛?
+                        // 右侧：文字区域（8.dp 间距后开始，和步骤 label 对齐）
                         Text(
                             modifier = Modifier.padding(start = 8.dp),
                             text = if (expanded) {
@@ -172,21 +172,21 @@ fun <T> ChainOfThought(
 }
 
 /**
- * [ChainOfThought] 鍐呴儴浣跨敤鐨勬楠ゆ覆鏌撲綔鐢ㄥ煙銆?
+ * [ChainOfThought] 内部使用的步骤渲染作用域。
  *
- * 閫氳繃璇ヤ綔鐢ㄥ煙鍙互澹版槑鍗曚釜姝ラ鐨勫浘鏍囥€佹爣棰樸€侀檮鍔犱俊鎭互鍙婂彲灞曞紑鍐呭锛?
- * 骞跺鐢ㄧ粺涓€鐨勬椂闂寸嚎甯冨眬涓庝氦浜掕涓恒€?
+ * 通过该作用域可以声明单个步骤的图标、标题、附加信息以及可展开内容，
+ * 并复用统一的时间线布局与交互行为。
  */
 interface ChainOfThoughtScope {
     /**
-     * 澹版槑涓€涓潪鍙楁帶姝ラ锛岀敱缁勪欢鍐呴儴绠＄悊灞曞紑/鎶樺彔鐘舵€併€?
+     * 声明一个非受控步骤，由组件内部管理展开/折叠状态。
      *
-     * @param icon 姝ラ鍥炬爣
-     * @param label 姝ラ鏍囬鍖哄煙
-     * @param extra 鏍囬鍙充晶鐨勯檮鍔犱俊鎭?
-     * @param onClick 鑷畾涔夌偣鍑昏涓猴紱璁剧疆鍚庝紭鍏堜簬灞曞紑/鎶樺彔閫昏緫
-     * @param collapsedAdaptiveWidth 鏄惁鍦ㄦ姌鍙犱笖鍐呭闅愯棌鏃朵娇鐢ㄨ嚜閫傚簲瀹藉害
-     * @param content 姝ラ灞曞紑鍚庢樉绀虹殑鍐呭锛涗负 `null` 鏃舵楠や笉鍙睍寮€
+     * @param icon 步骤图标
+     * @param label 步骤标题区域
+     * @param extra 标题右侧的附加信息
+     * @param onClick 自定义点击行为；设置后优先于展开/折叠逻辑
+     * @param collapsedAdaptiveWidth 是否在折叠且内容隐藏时使用自适应宽度
+     * @param content 步骤展开后显示的内容；为 `null` 时步骤不可展开
      */
     @Composable
     fun ChainOfThoughtStep(
@@ -199,19 +199,19 @@ interface ChainOfThoughtScope {
     )
 
     /**
-     * 澹版槑涓€涓彈鎺ф楠わ紝鐢卞閮ㄤ紶鍏ュ睍寮€鐘舵€併€?
+     * 声明一个受控步骤，由外部传入展开状态。
      *
-     * 閫傚悎闇€瑕佷笌澶栭儴鐘舵€佽仈鍔ㄧ殑鍦烘櫙锛屼緥濡傗€滄帹鐞嗕腑棰勮 / 瀹屾垚鍚庢敹璧封€濄€?
+     * 适合需要与外部状态联动的场景，例如“推理中预览 / 完成后收起”。
      *
-     * @param expanded 褰撳墠鏄惁澶勪簬灞曞紑鐘舵€?
-     * @param onExpandedChange 灞曞紑鐘舵€佸彉鍖栧洖璋?
-     * @param icon 姝ラ鍥炬爣
-     * @param label 姝ラ鏍囬鍖哄煙
-     * @param extra 鏍囬鍙充晶鐨勯檮鍔犱俊鎭?
-     * @param onClick 鑷畾涔夌偣鍑昏涓猴紱璁剧疆鍚庝紭鍏堜簬灞曞紑/鎶樺彔閫昏緫
-     * @param collapsedAdaptiveWidth 鏄惁鍦ㄦ姌鍙犱笖鍐呭闅愯棌鏃朵娇鐢ㄨ嚜閫傚簲瀹藉害
-     * @param contentVisible 鏄惁灞曠ず鍐呭鍖哄煙锛屽彲涓?[expanded] 瑙ｈ€?
-     * @param content 姝ラ鍐呭锛涗负 `null` 鏃舵楠や笉鍙睍寮€
+     * @param expanded 当前是否处于展开状态
+     * @param onExpandedChange 展开状态变化回调
+     * @param icon 步骤图标
+     * @param label 步骤标题区域
+     * @param extra 标题右侧的附加信息
+     * @param onClick 自定义点击行为；设置后优先于展开/折叠逻辑
+     * @param collapsedAdaptiveWidth 是否在折叠且内容隐藏时使用自适应宽度
+     * @param contentVisible 是否展示内容区域，可与 [expanded] 解耦
+     * @param content 步骤内容；为 `null` 时步骤不可展开
      */
     @Composable
     fun ControlledChainOfThoughtStep(
@@ -300,7 +300,7 @@ private class ChainOfThoughtScopeImpl : ChainOfThoughtScope {
                 }
             ),
         ) {
-            // Label 琛岋細Icon + Label + Extra + 鎸囩ず鍣?
+            // Label 行：Icon + Label + Extra + 指示器
             Row(
                 modifier = Modifier
                     .then(
@@ -327,7 +327,7 @@ private class ChainOfThoughtScopeImpl : ChainOfThoughtScope {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Icon锛堜笉閫忔槑鑳屾櫙閬綇鑳屽悗鐨勮繛绾匡級
+                // Icon（不透明背景遮住背后的连线）
                 Box(
                     modifier = Modifier.width(24.dp),
                     contentAlignment = Alignment.Center,
@@ -349,7 +349,7 @@ private class ChainOfThoughtScopeImpl : ChainOfThoughtScope {
                             Box(
                                 modifier = Modifier
                                     .size(8.dp)
-                                    .clip(RectangleShape)
+                                    .clip(CircleShape)
                                     .background(MaterialTheme.colorScheme.onSurfaceVariant)
                             )
                         }
@@ -374,7 +374,7 @@ private class ChainOfThoughtScopeImpl : ChainOfThoughtScope {
                     extra()
                 }
 
-                // 鎸囩ず鍣細onClick 鏄剧ず鍚戝彸绠ご锛宑ontent 鏄剧ず灞曞紑/鎶樺彔绠ご
+                // 指示器：onClick 显示向右箭头，content 显示展开/折叠箭头
                 if (onClick != null) {
                     Icon(
                         imageVector = HugeIcons.ArrowRight01,
@@ -392,7 +392,7 @@ private class ChainOfThoughtScopeImpl : ChainOfThoughtScope {
                 }
             }
 
-            // 灞曞紑鍐呭锛堢缉杩涘榻?label锛?
+            // 展开内容（缩进对齐 label）
             if (contentVisible && hasContent) {
                 Box(
                     modifier = Modifier
@@ -415,7 +415,7 @@ private class ChainOfThoughtScopeImpl : ChainOfThoughtScope {
 @Preview(showBackground = true)
 @Composable
 private fun ChainOfThoughtPreview() {
-    // 瀹氫箟姝ラ鏁版嵁绫?
+    // 定义步骤数据类
     data class StepData(
         val label: String,
         val icon: ImageVector?,
@@ -438,7 +438,7 @@ private fun ChainOfThoughtPreview() {
             Column(
                 modifier = Modifier.padding(innerPadding),
             ) {
-                // 鍙楁帶鐘舵€佺ず渚?
+                // 受控状态示例
                 var controlledExpanded by remember { mutableStateOf(false) }
 
                 ChainOfThought(
@@ -497,7 +497,7 @@ private fun ChainOfThoughtPreview() {
                                         "blog.example.com - Blog Post"
                                     ).forEach { result ->
                                         Text(
-                                            text = "鈥?$result",
+                                            text = "• $result",
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -515,7 +515,7 @@ private fun ChainOfThoughtPreview() {
                     } else null
 
                     if (step.controlled) {
-                        // 鍙楁帶鐗堟湰
+                        // 受控版本
                         ControlledChainOfThoughtStep(
                             expanded = controlledExpanded,
                             onExpandedChange = { controlledExpanded = it },
@@ -526,7 +526,7 @@ private fun ChainOfThoughtPreview() {
                             content = contentComposable,
                         )
                     } else {
-                        // 闈炲彈鎺х増鏈?
+                        // 非受控版本
                         ChainOfThoughtStep(
                             icon = iconComposable,
                             label = labelComposable,
@@ -540,4 +540,3 @@ private fun ChainOfThoughtPreview() {
         }
     }
 }
-

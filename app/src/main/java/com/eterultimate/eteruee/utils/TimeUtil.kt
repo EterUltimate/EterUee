@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.utils
+package com.eterultimate.eteruee.utils
 
 import java.time.Instant
 import java.time.LocalDate
@@ -71,11 +71,10 @@ fun LocalDate.toLocalString(includeYear: Boolean): String {
 
 private fun isMonthFirstLocale(locale: Locale): Boolean {
     val monthFirstCountries = setOf(
-        "US", // 缇庡浗
-        "PH", // 鑿插緥瀹?
-        "CA", // 鍔犳嬁澶?铏界劧榄佸寳鍏嬪彲鑳戒娇鐢ㄦ棩-鏈堟牸寮?
-        "CN", // 涓浗
+        "US", // 美国
+        "PH", // 菲律宾
+        "CA", // 加拿大(虽然魁北克可能使用日-月格式)
+        "CN", // 中国
     )
     return monthFirstCountries.contains(locale.country)
 }
-

@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ai.provider.providers.openai
+package com.eterultimate.eteruee.ai.provider.providers.openai
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
@@ -46,10 +46,10 @@ import com.eterultimate.eteruee.ai.util.mergeCustomBody
 import com.eterultimate.eteruee.ai.util.parseErrorDetail
 import com.eterultimate.eteruee.ai.util.stringSafe
 import com.eterultimate.eteruee.ai.util.toHeaders
-import me.rerere.common.http.await
-import me.rerere.common.http.jsonArrayOrNull
-import me.rerere.common.http.jsonObjectOrNull
-import me.rerere.common.http.jsonPrimitiveOrNull
+import com.eterultimate.eteruee.common.http.await
+import com.eterultimate.eteruee.common.http.jsonArrayOrNull
+import com.eterultimate.eteruee.common.http.jsonObjectOrNull
+import com.eterultimate.eteruee.common.http.jsonPrimitiveOrNull
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -97,7 +97,7 @@ class ChatCompletionsAPI(
         val bodyStr = response.body?.string() ?: ""
         val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
 
-        // 浠?JsonObject 涓彁鍙栧繀瑕佺殑淇℃伅
+        // 从 JsonObject 中提取必要的信息
         val id = bodyJson["id"]?.jsonPrimitive?.contentOrNull ?: ""
         val model = bodyJson["model"]?.jsonPrimitive?.contentOrNull ?: ""
         val choice = bodyJson["choices"]?.jsonArray?.get(0)?.jsonObject ?: error("choices is null")
@@ -158,7 +158,7 @@ class ChatCompletionsAPI(
                 data: String
             ) {
                 if (data == "[DONE]") {
-                    println("[onEvent] (done) 缁撴潫娴? $data")
+                    println("[onEvent] (done) 结束流: $data")
                     close()
                     return
                 }
@@ -212,7 +212,7 @@ class ChatCompletionsAPI(
                 var exception = t
 
                 t?.printStackTrace()
-                println("[onFailure] 鍙戠敓閿欒: ${t?.javaClass?.name} ${t?.message} / $response")
+                println("[onFailure] 发生错误: ${t?.javaClass?.name} ${t?.message} / $response")
 
                 val bodyRaw = response?.body?.stringSafe()
                 try {
@@ -239,7 +239,7 @@ class ChatCompletionsAPI(
         val eventSource = EventSources.createFactory(client).newEventSource(request, listener)
 
         awaitClose {
-            println("[awaitClose] 鍏抽棴eventSource ")
+            println("[awaitClose] 关闭eventSource ")
             eventSource.cancel()
         }
     }
@@ -264,14 +264,14 @@ class ChatCompletionsAPI(
 
             put("stream", stream)
             if (stream) {
-                if (host != "api.mistral.ai") { // mistral 涓嶆敮鎸?stream_options
+                if (host != "api.mistral.ai") { // mistral 不支持 stream_options
                     put("stream_options", buildJsonObject {
                         put("include_usage", true)
                     })
                 }
             }
 
-            // open router閫傞厤
+            // open router适配
             if(host == "openrouter.ai") {
                 if(params.model.outputModalities.contains(Modality.IMAGE)) {
                     put("modalities", buildJsonArray {
@@ -296,25 +296,25 @@ class ChatCompletionsAPI(
                     }
 
                     "dashscope.aliyuncs.com" -> {
-                        // 闃块噷浜戠櫨鐐?
+                        // 阿里云百炼
                         // https://bailian.console.aliyun.com/console?tab=doc#/doc/?type=model&url=https%3A%2F%2Fhelp.aliyun.com%2Fdocument_detail%2F2870973.html&renderType=iframe
                         put("enable_thinking", level.isEnabled)
                         if (level != ReasoningLevel.AUTO) put("thinking_budget", level.budgetTokens)
                     }
 
                     "ark.cn-beijing.volces.com" -> {
-                        // 璞嗗寘 (鐏北)
+                        // 豆包 (火山)
                         put("thinking", buildJsonObject {
                             put("type", if (!level.isEnabled) "disabled" else "enabled")
                         })
                     }
 
                     "api.mistral.ai" -> {
-                        // Mistral 涓嶆敮鎸?
+                        // Mistral 不支持
                     }
 
                     "chat.intern-ai.org.cn" -> {
-                        // 涔︾敓
+                        // 书生
                         // https://internlm.intern-ai.org.cn/api/document?lang=zh
                         put("thinking_mode", level.isEnabled)
                     }
@@ -372,8 +372,8 @@ class ChatCompletionsAPI(
                     }
 
                     else -> {
-                        // OpenAI 瀹樻柟
-                        // 鏂囨。涓紝completions API 鍙敮鎸?"low", "medium", "high"
+                        // OpenAI 官方
+                        // 文档中，completions API 只支持 "low", "medium", "high"
                         if (level != ReasoningLevel.AUTO) {
                             put("reasoning_effort", if (level.effort == "none") "low" else level.effort)
                         }
@@ -427,7 +427,7 @@ class ChatCompletionsAPI(
         for (group in groups) {
             when (group) {
                 is PartGroup.Content -> {
-                    // 浠庡綋鍓?group 涓彁鍙?reasoning锛堜繚鎸侀『搴忥級
+                    // 从当前 group 中提取 reasoning（保持顺序）
                     if (includeReasoning) {
                         group.parts.filterIsInstance<UIMessagePart.Reasoning>().firstOrNull()?.let {
                             reasoningPart = it
@@ -439,7 +439,7 @@ class ChatCompletionsAPI(
                 }
 
                 is PartGroup.Tools -> {
-                    // 杈撳嚭 assistant 娑堟伅锛堝寘鍚疮绉殑鍐呭 + tool_calls锛?
+                    // 输出 assistant 消息（包含累积的内容 + tool_calls）
                     buildAssistantMessageJson(
                         contentParts = contentBuffer,
                         tools = group.tools,
@@ -448,9 +448,9 @@ class ChatCompletionsAPI(
                         add(assistantMessage)
                     }
                     contentBuffer.clear()
-                    reasoningPart = null // 娓呯┖锛屼笅涓€涓?group 鍙兘鏈夋柊鐨?reasoning
+                    reasoningPart = null // 清空，下一个 group 可能有新的 reasoning
 
-                    // 绱ц窡 tool 缁撴灉娑堟伅
+                    // 紧跟 tool 结果消息
                     group.tools.forEach { tool ->
                         add(buildJsonObject {
                             put("role", "tool")
@@ -465,7 +465,7 @@ class ChatCompletionsAPI(
             }
         }
 
-        // 杈撳嚭鍓╀綑鍐呭
+        // 输出剩余内容
         if (contentBuffer.isNotEmpty() || reasoningPart != null) {
             buildAssistantMessageJson(
                 contentParts = contentBuffer,
@@ -602,13 +602,13 @@ class ChatCompletionsAPI(
             jsonObject["role"]?.jsonPrimitive?.contentOrNull?.uppercase() ?: "ASSISTANT"
         )
 
-        // 涔熻鏀寔鍏朵粬妯℃€佺殑杈撳嚭content?
+        // 也许支持其他模态的输出content?
         val content = jsonObject["content"]?.jsonPrimitiveOrNull?.contentOrNull ?: ""
         val reasoning = jsonObject["reasoning_content"]?.jsonPrimitiveOrNull?.contentOrNull
             ?: jsonObject["reasoning"]?.jsonPrimitiveOrNull?.contentOrNull
             ?: jsonObject["content"]?.takeIf { it is JsonArray }?.let { arr ->
-                // Mistral鎺ュ彛
-                // {"id":"","object":"chat.completion.chunk","created":1772351733,"model":"magistral-medium-2509","choices":[{"index":0,"delta":{"content":[{"type":"thinking","thinking":[{"type":"text","text":"濂界殑"}]}]},"finish_reason":null}]}
+                // Mistral接口
+                // {"id":"","object":"chat.completion.chunk","created":1772351733,"model":"magistral-medium-2509","choices":[{"index":0,"delta":{"content":[{"type":"thinking","thinking":[{"type":"text","text":"好的"}]}]},"finish_reason":null}]}
                 arr.jsonArrayOrNull?.getOrNull(0)?.jsonObject?.get("thinking")?.jsonArrayOrNull?.getOrNull(0)?.jsonObjectOrNull?.get(
                     "text"
                 )?.jsonPrimitiveOrNull?.contentOrNull
@@ -699,4 +699,3 @@ class ChatCompletionsAPI(
         return gonnaSend == texts && texts == 1
     }
 }
-

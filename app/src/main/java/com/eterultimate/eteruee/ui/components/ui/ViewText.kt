@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.ui
+package com.eterultimate.eteruee.ui.components.ui
 
 import android.graphics.Paint
 import android.graphics.Typeface
@@ -90,17 +90,17 @@ private fun TextViewPreview() {
 
             HorizontalDivider()
 
-            // AndroidView TextView 澶嶅埢鐗堟湰
-            // 鍒涘缓 SpannableString 鏉ュ鍒?AnnotatedString 鐨勬晥鏋?
+            // AndroidView TextView 复刻版本
+            // 创建 SpannableString 来复刻 AnnotatedString 的效果
             val fullText =
                 "How many roads must a man walk down How many roads must a man walk downHow many roads must a man walk downBIG TEXTahah"
             val spannableString = SpannableString(fullText)
 
-            // 鎵惧埌 "BIG TEXT" 鐨勪綅缃苟搴旂敤澶у瓧浣撴牱寮?
+            // 找到 "BIG TEXT" 的位置并应用大字体样式
             val bigTextStart = fullText.indexOf("BIG TEXT")
             val bigTextEnd = bigTextStart + "BIG TEXT".length
 
-            // 灏?39.sp 杞崲涓哄儚绱?
+            // 将 39.sp 转换为像素
             val density = LocalDensity.current
             val bigTextSizePx = with(density) { 39.sp.toPx().toInt() }
             spannableString.setSpan(
@@ -163,11 +163,11 @@ private fun TextView.setComposeTextStyle(
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
                         justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_CHARACTER
                     }
-                    // 涓ょ瀵归綈涔熼渶瑕佷竴涓熀纭€鐨?gravity锛岄€氬父鏄?START
+                    // 两端对齐也需要一个基础的 gravity，通常是 START
                     Gravity.START
                 }
 
-                else -> gravity // 淇濇寔褰撳墠 gravity
+                else -> gravity // 保持当前 gravity
             }
         }
 
@@ -176,14 +176,14 @@ private fun TextView.setComposeTextStyle(
             val lineHeightPx = when (textStyle.lineHeight.type) {
                 TextUnitType.Em -> textStyle.lineHeight.value * textStyle.fontSize.toPx()
                 TextUnitType.Sp -> textStyle.lineHeight.toPx()
-                else -> textStyle.lineHeight.value // 榛樿浣跨敤 px
+                else -> textStyle.lineHeight.value // 默认使用 px
             }
-            // Android P (API 28) 鍙婁互涓婄増鏈彲浠ョ洿鎺ヨ缃楂?
+            // Android P (API 28) 及以上版本可以直接设置行高
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 lineHeight = lineHeightPx.roundToInt()
             } else {
-                // 瀵逛簬鏃х増鏈紝閫氳繃 setLineSpacing 瀹炵幇
-                // 绗竴涓弬鏁版槸棰濆闂磋窛锛岀浜屼釜鏄楂樺€嶆暟
+                // 对于旧版本，通过 setLineSpacing 实现
+                // 第一个参数是额外间距，第二个是行高倍数
                 // extra = desired_line_height - font_metrics_height
                 val fontMetrics = paint.fontMetricsInt
                 val extraSpacing = lineHeightPx - (fontMetrics.descent - fontMetrics.ascent)
@@ -201,7 +201,7 @@ private fun TextView.setComposeTextStyle(
             )
         }
 
-        // 杩欐槸鏈€澶嶆潅鐨勯儴鍒嗭紝鍥犱负瀹冮渶瑕佸皢 Compose 鐨勫瓧浣撴蹇垫槧灏勫埌 Android 鐨?Typeface
+        // 这是最复杂的部分，因为它需要将 Compose 的字体概念映射到 Android 的 Typeface
         val typefaceStyle = getAndroidTypefaceStyle(
             fontWeight = textStyle.fontWeight,
             fontStyle = textStyle.fontStyle
@@ -213,9 +213,9 @@ private fun TextView.setComposeTextStyle(
             FontFamily.Cursive -> Typeface.create(
                 Typeface.SANS_SERIF,
                 typefaceStyle
-            ) // Cursive 娌℃湁鐩存帴鏄犲皠锛屽洖閫€鍒?SansSerif
-            // 娉ㄦ剰锛氳繖閲屾病鏈夊鐞嗚嚜瀹氫箟瀛椾綋 (FontFamily(Font(...)))
-            // 瑕佸鐞嗚嚜瀹氫箟瀛椾綋锛岄渶瑕佹洿澶嶆潅鐨勯€昏緫鏉ュ姞杞藉瓧浣撹祫婧?
+            ) // Cursive 没有直接映射，回退到 SansSerif
+            // 注意：这里没有处理自定义字体 (FontFamily(Font(...)))
+            // 要处理自定义字体，需要更复杂的逻辑来加载字体资源
             else -> Typeface.create(typeface, typefaceStyle)
         }
         setTypeface(finalTypeface)
@@ -235,4 +235,3 @@ private fun getAndroidTypefaceStyle(
         else -> Typeface.NORMAL
     }
 }
-

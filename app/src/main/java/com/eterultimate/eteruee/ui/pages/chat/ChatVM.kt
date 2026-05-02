@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.chat
+package com.eterultimate.eteruee.ui.pages.chat
 
 import android.app.Application
 import android.content.Context
@@ -19,10 +19,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import me.rerere.ai.provider.Model
-import me.rerere.ai.ui.UIMessage
-import me.rerere.ai.ui.UIMessagePart
-import me.rerere.ai.ui.isEmptyInputMessage
+import com.eterultimate.eteruee.ai.provider.Model
+import com.eterultimate.eteruee.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.ai.ui.isEmptyInputMessage
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.data.datastore.SettingsStore
@@ -59,12 +59,12 @@ class ChatVM(
 ) : ViewModel() {
     private val _conversationId: Uuid = Uuid.parse(id)
     val conversation: StateFlow<Conversation> = chatService.getConversationFlow(_conversationId)
-    var chatListInitialized by mutableStateOf(false) // 鑱婂ぉ鍒楄〃鏄惁宸茬粡婊氬姩鍒板簳閮?
+    var chatListInitialized by mutableStateOf(false) // 聊天列表是否已经滚动到底部
 
-    // 鑱婂ぉ杈撳叆鐘舵€?- 淇濆瓨鍦?ViewModel 涓伩鍏?TransactionTooLargeException
+    // 聊天输入状态 - 保存在 ViewModel 中避免 TransactionTooLargeException
     val inputState = ChatInputState()
 
-    // 寮傛浠诲姟 (浠嶤hatService鑾峰彇锛屽搷搴斿紡)
+    // 异步任务 (从ChatService获取，响应式)
     val conversationJob: StateFlow<Job?> =
         chatService
             .getGenerationJobStateFlow(_conversationId)
@@ -79,62 +79,62 @@ class ChatVM(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
     init {
-        // 娣诲姞瀵硅瘽寮曠敤
+        // 添加对话引用
         chatService.addConversationReference(_conversationId)
 
-        // 鍒濆鍖栧璇?
+        // 初始化对话
         viewModelScope.launch {
             chatService.initializeConversation(_conversationId)
         }
 
-        // 璁颁綇瀵硅瘽ID, 鏂逛究涓嬫鍚姩鎭㈠
+        // 记住对话ID, 方便下次启动恢复
         context.writeStringPreference("lastConversationId", _conversationId.toString())
     }
 
     override fun onCleared() {
         super.onCleared()
-        // 绉婚櫎瀵硅瘽寮曠敤
+        // 移除对话引用
         chatService.removeConversationReference(_conversationId)
     }
 
-    // 鐢ㄦ埛璁剧疆
+    // 用户设置
     val settings: StateFlow<Settings> =
         settingsStore.settingsFlow.stateIn(viewModelScope, SharingStarted.Eagerly, Settings.dummy())
 
-    // 缃戠粶鎼滅储
+    // 网络搜索
     val enableWebSearch = settings.map {
         it.enableWebSearch
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    // 褰撳墠妯″瀷
+    // 当前模型
     val currentChatModel = settings.map { settings ->
         settings.getCurrentChatModel()
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    // 閿欒鐘舵€?
+    // 错误状态
     val errors: StateFlow<List<ChatError>> = chatService.errors
 
     fun dismissError(id: Uuid) = chatService.dismissError(id)
 
     fun clearAllErrors() = chatService.clearAllErrors()
 
-    // 鐢熸垚瀹屾垚
+    // 生成完成
     val generationDoneFlow: SharedFlow<Uuid> = chatService.generationDoneFlow
 
-    // MCP绠＄悊鍣?
+    // MCP管理器
     val mcpManager = chatService.mcpManager
 
-    // 鏇存柊璁剧疆
+    // 更新设置
     fun updateSettings(newSettings: Settings) {
         viewModelScope.launch {
             val oldSettings = settings.value
-            // 妫€鏌ョ敤鎴峰ご鍍忔槸鍚︽湁鍙樺寲锛屽鏋滄湁鍒欏垹闄ゆ棫澶村儚
+            // 检查用户头像是否有变化，如果有则删除旧头像
             checkUserAvatarDelete(oldSettings, newSettings)
             settingsStore.update(newSettings)
         }
     }
 
-    // 妫€鏌ョ敤鎴峰ご鍍忓垹闄?
+    // 检查用户头像删除
     private fun checkUserAvatarDelete(oldSettings: Settings, newSettings: Settings) {
         val oldAvatar = oldSettings.displaySetting.userAvatar
         val newAvatar = newSettings.displaySetting.userAvatar
@@ -144,7 +144,7 @@ class ChatVM(
         }
     }
 
-    // 璁剧疆鑱婂ぉ妯″瀷
+    // 设置聊天模型
     fun setChatModel(assistant: Assistant, model: Model) {
         viewModelScope.launch {
             settingsStore.update { settings ->
@@ -167,10 +167,10 @@ class ChatVM(
         updateChecker.checkUpdate().stateIn(viewModelScope, SharingStarted.Eagerly, UiState.Loading)
 
     /**
-     * 澶勭悊娑堟伅鍙戦€?
+     * 处理消息发送
      *
-     * @param content 娑堟伅鍐呭
-     * @param answer 鏄惁瑙﹀彂娑堟伅鐢熸垚锛屽鏋滀负false锛屽垯浠呮坊鍔犳秷鎭埌娑堟伅鍒楄〃涓?
+     * @param content 消息内容
+     * @param answer 是否触发消息生成，如果为false，则仅添加消息到消息列表中
      */
     fun handleMessageSend(content: List<UIMessagePart>,answer: Boolean = true) {
         if (content.isEmptyInputMessage()) return
@@ -214,7 +214,7 @@ class ChatVM(
 
     fun showDeleteBlockedWhileGeneratingError() {
         chatService.addError(
-            error = IllegalStateException("璇峰厛鍋滄鐢熸垚鍐嶅垹闄ゆ秷鎭?),
+            error = IllegalStateException("请先停止生成再删除消息"),
             conversationId = _conversationId,
             title = context.getString(R.string.error_title_operation)
         )
@@ -347,4 +347,3 @@ class ChatVM(
     }
 
 }
-

@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.data.ai
+package com.eterultimate.eteruee.data.ai
 
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import kotlinx.serialization.json.JsonElement
@@ -22,12 +22,12 @@ class AIRequestInterceptor(private val remoteConfig: FirebaseRemoteConfig) : Int
         return chain.proceed(request)
     }
 
-    // 澶勭悊纭呭熀娴佸姩鐨勮姹?
+    // 处理硅基流动的请求
 //    private fun processSiliconCloudRequest(request: Request): Request {
 //        val authHeader = request.header("Authorization")
 //        val path = request.url.encodedPath
 //
-//        // 濡傛灉娌℃湁璁剧疆api token, 濉叆鍏嶈垂api key
+//        // 如果没有设置api token, 填入免费api key
 //        if ((authHeader?.trim() == "Bearer" || authHeader?.trim() == "Bearer sk-") && path in listOf(
 //                "/v1/chat/completions",
 //                "/v1/models"
@@ -59,4 +59,3 @@ class AIRequestInterceptor(private val remoteConfig: FirebaseRemoteConfig) : Int
 //    }
 //    return null
 //}
-

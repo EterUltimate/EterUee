@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.richtext
+package com.eterultimate.eteruee.ui.components.richtext
 
 import android.content.ClipData
 import android.net.Uri
@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
@@ -54,11 +55,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import me.rerere.highlight.HighlightText
-import me.rerere.highlight.HighlightTextColorPalette
-import me.rerere.highlight.Highlighter
-import me.rerere.highlight.LocalHighlighter
-import me.rerere.highlight.buildHighlightText
+import com.eterultimate.eteruee.highlight.HighlightText
+import com.eterultimate.eteruee.highlight.HighlightTextColorPalette
+import com.eterultimate.eteruee.highlight.Highlighter
+import com.eterultimate.eteruee.highlight.LocalHighlighter
+import com.eterultimate.eteruee.highlight.buildHighlightText
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.ArrowDown01
 import me.rerere.hugeicons.stroke.ArrowUp01
@@ -78,7 +79,6 @@ import com.eterultimate.eteruee.ui.theme.LocalDarkMode
 import com.eterultimate.eteruee.utils.base64Encode
 import com.eterultimate.eteruee.utils.toDp
 import kotlin.time.Clock
-import androidx.compose.ui.graphics.RectangleShape
 
 private const val COLLAPSE_LINES = 10
 
@@ -163,7 +163,7 @@ fun HighlightCodeBlock(
                     val displayCode = if (isExpanded) code else collapsedCode
                     val displayLines = remember(displayCode) { displayCode.lines() }
 
-                    // 濡傛灉鏄剧ず琛屽彿涓旇嚜鍔ㄦ崲琛岋紝闇€瑕侀€愯娓叉煋浠ヤ繚鎸佸榻?
+                    // 如果显示行号且自动换行，需要逐行渲染以保持对齐
                     when {
                         showLineNumbers && autoWrap -> {
                             CodeBlockWithLineNumbersWrapped(
@@ -188,7 +188,7 @@ fun HighlightCodeBlock(
                     }
 
                     Spacer(Modifier.height(4.dp))
-                    // 浠ｇ爜鎶樺彔鎸夐挳
+                    // 代码折叠按钮
                     if (settings.displaySetting.codeBlockAutoCollapse && codeLines.size > COLLAPSE_LINES) {
                         Box(
                             modifier = Modifier
@@ -290,7 +290,7 @@ private fun CodeBlockDefault(
             }
         )
     ) {
-        // 琛屽彿鍒?
+        // 行号列
         if (showLineNumbers) {
             val lineNumberWidth = remember(displayLines.size) {
                 displayLines.size.toString().length
@@ -311,7 +311,7 @@ private fun CodeBlockDefault(
             }
         }
 
-        // 浠ｇ爜鍒?
+        // 代码列
         SelectionContainer {
             HighlightText(
                 code = displayCode,
@@ -362,7 +362,7 @@ private fun HighlightCodeActions(
                 contentDescription = stringResource(id = R.string.chat_page_save),
                 tint = iconTint,
                 modifier = Modifier
-                    .clip(RectangleShape)
+                    .clip(RoundedCornerShape(4.dp))
                     .onClick {
                         val extension = when (language.lowercase()) {
                             "kotlin" -> "kt"
@@ -398,7 +398,7 @@ private fun HighlightCodeActions(
                 contentDescription = stringResource(id = R.string.code_block_copy),
                 tint = iconTint,
                 modifier = Modifier
-                    .clip(RectangleShape)
+                    .clip(RoundedCornerShape(4.dp))
                     .onClick {
                         scope.launch {
                             clipboardManager.setClipEntry(ClipEntry(ClipData.newPlainText("code", code)))
@@ -414,7 +414,7 @@ private fun HighlightCodeActions(
                     contentDescription = stringResource(id = R.string.code_block_preview),
                     tint = iconTint,
                     modifier = Modifier
-                        .clip(RectangleShape)
+                        .clip(RoundedCornerShape(4.dp))
                         .onClick {
                             val content = if (language == "svg") {
                                 """<!DOCTYPE html><html><body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;">$code</body></html>"""
@@ -470,4 +470,3 @@ class HighlightCodeVisualTransformation(
         )
     }
 }
-

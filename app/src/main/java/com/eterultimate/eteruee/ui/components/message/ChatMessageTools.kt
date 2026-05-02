@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.message
+package com.eterultimate.eteruee.ui.components.message
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -58,10 +58,10 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import me.rerere.ai.ui.ToolApprovalState
-import me.rerere.ai.ui.UIMessagePart
-import me.rerere.common.http.jsonObjectOrNull
-import me.rerere.highlight.HighlightText
+import com.eterultimate.eteruee.ai.ui.ToolApprovalState
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.common.http.jsonObjectOrNull
+import com.eterultimate.eteruee.highlight.HighlightText
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.BubbleChatQuestion
 import me.rerere.hugeicons.stroke.Cancel01
@@ -194,7 +194,7 @@ fun ChainOfThoughtScope.ChatMessageToolStep(
 
         ToolNames.TTS -> {
             val preview = arguments.getStringContent("text")?.let { text ->
-                if (text.length > 24) text.take(24) + "鈥? else text
+                if (text.length > 24) text.take(24) + "…" else text
             } ?: ""
             "Speaking: $preview"
         }
@@ -208,7 +208,7 @@ fun ChainOfThoughtScope.ChatMessageToolStep(
         else -> stringResource(R.string.chat_message_tool_call_generic, tool.toolName)
     }
 
-    // 鍒ゆ柇鏄惁鏈夐澶栧唴瀹归渶瑕佹樉绀?
+    // 判断是否有额外内容需要显示
     val hasExtraContent = when (tool.toolName) {
         ToolNames.MEMORY -> memoryAction in listOf(MemoryActions.CREATE, MemoryActions.EDIT) &&
             content.getStringContent("content") != null
@@ -957,4 +957,3 @@ private fun ToolDenyReasonDialog(
         }
     )
 }
-

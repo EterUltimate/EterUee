@@ -1,10 +1,10 @@
-﻿package com.eterultimate.eteruee.ui.components.message
+package com.eterultimate.eteruee.ui.components.message
 
 import androidx.compose.ui.util.fastForEachIndexed
-import me.rerere.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
 
 /**
- * 鎬濊€冩楠ょ被鍨嬶紝鐢ㄤ簬鍒嗙粍 Reasoning 鍜?Tool
+ * 思考步骤类型，用于分组 Reasoning 和 Tool
  */
 sealed interface ThinkingStep {
     data class ReasoningStep(
@@ -17,7 +17,7 @@ sealed interface ThinkingStep {
 }
 
 /**
- * 娑堟伅閮ㄥ垎鍧楃被鍨嬶紝鐢ㄤ簬淇濇寔娓叉煋椤哄簭
+ * 消息部分块类型，用于保持渲染顺序
  */
 sealed interface MessagePartBlock {
     data class ThinkingBlock(val steps: List<ThinkingStep>) : MessagePartBlock
@@ -25,8 +25,8 @@ sealed interface MessagePartBlock {
 }
 
 /**
- * 灏?parts 鍒嗙粍鎴?ThinkingBlock 鍜?ContentBlock
- * 杩炵画鐨?Reasoning 鍜?Tool 浼氳鍒嗙粍鍒颁竴涓?ThinkingBlock 涓?
+ * 将 parts 分组成 ThinkingBlock 和 ContentBlock
+ * 连续的 Reasoning 和 Tool 会被分组到一个 ThinkingBlock 中
  */
 fun List<UIMessagePart>.groupMessageParts(): List<MessagePartBlock> {
     val result = mutableListOf<MessagePartBlock>()
@@ -58,4 +58,3 @@ fun List<UIMessagePart>.groupMessageParts(): List<MessagePartBlock> {
     flushThinkingSteps()
     return result
 }
-

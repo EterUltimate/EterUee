@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.data.db.migrations
+package com.eterultimate.eteruee.data.db.migrations
 
 import android.database.sqlite.SQLiteBlobTooBigException
 import android.util.Log
@@ -20,7 +20,7 @@ val Migration_11_12 = object : Migration(11, 12) {
         DatabaseMigrationTracker.onMigrationStart(11, 12)
         db.beginTransaction()
         try {
-            // 1. 鍒涘缓 message_node 琛?
+            // 1. 创建 message_node 表
             db.execSQL(
                 """
                 CREATE TABLE IF NOT EXISTS message_node (
@@ -35,7 +35,7 @@ val Migration_11_12 = object : Migration(11, 12) {
             )
             db.execSQL("CREATE INDEX IF NOT EXISTS index_message_node_conversation_id ON message_node(conversation_id)")
 
-            // 2. 浠?conversationentity.nodes 杩佺Щ鏁版嵁鍒?message_node
+            // 2. 从 conversationentity.nodes 迁移数据到 message_node
             val cursor = db.query("SELECT id FROM conversationentity")
             var migratedCount = 0
             var nodeCount = 0
@@ -53,8 +53,8 @@ val Migration_11_12 = object : Migration(11, 12) {
                             continue
                         }
                         val nodesJson = nodeCursor.getString(0)
-                        // 浣跨敤鍘熷 JSON 瑙ｆ瀽锛岄伩鍏嶅洜 UIMessagePart 绫诲瀷鍚嶅彉鏇村鑷寸殑鍙嶅簭鍒楀寲澶辫触
-                        // 鍚屾椂搴旂敤绫诲瀷鍚嶆槧灏勶紙涓?Migration_13_14 鐩稿悓鐨勯€昏緫锛?
+                        // 使用原始 JSON 解析，避免因 UIMessagePart 类型名变更导致的反序列化失败
+                        // 同时应用类型名映射（与 Migration_13_14 相同的逻辑）
                         val nodesArray = runCatching {
                             JsonInstant.parseToJsonElement(nodesJson) as? JsonArray
                         }.getOrNull() ?: JsonArray(emptyList())
@@ -62,7 +62,7 @@ val Migration_11_12 = object : Migration(11, 12) {
                         nodesArray.forEachIndexed { index, nodeElement ->
                             val nodeObject = nodeElement as? JsonObject ?: return@forEachIndexed
                             val messagesElement = nodeObject["messages"] ?: JsonArray(emptyList())
-                            // 杩佺Щ娑堟伅涓殑 UIMessagePart 绫诲瀷鍚嶏紙鏃у畬鏁寸被鍚?-> 鏂?@SerialName锛?
+                            // 迁移消息中的 UIMessagePart 类型名（旧完整类名 -> 新 @SerialName）
                             val migratedMessages = migrateMessagesElement(messagesElement)
                             val messagesJson = JsonInstant.encodeToString(migratedMessages)
                             val selectIndex = runCatching {
@@ -102,4 +102,3 @@ val Migration_11_12 = object : Migration(11, 12) {
         }
     }
 }
-

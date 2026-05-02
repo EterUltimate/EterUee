@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.data.ai.mcp.transport
+package com.eterultimate.eteruee.data.ai.mcp.transport
 
 import android.util.Log
 import io.ktor.client.HttpClient
@@ -128,8 +128,8 @@ public class StreamableHttpClientTransport(
 
         if (response.status == HttpStatusCode.Accepted) {
             if (message is JSONRPCNotification && message.method == "notifications/initialized") {
-                // 寮傛鍚姩 SSE 浼氳瘽锛屼笉闃诲 send() 鏂规硶
-                // 杩欎笌 TypeScript 瀹炵幇涓€鑷达紝閬垮厤瓒呮椂闃诲鏁翠釜杩炴帴娴佺▼
+                // 异步启动 SSE 会话，不阻塞 send() 方法
+                // 这与 TypeScript 实现一致，避免超时阻塞整个连接流程
                 scope.launch {
                     try {
                         startSseSession(onResumptionToken = onResumptionToken)
@@ -367,4 +367,3 @@ public class StreamableHttpClientTransport(
         }
     }
 }
-

@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.data.ai.mcp
+package com.eterultimate.eteruee.data.ai.mcp
 
 import android.util.Log
 import androidx.core.net.toUri
@@ -29,8 +29,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.ClassDiscriminatorMode
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import me.rerere.ai.core.InputSchema
-import me.rerere.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.ai.core.InputSchema
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.AppScope
 import com.eterultimate.eteruee.data.ai.mcp.transport.SseClientTransport
 import com.eterultimate.eteruee.data.ai.mcp.transport.StreamableHttpClientTransport
@@ -215,11 +215,11 @@ class McpManager(
             )
         )
 
-        // 娉ㄥ唽 transport 鍥炶皟浠ユ敮鎸佽嚜鍔ㄩ噸杩?
+        // 注册 transport 回调以支持自动重连
         transport.onClose {
             Log.i(TAG, "Transport closed for ${config.commonOptions.name}")
             val currentStatus = syncingStatus.value[config.id]
-            // 鍙湁鍦ㄥ凡杩炴帴鐘舵€佷笅鎵嶈Е鍙戦噸杩烇紝閬垮厤姝ｅ父鍏抽棴鏃堕噸杩?
+            // 只有在已连接状态下才触发重连，避免正常关闭时重连
             if (currentStatus == McpStatus.Connected) {
                 scheduleReconnect(config)
             }
@@ -228,7 +228,7 @@ class McpManager(
         transport.onError { error ->
             Log.e(TAG, "Transport error for ${config.commonOptions.name}: ${error.message}")
             val currentStatus = syncingStatus.value[config.id]
-            // 鍙湁鍦ㄥ凡杩炴帴鐘舵€佷笅鎵嶈Е鍙戦噸杩?
+            // 只有在已连接状态下才触发重连
             if (currentStatus == McpStatus.Connected) {
                 scheduleReconnect(config)
             }
@@ -240,7 +240,7 @@ class McpManager(
             client.connect(transport)
             sync(config)
             setStatus(config = config, status = McpStatus.Connected)
-            reconnectAttempts[config.id] = 0 // 閲嶇疆閲嶈繛璁℃暟
+            reconnectAttempts[config.id] = 0 // 重置重连计数
             Log.i(TAG, "addClient: connected ${config.commonOptions.name}")
         }.onFailure {
             it.printStackTrace()
@@ -266,7 +266,7 @@ class McpManager(
                     val common = serverConfig.commonOptions
                     val tools = common.tools.toMutableList()
 
-                    // 鍩轰簬server瀵规瘮
+                    // 基于server对比
                     serverTools.forEach { serverTool ->
                         val tool = tools.find { it.name == serverTool.name }
                         if (tool == null) {
@@ -287,10 +287,10 @@ class McpManager(
                         }
                     }
 
-                    // 鍒犻櫎涓嶅湪server鍐呯殑
+                    // 删除不在server内的
                     tools.removeIf { tool -> serverTools.none { it.name == tool.name } }
 
-                    // 鏇存柊clients
+                    // 更新clients
                     clients.remove(config)
                     clients.put(
                         config.clone(
@@ -300,7 +300,7 @@ class McpManager(
                         ), client
                     )
 
-                    // 杩斿洖鏂扮殑serverConfig锛屾洿鏂板埌settings store
+                    // 返回新的serverConfig，更新到settings store
                     serverConfig.clone(
                         commonOptions = common.copy(
                             tools = tools
@@ -346,17 +346,17 @@ class McpManager(
         if (currentAttempt > MAX_RECONNECT_ATTEMPTS) {
             Log.w(TAG, "Max reconnect attempts reached for ${config.commonOptions.name}")
             appScope.launch {
-                setStatus(config, McpStatus.Error("杩炴帴鏂紑锛屽凡杈炬渶澶ч噸杩炴鏁?))
+                setStatus(config, McpStatus.Error("连接断开，已达最大重连次数"))
             }
             return
         }
 
         reconnectAttempts[configId] = currentAttempt
 
-        // 鍙栨秷涔嬪墠鐨勯噸杩炰换鍔?
+        // 取消之前的重连任务
         reconnectJobs[configId]?.cancel()
 
-        // 璁＄畻鎸囨暟閫€閬垮欢杩?
+        // 计算指数退避延迟
         val delayMs = calculateBackoffDelay(currentAttempt)
         Log.i(TAG, "Scheduling reconnect for ${config.commonOptions.name}, attempt $currentAttempt/$MAX_RECONNECT_ATTEMPTS, delay ${delayMs}ms")
 
@@ -365,7 +365,7 @@ class McpManager(
                 setStatus(config, McpStatus.Reconnecting(currentAttempt, MAX_RECONNECT_ATTEMPTS))
                 delay(delayMs)
 
-                // 妫€鏌ラ厤缃槸鍚︿粛鐒跺惎鐢?
+                // 检查配置是否仍然启用
                 val currentConfig = settingsStore.settingsFlow.value.mcpServers
                     .find { it.id == configId && it.commonOptions.enable }
 
@@ -381,7 +381,7 @@ class McpManager(
                 throw e
             } catch (e: Exception) {
                 Log.e(TAG, "Reconnect failed for ${config.commonOptions.name}", e)
-                // 缁х画灏濊瘯閲嶈繛
+                // 继续尝试重连
                 scheduleReconnect(config)
             }
         }
@@ -393,13 +393,13 @@ class McpManager(
     }
 
     private fun calculateBackoffDelay(attempt: Int): Long {
-        // 鎸囨暟閫€閬? baseDelay * 2^(attempt-1)锛屾渶澶т笉瓒呰繃 maxDelay
+        // 指数退避: baseDelay * 2^(attempt-1)，最大不超过 maxDelay
         val exponentialDelay = BASE_RECONNECT_DELAY_MS * (1L shl (attempt - 1).coerceAtMost(10))
         return exponentialDelay.coerceAtMost(MAX_RECONNECT_DELAY_MS)
     }
 
     private suspend fun reconnectClient(config: McpServerConfig) = withContext(Dispatchers.IO) {
-        // 鍏堝叧闂棫瀹㈡埛绔?
+        // 先关闭旧客户端
         val oldEntry = clients.entries.find { it.key.id == config.id }
         if (oldEntry != null) {
             runCatching { oldEntry.value.close() }.onFailure { it.printStackTrace() }
@@ -414,7 +414,7 @@ class McpManager(
             )
         )
 
-        // 娉ㄥ唽鍥炶皟
+        // 注册回调
         transport.onClose {
             Log.i(TAG, "Transport closed for ${config.commonOptions.name}")
             val currentStatus = syncingStatus.value[config.id]
@@ -436,7 +436,7 @@ class McpManager(
         client.connect(transport)
         sync(config)
         setStatus(config, McpStatus.Connected)
-        reconnectAttempts[config.id] = 0 // 閲嶇疆閲嶈繛璁℃暟
+        reconnectAttempts[config.id] = 0 // 重置重连计数
         Log.i(TAG, "Reconnected successfully: ${config.commonOptions.name}")
     }
 
@@ -464,4 +464,3 @@ internal val McpJson: Json by lazy {
 private fun ToolSchema.toSchema(): InputSchema {
     return InputSchema.Obj(properties = this.properties ?: JsonObject(emptyMap()), required = this.required)
 }
-

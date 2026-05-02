@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.extensions
+package com.eterultimate.eteruee.ui.pages.extensions
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -54,7 +54,7 @@ class SkillsVM(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val info = parseGitHubUrl(repoUrl) ?: run {
-                    withContext(Dispatchers.Main) { onResult(false, "鏃犳晥鐨?GitHub 浠撳簱閾炬帴") }
+                    withContext(Dispatchers.Main) { onResult(false, "无效的 GitHub 仓库链接") }
                     return@launch
                 }
 
@@ -62,24 +62,24 @@ class SkillsVM(
                 val files = mutableListOf<Pair<String, String>>() // relativePath -> downloadUrl
                 val listed = listFilesRecursively(info.owner, info.repo, info.branch, info.path, info.path, files)
                 if (!listed) {
-                    withContext(Dispatchers.Main) { onResult(false, "璇诲彇 GitHub 鐩綍澶辫触") }
+                    withContext(Dispatchers.Main) { onResult(false, "读取 GitHub 目录失败") }
                     return@launch
                 }
 
                 val skillMdEntry = files.find { it.first == "SKILL.md" } ?: run {
-                    withContext(Dispatchers.Main) { onResult(false, "鐩綍涓湭鎵惧埌 SKILL.md") }
+                    withContext(Dispatchers.Main) { onResult(false, "目录中未找到 SKILL.md") }
                     return@launch
                 }
 
                 val skillMdContent = downloadText(skillMdEntry.second) ?: run {
-                    withContext(Dispatchers.Main) { onResult(false, "涓嬭浇 SKILL.md 澶辫触锛岃妫€鏌ラ摼鎺ユ垨缃戠粶") }
+                    withContext(Dispatchers.Main) { onResult(false, "下载 SKILL.md 失败，请检查链接或网络") }
                     return@launch
                 }
 
                 val frontmatter = SkillFrontmatterParser.parse(skillMdContent)
                 val name = frontmatter["name"]
                 if (name.isNullOrBlank()) {
-                    withContext(Dispatchers.Main) { onResult(false, "SKILL.md 鏍煎紡閿欒锛氱己灏?name 瀛楁") }
+                    withContext(Dispatchers.Main) { onResult(false, "SKILL.md 格式错误：缺少 name 字段") }
                     return@launch
                 }
 
@@ -87,7 +87,7 @@ class SkillsVM(
                 for ((relativePath, downloadUrl) in files) {
                     val content = downloadText(downloadUrl)
                     if (content == null) {
-                        withContext(Dispatchers.Main) { onResult(false, "涓嬭浇鏂囦欢澶辫触锛?relativePath") }
+                        withContext(Dispatchers.Main) { onResult(false, "下载文件失败：$relativePath") }
                         return@launch
                     }
                     fileContents[relativePath] = content
@@ -95,14 +95,14 @@ class SkillsVM(
 
                 val saved = skillManager.saveSkillFilesAtomically(name, fileContents)
                 if (!saved) {
-                    withContext(Dispatchers.Main) { onResult(false, "淇濆瓨澶辫触") }
+                    withContext(Dispatchers.Main) { onResult(false, "保存失败") }
                     return@launch
                 }
 
                 _skills.value = skillManager.listSkills()
                 withContext(Dispatchers.Main) { onResult(true, name) }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) { onResult(false, e.message ?: "鏈煡閿欒") }
+                withContext(Dispatchers.Main) { onResult(false, e.message ?: "未知错误") }
             }
         }
     }
@@ -173,4 +173,3 @@ class SkillsVM(
         }
     }
 }
-

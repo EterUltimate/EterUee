@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.setting
+package com.eterultimate.eteruee.ui.pages.setting
 
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Package01
@@ -90,16 +90,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import me.rerere.ai.provider.BuiltInTools
-import me.rerere.ai.provider.Modality
-import me.rerere.ai.provider.Model
-import me.rerere.ai.provider.ModelAbility
-import me.rerere.ai.provider.ModelType
-import me.rerere.ai.provider.ProviderManager
-import me.rerere.ai.provider.ProviderSetting
-import me.rerere.ai.provider.TextGenerationParams
-import me.rerere.ai.registry.ModelRegistry
-import me.rerere.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.provider.BuiltInTools
+import com.eterultimate.eteruee.ai.provider.Modality
+import com.eterultimate.eteruee.ai.provider.Model
+import com.eterultimate.eteruee.ai.provider.ModelAbility
+import com.eterultimate.eteruee.ai.provider.ModelType
+import com.eterultimate.eteruee.ai.provider.ProviderManager
+import com.eterultimate.eteruee.ai.provider.ProviderSetting
+import com.eterultimate.eteruee.ai.provider.TextGenerationParams
+import com.eterultimate.eteruee.ai.registry.ModelRegistry
+import com.eterultimate.eteruee.ai.ui.UIMessage
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.ui.components.ai.ModelAbilityTag
 import com.eterultimate.eteruee.ui.components.ai.ModelModalityTag
@@ -324,7 +324,7 @@ private fun SettingProviderConfigPage(
             }
         }
 
-        // 纭呭熀娴佸姩鍥炬爣
+        // 硅基流动图标
         if (provider is ProviderSetting.OpenAI && provider.baseUrl.contains("siliconflow.cn")) {
             SiliconFlowPowerByIcon(
                 modifier = Modifier
@@ -411,7 +411,7 @@ private fun ModelList(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             state = lazyListState
         ) {
-            // 妯″瀷鍒楄〃
+            // 模型列表
             if (providerSetting.models.isEmpty()) {
                 item {
                     Column(
@@ -552,7 +552,7 @@ private fun ModelSettingsForm(
         ) { page ->
             when (page) {
                 0 -> {
-                    // 鍩烘湰璁剧疆椤甸潰
+                    // 基本设置页面
                     Column(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         modifier = Modifier
@@ -622,7 +622,7 @@ private fun ModelSettingsForm(
                 }
 
                 1 -> {
-                    // 楂樼骇璁剧疆椤甸潰
+                    // 高级设置页面
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -655,7 +655,7 @@ private fun ModelSettingsForm(
                 }
 
                 2 -> {
-                    // 鍐呯疆宸ュ叿椤甸潰
+                    // 内置工具页面
                     BuiltInToolsSettings(
                         tools = model.tools,
                         onUpdateTools = { tools ->
@@ -864,7 +864,7 @@ private fun ModelPicker(
                     .imePadding(),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // 鏍囬鏍忓拰娣诲姞鎵€鏈夋寜閽?
+                // 标题栏和添加所有按钮
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -954,7 +954,7 @@ private fun ModelPicker(
                                 IconButton(
                                     onClick = {
                                         if (selectedModels.any { model -> model.modelId == it.modelId }) {
-                                            // 浠巗electedModels涓绠楀嚭瑕佸垹闄ょ殑model锛屽洜涓哄垹闄ら渶瑕乮d鍖归厤锛岃€屼笉鏄疢odelId
+                                            // 从selectedModels中计算出要删除的model，因为删除需要id匹配，而不是ModelId
                                             onModelDeselected(selectedModels.firstOrNull { model -> model.modelId == it.modelId }
                                                 ?: it)
                                         } else {
@@ -1489,7 +1489,7 @@ private fun ProviderOverrideSettings(
                     editingProvider = parentProvider?.copyProvider(
                         id = Uuid.random(),
                         builtIn = false,
-                        models = emptyList(), // 杩欓噷蹇呴』璁剧疆涓虹┖锛屼笉鐒朵細瀵艰嚧寰幆渚濊禆JSON
+                        models = emptyList(), // 这里必须设置为空，不然会导致循环依赖JSON
                         description = {},
                     )
                     showProviderConfig = true
@@ -1564,4 +1564,3 @@ private fun ProviderOverrideSettings(
         }
     }
 }
-

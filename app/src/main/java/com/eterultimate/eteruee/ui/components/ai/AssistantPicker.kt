@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.ai
+package com.eterultimate.eteruee.ui.components.ai
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
@@ -49,7 +50,6 @@ import com.eterultimate.eteruee.ui.components.ui.UIAvatar
 import com.eterultimate.eteruee.ui.context.LocalNavController
 import com.eterultimate.eteruee.ui.hooks.rememberAssistantState
 import kotlin.uuid.Uuid
-import androidx.compose.ui.graphics.RectangleShape
 
 @Composable
 fun AssistantPicker(
@@ -118,10 +118,10 @@ private fun AssistantPickerSheet(
     val scope = rememberCoroutineScope()
     val defaultAssistantName = stringResource(R.string.assistant_page_default_assistant)
 
-    // 鏍囩杩囨护鐘舵€?
+    // 标签过滤状态
     var selectedTagIds by remember { mutableStateOf(emptySet<Uuid>()) }
 
-    // 鏍规嵁閫変腑鐨勬爣绛捐繃婊ゅ姪鎵?
+    // 根据选中的标签过滤助手
     val filteredAssistants = remember(settings.assistants, selectedTagIds) {
         if (selectedTagIds.isEmpty()) {
             settings.assistants
@@ -149,7 +149,7 @@ private fun AssistantPickerSheet(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            // 鏍囩杩囨护鍣?
+            // 标签过滤器
             if (settings.assistantTags.isNotEmpty()) {
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -166,14 +166,14 @@ private fun AssistantPickerSheet(
                             },
                             label = { Text(tag.name) },
                             selected = tag.id in selectedTagIds,
-                            shape = RectangleShape,
+                            shape = RoundedCornerShape(50),
                         )
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            // 鍔╂墜鍒楄〃
+            // 助手列表
             val navController = LocalNavController.current
             LazyColumn(
                 modifier = Modifier.weight(1f),
@@ -244,4 +244,3 @@ private fun AssistantItem(
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
     )
 }
-

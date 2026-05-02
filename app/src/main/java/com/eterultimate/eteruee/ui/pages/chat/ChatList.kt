@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.chat
+package com.eterultimate.eteruee.ui.pages.chat
 
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Tick01
@@ -42,6 +42,8 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
@@ -85,7 +87,7 @@ import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import me.rerere.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessage
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.data.datastore.findModelById
@@ -102,7 +104,6 @@ import com.eterultimate.eteruee.ui.hooks.ImeLazyListAutoScroller
 import com.eterultimate.eteruee.utils.plus
 import kotlin.math.roundToInt
 import kotlin.uuid.Uuid
-import androidx.compose.ui.graphics.RectangleShape
 
 private const val TAG = "ChatList"
 private const val LoadingIndicatorKey = "LoadingIndicator"
@@ -238,15 +239,15 @@ private fun ChatListNormal(
         return lastPos <= inputPos - 8
     }
 
-    // 鑱婂ぉ閫夋嫨
+    // 聊天选择
     val selectedItems = remember { mutableStateListOf<Uuid>() }
     var selecting by remember { mutableStateOf(false) }
     var showExportSheet by remember { mutableStateOf(false) }
 
-    // 鑷姩璺熼殢閿洏婊氬姩
+    // 自动跟随键盘滚动
     ImeLazyListAutoScroller(lazyListState = state)
 
-    // 瀵硅瘽澶у皬璀﹀憡瀵硅瘽妗?
+    // 对话大小警告对话框
     val sizeInfo = rememberConversationSizeInfo(conversation)
     var showSizeWarningDialog by rememberSaveable(conversation.id) { mutableStateOf(true) }
     if (sizeInfo.showWarning && showSizeWarningDialog) {
@@ -260,7 +261,7 @@ private fun ChatListNormal(
         modifier = Modifier
             .fillMaxSize(),
     ) {
-        // 鑷姩婊氬姩鍒板簳閮?
+        // 自动滚动到底部
         if (settings.displaySetting.enableAutoScroll) {
             LaunchedEffect(state) {
                 snapshotFlow { state.layoutInfo.visibleItemsInfo }.collect { visibleItemsInfo ->
@@ -275,7 +276,7 @@ private fun ChatListNormal(
             }
         }
 
-        // 鍒ゆ柇鏈€杩戞槸鍚︽粴鍔?
+        // 判断最近是否滚动
         LaunchedEffect(state.isScrollInProgress) {
             if (state.isScrollInProgress) {
                 isRecentScroll = true
@@ -332,7 +333,7 @@ private fun ChatListNormal(
                                 onDelete(node.currentMessage)
                             },
                             onShare = {
-                                selecting = true  // 浣跨敤 CoroutineScope 寤惰繜鐘舵€佹洿鏂?
+                                selecting = true  // 使用 CoroutineScope 延迟状态更新
                                 selectedItems.clear()
                                 selectedItems.addAll(conversation.messageNodes.map { it.id }
                                     .subList(0, conversation.messageNodes.indexOf(node) + 1))
@@ -377,7 +378,7 @@ private fun ChatListNormal(
                 }
             }
 
-            // 涓轰簡鑳芥纭粴鍔ㄥ埌杩?
+            // 为了能正确滚动到这
             item(ScrollBottomKey) {
                 Spacer(
                     Modifier
@@ -392,7 +393,7 @@ private fun ChatListNormal(
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            // 閿欒娑堟伅鍗＄墖
+            // 错误消息卡片
             ErrorCardsDisplay(
                 errors = errors,
                 onDismissError = onDismissError,
@@ -402,7 +403,7 @@ private fun ChatListNormal(
                     .zIndex(5f)
             )
 
-            // 瀹屾垚閫夋嫨
+            // 完成选择
             AnimatedVisibility(
                 visible = selecting,
                 modifier = Modifier
@@ -469,7 +470,7 @@ private fun ChatListNormal(
                 }
             }
 
-            // 瀵煎嚭瀵硅瘽妗?
+            // 导出对话框
             ChatExportSheet(
                 visible = showExportSheet,
                 onDismissRequest = {
@@ -483,7 +484,7 @@ private fun ChatListNormal(
 
             val captureProgress = LocalScrollCaptureInProgress.current
 
-            // 娑堟伅蹇€熻烦杞?
+            // 消息快速跳转
             MessageJumper(
                 show = isRecentScroll && !state.isScrollInProgress && settings.displaySetting.showMessageJumper && !captureProgress,
                 onLeft = settings.displaySetting.messageJumperOnLeft,
@@ -504,7 +505,7 @@ private fun ChatListNormal(
 }
 
 /**
- * 鎻愬彇鍖呭惈鎼滅储璇嶇殑鏂囨湰鐗囨锛岀‘淇濆尮閰嶈瘝鍦ㄥ紑澶村彲瑙?
+ * 提取包含搜索词的文本片段，确保匹配词在开头可见
  */
 private fun extractMatchingSnippet(
     text: String,
@@ -519,10 +520,10 @@ private fun extractMatchingSnippet(
         return text
     }
 
-    // 鐩存帴浠庡尮閰嶈瘝寮€濮嬫樉绀猴紝纭繚鍖归厤璇嶅湪鏈€鍓嶉潰
+    // 直接从匹配词开始显示，确保匹配词在最前面
     val snippet = text.substring(matchIndex)
 
-    // 鍙湪鍓嶉潰鏈夊唴瀹规椂娣诲姞鐪佺暐鍙?
+    // 只在前面有内容时添加省略号
     return if (matchIndex > 0) {
         "...$snippet"
     } else {
@@ -544,10 +545,10 @@ private fun buildHighlightedText(
         var index = text.indexOf(query, startIndex, ignoreCase = true)
 
         while (index >= 0) {
-            // 娣诲姞楂樹寒鍓嶇殑鏂囨湰
+            // 添加高亮前的文本
             append(text.substring(startIndex, index))
 
-            // 娣诲姞楂樹寒鏂囨湰
+            // 添加高亮文本
             withStyle(
                 style = SpanStyle(
                     background = highlightColor,
@@ -561,7 +562,7 @@ private fun buildHighlightedText(
             index = text.indexOf(query, startIndex, ignoreCase = true)
         }
 
-        // 娣诲姞鍓╀綑鏂囨湰
+        // 添加剩余文本
         if (startIndex < text.length) {
             append(text.substring(startIndex))
         }
@@ -579,7 +580,7 @@ private fun ChatListPreview(
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
-    // 杩囨护娑堟伅锛屽悓鏃朵繚鐣欏師濮?index 閬垮厤鍚庣画 O(n) indexOf 鏌ユ壘
+    // 过滤消息，同时保留原始 index 避免后续 O(n) indexOf 查找
     val filteredMessages = remember(conversation.messageNodes, searchQuery) {
         if (searchQuery.isBlank()) {
             conversation.messageNodes.mapIndexed { index, node -> index to node }
@@ -594,7 +595,7 @@ private fun ChatListPreview(
             .padding(top = innerPadding.calculateTopPadding())
             .fillMaxSize(),
     ) {
-        // 鎼滅储妗?
+        // 搜索框
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
@@ -621,11 +622,11 @@ private fun ChatListPreview(
                 }
             },
             singleLine = true,
-            shape = RectangleShape,
+            shape = CircleShape,
             maxLines = 1,
         )
 
-        // 娑堟伅棰勮
+        // 消息预览
         LazyColumn(
             contentPadding = PaddingValues(16.dp) + PaddingValues(bottom = 32.dp + innerPadding.calculateBottomPadding()),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -638,7 +639,7 @@ private fun ChatListPreview(
                 key = { index, item -> item.second.id },
             ) { _, (originalIndex, node) ->
                 val message = node.currentMessage
-                val isUser = message.role == me.rerere.ai.core.MessageRole.USER
+                val isUser = message.role == com.eterultimate.eteruee.ai.core.MessageRole.USER
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -703,7 +704,7 @@ private fun ChatSuggestionsRow(
         items(conversation.chatSuggestions) { suggestion ->
             Box(
                 modifier = Modifier
-                    .clip(RectangleShape)
+                    .clip(RoundedCornerShape(50))
                     .clickable {
                         onClickSuggestion(suggestion)
                     }
@@ -746,7 +747,7 @@ private fun BoxScope.MessageJumper(
                         state.scrollToItem(0)
                     }
                 },
-                shape = RectangleShape,
+                shape = CircleShape,
                 tonalElevation = 4.dp,
                 color = MaterialTheme.colorScheme.surfaceColorAtElevation(
                     4.dp
@@ -769,7 +770,7 @@ private fun BoxScope.MessageJumper(
                         )
                     }
                 },
-                shape = RectangleShape,
+                shape = CircleShape,
                 tonalElevation = 4.dp,
                 color = MaterialTheme.colorScheme.surfaceColorAtElevation(
                     4.dp
@@ -788,7 +789,7 @@ private fun BoxScope.MessageJumper(
                         state.animateScrollToItem(state.firstVisibleItemIndex + 1)
                     }
                 },
-                shape = RectangleShape,
+                shape = CircleShape,
                 color = MaterialTheme.colorScheme.surfaceColorAtElevation(
                     4.dp
                 ).copy(alpha = 0.65f)
@@ -806,7 +807,7 @@ private fun BoxScope.MessageJumper(
                         state.scrollToItem(state.layoutInfo.totalItemsCount - 1)
                     }
                 },
-                shape = RectangleShape,
+                shape = CircleShape,
                 color = MaterialTheme.colorScheme.surfaceColorAtElevation(
                     4.dp
                 ).copy(alpha = 0.65f),
@@ -821,4 +822,3 @@ private fun BoxScope.MessageJumper(
         }
     }
 }
-

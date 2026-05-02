@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.message
+package com.eterultimate.eteruee.ui.components.message
 
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
@@ -62,12 +63,12 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import me.rerere.ai.core.MessageRole
-import me.rerere.ai.provider.Model
-import me.rerere.ai.ui.UIMessage
-import me.rerere.ai.ui.UIMessageAnnotation
-import me.rerere.ai.ui.UIMessagePart
-import me.rerere.ai.ui.isEmptyUIMessage
+import com.eterultimate.eteruee.ai.core.MessageRole
+import com.eterultimate.eteruee.ai.provider.Model
+import com.eterultimate.eteruee.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessageAnnotation
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.ai.ui.isEmptyUIMessage
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.File02
 import me.rerere.hugeicons.stroke.MusicNote03
@@ -94,7 +95,6 @@ import com.eterultimate.eteruee.utils.openUrl
 import com.eterultimate.eteruee.utils.urlDecode
 import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
-import androidx.compose.ui.graphics.RectangleShape
 
 @Composable
 fun ChatMessage(
@@ -272,7 +272,7 @@ private fun MessagePartsBlock(
     val context = LocalContext.current
     val contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
 
-    // 娑堟伅杈撳嚭HapticFeedback
+    // 消息输出HapticFeedback
     val hapticFeedback = LocalHapticFeedback.current
     val settings = LocalSettings.current
     val partsState by rememberUpdatedState(parts)
@@ -417,7 +417,7 @@ private fun MessagePartsBlock(
                                 context.startActivity(chooserIndent)
                             },
                             modifier = Modifier,
-                            shape = RectangleShape,
+                            shape = RoundedCornerShape(8.dp),
                         ) {
                             Box(modifier = Modifier.size(72.dp), contentAlignment = Alignment.Center) {
                                 Icon(HugeIcons.Video01, null)
@@ -440,7 +440,7 @@ private fun MessagePartsBlock(
                                 context.startActivity(chooserIndent)
                             },
                             modifier = Modifier,
-                            shape = RectangleShape,
+                            shape = RoundedCornerShape(50),
                             color = MaterialTheme.colorScheme.secondaryContainer
                         ) {
                             ProvideTextStyle(MaterialTheme.typography.labelSmall) {
@@ -496,7 +496,7 @@ private fun MessagePartsBlock(
                                 context.startActivity(chooserIndent)
                             },
                             modifier = Modifier,
-                            shape = RectangleShape,
+                            shape = RoundedCornerShape(50),
                             color = MaterialTheme.colorScheme.tertiaryContainer
                         ) {
                             ProvideTextStyle(MaterialTheme.typography.labelSmall) {
@@ -607,4 +607,3 @@ private fun MessagePartsBlock(
         }
     }
 }
-

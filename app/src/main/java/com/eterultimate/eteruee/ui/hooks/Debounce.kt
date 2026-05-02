@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.hooks
+package com.eterultimate.eteruee.ui.hooks
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -10,11 +10,11 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * 鍒涘缓涓€涓槻鎶栧嚱鏁板寘瑁呭櫒
+ * 创建一个防抖函数包装器
  *
- * @param delayMillis 寤惰繜鏃堕棿锛堟绉掞級
- * @param function 瑕佹墽琛岀殑鍑芥暟
- * @return 鍖呰鍚庣殑闃叉姈鍑芥暟
+ * @param delayMillis 延迟时间（毫秒）
+ * @param function 要执行的函数
+ * @return 包装后的防抖函数
  */
 @Composable
 fun <T> useDebounce(
@@ -36,11 +36,11 @@ fun <T> useDebounce(
 }
 
 /**
- * 鍒涘缓涓€涓妭娴佸嚱鏁板寘瑁呭櫒
+ * 创建一个节流函数包装器
  *
- * @param intervalMillis 闂撮殧鏃堕棿锛堟绉掞級
- * @param function 瑕佹墽琛岀殑鍑芥暟
- * @return 鍖呰鍚庣殑鑺傛祦鍑芥暟
+ * @param intervalMillis 间隔时间（毫秒）
+ * @param function 要执行的函数
+ * @return 包装后的节流函数
  */
 @Composable
 fun <T> useThrottle(
@@ -62,11 +62,11 @@ fun <T> useThrottle(
                     delay(intervalMillis)
                     isThrottling.set(false)
 
-                    // 濡傛灉鍦ㄨ妭娴佹湡闂存湁鏂扮殑鍙傛暟锛屽垯鍦ㄨ妭娴佺粨鏉熷悗鎵ц涓€娆?
+                    // 如果在节流期间有新的参数，则在节流结束后执行一次
                     latestParam.value?.let { latestValue ->
-                        // 閲嶇疆鍙傛暟
+                        // 重置参数
                         latestParam.value = null
-                        // 鐢ㄦ渶鏂扮殑鍙傛暟鍐嶆璋冪敤鑺傛祦鍑芥暟
+                        // 用最新的参数再次调用节流函数
                         function(latestValue)
                     }
                 }
@@ -74,4 +74,3 @@ fun <T> useThrottle(
         }
     }
 }
-

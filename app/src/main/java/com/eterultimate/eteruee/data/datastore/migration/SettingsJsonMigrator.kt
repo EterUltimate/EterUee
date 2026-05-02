@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.data.datastore.migration
+package com.eterultimate.eteruee.data.datastore.migration
 
 import android.util.Log
 import kotlinx.serialization.json.JsonArray
@@ -9,35 +9,35 @@ import com.eterultimate.eteruee.utils.JsonInstant
 private const val TAG = "SettingsJsonMigrator"
 
 /**
- * 瀵瑰浠芥枃浠朵腑鐨?settings.json 搴旂敤涓?DataStore migration 鐩稿悓鐨勮縼绉婚€昏緫銆?
+ * 对备份文件中的 settings.json 应用与 DataStore migration 相同的迁移逻辑。
  *
- * DataStore migration 浣滅敤浜庡垎鏁ｇ殑 key-value 瀛樺偍锛岃€屽浠芥枃浠朵腑鐨?settings.json
- * 鏄暣涓?[com.eterultimate.eteruee.data.datastore.Settings] 瀵硅薄鐨勫簭鍒楀寲缁撴灉銆?
- * 姝ゅ伐鍏风被璐熻矗鍦ㄥ弽搴忓垪鍖栧墠瀵规棫鏍煎紡鐨?JSON 鎵ц绛変环鐨勮縼绉绘搷浣溿€?
+ * DataStore migration 作用于分散的 key-value 存储，而备份文件中的 settings.json
+ * 是整个 [com.eterultimate.eteruee.data.datastore.Settings] 对象的序列化结果。
+ * 此工具类负责在反序列化前对旧格式的 JSON 执行等价的迁移操作。
  */
 object SettingsJsonMigrator {
 
     /**
-     * 瀵?settings JSON 瀛楃涓蹭緷娆″簲鐢ㄦ墍鏈夌増鏈殑杩佺Щ銆?
-     * 鑻ュ彂鐢熷紓甯稿垯杩斿洖鍘熷 JSON锛屼笉涓柇鎭㈠娴佺▼銆?
+     * 对 settings JSON 字符串依次应用所有版本的迁移。
+     * 若发生异常则返回原始 JSON，不中断恢复流程。
      */
     fun migrate(settingsJson: String): String {
         return runCatching {
             val root = JsonInstant.parseToJsonElement(settingsJson).jsonObject.toMutableMap()
 
-            // V1: 淇 mcpServers 涓叏闄愬畾绫诲悕鐨?type 瀛楁
+            // V1: 修复 mcpServers 中全限定类名的 type 字段
             root["mcpServers"]?.let { element ->
                 val migrated = migrateMcpServersJson(JsonInstant.encodeToString(element))
                 root["mcpServers"] = JsonInstant.parseToJsonElement(migrated)
             }
 
-            // V2: 淇 assistants 涓?UIMessagePart 鐨?type 瀛楁
+            // V2: 修复 assistants 中 UIMessagePart 的 type 字段
             root["assistants"]?.let { element ->
                 val migrated = migrateAssistantsJson(JsonInstant.encodeToString(element))
                 root["assistants"] = JsonInstant.parseToJsonElement(migrated)
             }
 
-            // V3: 灏?assistants 涓唴宓岀殑 quickMessages 鎻愬彇涓哄叏灞€ quickMessages
+            // V3: 将 assistants 中内嵌的 quickMessages 提取为全局 quickMessages
             root["assistants"]?.let { element ->
                 val (migratedAssistants, extractedQuickMessages) =
                     migrateAssistantsQuickMessages(JsonInstant.encodeToString(element))
@@ -67,4 +67,3 @@ object SettingsJsonMigrator {
         }.getOrDefault(settingsJson)
     }
 }
-

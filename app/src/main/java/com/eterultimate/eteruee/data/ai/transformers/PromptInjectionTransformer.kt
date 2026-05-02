@@ -1,8 +1,8 @@
-﻿package com.eterultimate.eteruee.data.ai.transformers
+package com.eterultimate.eteruee.data.ai.transformers
 
-import me.rerere.ai.core.MessageRole
-import me.rerere.ai.ui.UIMessage
-import me.rerere.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.ai.core.MessageRole
+import com.eterultimate.eteruee.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.data.model.Assistant
 import com.eterultimate.eteruee.data.model.InjectionPosition
 import com.eterultimate.eteruee.data.model.PromptInjection
@@ -11,9 +11,9 @@ import com.eterultimate.eteruee.data.model.extractContextForMatching
 import com.eterultimate.eteruee.data.model.isTriggered
 
 /**
- * 鎻愮ず璇嶆敞鍏ヨ浆鎹㈠櫒
+ * 提示词注入转换器
  *
- * 鏍规嵁 Assistant 鍏宠仈鐨?ModeInjection 鍜?Lorebook 杩涜鎻愮ず璇嶆敞鍏?
+ * 根据 Assistant 关联的 ModeInjection 和 Lorebook 进行提示词注入
  */
 object PromptInjectionTransformer : InputMessageTransformer {
     override suspend fun transform(
@@ -30,7 +30,7 @@ object PromptInjectionTransformer : InputMessageTransformer {
 }
 
 /**
- * 鏍稿績娉ㄥ叆閫昏緫锛堝彲娴嬭瘯鐨勭函鍑芥暟锛?
+ * 核心注入逻辑（可测试的纯函数）
  */
 internal fun transformMessages(
     messages: List<UIMessage>,
@@ -38,7 +38,7 @@ internal fun transformMessages(
     modeInjections: List<PromptInjection.ModeInjection>,
     lorebooks: List<Lorebook>
 ): List<UIMessage> {
-    // 鏀堕泦鎵€鏈夐渶瑕佹敞鍏ョ殑鍐呭
+    // 收集所有需要注入的内容
     val injections = collectInjections(
         messages = messages,
         assistant = assistant,
@@ -50,17 +50,17 @@ internal fun transformMessages(
         return messages
     }
 
-    // 鎸変綅缃拰浼樺厛绾у垎缁?
+    // 按位置和优先级分组
     val byPosition = injections
         .sortedByDescending { it.priority }
         .groupBy { it.position }
 
-    // 搴旂敤娉ㄥ叆
+    // 应用注入
     return applyInjections(messages, byPosition)
 }
 
 /**
- * 鏀堕泦闇€瑕佹敞鍏ョ殑鍐呭
+ * 收集需要注入的内容
  */
 internal fun collectInjections(
     messages: List<UIMessage>,
@@ -70,17 +70,17 @@ internal fun collectInjections(
 ): List<PromptInjection> {
     val injections = mutableListOf<PromptInjection>()
 
-    // 1. 鑾峰彇鍏宠仈鐨?ModeInjection
+    // 1. 获取关联的 ModeInjection
     modeInjections
         .filter { it.enabled && assistant.modeInjectionIds.contains(it.id) }
         .forEach { injections.add(it) }
 
-    // 2. 鑾峰彇鍏宠仈鐨?Lorebook 涓瑙﹀彂鐨?RegexInjection
+    // 2. 获取关联的 Lorebook 中被触发的 RegexInjection
     val enabledLorebooks = lorebooks.filter {
         it.enabled && assistant.lorebookIds.contains(it.id)
     }
     if (enabledLorebooks.isNotEmpty()) {
-        // 鎻愬彇涓婁笅鏂囩敤浜庡尮閰嶏紙鍙彇闈?SYSTEM 娑堟伅锛?
+        // 提取上下文用于匹配（只取非 SYSTEM 消息）
         val nonSystemMessages = messages.filter { it.role != MessageRole.SYSTEM }
 
         enabledLorebooks.forEach { lorebook ->
@@ -97,7 +97,7 @@ internal fun collectInjections(
 }
 
 /**
- * 搴旂敤娉ㄥ叆鍒版秷鎭垪琛?
+ * 应用注入到消息列表
  */
 internal fun applyInjections(
     messages: List<UIMessage>,
@@ -105,10 +105,10 @@ internal fun applyInjections(
 ): List<UIMessage> {
     val result = messages.toMutableList()
 
-    // 鎵惧埌绯荤粺娑堟伅鐨勭储寮曪紙閫氬父鏄涓€鏉★級
+    // 找到系统消息的索引（通常是第一条）
     val systemIndex = result.indexOfFirst { it.role == MessageRole.SYSTEM }
 
-    // 澶勭悊 BEFORE_SYSTEM_PROMPT 鍜?AFTER_SYSTEM_PROMPT
+    // 处理 BEFORE_SYSTEM_PROMPT 和 AFTER_SYSTEM_PROMPT
     if (systemIndex >= 0) {
         val beforeContent = byPosition[InjectionPosition.BEFORE_SYSTEM_PROMPT]
             ?.joinToString("\n") { it.content } ?: ""
@@ -138,7 +138,7 @@ internal fun applyInjections(
             )
         }
     } else {
-        // 娌℃湁绯荤粺娑堟伅鏃讹紝鍒涘缓涓€涓柊鐨勭郴缁熸秷鎭?
+        // 没有系统消息时，创建一个新的系统消息
         val beforeContent = byPosition[InjectionPosition.BEFORE_SYSTEM_PROMPT]
             ?.joinToString("\n") { it.content } ?: ""
         val afterContent = byPosition[InjectionPosition.AFTER_SYSTEM_PROMPT]
@@ -159,10 +159,10 @@ internal fun applyInjections(
         }
     }
 
-    // 澶勭悊 TOP_OF_CHAT锛氬湪绗竴鏉＄敤鎴锋秷鎭箣鍓嶆彃鍏?
+    // 处理 TOP_OF_CHAT：在第一条用户消息之前插入
     val topInjections = byPosition[InjectionPosition.TOP_OF_CHAT]
     if (!topInjections.isNullOrEmpty()) {
-        // 閲嶆柊璁＄畻绱㈠紩锛堝洜涓哄彲鑳芥彃鍏ヤ簡绯荤粺娑堟伅锛?
+        // 重新计算索引（因为可能插入了系统消息）
         var insertIndex = result.indexOfFirst { it.role == MessageRole.USER }
             .takeIf { it >= 0 } ?: result.size
         insertIndex = findSafeInsertIndex(result, insertIndex)
@@ -172,7 +172,7 @@ internal fun applyInjections(
         }
     }
 
-    // 澶勭悊 BOTTOM_OF_CHAT锛氬湪鏈€鍚庝竴鏉℃秷鎭箣鍓嶆彃鍏?
+    // 处理 BOTTOM_OF_CHAT：在最后一条消息之前插入
     val bottomInjections = byPosition[InjectionPosition.BOTTOM_OF_CHAT]
     if (!bottomInjections.isNullOrEmpty()) {
         var insertIndex = (result.size - 1).coerceAtLeast(0)
@@ -183,15 +183,15 @@ internal fun applyInjections(
         }
     }
 
-    // 澶勭悊 AT_DEPTH锛氬湪鎸囧畾娣卞害浣嶇疆鎻掑叆锛堜粠鏈€鏂版秷鎭線鍓嶆暟锛?
-    // 鎸?injectDepth 鍒嗙粍锛岀浉鍚屾繁搴︾殑鍚堝苟锛屾寜娣卞害浠庡ぇ鍒板皬澶勭悊锛堥伩鍏嶇储寮曞彉鍖栭棶棰橈級
+    // 处理 AT_DEPTH：在指定深度位置插入（从最新消息往前数）
+    // 按 injectDepth 分组，相同深度的合并，按深度从大到小处理（避免索引变化问题）
     val atDepthInjections = byPosition[InjectionPosition.AT_DEPTH]
     if (!atDepthInjections.isNullOrEmpty()) {
         val byDepth = atDepthInjections.groupBy { it.injectDepth }
         byDepth.keys.sortedDescending().forEach { depth ->
             val injections = byDepth[depth] ?: return@forEach
-            // 璁＄畻鎻掑叆浣嶇疆锛歳esult.size - depth锛屼絾瑕佺‘淇濆湪鏈夋晥鑼冨洿鍐?
-            // depth=1 琛ㄧず鍦ㄦ渶鍚庝竴鏉℃秷鎭箣鍓嶏紝depth=2 琛ㄧず鍦ㄥ€掓暟绗簩鏉′箣鍓?..
+            // 计算插入位置：result.size - depth，但要确保在有效范围内
+            // depth=1 表示在最后一条消息之前，depth=2 表示在倒数第二条之前...
             var insertIndex = (result.size - depth.coerceAtLeast(1)).coerceIn(0, result.size)
             insertIndex = findSafeInsertIndex(result, insertIndex)
             createMergedInjectionMessages(injections).forEach { message ->
@@ -205,8 +205,8 @@ internal fun applyInjections(
 }
 
 /**
- * 灏嗗悓涓€ role 鐨勬敞鍏ュ悎骞舵垚娑堟伅鍒楄〃
- * 鎸?role 鍒嗙粍鍚庡悎骞跺唴瀹癸紝杩斿洖鍚堝苟鍚庣殑娑堟伅鍒楄〃
+ * 将同一 role 的注入合并成消息列表
+ * 按 role 分组后合并内容，返回合并后的消息列表
  */
 private fun createMergedInjectionMessages(injections: List<PromptInjection>): List<UIMessage> {
     return injections
@@ -221,20 +221,20 @@ private fun createMergedInjectionMessages(injections: List<PromptInjection>): Li
 }
 
 /**
- * 鏌ユ壘瀹夊叏鐨勬彃鍏ヤ綅缃紝閬垮厤娉ㄥ叆鍒?USER 鈫?ASSISTANT(鍚玊ool) 涔嬮棿
+ * 查找安全的插入位置，避免注入到 USER → ASSISTANT(含Tool) 之间
  *
- * 鏌愪簺鎻愪緵鍟嗭紙濡?deepseek锛夎姹?USER 涔嬪悗绱ц窡甯﹀伐鍏风殑 ASSISTANT锛?
- * 鍦ㄤ袱鑰呬箣闂存彃鍏ユ秷鎭細瀵艰嚧鎶ラ敊鎴栫牬鍧忔帹鐞嗚繛缁€с€?
+ * 某些提供商（如 deepseek）要求 USER 之后紧跟带工具的 ASSISTANT，
+ * 在两者之间插入消息会导致报错或破坏推理连续性。
  */
 internal fun findSafeInsertIndex(messages: List<UIMessage>, targetIndex: Int): Int {
     var index = targetIndex.coerceIn(0, messages.size)
 
-    // 鍚戝墠鏌ユ壘锛岀洿鍒版壘鍒颁竴涓畨鍏ㄧ殑浣嶇疆
+    // 向前查找，直到找到一个安全的位置
     while (index > 0) {
         val prevMessage = messages.getOrNull(index - 1)
         val currentMessage = messages.getOrNull(index)
 
-        // 涓嶈兘鎻掑叆鍒?USER 鈫?ASSISTANT(鍚玊ool) 涔嬮棿
+        // 不能插入到 USER → ASSISTANT(含Tool) 之间
         val isPrevUser = prevMessage?.role == MessageRole.USER
         val isCurrentAssistantWithTools = currentMessage?.role == MessageRole.ASSISTANT
             && currentMessage.getTools().isNotEmpty()
@@ -248,4 +248,3 @@ internal fun findSafeInsertIndex(messages: List<UIMessage>, targetIndex: Int): I
 
     return index
 }
-

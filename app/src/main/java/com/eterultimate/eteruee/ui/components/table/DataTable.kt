@@ -1,4 +1,4 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package com.eterultimate.eteruee.ui.components.table
 
@@ -28,10 +28,10 @@ import com.eterultimate.eteruee.ui.components.richtext.MarkdownBlock
 import kotlin.math.max
 
 /**
- * DataTable锛堣嚜瀹氫箟甯冨眬 + 妯悜婊氬姩 + 琛屽唴绛夐珮锛?
- * - 浣跨敤 SubcomposeLayout 涓ら樁娈垫祴閲忥紝閬垮厤 Lookahead 涓嬬殑閲嶅娴嬮噺寮傚父
- * - 楂樺害鑷€傚簲鍐呭锛堜笉鎻愪緵绾靛悜婊氬姩锛?
- * - 瀹藉害鍙秴鍑鸿鍙ｏ紝澶栧眰鍐呯疆 horizontalScroll
+ * DataTable（自定义布局 + 横向滚动 + 行内等高）
+ * - 使用 SubcomposeLayout 两阶段测量，避免 Lookahead 下的重复测量异常
+ * - 高度自适应内容（不提供纵向滚动）
+ * - 宽度可超出视口，外层内置 horizontalScroll
  */
 @Composable
 fun DataTable(
@@ -60,7 +60,7 @@ fun DataTable(
             val rowCount = rows.size
             if (columnCount == 0) return@SubcomposeLayout layout(0, 0) {}
 
-            // ---------- 鍙傛暟 & 涓棿缁撴灉瀹瑰櫒 ----------
+            // ---------- 参数 & 中间结果容器 ----------
             val infinity = Constraints.Infinity
             val unbounded = Constraints(0, infinity, 0, infinity)
             val minWidthsPx = IntArray(columnCount) { i -> columnMinWidths.getOrNull(i)?.roundToPx() ?: 0 }
@@ -69,7 +69,7 @@ fun DataTable(
             val headerP1 = arrayOfNulls<Placeable>(columnCount)
             val bodyP1 = arrayOfNulls<Placeable>(rowCount * columnCount)
 
-            // ---------- 绗竴闃舵锛氳嚜鐒跺昂瀵告祴閲忥紙浼板垪瀹姐€佺畻琛岄珮锛?----------
+            // ---------- 第一阶段：自然尺寸测量（估列宽、算行高） ----------
             fun subcomposeHeaderOnce(c: Int): Placeable {
                 val measurables = subcompose("h1_$c") {
                     CellBox(
@@ -121,7 +121,7 @@ fun DataTable(
             }
             val headerHeight = headerP1.maxOf { it?.height ?: 0 }
 
-            // ---------- 绗簩闃舵锛氬浐瀹氬垪瀹?+ 缁熶竴琛岄珮閲嶆柊娴嬮噺 ----------
+            // ---------- 第二阶段：固定列宽 + 统一行高重新测量 ----------
             fun constraintsFor(colWidth: Int, minH: Int): Constraints {
                 val safeColWidth = colWidth.coerceAtLeast(0)
                 val safeMinH = minH.coerceAtLeast(0)
@@ -165,7 +165,7 @@ fun DataTable(
             val finalWidth = tableWidth.coerceIn(constraints.minWidth, constraints.maxWidth)
             val finalHeight = tableHeight.coerceIn(constraints.minHeight, constraints.maxHeight)
 
-            // ---------- 鏀剧疆 ----------
+            // ---------- 放置 ----------
             layout(finalWidth, finalHeight) {
                 var x = 0
                 for (c in 0 until columnCount) {
@@ -205,7 +205,7 @@ private fun CellBox(
     }
 }
 
-// -------------------- 绀轰緥 --------------------
+// -------------------- 示例 --------------------
 @Preview(showBackground = true)
 @Composable
 private fun DataTablePreview() {
@@ -220,17 +220,17 @@ private fun DataTablePreview() {
             listOf<@Composable () -> Unit>(
                 { Text("Fall 2024") },
                 { Text("Excellent", style = MaterialTheme.typography.bodyMedium) },
-                { Text("x虏 + y虏 = 1") },
+                { Text("x² + y² = 1") },
             ),
             listOf(
                 { Text("Fall 2024") },
                 { Text("Good", style = MaterialTheme.typography.bodyMedium) },
-                { Text("鈭?k = n(n+1)/2", maxLines = 2, overflow = TextOverflow.Ellipsis) },
+                { Text("∑ k = n(n+1)/2", maxLines = 2, overflow = TextOverflow.Ellipsis) },
             ),
             listOf(
                 { Text("Fall 2024") },
                 { Text("Fair", style = MaterialTheme.typography.bodyMedium) },
-                { MarkdownBlock("杩欒鏇撮珮浼氭妸鏁磋鎷夐綈! 杩欐槸涓€涓緢闀跨殑鏂囨湰鐢ㄦ潵娴嬭瘯鎹㈣鍔熻兘!  \n>haha") },
+                { MarkdownBlock("这行更高会把整行拉齐! 这是一个很长的文本用来测试换行功能!  \n>haha") },
             ),
         )
 
@@ -243,4 +243,3 @@ private fun DataTablePreview() {
         )
     }
 }
-

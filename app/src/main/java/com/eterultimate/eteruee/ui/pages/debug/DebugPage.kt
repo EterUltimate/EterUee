@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.debug
+package com.eterultimate.eteruee.ui.pages.debug
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.launch
-import me.rerere.common.android.Logging
+import com.eterultimate.eteruee.common.android.Logging
 import com.eterultimate.eteruee.data.model.Avatar
 import com.eterultimate.eteruee.ui.components.ui.UIAvatar
 import com.eterultimate.eteruee.ui.components.nav.BackButton
@@ -126,7 +126,7 @@ private fun MainPage(vm: DebugVM) {
             .imePadding(),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        var avatar: Avatar by remember { mutableStateOf(Avatar.Emoji("馃槑")) }
+        var avatar: Avatar by remember { mutableStateOf(Avatar.Emoji("😎")) }
         UIAvatar(
             value = avatar,
             onUpdate = {
@@ -164,9 +164,9 @@ private fun MainPage(vm: DebugVM) {
         val toaster = LocalToaster.current
         Button(
             onClick = {
-                toaster.show("娴嬭瘯 ${counter++}")
-                toaster.show("娴嬭瘯 ${counter++}", type = ToastType.Info)
-                toaster.show("娴嬭瘯 ${counter++}", type = ToastType.Error)
+                toaster.show("测试 ${counter++}")
+                toaster.show("测试 ${counter++}", type = ToastType.Info)
+                toaster.show("测试 ${counter++}", type = ToastType.Error)
             }
         ) {
             Text("toast")
@@ -180,33 +180,33 @@ private fun MainPage(vm: DebugVM) {
                 )
             }
         ) {
-            Text("閲嶇疆Chat妯″瀷")
+            Text("重置Chat模型")
         }
 
         Button(
             onClick = {
-                error("娴嬭瘯宕╂簝 ${Random.nextInt(0..1000)}")
+                error("测试崩溃 ${Random.nextInt(0..1000)}")
             }
         ) {
-            Text("宕╂簝")
+            Text("崩溃")
         }
 
         Button(
             onClick = {
                 vm.createOversizedConversation(30)
-                toaster.show("姝ｅ湪鍒涘缓 30MB 瓒呭ぇ瀵硅瘽...")
+                toaster.show("正在创建 30MB 超大对话...")
             }
         ) {
-            Text("鍒涘缓瓒呭ぇ瀵硅瘽 (30MB)")
+            Text("创建超大对话 (30MB)")
         }
 
         Button(
             onClick = {
                 vm.createConversationWithMessages(1024)
-                toaster.show("姝ｅ湪鍒涘缓 1024 鏉℃秷鎭璇?..")
+                toaster.show("正在创建 1024 条消息对话...")
             }
         ) {
-            Text("鍒涘缓 1024 涓秷鎭殑鑱婂ぉ")
+            Text("创建 1024 个消息的聊天")
         }
 
         HorizontalDivider()
@@ -269,4 +269,3 @@ private fun MainPage(vm: DebugVM) {
         )
     }
 }
-

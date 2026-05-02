@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.cyberpunk
+package com.eterultimate.eteruee.ui.components.cyberpunk
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -22,8 +22,8 @@ import kotlin.math.sin
 import kotlin.random.Random
 
 /**
- * 纭湕璧涘崥鏈嬪厠缃戞牸鑳屾櫙
- * 鐩寸嚎缃戞牸 + 鏁版嵁娴佹晥鏋?
+ * 硬朗赛博朋克网格背景
+ * 直线网格 + 数据流效果
  */
 @Composable
 fun GridBackground(
@@ -36,7 +36,7 @@ fun GridBackground(
         val width = size.width
         val height = size.height
 
-        // 涓荤綉鏍肩嚎
+        // 主网格线
         var y = 0f
         while (y < height) {
             drawLine(
@@ -59,7 +59,7 @@ fun GridBackground(
             x += lineSpacing
         }
 
-        // 姣?鏉＄嚎鍔犵矖涓€鏉?
+        // 每5条线加粗一条
         y = 0f
         while (y < height) {
             drawLine(
@@ -74,7 +74,7 @@ fun GridBackground(
 }
 
 /**
- * 鎵弿绾挎晥鏋?- 纭湕鐗堟湰
+ * 扫描线效果 - 硬朗版本
  */
 @Composable
 fun ScanLineEffect(
@@ -95,14 +95,14 @@ fun ScanLineEffect(
 
     Canvas(modifier = modifier.fillMaxSize()) {
         val y = progress * size.height
-        // 涓绘壂鎻忕嚎
+        // 主扫描线
         drawLine(
             color = scanLineColor,
             start = Offset(0f, y),
             end = Offset(size.width, y),
             strokeWidth = 2f
         )
-        // 鎵弿绾垮熬閮ㄦ笎鍙?
+        // 扫描线尾部渐变
         drawLine(
             color = scanLineColor.copy(alpha = 0.1f),
             start = Offset(0f, y - 40f),
@@ -113,7 +113,7 @@ fun ScanLineEffect(
 }
 
 /**
- * 鏁版嵁娴佹晥鏋?- 鍨傜洿涓嬭惤鐨勫厜鐐?
+ * 数据流效果 - 垂直下落的光点
  */
 @Composable
 fun DataStreamEffect(
@@ -138,14 +138,14 @@ fun DataStreamEffect(
             val y = (stream.startY + progress * stream.speed * size.height) % size.height
             val alpha = if (y < size.height * 0.1f) y / (size.height * 0.1f) else 1f
 
-            // 缁樺埗鏁版嵁娴佺嚎娈?
+            // 绘制数据流线段
             drawLine(
                 color = stream.color.copy(alpha = stream.alpha * alpha * 0.6f),
                 start = Offset(stream.x, y - stream.length),
                 end = Offset(stream.x, y),
                 strokeWidth = stream.width
             )
-            // 澶撮儴浜偣
+            // 头部亮点
             drawLine(
                 color = stream.color.copy(alpha = stream.alpha * alpha),
                 start = Offset(stream.x, y - 4f),
@@ -157,7 +157,7 @@ fun DataStreamEffect(
 }
 
 /**
- * 绮掑瓙鏁版嵁绫?- 宸插簾寮冿紝淇濈暀鍏煎鎬?
+ * 粒子数据类 - 已废弃，保留兼容性
  */
 @Composable
 fun ParticleBackground(
@@ -165,7 +165,7 @@ fun ParticleBackground(
     particleCount: Int = 50,
     colors: List<Color> = listOf(NeonCyan, NeonPink, NeonPurple)
 ) {
-    // 鏀圭敤鏁版嵁娴佹晥鏋滄浛浠ｆ煍鍜岀矑瀛?
+    // 改用数据流效果替代柔和粒子
     DataStreamEffect(
         modifier = modifier,
         streamCount = particleCount / 2,
@@ -196,4 +196,3 @@ private data class DataStream(
         }
     }
 }
-

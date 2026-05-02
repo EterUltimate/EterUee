@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.assistant
+package com.eterultimate.eteruee.ui.pages.assistant
 
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Copy01
@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -80,7 +81,6 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import kotlin.uuid.Uuid
 import androidx.compose.foundation.lazy.items as lazyItems
-import androidx.compose.ui.graphics.RectangleShape
 
 @Composable
 fun AssistantPage(vm: AssistantVM = koinViewModel()) {
@@ -91,14 +91,14 @@ fun AssistantPage(vm: AssistantVM = koinViewModel()) {
     val navController = LocalNavController.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
-    // 鎼滅储鍏抽敭璇嶇姸鎬?
+    // 搜索关键词状态
     var searchQuery by remember { mutableStateOf("") }
-    // 鏍囩杩囨护鐘舵€?
+    // 标签过滤状态
     var selectedTagIds by remember { mutableStateOf(emptySet<Uuid>()) }
-    // 鎿嶄綔鑿滃崟鐘舵€?
+    // 操作菜单状态
     var actionSheetAssistant by remember { mutableStateOf<Assistant?>(null) }
 
-    // 鏍规嵁鎼滅储鍏抽敭璇嶅拰閫変腑鐨勬爣绛捐繃婊ゅ姪鎵?
+    // 根据搜索关键词和选中的标签过滤助手
     val filteredAssistants = remember(settings.assistants, selectedTagIds, searchQuery) {
         settings.assistants.filter { assistant ->
             val matchesSearch = searchQuery.isBlank() ||
@@ -153,7 +153,7 @@ fun AssistantPage(vm: AssistantVM = koinViewModel()) {
             }
             val haptic = LocalHapticFeedback.current
 
-            // 鎼滅储妗?
+            // 搜索框
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -172,10 +172,10 @@ fun AssistantPage(vm: AssistantVM = koinViewModel()) {
                     }
                 },
                 singleLine = true,
-                shape = RectangleShape
+                shape = RoundedCornerShape(12.dp)
             )
 
-            // 鏍囩杩囨护鍣?
+            // 标签过滤器
             AssistantTagsFilterRow(
                 settings = settings,
                 vm = vm,
@@ -238,7 +238,7 @@ fun AssistantPage(vm: AssistantVM = koinViewModel()) {
 
     AssistantCreationSheet(createState)
 
-    // 鎿嶄綔鑿滃崟 Bottom Sheet
+    // 操作菜单 Bottom Sheet
     actionSheetAssistant?.let { assistant ->
         AssistantActionSheet(
             assistant = assistant,
@@ -299,7 +299,7 @@ private fun AssistantTagsFilterRow(
                                 Text(tag.name)
                             },
                             selected = tag.id in selectedTagIds,
-                            shape = RectangleShape,
+                            shape = RoundedCornerShape(50),
                             modifier = Modifier
                                 .scale(if (isDragging) 0.95f else 1f)
                                 .longPressDraggableHandle(
@@ -446,7 +446,7 @@ private fun AssistantItem(
                             val tag = settings.assistantTags.find { it.id == tagId }
                                 ?: return@fastForEach
                             Surface(
-                                shape = RectangleShape,
+                                shape = RoundedCornerShape(50),
                                 color = MaterialTheme.colorScheme.tertiaryContainer,
                             ) {
                                 Text(
@@ -496,7 +496,7 @@ private fun AssistantActionSheet(
                 .fillMaxWidth()
                 .padding(bottom = 32.dp)
         ) {
-            // 鍔╂墜淇℃伅澶撮儴
+            // 助手信息头部
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -517,7 +517,7 @@ private fun AssistantActionSheet(
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-            // 鍏嬮殕閫夐」
+            // 克隆选项
             ListItem(
                 headlineContent = { Text(stringResource(R.string.assistant_page_clone)) },
                 leadingContent = {
@@ -531,7 +531,7 @@ private fun AssistantActionSheet(
                 colors = ListItemDefaults.colors(containerColor = Color.Transparent)
             )
 
-            // 鍒犻櫎閫夐」锛堜粎闈為粯璁ゅ姪鎵嬫樉绀猴級
+            // 删除选项（仅非默认助手显示）
             if (assistant.id !in DEFAULT_ASSISTANTS_IDS) {
                 ListItem(
                     headlineContent = {
@@ -576,4 +576,3 @@ private fun AssistantActionSheet(
         )
     }
 }
-

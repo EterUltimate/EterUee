@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.setting
+package com.eterultimate.eteruee.ui.pages.setting
 
 import android.content.Intent
 import android.os.Build
@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -65,7 +65,6 @@ import com.eterultimate.eteruee.ui.theme.CustomColors
 import com.eterultimate.eteruee.utils.plus
 import com.eterultimate.eteruee.web.WebServerManager
 import org.koin.compose.koinInject
-import androidx.compose.ui.graphics.RectangleShape
 
 @Composable
 fun SettingWebPage() {
@@ -215,7 +214,7 @@ fun SettingWebPage() {
                                 isError = portText.toIntOrNull()?.let { it !in 1024..65535 } ?: true,
                                 modifier = Modifier.width(100.dp),
                                 enabled = !serverState.isRunning,
-                                shape = RectangleShape,
+                                shape = CircleShape,
                                 colors = TextFieldDefaults.colors(
                                     focusedIndicatorColor = Color.Transparent,
                                     unfocusedIndicatorColor = Color.Transparent,
@@ -238,7 +237,7 @@ fun SettingWebPage() {
                                         }
                                     }
                                 },
-                                // 杩愯涓笉鍏佽鍒囨崲 闇€閲嶅惎鏈嶅姟鐢熸晥
+                                // 运行中不允许切换 需重启服务生效
                                 enabled = !serverState.isRunning,
                             )
                         },
@@ -294,7 +293,7 @@ fun SettingWebPage() {
                                 singleLine = true,
                                 isError = settings.webServerJwtEnabled && accessPasswordText.isBlank(),
                                 modifier = Modifier.width(180.dp),
-                                shape = RectangleShape,
+                                shape = CircleShape,
                                 colors = TextFieldDefaults.colors(
                                     focusedIndicatorColor = Color.Transparent,
                                     unfocusedIndicatorColor = Color.Transparent,
@@ -368,4 +367,3 @@ fun SettingWebPage() {
         }
     }
 }
-

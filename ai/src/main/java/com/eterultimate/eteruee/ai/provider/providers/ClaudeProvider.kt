@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ai.provider.providers
+package com.eterultimate.eteruee.ai.provider.providers
 
 import android.content.Context
 import android.util.Log
@@ -44,8 +44,8 @@ import com.eterultimate.eteruee.ai.util.mergeCustomBody
 import com.eterultimate.eteruee.ai.util.parseErrorDetail
 import com.eterultimate.eteruee.ai.util.stringSafe
 import com.eterultimate.eteruee.ai.util.toHeaders
-import me.rerere.common.http.await
-import me.rerere.common.http.jsonPrimitiveOrNull
+import com.eterultimate.eteruee.common.http.await
+import com.eterultimate.eteruee.common.http.jsonPrimitiveOrNull
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -124,7 +124,7 @@ class ClaudeProvider(private val client: OkHttpClient, context: Context? = null)
         val bodyStr = response.body?.string() ?: ""
         val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
 
-        // 浠?JsonObject 涓彁鍙栧繀瑕佺殑淇℃伅
+        // 从 JsonObject 中提取必要的信息
         val id = bodyJson["id"]?.jsonPrimitive?.contentOrNull ?: ""
         val model = bodyJson["model"]?.jsonPrimitive?.contentOrNull ?: ""
         val content = bodyJson["content"]?.jsonArray ?: JsonArray(emptyList())
@@ -295,9 +295,9 @@ class ClaudeProvider(private val client: OkHttpClient, context: Context? = null)
                 })
             }
 
-            // 澶勭悊 thinking
-            // Anthropic 鏂?API: adaptive 妯″紡 + output_config.effort 鎺у埗寮哄害
-            // 鏃х殑 type=enabled + budget_tokens 鍦?Opus 4.7+ 涓婂凡涓嶆敮鎸?
+            // 处理 thinking
+            // Anthropic 新 API: adaptive 模式 + output_config.effort 控制强度
+            // 旧的 type=enabled + budget_tokens 在 Opus 4.7+ 上已不支持
             if (params.model.abilities.contains(ModelAbility.REASONING)) {
                 when (params.reasoningLevel) {
                     ReasoningLevel.OFF -> {
@@ -323,7 +323,7 @@ class ClaudeProvider(private val client: OkHttpClient, context: Context? = null)
                 }
             }
 
-            // 澶勭悊宸ュ叿
+            // 处理工具
             if (params.model.abilities.contains(ModelAbility.TOOL) && params.tools.isNotEmpty()) {
                 putJsonArray("tools") {
                     params.tools.forEachIndexed { index, tool ->
@@ -357,10 +357,10 @@ class ClaudeProvider(private val client: OkHttpClient, context: Context? = null)
     }
 
     /**
-     * 鍦ㄥ€掓暟绗簩鏉￠潪 tool_result 鐨?user message 鐨勬渶鍚庝竴涓?content block 涓婃彃鍏?cache_control
+     * 在倒数第二条非 tool_result 的 user message 的最后一个 content block 上插入 cache_control
      */
     private fun insertMessagesCacheControl(messages: JsonArray): JsonArray {
-        // 鎵惧嚭鎵€鏈夐潪 tool_result 鐨?user message 鐨勭储寮?
+        // 找出所有非 tool_result 的 user message 的索引
         val realUserIndices = messages.mapIndexedNotNull { index, msg ->
             val obj = msg.jsonObject
             if (obj["role"]?.jsonPrimitive?.contentOrNull == "user") {
@@ -372,12 +372,12 @@ class ClaudeProvider(private val client: OkHttpClient, context: Context? = null)
             } else null
         }
 
-        // 鍙栧€掓暟绗簩鏉?
+        // 取倒数第二条
         val targetIndex = if (realUserIndices.size >= 2) {
             realUserIndices[realUserIndices.size - 2]
         } else return messages
 
-        // 鍦ㄧ洰鏍?message 鐨勬渶鍚庝竴涓?content block 涓婃坊鍔?cache_control
+        // 在目标 message 的最后一个 content block 上添加 cache_control
         return JsonArray(messages.mapIndexed { index, msg ->
             if (index == targetIndex) {
                 val obj = msg.jsonObject
@@ -408,17 +408,17 @@ class ClaudeProvider(private val client: OkHttpClient, context: Context? = null)
                 }
 
                 is PartGroup.Tools -> {
-                    // 娣诲姞 tool_use 鍒板唴瀹圭紦鍐?
+                    // 添加 tool_use 到内容缓冲
                     group.tools.forEach { contentBuffer.add(it.toToolUseBlock()) }
 
-                    // 杈撳嚭 assistant 娑堟伅
+                    // 输出 assistant 消息
                     add(buildJsonObject {
                         put("role", "assistant")
                         putJsonArray("content") { contentBuffer.forEach { add(it) } }
                     })
                     contentBuffer.clear()
 
-                    // 绱ц窡 tool_result
+                    // 紧跟 tool_result
                     add(buildJsonObject {
                         put("role", "user")
                         putJsonArray("content") {
@@ -429,7 +429,7 @@ class ClaudeProvider(private val client: OkHttpClient, context: Context? = null)
             }
         }
 
-        // 杈撳嚭鍓╀綑鍐呭
+        // 输出剩余内容
         if (contentBuffer.isNotEmpty()) {
             add(buildJsonObject {
                 put("role", "assistant")
@@ -567,7 +567,7 @@ class ClaudeProvider(private val client: OkHttpClient, context: Context? = null)
     private fun parseTokenUsage(bodyJson: JsonObject?): TokenUsage? {
         if (bodyJson == null) return null
 
-        // 鍥為€€鍒版爣鍑?usage 瀛楁
+        // 回退到标准 usage 字段
         val usageJson = bodyJson["usage"]?.jsonObject
             ?: bodyJson["message"]?.jsonObject?.get("usage")?.jsonObject
             ?: return null
@@ -584,4 +584,3 @@ class ClaudeProvider(private val client: OkHttpClient, context: Context? = null)
         )
     }
 }
-

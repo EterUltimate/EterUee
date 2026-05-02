@@ -1,9 +1,9 @@
-﻿package com.eterultimate.eteruee.data.ai.transformers
+package com.eterultimate.eteruee.data.ai.transformers
 
 import android.content.Context
 import kotlinx.coroutines.flow.MutableStateFlow
-import me.rerere.ai.provider.Model
-import me.rerere.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.provider.Model
+import com.eterultimate.eteruee.ai.ui.UIMessage
 import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.data.model.Assistant
 
@@ -17,11 +17,11 @@ class TransformerContext(
 
 interface MessageTransformer {
     /**
-     * 娑堟伅杞崲鍣紝鐢ㄤ簬瀵规秷鎭繘琛岃浆鎹?
+     * 消息转换器，用于对消息进行转换
      *
-     * 瀵逛簬杈撳叆娑堟伅锛屾秷鎭細杞崲琚彁渚涚粰API妯″潡
+     * 对于输入消息，消息会转换被提供给API模块
      *
-     * 瀵逛簬杈撳嚭娑堟伅锛屼細瀵规秷鎭緭鍑篶hunk杩涜杞崲
+     * 对于输出消息，会对消息输出chunk进行转换
      */
     suspend fun transform(
         ctx: TransformerContext,
@@ -35,9 +35,9 @@ interface InputMessageTransformer : MessageTransformer
 
 interface OutputMessageTransformer : MessageTransformer {
     /**
-     * 涓€涓瑙夌殑杞崲锛屼緥濡傝浆鎹hink tag涓簉easoning parts
-     * 浣嗘槸涓嶅疄闄呰浆鎹㈡秷鎭紝鍥犱负娴佸紡杈撳嚭闇€瑕佸鐞嗘秷鎭痙elta chunk
-     * 涓嶈兘杩樻病缁撴潫鐢熸垚灏眛ransform锛屽洜姝ゆ彁渚涗竴涓獀isualTransform
+     * 一个视觉的转换，例如转换think tag为reasoning parts
+     * 但是不实际转换消息，因为流式输出需要处理消息delta chunk
+     * 不能还没结束生成就transform，因此提供一个visualTransform
      */
     suspend fun visualTransform(
         ctx: TransformerContext,
@@ -47,7 +47,7 @@ interface OutputMessageTransformer : MessageTransformer {
     }
 
     /**
-     * 娑堟伅鐢熸垚瀹屾垚鍚庤皟鐢?
+     * 消息生成完成后调用
      */
     suspend fun onGenerationFinish(
         ctx: TransformerContext,
@@ -104,4 +104,3 @@ suspend fun List<UIMessage>.onGenerationFinish(
         }
     }
 }
-

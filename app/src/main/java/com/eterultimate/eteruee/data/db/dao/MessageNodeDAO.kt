@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.data.db.dao
+package com.eterultimate.eteruee.data.db.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
@@ -40,7 +40,7 @@ interface MessageNodeDAO {
     @Query("DELETE FROM message_node WHERE id = :nodeId")
     suspend fun deleteById(nodeId: String)
 
-    // 浣跨敤 @RawQuery 缁曡繃 Room 缂栬瘧鏈熸牎楠岋紝浠ヤ究浣跨敤 json_each() 铏氭嫙琛?
+    // 使用 @RawQuery 绕过 Room 编译期校验，以便使用 json_each() 虚拟表
     @RawQuery
     suspend fun getTokenStatsRaw(query: SupportSQLiteQuery): MessageTokenStats
 
@@ -57,7 +57,7 @@ data class MessageTokenStats(
 
 data class MessageDayCount(val day: String, val count: Int)
 
-// SQLite json_each() 灞曞紑 messages JSON 鏁扮粍锛宩son_extract() 鎻愬彇 Token 瀛楁骞惰仛鍚?
+// SQLite json_each() 展开 messages JSON 数组，json_extract() 提取 Token 字段并聚合
 private val TOKEN_STATS_SQL = SimpleSQLiteQuery(
     "SELECT COUNT(*) AS totalMessages, " +
         "COALESCE(SUM(CAST(json_extract(j.value, '$.usage.promptTokens') AS INTEGER)), 0) AS promptTokens, " +
@@ -68,7 +68,7 @@ private val TOKEN_STATS_SQL = SimpleSQLiteQuery(
 
 suspend fun MessageNodeDAO.getTokenStats(): MessageTokenStats = getTokenStatsRaw(TOKEN_STATS_SQL)
 
-// 鎸夌敤鎴锋秷鎭殑 createdAt 瀛楁锛圠ocalDateTime ISO 瀛楃涓插墠10浣嶅嵆鏃ユ湡锛夌粺璁℃瘡鏃ユ秷鎭暟
+// 按用户消息的 createdAt 字段（LocalDateTime ISO 字符串前10位即日期）统计每日消息数
 suspend fun MessageNodeDAO.getMessageCountPerDay(startDate: String): List<MessageDayCount> =
     getMessageCountPerDayRaw(
         SimpleSQLiteQuery(
@@ -81,5 +81,4 @@ suspend fun MessageNodeDAO.getMessageCountPerDay(startDate: String): List<Messag
             arrayOf(startDate)
         )
     )
-
 

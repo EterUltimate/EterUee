@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.ui.permission
+package com.eterultimate.eteruee.ui.components.ui.permission
 
 import android.content.Context
 import android.content.Intent
@@ -12,7 +12,7 @@ import androidx.compose.runtime.*
 import androidx.core.content.ContextCompat
 
 /**
- * 鏉冮檺鐘舵€佺鐞嗙被
+ * 权限状态管理类
  */
 @Stable
 class PermissionState internal constructor(
@@ -20,31 +20,31 @@ class PermissionState internal constructor(
     private val context: Context,
     private val activity: ComponentActivity
 ) {
-    // 鏉冮檺鐘舵€佹槧灏?
+    // 权限状态映射
     private val _permissionStates = mutableStateMapOf<String, PermissionStatus>()
     val permissionStates: Map<String, PermissionStatus> = _permissionStates
 
-    // 鏄惁鏄剧ず鏉冮檺璇存槑瀵硅瘽妗?
+    // 是否显示权限说明对话框
     var showRationaleDialog by mutableStateOf(false)
         private set
 
-    // 褰撳墠闇€瑕佹樉绀鸿鏄庣殑鏉冮檺
+    // 当前需要显示说明的权限
     var currentRationalePermissions by mutableStateOf<List<PermissionInfo>>(emptyList())
         private set
 
-    // 鏉冮檺璇锋眰鍚姩鍣?
+    // 权限请求启动器
     private var permissionLauncher: ActivityResultLauncher<Array<String>>? = null
 
-    // 鍗曚釜鏉冮檺璇锋眰鍚姩鍣?
+    // 单个权限请求启动器
     private var singlePermissionLauncher: ActivityResultLauncher<String>? = null
 
     init {
-        // 鍒濆鍖栨潈闄愮姸鎬?
+        // 初始化权限状态
         updatePermissionStates()
     }
 
     /**
-     * 璁剧疆鏉冮檺璇锋眰鍚姩鍣?
+     * 设置权限请求启动器
      */
     internal fun setPermissionLaunchers(
         multiplePermissionLauncher: ActivityResultLauncher<Array<String>>,
@@ -55,7 +55,7 @@ class PermissionState internal constructor(
     }
 
     /**
-     * 鏇存柊鎵€鏈夋潈闄愮姸鎬?
+     * 更新所有权限状态
      */
     fun updatePermissionStates() {
         permissions.forEach { permissionInfo ->
@@ -66,7 +66,7 @@ class PermissionState internal constructor(
     }
 
     /**
-     * 鑾峰彇鍗曚釜鏉冮檺鐘舵€?
+     * 获取单个权限状态
      */
     private fun getPermissionStatus(permission: String, oldStatus: PermissionStatus? = null): PermissionStatus {
         return when {
@@ -76,7 +76,7 @@ class PermissionState internal constructor(
             activity.shouldShowRequestPermissionRationale(permission) -> {
                 PermissionStatus.Denied
             }
-            // 濡傛灉涔嬪墠琚嫆缁濊繃锛堝寘鎷案涔呮嫆缁濓級锛岀幇鍦ㄥ張涓嶆樉绀簉ationale涓旀湭鎺堟潈锛岃鏄庢槸姘镐箙鎷掔粷
+            // 如果之前被拒绝过（包括永久拒绝），现在又不显示rationale且未授权，说明是永久拒绝
             (oldStatus == PermissionStatus.Denied || oldStatus == PermissionStatus.DeniedPermanently) -> {
                 PermissionStatus.DeniedPermanently
             }
@@ -87,25 +87,25 @@ class PermissionState internal constructor(
     }
 
     /**
-     * 妫€鏌ユ槸鍚︽墍鏈夋潈闄愰兘宸叉巿鏉?
+     * 检查是否所有权限都已授权
      */
     val allPermissionsGranted: Boolean
         get() = permissions.all { permissionStates[it.permission] == PermissionStatus.Granted }
 
     /**
-     * 妫€鏌ユ槸鍚︽墍鏈夊繀闇€鏉冮檺閮藉凡鎺堟潈
+     * 检查是否所有必需权限都已授权
      */
     val allRequiredPermissionsGranted: Boolean
         get() = permissions.filter { it.required }.all { permissionStates[it.permission] == PermissionStatus.Granted }
 
     /**
-     * 鑾峰彇鏈巿鏉冪殑鏉冮檺
+     * 获取未授权的权限
      */
     val deniedPermissions: List<PermissionInfo>
         get() = permissions.filter { permissionStates[it.permission] != PermissionStatus.Granted }
 
     /**
-     * 鑾峰彇闇€瑕佹樉绀鸿鏄庣殑鏉冮檺锛堝寘鎷案涔呮嫆缁濈殑鏉冮檺锛?
+     * 获取需要显示说明的权限（包括永久拒绝的权限）
      */
     private val permissionsNeedRationale: List<PermissionInfo>
         get() = permissions.filter {
@@ -115,13 +115,13 @@ class PermissionState internal constructor(
         }
 
     /**
-     * 鑾峰彇姘镐箙鎷掔粷鐨勬潈闄?
+     * 获取永久拒绝的权限
      */
     val permanentlyDeniedPermissions: List<PermissionInfo>
         get() = permissions.filter { permissionStates[it.permission] == PermissionStatus.DeniedPermanently }
 
     /**
-     * 璇锋眰鎵€鏈夋湭鎺堟潈鐨勬潈闄?
+     * 请求所有未授权的权限
      */
     fun requestPermissions() {
         val deniedPerms = deniedPermissions
@@ -129,17 +129,17 @@ class PermissionState internal constructor(
 
         val rationalePerms = permissionsNeedRationale
         if (rationalePerms.isNotEmpty()) {
-            // 鏄剧ず鏉冮檺璇存槑瀵硅瘽妗?
+            // 显示权限说明对话框
             currentRationalePermissions = rationalePerms
             showRationaleDialog = true
         } else {
-            // 鐩存帴璇锋眰鏉冮檺
+            // 直接请求权限
             launchPermissionRequest(deniedPerms)
         }
     }
 
     /**
-     * 璇锋眰鐗瑰畾鏉冮檺
+     * 请求特定权限
      */
     fun requestPermission(permission: String) {
         val permissionInfo = permissions.find { it.permission == permission } ?: return
@@ -150,42 +150,42 @@ class PermissionState internal constructor(
         when (status) {
             PermissionStatus.Denied -> {
                 if (activity.shouldShowRequestPermissionRationale(permission)) {
-                    // 鏄剧ず鏉冮檺璇存槑瀵硅瘽妗?
+                    // 显示权限说明对话框
                     currentRationalePermissions = listOf(permissionInfo)
                     showRationaleDialog = true
                 } else {
-                    // 鐩存帴璇锋眰鏉冮檺
+                    // 直接请求权限
                     singlePermissionLauncher?.launch(permission)
                 }
             }
             PermissionStatus.DeniedPermanently -> {
-                // 姘镐箙鎷掔粷锛屾樉绀鸿鏄庡璇濇骞跺紩瀵煎埌璁剧疆
+                // 永久拒绝，显示说明对话框并引导到设置
                 currentRationalePermissions = listOf(permissionInfo)
                 showRationaleDialog = true
             }
             else -> {
-                // NotRequested 鐘舵€侊紝鐩存帴璇锋眰鏉冮檺
+                // NotRequested 状态，直接请求权限
                 singlePermissionLauncher?.launch(permission)
             }
         }
     }
 
     /**
-     * 浠庢潈闄愯鏄庡璇濇缁х画璇锋眰鏉冮檺
+     * 从权限说明对话框继续请求权限
      */
     fun proceedFromRationale() {
         showRationaleDialog = false
 
-        // 妫€鏌ユ槸鍚︽湁姘镐箙鎷掔粷鐨勬潈闄?
+        // 检查是否有永久拒绝的权限
         val permanentlyDenied = currentRationalePermissions.filter {
             permissionStates[it.permission] == PermissionStatus.DeniedPermanently
         }
 
         if (permanentlyDenied.isNotEmpty()) {
-            // 鏈夋案涔呮嫆缁濈殑鏉冮檺锛岀洿鎺ヨ烦杞埌璁剧疆椤甸潰
+            // 有永久拒绝的权限，直接跳转到设置页面
             openAppSettings()
         } else {
-            // 娌℃湁姘镐箙鎷掔粷鐨勬潈闄愶紝姝ｅ父璇锋眰鏉冮檺
+            // 没有永久拒绝的权限，正常请求权限
             launchPermissionRequest(currentRationalePermissions)
         }
 
@@ -193,7 +193,7 @@ class PermissionState internal constructor(
     }
 
     /**
-     * 鍙栨秷鏉冮檺璇锋眰
+     * 取消权限请求
      */
     fun cancelPermissionRequest() {
         showRationaleDialog = false
@@ -201,7 +201,7 @@ class PermissionState internal constructor(
     }
 
     /**
-     * 鍚姩鏉冮檺璇锋眰
+     * 启动权限请求
      */
     private fun launchPermissionRequest(permissionInfos: List<PermissionInfo>) {
         val permissionsToRequest = permissionInfos.map { it.permission }.toTypedArray()
@@ -213,7 +213,7 @@ class PermissionState internal constructor(
     }
 
     /**
-     * 璺宠浆鍒板簲鐢ㄨ缃〉闈?
+     * 跳转到应用设置页面
      */
     fun openAppSettings() {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
@@ -223,8 +223,8 @@ class PermissionState internal constructor(
     }
 
     /**
-     * 寮哄埗鍒锋柊鏉冮檺鐘舵€侊紙鐢ㄤ簬浠庡悗鍙板洖鍒板墠鍙版椂锛?
-     * 杩欎釜鏂规硶浼氶噸鏂版鏌ユ墍鏈夋潈闄愮姸鎬侊紝鐗瑰埆澶勭悊鐢ㄦ埛鍙兘鍦ㄨ缃腑淇敼鐨勬潈闄?
+     * 强制刷新权限状态（用于从后台回到前台时）
+     * 这个方法会重新检查所有权限状态，特别处理用户可能在设置中修改的权限
      */
     fun refreshPermissionStates() {
         permissions.forEach { permissionInfo ->
@@ -232,18 +232,18 @@ class PermissionState internal constructor(
             val oldStatus = _permissionStates[permissionInfo.permission]
 
             val newStatus = when {
-                // 绯荤粺鏄剧ず宸叉巿鏉?
+                // 系统显示已授权
                 currentSystemStatus == PackageManager.PERMISSION_GRANTED -> {
                     PermissionStatus.Granted
                 }
-                // 绯荤粺鏄剧ず鏈巿鏉冿紝浣嗗彲浠ユ樉绀鸿鏄庡璇濇
+                // 系统显示未授权，但可以显示说明对话框
                 activity.shouldShowRequestPermissionRationale(permissionInfo.permission) -> {
                     PermissionStatus.Denied
                 }
-                // 绯荤粺鏄剧ず鏈巿鏉冿紝涓斾笉鑳芥樉绀鸿鏄庡璇濇
+                // 系统显示未授权，且不能显示说明对话框
                 else -> {
-                    // 濡傛灉涔嬪墠鏄湭璇锋眰鐘舵€侊紝淇濇寔鏈姹?
-                    // 濡傛灉涔嬪墠鏄叾浠栫姸鎬侊紝鍒欒涓烘槸姘镐箙鎷掔粷
+                    // 如果之前是未请求状态，保持未请求
+                    // 如果之前是其他状态，则认为是永久拒绝
                     if (oldStatus == PermissionStatus.NotRequested || oldStatus == null) {
                         PermissionStatus.NotRequested
                     } else {
@@ -257,7 +257,7 @@ class PermissionState internal constructor(
     }
 
     /**
-     * 澶勭悊鏉冮檺璇锋眰缁撴灉
+     * 处理权限请求结果
      */
     internal fun handlePermissionResult(results: Map<String, Boolean>) {
         results.forEach { (permission, granted) ->
@@ -274,14 +274,14 @@ class PermissionState internal constructor(
     }
 
     /**
-     * 澶勭悊鍗曚釜鏉冮檺璇锋眰缁撴灉
+     * 处理单个权限请求结果
      */
     internal fun handleSinglePermissionResult(permission: String, granted: Boolean) {
         handlePermissionResult(mapOf(permission to granted))
     }
 
     /**
-     * 鑾峰彇鏉冮檺缁撴灉
+     * 获取权限结果
      */
     fun getPermissionResults(): MultiplePermissionResult {
         val results = permissions.associate { permissionInfo ->
@@ -299,4 +299,3 @@ class PermissionState internal constructor(
         )
     }
 }
-

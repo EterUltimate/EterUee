@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.ui
+package com.eterultimate.eteruee.ui.components.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
@@ -35,7 +36,6 @@ import me.rerere.hugeicons.stroke.Cancel01
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.model.Tag
 import kotlin.uuid.Uuid
-import androidx.compose.ui.graphics.RectangleShape
 
 @Composable
 fun TagsInput(
@@ -46,7 +46,7 @@ fun TagsInput(
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
 
-    // 鏍规嵁value鑾峰彇瀵瑰簲鐨則ags
+    // 根据value获取对应的tags
     val selectedTags = tags.filter { tag -> value.contains(tag.id) }
 
     FlowRow(
@@ -55,7 +55,7 @@ fun TagsInput(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         itemVerticalAlignment = Alignment.CenterVertically
     ) {
-        // 鏄剧ず宸查€夋嫨鐨則ags
+        // 显示已选择的tags
         selectedTags.fastForEach { tag ->
             InputChip(onClick = {}, label = {
                 Text(tag.name)
@@ -75,12 +75,12 @@ fun TagsInput(
             })
         }
 
-        // 娣诲姞鎸夐挳
+        // 添加按钮
         Surface(
-            shape = RectangleShape,
+            shape = CircleShape,
             tonalElevation = 2.dp,
             modifier = Modifier
-                .clip(RectangleShape)
+                .clip(CircleShape)
                 .clickable { showAddDialog = true }) {
             Icon(
                 imageVector = HugeIcons.Add01,
@@ -93,12 +93,12 @@ fun TagsInput(
         }
     }
 
-    // 娣诲姞tag瀵硅瘽妗?
+    // 添加tag对话框
     if (showAddDialog) {
         var tagName by remember { mutableStateOf("") }
         var showError by remember { mutableStateOf(false) }
 
-        // 鑾峰彇鏈€夋嫨鐨勬爣绛?
+        // 获取未选择的标签
         val unselectedTags = tags.filter { tag -> !value.contains(tag.id) }
 
         AlertDialog(onDismissRequest = {
@@ -109,7 +109,7 @@ fun TagsInput(
             Text(stringResource(R.string.tag_input_dialog_title))
         }, text = {
             Column {
-                // 鏄剧ず鐜版湁鏍囩鍒楄〃锛堝鏋滄湁鏈€夋嫨鐨勬爣绛撅級
+                // 显示现有标签列表（如果有未选择的标签）
                 if (unselectedTags.isNotEmpty()) {
                     Text(
                         text = stringResource(R.string.tag_input_dialog_existing_tags),
@@ -147,7 +147,7 @@ fun TagsInput(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                // 杈撳叆鏂版爣绛惧悕绉?
+                // 输入新标签名称
                 OutlinedTextField(
                     value = tagName,
                     onValueChange = {
@@ -161,7 +161,7 @@ fun TagsInput(
                     isError = showError
                 )
 
-                // 鏄剧ず閿欒淇℃伅
+                // 显示错误信息
                 if (showError) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -176,14 +176,14 @@ fun TagsInput(
                 onClick = {
                     if (tagName.isNotBlank()) {
                         val trimmedName = tagName.trim()
-                        // 妫€鏌ユ槸鍚﹀凡瀛樺湪鍚屽悕鏍囩
+                        // 检查是否已存在同名标签
                         val existingTag =
                             tags.find { it.name.equals(trimmedName, ignoreCase = true) }
                         if (existingTag != null) {
-                            // 濡傛灉瀛樺湪鍚屽悕鏍囩锛屾樉绀洪敊璇俊鎭?
+                            // 如果存在同名标签，显示错误信息
                             showError = true
                         } else {
-                            // 鍒涘缓鏂版爣绛?
+                            // 创建新标签
                             val newTag = Tag(id = Uuid.random(), name = trimmedName)
                             onValueChange(value + newTag.id, tags + newTag)
                             showAddDialog = false
@@ -207,4 +207,3 @@ fun TagsInput(
         })
     }
 }
-

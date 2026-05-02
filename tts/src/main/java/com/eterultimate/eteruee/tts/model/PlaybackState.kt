@@ -1,7 +1,7 @@
-﻿package com.eterultimate.eteruee.tts.model
+package com.eterultimate.eteruee.tts.model
 
 /**
- * 缁熶竴鐨勬挱鏀剧姸鎬侊紙瀵瑰鏆撮湶缁?app 渚т娇鐢級銆?
+ * 统一的播放状态（对外暴露给 app 侧使用）。
  */
 enum class PlaybackStatus {
     Idle,
@@ -17,10 +17,9 @@ data class PlaybackState(
     val positionMs: Long = 0L,
     val durationMs: Long = 0L,
     val speed: Float = 1.0f,
-    val currentChunkIndex: Int = 0, // 1-based锛屼笌 currentChunk StateFlow 瀵归綈
+    val currentChunkIndex: Int = 0, // 1-based，与 currentChunk StateFlow 对齐
     val totalChunks: Int = 0,
     val errorMessage: String? = null
 )
-
 
 

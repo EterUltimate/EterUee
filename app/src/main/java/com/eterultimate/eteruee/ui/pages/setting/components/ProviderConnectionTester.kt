@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.setting.components
+package com.eterultimate.eteruee.ui.pages.setting.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,13 +32,13 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import me.rerere.ai.core.Tool
-import me.rerere.ai.provider.ModelType
-import me.rerere.ai.provider.ProviderManager
-import me.rerere.ai.provider.ProviderSetting
-import me.rerere.ai.provider.TextGenerationParams
-import me.rerere.ai.ui.UIMessage
-import me.rerere.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.ai.core.Tool
+import com.eterultimate.eteruee.ai.provider.ModelType
+import com.eterultimate.eteruee.ai.provider.ProviderManager
+import com.eterultimate.eteruee.ai.provider.ProviderSetting
+import com.eterultimate.eteruee.ai.provider.TextGenerationParams
+import com.eterultimate.eteruee.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Connect
 import com.eterultimate.eteruee.R
@@ -92,19 +92,19 @@ fun ProviderConnectionTester(
                     }
 
                     TestResultItem(
-                        label = "闈炴祦寮?,
+                        label = "非流式",
                         state = nonStreamingState,
                         resultText = (nonStreamingState as? UiState.Success)?.data ?: ""
                     )
 
                     TestResultItem(
-                        label = "娴佸紡",
+                        label = "流式",
                         state = streamingState,
                         resultText = streamingText
                     )
 
                     TestResultItem(
-                        label = "宸ュ叿璋冪敤",
+                        label = "工具调用",
                         state = toolsState,
                         resultText = (toolsState as? UiState.Success)?.data ?: ""
                     )
@@ -183,12 +183,12 @@ fun ProviderConnectionTester(
                                         ?.filterIsInstance<UIMessagePart.Tool>()
                                         ?.firstOrNull()
                                     val result = if (toolCall != null) {
-                                        "璋冪敤: ${toolCall.toolName}  鍏ュ弬: ${toolCall.input}"
+                                        "调用: ${toolCall.toolName}  入参: ${toolCall.input}"
                                     } else {
                                         val text = message?.parts
                                             ?.filterIsInstance<UIMessagePart.Text>()
                                             ?.joinToString("") { it.text } ?: ""
-                                        "鏈皟鐢ㄥ伐鍏凤紝鍝嶅簲: $text"
+                                        "未调用工具，响应: $text"
                                     }
                                     toolsState = UiState.Success(result)
                                 }.onFailure { toolsState = UiState.Error(it) }
@@ -223,7 +223,7 @@ private fun TestResultItem(
         )
         when (state) {
             is UiState.Idle -> Text(
-                text = "鈥?,
+                text = "—",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -233,7 +233,7 @@ private fun TestResultItem(
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
-                    text = "鉁?,
+                    text = "✓",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.extendColors.green6
                 )
@@ -295,4 +295,3 @@ private fun TestResultItem(
         }
     }
 }
-

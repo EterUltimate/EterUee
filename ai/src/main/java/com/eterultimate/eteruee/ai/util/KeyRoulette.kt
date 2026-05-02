@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ai.util
+package com.eterultimate.eteruee.ai.util
 
 import android.content.Context
 import kotlinx.serialization.encodeToString
@@ -12,14 +12,14 @@ interface KeyRoulette {
         fun default(): KeyRoulette = DefaultKeyRoulette()
 
         /**
-         * LRU 杞锛屾寔涔呭寲瀛樺偍鍒?cacheDir/lru_key_roulette.json
-         * 閫氳繃 providerId 鍖哄垎鍚岀被鍨嬬殑澶氫釜 provider 瀹炰緥锛屽湪 next() 璋冪敤鏃朵紶鍏?
+         * LRU 轮询，持久化存储到 cacheDir/lru_key_roulette.json
+         * 通过 providerId 区分同类型的多个 provider 实例，在 next() 调用时传入
          */
         fun lru(context: Context): KeyRoulette = LruKeyRoulette(context)
     }
 }
 
-private val SPLIT_KEY_REGEX = "[\\s,]+".toRegex() // 绌烘牸鎹㈣鍜岄€楀彿
+private val SPLIT_KEY_REGEX = "[\\s,]+".toRegex() // 空格换行和逗号
 
 private fun splitKey(key: String): List<String> {
     return key
@@ -41,12 +41,12 @@ private class DefaultKeyRoulette : KeyRoulette {
 }
 
 private const val LRU_CACHE_FILE = "lru_key_roulette.json"
-private const val EXPIRE_DURATION_MS = 24 * 60 * 60 * 1000L // 1 澶?
+private const val EXPIRE_DURATION_MS = 24 * 60 * 60 * 1000L // 1 天
 
-// 鍏ㄥ眬鏂囦欢閿侊紝闃叉澶氫釜 provider 瀹炰緥骞跺彂璇诲啓鍚屼竴鏂囦欢
+// 全局文件锁，防止多个 provider 实例并发读写同一文件
 private object LruFileLock
 
-// 鏂囦欢缁撴瀯: Map<providerId, Map<apiKey, lastUsedTimestamp>>
+// 文件结构: Map<providerId, Map<apiKey, lastUsedTimestamp>>
 private typealias LruCache = Map<String, Map<String, Long>>
 
 private class LruKeyRoulette(
@@ -61,19 +61,19 @@ private class LruKeyRoulette(
             val now = System.currentTimeMillis()
             val allCache = loadCache().toMutableMap()
 
-            // 鍙栨湰 provider 鐨勮褰曪紝杩囨护鎺夊凡杩囨湡鏉＄洰鍜屼笉鍦ㄥ綋鍓?key 鍒楄〃涓殑鏉＄洰
+            // 取本 provider 的记录，过滤掉已过期条目和不在当前 key 列表中的条目
             val providerCache = (allCache[providerId] ?: emptyMap())
                 .filter { (k, lastUsed) -> k in keyList && now - lastUsed < EXPIRE_DURATION_MS }
                 .toMutableMap()
 
-            // 浼樺厛閫変粠鏈娇鐢ㄧ殑 key锛屽惁鍒欓€夋渶涔呮湭浣跨敤鐨?
+            // 优先选从未使用的 key，否则选最久未使用的
             val selected = keyList.firstOrNull { it !in providerCache }
                 ?: providerCache.minByOrNull { it.value }!!.key
 
             providerCache[selected] = now
             allCache[providerId] = providerCache
 
-            // 娓呯悊鏁翠釜 provider 鏉＄洰鍧囧凡杩囨湡鐨勮褰?
+            // 清理整个 provider 条目均已过期的记录
             allCache.entries.removeIf { (id, cache) ->
                 id != providerId && cache.values.all { now - it >= EXPIRE_DURATION_MS }
             }
@@ -100,4 +100,3 @@ private class LruKeyRoulette(
         }
     }
 }
-

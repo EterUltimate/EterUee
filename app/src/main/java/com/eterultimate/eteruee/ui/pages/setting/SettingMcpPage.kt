@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.setting
+package com.eterultimate.eteruee.ui.pages.setting
 
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.AlertCircle
@@ -84,7 +84,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.contentOrNull
-import me.rerere.ai.core.InputSchema
+import com.eterultimate.eteruee.ai.core.InputSchema
 import me.rerere.hugeicons.stroke.McpServer
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.ai.mcp.McpManager
@@ -444,7 +444,7 @@ private fun McpCommonOptionsConfigure(
             .imePadding(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // 鍚敤/绂佺敤寮€鍏?
+        // 启用/禁用开关
         FormItem(
             label = {
                 Text(stringResource(R.string.setting_mcp_page_enable))
@@ -481,7 +481,7 @@ private fun McpCommonOptionsConfigure(
 
         HorizontalDivider()
 
-        // 鍚嶇О杈撳叆妗?
+        // 名称输入框
         FormItem(
             label = {
                 Text(stringResource(R.string.setting_mcp_page_name))
@@ -513,7 +513,7 @@ private fun McpCommonOptionsConfigure(
 
         HorizontalDivider()
 
-        // 浼犺緭绫诲瀷閫夋嫨
+        // 传输类型选择
         FormItem(
             label = {
                 Text(stringResource(R.string.setting_mcp_page_transport_type))
@@ -573,7 +573,7 @@ private fun McpCommonOptionsConfigure(
 
         HorizontalDivider()
 
-        // 鏈嶅姟鍣ㄥ湴鍧€閰嶇疆
+        // 服务器地址配置
         FormItem(
             label = {
                 Text(stringResource(R.string.setting_mcp_page_server_url))
@@ -615,7 +615,7 @@ private fun McpCommonOptionsConfigure(
 
         HorizontalDivider()
 
-        // 璇锋眰澶撮厤缃?
+        // 请求头配置
         FormItem(
             label = {
                 Text(stringResource(R.string.setting_mcp_page_custom_headers))
@@ -811,7 +811,7 @@ private fun McpToolCard(
                 .padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            // 绗竴琛岋細宸ュ叿鍚嶅瓧鍜?涓寜閽?
+            // 第一行：工具名字和3个按钮
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -824,7 +824,7 @@ private fun McpToolCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                // 闇€瑕佸鎵瑰紑鍏?
+                // 需要审批开关
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -839,13 +839,13 @@ private fun McpToolCard(
                         size = SwitchSize.Small
                     )
                 }
-                // 鍚敤寮€鍏?
+                // 启用开关
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Text(
-                        text = "鍚敤",
+                        text = "启用",
                         style = MaterialTheme.typography.labelSmall,
                     )
                     Switch(
@@ -854,7 +854,7 @@ private fun McpToolCard(
                         size = SwitchSize.Small
                     )
                 }
-                // 灞曞紑/鏀惰捣鎸夐挳
+                // 展开/收起按钮
                 IconButton(
                     onClick = { expanded = !expanded },
                     modifier = Modifier.size(32.dp)
@@ -866,9 +866,9 @@ private fun McpToolCard(
                     )
                 }
             }
-            // 灞曞紑鍚庢樉绀烘弿杩板拰鍙傛暟
+            // 展开后显示描述和参数
             if (expanded) {
-                // 鎻忚堪
+                // 描述
                 if (!tool.description.isNullOrBlank()) {
                     Text(
                         text = tool.description,
@@ -876,7 +876,7 @@ private fun McpToolCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
                     )
                 }
-                // 鍙傛暟鏍囩
+                // 参数标签
                 tool.inputSchema?.let { it as? InputSchema.Obj }?.let { schema ->
                     if (schema.properties.isNotEmpty()) {
                         FlowRow(
@@ -987,4 +987,3 @@ private fun McpImportModal(
         }
     }
 }
-

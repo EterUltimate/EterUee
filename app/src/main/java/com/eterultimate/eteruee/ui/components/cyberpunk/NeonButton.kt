@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.cyberpunk
+package com.eterultimate.eteruee.ui.components.cyberpunk
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -23,8 +23,8 @@ import com.eterultimate.eteruee.ui.theme.presets.NeonCyan
 import com.eterultimate.eteruee.ui.theme.presets.NeonPink
 
 /**
- * 纭湕闇撹櫣鎸夐挳
- * 鐩磋 + 閿愬埄杈规锛屾棤鍦嗚
+ * 硬朗霓虹按钮
+ * 直角 + 锐利边框，无圆角
  */
 @Composable
 fun CyberpunkButton(
@@ -77,7 +77,7 @@ fun CyberpunkButton(
 }
 
 /**
- * 灏忓瀷纭湕鎸夐挳
+ * 小型硬朗按钮
  */
 @Composable
 fun CyberpunkButtonSmall(
@@ -95,7 +95,7 @@ fun CyberpunkButtonSmall(
 }
 
 /**
- * 璀﹀憡鎸夐挳锛堢孩鑹诧級
+ * 警告按钮（红色）
  */
 @Composable
 fun CyberpunkButtonWarning(
@@ -110,4 +110,3 @@ fun CyberpunkButtonWarning(
         color = WarningRed
     )
 }
-

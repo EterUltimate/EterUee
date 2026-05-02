@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.service
+package com.eterultimate.eteruee.service
 
 import android.app.Application
 import android.app.PendingIntent
@@ -32,20 +32,20 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.jsonObject
-import me.rerere.ai.core.MessageRole
-import me.rerere.ai.core.ReasoningLevel
-import me.rerere.ai.core.Tool
-import me.rerere.ai.provider.ModelAbility
-import me.rerere.ai.provider.ProviderManager
-import me.rerere.ai.provider.TextGenerationParams
-import me.rerere.ai.ui.ToolApprovalState
-import me.rerere.ai.ui.UIMessage
-import me.rerere.ai.ui.UIMessagePart
-import me.rerere.ai.ui.canResumeToolExecution
-import me.rerere.ai.ui.finishPendingTools
-import me.rerere.ai.ui.finishReasoning
-import me.rerere.ai.ui.isEmptyInputMessage
-import me.rerere.common.android.Logging
+import com.eterultimate.eteruee.ai.core.MessageRole
+import com.eterultimate.eteruee.ai.core.ReasoningLevel
+import com.eterultimate.eteruee.ai.core.Tool
+import com.eterultimate.eteruee.ai.provider.ModelAbility
+import com.eterultimate.eteruee.ai.provider.ProviderManager
+import com.eterultimate.eteruee.ai.provider.TextGenerationParams
+import com.eterultimate.eteruee.ai.ui.ToolApprovalState
+import com.eterultimate.eteruee.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.ai.ui.canResumeToolExecution
+import com.eterultimate.eteruee.ai.ui.finishPendingTools
+import com.eterultimate.eteruee.ai.ui.finishReasoning
+import com.eterultimate.eteruee.ai.ui.isEmptyInputMessage
+import com.eterultimate.eteruee.common.android.Logging
 import com.eterultimate.eteruee.AppScope
 import com.eterultimate.eteruee.CHAT_COMPLETED_NOTIFICATION_CHANNEL_ID
 import com.eterultimate.eteruee.CHAT_LIVE_UPDATE_NOTIFICATION_CHANNEL_ID
@@ -131,11 +131,11 @@ class ChatService(
     private val filesManager: FilesManager,
     private val skillManager: SkillManager,
 ) {
-    // 缁熶竴浼氳瘽绠＄悊
+    // 统一会话管理
     private val sessions = ConcurrentHashMap<Uuid, ConversationSession>()
     private val _sessionsVersion = MutableStateFlow(0L)
 
-    // 閿欒鐘舵€?
+    // 错误状态
     private val _errors = MutableStateFlow<List<ChatError>>(emptyList())
     val errors: StateFlow<List<ChatError>> = _errors.asStateFlow()
 
@@ -152,11 +152,11 @@ class ChatService(
         _errors.value = emptyList()
     }
 
-    // 鐢熸垚瀹屾垚娴?
+    // 生成完成流
     private val _generationDoneFlow = MutableSharedFlow<Uuid>()
     val generationDoneFlow: SharedFlow<Uuid> = _generationDoneFlow.asSharedFlow()
 
-    // 鍓嶅彴鐘舵€佺鐞?
+    // 前台状态管理
     private val _isForeground = MutableStateFlow(false)
     val isForeground: StateFlow<Boolean> = _isForeground.asStateFlow()
 
@@ -169,7 +169,7 @@ class ChatService(
     }
 
     init {
-        // 娣诲姞鐢熷懡鍛ㄦ湡瑙傚療鑰?
+        // 添加生命周期观察者
         ProcessLifecycleOwner.get().lifecycle.addObserver(lifecycleObserver)
     }
 
@@ -179,7 +179,7 @@ class ChatService(
         sessions.clear()
     }
 
-    // ---- Session 绠＄悊 ----
+    // ---- Session 管理 ----
 
     private fun getOrCreateSession(conversationId: Uuid): ConversationSession {
         return sessions.computeIfAbsent(conversationId) { id ->
@@ -212,7 +212,7 @@ class ChatService(
         }
     }
 
-    // ---- 寮曠敤绠＄悊 ----
+    // ---- 引用管理 ----
 
     fun addConversationReference(conversationId: Uuid) {
         getOrCreateSession(conversationId).acquire()
@@ -234,7 +234,7 @@ class ChatService(
         }
     }
 
-    // ---- 瀵硅瘽鐘舵€佽闂?----
+    // ---- 对话状态访问 ----
 
     fun getConversationFlow(conversationId: Uuid): StateFlow<Conversation> {
         return getOrCreateSession(conversationId).state
@@ -265,16 +265,16 @@ class ChatService(
         }
     }
 
-    // ---- 鍒濆鍖栧璇?----
+    // ---- 初始化对话 ----
 
     suspend fun initializeConversation(conversationId: Uuid) {
-        getOrCreateSession(conversationId) // 纭繚 session 瀛樺湪
+        getOrCreateSession(conversationId) // 确保 session 存在
         val conversation = conversationRepo.getConversationById(conversationId)
         if (conversation != null) {
             updateConversation(conversationId, conversation)
             settingsStore.updateAssistant(conversation.assistantId)
         } else {
-            // 鏂板缓瀵硅瘽, 骞舵坊鍔犻璁炬秷鎭?
+            // 新建对话, 并添加预设消息
             val currentSettings = settingsStore.settingsFlowRaw.first()
             val assistant = currentSettings.getCurrentAssistant()
             val newConversation = Conversation.ofId(
@@ -286,7 +286,7 @@ class ChatService(
         }
     }
 
-    // ---- 鍙戦€佹秷鎭?----
+    // ---- 发送消息 ----
 
     fun sendMessage(conversationId: Uuid, content: List<UIMessagePart>, answer: Boolean = true) {
         if (content.isEmptyInputMessage()) return
@@ -299,7 +299,7 @@ class ChatService(
             try {
                 val currentConversation = session.state.value
 
-                // 娣诲姞娑堟伅鍒板垪琛?
+                // 添加消息到列表
                 val newConversation = currentConversation.copy(
                     messageNodes = currentConversation.messageNodes + UIMessage(
                         role = MessageRole.USER,
@@ -308,7 +308,7 @@ class ChatService(
                 )
                 saveConversation(conversationId, newConversation)
 
-                // 寮€濮嬭ˉ鍏?
+                // 开始补全
                 if (answer) {
                     handleMessageComplete(conversationId)
                 }
@@ -341,7 +341,7 @@ class ChatService(
         }
     }
 
-    // ---- 閲嶆柊鐢熸垚娑堟伅 ----
+    // ---- 重新生成消息 ----
 
     fun regenerateAtMessage(
         conversationId: Uuid,
@@ -356,7 +356,7 @@ class ChatService(
                 val conversation = session.state.value
 
                 if (message.role == MessageRole.USER) {
-                    // 濡傛灉鏄敤鎴锋秷鎭紝鍒欐埅姝㈠埌褰撳墠娑堟伅
+                    // 如果是用户消息，则截止到当前消息
                     val node = conversation.getMessageNodeByMessage(message)
                     val indexAt = conversation.messageNodes.indexOf(node)
                     val newConversation = conversation.copy(
@@ -383,7 +383,7 @@ class ChatService(
         session.setJob(job)
     }
 
-    // ---- 澶勭悊宸ュ叿璋冪敤瀹℃壒 ----
+    // ---- 处理工具调用审批 ----
 
     fun handleToolApproval(
         conversationId: Uuid,
@@ -446,7 +446,7 @@ class ChatService(
         session.setJob(job)
     }
 
-    // ---- 澶勭悊娑堟伅琛ュ叏 ----
+    // ---- 处理消息补全 ----
 
     private suspend fun handleMessageComplete(
         conversationId: Uuid,
@@ -537,10 +537,10 @@ class ChatService(
                     }
                 },
             ).onCompletion {
-                // 鍙栨秷 Live Update 閫氱煡
+                // 取消 Live Update 通知
                 cancelLiveUpdateNotification(conversationId)
 
-                // 鍙兘琚彇娑堜簡锛屾垨鑰呮剰澶栫粨鏉燂紝鍏滃簳鏇存柊
+                // 可能被取消了，或者意外结束，兜底更新
                 val updatedConversation = getConversationFlow(conversationId).value.copy(
                     messageNodes = getConversationFlow(conversationId).value.messageNodes.map { node ->
                         node.copy(messages = node.messages.map { it.finishReasoning() })
@@ -560,7 +560,7 @@ class ChatService(
                             .updateCurrentMessages(chunk.messages)
                         updateConversation(conversationId, updatedConversation)
 
-                        // 濡傛灉搴旂敤涓嶅湪鍓嶅彴锛屽彂閫?Live Update 閫氱煡
+                        // 如果应用不在前台，发送 Live Update 通知
                         if (!isForeground.value && settings.displaySetting.enableNotificationOnMessageGeneration && settings.displaySetting.enableLiveUpdateNotification) {
                             sendLiveUpdateNotification(conversationId, chunk.messages, senderName)
                         }
@@ -568,7 +568,7 @@ class ChatService(
                 }
             }
         }.onFailure {
-            // 鍙栨秷 Live Update 閫氱煡
+            // 取消 Live Update 通知
             cancelLiveUpdateNotification(conversationId)
 
             it.printStackTrace()
@@ -588,13 +588,13 @@ class ChatService(
         }
     }
 
-    // ---- 妫€鏌ユ棤鏁堟秷鎭?----
+    // ---- 检查无效消息 ----
 
     private fun checkInvalidMessages(conversationId: Uuid) {
         val conversation = getConversationFlow(conversationId).value
         var messagesNodes = conversation.messageNodes
 
-        // 绉婚櫎鏃犳晥 tool (鏈墽琛岀殑 Tool)
+        // 移除无效 tool (未执行的 Tool)
         messagesNodes = messagesNodes.mapIndexed { _, node ->
             // Check for Tool type with non-executed tools
             val hasPendingTools = node.currentMessage.getTools().any { !it.isExecuted }
@@ -623,7 +623,7 @@ class ChatService(
             node
         }
 
-        // 鏇存柊index
+        // 更新index
         messagesNodes = messagesNodes.map { node ->
             if (node.messages.isNotEmpty() && node.selectIndex !in node.messages.indices) {
                 node.copy(selectIndex = 0)
@@ -632,7 +632,7 @@ class ChatService(
             }
         }
 
-        // 绉婚櫎鏃犳晥娑堟伅
+        // 移除无效消息
         messagesNodes = messagesNodes.filter { it.messages.isNotEmpty() }
 
         updateConversation(conversationId, conversation.copy(messageNodes = messagesNodes))
@@ -649,7 +649,7 @@ class ChatService(
         )
     }
 
-    // ---- 鐢熸垚鏍囬 ----
+    // ---- 生成标题 ----
 
     suspend fun generateTitle(
         conversationId: Uuid,
@@ -685,7 +685,7 @@ class ChatService(
                 ),
             )
 
-            // 鐢熸垚瀹岋紝conversation鍙兘涓嶆槸鏈€鏂颁簡锛屽洜姝ら渶瑕侀噸鏂拌幏鍙?
+            // 生成完，conversation可能不是最新了，因此需要重新获取
             conversationRepo.getConversationById(conversation.id)?.let {
                 saveConversation(
                     conversationId,
@@ -698,7 +698,7 @@ class ChatService(
         }
     }
 
-    // ---- 鐢熸垚寤鸿 ----
+    // ---- 生成建议 ----
 
     suspend fun generateSuggestion(conversationId: Uuid, conversation: Conversation) {
         runCatching {
@@ -749,7 +749,7 @@ class ChatService(
         }
     }
 
-    // ---- 鍘嬬缉瀵硅瘽鍘嗗彶 ----
+    // ---- 压缩对话历史 ----
 
     suspend fun compressConversation(
         conversationId: Uuid,
@@ -837,10 +837,10 @@ class ChatService(
         saveConversation(conversationId, newConversation)
     }
 
-    // ---- 閫氱煡 ----
+    // ---- 通知 ----
 
     private fun sendGenerationDoneNotification(conversationId: Uuid, senderName: String) {
-        // 鍏堝彇娑?Live Update 閫氱煡
+        // 先取消 Live Update 通知
         cancelLiveUpdateNotification(conversationId)
 
         val conversation = getConversationFlow(conversationId).value
@@ -869,7 +869,7 @@ class ChatService(
         val lastMessage = messages.lastOrNull() ?: return
         val parts = lastMessage.parts
 
-        // 纭畾褰撳墠鐘舵€?
+        // 确定当前状态
         val (chipText, statusText, contentText) = determineNotificationContent(parts)
 
         context.sendNotification(
@@ -890,13 +890,13 @@ class ChatService(
     }
 
     private fun determineNotificationContent(parts: List<UIMessagePart>): Triple<String, String, String> {
-        // 妫€鏌ユ渶杩戠殑 part 鏉ョ‘瀹氱姸鎬?
+        // 检查最近的 part 来确定状态
         val lastReasoning = parts.filterIsInstance<UIMessagePart.Reasoning>().lastOrNull()
         val lastTool = parts.filterIsInstance<UIMessagePart.Tool>().lastOrNull()
         val lastText = parts.filterIsInstance<UIMessagePart.Text>().lastOrNull()
 
         return when {
-            // 姝ｅ湪鎵ц宸ュ叿
+            // 正在执行工具
             lastTool != null && !lastTool.isExecuted -> {
                 val toolName = lastTool.toolName.removePrefix("mcp__")
                 Triple(
@@ -905,7 +905,7 @@ class ChatService(
                     lastTool.input.take(100)
                 )
             }
-            // 姝ｅ湪鎬濊€冿紙Reasoning 鏈粨鏉燂級
+            // 正在思考（Reasoning 未结束）
             lastReasoning != null && lastReasoning.finishedAt == null -> {
                 Triple(
                     context.getString(R.string.notification_live_update_chip_thinking),
@@ -913,7 +913,7 @@ class ChatService(
                     lastReasoning.reasoning.takeLast(200)
                 )
             }
-            // 姝ｅ湪鍐欏洖澶?
+            // 正在写回复
             lastText != null -> {
                 Triple(
                     context.getString(R.string.notification_live_update_chip_writing),
@@ -921,7 +921,7 @@ class ChatService(
                     lastText.text.takeLast(200)
                 )
             }
-            // 榛樿鐘舵€?
+            // 默认状态
             else -> {
                 Triple(
                     context.getString(R.string.notification_live_update_chip_writing),
@@ -949,7 +949,7 @@ class ChatService(
         )
     }
 
-    // ---- 瀵硅瘽鐘舵€佹洿鏂?----
+    // ---- 对话状态更新 ----
 
     private fun updateConversation(conversationId: Uuid, conversation: Conversation) {
         if (conversation.id != conversationId) return
@@ -978,7 +978,7 @@ class ChatService(
     suspend fun saveConversation(conversationId: Uuid, conversation: Conversation) {
         val exists = conversationRepo.existsConversationById(conversation.id)
         if (!exists && conversation.title.isBlank() && conversation.messageNodes.isEmpty()) {
-            return // 鏂颁細璇濅笖涓虹┖鏃朵笉淇濆瓨
+            return // 新会话且为空时不保存
         }
 
         val updatedConversation = conversation.copy()
@@ -991,7 +991,7 @@ class ChatService(
         }
     }
 
-    // ---- 缈昏瘧娑堟伅 ----
+    // ---- 翻译消息 ----
 
     fun translateMessage(
         conversationId: Uuid,
@@ -1055,7 +1055,7 @@ class ChatService(
         updateConversation(conversationId, currentConversation.copy(messageNodes = updatedNodes))
     }
 
-    // ---- 娑堟伅鎿嶄綔 ----
+    // ---- 消息操作 ----
 
     suspend fun editMessage(
         conversationId: Uuid,
@@ -1245,7 +1245,7 @@ class ChatService(
         updateConversation(conversationId, currentConversation.copy(messageNodes = updatedNodes))
     }
 
-    // 鍋滄褰撳墠浼氳瘽鐢熸垚浠诲姟锛堜笉娓呯悊浼氳瘽缂撳瓨锛?
+    // 停止当前会话生成任务（不清理会话缓存）
     suspend fun stopGeneration(conversationId: Uuid) {
         val job = sessions[conversationId]?.getJob() ?: return
         job.cancel()
@@ -1269,4 +1269,3 @@ class ChatService(
         saveConversation(conversationId, updatedConversation)
     }
 }
-

@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.ui.permission
+package com.eterultimate.eteruee.ui.components.ui.permission
 
 import android.Manifest
 import android.os.Build
@@ -9,10 +9,10 @@ import androidx.compose.ui.res.stringResource
 import com.eterultimate.eteruee.R
 
 /**
- * 鏉冮檺淇℃伅鏁版嵁绫?
- * @param permission Android鏉冮檺瀛楃涓?(濡?android.permission.CAMERA)
- * @param usage 鏉冮檺浣跨敤璇存槑鐨凜omposable鍐呭
- * @param required 鏄惁涓哄繀闇€鏉冮檺
+ * 权限信息数据类
+ * @param permission Android权限字符串 (如 android.permission.CAMERA)
+ * @param usage 权限使用说明的Composable内容
+ * @param required 是否为必需权限
  */
 data class PermissionInfo(
     val permission: String,
@@ -22,21 +22,21 @@ data class PermissionInfo(
 )
 
 /**
- * 鏉冮檺鐘舵€佹灇涓?
+ * 权限状态枚举
  */
 enum class PermissionStatus {
-    /** 鏈姹?*/
+    /** 未请求 */
     NotRequested,
-    /** 宸叉巿鏉?*/
+    /** 已授权 */
     Granted,
-    /** 琚嫆缁濅絾鍙互鍐嶆璇锋眰 */
+    /** 被拒绝但可以再次请求 */
     Denied,
-    /** 琚嫆缁濅笖鐢ㄦ埛閫夋嫨"涓嶅啀璇㈤棶" */
+    /** 被拒绝且用户选择"不再询问" */
     DeniedPermanently
 }
 
 /**
- * 鏉冮檺璇锋眰缁撴灉
+ * 权限请求结果
  */
 data class PermissionResult(
     val permission: String,
@@ -45,7 +45,7 @@ data class PermissionResult(
 )
 
 /**
- * 澶氫釜鏉冮檺鐨勮姹傜粨鏋?
+ * 多个权限的请求结果
  */
 data class MultiplePermissionResult(
     val results: Map<String, PermissionResult>,
@@ -67,4 +67,3 @@ val PermissionNotification = PermissionInfo(
     usage = { Text(stringResource(R.string.permission_notification_desc)) },
     required = true
 )
-

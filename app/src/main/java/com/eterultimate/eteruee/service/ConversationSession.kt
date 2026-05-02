@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.service
+package com.eterultimate.eteruee.service
 
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
@@ -21,22 +21,22 @@ class ConversationSession(
     private val scope: CoroutineScope,
     private val onIdle: (Uuid) -> Unit,
 ) {
-    // 浼氳瘽鐘舵€?
+    // 会话状态
     val state = MutableStateFlow(initial)
 
-    // 鍘熷瓙寮曠敤璁℃暟
+    // 原子引用计数
     private val refCount = AtomicInteger(0)
 
-    // 澶勭悊鐘舵€侊紙濡?OCR 璇嗗埆涓級
+    // 处理状态（如 OCR 识别中）
     val processingStatus = MutableStateFlow<String?>(null)
 
-    // 鐢熸垚浠诲姟锛堝唴鑱氬湪 session 涓級
+    // 生成任务（内聚在 session 中）
     private val _generationJob = MutableStateFlow<Job?>(null)
     val generationJob: StateFlow<Job?> = _generationJob.asStateFlow()
     val isGenerating: Boolean get() = _generationJob.value?.isActive == true
     val isInUse: Boolean get() = refCount.get() > 0 || isGenerating
 
-    // 绌洪棽妫€鏌ヤ换鍔?
+    // 空闲检查任务
     private var idleCheckJob: Job? = null
 
     fun acquire(): Int = refCount.incrementAndGet().also {
@@ -49,7 +49,7 @@ class ConversationSession(
         if (it <= 0) scheduleIdleCheck()
     }
 
-    // 浣滅敤鍩?API - 鐭姹傦紙REST锛?
+    // 作用域 API - 短请求（REST）
     inline fun <T> withRef(block: () -> T): T {
         acquire()
         try {
@@ -59,7 +59,7 @@ class ConversationSession(
         }
     }
 
-    // 浣滅敤鍩?API - 闀胯繛鎺ワ紙SSE銆佹寕璧峰嚱鏁帮級
+    // 作用域 API - 长连接（SSE、挂起函数）
     suspend inline fun <T> withRefSuspend(block: () -> T): T {
         acquire()
         try {
@@ -104,4 +104,3 @@ class ConversationSession(
         idleCheckJob = null
     }
 }
-

@@ -1,13 +1,13 @@
-﻿package com.eterultimate.eteruee.data.model
+package com.eterultimate.eteruee.data.model
 
 import android.net.Uri
 import androidx.core.net.toUri
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import me.rerere.ai.core.MessageRole
-import me.rerere.ai.ui.UIMessage
-import me.rerere.ai.ui.UIMessagePart
-import me.rerere.ai.util.InstantSerializer
+import com.eterultimate.eteruee.ai.core.MessageRole
+import com.eterultimate.eteruee.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.ai.util.InstantSerializer
 import com.eterultimate.eteruee.data.datastore.DEFAULT_ASSISTANT_ID
 import java.time.Instant
 import kotlin.uuid.Uuid
@@ -34,7 +34,7 @@ data class Conversation(
             .mapNotNull { it.fileUri() }
 
     /**
-     *  褰撳墠閫変腑鐨?message
+     *  当前选中的 message
      */
     val currentMessages
         get(): List<UIMessage> {
@@ -70,7 +70,7 @@ data class Conversation(
                 selectIndex = newMessageIndex
             )
 
-            // 鏇存柊newNodes
+            // 更新newNodes
             if (index > newNodes.lastIndex) {
                 newNodes.add(newNode)
             } else {
@@ -130,13 +130,13 @@ fun UIMessage.toMessageNode(): MessageNode {
 }
 
 /**
- * 閫掑綊灞曞紑鎵€鏈?parts锛屽寘鎷伐鍏疯皟鐢ㄧ粨鏋滀腑鐨勫祵濂?parts銆?
+ * 递归展开所有 parts，包括工具调用结果中的嵌套 parts。
  */
 private fun List<UIMessagePart>.collectAllParts(): List<UIMessagePart> =
     this + filterIsInstance<UIMessagePart.Tool>().flatMap { it.output.collectAllParts() }
 
 /**
- * 鎻愬彇 part 涓紩鐢ㄧ殑鏈湴鏂囦欢 URI锛屾柊澧炴枃浠剁被鍨嬫椂鍙渶鍦ㄦ澶勬坊鍔犮€?
+ * 提取 part 中引用的本地文件 URI，新增文件类型时只需在此处添加。
  */
 private fun UIMessagePart.fileUri(): Uri? = when (this) {
     is UIMessagePart.Image -> url.takeIf { it.startsWith("file://") }?.toUri()
@@ -145,4 +145,3 @@ private fun UIMessagePart.fileUri(): Uri? = when (this) {
     is UIMessagePart.Audio -> url.takeIf { it.startsWith("file://") }?.toUri()
     else -> null
 }
-

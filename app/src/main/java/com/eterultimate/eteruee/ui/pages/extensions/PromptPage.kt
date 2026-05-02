@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.extensions
+package com.eterultimate.eteruee.ui.pages.extensions
 
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Book01
@@ -80,7 +80,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import me.rerere.ai.core.MessageRole
+import com.eterultimate.eteruee.ai.core.MessageRole
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.export.LorebookSerializer
 import com.eterultimate.eteruee.data.export.ModeInjectionSerializer
@@ -875,7 +875,7 @@ private fun LorebookEditSheet(
                     }
                 )
 
-                // 鏉＄洰鍒楄〃
+                // 条目列表
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -1049,7 +1049,7 @@ private fun RegexInjectionEditDialog(
                     )
                 }
 
-                // 鍏抽敭璇?
+                // 关键词
                 Text(stringResource(R.string.prompt_page_keywords_label), style = MaterialTheme.typography.titleSmall)
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -1174,4 +1174,3 @@ private fun RegexInjectionEditDialog(
         }
     )
 }
-

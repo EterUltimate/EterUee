@@ -1,7 +1,7 @@
 ﻿package com.eterultimate.eteruee.ui.theme
 
 import androidx.compose.ui.graphics.Color
-import me.rerere.highlight.HighlightTextColorPalette
+import com.eterultimate.eteruee.highlight.HighlightTextColorPalette
 
 // Atom One Dark Theme Colors
 val AtomOneDarkPalette = HighlightTextColorPalette(

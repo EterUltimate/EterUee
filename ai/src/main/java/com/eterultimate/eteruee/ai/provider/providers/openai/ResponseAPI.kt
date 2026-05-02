@@ -42,9 +42,9 @@ import com.eterultimate.eteruee.ai.util.mergeCustomBody
 import com.eterultimate.eteruee.ai.util.parseErrorDetail
 import com.eterultimate.eteruee.ai.util.stringSafe
 import com.eterultimate.eteruee.ai.util.toHeaders
-import me.rerere.common.http.await
-import me.rerere.common.http.jsonObjectOrNull
-import me.rerere.common.http.jsonPrimitiveOrNull
+import com.eterultimate.eteruee.common.http.await
+import com.eterultimate.eteruee.common.http.jsonObjectOrNull
+import com.eterultimate.eteruee.common.http.jsonPrimitiveOrNull
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient

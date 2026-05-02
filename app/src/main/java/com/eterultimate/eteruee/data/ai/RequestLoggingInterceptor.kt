@@ -1,7 +1,7 @@
 ﻿package com.eterultimate.eteruee.data.ai
 
-import me.rerere.common.android.LogEntry
-import me.rerere.common.android.Logging
+import com.eterultimate.eteruee.common.android.LogEntry
+import com.eterultimate.eteruee.common.android.Logging
 import okhttp3.Interceptor
 import okhttp3.Response
 import okio.Buffer

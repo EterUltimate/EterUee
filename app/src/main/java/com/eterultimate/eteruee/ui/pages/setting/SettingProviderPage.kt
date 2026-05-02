@@ -65,7 +65,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.sonner.ToastType
 import io.github.g00fy2.quickie.QRResult
 import io.github.g00fy2.quickie.ScanQRCode
-import me.rerere.ai.provider.ProviderSetting
+import com.eterultimate.eteruee.ai.provider.ProviderSetting
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.Screen
 import com.eterultimate.eteruee.ui.components.nav.BackButton

@@ -30,7 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import me.rerere.ai.provider.ModelType
+import com.eterultimate.eteruee.ai.provider.ModelType
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.model.Assistant
 import com.eterultimate.eteruee.ui.components.ai.ModelSelector
@@ -92,7 +92,7 @@ fun AssistantBasicPage(id: String) {
 internal fun AssistantBasicContent(
     modifier: Modifier = Modifier,
     assistant: Assistant,
-    providers: List<me.rerere.ai.provider.ProviderSetting>,
+    providers: List<com.eterultimate.eteruee.ai.provider.ProviderSetting>,
     tags: List<DataTag>,
     onUpdate: (Assistant) -> Unit,
     vm: AssistantDetailVM

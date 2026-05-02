@@ -22,7 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.dokar.sonner.ToastType
-import me.rerere.ai.provider.ProviderSetting
+import com.eterultimate.eteruee.ai.provider.ProviderSetting
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.datastore.DEFAULT_PROVIDERS
 import com.eterultimate.eteruee.ui.context.LocalToaster

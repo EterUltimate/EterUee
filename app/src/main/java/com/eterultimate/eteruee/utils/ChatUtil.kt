@@ -3,7 +3,7 @@
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import me.rerere.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessage
 import com.eterultimate.eteruee.Screen
 import com.eterultimate.eteruee.ui.context.Navigator
 import kotlin.uuid.Uuid

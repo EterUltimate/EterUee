@@ -55,8 +55,8 @@ import coil3.svg.SvgDecoder
 import com.dokar.sonner.Toaster
 import com.dokar.sonner.rememberToasterState
 import kotlinx.serialization.Serializable
-import me.rerere.highlight.Highlighter
-import me.rerere.highlight.LocalHighlighter
+import com.eterultimate.eteruee.highlight.Highlighter
+import com.eterultimate.eteruee.highlight.LocalHighlighter
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.db.DatabaseMigrationTracker
 import com.eterultimate.eteruee.data.db.MigrationState

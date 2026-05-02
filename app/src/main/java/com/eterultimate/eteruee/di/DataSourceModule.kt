@@ -11,8 +11,8 @@ import io.pebbletemplates.pebble.PebbleEngine
 import io.requery.android.database.sqlite.RequerySQLiteOpenHelperFactory
 import io.requery.android.database.sqlite.SQLiteCustomExtension
 import kotlinx.serialization.json.Json
-import me.rerere.ai.provider.ProviderManager
-import me.rerere.common.http.AcceptLanguageBuilder
+import com.eterultimate.eteruee.ai.provider.ProviderManager
+import com.eterultimate.eteruee.common.http.AcceptLanguageBuilder
 import com.eterultimate.eteruee.BuildConfig
 import com.eterultimate.eteruee.data.ai.AIRequestInterceptor
 import com.eterultimate.eteruee.data.ai.RequestLoggingInterceptor
@@ -32,7 +32,7 @@ import com.eterultimate.eteruee.data.db.migrations.Migration_14_15
 import com.eterultimate.eteruee.data.db.migrations.Migration_15_16
 import com.eterultimate.eteruee.data.ai.mcp.McpManager
 import com.eterultimate.eteruee.data.sync.webdav.WebDavSync
-import me.rerere.search.SearchService
+import com.eterultimate.eteruee.search.SearchService
 import com.eterultimate.eteruee.data.sync.S3Sync
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient

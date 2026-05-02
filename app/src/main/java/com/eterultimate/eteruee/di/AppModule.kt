@@ -5,7 +5,7 @@ import com.google.firebase.analytics.analytics
 import com.google.firebase.crashlytics.crashlytics
 import com.google.firebase.remoteconfig.remoteConfig
 import kotlinx.serialization.json.Json
-import me.rerere.highlight.Highlighter
+import com.eterultimate.eteruee.highlight.Highlighter
 import com.eterultimate.eteruee.AppScope
 import com.eterultimate.eteruee.data.ai.AILoggingManager
 import com.eterultimate.eteruee.data.ai.tools.LocalTools
@@ -16,7 +16,7 @@ import com.eterultimate.eteruee.utils.EmojiUtils
 import com.eterultimate.eteruee.utils.JsonInstant
 import com.eterultimate.eteruee.utils.UpdateChecker
 import com.eterultimate.eteruee.web.WebServerManager
-import me.rerere.tts.provider.TTSManager
+import com.eterultimate.eteruee.tts.provider.TTSManager
 import org.koin.dsl.module
 
 val appModule = module {

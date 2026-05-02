@@ -1,6 +1,6 @@
 ﻿package com.eterultimate.eteruee.ui.pages.setting
 
-import me.rerere.ai.core.ReasoningLevel
+import com.eterultimate.eteruee.ai.core.ReasoningLevel
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Earth
 import me.rerere.hugeicons.stroke.View
@@ -51,7 +51,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import me.rerere.ai.provider.ModelType
+import com.eterultimate.eteruee.ai.provider.ModelType
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.ai.prompts.DEFAULT_COMPRESS_PROMPT
 import com.eterultimate.eteruee.data.ai.prompts.DEFAULT_OCR_PROMPT

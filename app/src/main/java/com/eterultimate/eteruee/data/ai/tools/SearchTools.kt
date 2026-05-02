@@ -6,13 +6,13 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
-import me.rerere.ai.core.Tool
-import me.rerere.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.ai.core.Tool
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.utils.JsonInstantPretty
 import com.eterultimate.eteruee.utils.toLocalString
-import me.rerere.search.SearchService
-import me.rerere.search.SearchServiceOptions
+import com.eterultimate.eteruee.search.SearchService
+import com.eterultimate.eteruee.search.SearchServiceOptions
 import java.time.LocalDate
 import kotlin.uuid.Uuid
 

@@ -7,8 +7,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import me.rerere.ai.core.InputSchema
-import me.rerere.ai.util.KeyRoulette
+import com.eterultimate.eteruee.ai.core.InputSchema
+import com.eterultimate.eteruee.ai.util.KeyRoulette
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient

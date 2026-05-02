@@ -27,9 +27,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.rerere.ai.provider.BalanceOption
-import me.rerere.ai.provider.ProviderSetting
-import me.rerere.common.http.isJsonExprValid
+import com.eterultimate.eteruee.ai.provider.BalanceOption
+import com.eterultimate.eteruee.ai.provider.ProviderSetting
+import com.eterultimate.eteruee.common.http.isJsonExprValid
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.datastore.DEFAULT_PROVIDERS
 import com.eterultimate.eteruee.ui.theme.JetbrainsMono

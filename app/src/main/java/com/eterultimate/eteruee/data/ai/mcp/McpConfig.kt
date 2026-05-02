@@ -2,7 +2,7 @@
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import me.rerere.ai.core.InputSchema
+import com.eterultimate.eteruee.ai.core.InputSchema
 import kotlin.uuid.Uuid
 
 @Serializable

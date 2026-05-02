@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
-import me.rerere.ai.core.MessageRole
+import com.eterultimate.eteruee.ai.core.MessageRole
 import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.data.model.Conversation
 import com.eterultimate.eteruee.ui.context.LocalTTSState

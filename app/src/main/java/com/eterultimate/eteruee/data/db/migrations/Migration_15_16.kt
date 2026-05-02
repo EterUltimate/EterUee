@@ -3,8 +3,8 @@
 import android.util.Log
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import me.rerere.ai.ui.UIMessage
-import me.rerere.ai.ui.migrateToolNodes
+import com.eterultimate.eteruee.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.migrateToolNodes
 import com.eterultimate.eteruee.utils.JsonInstant
 import com.eterultimate.eteruee.data.db.DatabaseMigrationTracker
 

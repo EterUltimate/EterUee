@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
-import me.rerere.ai.core.TokenUsage
+import com.eterultimate.eteruee.ai.core.TokenUsage
 import com.eterultimate.eteruee.data.db.dao.ConversationDAO
 import com.eterultimate.eteruee.data.db.dao.FavoriteDAO
 import com.eterultimate.eteruee.data.db.dao.GenMediaDAO

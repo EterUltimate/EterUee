@@ -3,8 +3,8 @@
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import me.rerere.ai.ui.UIMessage
-import me.rerere.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.data.db.AppDatabase
 import com.eterultimate.eteruee.data.model.Conversation
 import com.eterultimate.eteruee.data.model.MessageNode

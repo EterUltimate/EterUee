@@ -1,6 +1,6 @@
 ﻿package com.eterultimate.eteruee.data.ai.transformers
 
-import me.rerere.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessage
 import com.eterultimate.eteruee.data.files.FilesManager
 import org.koin.java.KoinJavaComponent.getKoin
 

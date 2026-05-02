@@ -7,7 +7,7 @@ import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.suspendCancellableCoroutine
-import me.rerere.common.android.appTempFolder
+import com.eterultimate.eteruee.common.android.appTempFolder
 import com.eterultimate.eteruee.tts.model.AudioChunk
 import com.eterultimate.eteruee.tts.model.TTSRequest
 import com.eterultimate.eteruee.tts.provider.TTSProvider
@@ -116,7 +116,7 @@ class SystemTTSProvider : TTSProvider<TTSProviderSetting.SystemTTS> {
         emit(
             AudioChunk(
                 data = audioData,
-                format = me.rerere.tts.model.AudioFormat.WAV,
+                format = com.eterultimate.eteruee.tts.model.AudioFormat.WAV,
                 isLast = true,
                 metadata = mapOf(
                     "provider" to "system",

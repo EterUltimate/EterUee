@@ -1,11 +1,11 @@
 ﻿package com.eterultimate.eteruee.web.dto
 
 import kotlinx.serialization.Serializable
-import me.rerere.ai.core.ReasoningLevel
-import me.rerere.ai.core.TokenUsage
-import me.rerere.ai.ui.UIMessageAnnotation
-import me.rerere.ai.ui.UIMessage
-import me.rerere.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.ai.core.ReasoningLevel
+import com.eterultimate.eteruee.ai.core.TokenUsage
+import com.eterultimate.eteruee.ai.ui.UIMessageAnnotation
+import com.eterultimate.eteruee.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.data.model.Conversation
 import com.eterultimate.eteruee.data.model.MessageNode
 

@@ -30,8 +30,8 @@ import com.eterultimate.eteruee.ai.util.KeyRoulette
 import com.eterultimate.eteruee.ai.util.json
 import com.eterultimate.eteruee.ai.util.mergeCustomBody
 import com.eterultimate.eteruee.ai.util.toHeaders
-import me.rerere.common.http.await
-import me.rerere.common.http.getByKey
+import com.eterultimate.eteruee.common.http.await
+import com.eterultimate.eteruee.common.http.getByKey
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request

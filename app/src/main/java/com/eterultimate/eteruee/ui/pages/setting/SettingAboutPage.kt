@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.setting
+package com.eterultimate.eteruee.ui.pages.setting
 
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Code
@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
@@ -50,7 +51,6 @@ import com.eterultimate.eteruee.ui.context.LocalNavController
 import com.eterultimate.eteruee.ui.theme.CustomColors
 import com.eterultimate.eteruee.utils.openUrl
 import com.eterultimate.eteruee.utils.plus
-import androidx.compose.ui.graphics.RectangleShape
 
 @Composable
 fun SettingAboutPage() {
@@ -59,13 +59,13 @@ fun SettingAboutPage() {
     val navController = LocalNavController.current
     val emojiOptions = remember {
         listOf(
-            "馃帀", "鉁?, "馃専", "馃挮", "馃帄", "馃コ", "馃巿", "馃巻", "馃巼", "馃Ж",
-            "馃寛", "馃Ё", "馃巵", "馃崿", "馃嵀", "馃崏", "馃崜", "馃崚", "馃崓", "馃キ",
-            "馃惐", "馃惗", "馃", "馃惣", "馃", "馃惎", "馃惖", "馃",
-            "鉂わ笍", "馃А", "馃挍", "馃挌", "馃挋", "馃挏",
-            "馃嚚馃嚦", "馃審", "馃實", "馃寧",
-            "馃", "馃ぉ", "馃槅", "馃樅", "馃樃", "馃ぁ",
-            "馃挕", "馃敟", "馃挜", "馃殌", "猸?, "馃寵"
+            "🎉", "✨", "🌟", "💫", "🎊", "🥳", "🎈", "🎆", "🎇", "🧨",
+            "🌈", "🧧", "🎁", "🍬", "🍭", "🍉", "🍓", "🍒", "🍍", "🥭",
+            "🐱", "🐶", "🦊", "🐼", "🦁", "🐯", "🐵", "🦄",
+            "❤️", "🧡", "💛", "💚", "💙", "💜",
+            "🇨🇳", "🌏", "🌍", "🌎",
+            "🤗", "🤩", "😆", "😺", "😸", "🤡",
+            "💡", "🔥", "💥", "🚀", "⭐", "🌙"
         )
     }
     var logoCenterPx by remember { mutableStateOf(Offset.Zero) }
@@ -107,7 +107,7 @@ fun SettingAboutPage() {
                             model = R.mipmap.ic_launcher,
                             contentDescription = "Logo",
                             modifier = Modifier
-                                .clip(RectangleShape)
+                                .clip(CircleShape)
                                 .size(150.dp)
                                 .onGloballyPositioned { coordinates ->
                                     val position = coordinates.positionInParent()
@@ -167,15 +167,15 @@ fun SettingAboutPage() {
                             headlineContent = { Text(stringResource(R.string.about_page_website)) },
                         )
                         item(
-                            onClick = { context.openUrl("https://github.com/EterUltimate/EterUee") },
+                            onClick = { context.openUrl("https://github.com/eteruee/eteruee") },
                             leadingContent = { Icon(HugeIcons.Github, null) },
-                            supportingContent = { Text("https://github.com/EterUltimate/EterUee") },
+                            supportingContent = { Text("https://github.com/eteruee/eteruee") },
                             headlineContent = { Text(stringResource(R.string.about_page_github)) },
                         )
                         item(
-                            onClick = { context.openUrl("https://github.com/EterUltimate/EterUee/blob/main/LICENSE") },
+                            onClick = { context.openUrl("https://github.com/eteruee/eteruee/blob/master/LICENSE") },
                             leadingContent = { Icon(HugeIcons.File02, null) },
-                            supportingContent = { Text("https://github.com/EterUltimate/EterUee/blob/main/LICENSE") },
+                            supportingContent = { Text("https://github.com/eteruee/eteruee/blob/master/LICENSE") },
                             headlineContent = { Text(stringResource(R.string.about_page_license)) },
                         )
                     }
@@ -184,4 +184,3 @@ fun SettingAboutPage() {
         }
     }
 }
-

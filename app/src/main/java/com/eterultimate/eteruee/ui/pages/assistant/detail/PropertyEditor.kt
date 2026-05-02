@@ -28,9 +28,9 @@ import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
-import me.rerere.ai.provider.CustomBody
-import me.rerere.ai.provider.CustomHeader
-import me.rerere.highlight.LocalHighlighter
+import com.eterultimate.eteruee.ai.provider.CustomBody
+import com.eterultimate.eteruee.ai.provider.CustomHeader
+import com.eterultimate.eteruee.highlight.LocalHighlighter
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.ui.components.ui.CardGroup
 import com.eterultimate.eteruee.ui.components.richtext.HighlightCodeVisualTransformation

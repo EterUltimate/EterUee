@@ -35,8 +35,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import me.rerere.common.android.LogEntry
-import me.rerere.common.android.Logging
+import com.eterultimate.eteruee.common.android.LogEntry
+import com.eterultimate.eteruee.common.android.Logging
 import com.eterultimate.eteruee.ui.components.nav.BackButton
 import com.eterultimate.eteruee.ui.components.ui.JsonTree
 import com.eterultimate.eteruee.ui.theme.CustomColors

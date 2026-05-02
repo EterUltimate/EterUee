@@ -7,10 +7,10 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import me.rerere.ai.provider.Model
-import me.rerere.ai.provider.ProviderSetting
-import me.rerere.ai.registry.ModelRegistry
-import me.rerere.common.http.jsonObjectOrNull
+import com.eterultimate.eteruee.ai.provider.Model
+import com.eterultimate.eteruee.ai.provider.ProviderSetting
+import com.eterultimate.eteruee.ai.registry.ModelRegistry
+import com.eterultimate.eteruee.common.http.jsonObjectOrNull
 import com.eterultimate.eteruee.utils.JsonInstant
 import java.io.File
 import java.util.zip.ZipFile

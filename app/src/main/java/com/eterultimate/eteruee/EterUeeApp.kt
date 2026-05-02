@@ -22,7 +22,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
-import me.rerere.common.android.appTempFolder
+import com.eterultimate.eteruee.common.android.appTempFolder
 import com.eterultimate.eteruee.di.appModule
 import com.eterultimate.eteruee.di.dataSourceModule
 import com.eterultimate.eteruee.di.repositoryModule

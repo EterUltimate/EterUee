@@ -65,9 +65,9 @@ import com.eterultimate.eteruee.ui.components.ui.Tag
 import com.eterultimate.eteruee.ui.components.ui.TagType
 import com.eterultimate.eteruee.ui.theme.CustomColors
 import com.eterultimate.eteruee.utils.plus
-import me.rerere.search.SearchCommonOptions
-import me.rerere.search.SearchService
-import me.rerere.search.SearchServiceOptions
+import com.eterultimate.eteruee.search.SearchCommonOptions
+import com.eterultimate.eteruee.search.SearchService
+import com.eterultimate.eteruee.search.SearchServiceOptions
 import org.koin.androidx.compose.koinViewModel
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState

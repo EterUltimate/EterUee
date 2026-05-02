@@ -10,7 +10,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
-import me.rerere.ai.core.InputSchema
+import com.eterultimate.eteruee.ai.core.InputSchema
 import com.eterultimate.eteruee.search.SearchResult.SearchResultItem
 import com.eterultimate.eteruee.search.SearchService.Companion.httpClient
 import com.eterultimate.eteruee.search.SearchService.Companion.json

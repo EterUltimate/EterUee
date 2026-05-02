@@ -8,8 +8,8 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 import io.ktor.server.sse.heartbeat
 import io.ktor.server.sse.sse
-import me.rerere.ai.provider.BuiltInTools
-import me.rerere.ai.provider.ModelType
+import com.eterultimate.eteruee.ai.provider.BuiltInTools
+import com.eterultimate.eteruee.ai.provider.ModelType
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.datastore.findModelById
 import com.eterultimate.eteruee.utils.JsonInstant

@@ -1,8 +1,8 @@
 ﻿package com.eterultimate.eteruee.data.ai.transformers
 
-import me.rerere.ai.core.MessageRole
-import me.rerere.ai.ui.UIMessage
-import me.rerere.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.ai.core.MessageRole
+import com.eterultimate.eteruee.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.data.model.AssistantAffectScope
 import com.eterultimate.eteruee.data.model.replaceRegexes
 import org.koin.core.component.KoinComponent

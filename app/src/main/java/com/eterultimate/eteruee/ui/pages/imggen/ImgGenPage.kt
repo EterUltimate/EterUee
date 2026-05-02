@@ -82,8 +82,8 @@ import coil3.compose.AsyncImage
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import me.rerere.ai.provider.ModelType
-import me.rerere.ai.ui.ImageAspectRatio
+import com.eterultimate.eteruee.ai.provider.ModelType
+import com.eterultimate.eteruee.ai.ui.ImageAspectRatio
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.data.files.FilesManager

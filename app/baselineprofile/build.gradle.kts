@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "me.rerere.baselineprofile"
+    namespace = "com.eterultimate.eteruee.baselineprofile"
     compileSdk = 36
 
     compileOptions {

@@ -20,9 +20,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import me.rerere.ai.ui.UIMessage
-import me.rerere.ai.ui.UIMessagePart
-import me.rerere.common.android.Logging
+import com.eterultimate.eteruee.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.common.android.Logging
 import com.eterultimate.eteruee.AppScope
 import com.eterultimate.eteruee.data.db.entity.ManagedFileEntity
 import com.eterultimate.eteruee.data.repository.FilesRepository

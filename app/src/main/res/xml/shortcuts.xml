@@ -8,8 +8,8 @@
         android:shortcutLongLabel="@string/shortcut_take_picture">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetClass="me.rerere.rikkahub.ui.activity.ShortcutHandlerActivity"
-            android:data="rikkahub://shortcut" />
+            android:targetClass="com.eterultimate.eteruee.ui.activity.ShortcutHandlerActivity"
+            android:data="eteruee://shortcut" />
         <categories android:name="android.shortcut.conversation" />
     </shortcut>
 </shortcuts>

@@ -51,7 +51,7 @@ import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.datastore.getCurrentAssistant
 import com.eterultimate.eteruee.ui.hooks.writeStringPreference
-import com.eterultimate.eteruee.ui.theme.RikkahubTheme
+import com.eterultimate.eteruee.ui.theme.EterUeeTheme
 import com.eterultimate.eteruee.utils.CrashHandler
 import org.koin.android.ext.android.inject
 import kotlin.uuid.Uuid
@@ -67,7 +67,7 @@ class SafeModeActivity : ComponentActivity() {
         CrashHandler.clearCrashed(this)
         enableEdgeToEdge()
         setContent {
-            RikkahubTheme {
+            EterUeeTheme {
                 val settings by settingsStore.settingsFlow.collectAsStateWithLifecycle()
                 var showAssistantPicker by remember { mutableStateOf(false) }
                 val scope = rememberCoroutineScope()

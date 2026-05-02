@@ -113,7 +113,7 @@ fun Context.getComponentActivity(): ComponentActivity? {
 fun Context.exportImage(
     activity: Activity,
     bitmap: Bitmap,
-    fileName: String = "RikkaHub_${System.currentTimeMillis()}.png"
+    fileName: String = "EterUee_${System.currentTimeMillis()}.png"
 ) {
     // 妫€鏌ュ瓨鍌ㄦ潈闄愶紙Android 9鍙婁互涓嬮渶瑕侊級
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
@@ -167,7 +167,7 @@ fun Context.exportImage(
 fun Context.exportImageFile(
     activity: Activity,
     file: File,
-    fileName: String = "RikkaHub_${System.currentTimeMillis()}.png"
+    fileName: String = "EterUee_${System.currentTimeMillis()}.png"
 ) {
     // 妫€鏌ュ瓨鍌ㄦ潈闄愶紙Android 9鍙婁互涓嬮渶瑕侊級
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {

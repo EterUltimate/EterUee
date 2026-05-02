@@ -19,7 +19,7 @@ import com.eterultimate.eteruee.data.ai.RequestLoggingInterceptor
 import com.eterultimate.eteruee.data.ai.transformers.AssistantTemplateLoader
 import com.eterultimate.eteruee.data.ai.GenerationHandler
 import com.eterultimate.eteruee.data.ai.transformers.TemplateTransformer
-import com.eterultimate.eteruee.data.api.RikkaHubAPI
+import com.eterultimate.eteruee.data.api.EterUeeAPI
 import com.eterultimate.eteruee.data.api.SponsorAPI
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.db.AppDatabase
@@ -171,7 +171,7 @@ val dataSourceModule = module {
                     .addHeader(HttpHeaders.AcceptLanguage, acceptLang)
 
                 if (originalRequest.header(HttpHeaders.UserAgent) == null) {
-                    requestBuilder.addHeader(HttpHeaders.UserAgent, "RikkaHub-Android/${BuildConfig.VERSION_NAME}")
+                    requestBuilder.addHeader(HttpHeaders.UserAgent, "EterUee-Android/${BuildConfig.VERSION_NAME}")
                 }
 
                 chain.proceed(requestBuilder.build())
@@ -245,8 +245,8 @@ val dataSourceModule = module {
             .build()
     }
 
-    single<RikkaHubAPI> {
-        get<Retrofit>().create(RikkaHubAPI::class.java)
+    single<EterUeeAPI> {
+        get<Retrofit>().create(EterUeeAPI::class.java)
     }
 }
 

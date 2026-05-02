@@ -21,7 +21,7 @@ fun rememberSharedPreferenceString(
 ): MutableState<String?> {
     val context = LocalContext.current
     val prefs = remember {
-        context.getSharedPreferences("rikkahub.preferences", Context.MODE_PRIVATE)
+        context.getSharedPreferences("eteruee.preferences", Context.MODE_PRIVATE)
     }
     val stateFlow =
         remember(keyForString, defaultValue) { prefs.getStringFlowForKey(keyForString, defaultValue) }
@@ -47,7 +47,7 @@ fun rememberSharedPreferenceBoolean(
 ): MutableState<Boolean> {
     val context = LocalContext.current
     val prefs = remember {
-        context.getSharedPreferences("rikkahub.preferences", Context.MODE_PRIVATE)
+        context.getSharedPreferences("eteruee.preferences", Context.MODE_PRIVATE)
     }
     val stateFlow =
         remember(keyForBoolean, defaultValue) { prefs.getBooleanFlowForKey(keyForBoolean, defaultValue) }
@@ -67,23 +67,23 @@ fun rememberSharedPreferenceBoolean(
 }
 
 fun Context.writeStringPreference(key: String, value: String?) {
-    getSharedPreferences("rikkahub.preferences", Context.MODE_PRIVATE).edit {
+    getSharedPreferences("eteruee.preferences", Context.MODE_PRIVATE).edit {
         putString(key, value)
     }
 }
 
 fun Context.readStringPreference(key: String, defaultValue: String? = null): String? {
-    return getSharedPreferences("rikkahub.preferences", Context.MODE_PRIVATE).getString(key, defaultValue)
+    return getSharedPreferences("eteruee.preferences", Context.MODE_PRIVATE).getString(key, defaultValue)
 }
 
 fun Context.writeBooleanPreference(key: String, value: Boolean) {
-    getSharedPreferences("rikkahub.preferences", Context.MODE_PRIVATE).edit {
+    getSharedPreferences("eteruee.preferences", Context.MODE_PRIVATE).edit {
         putBoolean(key, value)
     }
 }
 
 fun Context.readBooleanPreference(key: String, defaultValue: Boolean = false): Boolean {
-    return getSharedPreferences("rikkahub.preferences", Context.MODE_PRIVATE).getBoolean(key, defaultValue)
+    return getSharedPreferences("eteruee.preferences", Context.MODE_PRIVATE).getBoolean(key, defaultValue)
 }
 
 fun SharedPreferences.getStringFlowForKey(keyForString: String, defaultValue: String? = null) =

@@ -96,7 +96,7 @@ import com.eterultimate.eteruee.ui.context.LocalNavController
 import com.eterultimate.eteruee.ui.context.LocalSettings
 import com.dokar.sonner.rememberToasterState
 import com.eterultimate.eteruee.ui.context.LocalToaster
-import com.eterultimate.eteruee.ui.theme.RikkahubTheme
+import com.eterultimate.eteruee.ui.theme.EterUeeTheme
 import com.eterultimate.eteruee.utils.exportImage
 import com.eterultimate.eteruee.utils.getActivity
 import com.eterultimate.eteruee.utils.JsonInstantPretty
@@ -458,7 +458,7 @@ private fun ExportedChatImage(
     val navigator = Navigator(navBackStack)
     val highlighter = koinInject<Highlighter>()
     val toasterState = rememberToasterState()
-    RikkahubTheme {
+    EterUeeTheme {
         CompositionLocalProvider(
             LocalNavController provides navigator,
             LocalHighlighter provides highlighter,

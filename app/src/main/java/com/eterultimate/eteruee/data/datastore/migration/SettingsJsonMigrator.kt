@@ -12,7 +12,7 @@ private const val TAG = "SettingsJsonMigrator"
  * 瀵瑰浠芥枃浠朵腑鐨?settings.json 搴旂敤涓?DataStore migration 鐩稿悓鐨勮縼绉婚€昏緫銆?
  *
  * DataStore migration 浣滅敤浜庡垎鏁ｇ殑 key-value 瀛樺偍锛岃€屽浠芥枃浠朵腑鐨?settings.json
- * 鏄暣涓?[me.rerere.rikkahub.data.datastore.Settings] 瀵硅薄鐨勫簭鍒楀寲缁撴灉銆?
+ * 鏄暣涓?[com.eterultimate.eteruee.data.datastore.Settings] 瀵硅薄鐨勫簭鍒楀寲缁撴灉銆?
  * 姝ゅ伐鍏风被璐熻矗鍦ㄥ弽搴忓垪鍖栧墠瀵规棫鏍煎紡鐨?JSON 鎵ц绛変环鐨勮縼绉绘搷浣溿€?
  */
 object SettingsJsonMigrator {

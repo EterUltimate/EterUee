@@ -37,12 +37,12 @@ import java.security.MessageDigest
 import java.util.Date
 import java.util.UUID
 
-private const val WEB_JWT_ISSUER = "rikkahub-web"
-private const val WEB_JWT_AUDIENCE = "rikkahub-web-client"
+private const val WEB_JWT_ISSUER = "eteruee-web"
+private const val WEB_JWT_AUDIENCE = "eteruee-web-client"
 private const val WEB_JWT_SUBJECT = "web-access"
 private const val WEB_JWT_TTL_MILLIS = 30L * 24 * 60 * 60 * 1000
 private const val WEB_ACCESS_TOKEN_QUERY_KEY = "access_token"
-private const val WEB_AUTH_REALM = "rikkahub-web-api"
+private const val WEB_AUTH_REALM = "eteruee-web-api"
 
 /**
  * Configure Web API for the Ktor application.

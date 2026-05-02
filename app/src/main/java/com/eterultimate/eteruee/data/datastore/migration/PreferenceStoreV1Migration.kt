@@ -36,11 +36,11 @@ internal fun migrateMcpServersJson(json: String): String {
         val jsonObj = element.jsonObject.toMutableMap()
         val type = jsonObj["type"]?.jsonPrimitive?.content ?: ""
         when (type) {
-            "me.rerere.rikkahub.data.mcp.McpServerConfig.SseTransportServer" -> {
+            "com.eterultimate.eteruee.data.mcp.McpServerConfig.SseTransportServer" -> {
                 jsonObj["type"] = JsonPrimitive("sse")
             }
 
-            "me.rerere.rikkahub.data.mcp.McpServerConfig.StreamableHTTPServer" -> {
+            "com.eterultimate.eteruee.data.mcp.McpServerConfig.StreamableHTTPServer" -> {
                 jsonObj["type"] = JsonPrimitive("streamable_http")
             }
         }

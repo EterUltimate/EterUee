@@ -53,7 +53,7 @@ fun WebViewPage(url: String, content: String) {
     } else {
         rememberWebViewState(
             data = content.base64Decode(),
-            baseUrl = "https://rikkahub.local",
+            baseUrl = "https://eteruee.local",
             mimeType = "text/html",
             settings = {
                 builtInZoomControls = true

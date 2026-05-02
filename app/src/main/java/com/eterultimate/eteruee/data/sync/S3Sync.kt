@@ -46,7 +46,7 @@ class S3Sync(
     suspend fun backupToS3(config: S3Config) = withContext(Dispatchers.IO) {
         val file = prepareBackupFile(config)
         val client = getS3Client(config)
-        val key = "rikkahub_backups/${file.name}"
+        val key = "eteruee_backups/${file.name}"
 
         client.putObject(
             key = key,
@@ -63,12 +63,12 @@ class S3Sync(
     suspend fun listBackupFiles(config: S3Config): List<S3BackupItem> = withContext(Dispatchers.IO) {
         val client = getS3Client(config)
         val result = client.listObjects(
-            prefix = "rikkahub_backups/",
+            prefix = "eteruee_backups/",
             maxKeys = 1000
         ).getOrThrow()
 
         result.objects
-            .filter { it.key.startsWith("rikkahub_backups/backup_") && it.key.endsWith(".zip") }
+            .filter { it.key.startsWith("eteruee_backups/backup_") && it.key.endsWith(".zip") }
             .map { obj ->
                 S3BackupItem(
                     key = obj.key,

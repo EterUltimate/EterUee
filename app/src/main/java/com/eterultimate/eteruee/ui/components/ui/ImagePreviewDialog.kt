@@ -67,10 +67,10 @@ fun ImagePreviewDialog(
                     onClick = {
                         lifecycleOwner.lifecycleScope.launch {
                             runCatching {
-                                toaster.show("姝ｅ湪淇濆瓨")
+                                toaster.show("正在保存")
                                 val imgUrl = images[state.currentPage]
                                 filesManager.saveMessageImage(context, imgUrl)
-                                toaster.show(message = "宸蹭繚瀛樺浘鐗?, type = ToastType.Success)
+                                toaster.show(message = "已保存图片", type = ToastType.Success)
                             }.onFailure {
                                 it.printStackTrace()
                                 toaster.show(

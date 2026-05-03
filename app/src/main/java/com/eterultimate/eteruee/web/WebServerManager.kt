@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.web
+package com.eterultimate.eteruee.web
 
 import android.content.Context
 import android.util.Log
@@ -59,7 +59,7 @@ class WebServerManager(
         }
 
         appScope.launch {
-            // 浠呮湰鏈烘ā寮忕粦瀹氬洖鐜湴鍧€
+            // 仅本机模式绑定回环地址
             val host = if (localhostOnly) HOST_LOOPBACK else HOST_ALL_INTERFACES
             val baseState = WebServerState(
                 port = port,
@@ -79,7 +79,7 @@ class WebServerManager(
                 }.start(wait = false)
 
                 _state.value = baseState.copy(isRunning = true)
-                // 浠呭眬鍩熺綉妯″紡娉ㄥ唽 mDNS
+                // 仅局域网模式注册 mDNS
                 if (!localhostOnly) {
                     runCatching {
                         nsdRegistrar.register(
@@ -144,4 +144,3 @@ class WebServerManager(
         }
     }
 }
-

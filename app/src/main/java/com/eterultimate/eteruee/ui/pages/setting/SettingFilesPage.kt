@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.setting
+package com.eterultimate.eteruee.ui.pages.setting
 
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Image02
@@ -66,7 +66,7 @@ fun SettingFilesPage(
     val toaster = LocalToaster.current
     val folders = remember { listOf(FileFolders.UPLOAD) }
 
-    // 棰勫厛鑾峰彇瀛楃涓茶祫婧?
+    // 预先获取字符串资源
     val deletedToast = stringResource(R.string.setting_files_page_deleted_toast)
     val deleteFailedToast = stringResource(R.string.setting_files_page_delete_failed_toast)
 
@@ -271,4 +271,3 @@ private fun formatBytes(bytes: Long): String {
     val gb = mb / 1024.0
     return String.format("%.1fGB", gb)
 }
-

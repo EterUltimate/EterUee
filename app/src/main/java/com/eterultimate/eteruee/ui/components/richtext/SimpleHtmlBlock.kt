@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.richtext
+package com.eterultimate.eteruee.ui.components.richtext
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -39,7 +40,6 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Node
 import org.jsoup.nodes.TextNode
-import androidx.compose.ui.graphics.RectangleShape
 
 @Composable
 fun SimpleHtmlBlock(
@@ -200,7 +200,7 @@ private fun RenderList(
             if (item.tagName().lowercase() == "li") {
                 Row(modifier = Modifier.padding(vertical = 2.dp)) {
                     Text(
-                        text = if (isOrdered) "${index + 1}. " else "鈥?",
+                        text = if (isOrdered) "${index + 1}. " else "• ",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = LocalContentColor.current
                         )
@@ -246,7 +246,7 @@ private fun RenderDetails(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = if (isExpanded) "鈻?" else "鈻?",
+                text = if (isExpanded) "▼ " else "▶ ",
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = LocalContentColor.current
                 )
@@ -303,7 +303,7 @@ private fun RenderImage(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = 400.dp)
-                    .clip(RectangleShape),
+                    .clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Fit,
             )
         }
@@ -686,4 +686,3 @@ private fun RenderTable(
         }
     }
 }
-

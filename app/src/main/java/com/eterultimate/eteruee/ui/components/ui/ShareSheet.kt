@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.ui
+package com.eterultimate.eteruee.ui.components.ui
 
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,7 +28,6 @@ import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Share03
 import com.eterultimate.eteruee.utils.JsonInstant
 import kotlin.io.encoding.Base64
-import androidx.compose.ui.graphics.RectangleShape
 
 @Composable
 fun ShareSheet(
@@ -52,7 +52,7 @@ fun ShareSheet(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("鍏变韩浣犵殑LLM妯″瀷", style = MaterialTheme.typography.titleLarge)
+                    Text("共享你的LLM模型", style = MaterialTheme.typography.titleLarge)
 
                     IconButton(
                         onClick = {
@@ -76,7 +76,7 @@ fun ShareSheet(
                 QRCode(
                     value = state.currentProvider?.encodeForShare() ?: "",
                     modifier = Modifier
-                        .clip(RectangleShape)
+                        .clip(RoundedCornerShape(8.dp))
                         .fillMaxWidth()
                         .aspectRatio(1f)
                 )
@@ -98,10 +98,10 @@ fun ProviderSetting.encodeForShare(): String {
 fun decodeProviderSetting(value: String): ProviderSetting {
     require(value.startsWith("ai-provider:v1:")) { "Invalid provider setting string" }
 
-    // 鍘绘帀鍓嶇紑
+    // 去掉前缀
     val base64Str = value.removePrefix("ai-provider:v1:")
 
-    // Base64瑙ｇ爜
+    // Base64解码
     val jsonBytes = Base64.decode(base64Str)
     val jsonStr = jsonBytes.decodeToString()
 
@@ -129,4 +129,3 @@ class ShareSheetState {
 fun rememberShareSheetState(): ShareSheetState {
     return ShareSheetState()
 }
-

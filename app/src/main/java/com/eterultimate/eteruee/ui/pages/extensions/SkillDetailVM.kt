@@ -68,7 +68,7 @@ class SkillDetailVM(
             if (relativePath == "SKILL.md") {
                 val name = SkillFrontmatterParser.parse(content)["name"]
                 if (name != skillName) {
-                    withContext(Dispatchers.Main) { onResult("不允许修改技能名称（name 字段必须为 "$skillName"）") }
+                    withContext(Dispatchers.Main) { onResult("不允许修改技能名称（name 字段必须为 \"$skillName\"）") }
                     return@launch
                 }
             }

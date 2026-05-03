@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.setting
+package com.eterultimate.eteruee.ui.pages.setting
 
 import android.net.Uri
 import me.rerere.hugeicons.HugeIcons
@@ -28,6 +28,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -85,7 +86,6 @@ import sh.calvin.reorderable.rememberReorderableLazyStaggeredGridState
 import java.util.Locale
 import kotlinx.coroutines.launch
 import kotlin.uuid.Uuid
-import androidx.compose.ui.graphics.RectangleShape
 
 @Composable
 fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
@@ -184,7 +184,7 @@ fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
                     }
                 },
                 singleLine = true,
-                shape = RectangleShape,
+                shape = CircleShape,
             )
 
 
@@ -291,7 +291,7 @@ private fun ImportProviderButton(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        // 涓昏鎿嶄綔锛氭壂鎻忎簩缁寸爜
+                        // 主要操作：扫描二维码
                         Button(
                             onClick = {
                                 showImportDialog = false
@@ -320,7 +320,7 @@ private fun ImportProviderButton(
                             }
                         }
 
-                        // 娆¤鎿嶄綔锛氫粠鐩稿唽閫夋嫨
+                        // 次要操作：从相册选择
                         OutlinedButton(
                             onClick = {
                                 showImportDialog = false
@@ -421,7 +421,7 @@ private fun handleImageQRCode(
     context: android.content.Context
 ) {
     runCatching {
-        // 浣跨敤ImageUtils瑙ｆ瀽浜岀淮鐮?
+        // 使用ImageUtils解析二维码
         val qrContent = ImageUtils.decodeQRCodeFromUri(context, uri)
 
         if (qrContent.isNullOrEmpty()) {
@@ -563,7 +563,7 @@ private fun ProviderItem(
                     }
                     if (provider.name == "AiHubMix") {
                         Tag(type = TagType.INFO) {
-                            Text("10% 浼樻儬")
+                            Text("10% 优惠")
                         }
                     }
                 }
@@ -571,4 +571,3 @@ private fun ProviderItem(
         }
     }
 }
-

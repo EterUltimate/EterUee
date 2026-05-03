@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.chat
+package com.eterultimate.eteruee.ui.pages.chat
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -29,7 +29,7 @@ fun AssistantBackground(setting: Settings) {
                     .alpha(backgroundOpacity)
             )
 
-            // 鍏ㄥ睆娓愬彉閬僵
+            // 全屏渐变遮罩
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -45,4 +45,3 @@ fun AssistantBackground(setting: Settings) {
         }
     }
 }
-

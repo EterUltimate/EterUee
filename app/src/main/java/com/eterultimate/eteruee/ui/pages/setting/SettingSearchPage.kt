@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.setting
+package com.eterultimate.eteruee.ui.pages.setting
 
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.DragDropHorizontal
@@ -116,7 +116,7 @@ fun SettingSearchPage(vm: SettingVM = koinViewModel()) {
         containerColor = CustomColors.topBarColors.containerColor
     ) {
         val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
-            // providers_header 宸茬Щ闄わ紝鎼滅储鏈嶅姟浠庣储寮?0 寮€濮?
+            // providers_header 已移除，搜索服务从索引 0 开始
             val offset = 0
             val fromIndex = from.index - offset
             val toIndex = to.index - offset
@@ -142,7 +142,7 @@ fun SettingSearchPage(vm: SettingVM = koinViewModel()) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
             state = lazyListState
         ) {
-            // 鎼滅储鎻愪緵鍟嗗垪琛?
+            // 搜索提供商列表
             items(settings.searchServices, key = { it.id }) { service ->
                 val index = settings.searchServices.indexOf(service)
                 ReorderableItem(
@@ -193,7 +193,7 @@ fun SettingSearchPage(vm: SettingVM = koinViewModel()) {
                 }
             }
 
-            // 閫氱敤閫夐」
+            // 通用选项
             item("common_options") {
                 CommonOptions(
                     settings = settings,
@@ -1132,4 +1132,3 @@ private fun GrokOptions(
         )
     }
 }
-

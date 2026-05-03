@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.data.ai.transformers
+package com.eterultimate.eteruee.data.ai.transformers
 
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
@@ -10,7 +10,7 @@ import kotlin.time.Clock
 private val THINKING_REGEX = Regex("<think>([\\s\\S]*?)(?:</think>|$)", RegexOption.DOT_MATCHES_ALL)
 private val CLOSING_TAG_REGEX = Regex("</think>")
 
-// 閮ㄥ垎渚涘簲鍟嗕笉浼氳繑鍥瀝easoning parts, 鎵€浠ラ渶瑕佽繖涓猼ransformer
+// 部分供应商不会返回reasoning parts, 所以需要这个transformer
 object ThinkTagTransformer : OutputMessageTransformer {
     override suspend fun visualTransform(
         ctx: TransformerContext,
@@ -78,4 +78,3 @@ object ThinkTagTransformer : OutputMessageTransformer {
         }
     }
 }
-

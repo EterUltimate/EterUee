@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee
+package com.eterultimate.eteruee
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -128,7 +128,7 @@ class RouteActivity : ComponentActivity() {
     private val settingsStore by inject<SettingsStore>()
     private var navStack: MutableList<NavKey>? = null
 
-    // Volume key listener registry 鈥?last registered handler wins
+    // Volume key listener registry — last registered handler wins
     internal val volumeKeyListeners = mutableListOf<(isVolumeUp: Boolean) -> Boolean>()
 
     @SuppressLint("RestrictedApi")
@@ -465,7 +465,7 @@ class RouteActivity : ComponentActivity() {
                     )
                     if (BuildConfig.DEBUG) {
                         Text(
-                            text = "[寮€鍙戞ā寮廬",
+                            text = "[开发模式]",
                             modifier = Modifier
                                 .align(Alignment.TopCenter)
                                 .padding(top = 4.dp),
@@ -497,7 +497,7 @@ class RouteActivity : ComponentActivity() {
                                 )
                                 if (state != null) {
                                     Text(
-                                        text = "v${state.from} 鈫?v${state.to}",
+                                        text = "v${state.from} → v${state.to}",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -634,4 +634,3 @@ sealed interface Screen : NavKey {
     @Serializable
     data object Stats : Screen
 }
-

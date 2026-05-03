@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.data.datastore.migration
+package com.eterultimate.eteruee.data.datastore.migration
 
 import androidx.datastore.core.DataMigration
 import androidx.datastore.preferences.core.Preferences
@@ -19,10 +19,10 @@ class PreferenceStoreV1Migration : DataMigration<Preferences> {
     override suspend fun migrate(currentData: Preferences): Preferences {
         val prefs = currentData.toMutablePreferences()
 
-        // 娓呯悊鑰佺殑娌℃湁璁剧疆@SerialName鐨勫瓧娈?
+        // 清理老的没有设置@SerialName的字段
         prefs[SettingsStore.MCP_SERVERS] = migrateMcpServersJson(prefs[SettingsStore.MCP_SERVERS] ?: "[]")
 
-        // 鏇存柊鐗堟湰
+        // 更新版本
         prefs[SettingsStore.VERSION] = 1
 
         return prefs.toPreferences()
@@ -48,4 +48,3 @@ internal fun migrateMcpServersJson(json: String): String {
     }
     return JsonInstant.encodeToString(element)
 }
-

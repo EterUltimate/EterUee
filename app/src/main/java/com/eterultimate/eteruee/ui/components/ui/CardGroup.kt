@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.ui
+package com.eterultimate.eteruee.ui.components.ui
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.LocalIndication
@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemColors
@@ -31,7 +32,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachIndexed
 import com.eterultimate.eteruee.ui.theme.CustomColors
-import androidx.compose.ui.graphics.RectangleShape
 
 private val CardGroupCorner = 20.dp
 private val CardGroupItemSpacing = 2.dp
@@ -102,7 +102,12 @@ private fun CardGroupListItem(
         modifier = item.modifier
             .fillMaxWidth()
             .clip(
-                RectangleShape
+                RoundedCornerShape(
+                    topStart = topCorner,
+                    topEnd = topCorner,
+                    bottomStart = bottomCorner,
+                    bottomEnd = bottomCorner,
+                )
             )
             .then(
                 if (item.onClick != null) {
@@ -174,19 +179,18 @@ private fun CardGroupPreview() {
                 title = { Text("About") },
             ) {
                 item(
-                    headlineContent = { Text("绗竴椤?) },
+                    headlineContent = { Text("第一项") },
                 )
                 item(
-                    headlineContent = { Text("绗簩椤?) },
-                    supportingContent = { Text("鏀寔鏂囨湰") },
+                    headlineContent = { Text("第二项") },
+                    supportingContent = { Text("支持文本") },
                 )
                 item(
                     onClick = {},
-                    headlineContent = { Text("绗笁椤?) },
-                    trailingContent = { Text("鈫?) },
+                    headlineContent = { Text("第三项") },
+                    trailingContent = { Text("→") },
                 )
             }
         }
     }
 }
-

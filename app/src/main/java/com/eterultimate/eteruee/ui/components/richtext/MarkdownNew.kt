@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.richtext
+package com.eterultimate.eteruee.ui.components.richtext
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material3.HorizontalDivider
@@ -81,7 +83,6 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Node
 import org.jsoup.nodes.TextNode
-import androidx.compose.ui.graphics.RectangleShape
 
 // ---- Preprocessing (mirrors Markdown.kt logic) ----
 
@@ -245,7 +246,7 @@ private fun HtmlBlockElement(
                         model = src,
                         contentDescription = alt.takeIf { it.isNotEmpty() },
                         modifier = Modifier
-                            .clip(RectangleShape)
+                            .clip(RoundedCornerShape(8.dp))
                             .widthIn(min = 120.dp)
                             .heightIn(min = 120.dp),
                     )
@@ -405,7 +406,7 @@ private fun HtmlList(
     HtmlStyledElement(element = element) {
         Column(modifier = Modifier.padding(start = (level * 8).dp, top = 4.dp, bottom = 4.dp)) {
             val bulletBase = when (level % 3) {
-                0 -> "鈥?; 1 -> "鈼?; else -> "鈻?
+                0 -> "•"; 1 -> "◦"; else -> "▪"
             }
             var orderedIndex = 1
             element.children().fastForEach { item ->
@@ -443,7 +444,7 @@ private fun HtmlListItem(
                 if (isTaskItem && checkboxInput != null) {
                     // Checkbox indicator
                     Surface(
-                        shape = RectangleShape,
+                        shape = RoundedCornerShape(2.dp),
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                         modifier = Modifier.padding(end = 4.dp, top = 2.dp),
                     ) {
@@ -641,7 +642,7 @@ private fun HtmlDetails(element: Element, onClickCitation: (String) -> Unit) {
                 .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(text = if (expanded) "鈻?" else "鈻?")
+            Text(text = if (expanded) "▼ " else "▶ ")
             Text(text = summaryText, fontWeight = FontWeight.Medium)
         }
         if (expanded) {
@@ -685,7 +686,7 @@ private fun HtmlProgress(element: Element) {
 
 /**
  * Renders a list of inline Jsoup nodes as a single Text composable with AnnotatedString.
- * This prevents inline siblings (e.g. <strong>A</strong>鍜?strong>B</strong>) from being
+ * This prevents inline siblings (e.g. <strong>A</strong>和<strong>B</strong>) from being
  * rendered on separate lines.
  */
 @Composable
@@ -751,7 +752,7 @@ private fun HtmlInlineAsComposable(node: Node, onClickCitation: (String) -> Unit
                             model = src,
                             contentDescription = alt.takeIf { it.isNotEmpty() },
                             modifier = Modifier
-                                .clip(RectangleShape)
+                                .clip(RoundedCornerShape(8.dp))
                                 .widthIn(min = 120.dp)
                                 .heightIn(min = 120.dp),
                         )
@@ -909,7 +910,7 @@ private fun AnnotatedString.Builder.appendHtmlInlineElement(
                                         modifier = Modifier
                                             .clickable { onClickCitation(id.trim()) }
                                             .fillMaxSize()
-                                            .clip(RectangleShape)
+                                            .clip(CircleShape)
                                             .background(colorScheme.tertiaryContainer.copy(0.2f)),
                                         contentAlignment = Alignment.Center,
                                     ) {
@@ -1479,4 +1480,3 @@ private fun parseTextAlign(textAlign: String): TextAlign? {
         else -> null
     }
 }
-

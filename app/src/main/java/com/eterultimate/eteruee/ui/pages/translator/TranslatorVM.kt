@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.translator
+package com.eterultimate.eteruee.ui.pages.translator
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,26 +23,26 @@ class TranslatorVM(
     val settings: StateFlow<Settings> = settingsStore.settingsFlow
         .stateIn(viewModelScope, SharingStarted.Lazily, Settings.dummy())
 
-    // 缈昏瘧鐘舵€?
+    // 翻译状态
     private val _translating = MutableStateFlow(false)
     val translating: StateFlow<Boolean> = _translating
 
-    // 杈撳叆鏂囨湰
+    // 输入文本
     private val _inputText = MutableStateFlow("")
     val inputText: StateFlow<String> = _inputText
 
-    // 缈昏瘧缁撴灉
+    // 翻译结果
     private val _translatedText = MutableStateFlow("")
     val translatedText: StateFlow<String> = _translatedText
 
-    // 缈昏瘧鐩爣璇█
+    // 翻译目标语言
     private val _targetLanguage = MutableStateFlow(Locale.SIMPLIFIED_CHINESE)
     val targetLanguage: StateFlow<Locale> = _targetLanguage
 
-    // 閿欒娴?
+    // 错误流
     val errorFlow = MutableSharedFlow<Throwable>()
 
-    // 褰撳墠浠诲姟
+    // 当前任务
     private var currentJob: Job? = null
 
     fun updateSettings(settings: Settings) {
@@ -63,10 +63,10 @@ class TranslatorVM(
         val inputText = _inputText.value
         if (inputText.isBlank()) return
 
-        // 鍙栨秷褰撳墠浠诲姟
+        // 取消当前任务
         currentJob?.cancel()
 
-        // 璁剧疆缈昏瘧涓姸鎬?
+        // 设置翻译中状态
         _translating.value = true
         _translatedText.value = ""
 
@@ -94,4 +94,3 @@ class TranslatorVM(
         _translating.value = false
     }
 }
-

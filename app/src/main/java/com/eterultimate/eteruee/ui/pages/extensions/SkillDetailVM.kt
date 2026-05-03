@@ -68,13 +68,13 @@ class SkillDetailVM(
             if (relativePath == "SKILL.md") {
                 val name = SkillFrontmatterParser.parse(content)["name"]
                 if (name != skillName) {
-                    withContext(Dispatchers.Main) { onResult("涓嶅厑璁镐慨鏀规妧鑳藉悕绉帮紙name 瀛楁蹇呴』涓?\"$skillName\"锛?) }
+                    withContext(Dispatchers.Main) { onResult("不允许修改技能名称（name 字段必须为 "$skillName"）") }
                     return@launch
                 }
             }
             val success = skillManager.saveSkillFile(skillName, relativePath, content)
             loadFiles()
-            withContext(Dispatchers.Main) { onResult(if (success) null else "淇濆瓨澶辫触") }
+            withContext(Dispatchers.Main) { onResult(if (success) null else "保存失败") }
         }
     }
 

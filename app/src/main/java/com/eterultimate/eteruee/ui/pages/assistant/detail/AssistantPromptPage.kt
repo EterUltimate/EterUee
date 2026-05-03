@@ -270,8 +270,8 @@ private fun AssistantPromptContent(
                     style = MaterialTheme.typography.titleSmall
                 )
                 val rawMessages = listOf(
-                    UIMessage.user("浣犲ソ鍟?),
-                    UIMessage.assistant("浣犲ソ锛屾湁浠€涔堟垜鍙互甯綘鐨勫悧锛?),
+                    UIMessage.user("你好啊"),
+                    UIMessage.assistant("你好，有什么我可以帮你的吗？"),
                 )
                 val preview by produceState<UiState<List<UIMessage>>>(
                     UiState.Success(rawMessages),

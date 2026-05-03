@@ -13,7 +13,7 @@
 git submodule update --init --recursive
 ```
 
-注意：必须在git仓库的根目录（`rikkahub/`）执行此命令，不是在 `src/main/cpp/mnn` 目录。
+注意：必须在git仓库的根目录（`EterUee/`）执行此命令，不是在 `src/main/cpp/mnn` 目录。
 
 ## 构建libMNN.so
 

@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.data.ai.tools
+package com.eterultimate.eteruee.data.ai.tools
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
@@ -40,7 +40,7 @@ fun buildMemoryTools(
 
             Examples:
             {"action":"create","content":"User prefers brief replies and is more active on weekends."}
-            {"action":"edit","id":12,"content":"User鈥檚 preferred name updated to 鈥淎-Xing鈥? prefers Chinese replies."}
+            {"action":"edit","id":12,"content":"User’s preferred name updated to “A-Xing”, prefers Chinese replies."}
             {"action":"delete","id":7}
         """.trimIndent(),
         parameters = {
@@ -100,4 +100,3 @@ fun buildMemoryTools(
         }
     )
 )
-

@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.data.ai.prompts
+package com.eterultimate.eteruee.data.ai.prompts
 
 val DEFAULT_OCR_PROMPT =
     """
@@ -14,6 +14,5 @@ val DEFAULT_OCR_PROMPT =
     - Its spatial relationship to nearby elements (e.g., 'above', 'below', 'next to', 'on the left of').
 
     Keep the original reading order and layout structure as much as possible.
-    Do not interpret or translate鈥攐nly transcribe and describe what is visually present.
+    Do not interpret or translate—only transcribe and describe what is visually present.
     """.trimIndent()
-

@@ -974,7 +974,7 @@ export const ConversationSidebar = React.memo(({
             rel="noopener noreferrer"
             className="ml-auto text-xs font-normal text-foreground/80 hover:text-foreground transition-colors"
           >
-            RikkaHub
+            EterUee
           </a>
         </div>
       </SidebarFooter>

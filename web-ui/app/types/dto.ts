@@ -38,7 +38,7 @@ export interface ConversationListInvalidateEventDto {
 
 /**
  * Message DTO (for API response)
- * @see app/src/main/java/me/rerere/rikkahub/web/dto/WebDto.kt - MessageDto
+ * @see app/src/main/java/com/eterultimate/eteruee/web/dto/WebDto.kt - MessageDto
  */
 export interface MessageDto {
   id: string;

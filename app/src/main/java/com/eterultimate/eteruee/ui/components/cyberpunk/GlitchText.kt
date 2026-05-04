@@ -16,9 +16,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.eterultimate.eteruee.ui.theme.presets.NeonCyan
-import com.eterultimate.eteruee.ui.theme.presets.NeonPink
-import com.eterultimate.eteruee.ui.theme.presets.TextPrimary
+import com.eterultimate.eteruee.ui.components.cyberpunk.NeonCyan
+import com.eterultimate.eteruee.ui.components.cyberpunk.NeonPink
+import com.eterultimate.eteruee.ui.components.cyberpunk.TextPrimary
 
 /**
  * 硬朗故障文字效果

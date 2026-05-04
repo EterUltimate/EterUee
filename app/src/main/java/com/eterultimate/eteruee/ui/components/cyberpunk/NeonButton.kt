@@ -19,8 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.eterultimate.eteruee.ui.theme.presets.NeonCyan
-import com.eterultimate.eteruee.ui.theme.presets.NeonPink
+import com.eterultimate.eteruee.ui.components.cyberpunk.NeonCyan
+import com.eterultimate.eteruee.ui.components.cyberpunk.NeonPink
 
 /**
  * 硬朗霓虹按钮

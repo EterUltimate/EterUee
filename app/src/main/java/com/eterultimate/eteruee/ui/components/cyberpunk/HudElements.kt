@@ -28,14 +28,14 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.eterultimate.eteruee.ui.theme.presets.DeepBlack
-import com.eterultimate.eteruee.ui.theme.presets.GridLine
-import com.eterultimate.eteruee.ui.theme.presets.NeonCyan
-import com.eterultimate.eteruee.ui.theme.presets.NeonGreen
-import com.eterultimate.eteruee.ui.theme.presets.NeonPink
-import com.eterultimate.eteruee.ui.theme.presets.PanelBlack
-import com.eterultimate.eteruee.ui.theme.presets.TextPrimary
-import com.eterultimate.eteruee.ui.theme.presets.TextSecondary
+import com.eterultimate.eteruee.ui.components.cyberpunk.DeepBlack
+import com.eterultimate.eteruee.ui.components.cyberpunk.GridLine
+import com.eterultimate.eteruee.ui.components.cyberpunk.NeonCyan
+import com.eterultimate.eteruee.ui.components.cyberpunk.NeonGreen
+import com.eterultimate.eteruee.ui.components.cyberpunk.NeonPink
+import com.eterultimate.eteruee.ui.components.cyberpunk.PanelBlack
+import com.eterultimate.eteruee.ui.components.cyberpunk.TextPrimary
+import com.eterultimate.eteruee.ui.components.cyberpunk.TextSecondary
 
 /**
  * HUD 风格顶部栏 - 硬朗版本

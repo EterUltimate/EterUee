@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.theme.presets
+package com.eterultimate.eteruee.ui.theme.presets
 
 import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
@@ -14,173 +14,73 @@ val CyberpunkThemePreset by lazy {
         name = {
             Text(stringResource(id = R.string.theme_name_cyberpunk))
         },
-        standardLight = lightScheme,
+        // Light scheme is identical to dark — cyberpunk is always dark
+        standardLight = darkScheme,
         standardDark = darkScheme,
     )
 }
 
-// === 纭湕璧涘崥鏈嬪厠宸ヤ笟鑹茬郴 ===
-val NeonCyan = Color(0xFF00FFFF)
-val NeonPink = Color(0xFFFF007F)
-val NeonPurple = Color(0xFF8B5CF6)
-val NeonGreen = Color(0xFF39FF14)
-val NeonYellow = Color(0xFFFFD700)
-val DeepBlack = Color(0xFF0A0A0F)
-val PanelBlack = Color(0xFF111118)
-val GridLine = Color(0xFF1A1A24)
-val TextPrimary = Color(0xFFE0E0E8)
-val TextSecondary = Color(0xFF6B6B80)
-val AlertOrange = Color(0xFFFF4400)
-val SteelGray = Color(0xFF2A2A35)
-val WarningRed = Color(0xFFFF2222)
+// === CYBERPUNK INDUSTRIAL COLOR SYSTEM ===
+// RGB Pure Colors + Pure Black + Pure White
 
-// Light scheme (fallback)
-private val primaryLight = NeonCyan
-private val onPrimaryLight = DeepBlack
-private val primaryContainerLight = NeonCyan.copy(alpha = 0.15f)
-private val onPrimaryContainerLight = NeonCyan
-private val secondaryLight = NeonPink
-private val onSecondaryLight = DeepBlack
-private val secondaryContainerLight = NeonPink.copy(alpha = 0.15f)
-private val onSecondaryContainerLight = NeonPink
-private val tertiaryLight = NeonPurple
-private val onTertiaryLight = DeepBlack
-private val tertiaryContainerLight = NeonPurple.copy(alpha = 0.15f)
-private val onTertiaryContainerLight = NeonPurple
-private val errorLight = WarningRed
-private val onErrorLight = Color.White
-private val errorContainerLight = WarningRed.copy(alpha = 0.15f)
-private val onErrorContainerLight = WarningRed
-private val backgroundLight = Color(0xFFF5F5F8)
-private val onBackgroundLight = DeepBlack
-private val surfaceLight = Color(0xFFFFFFFF)
-private val onSurfaceLight = DeepBlack
-private val surfaceVariantLight = Color(0xFFE8E8EC)
-private val onSurfaceVariantLight = Color(0xFF44444C)
-private val outlineLight = SteelGray
-private val outlineVariantLight = Color(0xFFCCCCD0)
-private val scrimLight = Color(0xFF000000)
-private val inverseSurfaceLight = DeepBlack
-private val inverseOnSurfaceLight = TextPrimary
-private val inversePrimaryLight = NeonCyan
-private val surfaceDimLight = Color(0xFFE0E0E4)
-private val surfaceBrightLight = Color(0xFFFFFFFF)
-private val surfaceContainerLowestLight = Color(0xFFFFFFFF)
-private val surfaceContainerLowLight = Color(0xFFF8F8FC)
-private val surfaceContainerLight = Color(0xFFF0F0F4)
-private val surfaceContainerHighLight = Color(0xFFE8E8EC)
-private val surfaceContainerHighestLight = Color(0xFFE0E0E4)
-
-// Dark scheme - 纭湕璧涘崥鏈嬪厠
-private val primaryDark = NeonCyan
-private val onPrimaryDark = DeepBlack
-private val primaryContainerDark = NeonCyan.copy(alpha = 0.1f)
-private val onPrimaryContainerDark = NeonCyan
-private val secondaryDark = NeonPink
-private val onSecondaryDark = DeepBlack
-private val secondaryContainerDark = NeonPink.copy(alpha = 0.1f)
-private val onSecondaryContainerDark = NeonPink
-private val tertiaryDark = NeonPurple
-private val onTertiaryDark = DeepBlack
-private val tertiaryContainerDark = NeonPurple.copy(alpha = 0.1f)
-private val onTertiaryContainerDark = NeonPurple
-private val errorDark = WarningRed
-private val onErrorDark = Color.White
-private val errorContainerDark = WarningRed.copy(alpha = 0.1f)
-private val onErrorContainerDark = WarningRed
-private val backgroundDark = DeepBlack
-private val onBackgroundDark = TextPrimary
-private val surfaceDark = PanelBlack
-private val onSurfaceDark = TextPrimary
-private val surfaceVariantDark = GridLine
-private val onSurfaceVariantDark = TextSecondary
-private val outlineDark = SteelGray
-private val outlineVariantDark = GridLine
-private val scrimDark = Color(0xFF000000)
-private val inverseSurfaceDark = TextPrimary
-private val inverseOnSurfaceDark = DeepBlack
-private val inversePrimaryDark = NeonCyan
-private val surfaceDimDark = Color(0xFF08080C)
-private val surfaceBrightDark = Color(0xFF181820)
-private val surfaceContainerLowestDark = Color(0xFF050508)
-private val surfaceContainerLowDark = Color(0xFF0A0A0F)
-private val surfaceContainerDark = PanelBlack
-private val surfaceContainerHighDark = Color(0xFF15151C)
-private val surfaceContainerHighestDark = Color(0xFF1A1A22)
-
-private val lightScheme = lightColorScheme(
-    primary = primaryLight,
-    onPrimary = onPrimaryLight,
-    primaryContainer = primaryContainerLight,
-    onPrimaryContainer = onPrimaryContainerLight,
-    secondary = secondaryLight,
-    onSecondary = onSecondaryLight,
-    secondaryContainer = secondaryContainerLight,
-    onSecondaryContainer = onSecondaryContainerLight,
-    tertiary = tertiaryLight,
-    onTertiary = onTertiaryLight,
-    tertiaryContainer = tertiaryContainerLight,
-    onTertiaryContainer = onTertiaryContainerLight,
-    error = errorLight,
-    onError = onErrorLight,
-    errorContainer = errorContainerLight,
-    onErrorContainer = onErrorContainerLight,
-    background = backgroundLight,
-    onBackground = onBackgroundLight,
-    surface = surfaceLight,
-    onSurface = onSurfaceLight,
-    surfaceVariant = surfaceVariantLight,
-    onSurfaceVariant = onSurfaceVariantLight,
-    outline = outlineLight,
-    outlineVariant = outlineVariantLight,
-    scrim = scrimLight,
-    inverseSurface = inverseSurfaceLight,
-    inverseOnSurface = inverseOnSurfaceLight,
-    inversePrimary = inversePrimaryLight,
-    surfaceDim = surfaceDimLight,
-    surfaceBright = surfaceBrightLight,
-    surfaceContainerLowest = surfaceContainerLowestLight,
-    surfaceContainerLow = surfaceContainerLowLight,
-    surfaceContainer = surfaceContainerLight,
-    surfaceContainerHigh = surfaceContainerHighLight,
-    surfaceContainerHighest = surfaceContainerHighestLight,
-)
+// Primary: RGB Pure Red #FF0000
+private val CyberRed = Color(0xFFFF0000)
+// Secondary: RGB Pure Green #00FF00
+private val CyberGreen = Color(0xFF00FF00)
+// Tertiary: RGB Pure Blue #0000FF
+private val CyberBlue = Color(0xFF0000FF)
+// Background: Pure Black #000000
+private val PureBlack = Color(0xFF000000)
+// Text & Borders: Pure White #FFFFFF
+private val PureWhite = Color(0xFFFFFFFF)
+// Error: Pure Red (same as primary, sharp)
+private val CyberError = Color(0xFFFF0000)
+// Surface containers: subtle gradations from pure black
+private val SurfaceLowest = Color(0xFF000000)
+private val SurfaceLow = Color(0xFF050505)
+private val SurfaceContainer = Color(0xFF0A0A0A)
+private val SurfaceHigh = Color(0xFF0F0F0F)
+private val SurfaceHighest = Color(0xFF141414)
+private val SurfaceDim = Color(0xFF000000)
+private val SurfaceBright = Color(0xFF1A1A1A)
+// Outline: Pure White for borders
+private val CyberOutline = Color(0xFFFFFFFF)
+private val CyberOutlineVariant = Color(0xFF808080)
 
 private val darkScheme = darkColorScheme(
-    primary = primaryDark,
-    onPrimary = onPrimaryDark,
-    primaryContainer = primaryContainerDark,
-    onPrimaryContainer = onPrimaryContainerDark,
-    secondary = secondaryDark,
-    onSecondary = onSecondaryDark,
-    secondaryContainer = secondaryContainerDark,
-    onSecondaryContainer = onSecondaryContainerDark,
-    tertiary = tertiaryDark,
-    onTertiary = onTertiaryDark,
-    tertiaryContainer = tertiaryContainerDark,
-    onTertiaryContainer = onTertiaryContainerDark,
-    error = errorDark,
-    onError = onErrorDark,
-    errorContainer = errorContainerDark,
-    onErrorContainer = onErrorContainerDark,
-    background = backgroundDark,
-    onBackground = onBackgroundDark,
-    surface = surfaceDark,
-    onSurface = onSurfaceDark,
-    surfaceVariant = surfaceVariantDark,
-    onSurfaceVariant = onSurfaceVariantDark,
-    outline = outlineDark,
-    outlineVariant = outlineVariantDark,
-    scrim = scrimDark,
-    inverseSurface = inverseSurfaceDark,
-    inverseOnSurface = inverseOnSurfaceDark,
-    inversePrimary = inversePrimaryDark,
-    surfaceDim = surfaceDimDark,
-    surfaceBright = surfaceBrightDark,
-    surfaceContainerLowest = surfaceContainerLowestDark,
-    surfaceContainerLow = surfaceContainerLowDark,
-    surfaceContainer = surfaceContainerDark,
-    surfaceContainerHigh = surfaceContainerHighDark,
-    surfaceContainerHighest = surfaceContainerHighestDark,
+    primary = CyberRed,
+    onPrimary = PureWhite,
+    primaryContainer = CyberRed.copy(alpha = 0.15f),
+    onPrimaryContainer = CyberRed,
+    secondary = CyberGreen,
+    onSecondary = PureBlack,
+    secondaryContainer = CyberGreen.copy(alpha = 0.15f),
+    onSecondaryContainer = CyberGreen,
+    tertiary = CyberBlue,
+    onTertiary = PureWhite,
+    tertiaryContainer = CyberBlue.copy(alpha = 0.15f),
+    onTertiaryContainer = CyberBlue,
+    error = CyberError,
+    onError = PureWhite,
+    errorContainer = CyberError.copy(alpha = 0.15f),
+    onErrorContainer = CyberError,
+    background = PureBlack,
+    onBackground = PureWhite,
+    surface = PureBlack,
+    onSurface = PureWhite,
+    surfaceVariant = SurfaceContainer,
+    onSurfaceVariant = PureWhite,
+    outline = CyberOutline,
+    outlineVariant = CyberOutlineVariant,
+    scrim = PureBlack,
+    inverseSurface = PureWhite,
+    inverseOnSurface = PureBlack,
+    inversePrimary = CyberRed,
+    surfaceDim = SurfaceDim,
+    surfaceBright = SurfaceBright,
+    surfaceContainerLowest = SurfaceLowest,
+    surfaceContainerLow = SurfaceLow,
+    surfaceContainer = SurfaceContainer,
+    surfaceContainerHigh = SurfaceHigh,
+    surfaceContainerHighest = SurfaceHighest,
 )
-

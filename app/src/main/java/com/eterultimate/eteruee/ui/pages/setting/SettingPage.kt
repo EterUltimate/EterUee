@@ -58,7 +58,6 @@ import me.rerere.hugeicons.stroke.Package
 import me.rerere.hugeicons.stroke.ServerStack01
 import me.rerere.hugeicons.stroke.Settings03
 import me.rerere.hugeicons.stroke.Share04
-import me.rerere.hugeicons.stroke.Sun01
 import me.rerere.hugeicons.stroke.WavingHand01
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.Screen
@@ -71,8 +70,6 @@ import com.eterultimate.eteruee.ui.components.ui.icons.DiscordIcon
 import com.eterultimate.eteruee.ui.components.ui.icons.TencentQQIcon
 import com.eterultimate.eteruee.ui.context.LocalNavController
 import com.eterultimate.eteruee.ui.context.Navigator
-import com.eterultimate.eteruee.ui.hooks.rememberColorMode
-import com.eterultimate.eteruee.ui.theme.ColorMode
 import com.eterultimate.eteruee.ui.theme.CustomColors
 import com.eterultimate.eteruee.utils.joinQQGroup
 import com.eterultimate.eteruee.utils.openUrl
@@ -152,43 +149,11 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
             }
 
             item("generalSettings") {
-                var colorMode by rememberColorMode()
-                val selectedColorModeText = when (colorMode) {
-                    ColorMode.SYSTEM -> stringResource(R.string.setting_page_color_mode_system)
-                    ColorMode.LIGHT -> stringResource(R.string.setting_page_color_mode_light)
-                    ColorMode.DARK -> stringResource(R.string.setting_page_color_mode_dark)
-                }
                 CardGroup(
                     modifier = Modifier.padding(horizontal = 8.dp),
                     title = { Text(stringResource(R.string.setting_page_general_settings)) },
                 ) {
-                    item(
-                        leadingContent = { Icon(HugeIcons.Sun01, null) },
-                        trailingContent = {
-                            Select(
-                                options = ColorMode.entries,
-                                selectedOption = colorMode,
-                                onOptionSelected = {
-                                    colorMode = it
-                                    navController.navigate(Screen.Setting) {
-                                        popUpTo(Screen.Setting) {
-                                            inclusive = true
-                                        }
-                                    }
-                                },
-                                optionToString = {
-                                    when (it) {
-                                        ColorMode.SYSTEM -> stringResource(R.string.setting_page_color_mode_system)
-                                        ColorMode.LIGHT -> stringResource(R.string.setting_page_color_mode_light)
-                                        ColorMode.DARK -> stringResource(R.string.setting_page_color_mode_dark)
-                                    }
-                                },
-                                modifier = Modifier.width(150.dp)
-                            )
-                        },
-                        headlineContent = { Text(stringResource(R.string.setting_page_color_mode)) },
-                        supportingContent = { Text(selectedColorModeText) },
-                    )
+                    // Cyberpunk: color mode selector removed (always dark)
                     item(
                         onClick = { navController.navigate(Screen.SettingDisplay) },
                         leadingContent = { Icon(HugeIcons.Settings03, null) },

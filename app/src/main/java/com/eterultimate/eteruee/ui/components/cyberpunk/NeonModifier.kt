@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.cyberpunk
+package com.eterultimate.eteruee.ui.components.cyberpunk
 
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.eterultimate.eteruee.ui.theme.presets.NeonCyan
+import com.eterultimate.eteruee.ui.components.cyberpunk.NeonCyan
 
 /**
  * 纭湕闇撹櫣鍙戝厜鏁堟灉 Modifier

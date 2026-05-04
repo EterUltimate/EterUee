@@ -1,19 +1,24 @@
-﻿package com.eterultimate.eteruee.ui.components.cyberpunk
+package com.eterultimate.eteruee.ui.components.cyberpunk
 
 import androidx.compose.ui.graphics.Color
 
-// === 纭湕璧涘崥鏈嬪厠宸ヤ笟鑹茬郴 ===
+// === CYBERPUNK INDUSTRIAL COLOR SYSTEM ===
+// RGB Pure Colors + Pure Black + Pure White
+// For use in cyberpunk decorative components (GlitchText, NeonButton, etc.)
+
+// Accent colors (decorative only — theme uses RGB pure R/G/B)
 val NeonCyan = Color(0xFF00FFFF)
 val NeonPink = Color(0xFFFF007F)
 val NeonPurple = Color(0xFF8B5CF6)
-val NeonGreen = Color(0xFF39FF14)
+val NeonGreen = Color(0xFF00FF00)
 val NeonYellow = Color(0xFFFFD700)
-val DeepBlack = Color(0xFF0A0A0F)
-val PanelBlack = Color(0xFF111118)
-val GridLine = Color(0xFF1A1A24)
-val TextPrimary = Color(0xFFE0E0E8)
-val TextSecondary = Color(0xFF6B6B80)
 val AlertOrange = Color(0xFFFF4400)
-val SteelGray = Color(0xFF2A2A35)
-val WarningRed = Color(0xFFFF2222)
+val WarningRed = Color(0xFFFF0000)
 
+// Structural colors
+val DeepBlack = Color(0xFF000000)
+val PanelBlack = Color(0xFF000000)
+val GridLine = Color(0xFF0A0A0A)
+val TextPrimary = Color(0xFFFFFFFF)
+val TextSecondary = Color(0xFF808080)
+val SteelGray = Color(0xFF404040)

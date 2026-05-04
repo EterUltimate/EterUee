@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.cyberpunk
+package com.eterultimate.eteruee.ui.components.cyberpunk
 
 import android.os.Build
 import androidx.compose.foundation.background
@@ -13,8 +13,8 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.eterultimate.eteruee.ui.theme.presets.NeonCyan
-import com.eterultimate.eteruee.ui.theme.presets.PanelBlack
+import com.eterultimate.eteruee.ui.components.cyberpunk.NeonCyan
+import com.eterultimate.eteruee.ui.components.cyberpunk.PanelBlack
 
 /**
  * 纭湕璧涘崥鏈嬪厠闈㈡澘

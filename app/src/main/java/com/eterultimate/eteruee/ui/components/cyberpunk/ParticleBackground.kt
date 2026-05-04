@@ -15,9 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import com.eterultimate.eteruee.ui.theme.presets.NeonCyan
-import com.eterultimate.eteruee.ui.theme.presets.NeonPink
-import com.eterultimate.eteruee.ui.theme.presets.NeonPurple
+import com.eterultimate.eteruee.ui.components.cyberpunk.NeonCyan
+import com.eterultimate.eteruee.ui.components.cyberpunk.NeonPink
+import com.eterultimate.eteruee.ui.components.cyberpunk.NeonPurple
 import kotlin.math.sin
 import kotlin.random.Random
 

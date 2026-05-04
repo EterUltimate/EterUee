@@ -45,7 +45,6 @@ import com.eterultimate.eteruee.ui.components.ui.CardGroup
 import com.eterultimate.eteruee.ui.components.ui.permission.PermissionManager
 import com.eterultimate.eteruee.ui.components.ui.permission.PermissionNotification
 import com.eterultimate.eteruee.ui.components.ui.permission.rememberPermissionState
-import com.eterultimate.eteruee.ui.hooks.rememberAmoledDarkMode
 import com.eterultimate.eteruee.ui.hooks.rememberSharedPreferenceBoolean
 import com.eterultimate.eteruee.ui.theme.CustomColors
 import com.eterultimate.eteruee.utils.plus
@@ -56,8 +55,6 @@ import androidx.compose.ui.graphics.RectangleShape
 fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
     val settings by vm.settings.collectAsStateWithLifecycle()
     var displaySetting by remember(settings) { mutableStateOf(settings.displaySetting) }
-    var amoledDarkMode by rememberAmoledDarkMode()
-
     fun updateDisplaySetting(setting: DisplaySetting) {
         displaySetting = setting
         vm.updateSettings(settings.copy(displaySetting = setting))
@@ -128,22 +125,6 @@ fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
                             )
                         }
                     }
-                    ListItem(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(
-                                RectangleShape
-                            ),
-                        headlineContent = { Text(stringResource(R.string.setting_display_page_amoled_dark_mode_title)) },
-                        supportingContent = { Text(stringResource(R.string.setting_display_page_amoled_dark_mode_desc)) },
-                        trailingContent = {
-                            Switch(
-                                checked = amoledDarkMode,
-                                onCheckedChange = { amoledDarkMode = it }
-                            )
-                        },
-                        colors = CustomColors.listItemColors,
-                    )
                 }
             }
 

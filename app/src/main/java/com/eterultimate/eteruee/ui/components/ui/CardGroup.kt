@@ -33,9 +33,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachIndexed
 import com.eterultimate.eteruee.ui.theme.CustomColors
 
-private val CardGroupCorner = 20.dp
+private val CardGroupCorner = 0.dp
 private val CardGroupItemSpacing = 2.dp
-private val CardGroupInnerCorner = 4.dp
+private val CardGroupInnerCorner = 0.dp
 
 data class CardGroupItem(
     val onClick: (() -> Unit)?,

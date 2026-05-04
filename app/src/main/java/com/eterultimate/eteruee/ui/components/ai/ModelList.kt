@@ -336,7 +336,7 @@ private fun ColumnScope.ModelList(
     }
 
     Surface(
-        shape = RoundedCornerShape(50),
+        shape = RoundedCornerShape(0),
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp),
@@ -350,7 +350,7 @@ private fun ColumnScope.ModelList(
                     text = stringResource(R.string.model_list_search_placeholder),
                 )
             },
-            shape = RoundedCornerShape(50),
+            shape = RoundedCornerShape(0),
             colors = TextFieldDefaults.colors(
                 unfocusedIndicatorColor = Color.Transparent,
                 focusedIndicatorColor = Color.Transparent,

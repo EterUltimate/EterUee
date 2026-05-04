@@ -417,7 +417,7 @@ private fun MessagePartsBlock(
                                 context.startActivity(chooserIndent)
                             },
                             modifier = Modifier,
-                            shape = RoundedCornerShape(8.dp),
+                            shape = RoundedCornerShape(0.dp),
                         ) {
                             Box(modifier = Modifier.size(72.dp), contentAlignment = Alignment.Center) {
                                 Icon(HugeIcons.Video01, null)
@@ -440,7 +440,7 @@ private fun MessagePartsBlock(
                                 context.startActivity(chooserIndent)
                             },
                             modifier = Modifier,
-                            shape = RoundedCornerShape(50),
+                            shape = RoundedCornerShape(0),
                             color = MaterialTheme.colorScheme.secondaryContainer
                         ) {
                             ProvideTextStyle(MaterialTheme.typography.labelSmall) {
@@ -496,7 +496,7 @@ private fun MessagePartsBlock(
                                 context.startActivity(chooserIndent)
                             },
                             modifier = Modifier,
-                            shape = RoundedCornerShape(50),
+                            shape = RoundedCornerShape(0),
                             color = MaterialTheme.colorScheme.tertiaryContainer
                         ) {
                             ProvideTextStyle(MaterialTheme.typography.labelSmall) {

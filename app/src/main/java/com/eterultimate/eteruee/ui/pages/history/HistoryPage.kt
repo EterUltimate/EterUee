@@ -197,7 +197,7 @@ private fun SwipeableConversationItem(
                     .fillMaxSize()
                     .background(
                         MaterialTheme.colorScheme.errorContainer,
-                        RoundedCornerShape(25)
+                        RoundedCornerShape(0)
                     )
                     .padding(horizontal = 20.dp),
                 contentAlignment = Alignment.CenterEnd
@@ -230,7 +230,7 @@ private fun ConversationItem(
     Surface(
         onClick = onClick,
         tonalElevation = 2.dp,
-        shape = RoundedCornerShape(25),
+        shape = RoundedCornerShape(0),
         modifier = modifier
     ) {
         ListItem(

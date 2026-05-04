@@ -59,7 +59,7 @@ fun ErrorCardsDisplay(
             if (errors.size > 1) {
                 Surface(
                     onClick = onClearAllErrors,
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(0.dp),
                     color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f),
                 ) {
                     Row(
@@ -110,7 +110,7 @@ fun ErrorCard(
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(0.dp),
         color = MaterialTheme.colorScheme.errorContainer,
         shadowElevation = 4.dp,
     ) {

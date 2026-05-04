@@ -141,7 +141,7 @@ fun Mermaid(
         WebView(
             state = webViewState,
             modifier = Modifier
-                .clip(RoundedCornerShape(4.dp))
+                .clip(RoundedCornerShape(0.dp))
                 .animateContentSize()
                 .height(height),
             onUpdated = {
@@ -230,7 +230,7 @@ fun Mermaid(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(400.dp)
-                        .clip(RoundedCornerShape(4.dp))
+                        .clip(RoundedCornerShape(0.dp))
                 )
             }
         }

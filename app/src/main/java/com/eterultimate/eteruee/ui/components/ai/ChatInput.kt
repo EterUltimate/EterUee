@@ -560,7 +560,7 @@ fun ChatInput(
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(20.dp))
+                            .clip(RoundedCornerShape(0.dp))
                             .then(
                                 if (settings.displaySetting.enableBlurEffect) Modifier.hazeEffect(
                                     state = hazeState,
@@ -568,7 +568,7 @@ fun ChatInput(
                                 )
                                 else Modifier
                             ),
-                        shape = RoundedCornerShape(20.dp),
+                        shape = RoundedCornerShape(0.dp),
                         tonalElevation = 0.dp,
                         color = if (settings.displaySetting.enableBlurEffect) Color.Transparent else hazeTintColor,
                     ) {
@@ -634,7 +634,7 @@ private fun TextInputRow(
     ) {
         if (state.isEditing()) {
             Surface(
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(0.dp),
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
             ) {
                 Row(
@@ -832,7 +832,7 @@ private fun MediaFileInputRow(
                         leading = {
                             Surface(
                                 modifier = Modifier.size(34.dp),
-                                shape = RoundedCornerShape(10.dp),
+                                shape = RoundedCornerShape(0.dp),
                                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
                             ) {
                                 AsyncImage(
@@ -899,7 +899,7 @@ private fun AttachmentChip(
     onRemove: () -> Unit,
 ) {
     Surface(
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(0.dp),
         tonalElevation = 1.dp,
         shadowElevation = 0.dp,
         color = MaterialTheme.colorScheme.surface,
@@ -944,7 +944,7 @@ private fun AttachmentLeadingIcon(
 ) {
     Surface(
         modifier = Modifier.size(34.dp),
-        shape = RoundedCornerShape(10.dp),
+        shape = RoundedCornerShape(0.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
         Box(
@@ -1129,7 +1129,7 @@ private fun FullScreenEditor(
                 modifier = Modifier
                     .widthIn(max = 800.dp)
                     .fillMaxHeight(0.9f),
-                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp)
             ) {
                 Column(
                     modifier = Modifier
@@ -1151,7 +1151,7 @@ private fun FullScreenEditor(
                         modifier = Modifier
                             .padding(bottom = 2.dp)
                             .fillMaxSize(),
-                        shape = RoundedCornerShape(32.dp),
+                        shape = RoundedCornerShape(0.dp),
                         placeholder = {
                             Text(stringResource(R.string.chat_input_placeholder))
                         },
@@ -1285,7 +1285,7 @@ private fun BigIconTextButton(
     val interactionSource = remember { MutableInteractionSource() }
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(0.dp))
             .clickable(
                 interactionSource = interactionSource, indication = LocalIndication.current, onClick = onClick
             )
@@ -1296,7 +1296,7 @@ private fun BigIconTextButton(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Surface(
-            tonalElevation = 2.dp, shape = RoundedCornerShape(8.dp)
+            tonalElevation = 2.dp, shape = RoundedCornerShape(0.dp)
         ) {
             Box(
                 modifier = Modifier.padding(horizontal = 32.dp, vertical = 16.dp)

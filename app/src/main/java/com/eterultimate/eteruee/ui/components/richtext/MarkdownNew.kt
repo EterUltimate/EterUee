@@ -246,7 +246,7 @@ private fun HtmlBlockElement(
                         model = src,
                         contentDescription = alt.takeIf { it.isNotEmpty() },
                         modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(RoundedCornerShape(0.dp))
                             .widthIn(min = 120.dp)
                             .heightIn(min = 120.dp),
                     )
@@ -444,7 +444,7 @@ private fun HtmlListItem(
                 if (isTaskItem && checkboxInput != null) {
                     // Checkbox indicator
                     Surface(
-                        shape = RoundedCornerShape(2.dp),
+                        shape = RoundedCornerShape(0.dp),
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                         modifier = Modifier.padding(end = 4.dp, top = 2.dp),
                     ) {
@@ -752,7 +752,7 @@ private fun HtmlInlineAsComposable(node: Node, onClickCitation: (String) -> Unit
                             model = src,
                             contentDescription = alt.takeIf { it.isNotEmpty() },
                             modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
+                                .clip(RoundedCornerShape(0.dp))
                                 .widthIn(min = 120.dp)
                                 .heightIn(min = 120.dp),
                         )

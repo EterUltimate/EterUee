@@ -364,7 +364,7 @@ private fun MarkdownNode(
         GFMTokenTypes.CHECK_BOX -> {
             val isChecked = node.getTextInNode(content).trim() == "[x]"
             Surface(
-                shape = RoundedCornerShape(2.dp),
+                shape = RoundedCornerShape(0.dp),
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                 modifier = modifier,
             ) {
@@ -482,7 +482,7 @@ private fun MarkdownNode(
                     model = imageUrl,
                     contentDescription = altText,
                     modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(RoundedCornerShape(0.dp))
                         .widthIn(min = 120.dp)
                         .heightIn(min = 120.dp),
                 )

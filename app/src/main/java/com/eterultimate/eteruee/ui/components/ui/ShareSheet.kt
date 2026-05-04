@@ -76,7 +76,7 @@ fun ShareSheet(
                 QRCode(
                     value = state.currentProvider?.encodeForShare() ?: "",
                     modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(RoundedCornerShape(0.dp))
                         .fillMaxWidth()
                         .aspectRatio(1f)
                 )

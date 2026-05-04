@@ -172,7 +172,7 @@ fun AssistantPage(vm: AssistantVM = koinViewModel()) {
                     }
                 },
                 singleLine = true,
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(0.dp)
             )
 
             // 标签过滤器
@@ -299,7 +299,7 @@ private fun AssistantTagsFilterRow(
                                 Text(tag.name)
                             },
                             selected = tag.id in selectedTagIds,
-                            shape = RoundedCornerShape(50),
+                            shape = RoundedCornerShape(0),
                             modifier = Modifier
                                 .scale(if (isDragging) 0.95f else 1f)
                                 .longPressDraggableHandle(
@@ -446,7 +446,7 @@ private fun AssistantItem(
                             val tag = settings.assistantTags.find { it.id == tagId }
                                 ?: return@fastForEach
                             Surface(
-                                shape = RoundedCornerShape(50),
+                                shape = RoundedCornerShape(0),
                                 color = MaterialTheme.colorScheme.tertiaryContainer,
                             ) {
                                 Text(

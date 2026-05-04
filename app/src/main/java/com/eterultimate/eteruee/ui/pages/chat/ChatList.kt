@@ -704,7 +704,7 @@ private fun ChatSuggestionsRow(
         items(conversation.chatSuggestions) { suggestion ->
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(50))
+                    .clip(RoundedCornerShape(0))
                     .clickable {
                         onClickSuggestion(suggestion)
                     }

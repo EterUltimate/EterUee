@@ -303,7 +303,7 @@ private fun RenderImage(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = 400.dp)
-                    .clip(RoundedCornerShape(8.dp)),
+                    .clip(RoundedCornerShape(0.dp)),
                 contentScale = ContentScale.Fit,
             )
         }

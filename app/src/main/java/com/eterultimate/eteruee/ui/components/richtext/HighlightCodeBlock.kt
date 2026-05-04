@@ -362,7 +362,7 @@ private fun HighlightCodeActions(
                 contentDescription = stringResource(id = R.string.chat_page_save),
                 tint = iconTint,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(4.dp))
+                    .clip(RoundedCornerShape(0.dp))
                     .onClick {
                         val extension = when (language.lowercase()) {
                             "kotlin" -> "kt"
@@ -398,7 +398,7 @@ private fun HighlightCodeActions(
                 contentDescription = stringResource(id = R.string.code_block_copy),
                 tint = iconTint,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(4.dp))
+                    .clip(RoundedCornerShape(0.dp))
                     .onClick {
                         scope.launch {
                             clipboardManager.setClipEntry(ClipEntry(ClipData.newPlainText("code", code)))
@@ -414,7 +414,7 @@ private fun HighlightCodeActions(
                     contentDescription = stringResource(id = R.string.code_block_preview),
                     tint = iconTint,
                     modifier = Modifier
-                        .clip(RoundedCornerShape(4.dp))
+                        .clip(RoundedCornerShape(0.dp))
                         .onClick {
                             val content = if (language == "svg") {
                                 """<!DOCTYPE html><html><body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;">$code</body></html>"""

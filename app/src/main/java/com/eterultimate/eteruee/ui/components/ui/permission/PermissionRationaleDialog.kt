@@ -51,7 +51,7 @@ internal fun PermissionRationaleDialog(
             modifier = modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(0.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface
             )
@@ -174,7 +174,7 @@ private fun PermissionItem(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
         ),
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(0.dp)
     ) {
         Column(
             modifier = Modifier
@@ -199,7 +199,7 @@ private fun PermissionItem(
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.errorContainer
                             ),
-                            shape = RoundedCornerShape(4.dp)
+                            shape = RoundedCornerShape(0.dp)
                         ) {
                             Text(
                                 text = stringResource(R.string.permission_required),
@@ -215,7 +215,7 @@ private fun PermissionItem(
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.8f)
                             ),
-                            shape = RoundedCornerShape(4.dp)
+                            shape = RoundedCornerShape(0.dp)
                         ) {
                             Text(
                                 text = stringResource(R.string.permission_permanently_denied),

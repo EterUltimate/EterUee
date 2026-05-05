@@ -277,7 +277,7 @@ private fun ConversationItem(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(0.dp))
-                        .background(MaterialTheme.extendColors.green6)
+                        .background(MaterialTheme.extendColors.blue6)
                         .size(4.dp)
                         .semantics {
                             contentDescription = "Loading"

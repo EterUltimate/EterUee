@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.sp
 import com.eterultimate.eteruee.ui.components.cyberpunk.DeepBlack
 import com.eterultimate.eteruee.ui.components.cyberpunk.GridLine
 import com.eterultimate.eteruee.ui.components.cyberpunk.NeonCyan
-import com.eterultimate.eteruee.ui.components.cyberpunk.NeonGreen
+import com.eterultimate.eteruee.ui.components.cyberpunk.NeonBlue
 import com.eterultimate.eteruee.ui.components.cyberpunk.NeonPink
 import com.eterultimate.eteruee.ui.components.cyberpunk.PanelBlack
 import com.eterultimate.eteruee.ui.components.cyberpunk.TextPrimary
@@ -99,7 +99,7 @@ fun StatusIndicatorOnline(
         Box(
             modifier = Modifier
                 .size(6.dp)
-                .background(NeonGreen)
+                .background(NeonBlue)
                 .alpha(alpha)
         )
         Spacer(modifier = Modifier.width(6.dp))
@@ -107,7 +107,7 @@ fun StatusIndicatorOnline(
             text = "ONLINE",
             style = MaterialTheme.typography.labelSmall.copy(
                 fontFamily = FontFamily.Monospace,
-                color = NeonGreen,
+                color = NeonBlue,
                 fontWeight = FontWeight.Black
             )
         )

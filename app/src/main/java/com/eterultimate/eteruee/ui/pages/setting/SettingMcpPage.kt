@@ -309,7 +309,7 @@ private fun McpServerItem(
                             style = MaterialTheme.typography.titleLarge,
                         )
                         val dotColor =
-                            if (item.commonOptions.enable) MaterialTheme.extendColors.green6 else MaterialTheme.extendColors.red6
+                            if (item.commonOptions.enable) MaterialTheme.extendColors.blue6 else MaterialTheme.extendColors.red6
                         Box(
                             modifier = Modifier
                                 .size(8.dp)

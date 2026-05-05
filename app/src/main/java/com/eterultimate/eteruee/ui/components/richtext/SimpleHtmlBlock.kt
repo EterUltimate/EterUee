@@ -525,7 +525,7 @@ private fun parseColor(colorString: String): Color? {
                 // Named colors
                 when (colorString.lowercase()) {
                     "red" -> Color.Red
-                    "green" -> Color.Green
+                    "green" -> Color.Blue
                     "blue" -> Color.Blue
                     "black" -> Color.Black
                     "white" -> Color.White

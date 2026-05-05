@@ -25,8 +25,8 @@ val CyberpunkThemePreset by lazy {
 
 // Primary: RGB Pure Red #FF0000
 private val CyberRed = Color(0xFFFF0000)
-// Secondary: RGB Pure Green #00FF00
-private val CyberGreen = Color(0xFF00FF00)
+// Secondary: Bright Blue #4444FF (lighter than tertiary for UI accents)
+private val CyberSecondaryBlue = Color(0xFF4444FF)
 // Tertiary: RGB Pure Blue #0000FF
 private val CyberBlue = Color(0xFF0000FF)
 // Background: Pure Black #000000
@@ -52,10 +52,10 @@ private val darkScheme = darkColorScheme(
     onPrimary = PureWhite,
     primaryContainer = CyberRed.copy(alpha = 0.15f),
     onPrimaryContainer = CyberRed,
-    secondary = CyberGreen,
-    onSecondary = PureBlack,
-    secondaryContainer = CyberGreen.copy(alpha = 0.15f),
-    onSecondaryContainer = CyberGreen,
+    secondary = CyberSecondaryBlue,
+    onSecondary = PureWhite,
+    secondaryContainer = CyberSecondaryBlue.copy(alpha = 0.15f),
+    onSecondaryContainer = CyberSecondaryBlue,
     tertiary = CyberBlue,
     onTertiary = PureWhite,
     tertiaryContainer = CyberBlue.copy(alpha = 0.15f),

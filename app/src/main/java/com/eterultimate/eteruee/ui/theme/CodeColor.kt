@@ -6,7 +6,7 @@ import com.eterultimate.eteruee.highlight.HighlightTextColorPalette
 // Cyberpunk Code Highlight Colors — Dark Theme
 val AtomOneDarkPalette = HighlightTextColorPalette(
     keyword = Color(0xFFFF0000),     // Red
-    string = Color(0xFF00FF00),      // Green
+    string = Color(0xFF0000FF),      // Blue
     number = Color(0xFF0000FF),      // Blue
     comment = Color(0xFF666666),     // Gray
     function = Color(0xFF00FFFF),    // Cyan
@@ -17,7 +17,7 @@ val AtomOneDarkPalette = HighlightTextColorPalette(
     boolean = Color(0xFF0000FF),     // Blue
     variable = Color(0xFFFF6600),    // Orange
     tag = Color(0xFFFF0000),         // Red
-    attrName = Color(0xFF00FF00),    // Green
+    attrName = Color(0xFF0000FF),    // Blue
     attrValue = Color(0xFFFFFF00),   // Yellow
     fallback = Color(0xFFFFFFFF)     // White
 )

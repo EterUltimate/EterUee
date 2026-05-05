@@ -36,14 +36,14 @@ fun Tag(
     children: @Composable RowScope.() -> Unit
 ) {
     val background = when (type) {
-        TagType.SUCCESS -> MaterialTheme.extendColors.green2
+        TagType.SUCCESS -> MaterialTheme.extendColors.blue2
         TagType.ERROR -> MaterialTheme.extendColors.red2
         TagType.WARNING -> MaterialTheme.extendColors.orange2
         TagType.INFO -> MaterialTheme.extendColors.blue2
         else -> MaterialTheme.colorScheme.tertiaryContainer
     }
     val textColor = when (type) {
-        TagType.SUCCESS -> MaterialTheme.extendColors.gray8
+        TagType.SUCCESS -> MaterialTheme.extendColors.blue8
         TagType.ERROR -> MaterialTheme.extendColors.red8
         TagType.WARNING -> MaterialTheme.extendColors.orange8
         TagType.INFO -> MaterialTheme.extendColors.blue8

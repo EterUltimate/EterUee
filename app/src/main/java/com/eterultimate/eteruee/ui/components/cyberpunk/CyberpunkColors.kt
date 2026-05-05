@@ -6,11 +6,11 @@ import androidx.compose.ui.graphics.Color
 // RGB Pure Colors + Pure Black + Pure White
 // For use in cyberpunk decorative components (GlitchText, NeonButton, etc.)
 
-// Accent colors (decorative only — theme uses RGB pure R/G/B)
+// Accent colors (decorative only — theme uses RGB pure R/B)
 val NeonCyan = Color(0xFF00FFFF)
 val NeonPink = Color(0xFFFF007F)
 val NeonPurple = Color(0xFF8B5CF6)
-val NeonGreen = Color(0xFF00FF00)
+val NeonBlue = Color(0xFF0000FF)
 val NeonYellow = Color(0xFFFFD700)
 val AlertOrange = Color(0xFFFF4400)
 val WarningRed = Color(0xFFFF0000)

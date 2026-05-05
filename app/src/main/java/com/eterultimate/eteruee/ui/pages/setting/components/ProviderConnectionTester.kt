@@ -235,7 +235,7 @@ private fun TestResultItem(
                 Text(
                     text = "✓",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.extendColors.green6
+                    color = MaterialTheme.extendColors.blue6
                 )
                 if (resultText.isNotBlank()) {
                     Text(

@@ -1406,7 +1406,7 @@ private fun parseColor(colorString: String): Color? {
             else -> {
                 when (colorString.lowercase()) {
                     "red" -> Color.Red
-                    "green" -> Color.Green
+                    "green" -> Color.Blue
                     "blue" -> Color.Blue
                     "black" -> Color.Black
                     "white" -> Color.White

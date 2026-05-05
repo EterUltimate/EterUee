@@ -1,5 +1,6 @@
 ﻿package com.eterultimate.eteruee.ui.components.message
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -94,7 +95,7 @@ fun ColumnScope.ChatMessageActionButtons(
             imageVector = HugeIcons.Copy01,
             contentDescription = stringResource(R.string.copy),
             modifier = Modifier
-                .clip(RectangleShape)
+                .clip(RoundedCornerShape(0.dp))
                 .clickable { context.copyMessageToClipboard(message) }
                 .padding(8.dp)
                 .size(16.dp)
@@ -104,7 +105,7 @@ fun ColumnScope.ChatMessageActionButtons(
             imageVector = HugeIcons.Refresh03,
             contentDescription = stringResource(R.string.regenerate),
             modifier = Modifier
-                .clip(RectangleShape)
+                .clip(RoundedCornerShape(0.dp))
                 .clickable {
                     if (message.role == MessageRole.USER) {
                         showRegenerateConfirm = true
@@ -125,7 +126,7 @@ fun ColumnScope.ChatMessageActionButtons(
                 imageVector = if (isSpeaking) HugeIcons.StopCircle else HugeIcons.VolumeHigh,
                 contentDescription = stringResource(R.string.tts),
                 modifier = Modifier
-                    .clip(RectangleShape)
+                    .clip(RoundedCornerShape(0.dp))
                     .clickable(
                         enabled = isAvailable,
                         interactionSource = remember { MutableInteractionSource() },
@@ -155,7 +156,7 @@ fun ColumnScope.ChatMessageActionButtons(
                     imageVector = HugeIcons.Translate,
                     contentDescription = stringResource(R.string.translate),
                     modifier = Modifier
-                        .clip(RectangleShape)
+                        .clip(RoundedCornerShape(0.dp))
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = LocalIndication.current,
@@ -173,7 +174,7 @@ fun ColumnScope.ChatMessageActionButtons(
             imageVector = HugeIcons.MoreVertical,
             contentDescription = stringResource(R.string.more_options),
             modifier = Modifier
-                .clip(RectangleShape)
+                .clip(RoundedCornerShape(0.dp))
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = LocalIndication.current,

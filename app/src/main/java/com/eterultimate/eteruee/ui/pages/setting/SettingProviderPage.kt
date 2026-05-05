@@ -1,5 +1,6 @@
 package com.eterultimate.eteruee.ui.pages.setting
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import android.net.Uri
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Camera01
@@ -28,7 +29,6 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -184,7 +184,7 @@ fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
                     }
                 },
                 singleLine = true,
-                shape = CircleShape,
+                shape = RoundedCornerShape(0.dp),
             )
 
 

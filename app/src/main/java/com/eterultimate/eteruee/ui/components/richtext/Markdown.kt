@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
@@ -940,7 +939,7 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
                                             onClickCitation(id.trim())
                                         }
                                         .fillMaxSize()
-                                        .clip(CircleShape)
+                                        .clip(RoundedCornerShape(0.dp))
                                         .background(colorScheme.tertiaryContainer.copy(0.2f)),
                                     contentAlignment = Alignment.Center) {
                                     Text(

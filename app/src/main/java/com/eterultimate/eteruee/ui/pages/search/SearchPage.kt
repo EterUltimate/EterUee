@@ -1,5 +1,6 @@
 ﻿package com.eterultimate.eteruee.ui.pages.search
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Refresh01
 import androidx.compose.foundation.layout.Arrangement
@@ -127,7 +128,7 @@ fun SearchPage(vm: SearchVM = koinViewModel()) {
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .focusRequester(focusRequester),
                 placeholder = { Text(stringResource(R.string.search_page_placeholder)) },
-                shape = RectangleShape,
+                shape = RoundedCornerShape(0.dp),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(

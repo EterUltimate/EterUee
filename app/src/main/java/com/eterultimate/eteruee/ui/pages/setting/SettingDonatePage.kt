@@ -1,5 +1,6 @@
 package com.eterultimate.eteruee.ui.pages.setting
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
@@ -153,7 +153,7 @@ private fun Sponsors(modifier: Modifier = Modifier) {
                             model = it.avatar,
                             contentDescription = null,
                             modifier = Modifier
-                                .clip(CircleShape)
+                                .clip(RoundedCornerShape(0.dp))
                                 .size(48.dp)
                         )
                         Text(

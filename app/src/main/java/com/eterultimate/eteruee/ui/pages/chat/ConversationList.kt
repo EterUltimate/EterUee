@@ -1,5 +1,6 @@
 ﻿package com.eterultimate.eteruee.ui.pages.chat
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Forward02
 import me.rerere.hugeicons.stroke.Pin
@@ -109,7 +110,7 @@ fun ColumnScope.ConversationList(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    shape = RectangleShape,
+                    shape = RoundedCornerShape(0.dp),
                     color = MaterialTheme.colorScheme.surfaceContainerLow
                 ) {
                     Text(
@@ -239,7 +240,7 @@ private fun ConversationItem(
     }
     Box(
         modifier = modifier
-            .clip(RectangleShape)
+            .clip(RoundedCornerShape(0.dp))
             .combinedClickable(
                 interactionSource = interactionSource,
                 indication = LocalIndication.current,
@@ -275,7 +276,7 @@ private fun ConversationItem(
             AnimatedVisibility(loading) {
                 Box(
                     modifier = Modifier
-                        .clip(RectangleShape)
+                        .clip(RoundedCornerShape(0.dp))
                         .background(MaterialTheme.extendColors.green6)
                         .size(4.dp)
                         .semantics {

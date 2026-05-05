@@ -1,5 +1,6 @@
 ﻿package com.eterultimate.eteruee.ui.components.ui
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -209,7 +210,7 @@ private fun FullScreenTextEditor(
                 modifier = Modifier
                     .widthIn(max = 800.dp)
                     .fillMaxHeight(0.9f),
-                shape = RectangleShape
+                shape = RoundedCornerShape(0.dp)
             ) {
                 Column(
                     modifier = Modifier
@@ -234,7 +235,7 @@ private fun FullScreenTextEditor(
                         modifier = Modifier
                             .imePadding()
                             .fillMaxSize(),
-                        shape = RectangleShape,
+                        shape = RoundedCornerShape(0.dp),
                         placeholder = if (placeholder.isNotEmpty()) {
                             { Text(placeholder) }
                         } else if (label.isNotEmpty()) {

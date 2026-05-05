@@ -1,5 +1,6 @@
 ﻿package com.eterultimate.eteruee.ui.components.ui
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
@@ -64,7 +65,7 @@ fun FaviconRow(
                         .shadow(1.dp, RectangleShape)
                         .zIndex(index.toFloat())
                         .size(size),
-                    shape = RectangleShape,
+                    shape = RoundedCornerShape(0.dp),
                 )
             }
         }

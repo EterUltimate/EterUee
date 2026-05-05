@@ -1,5 +1,6 @@
 ﻿package com.eterultimate.eteruee.ui.components.ui
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -94,7 +95,7 @@ fun Switch(
     Box(
         modifier = modifier
             .size(width = dimensions.trackWidth, height = dimensions.trackHeight)
-            .clip(RectangleShape)
+            .clip(RoundedCornerShape(0.dp))
             .background(currentTrackColor)
             .clickable(
                 enabled = enabled,
@@ -112,9 +113,9 @@ fun Switch(
                 .size(dimensions.thumbSize)
                 .shadow(
                     elevation = if (enabled) 2.dp else 0.dp,
-                    shape = RectangleShape
+                    shape = RoundedCornerShape(0.dp)
                 )
-                .clip(RectangleShape)
+                .clip(RoundedCornerShape(0.dp))
                 .background(currentThumbColor)
         )
     }

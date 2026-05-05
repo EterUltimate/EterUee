@@ -42,7 +42,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalFloatingToolbar
@@ -622,7 +621,7 @@ private fun ChatListPreview(
                 }
             },
             singleLine = true,
-            shape = CircleShape,
+            shape = RoundedCornerShape(0.dp),
             maxLines = 1,
         )
 
@@ -747,7 +746,7 @@ private fun BoxScope.MessageJumper(
                         state.scrollToItem(0)
                     }
                 },
-                shape = CircleShape,
+                shape = RoundedCornerShape(0.dp),
                 tonalElevation = 4.dp,
                 color = MaterialTheme.colorScheme.surfaceColorAtElevation(
                     4.dp
@@ -770,7 +769,7 @@ private fun BoxScope.MessageJumper(
                         )
                     }
                 },
-                shape = CircleShape,
+                shape = RoundedCornerShape(0.dp),
                 tonalElevation = 4.dp,
                 color = MaterialTheme.colorScheme.surfaceColorAtElevation(
                     4.dp
@@ -789,7 +788,7 @@ private fun BoxScope.MessageJumper(
                         state.animateScrollToItem(state.firstVisibleItemIndex + 1)
                     }
                 },
-                shape = CircleShape,
+                shape = RoundedCornerShape(0.dp),
                 color = MaterialTheme.colorScheme.surfaceColorAtElevation(
                     4.dp
                 ).copy(alpha = 0.65f)
@@ -807,7 +806,7 @@ private fun BoxScope.MessageJumper(
                         state.scrollToItem(state.layoutInfo.totalItemsCount - 1)
                     }
                 },
-                shape = CircleShape,
+                shape = RoundedCornerShape(0.dp),
                 color = MaterialTheme.colorScheme.surfaceColorAtElevation(
                     4.dp
                 ).copy(alpha = 0.65f),

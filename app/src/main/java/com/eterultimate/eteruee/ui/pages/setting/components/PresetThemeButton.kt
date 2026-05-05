@@ -1,5 +1,6 @@
 ﻿package com.eterultimate.eteruee.ui.pages.setting.components
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Tick01
 import androidx.compose.foundation.Canvas
@@ -52,7 +53,7 @@ fun PresetThemeButton(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = modifier
-            .clip(RectangleShape)
+            .clip(RoundedCornerShape(0.dp))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = LocalIndication.current,
@@ -67,7 +68,7 @@ fun PresetThemeButton(
         ) {
             Canvas(
                 modifier = Modifier
-                    .clip(RectangleShape)
+                    .clip(RoundedCornerShape(0.dp))
                     .size(48.dp)
             ) {
                 drawRect(

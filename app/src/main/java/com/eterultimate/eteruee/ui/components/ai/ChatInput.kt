@@ -43,7 +43,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
@@ -499,7 +498,7 @@ fun ChatInput(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
                                 .size(36.dp)
-                                .clip(CircleShape)
+                                .clip(RoundedCornerShape(0.dp))
                                 .combinedClickable(
                                     enabled = loading || !state.isEmpty(),
                                     onClick = {
@@ -523,7 +522,7 @@ fun ChatInput(
                             }
                             Surface(
                                 modifier = Modifier.fillMaxSize(),
-                                shape = CircleShape,
+                                shape = RoundedCornerShape(0.dp),
                                 color = containerColor,
                                 content = {})
                             if (loading) {
@@ -604,7 +603,7 @@ private fun ActionIconButton(
     Surface(
         onClick = onClick,
         modifier = Modifier.size(36.dp),
-        shape = CircleShape,
+        shape = RoundedCornerShape(0.dp),
         tonalElevation = 0.dp,
         color = Color.Transparent,
     ) {
@@ -922,7 +921,7 @@ private fun AttachmentChip(
             )
             Box(
                 modifier = Modifier
-                    .clip(CircleShape)
+                    .clip(RoundedCornerShape(0.dp))
                     .size(26.dp)
                     .clickable(onClick = onRemove),
                 contentAlignment = Alignment.Center

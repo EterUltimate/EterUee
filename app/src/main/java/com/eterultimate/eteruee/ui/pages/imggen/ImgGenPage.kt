@@ -1,5 +1,6 @@
 ﻿package com.eterultimate.eteruee.ui.pages.imggen
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Copy01
 import me.rerere.hugeicons.stroke.Image03
@@ -256,7 +257,7 @@ private fun ImageGenScreen(
                     modifier = Modifier
                         .weight(1f)
                         .aspectRatio(1f)
-                        .clip(RectangleShape)
+                        .clip(RoundedCornerShape(0.dp))
                         .clickable { showPreview = true },
                     contentScale = ContentScale.Crop
                 )

@@ -1,5 +1,6 @@
 ﻿package com.eterultimate.eteruee.ui.components.ai
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -174,14 +175,14 @@ fun ReasoningPicker(
                         Box(
                             modifier = Modifier
                                 .size(24.dp)
-                                .clip(RectangleShape)
+                                .clip(RoundedCornerShape(0.dp))
                                 .background(MaterialTheme.colorScheme.primary),
                             contentAlignment = Alignment.Center,
                         ) {
                             Box(
                                 modifier = Modifier
                                     .size(10.dp)
-                                    .clip(RectangleShape)
+                                    .clip(RoundedCornerShape(0.dp))
                                     .background(MaterialTheme.colorScheme.onPrimary)
                             )
                         }
@@ -248,7 +249,7 @@ private fun ReasoningScale(
                             modifier = Modifier
                                 .width(if (selected) 20.dp else 16.dp)
                                 .height(if (selected) 6.dp else 4.dp)
-                                .clip(RectangleShape)
+                                .clip(RoundedCornerShape(0.dp))
                                 .background(tickColor)
                         )
                         Text(

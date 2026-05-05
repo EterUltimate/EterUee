@@ -1,5 +1,6 @@
 ﻿package com.eterultimate.eteruee.ui.components.ui
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -108,7 +109,7 @@ fun EmojiPicker(
                             onSearch = { /* Handle search */ }
                         ),
                         singleLine = true,
-                        shape = RectangleShape
+                        shape = RoundedCornerShape(0.dp)
                     )
                 }
 
@@ -131,7 +132,7 @@ fun EmojiPicker(
                                         lazyListState.animateScrollToItem(0)
                                     }
                                 }
-                                .clip(RectangleShape),
+                                .clip(RoundedCornerShape(0.dp)),
                             colors = CardDefaults.cardColors(
                                 containerColor = if (isSelected) {
                                     MaterialTheme.colorScheme.primary
@@ -245,7 +246,7 @@ private fun EmojiItem(
                 onClick = onClick,
                 onLongClick = onLongClick
             )
-            .clip(RectangleShape)
+            .clip(RoundedCornerShape(0.dp))
             .background(
                 MaterialTheme.colorScheme.surfaceVariant.copy(
                     alpha = if (hasVariants) 0.5f else 0.3f
@@ -279,7 +280,7 @@ private fun EmojiModifierPicker(
             modifier = Modifier
                 .wrapContentSize()
                 .padding(16.dp),
-            shape = RectangleShape,
+            shape = RoundedCornerShape(0.dp),
             color = MaterialTheme.colorScheme.surface,
             shadowElevation = 8.dp,
             tonalElevation = 8.dp
@@ -301,7 +302,7 @@ private fun EmojiModifierPicker(
                             modifier = Modifier
                                 .size(48.dp)
                                 .clickable { onEmojiSelected(variant) }
-                                .clip(RectangleShape)
+                                .clip(RoundedCornerShape(0.dp))
                                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
                             contentAlignment = Alignment.Center
                         ) {

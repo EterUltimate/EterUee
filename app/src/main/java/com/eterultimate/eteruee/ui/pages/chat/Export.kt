@@ -1,5 +1,6 @@
 ﻿package com.eterultimate.eteruee.ui.pages.chat
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
@@ -623,7 +624,7 @@ private fun ExportedChatMessage(
                                     contentDescription = "Image",
                                     modifier = Modifier
                                         .sizeIn(maxHeight = 300.dp)
-                                        .clip(RectangleShape),
+                                        .clip(RoundedCornerShape(0.dp)),
                                 )
                             }
 

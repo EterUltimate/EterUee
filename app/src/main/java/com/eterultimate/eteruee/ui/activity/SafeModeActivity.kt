@@ -1,5 +1,6 @@
 ﻿package com.eterultimate.eteruee.ui.activity
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -212,7 +213,7 @@ private fun AssistantPickerSheet(
                             },
                             label = { Text(tag.name) },
                             selected = tag.id in selectedTagIds,
-                            shape = RectangleShape,
+                            shape = RoundedCornerShape(0.dp),
                         )
                     }
                 }

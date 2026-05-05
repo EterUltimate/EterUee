@@ -1,5 +1,6 @@
 package com.eterultimate.eteruee.ui.pages.setting
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import android.content.Intent
 import android.os.Build
 
@@ -16,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -214,7 +214,7 @@ fun SettingWebPage() {
                                 isError = portText.toIntOrNull()?.let { it !in 1024..65535 } ?: true,
                                 modifier = Modifier.width(100.dp),
                                 enabled = !serverState.isRunning,
-                                shape = CircleShape,
+                                shape = RoundedCornerShape(0.dp),
                                 colors = TextFieldDefaults.colors(
                                     focusedIndicatorColor = Color.Transparent,
                                     unfocusedIndicatorColor = Color.Transparent,
@@ -293,7 +293,7 @@ fun SettingWebPage() {
                                 singleLine = true,
                                 isError = settings.webServerJwtEnabled && accessPasswordText.isBlank(),
                                 modifier = Modifier.width(180.dp),
-                                shape = CircleShape,
+                                shape = RoundedCornerShape(0.dp),
                                 colors = TextFieldDefaults.colors(
                                     focusedIndicatorColor = Color.Transparent,
                                     unfocusedIndicatorColor = Color.Transparent,

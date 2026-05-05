@@ -1,5 +1,6 @@
 ﻿package com.eterultimate.eteruee.ui.components.message
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -39,7 +40,7 @@ fun ChatMessageBranchSelector(
                 imageVector = HugeIcons.ArrowLeft01,
                 contentDescription = "Prev",
                 modifier = Modifier
-                    .clip(RectangleShape)
+                    .clip(RoundedCornerShape(0.dp))
                     .alpha(if (node.selectIndex == 0) 0.5f else 1f)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
@@ -67,7 +68,7 @@ fun ChatMessageBranchSelector(
                 imageVector = HugeIcons.ArrowRight01,
                 contentDescription = "Next",
                 modifier = Modifier
-                    .clip(RectangleShape)
+                    .clip(RoundedCornerShape(0.dp))
                     .alpha(if (node.selectIndex == node.messages.lastIndex) 0.5f else 1f)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },

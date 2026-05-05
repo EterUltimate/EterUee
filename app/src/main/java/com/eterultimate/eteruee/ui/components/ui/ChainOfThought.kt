@@ -1,5 +1,6 @@
 package com.eterultimate.eteruee.ui.components.ui
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
@@ -349,7 +349,7 @@ private class ChainOfThoughtScopeImpl : ChainOfThoughtScope {
                             Box(
                                 modifier = Modifier
                                     .size(8.dp)
-                                    .clip(CircleShape)
+                                    .clip(RoundedCornerShape(0.dp))
                                     .background(MaterialTheme.colorScheme.onSurfaceVariant)
                             )
                         }

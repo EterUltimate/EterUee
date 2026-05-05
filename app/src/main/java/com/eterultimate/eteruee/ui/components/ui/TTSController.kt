@@ -1,10 +1,10 @@
 package com.eterultimate.eteruee.ui.components.ui
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -60,7 +60,7 @@ fun TTSController() {
         val playbackState by ttsState.playbackState.collectAsState()
         var expand by remember { mutableStateOf(false) }
         Surface(
-            shape = CircleShape,
+            shape = RoundedCornerShape(0.dp),
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 4.dp,
             modifier = Modifier.padding(8.dp),

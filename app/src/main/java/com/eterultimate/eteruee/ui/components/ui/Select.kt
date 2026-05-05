@@ -1,5 +1,6 @@
 ﻿package com.eterultimate.eteruee.ui.components.ui
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -47,13 +48,13 @@ fun <T> Select(
     ) {
         Surface(
             tonalElevation = 4.dp,
-            shape = RectangleShape,
+            shape = RoundedCornerShape(0.dp),
             modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RectangleShape)
+                    .clip(RoundedCornerShape(0.dp))
                     .clickable { expanded = true }
                     .padding(vertical = 8.dp, horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),

@@ -1,5 +1,6 @@
 package com.eterultimate.eteruee.ui.pages.chat
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -529,7 +529,7 @@ private fun DrawerAction(
         onClick = onClick,
         modifier = modifier,
         color = MaterialTheme.colorScheme.primaryContainer,
-        shape = CircleShape,
+        shape = RoundedCornerShape(0.dp),
         contentColor = MaterialTheme.colorScheme.onSurface,
     ) {
         Tooltip(

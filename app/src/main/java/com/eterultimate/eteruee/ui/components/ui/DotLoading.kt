@@ -1,5 +1,6 @@
 ﻿package com.eterultimate.eteruee.ui.components.ui
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -43,7 +44,7 @@ fun DotLoading(
             .size(size)
             .then(modifier)
             .alpha(alpha)
-            .background(color = color, shape = RectangleShape)
+            .background(color = color, shape = RoundedCornerShape(0.dp))
     )
 }
 

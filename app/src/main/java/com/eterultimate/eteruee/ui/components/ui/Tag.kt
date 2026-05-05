@@ -1,5 +1,6 @@
 ﻿package com.eterultimate.eteruee.ui.components.ui
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -51,7 +52,7 @@ fun Tag(
     ProvideTextStyle(MaterialTheme.typography.labelSmall.copy(color = textColor)) {
         Row(
             modifier = modifier
-                .clip(RectangleShape)
+                .clip(RoundedCornerShape(0.dp))
                 .background(background)
                 .let {
                     if (onClick != null) {

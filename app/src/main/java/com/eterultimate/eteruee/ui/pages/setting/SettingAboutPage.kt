@@ -161,21 +161,21 @@ fun SettingAboutPage() {
                         modifier = Modifier.padding(horizontal = 8.dp),
                     ) {
                         item(
-                            onClick = { context.openUrl("https://rikka-ai.com/") },
+                            onClick = { context.openUrl("https://github.com/EterUltimate/EterUee/releases") },
                             leadingContent = { Icon(HugeIcons.Earth, null) },
-                            supportingContent = { Text("https://rikka-ai.com") },
+                            supportingContent = { Text("https://github.com/EterUltimate/EterUee/releases") },
                             headlineContent = { Text(stringResource(R.string.about_page_website)) },
                         )
                         item(
-                            onClick = { context.openUrl("https://github.com/eteruee/eteruee") },
+                            onClick = { context.openUrl("https://github.com/EterUltimate/EterUee") },
                             leadingContent = { Icon(HugeIcons.Github, null) },
-                            supportingContent = { Text("https://github.com/eteruee/eteruee") },
+                            supportingContent = { Text("https://github.com/EterUltimate/EterUee") },
                             headlineContent = { Text(stringResource(R.string.about_page_github)) },
                         )
                         item(
-                            onClick = { context.openUrl("https://github.com/eteruee/eteruee/blob/master/LICENSE") },
+                            onClick = { context.openUrl("https://github.com/EterUltimate/EterUee/blob/master/LICENSE") },
                             leadingContent = { Icon(HugeIcons.File02, null) },
-                            supportingContent = { Text("https://github.com/eteruee/eteruee/blob/master/LICENSE") },
+                            supportingContent = { Text("https://github.com/EterUltimate/EterUee/blob/master/LICENSE") },
                             headlineContent = { Text(stringResource(R.string.about_page_license)) },
                         )
                     }

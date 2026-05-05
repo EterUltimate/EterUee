@@ -736,7 +736,7 @@
   <string name="setting_page_search_title">Search Service</string>
   <string name="setting_page_share">Share</string>
   <string name="setting_page_share_desc">Share this app with friends</string>
-  <string name="setting_page_share_text">EterUee - Open Source Android AI Assistant\n\nWebsite: https://eterultimate.com/</string>
+  <string name="setting_page_share_text">EterUee - Open Source Android AI Assistant\n\nWebsite: https://github.com/EterUltimate/EterUee/releases</string>
   <string name="setting_page_sponsor_alert_confirm">Donate</string>
   <string name="setting_page_sponsor_alert_desc">You have launched the app over 100 times! If you enjoy using it, please consider supporting the developer.</string>
   <string name="setting_page_sponsor_alert_dismiss">Not Now</string>

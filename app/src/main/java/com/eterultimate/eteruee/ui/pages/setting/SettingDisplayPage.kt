@@ -101,7 +101,7 @@ fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 8.dp)
                     )
-                    // Cyberpunk 涓婚锛堝崟涓€涓婚绯荤粺锛屼笉鍙垏鎹級
+                    // Cyberpunk 主题（单主题系统，不可切换）
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()

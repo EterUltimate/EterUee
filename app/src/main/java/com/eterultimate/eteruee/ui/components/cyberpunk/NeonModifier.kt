@@ -15,8 +15,8 @@ import androidx.compose.ui.unit.dp
 import com.eterultimate.eteruee.ui.components.cyberpunk.NeonCyan
 
 /**
- * 纭湕闇撹櫣鍙戝厜鏁堟灉 Modifier
- * 鐩磋杈规 + 閿愬埄鍏夋檿锛屾棤鍦嗚
+ * 赛博霓虹发光效果 Modifier
+ * 直角边框 + 锐利光晕，无圆角
  */
 fun Modifier.neonGlow(
     color: Color = NeonCyan,
@@ -30,14 +30,14 @@ fun Modifier.neonGlow(
 )
 
 /**
- * 闇撹櫣杈规缁樺埗 - 鐩磋鐗堟湰
+ * 霓虹边框绘制 - 直角版本
  */
 private fun ContentDrawScope.drawNeonStroke(
     color: Color,
     radius: Dp,
     strokeWidth: Dp
 ) {
-    // 澶栧彂鍏夊眰
+    // 外发光层
     drawIntoCanvas { canvas ->
         val paint = Paint().apply {
             this.style = PaintingStyle.Stroke
@@ -54,7 +54,7 @@ private fun ContentDrawScope.drawNeonStroke(
             paint
         )
     }
-    // 瀹炰綋鐩磋杈规
+    // 实体直角边框
     drawRect(
         color = color,
         size = size,
@@ -63,8 +63,8 @@ private fun ContentDrawScope.drawNeonStroke(
 }
 
 /**
- * 纭湕瑙掓爣瑁呴グ Modifier
- * 鍦ㄥ洓涓缁樺埗 L 褰㈡爣璁?
+ * 赛博角标装饰 Modifier
+ * 在四个角绘制 L 形标记
  */
 fun Modifier.cornerBrackets(
     color: Color = NeonCyan,
@@ -102,7 +102,7 @@ private fun ContentDrawScope.drawCornerBrackets(
 }
 
 /**
- * 宸ヤ笟椋庢牸杈规 - 鏃犲彂鍏夛紝绾嚎鏉?
+ * 工业风边框 - 无发光，纯线条
  */
 fun Modifier.industrialBorder(
     color: Color = SteelGray,

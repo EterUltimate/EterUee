@@ -38,7 +38,7 @@ enum class ModelAbility {
     REASONING,
 }
 
-// 妯″瀷(鎻愪緵鍟?鎻愪緵鐨勫唴缃伐鍏烽€夐」
+// 类型(提供商提供的内置工具选项)
 @Serializable
 sealed class BuiltInTools {
     // https://ai.google.dev/gemini-api/docs/google-search?hl=zh-cn

@@ -17,7 +17,7 @@ import com.eterultimate.eteruee.ui.components.cyberpunk.NeonCyan
 import com.eterultimate.eteruee.ui.components.cyberpunk.PanelBlack
 
 /**
- * 纭湕璧涘崥鏈嬪厠闈㈡澘
+ * 赛博朋克面板
  * 鐩磋 + 閿愬埄杈规 + 瑙掓爣瑁呴グ锛屾棤鍦嗚
  */
 @Composable
@@ -43,7 +43,7 @@ fun CyberpunkPanel(
                 ) else Modifier
             )
     ) {
-        // 鑳屾櫙妯＄硦灞?(Android 12+ 鏀寔)
+        // 背景模糊层 (Android 12+ 支持)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && blurRadius > 0.dp) {
             Box(
                 modifier = Modifier
@@ -52,7 +52,7 @@ fun CyberpunkPanel(
             )
         }
 
-        // 鍐呭灞?
+        // 内容层
         Box(
             modifier = Modifier.padding(contentPadding),
             content = content
@@ -61,7 +61,7 @@ fun CyberpunkPanel(
 }
 
 /**
- * 绠€鍖栫増闈㈡澘
+ * 简化版面板
  */
 @Composable
 fun PanelSimple(

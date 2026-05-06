@@ -298,7 +298,7 @@ class ResponseAPI(
                     group.parts.forEach { part ->
                         when (part) {
                             is UIMessagePart.Reasoning -> {
-                                // 鍏堣緭鍑虹疮绉殑鏂囨湰/鍥剧墖鍐呭
+                                // 先输出累积的文本/图片内容
                                 if (contentBuffer.isNotEmpty()) {
                                     addContentItem(MessageRole.ASSISTANT, contentBuffer)
                                     contentBuffer.clear()
@@ -350,7 +350,7 @@ class ResponseAPI(
                 }
 
                 is PartGroup.Tools -> {
-                    // 鍏堣緭鍑虹疮绉殑鍐呭
+                    // 先输出累积的内容
                     if (contentBuffer.isNotEmpty()) {
                         addContentItem(MessageRole.ASSISTANT, contentBuffer)
                         contentBuffer.clear()

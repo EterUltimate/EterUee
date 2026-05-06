@@ -6,6 +6,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -93,6 +95,7 @@ fun ErrorCardsDisplay(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ErrorCard(
     error: ChatError,
@@ -122,7 +125,23 @@ fun ErrorCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .combinedClickable(
+                        onClick = {},
+                        onLongClick = {
+                            scope.launch {
+                                clipboard.setClipEntry(
+                                    ClipEntry(
+                                        ClipData.newPlainText("Error", buildString {
+                                            if (error.title != null) append(error.title).append("\n")
+                                            append(error.error.message ?: "Unknown error")
+                                        })
+                                    )
+                                )
+                            }
+                        }
+                    ),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 if (error.title != null) {
@@ -138,7 +157,6 @@ fun ErrorCard(
                     text = error.error.message ?: "Unknown error",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f),
-                    overflow = TextOverflow.Ellipsis,
                 )
             }
             IconButton(

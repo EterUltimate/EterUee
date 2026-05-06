@@ -282,6 +282,9 @@ dependencies {
     // sqlite-android (requery SQLite for Android)
     implementation(libs.sqlite.android)
 
+    // JSch (SSH client)
+    implementation(libs.jsch)
+
     // modules
     implementation(project(":ai"))
     implementation(project(":web"))

@@ -45,3 +45,7 @@
 -keepattributes Signature, InnerClasses, EnclosingMethod
 -keep class com.fasterxml.jackson.** { *; }
 -keep class com.auth0.jwt.** { *; }
+
+# JSch (SSH client) — uses reflection for crypto providers
+-keep class com.jcraft.jsch.** { *; }
+-dontwarn com.jcraft.jsch.**

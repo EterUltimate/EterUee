@@ -156,6 +156,20 @@ private fun AssistantLocalToolContent(
                     )
                 }
             )
+            item(
+                headlineContent = {
+                    Text(stringResource(R.string.assistant_page_local_tools_ssh_title))
+                },
+                supportingContent = {
+                    Text(stringResource(R.string.assistant_page_local_tools_ssh_desc))
+                },
+                trailingContent = {
+                    Switch(
+                        checked = assistant.localTools.contains(LocalToolOption.Ssh),
+                        onCheckedChange = { toggleLocalTool(LocalToolOption.Ssh, it) }
+                    )
+                }
+            )
         }
     }
 }

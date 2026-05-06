@@ -87,6 +87,8 @@
   <string name="assistant_page_local_tools_time_info_title">時刻情報</string>
   <string name="assistant_page_local_tools_tts_desc">AIがデバイスのTTSエンジンを使ってテキストを読み上げます</string>
   <string name="assistant_page_local_tools_tts_title">テキスト読み上げ</string>
+  <string name="assistant_page_local_tools_ssh_title">SSH</string>
+  <string name="assistant_page_local_tools_ssh_desc">SSH経由でリモートサーバーのコマンドを実行（接続情報は毎回必要）</string>
   <string name="assistant_page_manage_memory_title">記憶を管理</string>
   <string name="assistant_page_max_tokens">最大トークン数</string>
   <string name="assistant_page_max_tokens_desc">生成する最大トークン数。空白にすると制限なし。</string>
@@ -979,4 +981,3 @@ mDNSアドレス: .localホスト名を使用し、IPを知らなくても同じ
   <string name="setting_page_built_in_tools_image_generation">画像生成</string>
   <string name="setting_page_built_in_tools_image_generation_desc">画像生成機能を有効にする</string>
 </resources>
-

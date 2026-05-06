@@ -87,6 +87,8 @@
   <string name="assistant_page_local_tools_time_info_title">时间信息</string>
   <string name="assistant_page_local_tools_tts_desc">让AI使用设备TTS引擎为您朗读文本</string>
   <string name="assistant_page_local_tools_tts_title">文字转语音</string>
+  <string name="assistant_page_local_tools_ssh_title">SSH</string>
+  <string name="assistant_page_local_tools_ssh_desc">通过 SSH 在远程服务器上执行命令（每次调用需提供连接信息）</string>
   <string name="assistant_page_manage_memory_title">管理记忆</string>
   <string name="assistant_page_max_tokens">最大Token数</string>
   <string name="assistant_page_max_tokens_desc">最大生成Token数量。留空表示无限制。</string>
@@ -975,5 +977,4 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="setting_page_built_in_tools_image_generation">图像生成</string>
   <string name="setting_page_built_in_tools_image_generation_desc">启用图像生成功能</string>
 </resources>
-
 

@@ -87,6 +87,8 @@
   <string name="assistant_page_local_tools_time_info_title">時間資訊</string>
   <string name="assistant_page_local_tools_tts_desc">讓 AI 使用裝置的 TTS 引擎為您朗讀文字</string>
   <string name="assistant_page_local_tools_tts_title">文字轉語音</string>
+  <string name="assistant_page_local_tools_ssh_title">SSH</string>
+  <string name="assistant_page_local_tools_ssh_desc">透過 SSH 在遠端伺服器上執行指令（每次呼叫需提供連線資訊）</string>
   <string name="assistant_page_manage_memory_title">管理記憶</string>
   <string name="assistant_page_max_tokens">最大Token數</string>
   <string name="assistant_page_max_tokens_desc">最大生成Token數量。留空表示無限制。</string>
@@ -977,4 +979,3 @@
   <string name="setting_page_built_in_tools_image_generation">圖像生成</string>
   <string name="setting_page_built_in_tools_image_generation_desc">啟用圖片生成功能</string>
 </resources>
-

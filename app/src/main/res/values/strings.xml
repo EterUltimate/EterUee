@@ -656,6 +656,13 @@
   <string name="setting_mcp_page_sse_url_placeholder">https://example.com/sse</string>
   <string name="setting_mcp_page_streamable_http_url_desc">URL address for Streamable HTTP server</string>
   <string name="setting_mcp_page_streamable_http_url_placeholder">https://example.com/mcp</string>
+  <string name="setting_mcp_page_command">Command</string>
+  <string name="setting_mcp_page_command_desc">Executable command for STDIO transport</string>
+  <string name="setting_mcp_page_args">Arguments</string>
+  <string name="setting_mcp_page_args_desc">Command arguments, separated by spaces</string>
+  <string name="setting_mcp_page_env_vars">Environment Variables</string>
+  <string name="setting_mcp_page_env_vars_desc">Environment variables for the child process</string>
+  <string name="setting_mcp_page_add_env_var">Add Variable</string>
   <string name="setting_mcp_page_title">MCP</string>
   <string name="setting_mcp_page_tools">Tools</string>
   <string name="setting_mcp_page_tools_unavailable_message">Cannot view tool list when adding MCP Server, please check back after adding</string>

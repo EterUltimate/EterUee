@@ -55,5 +55,19 @@ sealed class McpServerConfig {
             return copy(id = id, commonOptions = commonOptions)
         }
     }
+
+    @Serializable
+    @SerialName("stdio")
+    data class StdioTransportServer(
+        override val id: Uuid = Uuid.random(),
+        override val commonOptions: McpCommonOptions = McpCommonOptions(),
+        val command: String = "",
+        val args: List<String> = emptyList(),
+        val env: List<Pair<String, String>> = emptyList(),
+    ) : McpServerConfig() {
+        override fun clone(id: Uuid, commonOptions: McpCommonOptions): McpServerConfig {
+            return copy(id = id, commonOptions = commonOptions)
+        }
+    }
 }
 

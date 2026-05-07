@@ -9,6 +9,7 @@ import io.ktor.client.plugins.sse.SSE
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.util.StringValues
 import io.modelcontextprotocol.kotlin.sdk.client.Client
+import io.modelcontextprotocol.kotlin.sdk.client.StdioClientTransport
 import io.modelcontextprotocol.kotlin.sdk.shared.AbstractTransport
 import io.modelcontextprotocol.kotlin.sdk.shared.RequestOptions
 import io.modelcontextprotocol.kotlin.sdk.types.CallToolRequest
@@ -28,6 +29,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.ClassDiscriminatorMode
 import kotlinx.serialization.json.Json
+import kotlinx.io.asSource
+import kotlinx.io.asSink
+import kotlinx.io.buffered
 import kotlinx.serialization.json.JsonObject
 import com.eterultimate.eteruee.ai.core.InputSchema
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
@@ -77,6 +81,7 @@ class McpManager(
     }
 
     private val clients: MutableMap<McpServerConfig, Client> = mutableMapOf()
+    private val processes: MutableMap<Uuid, Process> = mutableMapOf()
     private val reconnectJobs: MutableMap<Uuid, Job> = mutableMapOf()
     private val reconnectAttempts: MutableMap<Uuid, Int> = mutableMapOf()
     val syncingStatus = MutableStateFlow<Map<Uuid, McpStatus>>(mapOf())
@@ -198,6 +203,23 @@ class McpManager(
                         }
                     })
                 }
+            )
+        }
+
+        is McpServerConfig.StdioTransportServer -> {
+            val commandParts = mutableListOf(config.command)
+            commandParts.addAll(config.args)
+            val processBuilder = ProcessBuilder(commandParts)
+            config.env.forEach { (key, value) ->
+                processBuilder.environment()[key] = value
+            }
+            val process = processBuilder.start()
+            processes[config.id] = process
+            Log.i(TAG, "Started stdio process: ${config.command} ${config.args.joinToString(" ")}")
+            StdioClientTransport(
+                input = process.inputStream.asSource().buffered(),
+                output = process.outputStream.asSink().buffered(),
+                error = process.errorStream.asSource().buffered(),
             )
         }
     }
@@ -335,6 +357,18 @@ class McpManager(
             clients.remove(entry.key)
             syncingStatus.emit(syncingStatus.value.toMutableMap().apply { remove(entry.key.id) })
             Log.i(TAG, "removeClient: ${entry.key} / ${entry.key.commonOptions.name}")
+        }
+        // Destroy stdio process if exists
+        processes.remove(config.id)?.let { process ->
+            runCatching {
+                process.destroy()
+                if (process.isAlive) {
+                    process.destroyForcibly()
+                }
+            }.onFailure {
+                Log.w(TAG, "Failed to destroy process for ${config.commonOptions.name}", it)
+            }
+            Log.i(TAG, "Destroyed stdio process for ${config.commonOptions.name}")
         }
         reconnectAttempts.remove(config.id)
     }

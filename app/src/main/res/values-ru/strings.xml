@@ -656,6 +656,13 @@
   <string name="setting_mcp_page_sse_url_placeholder">https://example.com/sse</string>
   <string name="setting_mcp_page_streamable_http_url_desc">URL-адрес для HTTP-сервера Streamable</string>
   <string name="setting_mcp_page_streamable_http_url_placeholder">https://example.com/mcp</string>
+  <string name="setting_mcp_page_command">Команда</string>
+  <string name="setting_mcp_page_command_desc">Исполняемая команда для транспорта STDIO</string>
+  <string name="setting_mcp_page_args">Аргументы</string>
+  <string name="setting_mcp_page_args_desc">Аргументы команды, разделённые пробелами</string>
+  <string name="setting_mcp_page_env_vars">Переменные окружения</string>
+  <string name="setting_mcp_page_env_vars_desc">Переменные окружения для дочернего процесса</string>
+  <string name="setting_mcp_page_add_env_var">Добавить переменную</string>
   <string name="setting_mcp_page_title">MCP</string>
   <string name="setting_mcp_page_tools">Инструменты</string>
   <string name="setting_mcp_page_tools_unavailable_message">Невозможно просмотреть список инструментов при добавлении MCP-сервера, пожалуйста, проверьте после добавления</string>

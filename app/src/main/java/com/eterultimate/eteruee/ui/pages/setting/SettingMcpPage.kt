@@ -12,6 +12,7 @@ import me.rerere.hugeicons.stroke.Console
 import me.rerere.hugeicons.stroke.Delete01
 import me.rerere.hugeicons.stroke.Upload02
 import me.rerere.hugeicons.stroke.Cancel01
+import me.rerere.hugeicons.stroke.Search01
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -63,7 +64,9 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -88,11 +91,13 @@ import kotlinx.serialization.json.jsonArray
 import com.eterultimate.eteruee.ai.core.InputSchema
 import me.rerere.hugeicons.stroke.McpServer
 import com.eterultimate.eteruee.R
+import com.eterultimate.eteruee.data.ai.mcp.LanScanner
 import com.eterultimate.eteruee.data.ai.mcp.McpManager
 import com.eterultimate.eteruee.data.ai.mcp.McpServerConfig
 import com.eterultimate.eteruee.data.ai.mcp.McpCommonOptions
 import com.eterultimate.eteruee.data.ai.mcp.McpStatus
 import com.eterultimate.eteruee.data.ai.mcp.McpTool
+import com.eterultimate.eteruee.data.ai.mcp.ScanResult
 import com.eterultimate.eteruee.ui.components.nav.BackButton
 import com.eterultimate.eteruee.ui.components.ui.FormItem
 import com.eterultimate.eteruee.ui.components.ui.Tag
@@ -768,6 +773,14 @@ private fun McpCommonOptionsConfigure(
             }
         }
 
+        // 局域网发现 & 连接测试（仅 SSE / Streamable HTTP）
+        if (config is McpServerConfig.SseTransportServer || config is McpServerConfig.StreamableHTTPServer) {
+            LanDiscoverySection(
+                config = config,
+                update = update
+            )
+        }
+
         HorizontalDivider()
 
         // 请求头配置
@@ -1176,3 +1189,241 @@ private fun McpImportModal(
         }
     }
 }
+
+@Composable
+private fun LanDiscoverySection(
+    config: McpServerConfig,
+    update: (McpServerConfig) -> Unit
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val scanner = remember { LanScanner(context) }
+    var wifiIp by remember { mutableStateOf<String?>(null) }
+    var isScanning by remember { mutableStateOf(false) }
+    var isTesting by remember { mutableStateOf(false) }
+    var testResult by remember { mutableStateOf<ScanResult?>(null) }
+    var scanResults by remember { mutableStateOf<List<ScanResult>>(emptyList()) }
+    var showResultsDialog by remember { mutableStateOf(false) }
+
+    var scanPort by remember { mutableStateOf("9000") }
+    var scanPath by remember { mutableStateOf("/mcp") }
+    var testUrl by remember {
+        mutableStateOf(
+            when (config) {
+                is McpServerConfig.SseTransportServer -> config.url
+                is McpServerConfig.StreamableHTTPServer -> config.url
+                else -> ""
+            }
+        )
+    }
+
+    LaunchedEffect(Unit) {
+        wifiIp = scanner.getWifiIpAddress()
+    }
+
+    FormItem(
+        label = { Text(stringResource(R.string.setting_mcp_page_lan_discovery)) },
+        description = { Text(stringResource(R.string.setting_mcp_page_lan_discovery_desc)) }
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // 本机 IP 显示
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.setting_mcp_page_your_ip),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = wifiIp ?: stringResource(R.string.setting_mcp_page_no_wifi_ip),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (wifiIp != null) MaterialTheme.colorScheme.primary
+                           else MaterialTheme.colorScheme.error
+                )
+            }
+
+            // 测试连接
+            if (wifiIp != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = testUrl,
+                        onValueChange = { testUrl = it },
+                        label = { Text(stringResource(R.string.setting_mcp_page_url_label)) },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
+                    )
+                    FilledTonalIconButton(
+                        onClick = {
+                            isTesting = true
+                            testResult = null
+                            scope.launch {
+                                testResult = scanner.testConnection(testUrl)
+                                isTesting = false
+                            }
+                        },
+                        enabled = !isTesting && testUrl.isNotBlank()
+                    ) {
+                        if (isTesting) {
+                            CircularProgressIndicator(
+                                Modifier.size(20.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(
+                                HugeIcons.Search01,
+                                contentDescription = null
+                            )
+                        }
+                    }
+                }
+
+                // 测试结果
+                testResult?.let { result ->
+                    Text(
+                        text = stringResource(
+                            if (result.isMcpServer) R.string.setting_mcp_page_test_success
+                            else R.string.setting_mcp_page_test_fail,
+                            result.responseTimeMs
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (result.isMcpServer) MaterialTheme.colorScheme.primary
+                               else MaterialTheme.colorScheme.error
+                    )
+                }
+
+                HorizontalDivider()
+
+                // 扫描子网
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = scanPort,
+                        onValueChange = { scanPort = it.filter { c -> c.isDigit() }.take(5) },
+                        label = { Text(stringResource(R.string.setting_mcp_page_scan_port)) },
+                        modifier = Modifier.width(80.dp),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = scanPath,
+                        onValueChange = { scanPath = it },
+                        label = { Text(stringResource(R.string.setting_mcp_page_scan_path)) },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
+                    )
+                    Button(
+                        onClick = {
+                            isScanning = true
+                            scanResults = emptyList()
+                            scope.launch {
+                                scanResults = scanner.scanSubnet(
+                                    port = scanPort.toIntOrNull() ?: 9000,
+                                    path = scanPath
+                                )
+                                isScanning = false
+                                if (scanResults.isNotEmpty()) {
+                                    showResultsDialog = true
+                                }
+                            }
+                        },
+                        enabled = !isScanning
+                    ) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            if (isScanning) {
+                                CircularProgressIndicator(
+                                    Modifier.size(16.dp),
+                                    strokeWidth = 2.dp
+                                )
+                                Text(stringResource(R.string.setting_mcp_page_scanning))
+                            } else {
+                                Icon(
+                                    HugeIcons.Search01,
+                                    contentDescription = null
+                                )
+                                Text(stringResource(R.string.setting_mcp_page_scan_subnet))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 扫描结果对话框
+    if (showResultsDialog) {
+        AlertDialog(
+            onDismissRequest = { showResultsDialog = false },
+            title = { Text(stringResource(R.string.setting_mcp_page_scan_results)) },
+            text = {
+                LazyColumn {
+                    items(scanResults) { result ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            onClick = {
+                                val newUrl = result.url
+                                update(
+                                    when (config) {
+                                        is McpServerConfig.SseTransportServer ->
+                                            config.copy(url = newUrl)
+                                        is McpServerConfig.StreamableHTTPServer ->
+                                            config.copy(url = newUrl)
+                                        else -> config
+                                    }
+                                )
+                                testUrl = newUrl
+                                showResultsDialog = false
+                            }
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        text = result.serverName ?: result.host,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Text(
+                                        text = result.url,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Text(
+                                    text = stringResource(
+                                        R.string.setting_mcp_page_response_time,
+                                        result.responseTimeMs
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showResultsDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+}
+

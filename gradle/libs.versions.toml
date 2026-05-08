@@ -1,7 +1,7 @@
 [versions]
 agp = "9.2.1"
 barcodeScanning = "17.3.0"
-cameraCore = "1.6.0"
+cameraCore = "1.6.1"
 dom4j = "2.2.0"
 jlatexmath = "1.3"
 kotlin = "2.3.21"

@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.eterultimate.eteruee.search"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 23

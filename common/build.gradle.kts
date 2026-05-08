@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.eterultimate.eteruee.common"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 26

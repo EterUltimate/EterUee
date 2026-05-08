@@ -85,14 +85,14 @@ jobs:
           fi
 
       - name: Upload APK artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-apk
           path: app/build/outputs/apk/release/*.apk
           retention-days: 30
 
       - name: Upload AAB artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-aab
           path: app/build/outputs/bundle/release/*.aab

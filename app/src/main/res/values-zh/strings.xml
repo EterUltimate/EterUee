@@ -89,6 +89,8 @@
   <string name="assistant_page_local_tools_tts_title">文字转语音</string>
   <string name="assistant_page_local_tools_ssh_title">SSH</string>
   <string name="assistant_page_local_tools_ssh_desc">通过 SSH 在远程服务器上执行命令（每次调用需提供连接信息）</string>
+  <string name="assistant_page_local_tools_shell_title">Shell</string>
+  <string name="assistant_page_local_tools_shell_desc">在本地设备上执行 Shell 命令（如已安装 Termux 则使用 Termux 环境，否则使用 Android Shell）</string>
   <string name="assistant_page_manage_memory_title">管理记忆</string>
   <string name="assistant_page_max_tokens">最大Token数</string>
   <string name="assistant_page_max_tokens_desc">最大生成Token数量。留空表示无限制。</string>

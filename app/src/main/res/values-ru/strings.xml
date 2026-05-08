@@ -89,6 +89,8 @@
   <string name="assistant_page_local_tools_tts_title">Преобразование текста в речь</string>
   <string name="assistant_page_local_tools_ssh_title">SSH</string>
   <string name="assistant_page_local_tools_ssh_desc">Выполнение команд на удалённых серверах через SSH (требуются данные подключения при каждом вызове)</string>
+  <string name="assistant_page_local_tools_shell_title">Shell</string>
+  <string name="assistant_page_local_tools_shell_desc">Выполнять команды оболочки на устройстве (использует Termux, если установлен, иначе Android shell)</string>
   <string name="assistant_page_manage_memory_title">Управление памятью</string>
   <string name="assistant_page_max_tokens">Макс. токенов</string>
   <string name="assistant_page_max_tokens_desc">Максимальное количество токенов для генерации. Оставьте пустым, чтобы не ограничивать.</string>

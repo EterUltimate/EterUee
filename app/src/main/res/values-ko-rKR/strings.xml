@@ -89,6 +89,8 @@
   <string name="assistant_page_local_tools_tts_title">텍스트 음성 변환</string>
   <string name="assistant_page_local_tools_ssh_title">SSH</string>
   <string name="assistant_page_local_tools_ssh_desc">SSH를 통해 원격 서버에서 명령 실행 (호출 시 연결 정보 필요)</string>
+  <string name="assistant_page_local_tools_shell_title">Shell</string>
+  <string name="assistant_page_local_tools_shell_desc">로컬 기기에서 셸 명령 실행 (Termux가 설치된 경우 Termux 사용, 그렇지 않으면 Android 셸)</string>
   <string name="assistant_page_manage_memory_title">기억 관리</string>
   <string name="assistant_page_max_tokens">최대 토큰</string>
   <string name="assistant_page_max_tokens_desc">생성할 최대 토큰 수. 제한 없음은 비워두세요.</string>

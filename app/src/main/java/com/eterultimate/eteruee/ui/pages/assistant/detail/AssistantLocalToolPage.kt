@@ -170,6 +170,20 @@ private fun AssistantLocalToolContent(
                     )
                 }
             )
+            item(
+                headlineContent = {
+                    Text(stringResource(R.string.assistant_page_local_tools_shell_title))
+                },
+                supportingContent = {
+                    Text(stringResource(R.string.assistant_page_local_tools_shell_desc))
+                },
+                trailingContent = {
+                    Switch(
+                        checked = assistant.localTools.contains(LocalToolOption.Shell),
+                        onCheckedChange = { toggleLocalTool(LocalToolOption.Shell, it) }
+                    )
+                }
+            )
         }
     }
 }

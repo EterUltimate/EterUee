@@ -89,6 +89,8 @@
   <string name="assistant_page_local_tools_tts_title">テキスト読み上げ</string>
   <string name="assistant_page_local_tools_ssh_title">SSH</string>
   <string name="assistant_page_local_tools_ssh_desc">SSH経由でリモートサーバーのコマンドを実行（接続情報は毎回必要）</string>
+  <string name="assistant_page_local_tools_shell_title">Shell</string>
+  <string name="assistant_page_local_tools_shell_desc">ローカルデバイスでシェルコマンドを実行（Termuxがインストールされている場合はTermuxを使用、そうでない場合はAndroidシェル）</string>
   <string name="assistant_page_manage_memory_title">記憶を管理</string>
   <string name="assistant_page_max_tokens">最大トークン数</string>
   <string name="assistant_page_max_tokens_desc">生成する最大トークン数。空白にすると制限なし。</string>

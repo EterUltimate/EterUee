@@ -49,6 +49,10 @@ sealed class LocalToolOption {
     @Serializable
     @SerialName("ssh")
     data object Ssh : LocalToolOption()
+
+    @Serializable
+    @SerialName("shell")
+    data object Shell : LocalToolOption()
 }
 
 class LocalTools(private val context: Context, private val eventBus: AppEventBus) {
@@ -310,6 +314,8 @@ class LocalTools(private val context: Context, private val eventBus: AppEventBus
 
     val sshTool by lazy { SshTools.createSshExecuteTool() }
 
+    val shellTool by lazy { ShellTools.createShellExecuteTool(context) }
+
     fun getTools(options: List<LocalToolOption>): List<Tool> {
         val tools = mutableListOf<Tool>()
         if (options.contains(LocalToolOption.JavascriptEngine)) {
@@ -329,6 +335,9 @@ class LocalTools(private val context: Context, private val eventBus: AppEventBus
         }
         if (options.contains(LocalToolOption.Ssh)) {
             tools.add(sshTool)
+        }
+        if (options.contains(LocalToolOption.Shell)) {
+            tools.add(shellTool)
         }
         return tools
     }

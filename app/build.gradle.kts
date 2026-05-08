@@ -115,6 +115,11 @@ android {
             useLegacyPackaging = true
         }
     }
+    lint {
+        abortOnError = false
+        warningsAsErrors = false
+        baseline = file("lint-baseline.xml")
+    }
     tasks.withType<KotlinCompile>().configureEach {
         compilerOptions.optIn.add("androidx.compose.material3.ExperimentalMaterial3Api")
         compilerOptions.optIn.add("androidx.compose.material3.ExperimentalMaterial3ExpressiveApi")

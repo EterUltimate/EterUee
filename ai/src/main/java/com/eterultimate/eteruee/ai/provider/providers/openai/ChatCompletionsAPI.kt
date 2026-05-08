@@ -410,9 +410,13 @@ class ChatCompletionsAPI(
     private fun buildMessages(messages: List<UIMessage>) = buildJsonArray {
         val filteredMessages = messages.filter { it.isValidToUpload() }
 
-        filteredMessages.forEach { message ->
+        // Find the index of the last user message
+        val lastUserIndex = filteredMessages.indexOfLast { it.role == MessageRole.USER }
+
+        filteredMessages.forEachIndexed { index, message ->
             if (message.role == MessageRole.ASSISTANT) {
-                addAssistantMessages(message, includeReasoning = true)
+                val includeReasoning = index > lastUserIndex
+                addAssistantMessages(message, includeReasoning = includeReasoning)
             } else {
                 addNonAssistantMessage(message)
             }

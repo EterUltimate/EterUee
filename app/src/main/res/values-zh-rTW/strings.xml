@@ -297,8 +297,11 @@
   <string name="citations_count">%1$d 條引用</string>
   <string name="code_block_collapse">摺疊</string>
   <string name="code_block_copy">複製代碼</string>
+  <string name="code_block_execute">執行</string>
+  <string name="code_block_executing">執行中...</string>
   <string name="code_block_expand">展開</string>
   <string name="code_block_preview">預覽</string>
+  <string name="code_block_result">執行結果</string>
   <string name="collapse_translation">收合翻譯</string>
   <string name="confirm">確認</string>
   <string name="confirm_delete">確認刪除</string>

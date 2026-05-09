@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +34,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,8 +71,12 @@ import me.rerere.hugeicons.stroke.ArrowUp01
 import me.rerere.hugeicons.stroke.Copy01
 import me.rerere.hugeicons.stroke.Download04
 import me.rerere.hugeicons.stroke.Eye
+import me.rerere.hugeicons.stroke.Play
+import me.rerere.hugeicons.stroke.Cancel01
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.Screen
+import com.eterultimate.eteruee.data.ai.tools.executeJavaScriptCode
+import com.eterultimate.eteruee.data.ai.tools.executePythonScript
 import com.eterultimate.eteruee.ui.context.LocalNavController
 import com.eterultimate.eteruee.ui.context.LocalSettings
 import com.eterultimate.eteruee.ui.context.Navigator
@@ -101,6 +110,7 @@ fun HighlightCodeBlock(
     val navController = LocalNavController.current
     val context = LocalContext.current
     val settings = LocalSettings.current
+    val colorScheme = MaterialTheme.colorScheme
 
     var isExpanded by remember(settings.displaySetting.codeBlockAutoCollapse) {
         mutableStateOf(!settings.displaySetting.codeBlockAutoCollapse)
@@ -124,6 +134,10 @@ fun HighlightCodeBlock(
         }
     }
 
+    var showExecResult by remember { mutableStateOf(false) }
+    var execResult by remember { mutableStateOf("") }
+    var isExecuting by remember { mutableStateOf(false) }
+
     Column(
         modifier = modifier
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
@@ -143,7 +157,35 @@ fun HighlightCodeBlock(
                 code = code,
                 createDocumentLauncher = createDocumentLauncher,
                 navController = navController,
+                colorScheme = colorScheme,
                 completeCodeBlock = completeCodeBlock,
+                isExecuting = isExecuting,
+                onExecute = {
+                    isExecuting = true
+                    showExecResult = true
+                    scope.launch(Dispatchers.IO) {
+                        val result = when (language.lowercase()) {
+                            "javascript", "js" -> executeJavaScriptCode(code)
+                            "python", "py" -> executePythonScript(code)
+                            else -> executeJavaScriptCode(code)
+                        }
+                        val output = buildString {
+                            result.result?.let { appendLine(it) }
+                            if (result.logs.isNotEmpty()) {
+                                appendLine("--- Logs ---")
+                                result.logs.forEach { appendLine(it) }
+                            }
+                            result.error?.let {
+                                appendLine("--- Error ---")
+                                appendLine(it)
+                            }
+                        }.trim()
+                        withContext(Dispatchers.Main) {
+                            execResult = output.ifBlank { "No output" }
+                            isExecuting = false
+                        }
+                    }
+                },
             )
         }
         Column(
@@ -184,6 +226,60 @@ fun HighlightCodeBlock(
                                 showLineNumbers = showLineNumbers,
                                 scrollState = scrollState,
                             )
+                        }
+                    }
+
+                    // Execution result
+                    if (showExecResult) {
+                        Spacer(Modifier.height(8.dp))
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    MaterialTheme.colorScheme.surfaceContainerHigh,
+                                    RoundedCornerShape(4.dp)
+                                )
+                                .padding(8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(id = R.string.code_block_result),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Icon(
+                                    imageVector = HugeIcons.Cancel01,
+                                    contentDescription = "Close",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                    modifier = Modifier
+                                        .size(14.dp)
+                                        .onClick { showExecResult = false }
+                                )
+                            }
+                            Spacer(Modifier.height(4.dp))
+                            if (isExecuting) {
+                                Text(
+                                    text = stringResource(id = R.string.code_block_executing),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            } else {
+                                SelectionContainer {
+                                    Text(
+                                        text = execResult,
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontFamily = JetbrainsMono,
+                                            fontSize = 11.sp,
+                                            lineHeight = 14.sp
+                                        ),
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
                         }
                     }
 
@@ -336,8 +432,12 @@ private fun HighlightCodeActions(
     code: String,
     createDocumentLauncher: ManagedActivityResultLauncher<String, Uri?>,
     navController: Navigator,
+    colorScheme: ColorScheme = MaterialTheme.colorScheme,
     completeCodeBlock: Boolean = true,
+    isExecuting: Boolean = false,
+    onExecute: () -> Unit = {},
 ) {
+    val context = LocalContext.current
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -408,7 +508,8 @@ private fun HighlightCodeActions(
                     .size(iconSize)
             )
 
-            if (completeCodeBlock && (language == "html" || language == "svg")) {
+            // Preview button for HTML, SVG, Markdown
+            if (completeCodeBlock && (language == "html" || language == "svg" || language == "markdown" || language == "md")) {
                 Icon(
                     imageVector = HugeIcons.Eye,
                     contentDescription = stringResource(id = R.string.code_block_preview),
@@ -416,12 +517,36 @@ private fun HighlightCodeActions(
                     modifier = Modifier
                         .clip(RoundedCornerShape(0.dp))
                         .onClick {
-                            val content = if (language == "svg") {
-                                """<!DOCTYPE html><html><body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;">$code</body></html>"""
-                            } else {
-                                code
+                            val content = when (language) {
+                                "svg" -> {
+                                    """<!DOCTYPE html><html><body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;">$code</body></html>"""
+                                }
+                                "markdown", "md" -> {
+                                    buildMarkdownPreviewHtml(
+                                        context = context,
+                                        markdown = code,
+                                        colorScheme = colorScheme
+                                    )
+                                }
+                                else -> code
                             }
                             navController.navigate(Screen.WebView(content = content.base64Encode()))
+                        }
+                        .padding(4.dp)
+                        .size(iconSize)
+                )
+            }
+
+            // Execute button for JavaScript and Python
+            if (completeCodeBlock && (language == "javascript" || language == "js" || language == "python" || language == "py")) {
+                Icon(
+                    imageVector = HugeIcons.Play,
+                    contentDescription = stringResource(id = R.string.code_block_execute),
+                    tint = if (isExecuting) MaterialTheme.colorScheme.primary else iconTint,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(0.dp))
+                        .onClick {
+                            if (!isExecuting) onExecute()
                         }
                         .padding(4.dp)
                         .size(iconSize)

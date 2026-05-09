@@ -297,8 +297,11 @@
   <string name="citations_count">%1$d 출처</string>
   <string name="code_block_collapse">접기</string>
   <string name="code_block_copy">코드 복사</string>
+  <string name="code_block_execute">실행</string>
+  <string name="code_block_executing">실행 중...</string>
   <string name="code_block_expand">펼치기</string>
   <string name="code_block_preview">미리보기</string>
+  <string name="code_block_result">실행 결과</string>
   <string name="collapse_translation">번역 접기</string>
   <string name="confirm">확인</string>
   <string name="confirm_delete">삭제 확인</string>

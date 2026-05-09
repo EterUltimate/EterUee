@@ -297,8 +297,11 @@
   <string name="citations_count">%1$d 件の引用</string>
   <string name="code_block_collapse">折りたたむ</string>
   <string name="code_block_copy">コードをコピー</string>
+  <string name="code_block_execute">実行</string>
+  <string name="code_block_executing">実行中...</string>
   <string name="code_block_expand">展開</string>
   <string name="code_block_preview">プレビュー</string>
+  <string name="code_block_result">実行結果</string>
   <string name="collapse_translation">翻訳を折りたたむ</string>
   <string name="confirm">確認</string>
   <string name="confirm_delete">削除を確認</string>

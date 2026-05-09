@@ -297,8 +297,11 @@
   <string name="citations_count">%1$d Citations</string>
   <string name="code_block_collapse">Collapse</string>
   <string name="code_block_copy">Copy Code</string>
+  <string name="code_block_execute">Run</string>
+  <string name="code_block_executing">Running...</string>
   <string name="code_block_expand">Expand</string>
   <string name="code_block_preview">Preview</string>
+  <string name="code_block_result">Result</string>
   <string name="collapse_translation">Collapse Translation</string>
   <string name="confirm">Confirm</string>
   <string name="confirm_delete">Confirm Delete</string>

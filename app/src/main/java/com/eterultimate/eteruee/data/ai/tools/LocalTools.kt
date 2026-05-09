@@ -31,6 +31,10 @@ sealed class LocalToolOption {
     data object JavascriptEngine : LocalToolOption()
 
     @Serializable
+    @SerialName("python_engine")
+    data object PythonEngine : LocalToolOption()
+
+    @Serializable
     @SerialName("time_info")
     data object TimeInfo : LocalToolOption()
 
@@ -53,6 +57,77 @@ sealed class LocalToolOption {
     @Serializable
     @SerialName("shell")
     data object Shell : LocalToolOption()
+}
+
+data class ScriptExecutionResult(
+    val result: String?,
+    val logs: List<String>,
+    val error: String?,
+)
+
+fun executeJavaScriptCode(code: String?): ScriptExecutionResult {
+    val logs = arrayListOf<String>()
+    val context = QuickJSContext.create()
+    return try {
+        context.setConsole(object : QuickJSContext.Console {
+            override fun log(info: String?) {
+                logs.add("[LOG] $info")
+            }
+
+            override fun info(info: String?) {
+                logs.add("[INFO] $info")
+            }
+
+            override fun warn(info: String?) {
+                logs.add("[WARN] $info")
+            }
+
+            override fun error(info: String?) {
+                logs.add("[ERROR] $info")
+            }
+        })
+        val result = context.evaluate(code)
+        ScriptExecutionResult(
+            result = when (result) {
+                null -> null
+                is QuickJSObject -> result.stringify()
+                else -> result.toString()
+            },
+            logs = logs,
+            error = null,
+        )
+    } catch (e: Exception) {
+        ScriptExecutionResult(
+            result = null,
+            logs = logs,
+            error = e.message ?: e.javaClass.simpleName,
+        )
+    } finally {
+        context.destroy()
+    }
+}
+
+fun executePythonScript(code: String?): ScriptExecutionResult {
+    return try {
+        val process = Runtime.getRuntime().exec(arrayOf("python3", "-c", code ?: ""))
+        process.outputStream.close()
+
+        val stdout = process.inputStream.bufferedReader(Charsets.UTF_8).readText()
+        val stderr = process.errorStream.bufferedReader(Charsets.UTF_8).readText()
+        val exitCode = process.waitFor()
+
+        ScriptExecutionResult(
+            result = stdout.ifBlank { null },
+            logs = emptyList(),
+            error = if (exitCode != 0) stderr.ifBlank { "Exit code: $exitCode" } else stderr.ifBlank { null },
+        )
+    } catch (e: Exception) {
+        ScriptExecutionResult(
+            result = null,
+            logs = emptyList(),
+            error = e.message ?: e.javaClass.simpleName,
+        )
+    }
 }
 
 class LocalTools(private val context: Context, private val eventBus: AppEventBus) {
@@ -79,39 +154,55 @@ class LocalTools(private val context: Context, private val eventBus: AppEventBus
                 )
             },
             execute = {
-                val logs = arrayListOf<String>()
-                val context = QuickJSContext.create()
-                context.setConsole(object : QuickJSContext.Console {
-                    override fun log(info: String?) {
-                        logs.add("[LOG] $info")
-                    }
-
-                    override fun info(info: String?) {
-                        logs.add("[INFO] $info")
-                    }
-
-                    override fun warn(info: String?) {
-                        logs.add("[WARN] $info")
-                    }
-
-                    override fun error(info: String?) {
-                        logs.add("[ERROR] $info")
-                    }
-                })
                 val code = it.jsonObject["code"]?.jsonPrimitive?.contentOrNull
-                val result = context.evaluate(code)
+                val execResult = executeJavaScriptCode(code)
                 val payload = buildJsonObject {
-                    if (logs.isNotEmpty()) {
-                        put("logs", JsonPrimitive(logs.joinToString("\n")))
+                    if (execResult.logs.isNotEmpty()) {
+                        put("logs", JsonPrimitive(execResult.logs.joinToString("\n")))
                     }
                     put(
                         key = "result",
-                        element = when (result) {
-                            null -> JsonNull
-                            is QuickJSObject -> JsonPrimitive(result.stringify())
-                            else -> JsonPrimitive(result.toString())
-                        }
+                        element = execResult.result?.let { r -> JsonPrimitive(r) } ?: JsonNull
                     )
+                    execResult.error?.let { err ->
+                        put("error", JsonPrimitive(err))
+                    }
+                }
+                listOf(UIMessagePart.Text(payload.toString()))
+            }
+        )
+    }
+
+    val pythonTool by lazy {
+        Tool(
+            name = "eval_python",
+            description = """
+                Execute Python code using the system python3 interpreter.
+                The result is the stdout output of the script.
+                stderr is captured and returned in 'error' field if the exit code is non-zero.
+                Example: 'print(1 + 2)' returns '3'.
+            """.trimIndent().replace("\n", " "),
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("code", buildJsonObject {
+                            put("type", "string")
+                            put("description", "The Python code to execute")
+                        })
+                    },
+                    required = listOf("code")
+                )
+            },
+            execute = {
+                val code = it.jsonObject["code"]?.jsonPrimitive?.contentOrNull
+                val execResult = executePythonScript(code)
+                val payload = buildJsonObject {
+                    execResult.result?.let { r ->
+                        put("result", JsonPrimitive(r))
+                    }
+                    execResult.error?.let { err ->
+                        put("error", JsonPrimitive(err))
+                    }
                 }
                 listOf(UIMessagePart.Text(payload.toString()))
             }
@@ -320,6 +411,9 @@ class LocalTools(private val context: Context, private val eventBus: AppEventBus
         val tools = mutableListOf<Tool>()
         if (options.contains(LocalToolOption.JavascriptEngine)) {
             tools.add(javascriptTool)
+        }
+        if (options.contains(LocalToolOption.PythonEngine)) {
+            tools.add(pythonTool)
         }
         if (options.contains(LocalToolOption.TimeInfo)) {
             tools.add(timeTool)

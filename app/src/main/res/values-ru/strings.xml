@@ -297,8 +297,11 @@
   <string name="citations_count">%1$d цитирований</string>
   <string name="code_block_collapse">Свернуть</string>
   <string name="code_block_copy">Копировать код</string>
+  <string name="code_block_execute">Выполнить</string>
+  <string name="code_block_executing">Выполнение...</string>
   <string name="code_block_expand">Развернуть</string>
   <string name="code_block_preview">Предпросмотр</string>
+  <string name="code_block_result">Результат</string>
   <string name="collapse_translation">Свернуть перевод</string>
   <string name="confirm">Подтвердить</string>
   <string name="confirm_delete">Подтвердить удаление</string>

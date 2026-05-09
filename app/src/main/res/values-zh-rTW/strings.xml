@@ -999,4 +999,34 @@
   <string name="reasoning_picker_hint">並非所有模型都支援深度調整。請參閱模型與提供者文件。</string>
   <string name="setting_page_built_in_tools_image_generation">圖像生成</string>
   <string name="setting_page_built_in_tools_image_generation_desc">啟用圖片生成功能</string>
+
+  <!-- Shell Page -->
+  <string name="shell_page_title">Shell</string>
+  <string name="shell_page_command_label">指令</string>
+  <string name="shell_page_command_hint">輸入 shell 指令...</string>
+  <string name="shell_page_execute">執行</string>
+  <string name="shell_page_empty_hint">輸入指令並點擊播放按鈕執行</string>
+  <string name="shell_page_termux_output_hint">指令已傳送至 Termux。請在 Termux 終端機查看輸出。</string>
+
+  <!-- SSH Page -->
+  <string name="ssh_page_title">SSH</string>
+  <string name="ssh_page_connection">連線</string>
+  <string name="ssh_page_host">主機</string>
+  <string name="ssh_page_port">連接埠</string>
+  <string name="ssh_page_username">使用者名稱</string>
+  <string name="ssh_page_password_auth">密碼</string>
+  <string name="ssh_page_key_auth">私鑰</string>
+  <string name="ssh_page_password">密碼</string>
+  <string name="ssh_page_private_key">私鑰 (PEM)</string>
+  <string name="ssh_page_passphrase">金鑰密碼</string>
+  <string name="ssh_page_command_label">指令</string>
+  <string name="ssh_page_command_hint">輸入遠端指令...</string>
+  <string name="ssh_page_execute">執行</string>
+  <string name="ssh_page_empty_hint">設定連線，輸入指令，然後點擊播放按鈕</string>
+
+  <!-- Setting Page - Shell/SSH entries -->
+  <string name="setting_page_shell">Shell</string>
+  <string name="setting_page_shell_desc">執行本地 shell 指令</string>
+  <string name="setting_page_ssh">SSH</string>
+  <string name="setting_page_ssh_desc">透過 SSH 連線遠端伺服器</string>
 </resources>

@@ -1002,5 +1002,35 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="reasoning_picker_hint">并非所有模型都支持深度调整。请参考模型和提供商文档。</string>
   <string name="setting_page_built_in_tools_image_generation">图像生成</string>
   <string name="setting_page_built_in_tools_image_generation_desc">启用图像生成功能</string>
+
+  <!-- Shell Page -->
+  <string name="shell_page_title">Shell</string>
+  <string name="shell_page_command_label">命令</string>
+  <string name="shell_page_command_hint">输入 shell 命令...</string>
+  <string name="shell_page_execute">执行</string>
+  <string name="shell_page_empty_hint">输入命令并点击播放按钮执行</string>
+  <string name="shell_page_termux_output_hint">命令已发送到 Termux。请在 Termux 终端查看输出。</string>
+
+  <!-- SSH Page -->
+  <string name="ssh_page_title">SSH</string>
+  <string name="ssh_page_connection">连接</string>
+  <string name="ssh_page_host">主机</string>
+  <string name="ssh_page_port">端口</string>
+  <string name="ssh_page_username">用户名</string>
+  <string name="ssh_page_password_auth">密码</string>
+  <string name="ssh_page_key_auth">私钥</string>
+  <string name="ssh_page_password">密码</string>
+  <string name="ssh_page_private_key">私钥 (PEM)</string>
+  <string name="ssh_page_passphrase">密钥密码</string>
+  <string name="ssh_page_command_label">命令</string>
+  <string name="ssh_page_command_hint">输入远程命令...</string>
+  <string name="ssh_page_execute">执行</string>
+  <string name="ssh_page_empty_hint">配置连接，输入命令，然后点击播放按钮</string>
+
+  <!-- Setting Page - Shell/SSH entries -->
+  <string name="setting_page_shell">Shell</string>
+  <string name="setting_page_shell_desc">执行本地 shell 命令</string>
+  <string name="setting_page_ssh">SSH</string>
+  <string name="setting_page_ssh_desc">通过 SSH 连接远程服务器</string>
 </resources>
 

@@ -1000,5 +1000,35 @@
   <string name="reasoning_xhigh">XHigh</string>
   <string name="reasoning_picker_title">Adjust Model Thinking Depth</string>
   <string name="reasoning_picker_hint">Not all models support depth adjustment. Refer to the model and provider documentation.</string>
+
+  <!-- Shell Page -->
+  <string name="shell_page_title">Shell</string>
+  <string name="shell_page_command_label">Command</string>
+  <string name="shell_page_command_hint">Enter shell command...</string>
+  <string name="shell_page_execute">Execute</string>
+  <string name="shell_page_empty_hint">Enter a command and tap the play button to execute</string>
+  <string name="shell_page_termux_output_hint">Command sent to Termux. Check Termux terminal for output.</string>
+
+  <!-- SSH Page -->
+  <string name="ssh_page_title">SSH</string>
+  <string name="ssh_page_connection">Connection</string>
+  <string name="ssh_page_host">Host</string>
+  <string name="ssh_page_port">Port</string>
+  <string name="ssh_page_username">Username</string>
+  <string name="ssh_page_password_auth">Password</string>
+  <string name="ssh_page_key_auth">Private Key</string>
+  <string name="ssh_page_password">Password</string>
+  <string name="ssh_page_private_key">Private Key (PEM)</string>
+  <string name="ssh_page_passphrase">Key Passphrase</string>
+  <string name="ssh_page_command_label">Command</string>
+  <string name="ssh_page_command_hint">Enter remote command...</string>
+  <string name="ssh_page_execute">Execute</string>
+  <string name="ssh_page_empty_hint">Configure connection, enter a command, and tap the play button</string>
+
+  <!-- Setting Page - Shell/SSH entries -->
+  <string name="setting_page_shell">Shell</string>
+  <string name="setting_page_shell_desc">Execute local shell commands</string>
+  <string name="setting_page_ssh">SSH</string>
+  <string name="setting_page_ssh_desc">Connect to remote servers via SSH</string>
 </resources>
 

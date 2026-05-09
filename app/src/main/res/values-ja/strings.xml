@@ -1001,4 +1001,34 @@ mDNSアドレス: .localホスト名を使用し、IPを知らなくても同じ
   <string name="reasoning_picker_hint">すべてのモデルが深さ調整に対応しているわけではありません。モデルおよびプロバイダーのドキュメントを参照してください。</string>
   <string name="setting_page_built_in_tools_image_generation">画像生成</string>
   <string name="setting_page_built_in_tools_image_generation_desc">画像生成機能を有効にする</string>
+
+  <!-- Shell Page -->
+  <string name="shell_page_title">Shell</string>
+  <string name="shell_page_command_label">コマンド</string>
+  <string name="shell_page_command_hint">シェルコマンドを入力...</string>
+  <string name="shell_page_execute">実行</string>
+  <string name="shell_page_empty_hint">コマンドを入力して、再生ボタンをタップして実行</string>
+  <string name="shell_page_termux_output_hint">コマンドを Termux に送信しました。Termux ターミナルで出力を確認してください。</string>
+
+  <!-- SSH Page -->
+  <string name="ssh_page_title">SSH</string>
+  <string name="ssh_page_connection">接続</string>
+  <string name="ssh_page_host">ホスト</string>
+  <string name="ssh_page_port">ポート</string>
+  <string name="ssh_page_username">ユーザー名</string>
+  <string name="ssh_page_password_auth">パスワード</string>
+  <string name="ssh_page_key_auth">秘密鍵</string>
+  <string name="ssh_page_password">パスワード</string>
+  <string name="ssh_page_private_key">秘密鍵 (PEM)</string>
+  <string name="ssh_page_passphrase">鍵のパスフレーズ</string>
+  <string name="ssh_page_command_label">コマンド</string>
+  <string name="ssh_page_command_hint">リモートコマンドを入力...</string>
+  <string name="ssh_page_execute">実行</string>
+  <string name="ssh_page_empty_hint">接続を設定し、コマンドを入力して、再生ボタンをタップ</string>
+
+  <!-- Setting Page - Shell/SSH entries -->
+  <string name="setting_page_shell">Shell</string>
+  <string name="setting_page_shell_desc">ローカルシェルコマンドを実行</string>
+  <string name="setting_page_ssh">SSH</string>
+  <string name="setting_page_ssh_desc">SSH でリモートサーバーに接続</string>
 </resources>

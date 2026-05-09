@@ -109,6 +109,8 @@ import com.eterultimate.eteruee.ui.pages.setting.SettingSearchPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingTTSPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingWebPage
 import com.eterultimate.eteruee.ui.pages.share.handler.ShareHandlerPage
+import com.eterultimate.eteruee.ui.pages.shell.ShellPage
+import com.eterultimate.eteruee.ui.pages.ssh.SshPage
 import com.eterultimate.eteruee.ui.pages.stats.StatsPage
 import com.eterultimate.eteruee.ui.pages.translator.TranslatorPage
 import com.eterultimate.eteruee.ui.pages.webview.WebViewPage
@@ -461,6 +463,14 @@ class RouteActivity : ComponentActivity() {
                             entry<Screen.Stats> {
                                 StatsPage()
                             }
+
+                            entry<Screen.Shell> {
+                                ShellPage()
+                            }
+
+                            entry<Screen.Ssh> {
+                                SshPage()
+                            }
                         }
                     )
                     if (BuildConfig.DEBUG) {
@@ -633,4 +643,10 @@ sealed interface Screen : NavKey {
 
     @Serializable
     data object Stats : Screen
+
+    @Serializable
+    data object Shell : Screen
+
+    @Serializable
+    data object Ssh : Screen
 }

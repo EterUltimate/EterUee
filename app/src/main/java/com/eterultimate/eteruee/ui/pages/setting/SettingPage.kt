@@ -55,6 +55,8 @@ import me.rerere.hugeicons.stroke.LookTop
 import me.rerere.hugeicons.stroke.McpServer
 import me.rerere.hugeicons.stroke.Megaphone01
 import me.rerere.hugeicons.stroke.Package
+import me.rerere.hugeicons.stroke.ComputerTerminal01
+import me.rerere.hugeicons.stroke.Connect
 import me.rerere.hugeicons.stroke.ServerStack01
 import me.rerere.hugeicons.stroke.Settings03
 import me.rerere.hugeicons.stroke.Share04
@@ -171,6 +173,18 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                         leadingContent = { Icon(HugeIcons.Package, null) },
                         supportingContent = { Text(stringResource(R.string.setting_page_extensions_desc)) },
                         headlineContent = { Text(stringResource(R.string.setting_page_extensions)) },
+                    )
+                    item(
+                        onClick = { navController.navigate(Screen.Shell) },
+                        leadingContent = { Icon(HugeIcons.ComputerTerminal01, null) },
+                        supportingContent = { Text(stringResource(R.string.setting_page_shell_desc)) },
+                        headlineContent = { Text(stringResource(R.string.setting_page_shell)) },
+                    )
+                    item(
+                        onClick = { navController.navigate(Screen.Ssh) },
+                        leadingContent = { Icon(HugeIcons.Connect, null) },
+                        supportingContent = { Text(stringResource(R.string.setting_page_ssh_desc)) },
+                        headlineContent = { Text(stringResource(R.string.setting_page_ssh)) },
                     )
                 }
             }

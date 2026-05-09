@@ -11,3 +11,5 @@ local.properties
 .cursor
 .history
 .kotlin
+# Node.js (sharp for icon generation)
+node_modules/

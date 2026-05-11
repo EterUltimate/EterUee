@@ -33,8 +33,8 @@ import kotlinx.io.asSource
 import kotlinx.io.asSink
 import kotlinx.io.buffered
 import kotlinx.serialization.json.JsonObject
-import com.eterultimate.eteruee.data.ai.mcp.McpConfig.McpServerConfig
-import com.eterultimate.eteruee.data.ai.mcp.McpConfig.McpTool
+import com.eterultimate.eteruee.data.ai.mcp.McpServerConfig
+import com.eterultimate.eteruee.data.ai.mcp.McpTool
 import com.eterultimate.eteruee.ai.core.InputSchema
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.AppScope
@@ -123,7 +123,7 @@ class McpManager(
         return clients.entries.find { it.key.id == config.id }?.value
     }
 
-    fun getAllAvailableTools(): List<Pair<java.util.UUID, McpTool>> {
+    fun getAllAvailableTools(): List<Pair<Uuid, McpTool>> {
         val settings = settingsStore.settingsFlow.value
         return settings.mcpServers
             .filter {
@@ -136,7 +136,7 @@ class McpManager(
             }
     }
 
-    suspend fun callTool(serverId: java.util.UUID, toolName: String, args: JsonObject): List<UIMessagePart> {
+    suspend fun callTool(serverId: Uuid, toolName: String, args: JsonObject): List<UIMessagePart> {
         val entry = clients.entries.find { it.key.id == serverId }
         val client = entry?.value
             ?: return listOf(UIMessagePart.Text("Failed to execute tool, because no such mcp client for the tool"))
@@ -147,7 +147,7 @@ class McpManager(
         val result = client.callTool(
             request = CallToolRequest(
                 params = CallToolRequestParams(
-                    name = tool.name,
+                    name = toolName,
                     arguments = args,
                 ),
             ),

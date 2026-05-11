@@ -144,9 +144,9 @@ class ChatService(
     private val _errors = MutableStateFlow<List<ChatError>>(emptyList())
     val errors: StateFlow<List<ChatError>> = _errors.asStateFlow()
 
-    fun addError(error: Throwable, conversationId: Uuid? = null, title: String? = null) {
+    fun addError(error: Throwable, conversationId: Uuid? = null, title: String? = null, solution: ChatErrorSolution? = null) {
         if (error is CancellationException) return
-        _errors.update { it + ChatError(title = title, error = error, conversationId = conversationId) }
+        _errors.update { it + ChatError(title = title, error = error, conversationId = conversationId, solution = solution) }
     }
 
     fun dismissError(id: Uuid) {

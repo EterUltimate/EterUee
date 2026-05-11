@@ -6,7 +6,9 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.put
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
@@ -14,6 +16,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import com.eterultimate.eteruee.ai.core.InputSchema
 import com.eterultimate.eteruee.search.SearchService.Companion.httpClient
 import com.eterultimate.eteruee.search.SearchService.Companion.json
+import com.eterultimate.eteruee.search.SearchResult.SearchResultItem
 
 object TinyfishSearchService : SearchService<SearchServiceOptions.TinyfishOptions> {
     override val name: String = "Tinyfish"
@@ -92,7 +95,7 @@ object TinyfishSearchService : SearchService<SearchServiceOptions.TinyfishOption
             val url = params["url"]?.jsonPrimitive?.content ?: error("url is required")
             val body = buildJsonObject {
                 put("urls", kotlinx.serialization.json.buildJsonArray {
-                    add(kotlinx.serialization.json.JsonPrimitive(url))
+                    add(JsonPrimitive(url))
                 })
                 put("format", "markdown")
             }

@@ -26,6 +26,13 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
 
+      - name: Bun cache
+        uses: actions/cache@v5
+        with:
+          path: web-ui/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('web-ui/bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+
       - name: Gradle cache
         uses: actions/cache@v5
         with:
@@ -63,6 +70,13 @@ jobs:
 
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
+
+      - name: Bun cache
+        uses: actions/cache@v5
+        with:
+          path: web-ui/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('web-ui/bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
 
       - name: Gradle cache
         uses: actions/cache@v5
@@ -102,6 +116,13 @@ jobs:
 
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
+
+      - name: Bun cache
+        uses: actions/cache@v5
+        with:
+          path: web-ui/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('web-ui/bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
 
       - name: Gradle cache
         uses: actions/cache@v5

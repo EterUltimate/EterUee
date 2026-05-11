@@ -1,0 +1,54 @@
+From 0f192cb3e5a7a92e69ae295ee236094c092d1f33 Mon Sep 17 00:00:00 2001
+From: re-ovo <1609403959@qq.com>
+Date: Fri, 8 May 2026 16:13:23 +0800
+Subject: [PATCH] =?UTF-8?q?fix:=20=E4=BF=AE=E5=A4=8D=E5=86=85=E8=81=94html?=
+ =?UTF-8?q?=E6=B8=B2=E6=9F=93?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+close #1168
+---
+ .../rikkahub/ui/components/richtext/Markdown.kt      | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/app/src/main/java/com/eterultimate/eteruee/ui/components/richtext/Markdown.kt b/app/src/main/java/com/eterultimate/eteruee/ui/components/richtext/Markdown.kt
+index 48af04a7..c81cd4cd 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/ui/components/richtext/Markdown.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/ui/components/richtext/Markdown.kt
+@@ -186,18 +186,18 @@ private fun MarkdownPreview() {
+ private data class MarkdownParseResult(
+     val preprocessed: String,
+     val astTree: ASTNode,
+-    val hasHtmlBlocks: Boolean,
++    val hasHtml: Boolean,
+ )
+ 
+-private fun ASTNode.containsHtmlBlocks(): Boolean {
+-    if (type == MarkdownElementTypes.HTML_BLOCK) return true
+-    return children.any { it.containsHtmlBlocks() }
++private fun ASTNode.containsHtml(): Boolean {
++    if (type == MarkdownElementTypes.HTML_BLOCK || type == MarkdownTokenTypes.HTML_TAG) return true
++    return children.any { it.containsHtml() }
+ }
+ 
+ private fun parseMarkdown(content: String): MarkdownParseResult {
+     val preprocessed = preProcess(content)
+     val astTree = parser.buildMarkdownTreeFromString(preprocessed)
+-    return MarkdownParseResult(preprocessed, astTree, astTree.containsHtmlBlocks())
++    return MarkdownParseResult(preprocessed, astTree, astTree.containsHtml())
+ }
+ 
+ @Composable
+@@ -221,7 +221,7 @@ fun MarkdownBlock(
+             .collect { setData(it) }
+     }
+ 
+-    if (data.hasHtmlBlocks) {
++    if (data.hasHtml) {
+         MarkdownNew(
+             content = content,
+             modifier = modifier,
+-- 
+2.53.0.windows.2
+

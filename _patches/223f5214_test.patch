@@ -1,0 +1,44 @@
+From 223f5214b9351fa32bbee18561545d0284ce03b7 Mon Sep 17 00:00:00 2001
+From: re-ovo <1609403959@qq.com>
+Date: Sun, 26 Apr 2026 00:30:54 +0800
+Subject: [PATCH] =?UTF-8?q?chore:=20=E6=96=B0=E5=A2=9E=20mimo=20v2.5=20?=
+ =?UTF-8?q?=E7=B3=BB=E5=88=97=E6=A8=A1=E5=9E=8B=E6=B3=A8=E5=86=8C=E8=A1=A8?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+
+diff --git a/ai/src/main/java/me/rerere/ai/registry/ModelRegistry.kt b/ai/src/main/java/me/rerere/ai/registry/ModelRegistry.kt
+index 9ee2fe08..d1d4a4e0 100644
+--- a/ai/src/main/java/me/rerere/ai/registry/ModelRegistry.kt
++++ b/ai/src/main/java/me/rerere/ai/registry/ModelRegistry.kt
+@@ -381,6 +381,17 @@ object ModelRegistry {
+         toolReasoningAbility()
+     }
+ 
++    private val XIAOMI_MIMO_V2_5 = defineModel {
++        tokens("mimo", "v", "2", "5")
++        visionInput()
++        toolReasoningAbility()
++    }
++
++    private val XIAOMI_MIMO_V2_5_PRO = defineModel {
++        tokens("mimo", "v", "2", "5", "pro")
++        toolReasoningAbility()
++    }
++
+     val QWEN_MT = defineModel {
+         tokens("qwen", "mt")
+     }
+@@ -447,6 +458,8 @@ object ModelRegistry {
+         MINIMAX_M2_7,
+         XIAOMI_MIMO_V2,
+         XIAOMI_MIMO_V2_PRO,
++        XIAOMI_MIMO_V2_5,
++        XIAOMI_MIMO_V2_5_PRO,
+         QWEN_MT
+     )
+ 
+-- 
+2.53.0.windows.2
+

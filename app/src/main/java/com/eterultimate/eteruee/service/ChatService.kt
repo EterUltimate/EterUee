@@ -522,7 +522,7 @@ class ChatService(
                             )
                         )
                     }
-                    mcpManager.getAllAvailableTools().forEach { tool ->
+                    mcpManager.getAllAvailableTools().forEach { (serverId, tool) ->
                         add(
                             Tool(
                                 name = "mcp__" + tool.name,
@@ -530,7 +530,7 @@ class ChatService(
                                 parameters = { tool.inputSchema },
                                 needsApproval = tool.needsApproval,
                                 execute = {
-                                    mcpManager.callTool(tool.name, it.jsonObject)
+                                    mcpManager.callTool(serverId, tool.name, it.jsonObject)
                                 },
                             )
                         )

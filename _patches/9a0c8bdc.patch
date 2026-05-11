@@ -1,0 +1,34 @@
+From 9a0c8bdca5efbd1e1b49d6df996ce121387d9543 Mon Sep 17 00:00:00 2001
+From: re-ovo <1609403959@qq.com>
+Date: Sun, 26 Apr 2026 17:17:40 +0800
+Subject: [PATCH] =?UTF-8?q?fix:=20=E7=A9=BA=20delta/message=20chunk=20?=
+ =?UTF-8?q?=E4=B8=8D=E5=86=8D=E6=8A=9B=E5=BC=82=E5=B8=B8=E5=AF=BC=E8=87=B4?=
+ =?UTF-8?q?=E5=9B=9E=E5=A4=8D=E6=B6=88=E5=A4=B1?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+当提供商返回 delta 和 message 均为 null 的 chunk 时，改为安全跳过
+而非抛出异常中断流式生成，避免已有回复内容因未持久化而丢失。
+
+Closes #1110
+---
+ ai/src/main/java/me/rerere/ai/ui/Message.kt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ai/src/main/java/me/rerere/ai/ui/Message.kt b/ai/src/main/java/me/rerere/ai/ui/Message.kt
+index fa61d629..3ec4b9ef 100644
+--- a/ai/src/main/java/me/rerere/ai/ui/Message.kt
++++ b/ai/src/main/java/me/rerere/ai/ui/Message.kt
+@@ -222,7 +222,7 @@ fun List<UIMessage>.handleMessageChunk(chunk: MessageChunk, model: Model? = null
+         "messages must not be empty"
+     }
+     val choice = chunk.choices.getOrNull(0) ?: return this
+-    val message = choice.delta ?: choice.message ?: throw Exception("delta/message is null")
++    val message = choice.delta ?: choice.message ?: return this
+     if (this.last().role != message.role) {
+         return this + (UIMessage(modelId = model?.id, role = message.role, parts = emptyList()) + chunk)
+     } else {
+-- 
+2.53.0.windows.2
+

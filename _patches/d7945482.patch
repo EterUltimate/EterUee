@@ -1,0 +1,1172 @@
+From d7945482dced6336d1aa80602c3b7b5c1dbe799d Mon Sep 17 00:00:00 2001
+From: re-ovo <1609403959@qq.com>
+Date: Sun, 10 May 2026 16:22:00 +0800
+Subject: [PATCH] =?UTF-8?q?feat:=20=E5=9B=BE=E7=89=87=E7=94=9F=E6=88=90?=
+ =?UTF-8?q?=E9=A1=B5=E6=94=AF=E6=8C=81=E7=BC=96=E8=BE=91=E5=9B=BE=E7=89=87?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../java/me/rerere/ai/provider/Provider.kt    |  18 +
+ .../ai/provider/providers/OpenAIProvider.kt   |  93 +++++
+ .../18.json                                   | 394 ++++++++++++++++++
+ .../com/eterultimate/eteruee/data/db/AppDatabase.kt |   3 +-
+ .../rikkahub/data/db/entity/GenMediaEntity.kt |  11 +-
+ .../com/eterultimate/eteruee/di/DataSourceModule.kt |   6 +-
+ .../rikkahub/ui/pages/imggen/ImgGenPage.kt    | 264 +++++++++---
+ .../rikkahub/ui/pages/imggen/ImgGenVM.kt      | 104 ++++-
+ 8 files changed, 835 insertions(+), 58 deletions(-)
+ create mode 100644 app/schemas/com.eterultimate.eteruee.data.db.AppDatabase/18.json
+
+diff --git a/ai/src/main/java/me/rerere/ai/provider/Provider.kt b/ai/src/main/java/me/rerere/ai/provider/Provider.kt
+index 9012727a..fe42468f 100644
+--- a/ai/src/main/java/me/rerere/ai/provider/Provider.kt
++++ b/ai/src/main/java/me/rerere/ai/provider/Provider.kt
+@@ -42,6 +42,13 @@ interface Provider<T : ProviderSetting> {
+         providerSetting: ProviderSetting,
+         params: ImageGenerationParams,
+     ): ImageGenerationResult
++
++    suspend fun editImage(
++        providerSetting: ProviderSetting,
++        params: ImageEditParams,
++    ): ImageGenerationResult {
++        error("Image edit is not supported")
++    }
+ }
+ 
+ @Serializable
+@@ -66,6 +73,17 @@ data class ImageGenerationParams(
+     val customBody: List<CustomBody> = emptyList(),
+ )
+ 
++@Serializable
++data class ImageEditParams(
++    val model: Model,
++    val prompt: String,
++    val images: List<String>,
++    val numOfImages: Int = 1,
++    val aspectRatio: ImageAspectRatio = ImageAspectRatio.SQUARE,
++    val customHeaders: List<CustomHeader> = emptyList(),
++    val customBody: List<CustomBody> = emptyList(),
++)
++
+ @Serializable
+ data class EmbeddingGenerationParams(
+     val model: Model,
+diff --git a/ai/src/main/java/me/rerere/ai/provider/providers/OpenAIProvider.kt b/ai/src/main/java/me/rerere/ai/provider/providers/OpenAIProvider.kt
+index 6c87508a..b964539f 100644
+--- a/ai/src/main/java/me/rerere/ai/provider/providers/OpenAIProvider.kt
++++ b/ai/src/main/java/me/rerere/ai/provider/providers/OpenAIProvider.kt
+@@ -14,6 +14,7 @@ import kotlinx.serialization.json.put
+ import kotlinx.serialization.json.putJsonArray
+ import me.rerere.ai.provider.EmbeddingGenerationParams
+ import me.rerere.ai.provider.EmbeddingGenerationResult
++import me.rerere.ai.provider.ImageEditParams
+ import me.rerere.ai.provider.ImageGenerationParams
+ import me.rerere.ai.provider.Model
+ import me.rerere.ai.provider.Provider
+@@ -32,10 +33,13 @@ import me.rerere.ai.util.mergeCustomBody
+ import me.rerere.ai.util.toHeaders
+ import me.rerere.common.http.await
+ import me.rerere.common.http.getByKey
++import okhttp3.MultipartBody
+ import okhttp3.MediaType.Companion.toMediaType
+ import okhttp3.OkHttpClient
+ import okhttp3.Request
++import okhttp3.RequestBody.Companion.asRequestBody
+ import okhttp3.RequestBody.Companion.toRequestBody
++import java.io.File
+ 
+ class OpenAIProvider(
+     private val client: OkHttpClient,
+@@ -246,4 +250,93 @@ class OpenAIProvider(
+ 
+         ImageGenerationResult(items = items)
+     }
++
++    override suspend fun editImage(
++        providerSetting: ProviderSetting,
++        params: ImageEditParams
++    ): ImageGenerationResult = withContext(Dispatchers.IO) {
++        require(providerSetting is ProviderSetting.OpenAI) {
++            "Expected OpenAI provider setting"
++        }
++        require(params.images.isNotEmpty()) {
++            "At least one image is required"
++        }
++
++        val key = keyRoulette.next(providerSetting.apiKey, providerSetting.id.toString())
++        val bodyBuilder = MultipartBody.Builder()
++            .setType(MultipartBody.FORM)
++            .addFormDataPart("model", params.model.modelId)
++            .addFormDataPart("prompt", params.prompt)
++            .addFormDataPart("n", params.numOfImages.toString())
++            .addFormDataPart(
++                "size", when (params.aspectRatio) {
++                    ImageAspectRatio.SQUARE -> "1024x1024"
++                    ImageAspectRatio.LANDSCAPE -> "1536x1024"
++                    ImageAspectRatio.PORTRAIT -> "1024x1536"
++                }
++            )
++
++        val imageFieldName = if (params.images.size == 1) "image" else "image[]"
++        params.images.forEach { path ->
++            val imageFile = File(path)
++            require(imageFile.exists()) {
++                "Image file does not exist: $path"
++            }
++            require(imageFile.extension.lowercase() in SUPPORTED_EDIT_IMAGE_EXTENSIONS) {
++                "Unsupported image file type for OpenAI edit: ${imageFile.extension}"
++            }
++            bodyBuilder.addFormDataPart(
++                imageFieldName,
++                imageFile.name,
++                imageFile.asRequestBody(imageFile.imageMediaType().toMediaType())
++            )
++        }
++
++        params.customBody.forEach { customBody ->
++            val value = when (val element = customBody.value) {
++                is JsonPrimitive -> element.contentOrNull ?: element.toString()
++                else -> element.toString()
++            }
++            bodyBuilder.addFormDataPart(customBody.key, value)
++        }
++
++        val request = Request.Builder()
++            .url("${providerSetting.baseUrl}/images/edits")
++            .headers(params.customHeaders.toHeaders())
++            .addHeader("Authorization", "Bearer $key")
++            .post(bodyBuilder.build())
++            .build()
++
++        val response = client.newCall(request).await()
++        if (!response.isSuccessful) {
++            error("Failed to edit image: ${response.code} ${response.body?.string()}")
++        }
++
++        val bodyStr = response.body?.string() ?: ""
++        val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
++        val data = bodyJson["data"]?.jsonArray ?: error("No data in response")
++
++        val items = data.map { imageJson ->
++            val imageObj = imageJson.jsonObject
++            val b64Json = imageObj["b64_json"]?.jsonPrimitive?.contentOrNull
++                ?: error("No b64_json in response")
++
++            ImageGenerationItem(
++                data = b64Json,
++                mimeType = "image/png"
++            )
++        }
++
++        ImageGenerationResult(items = items)
++    }
++
++    private fun File.imageMediaType(): String = when (extension.lowercase()) {
++        "jpg", "jpeg" -> "image/jpeg"
++        "webp" -> "image/webp"
++        else -> "image/png"
++    }
++
++    companion object {
++        private val SUPPORTED_EDIT_IMAGE_EXTENSIONS = setOf("png", "jpg", "jpeg", "webp")
++    }
+ }
+diff --git a/app/schemas/com.eterultimate.eteruee.data.db.AppDatabase/18.json b/app/schemas/com.eterultimate.eteruee.data.db.AppDatabase/18.json
+new file mode 100644
+index 00000000..415a5683
+--- /dev/null
++++ b/app/schemas/com.eterultimate.eteruee.data.db.AppDatabase/18.json
+@@ -0,0 +1,394 @@
++{
++  "formatVersion": 1,
++  "database": {
++    "version": 18,
++    "identityHash": "2eb59a1565b039306fcf01665a149fcf",
++    "entities": [
++      {
++        "tableName": "ConversationEntity",
++        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `assistant_id` TEXT NOT NULL DEFAULT '0950e2dc-9bd5-4801-afa3-aa887aa36b4e', `title` TEXT NOT NULL, `nodes` TEXT NOT NULL, `create_at` INTEGER NOT NULL, `update_at` INTEGER NOT NULL, `suggestions` TEXT NOT NULL DEFAULT '[]', `is_pinned` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`id`))",
++        "fields": [
++          {
++            "fieldPath": "id",
++            "columnName": "id",
++            "affinity": "TEXT",
++            "notNull": true
++          },
++          {
++            "fieldPath": "assistantId",
++            "columnName": "assistant_id",
++            "affinity": "TEXT",
++            "notNull": true,
++            "defaultValue": "'0950e2dc-9bd5-4801-afa3-aa887aa36b4e'"
++          },
++          {
++            "fieldPath": "title",
++            "columnName": "title",
++            "affinity": "TEXT",
++            "notNull": true
++          },
++          {
++            "fieldPath": "nodes",
++            "columnName": "nodes",
++            "affinity": "TEXT",
++            "notNull": true
++          },
++          {
++            "fieldPath": "createAt",
++            "columnName": "create_at",
++            "affinity": "INTEGER",
++            "notNull": true
++          },
++          {
++            "fieldPath": "updateAt",
++            "columnName": "update_at",
++            "affinity": "INTEGER",
++            "notNull": true
++          },
++          {
++            "fieldPath": "chatSuggestions",
++            "columnName": "suggestions",
++            "affinity": "TEXT",
++            "notNull": true,
++            "defaultValue": "'[]'"
++          },
++          {
++            "fieldPath": "isPinned",
++            "columnName": "is_pinned",
++            "affinity": "INTEGER",
++            "notNull": true,
++            "defaultValue": "0"
++          }
++        ],
++        "primaryKey": {
++          "autoGenerate": false,
++          "columnNames": [
++            "id"
++          ]
++        }
++      },
++      {
++        "tableName": "MemoryEntity",
++        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `assistant_id` TEXT NOT NULL, `content` TEXT NOT NULL)",
++        "fields": [
++          {
++            "fieldPath": "id",
++            "columnName": "id",
++            "affinity": "INTEGER",
++            "notNull": true
++          },
++          {
++            "fieldPath": "assistantId",
++            "columnName": "assistant_id",
++            "affinity": "TEXT",
++            "notNull": true
++          },
++          {
++            "fieldPath": "content",
++            "columnName": "content",
++            "affinity": "TEXT",
++            "notNull": true
++          }
++        ],
++        "primaryKey": {
++          "autoGenerate": true,
++          "columnNames": [
++            "id"
++          ]
++        }
++      },
++      {
++        "tableName": "GenMediaEntity",
++        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `path` TEXT NOT NULL, `model_id` TEXT NOT NULL, `prompt` TEXT NOT NULL, `create_at` INTEGER NOT NULL, `type` TEXT NOT NULL DEFAULT 'image_generation', `source_paths` TEXT)",
++        "fields": [
++          {
++            "fieldPath": "id",
++            "columnName": "id",
++            "affinity": "INTEGER",
++            "notNull": true
++          },
++          {
++            "fieldPath": "path",
++            "columnName": "path",
++            "affinity": "TEXT",
++            "notNull": true
++          },
++          {
++            "fieldPath": "modelId",
++            "columnName": "model_id",
++            "affinity": "TEXT",
++            "notNull": true
++          },
++          {
++            "fieldPath": "prompt",
++            "columnName": "prompt",
++            "affinity": "TEXT",
++            "notNull": true
++          },
++          {
++            "fieldPath": "createAt",
++            "columnName": "create_at",
++            "affinity": "INTEGER",
++            "notNull": true
++          },
++          {
++            "fieldPath": "type",
++            "columnName": "type",
++            "affinity": "TEXT",
++            "notNull": true,
++            "defaultValue": "'image_generation'"
++          },
++          {
++            "fieldPath": "sourcePaths",
++            "columnName": "source_paths",
++            "affinity": "TEXT"
++          }
++        ],
++        "primaryKey": {
++          "autoGenerate": true,
++          "columnNames": [
++            "id"
++          ]
++        }
++      },
++      {
++        "tableName": "message_node",
++        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `conversation_id` TEXT NOT NULL, `node_index` INTEGER NOT NULL, `messages` TEXT NOT NULL, `select_index` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`conversation_id`) REFERENCES `ConversationEntity`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
++        "fields": [
++          {
++            "fieldPath": "id",
++            "columnName": "id",
++            "affinity": "TEXT",
++            "notNull": true
++          },
++          {
++            "fieldPath": "conversationId",
++            "columnName": "conversation_id",
++            "affinity": "TEXT",
++            "notNull": true
++          },
++          {
++            "fieldPath": "nodeIndex",
++            "columnName": "node_index",
++            "affinity": "INTEGER",
++            "notNull": true
++          },
++          {
++            "fieldPath": "messages",
++            "columnName": "messages",
++            "affinity": "TEXT",
++            "notNull": true
++          },
++          {
++            "fieldPath": "selectIndex",
++            "columnName": "select_index",
++            "affinity": "INTEGER",
++            "notNull": true
++          }
++        ],
++        "primaryKey": {
++          "autoGenerate": false,
++          "columnNames": [
++            "id"
++          ]
++        },
++        "indices": [
++          {
++            "name": "index_message_node_conversation_id",
++            "unique": false,
++            "columnNames": [
++              "conversation_id"
++            ],
++            "orders": [],
++            "createSql": "CREATE INDEX IF NOT EXISTS `index_message_node_conversation_id` ON `${TABLE_NAME}` (`conversation_id`)"
++          }
++        ],
++        "foreignKeys": [
++          {
++            "table": "ConversationEntity",
++            "onDelete": "CASCADE",
++            "onUpdate": "NO ACTION",
++            "columns": [
++              "conversation_id"
++            ],
++            "referencedColumns": [
++              "id"
++            ]
++          }
++        ]
++      },
++      {
++        "tableName": "managed_files",
++        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `folder` TEXT NOT NULL, `relative_path` TEXT NOT NULL, `display_name` TEXT NOT NULL, `mime_type` TEXT NOT NULL, `size_bytes` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL)",
++        "fields": [
++          {
++            "fieldPath": "id",
++            "columnName": "id",
++            "affinity": "INTEGER",
++            "notNull": true
++          },
++          {
++            "fieldPath": "folder",
++            "columnName": "folder",
++            "affinity": "TEXT",
++            "notNull": true
++          },
++          {
++            "fieldPath": "relativePath",
++            "columnName": "relative_path",
++            "affinity": "TEXT",
++            "notNull": true
++          },
++          {
++            "fieldPath": "displayName",
++            "columnName": "display_name",
++            "affinity": "TEXT",
++            "notNull": true
++          },
++          {
++            "fieldPath": "mimeType",
++            "columnName": "mime_type",
++            "affinity": "TEXT",
++            "notNull": true
++          },
++          {
++            "fieldPath": "sizeBytes",
++            "columnName": "size_bytes",
++            "affinity": "INTEGER",
++            "notNull": true
++          },
++          {
++            "fieldPath": "createdAt",
++            "columnName": "created_at",
++            "affinity": "INTEGER",
++            "notNull": true
++          },
++          {
++            "fieldPath": "updatedAt",
++            "columnName": "updated_at",
++            "affinity": "INTEGER",
++            "notNull": true
++          }
++        ],
++        "primaryKey": {
++          "autoGenerate": true,
++          "columnNames": [
++            "id"
++          ]
++        },
++        "indices": [
++          {
++            "name": "index_managed_files_relative_path",
++            "unique": true,
++            "columnNames": [
++              "relative_path"
++            ],
++            "orders": [],
++            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_managed_files_relative_path` ON `${TABLE_NAME}` (`relative_path`)"
++          },
++          {
++            "name": "index_managed_files_folder",
++            "unique": false,
++            "columnNames": [
++              "folder"
++            ],
++            "orders": [],
++            "createSql": "CREATE INDEX IF NOT EXISTS `index_managed_files_folder` ON `${TABLE_NAME}` (`folder`)"
++          }
++        ]
++      },
++      {
++        "tableName": "favorites",
++        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `type` TEXT NOT NULL, `ref_key` TEXT NOT NULL, `ref_json` TEXT NOT NULL, `snapshot_json` TEXT NOT NULL, `meta_json` TEXT, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`id`))",
++        "fields": [
++          {
++            "fieldPath": "id",
++            "columnName": "id",
++            "affinity": "TEXT",
++            "notNull": true
++          },
++          {
++            "fieldPath": "type",
++            "columnName": "type",
++            "affinity": "TEXT",
++            "notNull": true
++          },
++          {
++            "fieldPath": "refKey",
++            "columnName": "ref_key",
++            "affinity": "TEXT",
++            "notNull": true
++          },
++          {
++            "fieldPath": "refJson",
++            "columnName": "ref_json",
++            "affinity": "TEXT",
++            "notNull": true
++          },
++          {
++            "fieldPath": "snapshotJson",
++            "columnName": "snapshot_json",
++            "affinity": "TEXT",
++            "notNull": true
++          },
++          {
++            "fieldPath": "metaJson",
++            "columnName": "meta_json",
++            "affinity": "TEXT"
++          },
++          {
++            "fieldPath": "createdAt",
++            "columnName": "created_at",
++            "affinity": "INTEGER",
++            "notNull": true
++          },
++          {
++            "fieldPath": "updatedAt",
++            "columnName": "updated_at",
++            "affinity": "INTEGER",
++            "notNull": true
++          }
++        ],
++        "primaryKey": {
++          "autoGenerate": false,
++          "columnNames": [
++            "id"
++          ]
++        },
++        "indices": [
++          {
++            "name": "index_favorites_ref_key",
++            "unique": true,
++            "columnNames": [
++              "ref_key"
++            ],
++            "orders": [],
++            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_favorites_ref_key` ON `${TABLE_NAME}` (`ref_key`)"
++          },
++          {
++            "name": "index_favorites_type",
++            "unique": false,
++            "columnNames": [
++              "type"
++            ],
++            "orders": [],
++            "createSql": "CREATE INDEX IF NOT EXISTS `index_favorites_type` ON `${TABLE_NAME}` (`type`)"
++          },
++          {
++            "name": "index_favorites_created_at",
++            "unique": false,
++            "columnNames": [
++              "created_at"
++            ],
++            "orders": [],
++            "createSql": "CREATE INDEX IF NOT EXISTS `index_favorites_created_at` ON `${TABLE_NAME}` (`created_at`)"
++          }
++        ]
++      }
++    ],
++    "setupQueries": [
++      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
++      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2eb59a1565b039306fcf01665a149fcf')"
++    ]
++  }
++}
+\ No newline at end of file
+diff --git a/app/src/main/java/com/eterultimate/eteruee/data/db/AppDatabase.kt b/app/src/main/java/com/eterultimate/eteruee/data/db/AppDatabase.kt
+index f039b41d..77efeb5c 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/data/db/AppDatabase.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/data/db/AppDatabase.kt
+@@ -31,7 +31,7 @@ import com.eterultimate.eteruee.utils.JsonInstant
+         ManagedFileEntity::class,
+         FavoriteEntity::class
+     ],
+-    version = 17,
++    version = 18,
+     autoMigrations = [
+         AutoMigration(from = 1, to = 2),
+         AutoMigration(from = 2, to = 3),
+@@ -44,6 +44,7 @@ import com.eterultimate.eteruee.utils.JsonInstant
+         AutoMigration(from = 10, to = 11),
+         AutoMigration(from = 12, to = 13),
+         AutoMigration(from = 16, to = 17, spec = Migration_16_17::class),
++        AutoMigration(from = 17, to = 18),
+     ]
+ )
+ @TypeConverters(TokenUsageConverter::class)
+diff --git a/app/src/main/java/com/eterultimate/eteruee/data/db/entity/GenMediaEntity.kt b/app/src/main/java/com/eterultimate/eteruee/data/db/entity/GenMediaEntity.kt
+index b9aef6e7..edd512b1 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/data/db/entity/GenMediaEntity.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/data/db/entity/GenMediaEntity.kt
+@@ -16,4 +16,13 @@ data class GenMediaEntity(
+     val prompt: String,
+     @ColumnInfo("create_at")
+     val createAt: Long,
+-)
++    @ColumnInfo(name = "type", defaultValue = TYPE_IMAGE_GENERATION)
++    val type: String = TYPE_IMAGE_GENERATION,
++    @ColumnInfo("source_paths")
++    val sourcePaths: String? = null,
++) {
++    companion object {
++        const val TYPE_IMAGE_GENERATION = "image_generation"
++        const val TYPE_IMAGE_EDIT = "image_edit"
++    }
++}
+diff --git a/app/src/main/java/com/eterultimate/eteruee/di/DataSourceModule.kt b/app/src/main/java/com/eterultimate/eteruee/di/DataSourceModule.kt
+index e1c10257..8f999e8d 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/di/DataSourceModule.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/di/DataSourceModule.kt
+@@ -179,7 +179,11 @@ val dataSourceModule = module {
+             .addNetworkInterceptor { chain ->
+                 val request = chain.request()
+                 val contentTypeHeader = request.header("Content-Type")
+-                if (contentTypeHeader != null && contentTypeHeader.contains(";")) {
++                if (
++                    contentTypeHeader != null &&
++                    contentTypeHeader.contains(";") &&
++                    contentTypeHeader.substringBefore(";").trim().equals("application/json", ignoreCase = true)
++                ) {
+                     chain.proceed(
+                         request.newBuilder()
+                             .header("Content-Type", contentTypeHeader.substringBefore(";").trim())
+diff --git a/app/src/main/java/com/eterultimate/eteruee/ui/pages/imggen/ImgGenPage.kt b/app/src/main/java/com/eterultimate/eteruee/ui/pages/imggen/ImgGenPage.kt
+index 492687a7..b71d908b 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/ui/pages/imggen/ImgGenPage.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/ui/pages/imggen/ImgGenPage.kt
+@@ -1,15 +1,11 @@
+ package com.eterultimate.eteruee.ui.pages.imggen
+ 
+-import me.rerere.hugeicons.HugeIcons
+-import me.rerere.hugeicons.stroke.Copy01
+-import me.rerere.hugeicons.stroke.Image03
+-import me.rerere.hugeicons.stroke.Colors
+-import me.rerere.hugeicons.stroke.FloppyDisk
+-import me.rerere.hugeicons.stroke.SendToMobile
+-import me.rerere.hugeicons.stroke.Tools
+-import me.rerere.hugeicons.stroke.Delete01
+ import androidx.activity.compose.BackHandler
++import androidx.activity.compose.rememberLauncherForActivityResult
++import androidx.activity.result.contract.ActivityResultContracts
++import androidx.compose.foundation.BorderStroke
+ import androidx.compose.foundation.clickable
++import androidx.compose.foundation.horizontalScroll
+ import androidx.compose.foundation.layout.Arrangement
+ import androidx.compose.foundation.layout.Box
+ import androidx.compose.foundation.layout.Column
+@@ -23,6 +19,7 @@ import androidx.compose.foundation.layout.consumeWindowInsets
+ import androidx.compose.foundation.layout.fillMaxSize
+ import androidx.compose.foundation.layout.fillMaxWidth
+ import androidx.compose.foundation.layout.height
++import androidx.compose.foundation.layout.heightIn
+ import androidx.compose.foundation.layout.imePadding
+ import androidx.compose.foundation.layout.padding
+ import androidx.compose.foundation.layout.size
+@@ -39,8 +36,8 @@ import androidx.compose.foundation.verticalScroll
+ import androidx.compose.material3.AlertDialog
+ import androidx.compose.material3.BottomSheetDefaults
+ import androidx.compose.material3.Card
+-import androidx.compose.material3.CircularProgressIndicator
+-import androidx.compose.material3.FilledTonalIconButton
++import androidx.compose.material3.CircularWavyProgressIndicator
++import androidx.compose.material3.ContainedLoadingIndicator
+ import androidx.compose.material3.FilterChip
+ import androidx.compose.material3.Icon
+ import androidx.compose.material3.IconButton
+@@ -51,6 +48,7 @@ import androidx.compose.material3.NavigationBarItem
+ import androidx.compose.material3.OutlinedTextField
+ import androidx.compose.material3.Scaffold
+ import androidx.compose.material3.SheetState
++import androidx.compose.material3.Surface
+ import androidx.compose.material3.Text
+ import androidx.compose.material3.TextButton
+ import androidx.compose.material3.TopAppBar
+@@ -82,11 +80,25 @@ import androidx.paging.compose.itemKey
+ import coil3.compose.AsyncImage
+ import com.dokar.sonner.ToastType
+ import kotlinx.coroutines.CoroutineScope
++import kotlinx.coroutines.Dispatchers
+ import kotlinx.coroutines.launch
++import kotlinx.coroutines.withContext
+ import me.rerere.ai.provider.ModelType
+ import me.rerere.ai.ui.ImageAspectRatio
++import me.rerere.common.android.appTempFolder
++import me.rerere.hugeicons.HugeIcons
++import me.rerere.hugeicons.stroke.Add01
++import me.rerere.hugeicons.stroke.ArrowUp02
++import me.rerere.hugeicons.stroke.Cancel01
++import me.rerere.hugeicons.stroke.Colors
++import me.rerere.hugeicons.stroke.Copy01
++import me.rerere.hugeicons.stroke.Delete01
++import me.rerere.hugeicons.stroke.FloppyDisk
++import me.rerere.hugeicons.stroke.Image03
++import me.rerere.hugeicons.stroke.Tools
+ import com.eterultimate.eteruee.R
+ import com.eterultimate.eteruee.data.datastore.Settings
++import com.eterultimate.eteruee.data.files.FileUtils
+ import com.eterultimate.eteruee.data.files.FilesManager
+ import com.eterultimate.eteruee.ui.components.ai.ModelSelector
+ import com.eterultimate.eteruee.ui.components.nav.BackButton
+@@ -94,9 +106,11 @@ import com.eterultimate.eteruee.ui.components.ui.FormItem
+ import com.eterultimate.eteruee.ui.components.ui.ImagePreviewDialog
+ import com.eterultimate.eteruee.ui.components.ui.OutlinedNumberInput
+ import com.eterultimate.eteruee.ui.context.LocalToaster
++import com.eterultimate.eteruee.utils.ImageUtils
+ import org.koin.androidx.compose.koinViewModel
+ import org.koin.compose.koinInject
+ import java.io.File
++import kotlin.uuid.Uuid
+ 
+ @Composable
+ fun ImageGenPage(
+@@ -219,6 +233,7 @@ private fun ImageGenScreen(
+     val aspectRatio by vm.aspectRatio.collectAsStateWithLifecycle()
+     val isGenerating by vm.isGenerating.collectAsStateWithLifecycle()
+     val currentGeneratedImages by vm.currentGeneratedImages.collectAsStateWithLifecycle()
++    val referenceImages by vm.referenceImages.collectAsStateWithLifecycle()
+     val error by vm.error.collectAsStateWithLifecycle()
+     val settings by vm.settingsStore.settingsFlow.collectAsStateWithLifecycle()
+     val scope = rememberCoroutineScope()
+@@ -240,32 +255,41 @@ private fun ImageGenScreen(
+             .padding(16.dp)
+             .imePadding()
+     ) {
+-        Row(
++        Box(
+             modifier = Modifier
+                 .fillMaxWidth()
+                 .weight(1f)
+                 .verticalScroll(rememberScrollState()),
+-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+         ) {
+-            (0 until minOf(2, currentGeneratedImages.size)).forEach { index ->
+-                val image = currentGeneratedImages[index]
+-                var showPreview by remember { mutableStateOf(false) }
+-                AsyncImage(
+-                    model = File(image.filePath),
+-                    contentDescription = null,
+-                    modifier = Modifier
+-                        .weight(1f)
+-                        .aspectRatio(1f)
+-                        .clip(RoundedCornerShape(8.dp))
+-                        .clickable { showPreview = true },
+-                    contentScale = ContentScale.Crop
++            if (isGenerating && currentGeneratedImages.isEmpty()) {
++                ContainedLoadingIndicator(
++                    modifier = Modifier.align(Alignment.Center)
+                 )
++            } else {
++                Row(
++                    horizontalArrangement = Arrangement.spacedBy(8.dp)
++                ) {
++                    (0 until minOf(2, currentGeneratedImages.size)).forEach { index ->
++                        val image = currentGeneratedImages[index]
++                        var showPreview by remember { mutableStateOf(false) }
++                        AsyncImage(
++                            model = File(image.filePath),
++                            contentDescription = null,
++                            modifier = Modifier
++                                .weight(1f)
++                                .aspectRatio(1f)
++                                .clip(RoundedCornerShape(8.dp))
++                                .clickable { showPreview = true },
++                            contentScale = ContentScale.Crop
++                        )
+ 
+-                if (showPreview) {
+-                    ImagePreviewDialog(
+-                        images = listOf(image.filePath),
+-                        onDismissRequest = { showPreview = false },
+-                    )
++                        if (showPreview) {
++                            ImagePreviewDialog(
++                                images = listOf(image.filePath),
++                                onDismissRequest = { showPreview = false },
++                            )
++                        }
++                    }
+                 }
+             }
+         }
+@@ -273,6 +297,8 @@ private fun ImageGenScreen(
+             prompt = prompt,
+             vm = vm,
+             isGenerating = isGenerating,
++            referenceImages = referenceImages,
++            settings = settings,
+             onShowSettings = { showSettingsSheet = true },
+             modifier = Modifier
+         )
+@@ -296,51 +322,183 @@ private fun InputBar(
+     prompt: String,
+     vm: ImgGenVM,
+     isGenerating: Boolean,
++    referenceImages: List<String>,
++    settings: Settings,
+     onShowSettings: () -> Unit,
+     modifier: Modifier = Modifier
+ ) {
+-    Row(
++    val context = LocalContext.current
++    val scope = rememberCoroutineScope()
++    val imagePickerLauncher =
++        rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { selectedUris ->
++            if (selectedUris.isNotEmpty()) {
++                scope.launch {
++                    val paths = selectedUris.mapNotNull { uri ->
++                        withContext(Dispatchers.IO) {
++                            runCatching {
++                                val bitmap = ImageUtils.loadOptimizedBitmap(context, uri, maxSize = 2048)
++                                    ?: error("Failed to decode image")
++                                val pngBytes = FileUtils.compressBitmapToPng(bitmap)
++                                bitmap.recycle()
++                                val file = File(context.appTempFolder, "imggen_ref_${Uuid.random()}.png")
++                                file.writeBytes(pngBytes)
++                                file.absolutePath
++                            }.getOrNull()
++                        }
++                    }
++                    vm.addReferenceImages(paths)
++                }
++            }
++        }
++
++    Column(
+         modifier = modifier.fillMaxWidth(),
+-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+-        verticalAlignment = Alignment.CenterVertically,
++        verticalArrangement = Arrangement.spacedBy(8.dp),
+     ) {
+-        IconButton(
+-            onClick = onShowSettings
+-        ) {
+-            Icon(HugeIcons.Tools, null)
++        if (referenceImages.isNotEmpty()) {
++            ReferenceImagesRow(
++                images = referenceImages,
++                onRemove = vm::removeReferenceImage
++            )
+         }
+ 
+         OutlinedTextField(
+             value = prompt,
+             onValueChange = vm::updatePrompt,
+             placeholder = { Text(stringResource(R.string.imggen_page_prompt_placeholder)) },
+-            modifier = Modifier.weight(1f),
++            modifier = Modifier
++                .fillMaxWidth()
++                .heightIn(max = 140.dp),
+             minLines = 1,
+             maxLines = 5,
+             shape = MaterialTheme.shapes.large,
+             textStyle = MaterialTheme.typography.bodySmall,
+         )
+ 
+-        FilledTonalIconButton(
+-            onClick = {
+-                if (!isGenerating) {
+-                    vm.generateImage()
+-                } else {
+-                    vm.cancelGeneration()
+-                }
+-            },
++        Row(
++            modifier = Modifier.fillMaxWidth(),
++            horizontalArrangement = Arrangement.spacedBy(6.dp),
++            verticalAlignment = Alignment.CenterVertically,
+         ) {
+-            if (isGenerating) {
+-                CircularProgressIndicator(
+-                    modifier = Modifier.size(20.dp),
+-                    strokeWidth = 2.dp
+-                )
+-            } else {
++            ModelSelector(
++                modelId = settings.imageGenerationModelId,
++                providers = settings.providers,
++                type = ModelType.IMAGE,
++                onlyIcon = true,
++                onSelect = { model ->
++                    scope.launch {
++                        vm.settingsStore.update { oldSettings ->
++                            oldSettings.copy(imageGenerationModelId = model.id)
++                        }
++                    }
++                }
++            )
++
++            IconButton(
++                onClick = onShowSettings
++            ) {
++                Icon(HugeIcons.Tools, null)
++            }
++
++            IconButton(
++                onClick = { imagePickerLauncher.launch("image/*") }
++            ) {
+                 Icon(
+-                    imageVector = HugeIcons.SendToMobile,
+-                    contentDescription = stringResource(R.string.imggen_page_generate_image)
++                    imageVector = HugeIcons.Add01,
++                    contentDescription = "Add reference image"
+                 )
+             }
++
++            Spacer(modifier = Modifier.weight(1f))
++
++            val canSend = prompt.isNotBlank()
++            Surface(
++                onClick = {
++                    if (!isGenerating) {
++                        if (referenceImages.isEmpty()) {
++                            vm.generateImage()
++                        } else {
++                            vm.editImage()
++                        }
++                    } else {
++                        vm.cancelGeneration()
++                    }
++                },
++                enabled = isGenerating || canSend,
++                modifier = Modifier.size(40.dp),
++                shape = CircleShape,
++                color = when {
++                    isGenerating -> MaterialTheme.colorScheme.errorContainer
++                    !canSend -> MaterialTheme.colorScheme.surfaceContainerHigh
++                    else -> MaterialTheme.colorScheme.primary
++                },
++            ) {
++                Box(
++                    modifier = Modifier.fillMaxSize(),
++                    contentAlignment = Alignment.Center,
++                ) {
++                    Icon(
++                        imageVector = if (isGenerating) HugeIcons.Cancel01 else HugeIcons.ArrowUp02,
++                        contentDescription = stringResource(R.string.imggen_page_generate_image),
++                        tint = when {
++                            isGenerating -> MaterialTheme.colorScheme.onErrorContainer
++                            !canSend -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
++                            else -> MaterialTheme.colorScheme.onPrimary
++                        },
++                        modifier = Modifier.size(20.dp)
++                    )
++                }
++            }
++        }
++    }
++}
++
++@Composable
++private fun ReferenceImagesRow(
++    images: List<String>,
++    onRemove: (String) -> Unit,
++) {
++    Row(
++        modifier = Modifier
++            .fillMaxWidth()
++            .horizontalScroll(rememberScrollState()),
++        horizontalArrangement = Arrangement.spacedBy(8.dp),
++    ) {
++        images.forEach { image ->
++            Surface(
++                modifier = Modifier.size(56.dp),
++                shape = RoundedCornerShape(12.dp),
++                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)),
++                color = MaterialTheme.colorScheme.surfaceContainerHigh,
++            ) {
++                Box {
++                    AsyncImage(
++                        model = File(image),
++                        contentDescription = null,
++                        contentScale = ContentScale.Crop,
++                        modifier = Modifier.fillMaxSize()
++                    )
++
++                    Surface(
++                        onClick = { onRemove(image) },
++                        modifier = Modifier
++                            .align(Alignment.TopEnd)
++                            .padding(3.dp)
++                            .size(20.dp),
++                        shape = CircleShape,
++                        color = MaterialTheme.colorScheme.scrim.copy(alpha = 0.55f),
++                    ) {
++                        Box(contentAlignment = Alignment.Center) {
++                            Icon(
++                                imageVector = HugeIcons.Delete01,
++                                contentDescription = null,
++                                tint = MaterialTheme.colorScheme.inverseOnSurface,
++                                modifier = Modifier.size(12.dp)
++                            )
++                        }
++                    }
++                }
++            }
+         }
+     }
+ }
+diff --git a/app/src/main/java/com/eterultimate/eteruee/ui/pages/imggen/ImgGenVM.kt b/app/src/main/java/com/eterultimate/eteruee/ui/pages/imggen/ImgGenVM.kt
+index 130ac73a..e5f0bfc7 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/ui/pages/imggen/ImgGenVM.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/ui/pages/imggen/ImgGenVM.kt
+@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.first
+ import kotlinx.coroutines.flow.map
+ import kotlinx.coroutines.launch
+ import kotlinx.serialization.Serializable
++import me.rerere.ai.provider.ImageEditParams
+ import me.rerere.ai.provider.ImageGenerationParams
+ import me.rerere.ai.provider.ProviderManager
+ import me.rerere.ai.ui.ImageAspectRatio
+@@ -78,6 +79,9 @@ class ImgGenVM(
+     private val _currentGeneratedImages = MutableStateFlow<List<GeneratedImage>>(emptyList())
+     val currentGeneratedImages: StateFlow<List<GeneratedImage>> = _currentGeneratedImages
+ 
++    private val _referenceImages = MutableStateFlow<List<String>>(emptyList())
++    val referenceImages: StateFlow<List<String>> = _referenceImages
++
+     val pager = Pager(
+         config = PagingConfig(pageSize = 20, enablePlaceholders = false),
+         pagingSourceFactory = { genMediaRepository.getAllMedia() }
+@@ -100,6 +104,20 @@ class ImgGenVM(
+         _aspectRatio.value = aspectRatio
+     }
+ 
++    fun addReferenceImages(paths: List<String>) {
++        _referenceImages.value = (_referenceImages.value + paths).distinct().take(MAX_REFERENCE_IMAGES)
++    }
++
++    fun removeReferenceImage(path: String) {
++        _referenceImages.value = _referenceImages.value.filterNot { it == path }
++        deleteReferenceFiles(listOf(path))
++    }
++
++    fun clearReferenceImages() {
++        deleteReferenceFiles(_referenceImages.value)
++        _referenceImages.value = emptyList()
++    }
++
+     fun clearError() {
+         _error.value = null
+     }
+@@ -165,15 +183,83 @@ class ImgGenVM(
+         }
+     }
+ 
++    fun editImage() {
++        if (prompt.value.isBlank() || referenceImages.value.isEmpty()) return
++        cancelJob?.cancel()
++        cancelJob = viewModelScope.launch {
++            try {
++                _isGenerating.value = true
++                _error.value = null
++                _currentGeneratedImages.value = emptyList()
++
++                val settings = settingsStore.settingsFlow.first()
++                val model = settings.findModelById(settings.imageGenerationModelId)
++                    ?: throw IllegalStateException("No model selected")
++
++                val provider = model.findProvider(settings.providers)
++                    ?: throw IllegalStateException("Provider not found")
++
++                val providerSetting = settings.providers.find { it.id == provider.id }
++                    ?: throw IllegalStateException("Provider setting not found")
++
++                val sourceImages = _referenceImages.value
++                val params = ImageEditParams(
++                    model = model,
++                    prompt = _prompt.value,
++                    images = sourceImages,
++                    numOfImages = _numberOfImages.value,
++                    aspectRatio = _aspectRatio.value,
++                    customHeaders = model.customHeaders,
++                    customBody = model.customBodies
++                )
++
++                val result = providerManager.getProviderByType(provider)
++                    .editImage(providerSetting, params)
++
++                val newImages = mutableListOf<GeneratedImage>()
++
++                result.items.forEachIndexed { index, item ->
++                    val imageFile = saveImageToStorage(
++                        item = item,
++                        prompt = _prompt.value,
++                        modelName = model.displayName,
++                        index = index,
++                        type = GenMediaEntity.TYPE_IMAGE_EDIT,
++                    )
++                    val generatedImage = GeneratedImage(
++                        id = 0, // Will be updated after database insertion
++                        prompt = _prompt.value,
++                        filePath = imageFile.absolutePath,
++                        timestamp = System.currentTimeMillis(),
++                        model = model.displayName
++                    )
++                    newImages.add(generatedImage)
++                }
++
++                _currentGeneratedImages.value = newImages
++                clearReferenceImages()
++            } catch (e: Exception) {
++                if (e is CancellationException) return@launch
++                Log.e(TAG, "Failed to edit image", e)
++                _error.value = e.message ?: "Unknown error occurred"
++            } finally {
++                _isGenerating.value = false
++            }
++        }
++    }
++
+     fun cancelGeneration() {
+         cancelJob?.cancel()
++        clearReferenceImages()
+     }
+ 
+     private suspend fun saveImageToStorage(
+         item: ImageGenerationItem,
+         prompt: String,
+         modelName: String,
+-        index: Int
++        index: Int,
++        type: String = GenMediaEntity.TYPE_IMAGE_GENERATION,
++        sourcePaths: String? = null,
+     ): File {
+         val imagesDir = filesManager.getImagesDir()
+ 
+@@ -189,7 +275,9 @@ class ImgGenVM(
+             path = relativePath,
+             modelId = modelName,
+             prompt = prompt,
+-            createAt = timestamp
++            createAt = timestamp,
++            type = type,
++            sourcePaths = sourcePaths,
+         )
+         genMediaRepository.insertMedia(entity)
+ 
+@@ -214,7 +302,19 @@ class ImgGenVM(
+         }
+     }
+ 
++    private fun deleteReferenceFiles(paths: List<String>) {
++        viewModelScope.launch {
++            paths.forEach { path ->
++                val file = File(path)
++                if (file.exists()) {
++                    file.delete()
++                }
++            }
++        }
++    }
++
+     companion object {
+         private const val TAG = "ImgGenVM"
++        private const val MAX_REFERENCE_IMAGES = 16
+     }
+ }
+-- 
+2.53.0.windows.2
+

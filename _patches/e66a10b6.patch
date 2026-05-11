@@ -1,0 +1,49 @@
+From e66a10b68fffcea9cf5b6c4fbfb23fd8d64da70f Mon Sep 17 00:00:00 2001
+From: re-ovo <1609403959@qq.com>
+Date: Sun, 26 Apr 2026 00:41:15 +0800
+Subject: [PATCH] =?UTF-8?q?fix:=20=E4=BB=A3=E7=A0=81=E5=9D=97=E6=B5=81?=
+ =?UTF-8?q?=E5=BC=8F=E8=BE=93=E5=87=BA=E6=97=B6=E9=9A=90=E8=97=8F=20HTML/S?=
+ =?UTF-8?q?VG=20=E9=A2=84=E8=A7=88=E6=8C=89=E9=92=AE?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+代码块未输出完毕时预览按钮仍会显示，点击会将不完整的代码传给
+WebView 渲染导致异常。将 completeCodeBlock 传递到 HighlightCodeActions
+并作为预览按钮的显示条件。
+---
+ .../rikkahub/ui/components/richtext/HighlightCodeBlock.kt     | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/app/src/main/java/com/eterultimate/eteruee/ui/components/richtext/HighlightCodeBlock.kt b/app/src/main/java/com/eterultimate/eteruee/ui/components/richtext/HighlightCodeBlock.kt
+index fd6e8eba..d5422ea6 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/ui/components/richtext/HighlightCodeBlock.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/ui/components/richtext/HighlightCodeBlock.kt
+@@ -140,6 +140,7 @@ fun HighlightCodeBlock(
+                 code = code,
+                 createDocumentLauncher = createDocumentLauncher,
+                 navController = navController,
++                completeCodeBlock = completeCodeBlock,
+             )
+         }
+         Column(
+@@ -332,6 +333,7 @@ private fun HighlightCodeActions(
+     code: String,
+     createDocumentLauncher: ManagedActivityResultLauncher<String, Uri?>,
+     navController: Navigator,
++    completeCodeBlock: Boolean = true,
+ ) {
+     Row(
+         modifier = Modifier.fillMaxWidth(),
+@@ -404,7 +406,7 @@ private fun HighlightCodeActions(
+                 }
+             )
+ 
+-            if (language == "html" || language == "svg") {
++            if (completeCodeBlock && (language == "html" || language == "svg")) {
+                 Text(
+                     text = stringResource(id = R.string.code_block_preview),
+                     fontSize = 12.sp,
+-- 
+2.53.0.windows.2
+

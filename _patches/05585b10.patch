@@ -1,0 +1,314 @@
+From 05585b105bdecd7a0005e073928d01862a904f62 Mon Sep 17 00:00:00 2001
+From: re-ovo <1609403959@qq.com>
+Date: Sun, 26 Apr 2026 00:31:27 +0800
+Subject: [PATCH] =?UTF-8?q?feat:=20=E6=B7=BB=E5=8A=A0=20OCR=20=E5=A4=84?=
+ =?UTF-8?q?=E7=90=86=E7=8A=B6=E6=80=81=20UI=20=E6=98=BE=E7=A4=BA?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+通过 TransformerContext 添加通用的 processingStatus 机制，
+在 OCR 识别图片时显示"正在识别图片..."提示，完成后自动消失。
+---
+ .../rikkahub/data/ai/GenerationHandler.kt     | 11 +++++--
+ .../data/ai/transformers/OcrTransformer.kt    | 32 ++++++++++++-------
+ .../data/ai/transformers/Transformer.kt       |  5 ++-
+ .../com/eterultimate/eteruee/service/ChatService.kt |  7 ++++
+ .../rikkahub/service/ConversationSession.kt   |  3 ++
+ .../rerere/rikkahub/ui/pages/chat/ChatList.kt | 26 ++++++++++++---
+ .../rerere/rikkahub/ui/pages/chat/ChatPage.kt |  5 +++
+ .../rerere/rikkahub/ui/pages/chat/ChatVM.kt   |  4 +++
+ 8 files changed, 72 insertions(+), 21 deletions(-)
+
+diff --git a/app/src/main/java/com/eterultimate/eteruee/data/ai/GenerationHandler.kt b/app/src/main/java/com/eterultimate/eteruee/data/ai/GenerationHandler.kt
+index 7f382ee3..a2697b04 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/data/ai/GenerationHandler.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/data/ai/GenerationHandler.kt
+@@ -4,6 +4,7 @@ import android.content.Context
+ import android.util.Log
+ import kotlinx.coroutines.Dispatchers
+ import kotlinx.coroutines.flow.Flow
++import kotlinx.coroutines.flow.MutableStateFlow
+ import kotlinx.coroutines.flow.flow
+ import kotlinx.coroutines.flow.flowOn
+ import kotlinx.datetime.TimeZone
+@@ -74,6 +75,7 @@ class GenerationHandler(
+         memories: List<AssistantMemory>? = null,
+         tools: List<Tool> = emptyList(),
+         maxSteps: Int = 256,
++        processingStatus: MutableStateFlow<String?> = MutableStateFlow(null),
+     ): Flow<GenerationChunk> = flow {
+         val provider = model.findProvider(settings.providers) ?: error("Provider not found")
+         val providerImpl = providerManager.getProviderByType(provider)
+@@ -146,7 +148,8 @@ class GenerationHandler(
+                     provider = provider,
+                     tools = toolsInternal,
+                     memories = memories ?: emptyList(),
+-                    stream = assistant.streamOutput
++                    stream = assistant.streamOutput,
++                    processingStatus = processingStatus,
+                 )
+                 messages = messages.visualTransforms(
+                     transformers = outputTransformers,
+@@ -330,7 +333,8 @@ class GenerationHandler(
+         provider: ProviderSetting,
+         tools: List<Tool>,
+         memories: List<AssistantMemory>,
+-        stream: Boolean
++        stream: Boolean,
++        processingStatus: MutableStateFlow<String?> = MutableStateFlow(null),
+     ) {
+         val internalMessages = buildList {
+             val system = buildString {
+@@ -362,7 +366,8 @@ class GenerationHandler(
+             context = context,
+             model = model,
+             assistant = assistant,
+-            settings = settings
++            settings = settings,
++            processingStatus = processingStatus,
+         )
+ 
+         var messages: List<UIMessage> = messages
+diff --git a/app/src/main/java/com/eterultimate/eteruee/data/ai/transformers/OcrTransformer.kt b/app/src/main/java/com/eterultimate/eteruee/data/ai/transformers/OcrTransformer.kt
+index b0be89e6..8869f42c 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/data/ai/transformers/OcrTransformer.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/data/ai/transformers/OcrTransformer.kt
+@@ -49,24 +49,32 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
+         messages: List<UIMessage>,
+     ): List<UIMessage> {
+         if (ctx.model.inputModalities.contains(Modality.IMAGE)) {
+-            // 如果模型支持图片输入，直接返回原始消息
+             return messages
+         }
+ 
+-        // 如果模型不支持图片输入，进行OCR转换
++        val hasImages = messages.any { message ->
++            message.parts.any { it is UIMessagePart.Image && it.url.startsWith("file:") }
++        }
++        if (!hasImages) return messages
++
+         return withContext(Dispatchers.IO) {
+-            messages.map { message ->
+-                message.copy(
+-                    parts = message.parts.map { part ->
+-                        when {
+-                            part is UIMessagePart.Image && part.url.startsWith("file:") -> {
+-                                UIMessagePart.Text(performOcr(part))
+-                            }
++            try {
++                ctx.processingStatus.value = "正在识别图片..."
++                messages.map { message ->
++                    message.copy(
++                        parts = message.parts.map { part ->
++                            when {
++                                part is UIMessagePart.Image && part.url.startsWith("file:") -> {
++                                    UIMessagePart.Text(performOcr(part))
++                                }
+ 
+-                            else -> part
++                                else -> part
++                            }
+                         }
+-                    }
+-                )
++                    )
++                }
++            } finally {
++                ctx.processingStatus.value = null
+             }
+         }
+     }
+diff --git a/app/src/main/java/com/eterultimate/eteruee/data/ai/transformers/Transformer.kt b/app/src/main/java/com/eterultimate/eteruee/data/ai/transformers/Transformer.kt
+index 5e4e3aa3..1c2f737a 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/data/ai/transformers/Transformer.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/data/ai/transformers/Transformer.kt
+@@ -1,6 +1,7 @@
+ package com.eterultimate.eteruee.data.ai.transformers
+ 
+ import android.content.Context
++import kotlinx.coroutines.flow.MutableStateFlow
+ import me.rerere.ai.provider.Model
+ import me.rerere.ai.ui.UIMessage
+ import com.eterultimate.eteruee.data.datastore.Settings
+@@ -11,6 +12,7 @@ class TransformerContext(
+     val model: Model,
+     val assistant: Assistant,
+     val settings: Settings,
++    val processingStatus: MutableStateFlow<String?> = MutableStateFlow(null),
+ )
+ 
+ interface MessageTransformer {
+@@ -61,8 +63,9 @@ suspend fun List<UIMessage>.transforms(
+     model: Model,
+     assistant: Assistant,
+     settings: Settings,
++    processingStatus: MutableStateFlow<String?> = MutableStateFlow(null),
+ ): List<UIMessage> {
+-    val ctx = TransformerContext(context, model, assistant, settings)
++    val ctx = TransformerContext(context, model, assistant, settings, processingStatus)
+     return transformers.fold(this) { acc, transformer ->
+         transformer.transform(ctx, acc)
+     }
+diff --git a/app/src/main/java/com/eterultimate/eteruee/service/ChatService.kt b/app/src/main/java/com/eterultimate/eteruee/service/ChatService.kt
+index f935c6d1..830fe359 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/service/ChatService.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/service/ChatService.kt
+@@ -245,6 +245,11 @@ class ChatService(
+         return session.generationJob
+     }
+ 
++    fun getProcessingStatusFlow(conversationId: Uuid): StateFlow<String?> {
++        val session = sessions[conversationId] ?: return MutableStateFlow(null)
++        return session.processingStatus
++    }
++
+     fun getConversationJobs(): Flow<Map<Uuid, Job?>> {
+         return _sessionsVersion.flatMapLatest {
+             val currentSessions = sessions.values.toList()
+@@ -479,9 +484,11 @@ class ChatService(
+             val conversation = getConversationFlow(conversationId).value
+ 
+             // start generating
++            val session = getOrCreateSession(conversationId)
+             generationHandler.generateText(
+                 settings = settings,
+                 model = model,
++                processingStatus = session.processingStatus,
+                 messages = conversation.currentMessages.let {
+                     if (messageRange != null) {
+                         it.subList(messageRange.start, messageRange.endInclusive + 1)
+diff --git a/app/src/main/java/com/eterultimate/eteruee/service/ConversationSession.kt b/app/src/main/java/com/eterultimate/eteruee/service/ConversationSession.kt
+index e1f68593..ea72cb31 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/service/ConversationSession.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/service/ConversationSession.kt
+@@ -27,6 +27,9 @@ class ConversationSession(
+     // 原子引用计数
+     private val refCount = AtomicInteger(0)
+ 
++    // 处理状态（如 OCR 识别中）
++    val processingStatus = MutableStateFlow<String?>(null)
++
+     // 生成任务（内聚在 session 中）
+     private val _generationJob = MutableStateFlow<Job?>(null)
+     val generationJob: StateFlow<Job?> = _generationJob.asStateFlow()
+diff --git a/app/src/main/java/com/eterultimate/eteruee/ui/pages/chat/ChatList.kt b/app/src/main/java/com/eterultimate/eteruee/ui/pages/chat/ChatList.kt
+index 3a80c547..04de3669 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/ui/pages/chat/ChatList.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/ui/pages/chat/ChatList.kt
+@@ -115,6 +115,7 @@ fun ChatList(
+     conversation: Conversation,
+     state: LazyListState,
+     loading: Boolean,
++    processingStatus: String? = null,
+     previewMode: Boolean,
+     settings: Settings,
+     hazeState: HazeState,
+@@ -156,6 +157,7 @@ fun ChatList(
+                 conversation = conversation,
+                 state = state,
+                 loading = loading,
++                processingStatus = processingStatus,
+                 settings = settings,
+                 hazeState = hazeState,
+                 errors = errors,
+@@ -184,6 +186,7 @@ private fun ChatListNormal(
+     conversation: Conversation,
+     state: LazyListState,
+     loading: Boolean,
++    processingStatus: String? = null,
+     settings: Settings,
+     hazeState: HazeState,
+     errors: List<ChatError>,
+@@ -354,11 +357,24 @@ private fun ChatListNormal(
+ 
+             if (loading) {
+                 item(LoadingIndicatorKey) {
+-                    RabbitLoadingIndicator(
+-                        modifier = Modifier
+-                            .padding(8.dp)
+-                            .size(28.dp)
+-                    )
++                    Row(
++                        modifier = Modifier.padding(8.dp),
++                        verticalAlignment = Alignment.CenterVertically,
++                        horizontalArrangement = Arrangement.spacedBy(8.dp),
++                    ) {
++                        RabbitLoadingIndicator(
++                            modifier = Modifier.size(28.dp)
++                        )
++                        AnimatedVisibility(
++                            visible = processingStatus != null,
++                        ) {
++                            Text(
++                                text = processingStatus ?: "",
++                                style = MaterialTheme.typography.labelMedium,
++                                color = MaterialTheme.colorScheme.onSurfaceVariant,
++                            )
++                        }
++                    }
+                 }
+             }
+ 
+diff --git a/app/src/main/java/com/eterultimate/eteruee/ui/pages/chat/ChatPage.kt b/app/src/main/java/com/eterultimate/eteruee/ui/pages/chat/ChatPage.kt
+index dad075a8..65b5f038 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/ui/pages/chat/ChatPage.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/ui/pages/chat/ChatPage.kt
+@@ -87,6 +87,7 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>, nodeId: Uuid? = null) {
+     val setting by vm.settings.collectAsStateWithLifecycle()
+     val conversation by vm.conversation.collectAsStateWithLifecycle()
+     val loadingJob by vm.conversationJob.collectAsStateWithLifecycle()
++    val processingStatus by vm.processingStatus.collectAsStateWithLifecycle()
+     val currentChatModel by vm.currentChatModel.collectAsStateWithLifecycle()
+     val enableWebSearch by vm.enableWebSearch.collectAsStateWithLifecycle()
+     val errors by vm.errors.collectAsStateWithLifecycle()
+@@ -175,6 +176,7 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>, nodeId: Uuid? = null) {
+                 ChatPageContent(
+                     inputState = inputState,
+                     loadingJob = loadingJob,
++                    processingStatus = processingStatus,
+                     setting = setting,
+                     conversation = conversation,
+                     drawerState = drawerState,
+@@ -206,6 +208,7 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>, nodeId: Uuid? = null) {
+                 ChatPageContent(
+                     inputState = inputState,
+                     loadingJob = loadingJob,
++                    processingStatus = processingStatus,
+                     setting = setting,
+                     conversation = conversation,
+                     drawerState = drawerState,
+@@ -231,6 +234,7 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>, nodeId: Uuid? = null) {
+ private fun ChatPageContent(
+     inputState: ChatInputState,
+     loadingJob: Job?,
++    processingStatus: String? = null,
+     setting: Settings,
+     bigScreen: Boolean,
+     conversation: Conversation,
+@@ -357,6 +361,7 @@ private fun ChatPageContent(
+                 conversation = conversation,
+                 state = chatListState,
+                 loading = loadingJob != null,
++                processingStatus = processingStatus,
+                 previewMode = previewMode,
+                 settings = setting,
+                 hazeState = hazeState,
+diff --git a/app/src/main/java/com/eterultimate/eteruee/ui/pages/chat/ChatVM.kt b/app/src/main/java/com/eterultimate/eteruee/ui/pages/chat/ChatVM.kt
+index 3183abad..888d8782 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/ui/pages/chat/ChatVM.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/ui/pages/chat/ChatVM.kt
+@@ -80,6 +80,10 @@ class ChatVM(
+             .getGenerationJobStateFlow(_conversationId)
+             .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+ 
++    val processingStatus: StateFlow<String?> =
++        chatService
++            .getProcessingStatusFlow(_conversationId)
++
+     val conversationJobs = chatService
+         .getConversationJobs()
+         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+-- 
+2.53.0.windows.2
+

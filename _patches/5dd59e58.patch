@@ -1,0 +1,56 @@
+From 5dd59e58d7d0659b14d8286aef6a84082e6fecd7 Mon Sep 17 00:00:00 2001
+From: re-ovo <1609403959@qq.com>
+Date: Sun, 10 May 2026 16:24:54 +0800
+Subject: [PATCH] =?UTF-8?q?feat:=20=E5=9B=BE=E7=89=87=E7=94=9F=E6=88=90?=
+ =?UTF-8?q?=E9=A1=B5=E6=94=AF=E6=8C=81=E7=BC=96=E8=BE=91=E5=9B=BE=E7=89=87?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../com/eterultimate/eteruee/ui/pages/imggen/ImgGenPage.kt     | 8 ++++++++
+ .../java/com/eterultimate/eteruee/ui/pages/imggen/ImgGenVM.kt  | 9 +++++++++
+ 2 files changed, 17 insertions(+)
+
+diff --git a/app/src/main/java/com/eterultimate/eteruee/ui/pages/imggen/ImgGenPage.kt b/app/src/main/java/com/eterultimate/eteruee/ui/pages/imggen/ImgGenPage.kt
+index b71d908b..24978406 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/ui/pages/imggen/ImgGenPage.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/ui/pages/imggen/ImgGenPage.kt
+@@ -143,6 +143,14 @@ fun ImageGenPage(
+                 },
+                 navigationIcon = {
+                     BackButton()
++                },
++                actions = {
++                    IconButton(onClick = vm::startNewSession) {
++                        Icon(
++                            imageVector = HugeIcons.Add01,
++                            contentDescription = "New session"
++                        )
++                    }
+                 }
+             )
+         },
+diff --git a/app/src/main/java/com/eterultimate/eteruee/ui/pages/imggen/ImgGenVM.kt b/app/src/main/java/com/eterultimate/eteruee/ui/pages/imggen/ImgGenVM.kt
+index e5f0bfc7..8366a84b 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/ui/pages/imggen/ImgGenVM.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/ui/pages/imggen/ImgGenVM.kt
+@@ -122,6 +122,15 @@ class ImgGenVM(
+         _error.value = null
+     }
+ 
++    fun startNewSession() {
++        cancelJob?.cancel()
++        clearReferenceImages()
++        _prompt.value = ""
++        _currentGeneratedImages.value = emptyList()
++        _error.value = null
++        _isGenerating.value = false
++    }
++
+     fun generateImage() {
+         if(prompt.value.isBlank()) return
+         cancelJob?.cancel()
+-- 
+2.53.0.windows.2
+

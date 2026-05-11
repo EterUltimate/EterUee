@@ -33,6 +33,8 @@ import kotlinx.io.asSource
 import kotlinx.io.asSink
 import kotlinx.io.buffered
 import kotlinx.serialization.json.JsonObject
+import com.eterultimate.eteruee.data.ai.mcp.McpConfig.McpServerConfig
+import com.eterultimate.eteruee.data.ai.mcp.McpConfig.McpTool
 import com.eterultimate.eteruee.ai.core.InputSchema
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.AppScope
@@ -121,28 +123,25 @@ class McpManager(
         return clients.entries.find { it.key.id == config.id }?.value
     }
 
-    fun getAllAvailableTools(): List<McpTool> {
+    fun getAllAvailableTools(): List<Pair<java.util.UUID, McpTool>> {
         val settings = settingsStore.settingsFlow.value
-        val assistant = settings.getCurrentAssistant()
-        val mcpServers = settings.mcpServers
+        return settings.mcpServers
             .filter {
-                it.commonOptions.enable && it.id in assistant.mcpServers
+                it.commonOptions.enable && it.id in settings.getCurrentAssistant().mcpServers
             }
-            .flatMap {
-                it.commonOptions.tools.filter { tool -> tool.enable }
+            .flatMap { server ->
+                server.commonOptions.tools
+                    .filter { tool -> tool.enable }
+                    .map { tool -> server.id to tool }
             }
-        return mcpServers
     }
 
-    suspend fun callTool(toolName: String, args: JsonObject): List<UIMessagePart> {
-        val tools = getAllAvailableTools()
-        val tool = tools.find { it.name == toolName }
-            ?: return listOf(UIMessagePart.Text("Failed to execute tool, because no such tool"))
-        val client =
-            clients.entries.find { it.key.commonOptions.tools.any { it.name == toolName } }?.value
-        if (client == null) return listOf(UIMessagePart.Text("Failed to execute tool, because no such mcp client for the tool"))
-        val config = clients.entries.first { it.value == client }.key
-        Log.i(TAG, "callTool: $toolName / $args")
+    suspend fun callTool(serverId: java.util.UUID, toolName: String, args: JsonObject): List<UIMessagePart> {
+        val entry = clients.entries.find { it.key.id == serverId }
+        val client = entry?.value
+            ?: return listOf(UIMessagePart.Text("Failed to execute tool, because no such mcp client for the tool"))
+        val config = entry.key
+        Log.i(TAG, "callTool: $toolName / $args (server: ${config.commonOptions.name})")
 
         if (client.transport == null) client.connect(getTransport(config))
         val result = client.callTool(

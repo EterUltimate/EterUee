@@ -1,0 +1,256 @@
+From 00e893951c45afc3a9149ed56479da1895ec315b Mon Sep 17 00:00:00 2001
+From: re-ovo <1609403959@qq.com>
+Date: Sat, 9 May 2026 18:27:08 +0800
+Subject: [PATCH] =?UTF-8?q?feat:=20=E9=94=99=E8=AF=AF=E6=B6=88=E6=81=AF?=
+ =?UTF-8?q?=E6=96=B0=E5=A2=9E=E5=BF=AB=E9=80=9F=E8=B7=B3=E8=BD=AC=E6=A8=A1?=
+ =?UTF-8?q?=E5=9E=8B=E8=AE=BE=E7=BD=AE=E9=A1=B5?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../java/com/eterultimate/eteruee/RouteActivity.kt  | 22 +++++------
+ .../com/eterultimate/eteruee/service/ChatService.kt | 25 +++++++++++--
+ .../rikkahub/ui/components/ui/ErrorCard.kt    | 37 +++++++++++++++++++
+ app/src/main/res/values-ja/strings.xml        |  1 +
+ app/src/main/res/values-ko-rKR/strings.xml    |  1 +
+ app/src/main/res/values-ru/strings.xml        |  1 +
+ app/src/main/res/values-zh-rTW/strings.xml    |  1 +
+ app/src/main/res/values-zh/strings.xml        |  1 +
+ app/src/main/res/values/strings.xml           |  1 +
+ 9 files changed, 75 insertions(+), 15 deletions(-)
+
+diff --git a/app/src/main/java/com/eterultimate/eteruee/RouteActivity.kt b/app/src/main/java/com/eterultimate/eteruee/RouteActivity.kt
+index 74a69230..9634ca50 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/RouteActivity.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/RouteActivity.kt
+@@ -32,10 +32,10 @@ import androidx.compose.runtime.LaunchedEffect
+ import androidx.compose.runtime.SideEffect
+ import androidx.compose.runtime.getValue
+ import androidx.compose.runtime.remember
+-import androidx.compose.ui.Alignment
+-import androidx.compose.ui.Modifier
+-import androidx.compose.ui.res.stringResource
+-import androidx.compose.ui.unit.dp
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.res.stringResource
++import androidx.compose.ui.unit.dp
+ import androidx.core.net.toUri
+ import androidx.lifecycle.compose.collectAsStateWithLifecycle
+ import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+@@ -257,13 +257,13 @@ class RouteActivity : ComponentActivity() {
+                 LocalToaster provides toastState,
+                 LocalTTSState provides tts,
+             ) {
+-                Toaster(
+-                    state = toastState,
+-                    darkTheme = LocalDarkMode.current,
+-                    richColors = true,
+-                    alignment = Alignment.TopCenter,
+-                    showCloseButton = true,
+-                )
++                Toaster(
++                    state = toastState,
++                    darkTheme = LocalDarkMode.current,
++                    richColors = true,
++                    alignment = Alignment.TopCenter,
++                    showCloseButton = true,
++                )
+                 TTSController()
+                 Box(
+                     modifier = Modifier
+diff --git a/app/src/main/java/com/eterultimate/eteruee/service/ChatService.kt b/app/src/main/java/com/eterultimate/eteruee/service/ChatService.kt
+index 830fe359..080f695d 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/service/ChatService.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/service/ChatService.kt
+@@ -96,9 +96,14 @@ data class ChatError(
+     val title: String? = null,
+     val error: Throwable,
+     val conversationId: Uuid? = null,
+-    val timestamp: Long = System.currentTimeMillis()
++    val timestamp: Long = System.currentTimeMillis(),
++    val solution: ChatErrorSolution? = null,
+ )
+ 
++enum class ChatErrorSolution {
++    CheckTitleModelSettings,
++}
++
+ private val inputTransformers by lazy {
+     listOf(
+         TimeReminderTransformer,
+@@ -139,9 +144,16 @@ class ChatService(
+     private val _errors = MutableStateFlow<List<ChatError>>(emptyList())
+     val errors: StateFlow<List<ChatError>> = _errors.asStateFlow()
+ 
+-    fun addError(error: Throwable, conversationId: Uuid? = null, title: String? = null) {
++    fun addError(
++        error: Throwable,
++        conversationId: Uuid? = null,
++        title: String? = null,
++        solution: ChatErrorSolution? = null,
++    ) {
+         if (error is CancellationException) return
+-        _errors.update { it + ChatError(title = title, error = error, conversationId = conversationId) }
++        _errors.update {
++            it + ChatError(title = title, error = error, conversationId = conversationId, solution = solution)
++        }
+     }
+ 
+     fun dismissError(id: Uuid) {
+@@ -694,7 +706,12 @@ class ChatService(
+             }
+         }.onFailure {
+             it.printStackTrace()
+-            addError(it, conversationId, title = context.getString(R.string.error_title_generate_title))
++            addError(
++                error = it,
++                conversationId = conversationId,
++                title = context.getString(R.string.error_title_generate_title),
++                solution = ChatErrorSolution.CheckTitleModelSettings,
++            )
+         }
+     }
+ 
+diff --git a/app/src/main/java/com/eterultimate/eteruee/ui/components/ui/ErrorCard.kt b/app/src/main/java/com/eterultimate/eteruee/ui/components/ui/ErrorCard.kt
+index 010bbd3d..bd2950ad 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/ui/components/ui/ErrorCard.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/ui/components/ui/ErrorCard.kt
+@@ -26,7 +26,13 @@ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.platform.ClipEntry
+ import androidx.compose.ui.platform.LocalClipboard
+ import androidx.compose.ui.res.stringResource
++import androidx.compose.ui.text.LinkAnnotation
++import androidx.compose.ui.text.SpanStyle
++import androidx.compose.ui.text.TextLinkStyles
++import androidx.compose.ui.text.buildAnnotatedString
++import androidx.compose.ui.text.style.TextDecoration
+ import androidx.compose.ui.text.style.TextOverflow
++import androidx.compose.ui.text.withLink
+ import androidx.compose.ui.unit.dp
+ import kotlinx.coroutines.delay
+ import kotlinx.coroutines.launch
+@@ -35,7 +41,10 @@ import me.rerere.hugeicons.stroke.Cancel01
+ import me.rerere.hugeicons.stroke.Copy01
+ import me.rerere.hugeicons.stroke.Delete01
+ import com.eterultimate.eteruee.R
++import com.eterultimate.eteruee.Screen
+ import com.eterultimate.eteruee.service.ChatError
++import com.eterultimate.eteruee.service.ChatErrorSolution
++import com.eterultimate.eteruee.ui.context.LocalNavController
+ import kotlin.uuid.Uuid
+ 
+ @Composable
+@@ -100,7 +109,10 @@ fun ErrorCard(
+     modifier: Modifier = Modifier,
+ ) {
+     val clipboard = LocalClipboard.current
++    val navController = LocalNavController.current
+     val scope = rememberCoroutineScope()
++    val checkTitleModelSettings = stringResource(R.string.chat_page_check_title_model_settings)
++    val linkColor = MaterialTheme.colorScheme.primary
+ 
+     // 5 秒后自动消失
+     LaunchedEffect(error.id) {
+@@ -140,6 +152,31 @@ fun ErrorCard(
+                     color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f),
+                     overflow = TextOverflow.Ellipsis,
+                 )
++                if (error.solution == ChatErrorSolution.CheckTitleModelSettings) {
++                    Text(
++                        text = buildAnnotatedString {
++                            withLink(
++                                LinkAnnotation.Clickable(
++                                    tag = "check_title_model_settings",
++                                    styles = TextLinkStyles(
++                                        style = SpanStyle(
++                                            color = linkColor,
++                                            textDecoration = TextDecoration.Underline,
++                                        )
++                                    ),
++                                    linkInteractionListener = {
++                                        navController.navigate(Screen.SettingModels)
++                                    },
++                                )
++                            ) {
++                                append(checkTitleModelSettings)
++                            }
++                        },
++                        style = MaterialTheme.typography.bodySmall,
++                        maxLines = 1,
++                        overflow = TextOverflow.Ellipsis,
++                    )
++                }
+             }
+             IconButton(
+                 onClick = {
+diff --git a/app/src/main/res/values-ja/strings.xml b/app/src/main/res/values-ja/strings.xml
+index d31209b2..f37b91bc 100644
+--- a/app/src/main/res/values-ja/strings.xml
++++ b/app/src/main/res/values-ja/strings.xml
+@@ -984,5 +984,6 @@ mDNSアドレス: .localホスト名を使用し、IPを知らなくても同じ
+   <string name="setting_provider_page_claude_prompt_cache_ttl_5m">5分</string>
+   <string name="setting_provider_page_claude_prompt_cache_ttl">プロンプトキャッシュ TTL</string>
+   <string name="assistant_page_temperature_warning">通常は 1 です。推論モデルでは変更を推奨しません。</string>
++  <string name="chat_page_check_title_model_settings">タイトルモデル設定を確認</string>
+ </resources>
+ 
+diff --git a/app/src/main/res/values-ko-rKR/strings.xml b/app/src/main/res/values-ko-rKR/strings.xml
+index a9dcc1c9..fdeec9ce 100644
+--- a/app/src/main/res/values-ko-rKR/strings.xml
++++ b/app/src/main/res/values-ko-rKR/strings.xml
+@@ -984,5 +984,6 @@ mDNS 주소: .local 호스트네임을 사용하며, IP를 몰라도 같은 네
+   <string name="setting_provider_page_claude_prompt_cache_ttl_5m">5분</string>
+   <string name="setting_provider_page_claude_prompt_cache_ttl">프롬프트 캐시 TTL</string>
+   <string name="assistant_page_temperature_warning">일반적으로 1입니다. 추론 모델에서는 변경을 권장하지 않습니다.</string>
++  <string name="chat_page_check_title_model_settings">제목 모델 설정 확인</string>
+ </resources>
+ 
+diff --git a/app/src/main/res/values-ru/strings.xml b/app/src/main/res/values-ru/strings.xml
+index 0670ade7..d24b3dfd 100644
+--- a/app/src/main/res/values-ru/strings.xml
++++ b/app/src/main/res/values-ru/strings.xml
+@@ -984,5 +984,6 @@
+   <string name="setting_provider_page_claude_prompt_cache_ttl_5m">5 минут</string>
+   <string name="setting_provider_page_claude_prompt_cache_ttl">TTL кэша промпта</string>
+   <string name="assistant_page_temperature_warning">Обычно 1. Для моделей рассуждения изменение не рекомендуется.</string>
++  <string name="chat_page_check_title_model_settings">Проверьте настройки модели заголовков</string>
+ </resources>
+ 
+diff --git a/app/src/main/res/values-zh-rTW/strings.xml b/app/src/main/res/values-zh-rTW/strings.xml
+index a7e51cc8..73cc6cd6 100644
+--- a/app/src/main/res/values-zh-rTW/strings.xml
++++ b/app/src/main/res/values-zh-rTW/strings.xml
+@@ -982,5 +982,6 @@
+   <string name="setting_provider_page_claude_prompt_cache_ttl_5m">5 分鐘</string>
+   <string name="setting_provider_page_claude_prompt_cache_ttl">提示快取時長</string>
+   <string name="assistant_page_temperature_warning">通常為 1。對於推理模型不建議修改。</string>
++  <string name="chat_page_check_title_model_settings">檢查標題模型設定</string>
+ </resources>
+ 
+diff --git a/app/src/main/res/values-zh/strings.xml b/app/src/main/res/values-zh/strings.xml
+index 859e8533..63a937fa 100644
+--- a/app/src/main/res/values-zh/strings.xml
++++ b/app/src/main/res/values-zh/strings.xml
+@@ -984,5 +984,6 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过
+   <string name="setting_provider_page_claude_prompt_cache_ttl_5m">5 分钟</string>
+   <string name="setting_provider_page_claude_prompt_cache_ttl">提示缓存时长</string>
+   <string name="assistant_page_temperature_warning">通常为 1。对于推理模型不建议修改。</string>
++  <string name="chat_page_check_title_model_settings">检查标题模型设置</string>
+ </resources>
+ 
+diff --git a/app/src/main/res/values/strings.xml b/app/src/main/res/values/strings.xml
+index 6e03fb25..f2655af9 100644
+--- a/app/src/main/res/values/strings.xml
++++ b/app/src/main/res/values/strings.xml
+@@ -982,5 +982,6 @@
+   <string name="setting_provider_page_claude_prompt_cache_ttl_1h">1 hour</string>
+   <string name="setting_provider_page_claude_prompt_cache_ttl_5m">5 minutes</string>
+   <string name="assistant_page_temperature_warning">Usually 1. Not recommended to change for reasoning models.</string>
++  <string name="chat_page_check_title_model_settings">Check title model settings</string>
+ </resources>
+ 
+-- 
+2.53.0.windows.2
+

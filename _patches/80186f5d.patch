@@ -1,0 +1,213 @@
+From 80186f5de6308c3405b362bbb18a6118f86d1a9c Mon Sep 17 00:00:00 2001
+From: re-ovo <1609403959@qq.com>
+Date: Wed, 6 May 2026 18:50:56 +0800
+Subject: [PATCH] =?UTF-8?q?fix:=20=E9=80=82=E9=85=8DAndroid=2017=20ACCESS?=
+ =?UTF-8?q?=5FLOCAL=5FNETWORK=E6=9D=83=E9=99=90?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+web端适配ACCESS_LOCAL_NETWORK权限
+---
+ app/src/main/AndroidManifest.xml                     |  1 +
+ app/src/main/java/com/eterultimate/eteruee/RikkaHubApp.kt  | 10 ++++++++++
+ .../ui/components/ui/permission/PermissionTypes.kt   |  8 ++++++++
+ .../rikkahub/ui/pages/setting/SettingWebPage.kt      | 12 +++++++++---
+ app/src/main/res/values-ja/strings.xml               |  3 ++-
+ app/src/main/res/values-ko-rKR/strings.xml           |  3 ++-
+ app/src/main/res/values-ru/strings.xml               |  3 ++-
+ app/src/main/res/values-zh-rTW/strings.xml           |  3 ++-
+ app/src/main/res/values-zh/strings.xml               |  3 ++-
+ app/src/main/res/values/strings.xml                  |  3 ++-
+ 10 files changed, 40 insertions(+), 9 deletions(-)
+
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+index b782d8f6..9ec92c58 100644
+--- a/app/src/main/AndroidManifest.xml
++++ b/app/src/main/AndroidManifest.xml
+@@ -10,6 +10,7 @@
+   <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+   <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
++  <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
+ 
+   <uses-feature
+     android:name="android.hardware.camera"
+diff --git a/app/src/main/java/com/eterultimate/eteruee/RikkaHubApp.kt b/app/src/main/java/com/eterultimate/eteruee/RikkaHubApp.kt
+index 90db089e..dc3694b3 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/RikkaHubApp.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/RikkaHubApp.kt
+@@ -132,6 +132,16 @@ class RikkaHubApp : Application() {
+                         Log.w(TAG, "startWebServerIfEnabled: notification permission not granted, skipping")
+                         return@launch
+                     }
++                    if (Build.VERSION.SDK_INT >= 37 &&
++                        !settings.webServerLocalhostOnly &&
++                        ContextCompat.checkSelfPermission(
++                            this@RikkaHubApp,
++                            android.Manifest.permission.ACCESS_LOCAL_NETWORK
++                        ) != PackageManager.PERMISSION_GRANTED
++                    ) {
++                        Log.w(TAG, "startWebServerIfEnabled: local network permission not granted, skipping")
++                        return@launch
++                    }
+                     val intent = Intent(this@RikkaHubApp, WebServerService::class.java).apply {
+                         action = WebServerService.ACTION_START
+                         putExtra(WebServerService.EXTRA_PORT, settings.webServerPort)
+diff --git a/app/src/main/java/com/eterultimate/eteruee/ui/components/ui/permission/PermissionTypes.kt b/app/src/main/java/com/eterultimate/eteruee/ui/components/ui/permission/PermissionTypes.kt
+index 13481024..9923c00e 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/ui/components/ui/permission/PermissionTypes.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/ui/components/ui/permission/PermissionTypes.kt
+@@ -67,3 +67,11 @@ val PermissionNotification = PermissionInfo(
+     usage = { Text(stringResource(R.string.permission_notification_desc)) },
+     required = true
+ )
++
++@RequiresApi(37)
++val PermissionLocalNetwork = PermissionInfo(
++    permission = Manifest.permission.ACCESS_LOCAL_NETWORK,
++    displayName = { Text(stringResource(R.string.permission_local_network)) },
++    usage = { Text(stringResource(R.string.permission_local_network_desc)) },
++    required = true
++)
+diff --git a/app/src/main/java/com/eterultimate/eteruee/ui/pages/setting/SettingWebPage.kt b/app/src/main/java/com/eterultimate/eteruee/ui/pages/setting/SettingWebPage.kt
+index 4e462712..a2f1599d 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/ui/pages/setting/SettingWebPage.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/ui/pages/setting/SettingWebPage.kt
+@@ -56,6 +56,7 @@ import com.eterultimate.eteruee.data.datastore.SettingsStore
+ import com.eterultimate.eteruee.service.WebServerService
+ import com.eterultimate.eteruee.ui.components.nav.BackButton
+ import com.eterultimate.eteruee.ui.components.ui.CardGroup
++import com.eterultimate.eteruee.ui.components.ui.permission.PermissionLocalNetwork
+ import com.eterultimate.eteruee.ui.components.ui.permission.PermissionManager
+ import com.eterultimate.eteruee.ui.components.ui.permission.PermissionNotification
+ import com.eterultimate.eteruee.ui.components.ui.permission.rememberPermissionState
+@@ -89,9 +90,14 @@ fun SettingWebPage() {
+     }
+ 
+     val permissionState = rememberPermissionState(
+-        permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) setOf(
+-            PermissionNotification
+-        ) else emptySet(),
++        permissions = buildSet {
++            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
++                add(PermissionNotification)
++            }
++            if (Build.VERSION.SDK_INT >= 37 && !settings.webServerLocalhostOnly) {
++                add(PermissionLocalNetwork)
++            }
++        },
+     )
+     PermissionManager(permissionState = permissionState)
+ 
+diff --git a/app/src/main/res/values-ja/strings.xml b/app/src/main/res/values-ja/strings.xml
+index f65efebc..23334b7b 100644
+--- a/app/src/main/res/values-ja/strings.xml
++++ b/app/src/main/res/values-ja/strings.xml
+@@ -437,6 +437,8 @@
+   <string name="permission_desc_require_permission">より良いユーザー体験を提供するため、アプリは以下の権限を必要とします:</string>
+   <string name="permission_diaog_title">権限リクエスト</string>
+   <string name="permission_go_to_settings">アプリ設定へ移動</string>
++  <string name="permission_local_network">ローカルネットワーク</string>
++  <string name="permission_local_network_desc">同じローカルネットワーク上のデバイスから Web サーバーへアクセスできるようにします</string>
+   <string name="permission_notification">通知</string>
+   <string name="permission_notification_desc">通知を送信する</string>
+   <string name="permission_permanently_denied">永久に拒否されました</string>
+@@ -979,4 +981,3 @@ mDNSアドレス: .localホスト名を使用し、IPを知らなくても同じ
+   <string name="setting_page_built_in_tools_image_generation">画像生成</string>
+   <string name="setting_page_built_in_tools_image_generation_desc">画像生成機能を有効にする</string>
+ </resources>
+-
+diff --git a/app/src/main/res/values-ko-rKR/strings.xml b/app/src/main/res/values-ko-rKR/strings.xml
+index 89833c75..37fa84dc 100644
+--- a/app/src/main/res/values-ko-rKR/strings.xml
++++ b/app/src/main/res/values-ko-rKR/strings.xml
+@@ -437,6 +437,8 @@
+   <string name="permission_desc_require_permission">더 나은 사용자 경험을 제공하기 위해 앱에서 다음 권한이 필요합니다:</string>
+   <string name="permission_diaog_title">권한 요청</string>
+   <string name="permission_go_to_settings">앱 설정으로 이동</string>
++  <string name="permission_local_network">로컬 네트워크</string>
++  <string name="permission_local_network_desc">같은 로컬 네트워크의 기기에서 Web 서버에 접근할 수 있도록 허용합니다</string>
+   <string name="permission_notification">알림</string>
+   <string name="permission_notification_desc">알림 보내기</string>
+   <string name="permission_permanently_denied">영구적으로 거부됨</string>
+@@ -979,4 +981,3 @@ mDNS 주소: .local 호스트네임을 사용하며, IP를 몰라도 같은 네
+   <string name="setting_page_built_in_tools_image_generation">이미지 생성</string>
+   <string name="setting_page_built_in_tools_image_generation_desc">이미지 생성 기능 활성화</string>
+ </resources>
+-
+diff --git a/app/src/main/res/values-ru/strings.xml b/app/src/main/res/values-ru/strings.xml
+index 89645902..8b486b45 100644
+--- a/app/src/main/res/values-ru/strings.xml
++++ b/app/src/main/res/values-ru/strings.xml
+@@ -437,6 +437,8 @@
+   <string name="permission_desc_require_permission">Чтобы обеспечить лучший пользовательский опыт, приложению требуются следующие разрешения:</string>
+   <string name="permission_diaog_title">Запрос разрешения</string>
+   <string name="permission_go_to_settings">Перейти в настройки приложения</string>
++  <string name="permission_local_network">Локальная сеть</string>
++  <string name="permission_local_network_desc">Разрешить устройствам в той же локальной сети доступ к веб-серверу</string>
+   <string name="permission_notification">Уведомление</string>
+   <string name="permission_notification_desc">Отправлять уведомления</string>
+   <string name="permission_permanently_denied">Запрещено навсегда</string>
+@@ -979,4 +981,3 @@
+   <string name="setting_page_built_in_tools_image_generation">Генерация изображений</string>
+   <string name="setting_page_built_in_tools_image_generation_desc">Включить возможность генерации изображений</string>
+ </resources>
+-
+diff --git a/app/src/main/res/values-zh-rTW/strings.xml b/app/src/main/res/values-zh-rTW/strings.xml
+index 00893ab5..8ebb7376 100644
+--- a/app/src/main/res/values-zh-rTW/strings.xml
++++ b/app/src/main/res/values-zh-rTW/strings.xml
+@@ -437,6 +437,8 @@
+   <string name="permission_desc_require_permission">為了提供更優質的使用體驗，應用程式需要下列權限：</string>
+   <string name="permission_diaog_title">權限請求</string>
+   <string name="permission_go_to_settings">前往設定</string>
++  <string name="permission_local_network">本地網路</string>
++  <string name="permission_local_network_desc">允許同一區域網路內的裝置存取 Web 伺服器</string>
+   <string name="permission_notification">通知</string>
+   <string name="permission_notification_desc">傳送通知</string>
+   <string name="permission_permanently_denied">永久拒絕</string>
+@@ -977,4 +979,3 @@
+   <string name="setting_page_built_in_tools_image_generation">圖像生成</string>
+   <string name="setting_page_built_in_tools_image_generation_desc">啟用圖片生成功能</string>
+ </resources>
+-
+diff --git a/app/src/main/res/values-zh/strings.xml b/app/src/main/res/values-zh/strings.xml
+index 74cf248c..a3f68bad 100644
+--- a/app/src/main/res/values-zh/strings.xml
++++ b/app/src/main/res/values-zh/strings.xml
+@@ -437,6 +437,8 @@
+   <string name="permission_desc_require_permission">为了提供更好的用户体验，应用需要以下权限：</string>
+   <string name="permission_diaog_title">权限请求</string>
+   <string name="permission_go_to_settings">前往设置</string>
++  <string name="permission_local_network">本地网络</string>
++  <string name="permission_local_network_desc">允许同一局域网内的设备访问 Web 服务器</string>
+   <string name="permission_notification">通知</string>
+   <string name="permission_notification_desc">发送通知</string>
+   <string name="permission_permanently_denied">已永久拒绝</string>
+@@ -979,4 +981,3 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过
+   <string name="setting_page_built_in_tools_image_generation">图像生成</string>
+   <string name="setting_page_built_in_tools_image_generation_desc">启用图像生成功能</string>
+ </resources>
+-
+diff --git a/app/src/main/res/values/strings.xml b/app/src/main/res/values/strings.xml
+index 19fa1228..fdb0ef40 100644
+--- a/app/src/main/res/values/strings.xml
++++ b/app/src/main/res/values/strings.xml
+@@ -437,6 +437,8 @@
+   <string name="permission_desc_require_permission">In order to provide a better user experience, the app requires the following permissions:</string>
+   <string name="permission_diaog_title">Permission Request</string>
+   <string name="permission_go_to_settings">Go to Setting</string>
++  <string name="permission_local_network">Local Network</string>
++  <string name="permission_local_network_desc">Allow the web server to be accessed from devices on the same local network</string>
+   <string name="permission_notification">Notification</string>
+   <string name="permission_notification_desc">Send notifications</string>
+   <string name="permission_permanently_denied">Permanently Denied</string>
+@@ -977,4 +979,3 @@
+   <string name="reasoning_picker_title">Adjust Model Thinking Depth</string>
+   <string name="reasoning_picker_hint">Not all models support depth adjustment. Refer to the model and provider documentation.</string>
+ </resources>
+-
+-- 
+2.53.0.windows.2
+

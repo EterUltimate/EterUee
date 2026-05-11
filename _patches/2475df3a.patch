@@ -1,0 +1,33 @@
+From 2475df3a092eb26600d7e080ffc8d99a1a877e40 Mon Sep 17 00:00:00 2001
+From: re-ovo <1609403959@qq.com>
+Date: Sun, 26 Apr 2026 01:24:58 +0800
+Subject: [PATCH] =?UTF-8?q?fix:=20Claude=20=E5=B7=A5=E5=85=B7=E8=B0=83?=
+ =?UTF-8?q?=E7=94=A8=E7=BB=93=E6=9E=9C=E6=94=AF=E6=8C=81=E5=9B=BE=E7=89=87?=
+ =?UTF-8?q?=E7=AD=89=E5=A4=9A=E6=A8=A1=E6=80=81=E5=86=85=E5=AE=B9=E5=9B=9E?=
+ =?UTF-8?q?=E4=BC=A0?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../java/me/rerere/ai/provider/providers/ClaudeProvider.kt    | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/ai/src/main/java/me/rerere/ai/provider/providers/ClaudeProvider.kt b/ai/src/main/java/me/rerere/ai/provider/providers/ClaudeProvider.kt
+index 898880f1..943409e9 100644
+--- a/ai/src/main/java/me/rerere/ai/provider/providers/ClaudeProvider.kt
++++ b/ai/src/main/java/me/rerere/ai/provider/providers/ClaudeProvider.kt
+@@ -487,7 +487,9 @@ class ClaudeProvider(private val client: OkHttpClient, context: Context? = null)
+     private fun UIMessagePart.Tool.toToolResultBlock() = buildJsonObject {
+         put("type", "tool_result")
+         put("tool_use_id", toolCallId)
+-        put("content", output.filterIsInstance<UIMessagePart.Text>().joinToString("\n") { it.text })
++        putJsonArray("content") {
++            output.mapNotNull { it.toContentBlock() }.forEach { add(it) }
++        }
+     }
+ 
+     private fun parseMessage(content: JsonArray): UIMessage {
+-- 
+2.53.0.windows.2
+

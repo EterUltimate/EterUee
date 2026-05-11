@@ -1,0 +1,100 @@
+From 0377a2de9a463a5c16b1cc25e8a82a98c8b24247 Mon Sep 17 00:00:00 2001
+From: re-ovo <1609403959@qq.com>
+Date: Sat, 9 May 2026 15:56:04 +0800
+Subject: [PATCH] =?UTF-8?q?fix:=20=E4=BC=98=E5=8C=96=20WebView=20=E6=95=B0?=
+ =?UTF-8?q?=E6=8D=AE=E9=87=8D=E8=BD=BD=E4=B8=8E=E9=87=8A=E6=94=BE=E6=B8=85?=
+ =?UTF-8?q?=E7=90=86?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../rikkahub/ui/components/webview/WebView.kt | 49 +++++++++++++------
+ 1 file changed, 34 insertions(+), 15 deletions(-)
+
+diff --git a/app/src/main/java/com/eterultimate/eteruee/ui/components/webview/WebView.kt b/app/src/main/java/com/eterultimate/eteruee/ui/components/webview/WebView.kt
+index 7bec5ca0..acb53734 100644
+--- a/app/src/main/java/com/eterultimate/eteruee/ui/components/webview/WebView.kt
++++ b/app/src/main/java/com/eterultimate/eteruee/ui/components/webview/WebView.kt
+@@ -63,6 +63,20 @@ internal class MyWebViewClient(private val state: WebViewState) : WebViewClient(
+     }
+ }
+ 
++private fun WebView.resetState(
++    interfaces: Map<String, Any>,
++    clearClients: Boolean = false,
++) {
++    stopLoading()
++    interfaces.forEach { (name, _) ->
++        removeJavascriptInterface(name)
++    }
++    if (clearClients) {
++        webChromeClient = null
++        webViewClient = WebViewClient()
++    }
++}
++
+ @SuppressLint("SetJavaScriptEnabled", "JavascriptInterface")
+ @Composable
+ fun WebView(
+@@ -106,11 +120,16 @@ fun WebView(
+             },
+             modifier = Modifier.fillMaxWidth(), // Make WebView fill the width
+             onReset = {
+-                state.interfaces.forEach { (name, _) ->
+-                    it.removeJavascriptInterface(name)
+-                }
++                it.resetState(state.interfaces)
+                 Log.d(TAG, "AndroidView: Resetting WebView")
+             },
++            onRelease = {
++                it.resetState(state.interfaces, clearClients = true)
++                if (state.webView === it) {
++                    state.webView = null
++                }
++                Log.d(TAG, "AndroidView: Releasing WebView")
++            },
+             update = { webView ->
+                 state.webView = webView
+                 state.interfaces.forEach { (name, obj) ->
+@@ -137,18 +156,17 @@ fun WebView(
+                     }
+ 
+                     is WebContent.Data -> {
+-                        // Check if the data needs to be reloaded (e.g., if different from last loaded data)
+-                        // For simplicity, we might just reload it every time the update block runs with Data content.
+-                        // A more complex check could involve comparing `content.data` with a previously stored value.
+-                        webView.loadDataWithBaseURL(
+-                            content.baseUrl,
+-                            content.data,
+-                            content.mimeType,
+-                            content.encoding,
+-                            content.historyUrl
+-                        )
+-                        // Assuming data loading is fast, but let's reflect the state more accurately
+-                        // state.isLoading = false // This might be too soon, let WebViewClient handle it
++                        if (content != state.lastLoadedData || state.forceReload) {
++                            webView.loadDataWithBaseURL(
++                                content.baseUrl,
++                                content.data,
++                                content.mimeType,
++                                content.encoding,
++                                content.historyUrl
++                            )
++                            state.lastLoadedData = content
++                            state.forceReload = false
++                        }
+                     }
+ 
+                     WebContent.NavigatorOnly -> {
+@@ -197,6 +215,7 @@ class WebViewState(
+     // --- Content State ---
+     var content: WebContent by mutableStateOf(initialContent)
+     internal var forceReload: Boolean by mutableStateOf(false) // Internal state to force URL reload if needed
++    internal var lastLoadedData: WebContent.Data? = null
+ 
+     // --- Loading State ---
+     var isLoading: Boolean by mutableStateOf(false)
+-- 
+2.53.0.windows.2
+

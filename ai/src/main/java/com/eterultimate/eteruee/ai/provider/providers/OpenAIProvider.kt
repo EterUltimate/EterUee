@@ -14,6 +14,7 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import com.eterultimate.eteruee.ai.provider.EmbeddingGenerationParams
 import com.eterultimate.eteruee.ai.provider.EmbeddingGenerationResult
+import com.eterultimate.eteruee.ai.provider.ImageEditParams
 import com.eterultimate.eteruee.ai.provider.ImageGenerationParams
 import com.eterultimate.eteruee.ai.provider.Model
 import com.eterultimate.eteruee.ai.provider.Provider
@@ -227,6 +228,91 @@ class OpenAIProvider(
         val response = client.newCall(request).await()
         if (!response.isSuccessful) {
             error("Failed to generate image: ${response.code} ${response.body?.string()}")
+        }
+
+        val bodyStr = response.body?.string() ?: ""
+        val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
+        val data = bodyJson["data"]?.jsonArray ?: error("No data in response")
+
+        val items = data.map { imageJson ->
+            val imageObj = imageJson.jsonObject
+            val b64Json = imageObj["b64_json"]?.jsonPrimitive?.contentOrNull
+                ?: error("No b64_json in response")
+
+            ImageGenerationItem(
+                data = b64Json,
+                mimeType = "image/png"
+            )
+        }
+
+        ImageGenerationResult(items = items)
+    }
+
+    override suspend fun editImage(
+        providerSetting: ProviderSetting,
+        params: ImageEditParams
+    ): ImageGenerationResult = withContext(Dispatchers.IO) {
+        require(providerSetting is ProviderSetting.OpenAI) {
+            "Expected OpenAI provider setting"
+        }
+        require(params.images.isNotEmpty()) {
+            "At least one image is required"
+        }
+
+        val key = keyRoulette.next(providerSetting.apiKey, providerSetting.id.toString())
+        val bodyBuilder = okhttp3.MultipartBody.Builder()
+            .setType(okhttp3.MultipartBody.FORM)
+            .addFormDataPart("model", params.model.modelId)
+            .addFormDataPart("prompt", params.prompt)
+            .addFormDataPart("n", params.numOfImages.toString())
+            .addFormDataPart(
+                "size", when (params.aspectRatio) {
+                    ImageAspectRatio.SQUARE -> "1024x1024"
+                    ImageAspectRatio.LANDSCAPE -> "1536x1024"
+                    ImageAspectRatio.PORTRAIT -> "1024x1536"
+                }
+            )
+
+        val imageFieldName = if (params.images.size == 1) "image" else "image[]"
+        params.images.forEach { path ->
+            val imageFile = java.io.File(path)
+            require(imageFile.exists()) {
+                "Image file does not exist: $path"
+            }
+            val extension = imageFile.extension.lowercase()
+            require(extension in setOf("png", "jpg", "jpeg", "webp")) {
+                "Unsupported image file type for OpenAI edit: $extension"
+            }
+            val mediaType = when (extension) {
+                "jpg", "jpeg" -> "image/jpeg"
+                "webp" -> "image/webp"
+                else -> "image/png"
+            }
+            bodyBuilder.addFormDataPart(
+                imageFieldName,
+                imageFile.name,
+                imageFile.readBytes().toRequestBody(mediaType.toMediaType())
+            )
+        }
+
+        params.customBody.forEach { customBody ->
+            val value = when (val element = customBody.value) {
+                is kotlinx.serialization.json.JsonPrimitive -> element.contentOrNull ?: element.toString()
+                else -> element.toString()
+            }
+            bodyBuilder.addFormDataPart(customBody.key, value)
+        }
+
+        val request = Request.Builder()
+            .url("${providerSetting.baseUrl}/images/edits")
+            .headers(params.customHeaders.toHeaders())
+            .addHeader("Authorization", "Bearer $key")
+            .post(bodyBuilder.build())
+            .build()
+
+        val response = client.newCall(request).await()
+        if (!response.isSuccessful) {
+            error("Failed to edit image: ${response.code} ${response.body?.string()}")
         }
 
         val bodyStr = response.body?.string() ?: ""

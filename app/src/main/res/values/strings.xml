@@ -444,6 +444,8 @@
   <string name="permission_desc_require_permission">In order to provide a better user experience, the app requires the following permissions:</string>
   <string name="permission_diaog_title">Permission Request</string>
   <string name="permission_go_to_settings">Go to Setting</string>
+  <string name="permission_local_network">Local Network</string>
+  <string name="permission_local_network_desc">Allow the web server to be accessed from devices on the same local network</string>
   <string name="permission_notification">Notification</string>
   <string name="permission_notification_desc">Send notifications</string>
   <string name="permission_permanently_denied">Permanently Denied</string>

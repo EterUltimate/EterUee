@@ -132,6 +132,16 @@ class EterUeeApp : Application() {
                         Log.w(TAG, "startWebServerIfEnabled: notification permission not granted, skipping")
                         return@launch
                     }
+                    if (Build.VERSION.SDK_INT >= 37 &&
+                        !settings.webServerLocalhostOnly &&
+                        ContextCompat.checkSelfPermission(
+                            this@EterUeeApp,
+                            android.Manifest.permission.ACCESS_LOCAL_NETWORK
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        Log.w(TAG, "startWebServerIfEnabled: local network permission not granted, skipping")
+                        return@launch
+                    }
                     val intent = Intent(this@EterUeeApp, WebServerService::class.java).apply {
                         action = WebServerService.ACTION_START
                         putExtra(WebServerService.EXTRA_PORT, settings.webServerPort)

@@ -56,6 +56,7 @@ import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.service.WebServerService
 import com.eterultimate.eteruee.ui.components.nav.BackButton
 import com.eterultimate.eteruee.ui.components.ui.CardGroup
+import com.eterultimate.eteruee.ui.components.ui.permission.PermissionLocalNetwork
 import com.eterultimate.eteruee.ui.components.ui.permission.PermissionManager
 import com.eterultimate.eteruee.ui.components.ui.permission.PermissionNotification
 import com.eterultimate.eteruee.ui.components.ui.permission.rememberPermissionState
@@ -89,9 +90,14 @@ fun SettingWebPage() {
     }
 
     val permissionState = rememberPermissionState(
-        permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) setOf(
-            PermissionNotification
-        ) else emptySet(),
+        permissions = buildSet {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                add(PermissionNotification)
+            }
+            if (Build.VERSION.SDK_INT >= 37 && !settings.webServerLocalhostOnly) {
+                add(PermissionLocalNetwork)
+            }
+        },
     )
     PermissionManager(permissionState = permissionState)
 

@@ -324,6 +324,7 @@
   <string name="emoji_picker_select_skin_tone">Select Skin Tone</string>
   <string name="error_title_compress_conversation">Conversation compression failed</string>
   <string name="error_title_generate_title">Auto title generation failed</string>
+  <string name="chat_page_check_title_model_settings">Check title model settings</string>
   <string name="error_title_generation">Message generation failed</string>
   <string name="error_title_operation">Operation failed</string>
   <string name="error_title_regenerate_message">Message regeneration failed</string>

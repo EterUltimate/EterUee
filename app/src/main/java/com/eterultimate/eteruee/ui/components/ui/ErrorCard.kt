@@ -28,7 +28,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -37,7 +43,10 @@ import me.rerere.hugeicons.stroke.Cancel01
 import me.rerere.hugeicons.stroke.Copy01
 import me.rerere.hugeicons.stroke.Delete01
 import com.eterultimate.eteruee.R
+import com.eterultimate.eteruee.Screen
 import com.eterultimate.eteruee.service.ChatError
+import com.eterultimate.eteruee.service.ChatErrorSolution
+import com.eterultimate.eteruee.ui.context.LocalNavController
 import kotlin.uuid.Uuid
 
 @Composable
@@ -103,7 +112,10 @@ fun ErrorCard(
     modifier: Modifier = Modifier,
 ) {
     val clipboard = LocalClipboard.current
+    val navController = LocalNavController.current
     val scope = rememberCoroutineScope()
+    val checkTitleModelSettings = stringResource(R.string.chat_page_check_title_model_settings)
+    val linkColor = MaterialTheme.colorScheme.primary
 
     // 5 秒后自动消失
     LaunchedEffect(error.id) {
@@ -157,7 +169,34 @@ fun ErrorCard(
                     text = error.error.message ?: "Unknown error",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
+                if (error.solution == ChatErrorSolution.CheckTitleModelSettings) {
+                    Text(
+                        text = buildAnnotatedString {
+                            withLink(
+                                LinkAnnotation.Clickable(
+                                    tag = "check_title_model_settings",
+                                    styles = TextLinkStyles(
+                                        style = SpanStyle(
+                                            color = linkColor,
+                                            textDecoration = TextDecoration.Underline,
+                                        )
+                                    ),
+                                    linkInteractionListener = {
+                                        navController.navigate(Screen.SettingModels)
+                                    },
+                                )
+                            ) {
+                                append(checkTitleModelSettings)
+                            }
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
             IconButton(
                 onClick = {

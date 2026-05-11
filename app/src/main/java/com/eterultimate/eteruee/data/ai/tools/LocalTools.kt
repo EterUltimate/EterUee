@@ -65,10 +65,15 @@ data class ScriptExecutionResult(
     val error: String?,
 )
 
+private const val QUICKJS_MEMORY_LIMIT = 8 * 1024 * 1024 // 8 MB
+private const val QUICKJS_STACK_SIZE = 256 * 1024 // 256 KB
+
 fun executeJavaScriptCode(code: String?): ScriptExecutionResult {
     val logs = arrayListOf<String>()
     val context = QuickJSContext.create()
     return try {
+        context.setMemoryLimit(QUICKJS_MEMORY_LIMIT)
+        context.setMaxStackSize(QUICKJS_STACK_SIZE)
         context.setConsole(object : QuickJSContext.Console {
             override fun log(info: String?) {
                 logs.add("[LOG] $info")
@@ -109,13 +114,30 @@ fun executeJavaScriptCode(code: String?): ScriptExecutionResult {
 
 fun executePythonScript(code: String?): ScriptExecutionResult {
     return try {
-        val process = Runtime.getRuntime().exec(arrayOf("python3", "-c", code ?: ""))
+        // Try Termux python3 first, then system python3
+        val pythonBin = findPythonBinary()
+            ?: return ScriptExecutionResult(
+                result = null,
+                logs = emptyList(),
+                error = "Python interpreter not found. Install Python via Termux (pkg install python) or disable the Python tool in settings.",
+            )
+        val process = Runtime.getRuntime().exec(arrayOf(pythonBin, "-c", code ?: ""))
         process.outputStream.close()
 
         val stdout = process.inputStream.bufferedReader(Charsets.UTF_8).readText()
         val stderr = process.errorStream.bufferedReader(Charsets.UTF_8).readText()
-        val exitCode = process.waitFor()
+        val completed = process.waitFor(30, java.util.concurrent.TimeUnit.SECONDS)
 
+        if (!completed) {
+            process.destroyForcibly()
+            return ScriptExecutionResult(
+                result = stdout.ifBlank { null },
+                logs = emptyList(),
+                error = "Python script timed out after 30 seconds.\n$stderr",
+            )
+        }
+
+        val exitCode = process.exitValue()
         ScriptExecutionResult(
             result = stdout.ifBlank { null },
             logs = emptyList(),
@@ -177,7 +199,8 @@ class LocalTools(private val context: Context, private val eventBus: AppEventBus
         Tool(
             name = "eval_python",
             description = """
-                Execute Python code using the system python3 interpreter.
+                Execute Python code using the device's Python interpreter.
+                Requires Termux with Python installed (pkg install python).
                 The result is the stdout output of the script.
                 stderr is captured and returned in 'error' field if the exit code is non-zero.
                 Example: 'print(1 + 2)' returns '3'.
@@ -435,5 +458,23 @@ class LocalTools(private val context: Context, private val eventBus: AppEventBus
         }
         return tools
     }
+}
+
+private fun findPythonBinary(): String? {
+    val candidates = listOf(
+        "/data/data/com.termux/files/usr/bin/python3",
+        "/data/data/com.termux/files/usr/bin/python",
+        "python3",
+        "python",
+    )
+    for (bin in candidates) {
+        try {
+            val process = Runtime.getRuntime().exec(arrayOf(bin, "--version"))
+            if (process.waitFor() == 0) return bin
+        } catch (_: Exception) {
+            // Not available
+        }
+    }
+    return null
 }
 

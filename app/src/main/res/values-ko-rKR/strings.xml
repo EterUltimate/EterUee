@@ -1034,4 +1034,5 @@ mDNS 주소: .local 호스트네임을 사용하며, IP를 몰라도 같은 네�
   <string name="setting_page_shell_desc">로컬 셸 명령어 실행</string>
   <string name="setting_page_ssh">SSH</string>
   <string name="setting_page_ssh_desc">SSH로 원격 서버에 연결</string>
+  <string name="assistant_page_temperature_warning">일반적으로 1입니다. 추론 모델에서는 변경을 권장하지 않습니다.</string>
 </resources>

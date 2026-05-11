@@ -1036,5 +1036,6 @@
   <string name="setting_page_shell_desc">Execute local shell commands</string>
   <string name="setting_page_ssh">SSH</string>
   <string name="setting_page_ssh_desc">Connect to remote servers via SSH</string>
+  <string name="assistant_page_temperature_warning">Usually 1. Not recommended to change for reasoning models.</string>
 </resources>
 

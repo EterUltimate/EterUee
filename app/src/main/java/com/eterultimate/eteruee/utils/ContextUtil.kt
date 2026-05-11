@@ -25,6 +25,15 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
 
+val Context.appTempFolder: File
+    get() {
+        val dir = File(cacheDir, "temp")
+        if (!dir.exists()) {
+            dir.mkdirs()
+        }
+        return dir
+    }
+
 private const val TAG = "ContextUtil"
 
 /**

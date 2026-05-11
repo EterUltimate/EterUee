@@ -1034,4 +1034,5 @@
   <string name="setting_page_shell_desc">Выполнять локальные команды shell</string>
   <string name="setting_page_ssh">SSH</string>
   <string name="setting_page_ssh_desc">Подключаться к удалённым серверам через SSH</string>
+  <string name="assistant_page_temperature_warning">Обычно 1. Для моделей рассуждения изменение не рекомендуется.</string>
 </resources>

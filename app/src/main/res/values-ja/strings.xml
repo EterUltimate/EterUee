@@ -1034,4 +1034,5 @@ mDNSアドレス: .localホスト名を使用し、IPを知らなくても同じ
   <string name="setting_page_shell_desc">ローカルシェルコマンドを実行</string>
   <string name="setting_page_ssh">SSH</string>
   <string name="setting_page_ssh_desc">SSH でリモートサーバーに接続</string>
+  <string name="assistant_page_temperature_warning">通常は 1 です。推論モデルでは変更を推奨しません。</string>
 </resources>

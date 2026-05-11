@@ -1035,5 +1035,6 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="setting_page_shell_desc">执行本地 shell 命令</string>
   <string name="setting_page_ssh">SSH</string>
   <string name="setting_page_ssh_desc">通过 SSH 连接远程服务器</string>
+  <string name="assistant_page_temperature_warning">通常为 1。对于推理模型不建议修改。</string>
 </resources>
 

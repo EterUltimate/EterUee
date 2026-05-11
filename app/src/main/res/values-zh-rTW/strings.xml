@@ -1032,4 +1032,5 @@
   <string name="setting_page_shell_desc">執行本地 shell 指令</string>
   <string name="setting_page_ssh">SSH</string>
   <string name="setting_page_ssh_desc">透過 SSH 連線遠端伺服器</string>
+  <string name="assistant_page_temperature_warning">通常為 1。對於推理模型不建議修改。</string>
 </resources>

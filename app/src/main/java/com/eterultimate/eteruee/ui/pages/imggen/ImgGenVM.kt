@@ -286,7 +286,6 @@ class ImgGenVM(
                 }
 
                 _currentGeneratedImages.value = newImages
-                clearReferenceImages()
             } catch (e: Exception) {
                 if (e is CancellationException) return@launch
                 Log.e(TAG, "Failed to edit image", e)
@@ -362,7 +361,6 @@ class ImgGenVM(
 
     fun cancelGeneration() {
         cancelJob?.cancel()
-        clearReferenceImages()
     }
 
     private suspend fun saveImageToStorage(

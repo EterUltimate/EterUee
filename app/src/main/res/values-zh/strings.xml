@@ -1024,6 +1024,7 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="setting_asr_configure_resource_id">资源 ID</string>
   <string name="setting_asr_configure_resource_id_desc">用于计费的 X-Api-Resource-Id</string>
   <string name="assistant_page_message_template_missing_message">模板不包含 {{ message }}，用户消息将不会被发送</string>
+  <string name="extension_content_manage">管理</string>
   <string name="setting_mcp_page_add_env_var">添加环境变量</string>
   <string name="setting_mcp_page_args">参数</string>
   <string name="setting_mcp_page_args_desc">MCP服务器的命令行参数</string>

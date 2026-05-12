@@ -825,6 +825,7 @@ mDNSアドレス: .localホスト名を使用し、IPを知らなくても同じ
   <string name="setting_provider_page_filter_placeholder">モデル名を入力してフィルタ</string>
   <string name="setting_provider_page_image">画像</string>
   <string name="setting_provider_page_image_model">画像</string>
+  <string name="setting_provider_page_video_model">動画</string>
   <string name="setting_provider_page_image_qr_decode_failed">画像からのQRコード解析に失敗しました：%s</string>
   <string name="setting_provider_page_import_dialog_message">インポート方法を選択してください：</string>
   <string name="setting_provider_page_import_dialog_title">プロバイダー設定をインポート</string>

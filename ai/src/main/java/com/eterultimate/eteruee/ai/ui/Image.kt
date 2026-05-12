@@ -20,3 +20,14 @@ enum class ImageAspectRatio {
     PORTRAIT
 }
 
+@Serializable
+data class VideoGenerationResult(
+    val items: List<VideoGenerationItem>,
+)
+
+@Serializable
+data class VideoGenerationItem(
+    val videoUrl: String,
+    val coverUrl: String? = null,
+)
+

@@ -7,6 +7,7 @@ import com.eterultimate.eteruee.ai.core.ReasoningLevel
 import com.eterultimate.eteruee.ai.core.Tool
 import com.eterultimate.eteruee.ai.ui.ImageAspectRatio
 import com.eterultimate.eteruee.ai.ui.ImageGenerationResult
+import com.eterultimate.eteruee.ai.ui.VideoGenerationResult
 import com.eterultimate.eteruee.ai.ui.MessageChunk
 import com.eterultimate.eteruee.ai.ui.UIMessage
 
@@ -48,6 +49,13 @@ interface Provider<T : ProviderSetting> {
         params: ImageEditParams,
     ): ImageGenerationResult {
         error("Image edit is not supported")
+    }
+
+    suspend fun generateVideo(
+        providerSetting: ProviderSetting,
+        params: VideoGenerationParams,
+    ): VideoGenerationResult {
+        error("Video generation is not supported")
     }
 }
 
@@ -97,6 +105,27 @@ data class EmbeddingGenerationParams(
 data class EmbeddingGenerationResult(
     val model: String,
     val embeddings: List<List<Float>>,
+)
+
+@Serializable
+data class VideoGenerationParams(
+    val model: Model,
+    val prompt: String,
+    val referenceImages: List<ReferenceImage> = emptyList(),
+    val aspectRatio: String = "16:9",
+    val durationSeconds: Int = 5,
+    val resolution: String = "720p",
+    val generateAudio: Boolean = false,
+    val seed: Int? = null,
+    val negativePrompt: String? = null,
+    val customHeaders: List<CustomHeader> = emptyList(),
+    val customBody: List<CustomBody> = emptyList(),
+)
+
+@Serializable
+data class ReferenceImage(
+    val url: String,
+    val role: String? = null, // "first_frame" or "last_frame"
 )
 
 @Serializable

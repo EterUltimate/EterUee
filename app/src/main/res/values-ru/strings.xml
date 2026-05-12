@@ -825,6 +825,7 @@
   <string name="setting_provider_page_filter_placeholder">Введите название модели для фильтрации</string>
   <string name="setting_provider_page_image">Изображение</string>
   <string name="setting_provider_page_image_model">Изображение</string>
+  <string name="setting_provider_page_video_model">Видео</string>
   <string name="setting_provider_page_image_qr_decode_failed">Не удалось распознать QR-код с изображения: %s</string>
   <string name="setting_provider_page_import_dialog_message">Выберите способ импорта:</string>
   <string name="setting_provider_page_import_dialog_title">Импортировать конфигурацию поставщика</string>

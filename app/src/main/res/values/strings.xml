@@ -828,6 +828,7 @@
   <string name="setting_provider_page_filter_placeholder">Enter model name to filter</string>
   <string name="setting_provider_page_image">Image</string>
   <string name="setting_provider_page_image_model">Image</string>
+  <string name="setting_provider_page_video_model">Video</string>
   <string name="setting_provider_page_image_qr_decode_failed">Failed to parse QR code from image: %s</string>
   <string name="setting_provider_page_import_dialog_message">Please select import method:</string>
   <string name="setting_provider_page_import_dialog_title">Import Provider Configuration</string>

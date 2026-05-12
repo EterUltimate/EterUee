@@ -823,6 +823,7 @@
   <string name="setting_provider_page_filter_placeholder">輸入模型名稱篩選</string>
   <string name="setting_provider_page_image">圖片</string>
   <string name="setting_provider_page_image_model">圖像</string>
+  <string name="setting_provider_page_video_model">影片</string>
   <string name="setting_provider_page_image_qr_decode_failed">解析圖片中的二維碼失敗：%s</string>
   <string name="setting_provider_page_import_dialog_message">請選擇匯入方式：</string>
   <string name="setting_provider_page_import_dialog_title">匯入供應商配置</string>

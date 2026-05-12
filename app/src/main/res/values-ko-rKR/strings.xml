@@ -825,6 +825,7 @@ mDNS 주소: .local 호스트네임을 사용하며, IP를 몰라도 같은 네�
   <string name="setting_provider_page_filter_placeholder">모델 이름 입력하여 필터링</string>
   <string name="setting_provider_page_image">이미지</string>
   <string name="setting_provider_page_image_model">이미지</string>
+  <string name="setting_provider_page_video_model">비디오</string>
   <string name="setting_provider_page_image_qr_decode_failed">이미지에서 QR 코드 파싱 실패: %s</string>
   <string name="setting_provider_page_import_dialog_message">가져오기 방법을 선택하세요:</string>
   <string name="setting_provider_page_import_dialog_title">제공업체 구성 가져오기</string>

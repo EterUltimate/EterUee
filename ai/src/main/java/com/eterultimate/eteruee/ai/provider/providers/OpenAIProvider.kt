@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -19,12 +20,16 @@ import com.eterultimate.eteruee.ai.provider.ImageGenerationParams
 import com.eterultimate.eteruee.ai.provider.Model
 import com.eterultimate.eteruee.ai.provider.Provider
 import com.eterultimate.eteruee.ai.provider.ProviderSetting
+import com.eterultimate.eteruee.ai.provider.ReferenceImage
 import com.eterultimate.eteruee.ai.provider.TextGenerationParams
+import com.eterultimate.eteruee.ai.provider.VideoGenerationParams
 import com.eterultimate.eteruee.ai.provider.providers.openai.ChatCompletionsAPI
 import com.eterultimate.eteruee.ai.provider.providers.openai.ResponseAPI
 import com.eterultimate.eteruee.ai.ui.ImageAspectRatio
 import com.eterultimate.eteruee.ai.ui.ImageGenerationItem
 import com.eterultimate.eteruee.ai.ui.ImageGenerationResult
+import com.eterultimate.eteruee.ai.ui.VideoGenerationItem
+import com.eterultimate.eteruee.ai.ui.VideoGenerationResult
 import com.eterultimate.eteruee.ai.ui.MessageChunk
 import com.eterultimate.eteruee.ai.ui.UIMessage
 import com.eterultimate.eteruee.ai.util.KeyRoulette
@@ -331,6 +336,127 @@ class OpenAIProvider(
         }
 
         ImageGenerationResult(items = items)
+    }
+
+    override suspend fun generateVideo(
+        providerSetting: ProviderSetting,
+        params: VideoGenerationParams
+    ): VideoGenerationResult = withContext(Dispatchers.IO) {
+        require(providerSetting is ProviderSetting.OpenAI) {
+            "Expected OpenAI provider setting"
+        }
+
+        val key = keyRoulette.next(providerSetting.apiKey, providerSetting.id.toString())
+
+        // Build content array
+        val contentArray = buildJsonArray {
+            add(buildJsonObject {
+                put("type", "text")
+                put("text", params.prompt)
+            })
+            params.referenceImages.forEach { ref ->
+                add(buildJsonObject {
+                    put("type", "image_url")
+                    put("url", ref.url)
+                    ref.role?.let { put("role", it) }
+                })
+            }
+        }
+
+        // Build request body
+        val requestBodyObj = buildJsonObject {
+            put("model", params.model.modelId)
+            put("content", contentArray)
+        }
+
+        // Build parameters object
+        val parametersObj = buildJsonObject {
+            put("generateAudio", params.generateAudio)
+            put("durationSeconds", params.durationSeconds)
+            put("aspectRatio", params.aspectRatio)
+            put("resolution", params.resolution)
+            params.seed?.let { put("seed", it) }
+            params.negativePrompt?.let { put("negativePrompt", it) }
+        }
+
+        val finalBody = buildJsonObject {
+            requestBodyObj.forEach { (k, v) -> put(k, v) }
+            put("parameters", parametersObj)
+        }.mergeCustomBody(params.customBody)
+
+        val submitBody = json.encodeToString(finalBody)
+
+        // Step 1: Submit task
+        val submitRequest = Request.Builder()
+            .url("${providerSetting.baseUrl}/contents/generations/tasks")
+            .headers(params.customHeaders.toHeaders())
+            .addHeader("Authorization", "Bearer $key")
+            .addHeader("Content-Type", "application/json")
+            .post(submitBody.toRequestBody("application/json".toMediaType()))
+            .build()
+
+        val submitResponse = client.newCall(submitRequest).await()
+        if (!submitResponse.isSuccessful) {
+            error("Failed to submit video generation task: ${submitResponse.code} ${submitResponse.body?.string()}")
+        }
+
+        val submitBodyStr = submitResponse.body?.string() ?: ""
+        val submitJson = json.parseToJsonElement(submitBodyStr).jsonObject
+        val taskId = submitJson["id"]?.jsonPrimitive?.contentOrNull
+            ?: error("No task id in submit response")
+
+        // Step 2: Poll for result
+        val maxPollDurationMs = 10 * 60 * 1000L // 10 minutes max
+        val pollIntervalMs = 5000L // 5 seconds between polls
+        val startTime = System.currentTimeMillis()
+
+        while (System.currentTimeMillis() - startTime < maxPollDurationMs) {
+            val pollRequest = Request.Builder()
+                .url("${providerSetting.baseUrl}/contents/generations/tasks/$taskId")
+                .headers(params.customHeaders.toHeaders())
+                .addHeader("Authorization", "Bearer $key")
+                .get()
+                .build()
+
+            val pollResponse = client.newCall(pollRequest).await()
+            if (!pollResponse.isSuccessful) {
+                error("Failed to poll video task: ${pollResponse.code} ${pollResponse.body?.string()}")
+            }
+
+            val pollBodyStr = pollResponse.body?.string() ?: ""
+            val pollJson = json.parseToJsonElement(pollBodyStr).jsonObject
+            val status = pollJson["status"]?.jsonPrimitive?.contentOrNull ?: "unknown"
+
+            when (status) {
+                "succeeded" -> {
+                    val content = pollJson["content"]?.jsonObject
+                        ?: error("No content in succeeded response")
+                    val videoUrl = content["video_url"]?.jsonPrimitive?.contentOrNull
+                        ?: error("No video_url in succeeded response")
+                    val coverUrl = content["cover_url"]?.jsonPrimitive?.contentOrNull
+
+                    return@withContext VideoGenerationResult(
+                        items = listOf(
+                            VideoGenerationItem(
+                                videoUrl = videoUrl,
+                                coverUrl = coverUrl
+                            )
+                        )
+                    )
+                }
+                "failed" -> {
+                    val errorMsg = pollJson["error"]?.toString() ?: "Unknown error"
+                    error("Video generation failed: $errorMsg")
+                }
+                "cancelled" -> error("Video generation was cancelled")
+                "expired" -> error("Video generation task expired")
+                // queued, running → continue polling
+            }
+
+            kotlinx.coroutines.delay(pollIntervalMs)
+        }
+
+        error("Video generation timed out after ${maxPollDurationMs / 1000} seconds")
     }
 }
 

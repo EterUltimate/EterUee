@@ -92,7 +92,9 @@ import me.rerere.hugeicons.stroke.Copy01
 import me.rerere.hugeicons.stroke.Delete01
 import me.rerere.hugeicons.stroke.FloppyDisk
 import me.rerere.hugeicons.stroke.Image03
+import me.rerere.hugeicons.stroke.Play
 import me.rerere.hugeicons.stroke.Tools
+import me.rerere.hugeicons.stroke.VideoReplay
 import com.eterultimate.eteruee.ai.provider.ModelType
 import com.eterultimate.eteruee.ai.ui.ImageAspectRatio
 import com.eterultimate.eteruee.utils.appTempFolder
@@ -121,6 +123,7 @@ fun ImageGenPage(
     val scope = rememberCoroutineScope()
 
     val isGenerating by vm.isGenerating.collectAsStateWithLifecycle()
+    val isVideoMode by vm.isVideoMode.collectAsStateWithLifecycle()
     var showCancelDialog by remember { mutableStateOf(false) }
     BackHandler(isGenerating) {
         showCancelDialog = true
@@ -165,7 +168,7 @@ fun ImageGenPage(
                 .consumeWindowInsets(innerPadding)
         ) { page ->
             when (page) {
-                0 -> ImageGenScreen(vm = vm)
+                0 -> ImageGenScreen(vm = vm, isVideoMode = isVideoMode)
                 1 -> ImageGalleryScreen(vm = vm)
             }
         }
@@ -235,6 +238,7 @@ private fun BottomBar(
 @Composable
 private fun ImageGenScreen(
     vm: ImgGenVM,
+    isVideoMode: Boolean,
 ) {
     val prompt by vm.prompt.collectAsStateWithLifecycle()
     val numberOfImages by vm.numberOfImages.collectAsStateWithLifecycle()
@@ -244,6 +248,10 @@ private fun ImageGenScreen(
     val referenceImages by vm.referenceImages.collectAsStateWithLifecycle()
     val error by vm.error.collectAsStateWithLifecycle()
     val settings by vm.settingsStore.settingsFlow.collectAsStateWithLifecycle()
+    val videoDuration by vm.videoDuration.collectAsStateWithLifecycle()
+    val videoResolution by vm.videoResolution.collectAsStateWithLifecycle()
+    val videoAspectRatio by vm.videoAspectRatio.collectAsStateWithLifecycle()
+    val generateAudio by vm.generateAudio.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val toaster = LocalToaster.current
     var showSettingsSheet by remember { mutableStateOf(false) }
@@ -305,6 +313,7 @@ private fun ImageGenScreen(
             prompt = prompt,
             vm = vm,
             isGenerating = isGenerating,
+            isVideoMode = isVideoMode,
             referenceImages = referenceImages,
             settings = settings,
             onShowSettings = { showSettingsSheet = true },
@@ -318,6 +327,11 @@ private fun ImageGenScreen(
             settings = settings,
             numberOfImages = numberOfImages,
             aspectRatio = aspectRatio,
+            isVideoMode = isVideoMode,
+            videoDuration = videoDuration,
+            videoResolution = videoResolution,
+            videoAspectRatio = videoAspectRatio,
+            generateAudio = generateAudio,
             scope = scope,
             sheetState = sheetState,
             onDismiss = { showSettingsSheet = false }
@@ -330,6 +344,7 @@ private fun InputBar(
     prompt: String,
     vm: ImgGenVM,
     isGenerating: Boolean,
+    isVideoMode: Boolean,
     referenceImages: List<String>,
     settings: Settings,
     onShowSettings: () -> Unit,
@@ -389,18 +404,42 @@ private fun InputBar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             ModelSelector(
-                modelId = settings.imageGenerationModelId,
+                modelId = if (isVideoMode) settings.videoGenerationModelId else settings.imageGenerationModelId,
                 providers = settings.providers,
-                type = ModelType.IMAGE,
+                type = if (isVideoMode) ModelType.VIDEO else ModelType.IMAGE,
                 onlyIcon = true,
                 onSelect = { model ->
                     scope.launch {
                         vm.settingsStore.update { oldSettings ->
-                            oldSettings.copy(imageGenerationModelId = model.id)
+                            if (isVideoMode) {
+                                oldSettings.copy(videoGenerationModelId = model.id)
+                            } else {
+                                oldSettings.copy(imageGenerationModelId = model.id)
+                            }
                         }
                     }
                 }
             )
+
+            Surface(
+                onClick = { vm.setVideoMode(!isVideoMode) },
+                modifier = Modifier.size(40.dp),
+                shape = CircleShape,
+                color = if (isVideoMode) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+                border = if (!isVideoMode) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null,
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = HugeIcons.VideoReplay,
+                        contentDescription = "Toggle video mode",
+                        tint = if (isVideoMode) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
 
             IconButton(
                 onClick = onShowSettings
@@ -423,11 +462,7 @@ private fun InputBar(
             Surface(
                 onClick = {
                     if (!isGenerating) {
-                        if (referenceImages.isEmpty()) {
-                            vm.generateImage()
-                        } else {
-                            vm.editImage()
-                        }
+                        vm.generateImage()
                     } else {
                         vm.cancelGeneration()
                     }
@@ -688,6 +723,11 @@ private fun SettingsBottomSheet(
     settings: Settings,
     numberOfImages: Int,
     aspectRatio: ImageAspectRatio,
+    isVideoMode: Boolean,
+    videoDuration: Int,
+    videoResolution: String,
+    videoAspectRatio: String,
+    generateAudio: Boolean,
     scope: CoroutineScope,
     sheetState: SheetState,
     onDismiss: () -> Unit
@@ -710,60 +750,145 @@ private fun SettingsBottomSheet(
                 fontWeight = FontWeight.Bold
             )
 
-            FormItem(
-                label = { Text(stringResource(R.string.imggen_page_model_selection)) },
-                description = { Text(stringResource(R.string.imggen_page_model_selection_desc)) }
-            ) {
-                ModelSelector(
-                    modelId = settings.imageGenerationModelId,
-                    providers = settings.providers,
-                    type = ModelType.IMAGE,
-                    onlyIcon = false,
-                    onSelect = { model ->
-                        scope.launch {
-                            vm.settingsStore.update { oldSettings ->
-                                oldSettings.copy(imageGenerationModelId = model.id)
+            if (isVideoMode) {
+                // Video model selection
+                FormItem(
+                    label = { Text("Video Model") },
+                    description = { Text("Select a video generation model") }
+                ) {
+                    ModelSelector(
+                        modelId = settings.videoGenerationModelId,
+                        providers = settings.providers,
+                        type = ModelType.VIDEO,
+                        onlyIcon = false,
+                        onSelect = { model ->
+                            scope.launch {
+                                vm.settingsStore.update { oldSettings ->
+                                    oldSettings.copy(videoGenerationModelId = model.id)
+                                }
                             }
                         }
-                    }
-                )
-            }
+                    )
+                }
 
-            FormItem(
-                label = { Text(stringResource(R.string.imggen_page_generation_count)) },
-                description = { Text(stringResource(R.string.imggen_page_generation_count_desc)) }
-            ) {
-                OutlinedNumberInput(
-                    value = numberOfImages,
-                    onValueChange = vm::updateNumberOfImages,
-                    modifier = Modifier.width(120.dp)
-                )
-            }
-
-            FormItem(
-                label = { Text(stringResource(R.string.imggen_page_aspect_ratio)) },
-                description = { Text(stringResource(R.string.imggen_page_aspect_ratio_desc)) }
-            ) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                // Video duration
+                FormItem(
+                    label = { Text("Duration (seconds)") },
+                    description = { Text("Video duration: 3-10 seconds") }
                 ) {
-                    ImageAspectRatio.entries.forEach { ratio ->
-                        FilterChip(
-                            selected = aspectRatio == ratio,
-                            onClick = { vm.updateAspectRatio(ratio) },
-                            label = {
-                                Text(
-                                    stringResource(
-                                        when (ratio) {
-                                            ImageAspectRatio.SQUARE -> R.string.imggen_page_aspect_ratio_square
-                                            ImageAspectRatio.LANDSCAPE -> R.string.imggen_page_aspect_ratio_landscape
-                                            ImageAspectRatio.PORTRAIT -> R.string.imggen_page_aspect_ratio_portrait
-                                        }
-                                    )
-                                )
+                    OutlinedNumberInput(
+                        value = videoDuration,
+                        onValueChange = vm::updateVideoDuration,
+                        modifier = Modifier.width(120.dp)
+                    )
+                }
+
+                // Video resolution
+                FormItem(
+                    label = { Text("Resolution") },
+                    description = { Text("Output video resolution") }
+                ) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        listOf("480p", "720p", "1080p").forEach { res ->
+                            FilterChip(
+                                selected = videoResolution == res,
+                                onClick = { vm.updateVideoResolution(res) },
+                                label = { Text(res) }
+                            )
+                        }
+                    }
+                }
+
+                // Video aspect ratio
+                FormItem(
+                    label = { Text("Aspect Ratio") },
+                    description = { Text("Output video aspect ratio") }
+                ) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        listOf("16:9", "9:16", "1:1").forEach { ratio ->
+                            FilterChip(
+                                selected = videoAspectRatio == ratio,
+                                onClick = { vm.updateVideoAspectRatio(ratio) },
+                                label = { Text(ratio) }
+                            )
+                        }
+                    }
+                }
+
+                // Generate audio
+                FormItem(
+                    label = { Text("Generate Audio") },
+                    description = { Text("Add AI-generated audio to the video") }
+                ) {
+                    FilterChip(
+                        selected = generateAudio,
+                        onClick = { vm.updateGenerateAudio(!generateAudio) },
+                        label = { Text(if (generateAudio) "On" else "Off") }
+                    )
+                }
+            } else {
+                // Image model selection
+                FormItem(
+                    label = { Text(stringResource(R.string.imggen_page_model_selection)) },
+                    description = { Text(stringResource(R.string.imggen_page_model_selection_desc)) }
+                ) {
+                    ModelSelector(
+                        modelId = settings.imageGenerationModelId,
+                        providers = settings.providers,
+                        type = ModelType.IMAGE,
+                        onlyIcon = false,
+                        onSelect = { model ->
+                            scope.launch {
+                                vm.settingsStore.update { oldSettings ->
+                                    oldSettings.copy(imageGenerationModelId = model.id)
                             }
-                        )
+                            }
+                        }
+                    )
+                }
+
+                FormItem(
+                    label = { Text(stringResource(R.string.imggen_page_generation_count)) },
+                    description = { Text(stringResource(R.string.imggen_page_generation_count_desc)) }
+                ) {
+                    OutlinedNumberInput(
+                        value = numberOfImages,
+                        onValueChange = vm::updateNumberOfImages,
+                        modifier = Modifier.width(120.dp)
+                    )
+                }
+
+                FormItem(
+                    label = { Text(stringResource(R.string.imggen_page_aspect_ratio)) },
+                    description = { Text(stringResource(R.string.imggen_page_aspect_ratio_desc)) }
+                ) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        ImageAspectRatio.entries.forEach { ratio ->
+                            FilterChip(
+                                selected = aspectRatio == ratio,
+                                onClick = { vm.updateAspectRatio(ratio) },
+                                label = {
+                                    Text(
+                                        stringResource(
+                                            when (ratio) {
+                                                ImageAspectRatio.SQUARE -> R.string.imggen_page_aspect_ratio_square
+                                                ImageAspectRatio.LANDSCAPE -> R.string.imggen_page_aspect_ratio_landscape
+                                                ImageAspectRatio.PORTRAIT -> R.string.imggen_page_aspect_ratio_portrait
+                                            }
+                                        )
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
             }

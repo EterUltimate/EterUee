@@ -10,8 +10,7 @@
 </div>
 
 <div align="center">
-  <img src="docs/img/chat.png" alt="Chat Interface" width="150" />
-  <img src="docs/img/desktop.png" alt="Models Picker" width="450" />
+
 </div>
 
 ## 🚀 Download

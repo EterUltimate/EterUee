@@ -31,10 +31,13 @@ val viewModelModule = module {
             settingsStore = get(),
             conversationRepo = get(),
             chatService = get(),
+            aiSDK = get(),
             updateChecker = get(),
             analytics = get(),
             filesManager = get(),
             favoriteRepository = get(),
+            skillManager = get(),
+            localTools = get(),
         )
     }
     viewModelOf(::ChatDrawerVM)

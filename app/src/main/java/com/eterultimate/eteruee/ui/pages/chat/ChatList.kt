@@ -112,6 +112,7 @@ private const val ScrollBottomKey = "ScrollBottomKey"
 fun ChatList(
     innerPadding: PaddingValues,
     conversation: Conversation,
+    nodes: List<MessageNode>,
     state: LazyListState,
     loading: Boolean,
     processingStatus: String? = null,
@@ -144,7 +145,7 @@ fun ChatList(
         if (target) {
             ChatListPreview(
                 innerPadding = innerPadding,
-                conversation = conversation,
+                nodes = nodes,
                 settings = settings,
                 hazeState = hazeState,
                 onJumpToMessage = onJumpToMessage,
@@ -154,6 +155,7 @@ fun ChatList(
             ChatListNormal(
                 innerPadding = innerPadding,
                 conversation = conversation,
+                nodes = nodes,
                 state = state,
                 loading = loading,
                 processingStatus = processingStatus,
@@ -183,6 +185,7 @@ fun ChatList(
 private fun ChatListNormal(
     innerPadding: PaddingValues,
     conversation: Conversation,
+    nodes: List<MessageNode>,
     state: LazyListState,
     loading: Boolean,
     processingStatus: String? = null,
@@ -298,7 +301,7 @@ private fun ChatListNormal(
                 .padding(top = innerPadding.calculateTopPadding()),
         ) {
             itemsIndexed(
-                items = conversation.messageNodes,
+                items = nodes,
                 key = { index, item -> item.id },
             ) { index, node ->
                 Column {
@@ -334,8 +337,8 @@ private fun ChatListNormal(
                             onShare = {
                                 selecting = true  // 使用 CoroutineScope 延迟状态更新
                                 selectedItems.clear()
-                                selectedItems.addAll(conversation.messageNodes.map { it.id }
-                                    .subList(0, conversation.messageNodes.indexOf(node) + 1))
+                                selectedItems.addAll(nodes.map { it.id }
+                                    .subList(0, nodes.indexOf(node) + 1))
                             },
                             onUpdate = {
                                 onUpdateMessage(it)
@@ -442,7 +445,7 @@ private fun ChatListNormal(
                                 if (selectedItems.isNotEmpty()) {
                                     selectedItems.clear()
                                 } else {
-                                    selectedItems.addAll(conversation.messageNodes.map { it.id })
+                                    selectedItems.addAll(nodes.map { it.id })
                                 }
                             }
                         ) {
@@ -457,7 +460,7 @@ private fun ChatListNormal(
                         FilledIconButton(
                             onClick = {
                                 selecting = false
-                                val messages = conversation.messageNodes.filter { it.id in selectedItems }
+                                val messages = nodes.filter { it.id in selectedItems }
                                 if (messages.isNotEmpty()) {
                                     showExportSheet = true
                                 }
@@ -477,7 +480,7 @@ private fun ChatListNormal(
                     selectedItems.clear()
                 },
                 conversation = conversation,
-                selectedMessages = conversation.messageNodes.filter { it.id in selectedItems }
+                selectedMessages = nodes.filter { it.id in selectedItems }
                     .map { it.currentMessage }
             )
 
@@ -571,7 +574,7 @@ private fun buildHighlightedText(
 @Composable
 private fun ChatListPreview(
     innerPadding: PaddingValues,
-    conversation: Conversation,
+    nodes: List<MessageNode>,
     settings: Settings,
     hazeState: HazeState,
     animatedVisibilityScope: AnimatedVisibilityScope,
@@ -580,11 +583,11 @@ private fun ChatListPreview(
     var searchQuery by remember { mutableStateOf("") }
 
     // 过滤消息，同时保留原始 index 避免后续 O(n) indexOf 查找
-    val filteredMessages = remember(conversation.messageNodes, searchQuery) {
+    val filteredMessages = remember(nodes, searchQuery) {
         if (searchQuery.isBlank()) {
-            conversation.messageNodes.mapIndexed { index, node -> index to node }
+            nodes.mapIndexed { index, node -> index to node }
         } else {
-            conversation.messageNodes.mapIndexed { index, node -> index to node }
+            nodes.mapIndexed { index, node -> index to node }
                 .filter { (_, node) -> node.currentMessage.toText().contains(searchQuery, ignoreCase = true) }
         }
     }

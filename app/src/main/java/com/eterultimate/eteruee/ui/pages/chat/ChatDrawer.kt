@@ -1,6 +1,5 @@
 package com.eterultimate.eteruee.ui.pages.chat
 
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -28,8 +28,21 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import com.eterultimate.eteruee.ui.context.Navigator
+import com.eterultimate.eteruee.R
+import com.eterultimate.eteruee.data.model.Conversation
+import kotlinx.coroutines.launch
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,11 +73,9 @@ import me.rerere.hugeicons.stroke.Search01
 import me.rerere.hugeicons.stroke.Settings03
 import me.rerere.hugeicons.stroke.Sparkles
 import me.rerere.hugeicons.stroke.TransactionHistory
-import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.Screen
 import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.data.model.Assistant
-import com.eterultimate.eteruee.data.model.Conversation
 import com.eterultimate.eteruee.data.repository.ConversationRepository
 import com.eterultimate.eteruee.ui.components.ai.AssistantPicker
 import com.eterultimate.eteruee.ui.components.ui.BackupReminderCard
@@ -72,7 +83,6 @@ import com.eterultimate.eteruee.ui.components.ui.Greeting
 import com.eterultimate.eteruee.ui.components.ui.Tooltip
 import com.eterultimate.eteruee.ui.components.ui.UIAvatar
 import com.eterultimate.eteruee.ui.components.ui.UpdateCard
-import com.eterultimate.eteruee.ui.context.Navigator
 import com.eterultimate.eteruee.ui.hooks.EditStateContent
 import com.eterultimate.eteruee.ui.hooks.readBooleanPreference
 import com.eterultimate.eteruee.ui.hooks.rememberIsPlayStoreVersion
@@ -244,6 +254,18 @@ fun ChatDrawerContent(
                 onMoveToAssistant = {
                     conversationToMove = it
                     showMoveToAssistantSheet = true
+                },
+                onBatchDelete = { conversationsToDelete ->
+                    scope.launch {
+                        conversationsToDelete.forEach { conversation ->
+                            vm.deleteConversation(conversation)
+                        }
+                        conversations.refresh()
+                        // 如果当前对话被删除，跳转到新对话
+                        if (conversationsToDelete.any { it.id == current.id }) {
+                            navigateToChatPage(navController)
+                        }
+                    }
                 }
             )
 

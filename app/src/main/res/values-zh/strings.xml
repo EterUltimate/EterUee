@@ -446,6 +446,8 @@
   <string name="permission_go_to_settings">前往设置</string>
   <string name="permission_notification">通知</string>
   <string name="permission_notification_desc">发送通知</string>
+  <string name="permission_location">位置信息</string>
+  <string name="permission_location_desc">访问设备位置以为 AI 助手提供当前位置上下文</string>
   <string name="permission_permanently_denied">已永久拒绝</string>
   <string name="permission_required">必需</string>
   <string name="photo">照片</string>
@@ -464,6 +466,7 @@
   <string name="placeholder_system_version">系统版本</string>
   <string name="placeholder_timezone">时区</string>
   <string name="placeholder_user">用户</string>
+  <string name="placeholder_current_location">当前位置</string>
   <string name="prompt_page_add">添加</string>
   <string name="prompt_page_add_entry">添加条目</string>
   <string name="prompt_page_add_lorebook">添加世界书</string>

@@ -11,8 +11,8 @@ import com.eterultimate.eteruee.ai.ui.VideoGenerationResult
 import com.eterultimate.eteruee.ai.ui.MessageChunk
 import com.eterultimate.eteruee.ai.ui.UIMessage
 
-// 鎻愪緵鍟嗗疄鐜?
-// 閲囩敤鏃犵姸鎬佽璁★紝浣跨敤鏃堕櫎浜嗛渶瑕佷紶鍏ラ渶瑕佺殑鍙傛暟澶栵紝杩橀渶瑕佷紶鍏rovider setting浣滀负鍙傛暟
+// 提供商实现
+// 采用无状态设计，使用时除了需要传入需要的参数外，还需要传入provider setting作为参数
 interface Provider<T : ProviderSetting> {
     suspend fun listModels(providerSetting: T): List<Model>
 

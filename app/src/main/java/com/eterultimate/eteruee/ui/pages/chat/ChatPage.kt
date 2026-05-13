@@ -42,7 +42,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.sonner.ToastType
 import dev.chrisbanes.haze.rememberHazeState
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import com.eterultimate.eteruee.ai.provider.Model
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
@@ -58,6 +57,7 @@ import com.eterultimate.eteruee.data.datastore.getCurrentAssistant
 import com.eterultimate.eteruee.data.datastore.getCurrentChatModel
 import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.model.Conversation
+import com.eterultimate.eteruee.data.model.MessageNode
 import com.eterultimate.eteruee.service.ChatError
 import com.eterultimate.eteruee.ui.components.ai.ChatInput
 import com.eterultimate.eteruee.ui.context.LocalNavController
@@ -86,7 +86,8 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>, nodeId: Uuid? = null) {
 
     val setting by vm.settings.collectAsStateWithLifecycle()
     val conversation by vm.conversation.collectAsStateWithLifecycle()
-    val loadingJob by vm.conversationJob.collectAsStateWithLifecycle()
+    val nodes by vm.chatState.nodes.collectAsStateWithLifecycle()
+    val isLoading by vm.chatState.isLoading.collectAsStateWithLifecycle()
     val processingStatus by vm.processingStatus.collectAsStateWithLifecycle()
     val currentChatModel by vm.currentChatModel.collectAsStateWithLifecycle()
     val enableWebSearch by vm.enableWebSearch.collectAsStateWithLifecycle()
@@ -175,10 +176,11 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>, nodeId: Uuid? = null) {
             ) {
                 ChatPageContent(
                     inputState = inputState,
-                    loadingJob = loadingJob,
+                    isLoading = isLoading,
                     processingStatus = processingStatus,
                     setting = setting,
                     conversation = conversation,
+                    nodes = nodes,
                     drawerState = drawerState,
                     navController = navController,
                     vm = vm,
@@ -207,10 +209,11 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>, nodeId: Uuid? = null) {
             ) {
                 ChatPageContent(
                     inputState = inputState,
-                    loadingJob = loadingJob,
+                    isLoading = isLoading,
                     processingStatus = processingStatus,
                     setting = setting,
                     conversation = conversation,
+                    nodes = nodes,
                     drawerState = drawerState,
                     navController = navController,
                     vm = vm,
@@ -233,11 +236,12 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>, nodeId: Uuid? = null) {
 @Composable
 private fun ChatPageContent(
     inputState: ChatInputState,
-    loadingJob: Job?,
+    isLoading: Boolean,
     processingStatus: String? = null,
     setting: Settings,
     bigScreen: Boolean,
     conversation: Conversation,
+    nodes: List<MessageNode>,
     drawerState: DrawerState,
     navController: Navigator,
     vm: ChatVM,
@@ -282,7 +286,7 @@ private fun ChatPageContent(
             bottomBar = {
                 ChatInput(
                     state = inputState,
-                    loading = loadingJob != null,
+                    loading = isLoading,
                     settings = setting,
                     conversation = conversation,
                     mcpManager = vm.mcpManager,
@@ -359,8 +363,9 @@ private fun ChatPageContent(
             ChatList(
                 innerPadding = innerPadding,
                 conversation = conversation,
+                nodes = nodes,
                 state = chatListState,
-                loading = loadingJob != null,
+                loading = isLoading,
                 processingStatus = processingStatus,
                 previewMode = previewMode,
                 settings = setting,
@@ -382,7 +387,7 @@ private fun ChatPageContent(
                     }
                 },
                 onDelete = {
-                    if (loadingJob != null) {
+                    if (isLoading) {
                         vm.showDeleteBlockedWhileGeneratingError()
                     } else {
                         vm.deleteMessage(it)

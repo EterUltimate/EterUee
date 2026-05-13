@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.eterultimate.eteruee.ai.sdk.AISDK
 import com.eterultimate.eteruee.AppScope
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.files.FilesManager
@@ -38,6 +39,7 @@ class WebServerManager(
     private val context: Context,
     private val appScope: AppScope,
     private val chatService: ChatService,
+    private val aiSDK: AISDK,
     private val conversationRepo: ConversationRepository,
     private val settingsStore: SettingsStore,
     private val filesManager: FilesManager
@@ -75,7 +77,7 @@ class WebServerManager(
                     return@launch
                 }
                 server = startWebServer(port = port, host = host) {
-                    configureWebApi(context, chatService, conversationRepo, settingsStore, filesManager)
+                    configureWebApi(context, chatService, aiSDK, conversationRepo, settingsStore, filesManager)
                 }.start(wait = false)
 
                 _state.value = baseState.copy(isRunning = true)

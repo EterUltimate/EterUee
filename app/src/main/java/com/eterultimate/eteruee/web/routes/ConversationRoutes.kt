@@ -16,6 +16,10 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
+import com.eterultimate.eteruee.ai.sdk.AISDK
+import com.eterultimate.eteruee.ai.sdk.GenerateTextRequest
+import com.eterultimate.eteruee.ai.sdk.StreamTextRequest
+import com.eterultimate.eteruee.ai.sdk.TextChunk
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.repository.ConversationRepository
 import com.eterultimate.eteruee.service.ChatService
@@ -45,6 +49,7 @@ import kotlin.uuid.Uuid
 
 fun Route.conversationRoutes(
     chatService: ChatService,
+    aiSDK: AISDK,
     conversationRepo: ConversationRepository,
     settingsStore: SettingsStore
 ) {
@@ -317,6 +322,27 @@ fun Route.conversationRoutes(
             val request = call.receive<ToolApprovalRequest>()
             chatService.handleToolApproval(uuid, request.toolCallId, request.approved, request.reason, request.answer)
             call.respond(HttpStatusCode.Accepted, mapOf("status" to "accepted"))
+        }
+
+        // POST /api/conversations/generate - AI SDK generateText compatible endpoint
+        post("/generate") {
+            val request = call.receive<GenerateTextRequest>()
+            val result = aiSDK.generateText(request)
+            call.respond(result)
+        }
+
+        // SSE /api/conversations/stream - AI SDK streamText compatible endpoint
+        sse("/stream") {
+            val request = call.receive<StreamTextRequest>()
+            aiSDK.streamText(request).collect { chunk ->
+                val eventType = when (chunk) {
+                    is TextChunk.TextDelta -> "text-delta"
+                    is TextChunk.ToolCall -> "tool-call"
+                    is TextChunk.Usage -> "usage"
+                    is TextChunk.Finish -> "finish"
+                }
+                send(event = eventType, data = JsonInstant.encodeToString(chunk))
+            }
         }
 
         // SSE /api/conversations/{id}/stream - Stream conversation updates

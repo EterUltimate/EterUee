@@ -265,6 +265,7 @@
   <string name="chat_page_compress_warning">⚠️ Compressing context will reset all messages in the current conversation</string>
   <string name="chat_page_compressing">Compressing...</string>
   <string name="chat_page_delete">Delete</string>
+  <string name="selected_count">%1$d selected</string>
   <string name="chat_page_dismiss_error">Dismiss error</string>
   <string name="chat_page_edit_nickname">Edit Nickname</string>
   <string name="chat_page_edit_title">Edit title</string>
@@ -449,6 +450,8 @@
   <string name="permission_local_network_desc">Allow the web server to be accessed from devices on the same local network</string>
   <string name="permission_notification">Notification</string>
   <string name="permission_notification_desc">Send notifications</string>
+  <string name="permission_location">Location</string>
+  <string name="permission_location_desc">Access device location to provide current location context to AI assistant</string>
   <string name="permission_permanently_denied">Permanently Denied</string>
   <string name="permission_required">Required</string>
   <string name="photo">Photo</string>
@@ -467,6 +470,7 @@
   <string name="placeholder_system_version">System Version</string>
   <string name="placeholder_timezone">Timezone</string>
   <string name="placeholder_user">User</string>
+  <string name="placeholder_current_location">Current Location</string>
   <string name="prompt_page_add">Add</string>
   <string name="prompt_page_add_entry">Add Entry</string>
   <string name="prompt_page_add_lorebook">Add Lorebook</string>

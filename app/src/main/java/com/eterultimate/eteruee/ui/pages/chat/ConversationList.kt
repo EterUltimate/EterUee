@@ -1,12 +1,5 @@
 ﻿package com.eterultimate.eteruee.ui.pages.chat
 
-import androidx.compose.foundation.shape.RoundedCornerShape
-import me.rerere.hugeicons.HugeIcons
-import me.rerere.hugeicons.stroke.Forward02
-import me.rerere.hugeicons.stroke.Pin
-import me.rerere.hugeicons.stroke.PinOff
-import me.rerere.hugeicons.stroke.Refresh01
-import me.rerere.hugeicons.stroke.Delete01
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
@@ -22,16 +15,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -51,10 +52,16 @@ import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.model.Conversation
 import com.eterultimate.eteruee.ui.theme.extendColors
 import com.eterultimate.eteruee.utils.toLocalString
+import me.rerere.hugeicons.HugeIcons
+import me.rerere.hugeicons.stroke.Delete01
+import me.rerere.hugeicons.stroke.Forward02
+import me.rerere.hugeicons.stroke.MoreVertical
+import me.rerere.hugeicons.stroke.Pin
+import me.rerere.hugeicons.stroke.PinOff
+import me.rerere.hugeicons.stroke.Refresh01
 import java.time.LocalDate
 import java.time.ZoneId
 import kotlin.uuid.Uuid
-import androidx.compose.ui.graphics.RectangleShape
 
 /**
  * Represents different types of items in the conversation list
@@ -81,8 +88,11 @@ fun ColumnScope.ConversationList(
     onDelete: (Conversation) -> Unit = {},
     onRegenerateTitle: (Conversation) -> Unit = {},
     onPin: (Conversation) -> Unit = {},
-    onMoveToAssistant: (Conversation) -> Unit = {}
+    onMoveToAssistant: (Conversation) -> Unit = {},
+    onBatchDelete: (List<Conversation>) -> Unit = {}
 ) {
+    var selectionMode by remember { mutableStateOf(false) }
+    val selectedConversations = remember { mutableStateListOf<Uuid>() }
     var hasScrolledToCurrent by remember(current.id) { mutableStateOf(false) }
 
     LaunchedEffect(current.id, conversations.itemCount, hasScrolledToCurrent) {
@@ -97,6 +107,27 @@ fun ColumnScope.ConversationList(
             }
             hasScrolledToCurrent = true
         }
+    }
+
+    // 批量删除工具栏
+    if (selectionMode && selectedConversations.isNotEmpty()) {
+        SelectionToolbar(
+            selectedCount = selectedConversations.size,
+            onDeleteAll = {
+                val selectedItems = conversations.itemSnapshotList.items
+                    .filterIsInstance<ConversationListItem.Item>()
+                    .map { it.conversation }
+                    .filter { it.id in selectedConversations }
+                onBatchDelete(selectedItems)
+                selectedConversations.clear()
+                selectionMode = false
+            },
+            onCancel = {
+                selectedConversations.clear()
+                selectionMode = false
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 
     LazyColumn(
@@ -152,6 +183,19 @@ fun ColumnScope.ConversationList(
                         conversation = item.conversation,
                         selected = item.conversation.id == current.id,
                         loading = item.conversation.id in conversationJobs,
+                        inSelectionMode = selectionMode,
+                        isSelected = item.conversation.id in selectedConversations,
+                        onToggleSelection = {
+                            if (selectedConversations.contains(it.id)) {
+                                selectedConversations.remove(it.id)
+                            } else {
+                                selectedConversations.add(it.id)
+                            }
+                        },
+                        onEnterSelectionMode = {
+                            selectionMode = true
+                            selectedConversations.add(it.id)
+                        },
                         onClick = onClick,
                         onDelete = onDelete,
                         onRegenerateTitle = onRegenerateTitle,
@@ -163,6 +207,68 @@ fun ColumnScope.ConversationList(
 
                 null -> {
                     // Placeholder for loading state
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SelectionToolbar(
+    selectedCount: Int,
+    onDeleteAll: () -> Unit,
+    onCancel: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        color = MaterialTheme.colorScheme.primaryContainer,
+        tonalElevation = 2.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = true,
+                    onCheckedChange = null,
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = MaterialTheme.colorScheme.primary
+                    )
+                )
+                Text(
+                    text = stringResource(R.string.selected_count, selectedCount),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+            
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                TextButton(onClick = onCancel) {
+                    Text(stringResource(R.string.cancel))
+                }
+                TextButton(
+                    onClick = onDeleteAll,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Icon(
+                        imageVector = HugeIcons.Delete01,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.size(4.dp))
+                    Text(stringResource(R.string.delete))
                 }
             }
         }
@@ -222,6 +328,10 @@ private fun ConversationItem(
     conversation: Conversation,
     selected: Boolean,
     loading: Boolean,
+    inSelectionMode: Boolean = false,
+    isSelected: Boolean = false,
+    onToggleSelection: (Conversation) -> Unit = {},
+    onEnterSelectionMode: (Conversation) -> Unit = {},
     modifier: Modifier = Modifier,
     onDelete: (Conversation) -> Unit = {},
     onRegenerateTitle: (Conversation) -> Unit = {},
@@ -230,7 +340,9 @@ private fun ConversationItem(
     onClick: (Conversation) -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    val backgroundColor = if (selected) {
+    val backgroundColor = if (isSelected) {
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+    } else if (selected) {
         MaterialTheme.colorScheme.surfaceColorAtElevation(8.dp)
     } else {
         Color.Transparent
@@ -244,9 +356,17 @@ private fun ConversationItem(
             .combinedClickable(
                 interactionSource = interactionSource,
                 indication = LocalIndication.current,
-                onClick = { onClick(conversation) },
+                onClick = {
+                    if (inSelectionMode) {
+                        onToggleSelection(conversation)
+                    } else {
+                        onClick(conversation)
+                    }
+                },
                 onLongClick = {
-                    showDropdownMenu = true
+                    if (!inSelectionMode) {
+                        onEnterSelectionMode(conversation)
+                    }
                 }
             )
             .background(backgroundColor),
@@ -264,25 +384,44 @@ private fun ConversationItem(
             )
             Spacer(Modifier.weight(1f))
 
-            // 缃《鍥炬爣
-            AnimatedVisibility(conversation.isPinned) {
-                Icon(
-                    imageVector = HugeIcons.Pin,
-                    contentDescription = "Pinned",
-                    modifier = Modifier.size(12.dp),
-                    tint = MaterialTheme.colorScheme.primary
+            // 选择模式下的复选框
+            if (inSelectionMode) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = { onToggleSelection(conversation) },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = MaterialTheme.colorScheme.primary
+                    )
                 )
-            }
-            AnimatedVisibility(loading) {
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(0.dp))
-                        .background(MaterialTheme.extendColors.blue6)
-                        .size(4.dp)
-                        .semantics {
-                            contentDescription = "Loading"
-                        }
-                )
+            } else {
+                // 置顶图标
+                AnimatedVisibility(conversation.isPinned) {
+                    Icon(
+                        imageVector = HugeIcons.Pin,
+                        contentDescription = "Pinned",
+                        modifier = Modifier.size(12.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+                AnimatedVisibility(loading) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(0.dp))
+                            .background(MaterialTheme.extendColors.blue6)
+                            .size(4.dp)
+                            .semantics {
+                                contentDescription = "Loading"
+                            }
+                    )
+                }
+                // 长按显示下拉菜单
+                IconButton(onClick = { showDropdownMenu = true }) {
+                    Icon(
+                        imageVector = HugeIcons.MoreVertical,
+                        contentDescription = "More options",
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
             DropdownMenu(
                 expanded = showDropdownMenu,

@@ -75,3 +75,10 @@ val PermissionLocalNetwork = PermissionInfo(
     usage = { Text(stringResource(R.string.permission_local_network_desc)) },
     required = true
 )
+
+val PermissionLocation = PermissionInfo(
+    permission = Manifest.permission.ACCESS_FINE_LOCATION,
+    displayName = { Text(stringResource(R.string.permission_location)) },
+    usage = { Text(stringResource(R.string.permission_location_desc)) },
+    required = false
+)

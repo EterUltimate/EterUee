@@ -20,6 +20,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import com.eterultimate.eteruee.ai.sdk.AISDK
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.repository.ConversationRepository
@@ -58,6 +59,7 @@ private const val WEB_AUTH_REALM = "eteruee-web-api"
 fun Application.configureWebApi(
     context: Context,
     chatService: ChatService,
+    aiSDK: AISDK,
     conversationRepo: ConversationRepository,
     settingsStore: SettingsStore,
     filesManager: FilesManager
@@ -165,13 +167,13 @@ fun Application.configureWebApi(
 
             if (jwtEnabled) {
                 authenticate("auth-jwt") {
-                    conversationRoutes(chatService, conversationRepo, settingsStore)
+                    conversationRoutes(chatService, aiSDK, conversationRepo, settingsStore)
                     settingsRoutes(settingsStore)
                     filesRoutes(filesManager, context)
                     assetsRoutes(context)
                 }
             } else {
-                conversationRoutes(chatService, conversationRepo, settingsStore)
+                conversationRoutes(chatService, aiSDK, conversationRepo, settingsStore)
                 settingsRoutes(settingsStore)
                 filesRoutes(filesManager, context)
                 assetsRoutes(context)

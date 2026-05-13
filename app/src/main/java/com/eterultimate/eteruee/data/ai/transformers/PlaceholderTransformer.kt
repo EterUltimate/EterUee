@@ -13,6 +13,7 @@ import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.datastore.getCurrentAssistant
 import com.eterultimate.eteruee.data.model.Assistant
+import com.eterultimate.eteruee.utils.LocationProvider
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import java.time.LocalDate
@@ -110,6 +111,10 @@ object DefaultPlaceholderProvider : PlaceholderProvider {
 
         placeholder("user", { Text(stringResource(R.string.placeholder_user)) }) {
             it.settingsStore.settingsFlow.value.displaySetting.userNickname.ifBlank { "user" }
+        }
+
+        placeholder("current_location", { Text(stringResource(R.string.placeholder_current_location)) }) {
+            LocationProvider.getCurrentLocation(it.context)
         }
     }
 

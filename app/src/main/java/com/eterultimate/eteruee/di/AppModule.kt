@@ -8,6 +8,8 @@ import kotlinx.serialization.json.Json
 import com.eterultimate.eteruee.highlight.Highlighter
 import com.eterultimate.eteruee.AppScope
 import com.eterultimate.eteruee.data.ai.AILoggingManager
+import com.eterultimate.eteruee.ai.sdk.AISDK
+import com.eterultimate.eteruee.data.ai.DynamicAISDK
 import com.eterultimate.eteruee.data.ai.tools.LocalTools
 import com.eterultimate.eteruee.data.event.AppEventBus
 import com.eterultimate.eteruee.service.ChatService
@@ -21,6 +23,10 @@ import org.koin.dsl.module
 
 val appModule = module {
     single<Json> { JsonInstant }
+
+    single<AISDK> {
+        DynamicAISDK(get(), get())
+    }
 
     single {
         Highlighter(get())
@@ -88,6 +94,7 @@ val appModule = module {
             context = get(),
             appScope = get(),
             chatService = get(),
+            aiSDK = get(),
             conversationRepo = get(),
             settingsStore = get(),
             filesManager = get()

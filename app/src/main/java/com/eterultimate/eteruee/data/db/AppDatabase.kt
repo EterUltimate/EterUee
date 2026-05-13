@@ -19,6 +19,7 @@ import com.eterultimate.eteruee.data.db.entity.ManagedFileEntity
 import com.eterultimate.eteruee.data.db.entity.MemoryEntity
 import com.eterultimate.eteruee.data.db.entity.MessageNodeEntity
 import com.eterultimate.eteruee.data.db.migrations.Migration_16_17
+import com.eterultimate.eteruee.data.db.migrations.MIGRATION_17_18
 import com.eterultimate.eteruee.data.db.migrations.Migration_8_9
 import com.eterultimate.eteruee.utils.JsonInstant
 
@@ -44,8 +45,8 @@ import com.eterultimate.eteruee.utils.JsonInstant
         AutoMigration(from = 10, to = 11),
         AutoMigration(from = 12, to = 13),
         AutoMigration(from = 16, to = 17, spec = Migration_16_17::class),
-        AutoMigration(from = 17, to = 18),
-    ]
+    ],
+    exportSchema = true
 )
 @TypeConverters(TokenUsageConverter::class)
 abstract class AppDatabase : RoomDatabase() {

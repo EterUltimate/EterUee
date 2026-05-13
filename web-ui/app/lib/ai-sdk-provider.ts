@@ -1,187 +1,73 @@
 /**
- * EterUee AI Provider 适配器
- * 将现有的 SSE API 适配为 AI SDK Provider 格式
+ * EterUee AI SDK 集成指南
+ * 
+ * 重要说明:
+ * - 我们不使用 @ai-sdk/provider 的 createProvider
+ * - 而是直接使用 useChat hook 并配置 SSE API 端点
+ * - 这是因为后端已经提供了完整的 SSE 流式 API
+ * 
+ * 使用方法:
+ * ```typescript
+ * import { useChat } from '@ai-sdk/react';
+ * 
+ * const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+ *   id: conversationId,
+ *   api: `/api/conversations/${conversationId}/stream`,
+ *   initialMessages: convertBackendMessagesToAI_SDK(initialMessages),
+ *   onFinish: (message) => {
+ *     // 保存对话
+ *   },
+ *   onError: (error) => {
+ *     toast.error(error.message);
+ *   }
+ * });
+ * ```
  */
 
-import type { LanguageModelV1, LanguageModelV1StreamPart } from '@ai-sdk/provider';
-
-interface EterUeeProviderOptions {
-  baseUrl?: string;
-  apiKey?: string;
-}
+import type { MessageDto, MessageNodeDto } from '~/types';
 
 /**
- * 创建 EterUee Provider
+ * 将后端消息格式转换为 AI SDK 格式
+ * 
+ * 后端格式: MessageDto { role, parts: UIMessagePart[], ... }
+ * AI SDK 格式: { role, content: string | Array<{type, text, ...}>, ... }
  */
-export function createEterUeeProvider(options: EterUeeProviderOptions = {}) {
-  const baseUrl = options.baseUrl || '/api';
-
-  /**
-   * 创建语言模型
-   */
-  function createModel(modelId: string): LanguageModelV1 {
-    return {
-      specificationVersion: 'v1',
-      defaultObjectGenerationMode: 'json',
-      modelId,
-      provider: 'eteruee',
-
-      async doGenerate(options) {
-        // 非流式生成 - 调用后端 API
-        const response = await fetch(`${baseUrl}/conversations/generate`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(options.headers || {}),
-          },
-          body: JSON.stringify({
-            model: modelId,
-            messages: options.prompt,
-            temperature: options.temperature,
-            maxTokens: options.maxTokens,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`API request failed: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-
-        return {
-          text: data.text,
-          finishReason: data.finishReason || 'stop',
-          usage: data.usage
-            ? {
-                promptTokens: data.usage.promptTokens ?? 0,
-                completionTokens: data.usage.completionTokens ?? 0,
-              }
-            : {
-                promptTokens: 0,
-                completionTokens: 0,
-              },
-          rawCall: { rawPrompt: options.prompt, rawSettings: {} },
-        };
-      },
-
-      async doStream(options) {
-        // 流式生成 - 使用 SSE
-        const response = await fetch(`${baseUrl}/conversations/stream`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'text/event-stream',
-            ...(options.headers || {}),
-          },
-          body: JSON.stringify({
-            model: modelId,
-            messages: options.prompt,
-            temperature: options.temperature,
-            maxTokens: options.maxTokens,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`API request failed: ${response.statusText}`);
-        }
-
-        const reader = response.body?.getReader();
-        if (!reader) {
-          throw new Error('Response body is not readable');
-        }
-
-        const decoder = new TextDecoder();
-        let buffer = '';
-
-        return {
-          stream: new ReadableStream<LanguageModelV1StreamPart>({
-            async start(controller) {
-              try {
-                while (true) {
-                  const { done, value } = await reader.read();
-                  if (done) break;
-
-                  buffer += decoder.decode(value, { stream: true });
-                  const lines = buffer.split('\n');
-                  buffer = lines.pop() || '';
-
-                  for (const line of lines) {
-                    if (line.startsWith('data: ')) {
-                      const data = line.slice(6);
-                      try {
-                        const chunk = JSON.parse(data);
-
-                        // 转换 SSE 事件为 AI SDK 格式
-                        if (chunk.type === 'text-delta') {
-                          controller.enqueue({
-                            type: 'text-delta',
-                            textDelta: chunk.data.text,
-                          });
-                        } else if (chunk.type === 'tool-call') {
-                          controller.enqueue({
-                            type: 'tool-call',
-                            toolCallType: 'function',
-                            toolCallId: chunk.data.toolCallId,
-                            toolName: chunk.data.toolName,
-                            args: chunk.data.arguments || '{}',
-                          });
-                        } else if (chunk.type === 'finish') {
-                          controller.enqueue({
-                            type: 'finish',
-                            finishReason: chunk.data.reason || 'stop',
-                            usage: chunk.data.usage
-                              ? {
-                                  promptTokens: chunk.data.usage.promptTokens ?? 0,
-                                  completionTokens: chunk.data.usage.completionTokens ?? 0,
-                                }
-                              : {
-                                  promptTokens: 0,
-                                  completionTokens: 0,
-                                },
-                          });
-                          controller.close();
-                          return;
-                        }
-                      } catch (e) {
-                        console.warn('Failed to parse SSE chunk:', e);
-                      }
-                    }
-                  }
-                }
-              } catch (error) {
-                controller.error(error);
-              } finally {
-                controller.close();
-              }
-            },
-            cancel() {
-              reader.cancel();
-            },
-          }),
-          rawCall: { rawPrompt: options.prompt, rawSettings: {} },
-        };
-      },
-    };
+export function convertBackendMessagesToAI_SDK(
+  messageNodes: MessageNodeDto[]
+): Array<{ id: string; role: string; content: string }> {
+  const messages: Array<{ id: string; role: string; content: string }> = [];
+  
+  for (const node of messageNodes) {
+    // 使用 selectIndex 选择当前显示的消息
+    const selectedIndex = node.selectIndex ?? 0;
+    const message = node.messages[selectedIndex];
+    
+    if (!message) continue;
+    
+    // 提取文本内容
+    let textContent = '';
+    for (const part of message.parts) {
+      if (part.type === 'text' && typeof part.text === 'string') {
+        textContent += part.text;
+      }
+    }
+    
+    messages.push({
+      id: message.id,
+      role: message.role.toLowerCase(), // 'user', 'assistant', 'system'
+      content: textContent,
+    });
   }
-
-  return {
-    /**
-     * 获取语言模型实例
-     */
-    languageModel(modelId: string): LanguageModelV1 {
-      return createModel(modelId);
-    },
-
-    /**
-     * 便捷方法 - 直接返回模型
-     */
-    chatModel(modelId: string): LanguageModelV1 {
-      return createModel(modelId);
-    },
-  };
+  
+  return messages;
 }
 
 /**
- * 默认 Provider 实例
+ * 注意: 对于 SSE 事件解析,useChat hook 会自动处理标准的 SSE 格式。
+ * 后端的 SSE 事件应该符合以下格式:
+ * 
+ * event: message
+ * data: {"text": "增量文本"}
+ * 
+ * 如果后端使用自定义事件类型,需要在 conversations.tsx 中手动处理。
  */
-export const eterueeProvider = createEterUeeProvider();

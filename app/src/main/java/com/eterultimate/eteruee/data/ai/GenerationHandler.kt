@@ -76,6 +76,7 @@ class GenerationHandler(
         tools: List<Tool> = emptyList(),
         maxSteps: Int = 256,
         processingStatus: MutableStateFlow<String?> = MutableStateFlow(null),
+        conversationSystemPrompt: String? = null,
     ): Flow<GenerationChunk> = flow {
         val provider = model.findProvider(settings.providers) ?: error("Provider not found")
         val providerImpl = providerManager.getProviderByType(provider)
@@ -150,6 +151,7 @@ class GenerationHandler(
                     memories = memories ?: emptyList(),
                     stream = assistant.streamOutput,
                     processingStatus = processingStatus,
+                    conversationSystemPrompt = conversationSystemPrompt,
                 )
                 messages = messages.visualTransforms(
                     transformers = outputTransformers,
@@ -335,12 +337,18 @@ class GenerationHandler(
         memories: List<AssistantMemory>,
         stream: Boolean,
         processingStatus: MutableStateFlow<String?> = MutableStateFlow(null),
+        conversationSystemPrompt: String? = null,
     ) {
         val internalMessages = buildList {
             val system = buildString {
-                // 如果助手有系统提示，则添加到消息中
-                if (assistant.systemPrompt.isNotBlank()) {
-                    append(assistant.systemPrompt)
+                val effectiveSystemPrompt =
+                    if (assistant.allowConversationSystemPrompt && !conversationSystemPrompt.isNullOrBlank()) {
+                        conversationSystemPrompt
+                    } else {
+                        assistant.systemPrompt
+                    }
+                if (effectiveSystemPrompt.isNotBlank()) {
+                    append(effectiveSystemPrompt)
                 }
 
                 // 记忆

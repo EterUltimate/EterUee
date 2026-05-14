@@ -24,6 +24,7 @@ data class Conversation(
     val createAt: Instant = Instant.now(),
     @Serializable(with = InstantSerializer::class)
     val updateAt: Instant = Instant.now(),
+    val customSystemPrompt: String? = null,
     @Transient
     val newConversation: Boolean = false
 ) {

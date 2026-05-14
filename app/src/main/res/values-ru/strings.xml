@@ -1022,5 +1022,11 @@
   <string name="setting_asr_configure_resource_id_desc">X-Api-Resource-Id для биллинга</string>
   <string name="assistant_page_message_template_missing_message">Шаблон не содержит {{ message }}, сообщения пользователя не будут отправлены</string>
   <string name="extension_content_manage">Управлять</string>
+  <string name="assistant_page_allow_conversation_system_prompt">Системный промпт для каждой беседы</string>
+  <string name="assistant_page_allow_conversation_system_prompt_desc">Разрешить каждому разговору переопределять системный запрос ассистента</string>
+  <string name="chat_page_conversation_system_prompt">Системный запрос для беседы</string>
+  <string name="chat_page_conversation_system_prompt_hint">Переопределить системный промпт ассистента для этого разговора</string>
+  <string name="chat_page_conversation_system_prompt_clear">Очистить</string>
+  <string name="chat_page_conversation_system_prompt_save">Сохранить</string>
 </resources>
 

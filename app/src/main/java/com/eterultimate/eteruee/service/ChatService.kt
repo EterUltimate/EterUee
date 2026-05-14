@@ -517,6 +517,7 @@ class ChatService(
                     }
                 },
                 assistant = assistant,
+                conversationSystemPrompt = conversation.customSystemPrompt,
                 memories = if (assistant.useGlobalMemory) {
                     memoryRepository.getGlobalMemories()
                 } else {
@@ -1147,6 +1148,7 @@ class ChatService(
             id = Uuid.random(),
             assistantId = currentConversation.assistantId,
             messageNodes = copiedNodes,
+            customSystemPrompt = currentConversation.customSystemPrompt,
         )
 
         saveConversation(forkConversation.id, forkConversation)

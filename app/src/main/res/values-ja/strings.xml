@@ -1023,5 +1023,11 @@ mDNSアドレス: .localホスト名を使用し、IPを知らなくても同じ
   <string name="setting_asr_configure_resource_id_desc">課金用のX-Api-Resource-Id</string>
   <string name="assistant_page_message_template_missing_message">テンプレートに{{ message }}が含まれていないため、ユーザーのメッセージは送信されません</string>
   <string name="extension_content_manage">管理</string>
+  <string name="assistant_page_allow_conversation_system_prompt">会話別システムプロンプト</string>
+  <string name="assistant_page_allow_conversation_system_prompt_desc">会話ごとにシステムプロンプトを個別に設定可能にする</string>
+  <string name="chat_page_conversation_system_prompt">会話システムプロンプト</string>
+  <string name="chat_page_conversation_system_prompt_hint">この会話でアシスタントのシステムプロンプトを上書き</string>
+  <string name="chat_page_conversation_system_prompt_clear">クリア</string>
+  <string name="chat_page_conversation_system_prompt_save">保存</string>
 </resources>
 

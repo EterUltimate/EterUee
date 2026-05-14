@@ -423,6 +423,10 @@ private fun ChatPageContent(
                 onToggleFavorite = { node ->
                     vm.toggleMessageFavorite(node)
                 },
+                onConversationSystemPromptChange = { newPrompt ->
+                    vm.updateConversation(conversation.copy(customSystemPrompt = newPrompt))
+                    vm.saveConversationAsync()
+                },
             )
         }
     }

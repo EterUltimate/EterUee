@@ -123,6 +123,8 @@
   <string name="assistant_page_stream_output_desc">是否启用消息的流式输出</string>
   <string name="assistant_page_strict">严谨</string>
   <string name="assistant_page_system_prompt">系统提示词</string>
+  <string name="assistant_page_allow_conversation_system_prompt">独立对话系统提示</string>
+  <string name="assistant_page_allow_conversation_system_prompt_desc">允许每个对话单独设置系统提示词</string>
   <string name="assistant_page_tab_basic">基础设定</string>
   <string name="assistant_page_tab_extensions">扩展管理</string>
   <string name="assistant_page_tab_local_tools">本地工具</string>
@@ -1081,5 +1083,9 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="setting_page_ssh_desc">通过SSH在远程服务器上执行命令</string>
   <string name="setting_provider_page_video_model">视频</string>
   <string name="theme_name_cyberpunk">赛博朋克</string>
+  <string name="chat_page_conversation_system_prompt">对话系统提示</string>
+  <string name="chat_page_conversation_system_prompt_hint">覆盖此对话的助手系统提示</string>
+  <string name="chat_page_conversation_system_prompt_clear">清除</string>
+  <string name="chat_page_conversation_system_prompt_save">保存</string>
 </resources>
 

@@ -22,5 +22,7 @@ data class ConversationEntity(
     val chatSuggestions: String,
     @ColumnInfo("is_pinned", defaultValue = "0")
     val isPinned: Boolean,
+    @ColumnInfo("custom_system_prompt", defaultValue = "")
+    val customSystemPrompt: String = "",
 )
 

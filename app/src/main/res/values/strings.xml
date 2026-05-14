@@ -124,6 +124,8 @@
   <string name="assistant_page_stream_output_desc">Whether to enable streaming output for messages</string>
   <string name="assistant_page_strict">Strict</string>
   <string name="assistant_page_system_prompt">System Prompt</string>
+  <string name="assistant_page_allow_conversation_system_prompt">Per-Conversation System Prompt</string>
+  <string name="assistant_page_allow_conversation_system_prompt_desc">Allow each conversation to override the assistant\'s system prompt</string>
   <string name="assistant_page_tab_basic">Basic Settings</string>
   <string name="assistant_page_tab_extensions">Extensions</string>
   <string name="assistant_page_tab_local_tools">Local Tools</string>
@@ -251,6 +253,10 @@
   <string name="chat_message_tool_submit">Submit</string>
   <string name="chat_page_cancel">Cancel</string>
   <string name="chat_page_clear_all_errors">Clear all</string>
+  <string name="chat_page_conversation_system_prompt">Conversation System Prompt</string>
+  <string name="chat_page_conversation_system_prompt_hint">Override the assistant\'s system prompt for this conversation</string>
+  <string name="chat_page_conversation_system_prompt_clear">Clear</string>
+  <string name="chat_page_conversation_system_prompt_save">Save</string>
   <string name="chat_page_compress_additional_prompt">Additional Instructions (Optional)</string>
   <string name="chat_page_compress_additional_prompt_hint">Specify what to preserve or focus on</string>
   <string name="chat_page_compress_context">Compress History</string>

@@ -25,20 +25,26 @@ import com.eterultimate.eteruee.data.repository.ConversationRepository
 import com.eterultimate.eteruee.service.ChatService
 import com.eterultimate.eteruee.web.BadRequestException
 import com.eterultimate.eteruee.web.NotFoundException
+import com.eterultimate.eteruee.web.dto.AISDKEvents
 import com.eterultimate.eteruee.web.dto.ConversationDto
 import com.eterultimate.eteruee.web.dto.ConversationListInvalidateEvent
 import com.eterultimate.eteruee.web.dto.ConversationNodeUpdateEvent
 import com.eterultimate.eteruee.web.dto.ConversationSnapshotEvent
 import com.eterultimate.eteruee.web.dto.EditMessageRequest
 import com.eterultimate.eteruee.web.dto.ErrorEvent
+import com.eterultimate.eteruee.web.dto.FinishEvent
 import com.eterultimate.eteruee.web.dto.ForkConversationRequest
 import com.eterultimate.eteruee.web.dto.ForkConversationResponse
+import com.eterultimate.eteruee.web.dto.MetadataEvent
 import com.eterultimate.eteruee.web.dto.MoveConversationRequest
 import com.eterultimate.eteruee.web.dto.PagedResult
 import com.eterultimate.eteruee.web.dto.RegenerateRequest
 import com.eterultimate.eteruee.web.dto.SelectMessageNodeRequest
 import com.eterultimate.eteruee.web.dto.SendMessageRequest
+import com.eterultimate.eteruee.web.dto.StandardErrorEvent
+import com.eterultimate.eteruee.web.dto.TextDeltaEvent
 import com.eterultimate.eteruee.web.dto.ToolApprovalRequest
+import com.eterultimate.eteruee.web.dto.UsageEvent
 import com.eterultimate.eteruee.web.dto.MessageSearchResultDto
 import com.eterultimate.eteruee.web.dto.UpdateConversationTitleRequest
 import com.eterultimate.eteruee.web.dto.toDto
@@ -342,6 +348,67 @@ fun Route.conversationRoutes(
                     is TextChunk.Finish -> "finish"
                 }
                 send(event = eventType, data = JsonInstant.encodeToString(chunk))
+            }
+        }
+
+        // SSE /api/conversations/stream-v2 - AI SDK v5 标准化事件格式
+        sse("/stream-v2") {
+            val request = call.receive<StreamTextRequest>()
+            
+            try {
+                aiSDK.streamText(request).collect { chunk ->
+                    when (chunk) {
+                        is TextChunk.TextDelta -> {
+                            // 发送文本增量事件
+                            val event = TextDeltaEvent(textDelta = chunk.text)
+                            send(
+                                event = "text-delta",
+                                data = JsonInstant.encodeToString(event)
+                            )
+                        }
+                        is TextChunk.ToolCall -> {
+                            // 发送工具调用事件
+                            // 注意: AISDK 的 ToolCall 包含序列化的 arguments
+                            send(
+                                event = "tool-call",
+                                data = JsonInstant.encodeToString(chunk)
+                            )
+                        }
+                        is TextChunk.Usage -> {
+                            // 发送使用量统计事件
+                            val usageEvent = UsageEvent(
+                                promptTokens = chunk.tokenUsage.promptTokens,
+                                completionTokens = chunk.tokenUsage.completionTokens,
+                                totalTokens = chunk.tokenUsage.totalTokens
+                            )
+                            send(
+                                event = "usage",
+                                data = JsonInstant.encodeToString(usageEvent)
+                            )
+                        }
+                        is TextChunk.Finish -> {
+                            // 发送完成事件
+                            val finishEvent = FinishEvent(
+                                finishReason = "stop", // 默认原因
+                                usage = null // Usage 已单独发送
+                            )
+                            send(
+                                event = "finish",
+                                data = JsonInstant.encodeToString(finishEvent)
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                // 发送错误事件
+                val errorEvent = StandardErrorEvent(
+                    error = e.message ?: "Unknown error",
+                    code = "STREAM_ERROR"
+                )
+                send(
+                    event = "error",
+                    data = JsonInstant.encodeToString(errorEvent)
+                )
             }
         }
 

@@ -25,11 +25,11 @@ val buildWebUi = tasks.register<Exec>("buildWebUi") {
 
     dependsOn(installWebUiDeps)
     workingDir = webUiDir.asFile
-    commandLine("bun", "run", "build")
+    commandLine("pnpm", "run", "build")
 
     inputs.files(
         webUiDir.file("package.json"),
-        webUiDir.file("bun.lock"),
+        webUiDir.file("pnpm-lock.yaml"),
         webUiDir.file("components.json"),
         webUiDir.file("copy.ts"),
         webUiDir.file("react-router.config.ts"),

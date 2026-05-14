@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
@@ -363,7 +364,7 @@ private fun MarkdownNode(
         GFMTokenTypes.CHECK_BOX -> {
             val isChecked = node.getTextInNode(content).trim() == "[x]"
             Surface(
-                shape = RoundedCornerShape(0.dp),
+                shape = RoundedCornerShape(2.dp),
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                 modifier = modifier,
             ) {
@@ -481,7 +482,7 @@ private fun MarkdownNode(
                     model = imageUrl,
                     contentDescription = altText,
                     modifier = Modifier
-                        .clip(RoundedCornerShape(0.dp))
+                        .clip(RoundedCornerShape(8.dp))
                         .widthIn(min = 120.dp)
                         .heightIn(min = 120.dp),
                 )
@@ -939,7 +940,7 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
                                             onClickCitation(id.trim())
                                         }
                                         .fillMaxSize()
-                                        .clip(RoundedCornerShape(0.dp))
+                                        .clip(CircleShape)
                                         .background(colorScheme.tertiaryContainer.copy(0.2f)),
                                     contentAlignment = Alignment.Center) {
                                     Text(

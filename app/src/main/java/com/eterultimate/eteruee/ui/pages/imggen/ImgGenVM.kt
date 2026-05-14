@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.imggen
+package com.eterultimate.eteruee.ui.pages.imggen
 
 import android.app.Application
 import android.util.Log
@@ -9,7 +9,6 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,23 +16,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import com.eterultimate.eteruee.ai.provider.ImageEditParams
-import com.eterultimate.eteruee.ai.provider.ImageGenerationParams
-import com.eterultimate.eteruee.ai.provider.ProviderManager
-import com.eterultimate.eteruee.ai.provider.ReferenceImage
-import com.eterultimate.eteruee.ai.provider.VideoGenerationParams
-import com.eterultimate.eteruee.ai.ui.ImageAspectRatio
-import com.eterultimate.eteruee.ai.ui.ImageGenerationItem
+import me.rerere.ai.provider.ImageEditParams
+import me.rerere.ai.provider.ImageGenerationParams
+import me.rerere.ai.provider.ProviderManager
+import me.rerere.ai.ui.ImageAspectRatio
+import me.rerere.ai.ui.ImageGenerationItem
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.datastore.findModelById
 import com.eterultimate.eteruee.data.datastore.findProvider
 import com.eterultimate.eteruee.data.db.entity.GenMediaEntity
 import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.repository.GenMediaRepository
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import java.io.File
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -47,13 +41,8 @@ data class GeneratedImage(
 )
 
 private fun GenMediaEntity.toGeneratedImage(filesManager: FilesManager): GeneratedImage {
-    val dir = if (type == GenMediaEntity.TYPE_VIDEO_GENERATION) {
-        filesManager.getVideosDir()
-    } else {
-        filesManager.getImagesDir()
-    }
-    val prefix = if (type == GenMediaEntity.TYPE_VIDEO_GENERATION) "videos/" else "images/"
-    val fullPath = File(dir, this.path.removePrefix(prefix)).absolutePath
+    val imagesDir = filesManager.getImagesDir()
+    val fullPath = File(imagesDir, this.path.removePrefix("images/")).absolutePath
 
     return GeneratedImage(
         id = this.id,
@@ -83,22 +72,6 @@ class ImgGenVM(
     private val _isGenerating = MutableStateFlow(false)
     val isGenerating: StateFlow<Boolean> = _isGenerating
     private var cancelJob: Job? = null
-
-    // Video generation mode
-    private val _isVideoMode = MutableStateFlow(false)
-    val isVideoMode: StateFlow<Boolean> = _isVideoMode
-
-    private val _videoDuration = MutableStateFlow(5)
-    val videoDuration: StateFlow<Int> = _videoDuration
-
-    private val _videoResolution = MutableStateFlow("720p")
-    val videoResolution: StateFlow<String> = _videoResolution
-
-    private val _videoAspectRatio = MutableStateFlow("16:9")
-    val videoAspectRatio: StateFlow<String> = _videoAspectRatio
-
-    private val _generateAudio = MutableStateFlow(false)
-    val generateAudio: StateFlow<Boolean> = _generateAudio
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
@@ -131,26 +104,6 @@ class ImgGenVM(
         _aspectRatio.value = aspectRatio
     }
 
-    fun setVideoMode(enabled: Boolean) {
-        _isVideoMode.value = enabled
-    }
-
-    fun updateVideoDuration(seconds: Int) {
-        _videoDuration.value = seconds.coerceIn(3, 10)
-    }
-
-    fun updateVideoResolution(resolution: String) {
-        _videoResolution.value = resolution
-    }
-
-    fun updateVideoAspectRatio(aspectRatio: String) {
-        _videoAspectRatio.value = aspectRatio
-    }
-
-    fun updateGenerateAudio(enabled: Boolean) {
-        _generateAudio.value = enabled
-    }
-
     fun addReferenceImages(paths: List<String>) {
         _referenceImages.value = (_referenceImages.value + paths).distinct().take(MAX_REFERENCE_IMAGES)
     }
@@ -165,13 +118,8 @@ class ImgGenVM(
         _referenceImages.value = emptyList()
     }
 
-    private fun deleteReferenceFiles(paths: List<String>) {
-        paths.forEach { path ->
-            runCatching {
-                val file = File(path)
-                if (file.exists()) file.delete()
-            }
-        }
+    fun clearError() {
+        _error.value = null
     }
 
     fun startNewSession() {
@@ -183,15 +131,7 @@ class ImgGenVM(
         _isGenerating.value = false
     }
 
-    fun clearError() {
-        _error.value = null
-    }
-
     fun generateImage() {
-        if (isVideoMode.value) {
-            generateVideo()
-            return
-        }
         if(prompt.value.isBlank()) return
         cancelJob?.cancel()
         cancelJob = viewModelScope.launch {
@@ -252,105 +192,6 @@ class ImgGenVM(
         }
     }
 
-    fun generateVideo() {
-        if (prompt.value.isBlank()) return
-        cancelJob?.cancel()
-        cancelJob = viewModelScope.launch {
-            try {
-                _isGenerating.value = true
-                _error.value = null
-                _currentGeneratedImages.value = emptyList()
-
-                val settings = settingsStore.settingsFlow.first()
-                val model = settings.findModelById(settings.videoGenerationModelId)
-                    ?: throw IllegalStateException("No video model selected")
-
-                val provider = model.findProvider(settings.providers)
-                    ?: throw IllegalStateException("Provider not found")
-
-                val providerSetting = settings.providers.find { it.id == provider.id }
-                    ?: throw IllegalStateException("Provider setting not found")
-
-                val refImages = _referenceImages.value.map { path ->
-                    // Convert local file paths to data URIs or upload as needed
-                    // For Seedance API, image_url supports base64 data URI or HTTP URL
-                    val file = File(path)
-                    if (file.exists()) {
-                        val bytes = file.readBytes()
-                        val base64 = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)
-                        val mimeType = when (file.extension.lowercase()) {
-                            "jpg", "jpeg" -> "image/jpeg"
-                            "webp" -> "image/webp"
-                            else -> "image/png"
-                        }
-                        ReferenceImage(
-                            url = "data:$mimeType;base64,$base64",
-                            role = null // Will be set based on position: first=first_frame, rest=default
-                        )
-                    } else {
-                        ReferenceImage(url = path)
-                    }
-                }.let { refs ->
-                    // If there are reference images, mark the first as first_frame
-                    if (refs.size > 1) {
-                        refs.mapIndexed { index, ref ->
-                            if (index == 0) ref.copy(role = "first_frame")
-                            else if (index == refs.size - 1) ref.copy(role = "last_frame")
-                            else ref
-                        }
-                    } else if (refs.size == 1) {
-                        refs.mapIndexed { _, ref -> ref.copy(role = "first_frame") }
-                    } else {
-                        refs
-                    }
-                }
-
-                val params = VideoGenerationParams(
-                    model = model,
-                    prompt = _prompt.value,
-                    referenceImages = refImages,
-                    aspectRatio = _videoAspectRatio.value,
-                    durationSeconds = _videoDuration.value,
-                    resolution = _videoResolution.value,
-                    generateAudio = _generateAudio.value,
-                    customHeaders = model.customHeaders,
-                    customBody = model.customBodies
-                )
-
-                val result = providerManager.getProviderByType(provider)
-                    .generateVideo(providerSetting, params)
-
-                val newImages = mutableListOf<GeneratedImage>()
-
-                result.items.forEachIndexed { index, item ->
-                    val videoFile = saveVideoToStorage(
-                        videoUrl = item.videoUrl,
-                        prompt = _prompt.value,
-                        modelName = model.displayName,
-                        index = index
-                    )
-                    val generatedImage = GeneratedImage(
-                        id = 0,
-                        prompt = _prompt.value,
-                        filePath = videoFile.absolutePath,
-                        timestamp = System.currentTimeMillis(),
-                        model = model.displayName
-                    )
-                    newImages.add(generatedImage)
-                }
-
-                _currentGeneratedImages.value = newImages
-                clearReferenceImages()
-            } catch (e: Exception) {
-                if (e is CancellationException) return@launch
-                Log.e(TAG, "Failed to generate video", e)
-                _error.value = e.message ?: "Unknown error occurred"
-            } finally {
-                _isGenerating.value = false
-            }
-        }
-    }
-
     fun editImage() {
         if (prompt.value.isBlank() || referenceImages.value.isEmpty()) return
         cancelJob?.cancel()
@@ -395,7 +236,7 @@ class ImgGenVM(
                         type = GenMediaEntity.TYPE_IMAGE_EDIT,
                     )
                     val generatedImage = GeneratedImage(
-                        id = 0,
+                        id = 0, // Will be updated after database insertion
                         prompt = _prompt.value,
                         filePath = imageFile.absolutePath,
                         timestamp = System.currentTimeMillis(),
@@ -452,49 +293,6 @@ class ImgGenVM(
         return createdFile
     }
 
-    private suspend fun saveVideoToStorage(
-        videoUrl: String,
-        prompt: String,
-        modelName: String,
-        index: Int,
-    ): File {
-        val videosDir = filesManager.getVideosDir()
-
-        val timestamp = System.currentTimeMillis()
-        val filename = "${timestamp}_${modelName}_$index.mp4"
-        val videoFile = File(videosDir, filename)
-
-        // Download video from URL
-        withContext(Dispatchers.IO) {
-            val request = Request.Builder()
-                .url(videoUrl)
-                .get()
-                .build()
-            val response = OkHttpClient().newCall(request).execute()
-            if (!response.isSuccessful) {
-                error("Failed to download video: ${response.code}")
-            }
-            response.body.byteStream().use { input ->
-                videoFile.outputStream().use { output ->
-                    input.copyTo(output)
-                }
-            }
-        }
-
-        // Save to database with relative path
-        val relativePath = "videos/${videoFile.name}"
-        val entity = GenMediaEntity(
-            path = relativePath,
-            modelId = modelName,
-            prompt = prompt,
-            createAt = timestamp,
-            type = GenMediaEntity.TYPE_VIDEO_GENERATION,
-        )
-        genMediaRepository.insertMedia(entity)
-
-        return videoFile
-    }
-
     fun deleteImage(image: GeneratedImage) {
         viewModelScope.launch {
             try {
@@ -513,9 +311,19 @@ class ImgGenVM(
         }
     }
 
+    private fun deleteReferenceFiles(paths: List<String>) {
+        viewModelScope.launch {
+            paths.forEach { path ->
+                val file = File(path)
+                if (file.exists()) {
+                    file.delete()
+                }
+            }
+        }
+    }
+
     companion object {
         private const val TAG = "ImgGenVM"
         private const val MAX_REFERENCE_IMAGES = 16
     }
 }
-

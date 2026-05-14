@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.launch
-import com.eterultimate.eteruee.common.android.Logging
+import me.rerere.common.android.Logging
 import com.eterultimate.eteruee.data.model.Avatar
 import com.eterultimate.eteruee.ui.components.ui.UIAvatar
 import com.eterultimate.eteruee.ui.components.nav.BackButton

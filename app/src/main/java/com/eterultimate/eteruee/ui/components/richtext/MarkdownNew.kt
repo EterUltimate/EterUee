@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
@@ -245,7 +246,7 @@ private fun HtmlBlockElement(
                         model = src,
                         contentDescription = alt.takeIf { it.isNotEmpty() },
                         modifier = Modifier
-                            .clip(RoundedCornerShape(0.dp))
+                            .clip(RoundedCornerShape(8.dp))
                             .widthIn(min = 120.dp)
                             .heightIn(min = 120.dp),
                     )
@@ -443,7 +444,7 @@ private fun HtmlListItem(
                 if (isTaskItem && checkboxInput != null) {
                     // Checkbox indicator
                     Surface(
-                        shape = RoundedCornerShape(0.dp),
+                        shape = RoundedCornerShape(2.dp),
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                         modifier = Modifier.padding(end = 4.dp, top = 2.dp),
                     ) {
@@ -751,7 +752,7 @@ private fun HtmlInlineAsComposable(node: Node, onClickCitation: (String) -> Unit
                             model = src,
                             contentDescription = alt.takeIf { it.isNotEmpty() },
                             modifier = Modifier
-                                .clip(RoundedCornerShape(0.dp))
+                                .clip(RoundedCornerShape(8.dp))
                                 .widthIn(min = 120.dp)
                                 .heightIn(min = 120.dp),
                         )
@@ -909,7 +910,7 @@ private fun AnnotatedString.Builder.appendHtmlInlineElement(
                                         modifier = Modifier
                                             .clickable { onClickCitation(id.trim()) }
                                             .fillMaxSize()
-                                            .clip(RoundedCornerShape(0.dp))
+                                            .clip(CircleShape)
                                             .background(colorScheme.tertiaryContainer.copy(0.2f)),
                                         contentAlignment = Alignment.Center,
                                     ) {
@@ -1406,7 +1407,7 @@ private fun parseColor(colorString: String): Color? {
             else -> {
                 when (colorString.lowercase()) {
                     "red" -> Color.Red
-                    "green" -> Color.Blue
+                    "green" -> Color.Green
                     "blue" -> Color.Blue
                     "black" -> Color.Black
                     "white" -> Color.White

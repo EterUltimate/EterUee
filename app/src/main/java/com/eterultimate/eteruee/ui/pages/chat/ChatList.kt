@@ -42,6 +42,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalFloatingToolbar
@@ -86,7 +87,7 @@ import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import com.eterultimate.eteruee.ai.ui.UIMessage
+import me.rerere.ai.ui.UIMessage
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.data.datastore.findModelById
@@ -112,7 +113,6 @@ private const val ScrollBottomKey = "ScrollBottomKey"
 fun ChatList(
     innerPadding: PaddingValues,
     conversation: Conversation,
-    nodes: List<MessageNode>,
     state: LazyListState,
     loading: Boolean,
     processingStatus: String? = null,
@@ -145,7 +145,7 @@ fun ChatList(
         if (target) {
             ChatListPreview(
                 innerPadding = innerPadding,
-                nodes = nodes,
+                conversation = conversation,
                 settings = settings,
                 hazeState = hazeState,
                 onJumpToMessage = onJumpToMessage,
@@ -155,7 +155,6 @@ fun ChatList(
             ChatListNormal(
                 innerPadding = innerPadding,
                 conversation = conversation,
-                nodes = nodes,
                 state = state,
                 loading = loading,
                 processingStatus = processingStatus,
@@ -185,7 +184,6 @@ fun ChatList(
 private fun ChatListNormal(
     innerPadding: PaddingValues,
     conversation: Conversation,
-    nodes: List<MessageNode>,
     state: LazyListState,
     loading: Boolean,
     processingStatus: String? = null,
@@ -301,7 +299,7 @@ private fun ChatListNormal(
                 .padding(top = innerPadding.calculateTopPadding()),
         ) {
             itemsIndexed(
-                items = nodes,
+                items = conversation.messageNodes,
                 key = { index, item -> item.id },
             ) { index, node ->
                 Column {
@@ -337,8 +335,8 @@ private fun ChatListNormal(
                             onShare = {
                                 selecting = true  // 使用 CoroutineScope 延迟状态更新
                                 selectedItems.clear()
-                                selectedItems.addAll(nodes.map { it.id }
-                                    .subList(0, nodes.indexOf(node) + 1))
+                                selectedItems.addAll(conversation.messageNodes.map { it.id }
+                                    .subList(0, conversation.messageNodes.indexOf(node) + 1))
                             },
                             onUpdate = {
                                 onUpdateMessage(it)
@@ -445,7 +443,7 @@ private fun ChatListNormal(
                                 if (selectedItems.isNotEmpty()) {
                                     selectedItems.clear()
                                 } else {
-                                    selectedItems.addAll(nodes.map { it.id })
+                                    selectedItems.addAll(conversation.messageNodes.map { it.id })
                                 }
                             }
                         ) {
@@ -460,7 +458,7 @@ private fun ChatListNormal(
                         FilledIconButton(
                             onClick = {
                                 selecting = false
-                                val messages = nodes.filter { it.id in selectedItems }
+                                val messages = conversation.messageNodes.filter { it.id in selectedItems }
                                 if (messages.isNotEmpty()) {
                                     showExportSheet = true
                                 }
@@ -480,7 +478,7 @@ private fun ChatListNormal(
                     selectedItems.clear()
                 },
                 conversation = conversation,
-                selectedMessages = nodes.filter { it.id in selectedItems }
+                selectedMessages = conversation.messageNodes.filter { it.id in selectedItems }
                     .map { it.currentMessage }
             )
 
@@ -574,7 +572,7 @@ private fun buildHighlightedText(
 @Composable
 private fun ChatListPreview(
     innerPadding: PaddingValues,
-    nodes: List<MessageNode>,
+    conversation: Conversation,
     settings: Settings,
     hazeState: HazeState,
     animatedVisibilityScope: AnimatedVisibilityScope,
@@ -583,11 +581,11 @@ private fun ChatListPreview(
     var searchQuery by remember { mutableStateOf("") }
 
     // 过滤消息，同时保留原始 index 避免后续 O(n) indexOf 查找
-    val filteredMessages = remember(nodes, searchQuery) {
+    val filteredMessages = remember(conversation.messageNodes, searchQuery) {
         if (searchQuery.isBlank()) {
-            nodes.mapIndexed { index, node -> index to node }
+            conversation.messageNodes.mapIndexed { index, node -> index to node }
         } else {
-            nodes.mapIndexed { index, node -> index to node }
+            conversation.messageNodes.mapIndexed { index, node -> index to node }
                 .filter { (_, node) -> node.currentMessage.toText().contains(searchQuery, ignoreCase = true) }
         }
     }
@@ -624,7 +622,7 @@ private fun ChatListPreview(
                 }
             },
             singleLine = true,
-            shape = RoundedCornerShape(0.dp),
+            shape = CircleShape,
             maxLines = 1,
         )
 
@@ -641,7 +639,7 @@ private fun ChatListPreview(
                 key = { index, item -> item.second.id },
             ) { _, (originalIndex, node) ->
                 val message = node.currentMessage
-                val isUser = message.role == com.eterultimate.eteruee.ai.core.MessageRole.USER
+                val isUser = message.role == me.rerere.ai.core.MessageRole.USER
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -706,7 +704,7 @@ private fun ChatSuggestionsRow(
         items(conversation.chatSuggestions) { suggestion ->
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(0))
+                    .clip(RoundedCornerShape(50))
                     .clickable {
                         onClickSuggestion(suggestion)
                     }
@@ -749,7 +747,7 @@ private fun BoxScope.MessageJumper(
                         state.scrollToItem(0)
                     }
                 },
-                shape = RoundedCornerShape(0.dp),
+                shape = CircleShape,
                 tonalElevation = 4.dp,
                 color = MaterialTheme.colorScheme.surfaceColorAtElevation(
                     4.dp
@@ -772,7 +770,7 @@ private fun BoxScope.MessageJumper(
                         )
                     }
                 },
-                shape = RoundedCornerShape(0.dp),
+                shape = CircleShape,
                 tonalElevation = 4.dp,
                 color = MaterialTheme.colorScheme.surfaceColorAtElevation(
                     4.dp
@@ -791,7 +789,7 @@ private fun BoxScope.MessageJumper(
                         state.animateScrollToItem(state.firstVisibleItemIndex + 1)
                     }
                 },
-                shape = RoundedCornerShape(0.dp),
+                shape = CircleShape,
                 color = MaterialTheme.colorScheme.surfaceColorAtElevation(
                     4.dp
                 ).copy(alpha = 0.65f)
@@ -809,7 +807,7 @@ private fun BoxScope.MessageJumper(
                         state.scrollToItem(state.layoutInfo.totalItemsCount - 1)
                     }
                 },
-                shape = RoundedCornerShape(0.dp),
+                shape = CircleShape,
                 color = MaterialTheme.colorScheme.surfaceColorAtElevation(
                     4.dp
                 ).copy(alpha = 0.65f),

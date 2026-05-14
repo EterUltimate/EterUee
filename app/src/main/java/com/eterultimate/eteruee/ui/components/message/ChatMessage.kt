@@ -63,12 +63,12 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import com.eterultimate.eteruee.ai.core.MessageRole
-import com.eterultimate.eteruee.ai.provider.Model
-import com.eterultimate.eteruee.ai.ui.UIMessage
-import com.eterultimate.eteruee.ai.ui.UIMessageAnnotation
-import com.eterultimate.eteruee.ai.ui.UIMessagePart
-import com.eterultimate.eteruee.ai.ui.isEmptyUIMessage
+import me.rerere.ai.core.MessageRole
+import me.rerere.ai.provider.Model
+import me.rerere.ai.ui.UIMessage
+import me.rerere.ai.ui.UIMessageAnnotation
+import me.rerere.ai.ui.UIMessagePart
+import me.rerere.ai.ui.isEmptyUIMessage
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.File02
 import me.rerere.hugeicons.stroke.MusicNote03
@@ -417,7 +417,7 @@ private fun MessagePartsBlock(
                                 context.startActivity(chooserIndent)
                             },
                             modifier = Modifier,
-                            shape = RoundedCornerShape(0.dp),
+                            shape = RoundedCornerShape(8.dp),
                         ) {
                             Box(modifier = Modifier.size(72.dp), contentAlignment = Alignment.Center) {
                                 Icon(HugeIcons.Video01, null)
@@ -440,7 +440,7 @@ private fun MessagePartsBlock(
                                 context.startActivity(chooserIndent)
                             },
                             modifier = Modifier,
-                            shape = RoundedCornerShape(0),
+                            shape = RoundedCornerShape(50),
                             color = MaterialTheme.colorScheme.secondaryContainer
                         ) {
                             ProvideTextStyle(MaterialTheme.typography.labelSmall) {
@@ -496,7 +496,7 @@ private fun MessagePartsBlock(
                                 context.startActivity(chooserIndent)
                             },
                             modifier = Modifier,
-                            shape = RoundedCornerShape(0),
+                            shape = RoundedCornerShape(50),
                             color = MaterialTheme.colorScheme.tertiaryContainer
                         ) {
                             ProvideTextStyle(MaterialTheme.typography.labelSmall) {

@@ -32,20 +32,20 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.jsonObject
-import com.eterultimate.eteruee.ai.core.MessageRole
-import com.eterultimate.eteruee.ai.core.ReasoningLevel
-import com.eterultimate.eteruee.ai.core.Tool
-import com.eterultimate.eteruee.ai.provider.ModelAbility
-import com.eterultimate.eteruee.ai.provider.ProviderManager
-import com.eterultimate.eteruee.ai.provider.TextGenerationParams
-import com.eterultimate.eteruee.ai.ui.ToolApprovalState
-import com.eterultimate.eteruee.ai.ui.UIMessage
-import com.eterultimate.eteruee.ai.ui.UIMessagePart
-import com.eterultimate.eteruee.ai.ui.canResumeToolExecution
-import com.eterultimate.eteruee.ai.ui.finishPendingTools
-import com.eterultimate.eteruee.ai.ui.finishReasoning
-import com.eterultimate.eteruee.ai.ui.isEmptyInputMessage
-import com.eterultimate.eteruee.common.android.Logging
+import me.rerere.ai.core.MessageRole
+import me.rerere.ai.core.ReasoningLevel
+import me.rerere.ai.core.Tool
+import me.rerere.ai.provider.ModelAbility
+import me.rerere.ai.provider.ProviderManager
+import me.rerere.ai.provider.TextGenerationParams
+import me.rerere.ai.ui.ToolApprovalState
+import me.rerere.ai.ui.UIMessage
+import me.rerere.ai.ui.UIMessagePart
+import me.rerere.ai.ui.canResumeToolExecution
+import me.rerere.ai.ui.finishPendingTools
+import me.rerere.ai.ui.finishReasoning
+import me.rerere.ai.ui.isEmptyInputMessage
+import me.rerere.common.android.Logging
 import com.eterultimate.eteruee.AppScope
 import com.eterultimate.eteruee.CHAT_COMPLETED_NOTIFICATION_CHANNEL_ID
 import com.eterultimate.eteruee.CHAT_LIVE_UPDATE_NOTIFICATION_CHANNEL_ID
@@ -144,9 +144,16 @@ class ChatService(
     private val _errors = MutableStateFlow<List<ChatError>>(emptyList())
     val errors: StateFlow<List<ChatError>> = _errors.asStateFlow()
 
-    fun addError(error: Throwable, conversationId: Uuid? = null, title: String? = null, solution: ChatErrorSolution? = null) {
+    fun addError(
+        error: Throwable,
+        conversationId: Uuid? = null,
+        title: String? = null,
+        solution: ChatErrorSolution? = null,
+    ) {
         if (error is CancellationException) return
-        _errors.update { it + ChatError(title = title, error = error, conversationId = conversationId, solution = solution) }
+        _errors.update {
+            it + ChatError(title = title, error = error, conversationId = conversationId, solution = solution)
+        }
     }
 
     fun dismissError(id: Uuid) {

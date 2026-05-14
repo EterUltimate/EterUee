@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.components.ai
+package com.eterultimate.eteruee.ui.components.ai
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -192,4 +192,3 @@ fun ExtensionEmptyState(
         }
     }
 }
-

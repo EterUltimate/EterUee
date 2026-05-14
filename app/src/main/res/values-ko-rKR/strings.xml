@@ -171,7 +171,7 @@
   <string name="backup_page_export_desc">앱 데이터를 파일로 내보내기</string>
   <string name="backup_page_exporting">내보내는 중...</string>
   <string name="backup_page_files">파일</string>
-  <string name="backup_page_import_chatbox_desc">ChatBox 공급자 구성 가져오기</string>
+  <string name="backup_page_import_chatbox_desc">ChatBox 공급자 구성과 전체 채팅 기록 가져오기</string>
   <string name="backup_page_import_cherry_studio_desc">Cherry Studio 공급자 설정 가져오기</string>
   <string name="backup_page_import_desc">로컬 백업 파일 가져오기</string>
   <string name="backup_page_import_export">로컬</string>

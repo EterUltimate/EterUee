@@ -171,7 +171,7 @@
   <string name="backup_page_export_desc">導出APP數據為檔案</string>
   <string name="backup_page_exporting">正在導出...</string>
   <string name="backup_page_files">檔案</string>
-  <string name="backup_page_import_chatbox_desc">匯入 ChatBox 提供者設定</string>
+  <string name="backup_page_import_chatbox_desc">匯入 ChatBox 提供者設定和完整聊天記錄</string>
   <string name="backup_page_import_cherry_studio_desc">匯入 Cherry Studio 提供者設定</string>
   <string name="backup_page_import_desc">導入本地備份檔案</string>
   <string name="backup_page_import_export">本地</string>

@@ -7,22 +7,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
-import com.eterultimate.eteruee.ai.provider.Modality
-import com.eterultimate.eteruee.ai.provider.Model
-import com.eterultimate.eteruee.ai.provider.ModelAbility
-import com.eterultimate.eteruee.ai.provider.ProviderSetting
 import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.data.datastore.SettingsStore
+import com.eterultimate.eteruee.data.repository.ConversationRepository
+import com.eterultimate.eteruee.data.sync.importer.ChatboxImporter
 import com.eterultimate.eteruee.data.sync.importer.CherryStudioProviderImporter
 import com.eterultimate.eteruee.data.sync.webdav.WebDavBackupItem
 import com.eterultimate.eteruee.data.sync.webdav.WebDavSync
 import com.eterultimate.eteruee.data.sync.S3BackupItem
 import com.eterultimate.eteruee.data.sync.S3Sync
-import com.eterultimate.eteruee.utils.JsonInstant
 import com.eterultimate.eteruee.utils.UiState
 import java.io.File
 
@@ -32,6 +25,7 @@ class BackupVM(
     private val settingsStore: SettingsStore,
     private val webDavSync: WebDavSync,
     private val s3Sync: S3Sync,
+    private val conversationRepository: ConversationRepository,
 ) : ViewModel() {
     val settings = settingsStore.settingsFlow.stateIn(
         scope = viewModelScope,
@@ -97,81 +91,53 @@ class BackupVM(
         webDavSync.restoreFromLocalFile(file, settings.value.webDavConfig)
     }
 
-    fun restoreFromChatBox(file: File) {
-        val importProviders = arrayListOf<ProviderSetting>()
+    suspend fun restoreFromChatBox(file: File): ChatboxRestoreResult {
+        val payload = ChatboxImporter.import(
+            file = file,
+            assistantId = settings.value.assistantId,
+            providers = settings.value.providers,
+        )
+        val targetAssistantId = settings.value.assistantId
+        val mergedProviders = payload.providers + settings.value.providers
+        val shouldAllowConversationSystemPrompt = payload.conversations.conversations.any {
+            !it.customSystemPrompt.isNullOrBlank()
+        }
+        settingsStore.update(
+            settings.value.copy(
+                providers = mergedProviders,
+                assistants = settings.value.assistants.map { assistant ->
+                    if (shouldAllowConversationSystemPrompt && assistant.id == targetAssistantId) {
+                        assistant.copy(allowConversationSystemPrompt = true)
+                    } else {
+                        assistant
+                    }
+                }
+            )
+        )
 
-        val jsonElements = JsonInstant.parseToJsonElement(file.readText()).jsonObject
-        val settingsObj = jsonElements["settings"]?.jsonObject
-        if (settingsObj != null) {
-            settingsObj["providers"]?.jsonObject?.let { providers ->
-                providers["openai"]?.jsonObject?.let { openai ->
-                    val apiHost = openai["apiHost"]?.jsonPrimitive?.contentOrNull ?: "https://api.openai.com"
-                    val apiKey = openai["apiKey"]?.jsonPrimitive?.contentOrNull ?: ""
-                    val models = openai["models"]?.jsonArray?.map { element ->
-                        val modelId = element.jsonObject["modelId"]?.jsonPrimitive?.contentOrNull ?: ""
-                        val capabilities =
-                            element.jsonObject["capabilities"]?.jsonArray?.map { it.jsonPrimitive.contentOrNull }
-                                ?: emptyList()
-                        Model(
-                            modelId = modelId,
-                            displayName = modelId,
-                            inputModalities = buildList {
-                                if (capabilities.contains("vision")) {
-                                    add(Modality.IMAGE)
-                                }
-                            },
-                            abilities = buildList {
-                                if (capabilities.contains("tool_use")) {
-                                    add(ModelAbility.TOOL)
-                                }
-                                if (capabilities.contains("reasoning")) {
-                                    add(ModelAbility.REASONING)
-                                }
-                            }
-                        )
-                    } ?: emptyList()
-                    if (apiKey.isNotBlank()) importProviders.add(
-                        ProviderSetting.OpenAI(
-                            name = "OpenAI",
-                            baseUrl = "$apiHost/v1",
-                            apiKey = apiKey,
-                            models = models,
-                        )
-                    )
-                }
-                providers["claude"]?.jsonObject?.let { claude ->
-                    val apiHost =
-                        claude["apiHost"]?.jsonPrimitive?.contentOrNull ?: "https://api.anthropic.com"
-                    val apiKey = claude["apiKey"]?.jsonPrimitive?.contentOrNull ?: ""
-                    if (apiKey.isNotBlank()) importProviders.add(
-                        ProviderSetting.Claude(
-                            name = "Claude",
-                            baseUrl = "${apiHost}/v1",
-                            apiKey = apiKey,
-                        )
-                    )
-                }
-                providers["gemini"]?.jsonObject?.let { gemini ->
-                    val apiHost = gemini["apiHost"]?.jsonPrimitive?.contentOrNull
-                        ?: "https://generativelanguage.googleapis.com"
-                    val apiKey = gemini["apiKey"]?.jsonPrimitive?.contentOrNull ?: ""
-                    if (apiKey.isNotBlank()) importProviders.add(
-                        ProviderSetting.Google(
-                            name = "Gemini",
-                            baseUrl = "$apiHost/v1beta",
-                            apiKey = apiKey,
-                        )
-                    )
-                }
+        var importedConversations = 0
+        var skippedExistingConversations = 0
+        payload.conversations.conversations.forEach { conversation ->
+            if (conversationRepository.existsConversationById(conversation.id)) {
+                skippedExistingConversations++
+            } else {
+                conversationRepository.insertConversation(conversation)
+                importedConversations++
             }
         }
 
-        Log.i(TAG, "restoreFromChatBox: import ${importProviders.size} providers: $importProviders")
-
-        updateSettings(
-            settings.value.copy(
-                providers = importProviders + settings.value.providers,
-            )
+        Log.i(
+            TAG,
+            "restoreFromChatBox: import ${payload.providers.size} providers, " +
+                "$importedConversations conversations, skip $skippedExistingConversations existing, " +
+                "drop ${payload.conversations.skippedImageParts} images"
+        )
+        return ChatboxRestoreResult(
+            importedProviders = payload.providers.size,
+            importedConversations = importedConversations,
+            skippedExistingConversations = skippedExistingConversations,
+            skippedImageParts = payload.conversations.skippedImageParts,
+            skippedEmptyMessages = payload.conversations.skippedEmptyMessages,
         )
     }
 
@@ -237,3 +203,10 @@ class BackupVM(
     }
 }
 
+data class ChatboxRestoreResult(
+    val importedProviders: Int,
+    val importedConversations: Int,
+    val skippedExistingConversations: Int,
+    val skippedImageParts: Int,
+    val skippedEmptyMessages: Int,
+)

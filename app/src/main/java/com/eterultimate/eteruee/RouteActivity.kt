@@ -105,6 +105,7 @@ import com.eterultimate.eteruee.ui.pages.setting.SettingModelPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingProviderDetailPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingProviderPage
+import com.eterultimate.eteruee.ui.pages.setting.SettingSearchDetailPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingSearchPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingTTSPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingWebPage
@@ -411,6 +412,11 @@ class RouteActivity : ComponentActivity() {
                                 SettingSearchPage()
                             }
 
+                            entry<Screen.SettingSearchDetail> { key ->
+                                val id = Uuid.parse(key.serviceId)
+                                SettingSearchDetailPage(id)
+                            }
+
                             entry<Screen.SettingTTS> {
                                 SettingTTSPage()
                             }
@@ -674,6 +680,9 @@ sealed interface Screen : NavKey {
 
     @Serializable
     data object SettingSearch : Screen
+
+    @Serializable
+    data class SettingSearchDetail(val serviceId: String) : Screen
 
     @Serializable
     data object SettingTTS : Screen

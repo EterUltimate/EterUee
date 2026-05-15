@@ -26,8 +26,8 @@ object EterUeeSearchService : SearchService<SearchServiceOptions.EterUeeOptions>
     override fun Description() {
     }
 
-    override val parameters: InputSchema?
-        get() = InputSchema.Obj(
+    override fun parameters(options: SearchServiceOptions.EterUeeOptions): InputSchema? =
+        InputSchema.Obj(
             properties = buildJsonObject {
                 put("query", buildJsonObject {
                     put("type", "string")
@@ -37,8 +37,8 @@ object EterUeeSearchService : SearchService<SearchServiceOptions.EterUeeOptions>
             required = listOf("query")
         )
 
-    override val scrapingParameters: InputSchema?
-        get() = null
+    override fun scrapingParameters(options: SearchServiceOptions.EterUeeOptions): InputSchema? =
+        null
 
     override suspend fun search(
         params: JsonObject,

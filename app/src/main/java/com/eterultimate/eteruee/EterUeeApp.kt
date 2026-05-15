@@ -22,6 +22,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
+import com.whl.quickjs.android.QuickJSLoader
 import com.eterultimate.eteruee.common.android.appTempFolder
 import com.eterultimate.eteruee.di.appModule
 import com.eterultimate.eteruee.di.dataSourceModule
@@ -61,6 +62,9 @@ class EterUeeApp : Application() {
 
         // install crash handler
         CrashHandler.install(this)
+
+        // Init QuickJS native library
+        QuickJSLoader.init()
 
         // delete temp files
         deleteTempFiles()

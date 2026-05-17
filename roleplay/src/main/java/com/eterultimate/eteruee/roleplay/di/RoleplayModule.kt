@@ -9,6 +9,8 @@ import com.eterultimate.eteruee.roleplay.domain.service.ChatService
 import com.eterultimate.eteruee.roleplay.domain.service.ChatServiceImpl
 import com.eterultimate.eteruee.roleplay.domain.service.GroupService
 import com.eterultimate.eteruee.roleplay.domain.service.GroupServiceImpl
+import com.eterultimate.eteruee.roleplay.domain.service.TokenService
+import com.eterultimate.eteruee.roleplay.domain.service.TokenServiceImpl
 import com.eterultimate.eteruee.roleplay.domain.service.WorldInfoService
 import com.eterultimate.eteruee.roleplay.domain.service.WorldInfoServiceImpl
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.ChatViewModel
@@ -49,11 +51,12 @@ val roleplayModule = module {
     single<ChatService> { ChatServiceImpl(androidContext(), get(), get()) }
     single<WorldInfoService> { WorldInfoServiceImpl(androidContext(), get(), get()) }
     single<GroupService> { GroupServiceImpl(androidContext(), get(), get(), get()) }
+    single<TokenService> { TokenServiceImpl() }
     
     // ViewModels
     viewModel { CharacterListViewModel(get()) }
     viewModel { CharacterEditViewModel(get()) }
-    viewModel { ChatViewModel(get(), get()) }
+    viewModel { ChatViewModel(get(), get(), get()) }
     viewModel { WorldInfoListViewModel(get()) }
     viewModel { WorldInfoEditViewModel(get()) }
     viewModel { GroupListViewModel(get()) }

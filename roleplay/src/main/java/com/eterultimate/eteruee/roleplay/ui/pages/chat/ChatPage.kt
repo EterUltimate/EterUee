@@ -84,51 +84,83 @@ fun ChatPage(
             )
         },
         bottomBar = {
-            // 输入框
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.large
+            Column(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                // Token 统计显示
+                if (uiState.totalTokens > 0 || uiState.currentMessageTokens > 0) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "总 Tokens: ${uiState.totalTokens}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        
+                        if (uiState.currentMessageTokens > 0) {
+                            Text(
+                                text = "当前: ${uiState.currentMessageTokens}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+                
+                // 输入框
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.large
                 ) {
-                    TextField(
-                        value = inputText,
-                        onValueChange = { inputText = it },
-                        modifier = Modifier.weight(1f),
-                        placeholder = { Text("输入消息...") },
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-                        keyboardActions = KeyboardActions(
-                            onSend = {
-                                if (inputText.isNotBlank()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextField(
+                            value = inputText,
+                            onValueChange = { inputText = it },
+                            modifier = Modifier.weight(1f),
+                            placeholder = { Text("输入消息...") },
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                            keyboardActions = KeyboardActions(
+                                onSend = {
+                                    if (inputText.isNotBlank()) {
+                                        viewModel.sendMessage(inputText)
+                                        inputText = ""
+                                    }
+                                }
+                            ),
+                            maxLines = 4,
+                            enabled = !uiState.isGenerating
+                        )
+                        
+                        Spacer(modifier = Modifier.width(8.dp))
+                        
+                        // 发送/停止按钮
+                        IconButton(
+                            onClick = {
+                                if (uiState.isGenerating) {
+                                    // 停止生成
+                                    viewModel.stopGeneration()
+                                } else if (inputText.isNotBlank()) {
                                     viewModel.sendMessage(inputText)
                                     inputText = ""
                                 }
+                            },
+                            enabled = inputText.isNotBlank() || uiState.isGenerating
+                        ) {
+                            if (uiState.isGenerating) {
+                                Icon(Icons.Default.Stop, contentDescription = "停止")
+                            } else {
+                                Icon(Icons.Default.Send, contentDescription = "发送")
                             }
-                        ),
-                        maxLines = 4,
-                        enabled = !uiState.isGenerating
-                    )
-                    
-                    Spacer(modifier = Modifier.width(8.dp))
-                    
-                    // 发送按钮
-                    IconButton(
-                        onClick = {
-                            if (inputText.isNotBlank()) {
-                                viewModel.sendMessage(inputText)
-                                inputText = ""
-                            }
-                        },
-                        enabled = inputText.isNotBlank() && !uiState.isGenerating
-                    ) {
-                        if (uiState.isGenerating) {
-                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                        } else {
-                            Icon(Icons.Default.Send, contentDescription = "发送")
                         }
                     }
                 }

@@ -14,6 +14,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.isActive
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import java.time.Instant
@@ -27,11 +30,15 @@ import kotlin.uuid.Uuid
 @OptIn(ExperimentalUuidApi::class)
 class ChatViewModel(
     private val chatService: ChatService,
-    private val aiSDK: AISDK
+    private val aiSDK: AISDK,
+    private val tokenService: com.eterultimate.eteruee.roleplay.domain.service.TokenService
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
+    
+    // 当前生成任务的 Job，用于取消
+    private var currentGenerationJob: Job? = null
     
     /**
      * 初始化聊天
@@ -46,10 +53,17 @@ class ChatViewModel(
                 val messageNodes = chatService.loadMessages(chatId, offset = 0, limit = 50)
                 // 从 MessageNode 中提取当前选中的 ChatMessage
                 val messages = messageNodes.mapNotNull { it.getCurrentMessage() }.reversed()
+                
+                // 计算总 Token 数
+                val totalTokens = tokenService.calculateTotalTokens(
+                    messages.map { it.content }
+                )
+                
                 _uiState.value = _uiState.value.copy(
                     chat = chat,
                     messages = messages, // 最新消息在前
-                    isLoading = false
+                    isLoading = false,
+                    totalTokens = totalTokens
                 )
             } else {
                 _uiState.value = _uiState.value.copy(
@@ -88,7 +102,10 @@ class ChatViewModel(
      * AI流式生成回复
      */
     private fun generateAIResponse(chatId: Uuid, messages: List<ChatMessage>) {
-        viewModelScope.launch {
+        // 取消之前的生成任务
+        currentGenerationJob?.cancel()
+        
+        currentGenerationJob = viewModelScope.launch {
             try {
                 _uiState.value = _uiState.value.copy(isGenerating = true)
                 
@@ -122,6 +139,11 @@ class ChatViewModel(
                 // 流式接收AI响应
                 var assistantMessageContent = ""
                 aiSDK.streamText(request).collect { chunk ->
+                    // 检查是否被取消
+                    if (!isActive) {
+                        return@collect
+                    }
+                    
                     when (chunk) {
                         is TextChunk.TextDelta -> {
                             assistantMessageContent += chunk.text
@@ -132,15 +154,20 @@ class ChatViewModel(
                             // 完成,保存消息
                             saveAssistantMessage(chatId, assistantMessageContent)
                             _uiState.value = _uiState.value.copy(isGenerating = false)
+                            currentGenerationJob = null
                         }
                         else -> {}
                     }
                 }
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isGenerating = false,
-                    errorMessage = "AI生成失败: ${e.message}"
-                )
+                // 如果是取消异常，不显示错误
+                if (e !is kotlinx.coroutines.CancellationException) {
+                    _uiState.value = _uiState.value.copy(
+                        isGenerating = false,
+                        errorMessage = "AI生成失败: ${e.message}"
+                    )
+                }
+                currentGenerationJob = null
             }
         }
     }
@@ -150,6 +177,9 @@ class ChatViewModel(
      */
     private fun updateStreamingMessage(content: String) {
         val currentMessages = _uiState.value.messages.toMutableList()
+        
+        // 计算当前消息的 token 数
+        val currentTokens = tokenService.estimateTokens(content)
         
         // 检查是否已有临时的助手消息
         if (currentMessages.isNotEmpty() && 
@@ -168,7 +198,10 @@ class ChatViewModel(
             currentMessages.add(0, streamingMessage)
         }
         
-        _uiState.value = _uiState.value.copy(messages = currentMessages)
+        _uiState.value = _uiState.value.copy(
+            messages = currentMessages,
+            currentMessageTokens = currentTokens
+        )
     }
     
     /**
@@ -182,7 +215,17 @@ class ChatViewModel(
                 if (currentMessages.isNotEmpty() && 
                     currentMessages[0].id.toString().startsWith("streaming_")) {
                     currentMessages[0] = message
-                    _uiState.value = _uiState.value.copy(messages = currentMessages)
+                    
+                    // 重新计算总 token 数
+                    val totalTokens = tokenService.calculateTotalTokens(
+                        currentMessages.map { it.content }
+                    )
+                    
+                    _uiState.value = _uiState.value.copy(
+                        messages = currentMessages,
+                        totalTokens = totalTokens,
+                        currentMessageTokens = 0
+                    )
                 }
             }
     }
@@ -211,6 +254,15 @@ class ChatViewModel(
      */
     fun clearError() {
         _uiState.value = _uiState.value.copy(errorMessage = null)
+    }
+    
+    /**
+     * 停止当前生成
+     */
+    fun stopGeneration() {
+        currentGenerationJob?.cancel()
+        currentGenerationJob = null
+        _uiState.value = _uiState.value.copy(isGenerating = false)
     }
     
     /**
@@ -417,5 +469,8 @@ data class ChatUiState(
     val editingMessageId: kotlin.uuid.Uuid? = null,
     val editContent: String = "",
     // 重新生成
-    val isRegenerating: Boolean = false
+    val isRegenerating: Boolean = false,
+    // Token 统计
+    val totalTokens: Int = 0,
+    val currentMessageTokens: Int = 0
 )

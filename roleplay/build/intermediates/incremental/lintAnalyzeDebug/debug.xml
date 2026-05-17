@@ -1,0 +1,33 @@
+<variant
+    name="debug"
+    package="com.eterultimate.eteruee.roleplay"
+    minSdkVersion="26"
+    targetSdkVersion="37.0"
+    debuggable="true"
+    mergedManifest="build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml"
+    proguardFiles="build\intermediates\default_proguard_files\global\proguard-android-optimize.txt-9.2.1"
+    consumerProguardFiles="consumer-rules.pro"
+    partialResultsDir="build\intermediates\lint_partial_results\debug\lintAnalyzeDebug\out"
+    desugaredMethodsFiles="C:\Users\zacza\.gradle\caches\9.4.1\transforms\4ab1ca4e1b07347666fb400e788b4265\transformed\D8BackportedDesugaredMethods.txt">
+  <buildFeatures/>
+  <sourceProviders>
+    <sourceProvider
+        manifests="src\main\AndroidManifest.xml"
+        javaDirectories="src\main\java;src\debug\java;src\main\kotlin;src\debug\kotlin"
+        resDirectories="src\main\res;src\debug\res"
+        assetsDirectories="src\main\assets;src\debug\assets"
+        keepRulesDirectories="src\main\keepRules;src\debug\keepRules"
+        aarKeepRulesDirectories="src\main\aarKeepRules;src\debug\aarKeepRules"/>
+  </sourceProviders>
+  <testSourceProviders>
+  </testSourceProviders>
+  <testFixturesSourceProviders>
+  </testFixturesSourceProviders>
+  <artifact
+      classOutputs="build\intermediates\javac\debug\compileDebugJavaWithJavac\classes;build\intermediates\built_in_kotlinc\debug\compileDebugKotlin\classes;build\intermediates\compile_r_class_jar\debug\generateDebugRFile\R.jar"
+      type="MAIN"
+      applicationId="com.eterultimate.eteruee.roleplay"
+      generatedSourceFolders="build\generated\ksp\debug\java;build\generated\ksp\debug\kotlin;build\generated\ap_generated_sources\debug\out"
+      desugaredMethodsFiles="C:\Users\zacza\.gradle\caches\9.4.1\transforms\4ab1ca4e1b07347666fb400e788b4265\transformed\D8BackportedDesugaredMethods.txt">
+  </artifact>
+</variant>

@@ -18,6 +18,8 @@ import com.eterultimate.eteruee.roleplay.data.model.ChatMessage
 import com.eterultimate.eteruee.ai.core.MessageRole
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.ChatViewModel
 import com.eterultimate.eteruee.roleplay.ui.components.MarkdownText
+import com.eterultimate.eteruee.roleplay.ui.components.ChatSettingsDialog
+import com.eterultimate.eteruee.roleplay.ui.components.ChatSettings
 import org.koin.androidx.compose.koinViewModel
 import kotlin.uuid.Uuid
 
@@ -37,6 +39,9 @@ fun ChatPage(
     
     // 输入框状态
     var inputText by remember { mutableStateOf("") }
+    
+    // 设置对话框状态
+    var showSettingsDialog by remember { mutableStateOf(false) }
     
     // 初始化
     LaunchedEffect(chatId) {
@@ -64,8 +69,7 @@ fun ChatPage(
                 actions = {
                     // 设置按钮
                     IconButton(onClick = { 
-                        // TODO: 打开聊天设置对话框
-                        // 可以配置模型、温度、最大token等参数
+                        showSettingsDialog = true
                     }) {
                         Icon(Icons.Default.Settings, contentDescription = "设置")
                     }
@@ -186,6 +190,17 @@ fun ChatPage(
                 }
             }
         }
+    }
+    
+    // 设置对话框
+    if (showSettingsDialog) {
+        ChatSettingsDialog(
+            onDismiss = { showSettingsDialog = false },
+            onSave = { settings ->
+                // TODO: 保存设置到 ViewModel 或 DataStore
+                showSettingsDialog = false
+            }
+        )
     }
 }
 

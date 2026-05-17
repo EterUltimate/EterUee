@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.eterultimate.eteruee.roleplay.data.model.ChatMessage
 import com.eterultimate.eteruee.ai.core.MessageRole
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.ChatViewModel
+import com.eterultimate.eteruee.roleplay.ui.components.MarkdownText
 import org.koin.androidx.compose.koinViewModel
 import kotlin.uuid.Uuid
 
@@ -67,6 +68,13 @@ fun ChatPage(
                         // 可以配置模型、温度、最大token等参数
                     }) {
                         Icon(Icons.Default.Settings, contentDescription = "设置")
+                    }
+                    
+                    // 清空对话按钮
+                    IconButton(onClick = { 
+                        viewModel.clearAllMessages()
+                    }) {
+                        Icon(Icons.Default.DeleteSweep, contentDescription = "清空对话")
                     }
                 }
             )
@@ -209,10 +217,12 @@ fun MessageBubble(
             Column(
                 modifier = Modifier.padding(12.dp)
             ) {
-                // 消息内容
-                Text(
+                // 消息内容 - 使用 Markdown 渲染
+                MarkdownText(
                     text = message.content,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    enableCodeHighlight = true,
+                    showCopyButton = !isUser // 仅助手消息显示复制按钮
                 )
                 
                 // 流式指示器

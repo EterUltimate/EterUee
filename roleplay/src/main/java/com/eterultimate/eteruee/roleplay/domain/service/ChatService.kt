@@ -93,6 +93,11 @@ interface ChatService {
      */
     suspend fun deleteMessageById(chatId: kotlin.uuid.Uuid, messageId: kotlin.uuid.Uuid): Result<Unit>
     
+    /**
+     * 清空所有消息
+     */
+    suspend fun clearAllMessages(chatId: kotlin.uuid.Uuid): Result<Unit>
+    
     // ==================== 分支管理 ====================
     
     /**

@@ -213,6 +213,24 @@ class ChatViewModel(
         _uiState.value = _uiState.value.copy(errorMessage = null)
     }
     
+    /**
+     * 清空所有消息
+     */
+    fun clearAllMessages() {
+        val chat = _uiState.value.chat ?: return
+        
+        viewModelScope.launch {
+            val result = chatService.clearAllMessages(chat.chatId)
+            result.onSuccess {
+                _uiState.value = _uiState.value.copy(messages = emptyList())
+            }.onFailure { error ->
+                _uiState.value = _uiState.value.copy(
+                    errorMessage = "清空消息失败: ${error.message}"
+                )
+            }
+        }
+    }
+    
     // ==================== 分支管理 ====================
     
     /**

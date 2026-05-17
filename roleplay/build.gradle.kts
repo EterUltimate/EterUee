@@ -88,6 +88,9 @@ dependencies {
     // OkHttp
     implementation(libs.okhttp)
     
+    // Markdown rendering
+    implementation(libs.jetbrains.markdown)
+    
     // Tests
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

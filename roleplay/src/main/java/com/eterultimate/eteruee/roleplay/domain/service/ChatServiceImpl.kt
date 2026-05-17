@@ -296,6 +296,31 @@ class ChatServiceImpl(
         }
     }
     
+    override suspend fun clearAllMessages(chatId: Uuid): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val chat = getChatById(chatId) ?: return@withContext Result.failure(Exception("Chat not found"))
+                
+                val chatFile = if (chat.groupId != null) {
+                    fileStorage.getGroupChatFile(chat.groupId, chatId)
+                } else {
+                    fileStorage.getChatFile(chat.characterId, chatId)
+                }
+                
+                // 清空文件（写入空列表）
+                fileStorage.saveMessagesToJsonl(chatFile, emptyList())
+                
+                // 更新消息计数
+                chatDao.updateMessageCount(chatId.toString(), 0, Instant.now().toEpochMilli())
+                
+                Result.success(Unit)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Result.failure(e)
+            }
+        }
+    }
+    
     // ==================== 分支管理 ====================
     
     override suspend fun createBranch(chatId: Uuid, fromMessageIndex: Int): Result<Uuid> {

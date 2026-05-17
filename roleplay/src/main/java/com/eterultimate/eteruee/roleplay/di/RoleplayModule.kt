@@ -21,6 +21,8 @@ import com.eterultimate.eteruee.roleplay.domain.service.PromptBuilderService
 import com.eterultimate.eteruee.roleplay.domain.service.PromptBuilderServiceImpl
 import com.eterultimate.eteruee.roleplay.domain.service.GroupSpeakerService
 import com.eterultimate.eteruee.roleplay.domain.service.GroupSpeakerServiceImpl
+import com.eterultimate.eteruee.roleplay.domain.extension.ExtensionManager
+import com.eterultimate.eteruee.roleplay.domain.extension.ExtensionManagerImpl
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.ChatViewModel
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.CharacterEditViewModel
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.CharacterListViewModel
@@ -66,6 +68,7 @@ val roleplayModule = module {
     single<BackupService> { BackupServiceImpl(get()) }
     single<PromptBuilderService> { PromptBuilderServiceImpl() }
     single<GroupSpeakerService> { GroupSpeakerServiceImpl() }
+    single<ExtensionManager> { ExtensionManagerImpl() }
     
     // ViewModels
     viewModel { CharacterListViewModel(get()) }

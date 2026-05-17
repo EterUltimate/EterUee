@@ -50,6 +50,26 @@ interface CharacterService {
     suspend fun searchCharacters(query: String): List<Character>
     
     /**
+     * 高级搜索 - 支持标签过滤、收藏过滤和排序
+     */
+    fun searchCharactersAdvanced(
+        query: String = "",
+        tags: List<String> = emptyList(),
+        favoriteOnly: Boolean = false,
+        sortBy: CharacterSortOption = CharacterSortOption.LAST_CHAT_DESC
+    ): Flow<List<Character>>
+    
+    /**
+     * 获取所有唯一标签
+     */
+    suspend fun getAllTags(): List<String>
+    
+    /**
+     * 根据标签获取角色
+     */
+    fun getCharactersByTag(tag: String): Flow<List<Character>>
+    
+    /**
      * 导入PNG角色卡
      */
     suspend fun importPngCharacter(uri: Uri): Result<Character>
@@ -68,4 +88,17 @@ interface CharacterService {
      * 导出JSON角色卡
      */
     suspend fun exportJsonCharacter(characterId: kotlin.uuid.Uuid, outputUri: Uri): Result<Unit>
+}
+
+/**
+ * 角色排序选项
+ */
+enum class CharacterSortOption {
+    NAME_ASC,           // 名称升序
+    NAME_DESC,          // 名称降序
+    LAST_CHAT_DESC,     // 最后聊天时间降序（最近优先）
+    LAST_CHAT_ASC,      // 最后聊天时间升序
+    CREATED_DESC,       // 创建时间降序（最新优先）
+    CREATED_ASC,        // 创建时间升序
+    CHAT_COUNT_DESC     // 聊天数量降序（最多优先）
 }

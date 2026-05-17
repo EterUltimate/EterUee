@@ -26,6 +26,7 @@ import com.eterultimate.eteruee.roleplay.ui.viewmodel.GroupEditViewModel
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.GroupListViewModel
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.WorldInfoEditViewModel
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.WorldInfoListViewModel
+import com.eterultimate.eteruee.roleplay.ui.viewmodel.WorldInfoTestViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -71,4 +72,5 @@ val roleplayModule = module {
     viewModel { WorldInfoEditViewModel(get()) }
     viewModel { GroupListViewModel(get()) }
     viewModel { GroupEditViewModel(get()) }
+    viewModel { WorldInfoTestViewModel(get()) }
 }

@@ -13,6 +13,8 @@ import com.eterultimate.eteruee.roleplay.domain.service.TokenService
 import com.eterultimate.eteruee.roleplay.domain.service.TokenServiceImpl
 import com.eterultimate.eteruee.roleplay.domain.service.WorldInfoService
 import com.eterultimate.eteruee.roleplay.domain.service.WorldInfoServiceImpl
+import com.eterultimate.eteruee.roleplay.domain.service.BookmarkService
+import com.eterultimate.eteruee.roleplay.domain.service.BookmarkServiceImpl
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.ChatViewModel
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.CharacterEditViewModel
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.CharacterListViewModel
@@ -42,6 +44,7 @@ val roleplayModule = module {
     single { get<RolePlayDatabase>().chatDao() }
     single { get<RolePlayDatabase>().worldInfoDao() }
     single { get<RolePlayDatabase>().groupDao() }
+    single { get<RolePlayDatabase>().bookmarkDao() }
     
     // File Storage
     single { RolePlayFileStorage(androidContext()) }
@@ -52,6 +55,7 @@ val roleplayModule = module {
     single<WorldInfoService> { WorldInfoServiceImpl(androidContext(), get(), get()) }
     single<GroupService> { GroupServiceImpl(androidContext(), get(), get(), get()) }
     single<TokenService> { TokenServiceImpl() }
+    single<BookmarkService> { BookmarkServiceImpl(get()) }
     
     // ViewModels
     viewModel { CharacterListViewModel(get()) }

@@ -10,6 +10,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,29 +37,69 @@ fun CharacterListPage(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val pagingItems = viewModel.loadCharacters().collectAsLazyPagingItems()
+    val selectedIds by viewModel.selectedCharacterIds.collectAsState()
+    val isMultiSelectMode by viewModel.isMultiSelectMode.collectAsState()
     
     var searchQuery by remember { mutableStateOf("") }
     var isSearching by remember { mutableStateOf(false) }
     
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("角色列表") },
-                actions = {
-                    IconButton(onClick = {
-                        isSearching = !isSearching
-                        if (!isSearching) {
-                            viewModel.clearSearch()
-                            searchQuery = ""
+            if (isMultiSelectMode) {
+                // 多选模式顶栏
+                TopAppBar(
+                    title = { Text("已选择 ${selectedIds.size} 个") },
+                    navigationIcon = {
+                        IconButton(onClick = { viewModel.toggleMultiSelectMode() }) {
+                            Icon(Icons.Default.Search, contentDescription = "退出多选")
                         }
-                    }) {
-                        Icon(Icons.Default.Search, contentDescription = "搜索")
+                    },
+                    actions = {
+                        IconButton(onClick = { 
+                            // 全选/取消全选
+                            val allIds = if (isSearching && searchQuery.isNotBlank()) {
+                                uiState.searchResults.map { it.id }
+                            } else {
+                                (0 until pagingItems.itemCount).mapNotNull { pagingItems[it]?.id }
+                            }
+                            viewModel.toggleSelectAll(allIds)
+                        }) {
+                            Icon(
+                                if (selectedIds.size == (if (isSearching && searchQuery.isNotBlank()) uiState.searchResults.size else pagingItems.itemCount))
+                                    Icons.Default.CheckCircle
+                                else
+                                    Icons.Default.RadioButtonUnchecked,
+                                contentDescription = "全选"
+                            )
+                        }
+                        IconButton(onClick = { viewModel.batchDeleteCharacters() }) {
+                            Icon(Icons.Default.Delete, contentDescription = "批量删除")
+                        }
                     }
-                    IconButton(onClick = onCreateCharacter) {
-                        Icon(Icons.Default.Add, contentDescription = "创建角色")
+                )
+            } else {
+                // 普通模式顶栏
+                TopAppBar(
+                    title = { Text("角色列表") },
+                    actions = {
+                        IconButton(onClick = { viewModel.toggleMultiSelectMode() }) {
+                            Icon(Icons.Default.RadioButtonUnchecked, contentDescription = "多选模式")
+                        }
+                        IconButton(onClick = {
+                            isSearching = !isSearching
+                            if (!isSearching) {
+                                viewModel.clearSearch()
+                                searchQuery = ""
+                            }
+                        }) {
+                            Icon(Icons.Default.Search, contentDescription = "搜索")
+                        }
+                        IconButton(onClick = onCreateCharacter) {
+                            Icon(Icons.Default.Add, contentDescription = "创建角色")
+                        }
                     }
-                }
-            )
+                )
+            }
         }
     ) { paddingValues ->
         Column(
@@ -126,9 +168,17 @@ fun CharacterListPage(
                     items(uiState.searchResults) { character ->
                         CharacterCard(
                             character = character,
-                            onClick = { onCharacterClick(character) },
+                            onClick = { 
+                                if (isMultiSelectMode) {
+                                    viewModel.toggleCharacterSelection(character.id)
+                                } else {
+                                    onCharacterClick(character) 
+                                }
+                            },
                             onFavoriteClick = { viewModel.toggleFavorite(character.id) },
-                            onDeleteClick = { viewModel.deleteCharacter(character.id) }
+                            onDeleteClick = { viewModel.deleteCharacter(character.id) },
+                            isSelected = selectedIds.contains(character.id),
+                            isMultiSelectMode = isMultiSelectMode
                         )
                     }
                 }
@@ -143,9 +193,17 @@ fun CharacterListPage(
                         pagingItems[index]?.let { character ->
                             CharacterCard(
                                 character = character,
-                                onClick = { onCharacterClick(character) },
+                                onClick = { 
+                                    if (isMultiSelectMode) {
+                                        viewModel.toggleCharacterSelection(character.id)
+                                    } else {
+                                        onCharacterClick(character) 
+                                    }
+                                },
                                 onFavoriteClick = { viewModel.toggleFavorite(character.id) },
-                                onDeleteClick = { viewModel.deleteCharacter(character.id) }
+                                onDeleteClick = { viewModel.deleteCharacter(character.id) },
+                                isSelected = selectedIds.contains(character.id),
+                                isMultiSelectMode = isMultiSelectMode
                             )
                         }
                     }
@@ -180,7 +238,9 @@ fun CharacterCard(
     onClick: () -> Unit,
     onFavoriteClick: () -> Unit,
     onDeleteClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isSelected: Boolean = false,
+    isMultiSelectMode: Boolean = false
 ) {
     Card(
         modifier = modifier
@@ -194,6 +254,15 @@ fun CharacterCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // 多选复选框
+            if (isMultiSelectMode) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = { onClick() },
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+            }
+            
             // 头像
             AsyncImage(
                 model = character.avatarUrl,

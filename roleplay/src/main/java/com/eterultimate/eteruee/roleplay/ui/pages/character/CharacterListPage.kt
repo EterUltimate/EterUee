@@ -3,6 +3,7 @@ package com.eterultimate.eteruee.roleplay.ui.pages.character
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -12,6 +13,8 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,6 +25,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil3.compose.AsyncImage
 import com.eterultimate.eteruee.roleplay.data.model.Character
+import com.eterultimate.eteruee.roleplay.domain.service.CharacterSortOption
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.CharacterListViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -39,9 +43,19 @@ fun CharacterListPage(
     val pagingItems = viewModel.loadCharacters().collectAsLazyPagingItems()
     val selectedIds by viewModel.selectedCharacterIds.collectAsState()
     val isMultiSelectMode by viewModel.isMultiSelectMode.collectAsState()
+    val selectedTags by viewModel.selectedTags.collectAsState()
+    val availableTags by viewModel.availableTags.collectAsState()
+    val sortOption by viewModel.sortOption.collectAsState()
+    val favoriteOnly by viewModel.favoriteOnly.collectAsState()
     
     var searchQuery by remember { mutableStateOf("") }
     var isSearching by remember { mutableStateOf(false) }
+    var showSortMenu by remember { mutableStateOf(false) }
+    
+    // 加载可用标签
+    LaunchedEffect(Unit) {
+        viewModel.loadAvailableTags()
+    }
     
     Scaffold(
         topBar = {
@@ -82,6 +96,50 @@ fun CharacterListPage(
                 TopAppBar(
                     title = { Text("角色列表") },
                     actions = {
+                        // 收藏过滤开关
+                        IconButton(onClick = { viewModel.toggleFavoriteFilter() }) {
+                            Icon(
+                                imageVector = if (favoriteOnly) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = "收藏过滤",
+                                tint = if (favoriteOnly) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        
+                        // 排序选项下拉菜单
+                        Box {
+                            IconButton(onClick = { showSortMenu = true }) {
+                                Icon(Icons.Default.Sort, contentDescription = "排序")
+                            }
+                            
+                            DropdownMenu(
+                                expanded = showSortMenu,
+                                onDismissRequest = { showSortMenu = false }
+                            ) {
+                                CharacterSortOption.entries.forEach { option ->
+                                    val isSelected = option == sortOption
+                                    DropdownMenuItem(
+                                        text = {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Text(getSortOptionText(option))
+                                                if (isSelected) {
+                                                    Spacer(modifier = Modifier.width(8.dp))
+                                                    Icon(
+                                                        Icons.Default.CheckCircle,
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.primary
+                                                    )
+                                                }
+                                            }
+                                        },
+                                        onClick = {
+                                            viewModel.setSortOption(option)
+                                            showSortMenu = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                        
                         IconButton(onClick = { viewModel.toggleMultiSelectMode() }) {
                             Icon(Icons.Default.RadioButtonUnchecked, contentDescription = "多选模式")
                         }
@@ -128,6 +186,46 @@ fun CharacterListPage(
                         Icon(Icons.Default.Search, contentDescription = null)
                     }
                 )
+            }
+            
+            // 标签过滤器
+            if (availableTags.isNotEmpty()) {
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(availableTags) { tag ->
+                        val isSelected = selectedTags.contains(tag)
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { viewModel.toggleTag(tag) },
+                            label = { Text(tag) },
+                            leadingIcon = if (isSelected) {
+                                {
+                                    Icon(
+                                        Icons.Default.CheckCircle,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                    )
+                                }
+                            } else {
+                                null
+                            }
+                        )
+                    }
+                    
+                    // 清除按钮
+                    if (selectedTags.isNotEmpty()) {
+                        item {
+                            FilterChip(
+                                selected = false,
+                                onClick = { viewModel.clearSelectedTags() },
+                                label = { Text("清除") }
+                            )
+                        }
+                    }
+                }
             }
             
             // 错误/成功提示
@@ -320,5 +418,21 @@ fun CharacterCard(
                 )
             }
         }
+    }
+}
+
+/**
+ * 获取排序选项的显示文本
+ */
+@Composable
+fun getSortOptionText(option: CharacterSortOption): String {
+    return when (option) {
+        CharacterSortOption.NAME_ASC -> "名称升序"
+        CharacterSortOption.NAME_DESC -> "名称降序"
+        CharacterSortOption.LAST_CHAT_DESC -> "最后聊天时间（最近优先）"
+        CharacterSortOption.LAST_CHAT_ASC -> "最后聊天时间（最早优先）"
+        CharacterSortOption.CREATED_DESC -> "创建时间（最新优先）"
+        CharacterSortOption.CREATED_ASC -> "创建时间（最早优先）"
+        CharacterSortOption.CHAT_COUNT_DESC -> "聊天数量（最多优先）"
     }
 }

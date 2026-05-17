@@ -1,5 +1,6 @@
 package com.eterultimate.eteruee.roleplay.ui.pages.chat
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -12,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.eterultimate.eteruee.roleplay.data.model.ChatMessage
@@ -43,6 +45,17 @@ fun ChatPage(
     // 设置对话框状态
     var showSettingsDialog by remember { mutableStateOf(false) }
     
+    // 分支选择器状态
+    var showBranchMenu by remember { mutableStateOf(false) }
+    
+    // 消息编辑对话框状态
+    var showEditDialog by remember { mutableStateOf(false) }
+    
+    // 消息操作菜单状态
+    var showActionMenu by remember { mutableStateOf(false) }
+    var actionMenuMessageIndex by remember { mutableStateOf(-1) }
+    var actionMenuMessage by remember { mutableStateOf<ChatMessage?>(null) }
+    
     // 初始化
     LaunchedEffect(chatId) {
         viewModel.initialize(chatId)
@@ -67,6 +80,56 @@ fun ChatPage(
                     }
                 },
                 actions = {
+                    // 分支选择器
+                    if (uiState.branches.isNotEmpty()) {
+                        Box {
+                            IconButton(onClick = { showBranchMenu = true }) {
+                                Icon(Icons.Default.AccountTree, contentDescription = "分支")
+                            }
+                            
+                            DropdownMenu(
+                                expanded = showBranchMenu,
+                                onDismissRequest = { showBranchMenu = false }
+                            ) {
+                                uiState.branches.forEachIndexed { index, branch ->
+                                    val isActive = branch.id == uiState.activeBranchId
+                                    DropdownMenuItem(
+                                        text = {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Text("分支 ${index + 1}")
+                                                if (isActive) {
+                                                    Spacer(modifier = Modifier.width(8.dp))
+                                                    Icon(
+                                                        Icons.Default.Check,
+                                                        contentDescription = "当前分支",
+                                                        tint = MaterialTheme.colorScheme.primary
+                                                    )
+                                                }
+                                            }
+                                        },
+                                        onClick = {
+                                            viewModel.switchBranch(branch.id)
+                                            showBranchMenu = false
+                                        }
+                                    )
+                                }
+                                
+                                HorizontalDivider()
+                                
+                                DropdownMenuItem(
+                                    text = { Text("新建分支") },
+                                    onClick = {
+                                        // 从最后一条消息创建新分支
+                                        if (uiState.messages.isNotEmpty()) {
+                                            viewModel.createBranch(uiState.messages.size - 1)
+                                        }
+                                        showBranchMenu = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                    
                     // 设置按钮
                     IconButton(onClick = { 
                         showSettingsDialog = true
@@ -217,6 +280,13 @@ fun ChatPage(
                         onRegenerate = { idx -> 
                             // 重新生成消息
                             viewModel.regenerateMessage(message.id)
+                        },
+                        onEdit = { msgId, content ->
+                            viewModel.startEditMessage(msgId, content)
+                            showEditDialog = true
+                        },
+                        onCreateBranch = { fromIndex ->
+                            viewModel.createBranch(fromIndex)
                         }
                     )
                 }
@@ -234,6 +304,52 @@ fun ChatPage(
             }
         )
     }
+    
+    // 消息编辑对话框
+    if (showEditDialog && uiState.editingMessageId != null) {
+        AlertDialog(
+            onDismissRequest = {
+                viewModel.cancelEdit()
+                showEditDialog = false
+            },
+            title = { Text("编辑消息") },
+            text = {
+                var editContent by remember(uiState.editContent) {
+                    mutableStateOf(uiState.editContent)
+                }
+                
+                OutlinedTextField(
+                    value = editContent,
+                    onValueChange = { editContent = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 3,
+                    maxLines = 10,
+                    placeholder = { Text("输入消息内容...") }
+                )
+                
+                LaunchedEffect(editContent) {
+                    // 实时更新编辑内容
+                    // 注意：这里不直接调用 ViewModel，只在保存时更新
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    viewModel.saveEditedMessage()
+                    showEditDialog = false
+                }) {
+                    Text("保存")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    viewModel.cancelEdit()
+                    showEditDialog = false
+                }) {
+                    Text("取消")
+                }
+            }
+        )
+    }
 }
 
 /**
@@ -245,13 +361,16 @@ fun MessageBubble(
     messageIndex: Int,
     isStreaming: Boolean,
     onDelete: () -> Unit,
-    onRegenerate: (Int) -> Unit = {}
+    onRegenerate: (Int) -> Unit = {},
+    onEdit: (kotlin.uuid.Uuid, String) -> Unit = { _, _ -> },
+    onCreateBranch: (Int) -> Unit = {}
 ) {
     val isUser = message.role == MessageRole.USER
+    var showMenu by remember { mutableStateOf(false) }
     
-    Row(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
+        horizontalAlignment = if (isUser) Alignment.End else Alignment.Start
     ) {
         Card(
             colors = if (isUser) {
@@ -259,7 +378,14 @@ fun MessageBubble(
             } else {
                 CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
             },
-            modifier = Modifier.widthIn(max = 300.dp)
+            modifier = Modifier
+                .widthIn(max = 300.dp)
+                .pointerInput(Unit) {
+                    // 长按显示菜单
+                    detectTapGestures(
+                        onLongPress = { showMenu = true }
+                    )
+                }
         ) {
             Column(
                 modifier = Modifier.padding(12.dp)
@@ -311,6 +437,64 @@ fun MessageBubble(
                     }
                 }
             }
+        }
+        
+        // 消息操作菜单（长按触发）
+        DropdownMenu(
+            expanded = showMenu,
+            onDismissRequest = { showMenu = false }
+        ) {
+            // 编辑消息（所有消息都可编辑）
+            DropdownMenuItem(
+                text = { Text("编辑") },
+                onClick = {
+                    showMenu = false
+                    onEdit(message.id, message.content)
+                },
+                leadingIcon = {
+                    Icon(Icons.Default.Edit, contentDescription = null)
+                }
+            )
+            
+            // 从此处新建分支
+            DropdownMenuItem(
+                text = { Text("从此处新建分支") },
+                onClick = {
+                    showMenu = false
+                    onCreateBranch(messageIndex)
+                },
+                leadingIcon = {
+                    Icon(Icons.Default.AccountTree, contentDescription = null)
+                }
+            )
+            
+            // 重新生成（仅助手消息）
+            if (!isUser && !isStreaming) {
+                DropdownMenuItem(
+                    text = { Text("重新生成") },
+                    onClick = {
+                        showMenu = false
+                        onRegenerate(messageIndex)
+                    },
+                    leadingIcon = {
+                        Icon(Icons.Default.Refresh, contentDescription = null)
+                    }
+                )
+            }
+            
+            HorizontalDivider()
+            
+            // 删除消息
+            DropdownMenuItem(
+                text = { Text("删除", color = MaterialTheme.colorScheme.error) },
+                onClick = {
+                    showMenu = false
+                    onDelete()
+                },
+                leadingIcon = {
+                    Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                }
+            )
         }
     }
 }

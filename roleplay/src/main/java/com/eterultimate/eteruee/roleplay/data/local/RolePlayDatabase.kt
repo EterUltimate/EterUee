@@ -16,9 +16,10 @@ import com.eterultimate.eteruee.roleplay.data.local.entity.*
         ChatEntity::class,
         WorldInfoEntity::class,
         GroupEntity::class,
-        BookmarkEntity::class
+        BookmarkEntity::class,
+        PresetEntity::class
     ],
-    version = 3,  // 升级到版本3以支持书签功能
+    version = 4,  // 升级到版本4以支持预设功能
     exportSchema = true
 )
 abstract class RolePlayDatabase : RoomDatabase() {
@@ -27,6 +28,7 @@ abstract class RolePlayDatabase : RoomDatabase() {
     abstract fun worldInfoDao(): WorldInfoDAO
     abstract fun groupDao(): GroupDAO
     abstract fun bookmarkDao(): BookmarkDAO
+    abstract fun presetDao(): PresetDAO
     
     companion object {
         const val DATABASE_NAME = "roleplay_database"
@@ -62,6 +64,26 @@ abstract class RolePlayDatabase : RoomDatabase() {
                         updatedAt INTEGER NOT NULL,
                         color TEXT NOT NULL,
                         tagsJson TEXT NOT NULL
+                    )
+                """.trimIndent())
+            }
+        }
+        
+        /**
+         * 从版本3迁移到版本4：添加预设表
+         */
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // 创建预设表
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS rp_presets (
+                        id TEXT NOT NULL PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        description TEXT NOT NULL,
+                        type TEXT NOT NULL,
+                        parametersJson TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL,
+                        updatedAt INTEGER NOT NULL
                     )
                 """.trimIndent())
             }

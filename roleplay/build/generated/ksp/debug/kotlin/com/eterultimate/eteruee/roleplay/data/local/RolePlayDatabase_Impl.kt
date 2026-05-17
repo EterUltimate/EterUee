@@ -17,6 +17,8 @@ import com.eterultimate.eteruee.roleplay.`data`.local.dao.ChatDAO
 import com.eterultimate.eteruee.roleplay.`data`.local.dao.ChatDAO_Impl
 import com.eterultimate.eteruee.roleplay.`data`.local.dao.GroupDAO
 import com.eterultimate.eteruee.roleplay.`data`.local.dao.GroupDAO_Impl
+import com.eterultimate.eteruee.roleplay.`data`.local.dao.PresetDAO
+import com.eterultimate.eteruee.roleplay.`data`.local.dao.PresetDAO_Impl
 import com.eterultimate.eteruee.roleplay.`data`.local.dao.WorldInfoDAO
 import com.eterultimate.eteruee.roleplay.`data`.local.dao.WorldInfoDAO_Impl
 import javax.`annotation`.processing.Generated
@@ -57,16 +59,21 @@ public class RolePlayDatabase_Impl : RolePlayDatabase() {
     BookmarkDAO_Impl(this)
   }
 
+  private val _presetDAO: Lazy<PresetDAO> = lazy {
+    PresetDAO_Impl(this)
+  }
+
   protected override fun createOpenDelegate(): RoomOpenDelegate {
-    val _openDelegate: RoomOpenDelegate = object : RoomOpenDelegate(3, "eef971fd8ce6232a292f8545a14f74df", "4f1ae840a1b6d3bacddda0dc891926bc") {
+    val _openDelegate: RoomOpenDelegate = object : RoomOpenDelegate(4, "3336025d1db0908a87c8ced5bbc81afb", "4c97db221152df8edce7f3b0dd978d9f") {
       public override fun createAllTables(connection: SQLiteConnection) {
         connection.execSQL("CREATE TABLE IF NOT EXISTS `rp_characters` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `avatarUrl` TEXT, `favorite` INTEGER NOT NULL, `chatCount` INTEGER NOT NULL, `lastChatAt` INTEGER, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `jsonData` TEXT NOT NULL, PRIMARY KEY(`id`))")
         connection.execSQL("CREATE TABLE IF NOT EXISTS `rp_chats` (`id` TEXT NOT NULL, `characterId` TEXT NOT NULL, `groupId` TEXT, `title` TEXT NOT NULL, `messageCount` INTEGER NOT NULL, `pinned` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `jsonFilePath` TEXT NOT NULL, `activeBranchId` TEXT, `rootNodesJson` TEXT NOT NULL, PRIMARY KEY(`id`))")
         connection.execSQL("CREATE TABLE IF NOT EXISTS `rp_world_infos` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT NOT NULL, `scanDepth` INTEGER NOT NULL, `scanTrigger` TEXT NOT NULL, `selectiveLogic` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `entriesJson` TEXT NOT NULL, PRIMARY KEY(`id`))")
         connection.execSQL("CREATE TABLE IF NOT EXISTS `rp_groups` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT NOT NULL, `avatarUrl` TEXT, `membersJson` TEXT NOT NULL, `activeMembersJson` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))")
         connection.execSQL("CREATE TABLE IF NOT EXISTS `rp_bookmarks` (`id` TEXT NOT NULL, `chatId` TEXT NOT NULL, `characterId` TEXT NOT NULL, `messageId` TEXT, `nodeId` TEXT, `title` TEXT NOT NULL, `note` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `color` TEXT NOT NULL, `tagsJson` TEXT NOT NULL, PRIMARY KEY(`id`))")
+        connection.execSQL("CREATE TABLE IF NOT EXISTS `rp_presets` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT NOT NULL, `type` TEXT NOT NULL, `parametersJson` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))")
         connection.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)")
-        connection.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'eef971fd8ce6232a292f8545a14f74df')")
+        connection.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3336025d1db0908a87c8ced5bbc81afb')")
       }
 
       public override fun dropAllTables(connection: SQLiteConnection) {
@@ -75,6 +82,7 @@ public class RolePlayDatabase_Impl : RolePlayDatabase() {
         connection.execSQL("DROP TABLE IF EXISTS `rp_world_infos`")
         connection.execSQL("DROP TABLE IF EXISTS `rp_groups`")
         connection.execSQL("DROP TABLE IF EXISTS `rp_bookmarks`")
+        connection.execSQL("DROP TABLE IF EXISTS `rp_presets`")
       }
 
       public override fun onCreate(connection: SQLiteConnection) {
@@ -210,6 +218,27 @@ public class RolePlayDatabase_Impl : RolePlayDatabase() {
               | Found:
               |""".trimMargin() + _existingRpBookmarks)
         }
+        val _columnsRpPresets: MutableMap<String, TableInfo.Column> = mutableMapOf()
+        _columnsRpPresets.put("id", TableInfo.Column("id", "TEXT", true, 1, null, TableInfo.CREATED_FROM_ENTITY))
+        _columnsRpPresets.put("name", TableInfo.Column("name", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY))
+        _columnsRpPresets.put("description", TableInfo.Column("description", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY))
+        _columnsRpPresets.put("type", TableInfo.Column("type", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY))
+        _columnsRpPresets.put("parametersJson", TableInfo.Column("parametersJson", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY))
+        _columnsRpPresets.put("createdAt", TableInfo.Column("createdAt", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY))
+        _columnsRpPresets.put("updatedAt", TableInfo.Column("updatedAt", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY))
+        val _foreignKeysRpPresets: MutableSet<TableInfo.ForeignKey> = mutableSetOf()
+        val _indicesRpPresets: MutableSet<TableInfo.Index> = mutableSetOf()
+        val _infoRpPresets: TableInfo = TableInfo("rp_presets", _columnsRpPresets, _foreignKeysRpPresets, _indicesRpPresets)
+        val _existingRpPresets: TableInfo = read(connection, "rp_presets")
+        if (!_infoRpPresets.equals(_existingRpPresets)) {
+          return RoomOpenDelegate.ValidationResult(false, """
+              |rp_presets(com.eterultimate.eteruee.roleplay.data.local.entity.PresetEntity).
+              | Expected:
+              |""".trimMargin() + _infoRpPresets + """
+              |
+              | Found:
+              |""".trimMargin() + _existingRpPresets)
+        }
         return RoomOpenDelegate.ValidationResult(true, null)
       }
     }
@@ -219,11 +248,11 @@ public class RolePlayDatabase_Impl : RolePlayDatabase() {
   protected override fun createInvalidationTracker(): InvalidationTracker {
     val _shadowTablesMap: MutableMap<String, String> = mutableMapOf()
     val _viewTables: MutableMap<String, Set<String>> = mutableMapOf()
-    return InvalidationTracker(this, _shadowTablesMap, _viewTables, "rp_characters", "rp_chats", "rp_world_infos", "rp_groups", "rp_bookmarks")
+    return InvalidationTracker(this, _shadowTablesMap, _viewTables, "rp_characters", "rp_chats", "rp_world_infos", "rp_groups", "rp_bookmarks", "rp_presets")
   }
 
   public override fun clearAllTables() {
-    super.performClear(false, "rp_characters", "rp_chats", "rp_world_infos", "rp_groups", "rp_bookmarks")
+    super.performClear(false, "rp_characters", "rp_chats", "rp_world_infos", "rp_groups", "rp_bookmarks", "rp_presets")
   }
 
   protected override fun getRequiredTypeConverterClasses(): Map<KClass<*>, List<KClass<*>>> {
@@ -233,6 +262,7 @@ public class RolePlayDatabase_Impl : RolePlayDatabase() {
     _typeConvertersMap.put(WorldInfoDAO::class, WorldInfoDAO_Impl.getRequiredConverters())
     _typeConvertersMap.put(GroupDAO::class, GroupDAO_Impl.getRequiredConverters())
     _typeConvertersMap.put(BookmarkDAO::class, BookmarkDAO_Impl.getRequiredConverters())
+    _typeConvertersMap.put(PresetDAO::class, PresetDAO_Impl.getRequiredConverters())
     return _typeConvertersMap
   }
 
@@ -255,4 +285,6 @@ public class RolePlayDatabase_Impl : RolePlayDatabase() {
   public override fun groupDao(): GroupDAO = _groupDAO.value
 
   public override fun bookmarkDao(): BookmarkDAO = _bookmarkDAO.value
+
+  public override fun presetDao(): PresetDAO = _presetDAO.value
 }

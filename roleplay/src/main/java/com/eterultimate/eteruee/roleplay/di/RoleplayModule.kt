@@ -21,6 +21,8 @@ import com.eterultimate.eteruee.roleplay.domain.service.PromptBuilderService
 import com.eterultimate.eteruee.roleplay.domain.service.PromptBuilderServiceImpl
 import com.eterultimate.eteruee.roleplay.domain.service.GroupSpeakerService
 import com.eterultimate.eteruee.roleplay.domain.service.GroupSpeakerServiceImpl
+import com.eterultimate.eteruee.roleplay.domain.service.PresetService
+import com.eterultimate.eteruee.roleplay.domain.service.PresetServiceImpl
 import com.eterultimate.eteruee.roleplay.domain.extension.ExtensionManager
 import com.eterultimate.eteruee.roleplay.domain.extension.ExtensionManagerImpl
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.ChatViewModel
@@ -54,6 +56,7 @@ val roleplayModule = module {
     single { get<RolePlayDatabase>().worldInfoDao() }
     single { get<RolePlayDatabase>().groupDao() }
     single { get<RolePlayDatabase>().bookmarkDao() }
+    single { get<RolePlayDatabase>().presetDao() }
     
     // File Storage
     single { RolePlayFileStorage(androidContext()) }
@@ -69,6 +72,7 @@ val roleplayModule = module {
     single<PromptBuilderService> { PromptBuilderServiceImpl() }
     single<GroupSpeakerService> { GroupSpeakerServiceImpl() }
     single<ExtensionManager> { ExtensionManagerImpl() }
+    single<PresetService> { PresetServiceImpl(get()) }
     
     // ViewModels
     viewModel { CharacterListViewModel(get()) }

@@ -7,6 +7,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.eterultimate.eteruee.roleplay.data.model.Character
 import com.eterultimate.eteruee.roleplay.domain.service.CharacterService
+import com.eterultimate.eteruee.roleplay.domain.service.CharacterSortOption
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,6 +35,30 @@ class CharacterListViewModel(
      */
     private val _isMultiSelectMode = MutableStateFlow(false)
     val isMultiSelectMode: StateFlow<Boolean> = _isMultiSelectMode.asStateFlow()
+    
+    /**
+     * 当前选中的标签列表
+     */
+    private val _selectedTags = MutableStateFlow<List<String>>(emptyList())
+    val selectedTags: StateFlow<List<String>> = _selectedTags.asStateFlow()
+    
+    /**
+     * 所有可用标签
+     */
+    private val _availableTags = MutableStateFlow<List<String>>(emptyList())
+    val availableTags: StateFlow<List<String>> = _availableTags.asStateFlow()
+    
+    /**
+     * 当前排序选项
+     */
+    private val _sortOption = MutableStateFlow(CharacterSortOption.LAST_CHAT_DESC)
+    val sortOption: StateFlow<CharacterSortOption> = _sortOption.asStateFlow()
+    
+    /**
+     * 是否只显示收藏
+     */
+    private val _favoriteOnly = MutableStateFlow(false)
+    val favoriteOnly: StateFlow<Boolean> = _favoriteOnly.asStateFlow()
     
     /**
      * 获取所有角色(分页)
@@ -216,6 +241,58 @@ class CharacterListViewModel(
             successMessage = null
         )
     }
+    
+    // ==================== 标签过滤 ====================
+    
+    /**
+     * 加载所有可用标签
+     */
+    fun loadAvailableTags() {
+        viewModelScope.launch {
+            try {
+                val tags = characterService.getAllTags()
+                _availableTags.value = tags
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(errorMessage = "加载标签失败: ${e.message}")
+            }
+        }
+    }
+    
+    /**
+     * 切换标签选中状态
+     */
+    fun toggleTag(tag: String) {
+        val currentTags = _selectedTags.value.toMutableList()
+        if (currentTags.contains(tag)) {
+            currentTags.remove(tag)
+        } else {
+            currentTags.add(tag)
+        }
+        _selectedTags.value = currentTags
+    }
+    
+    /**
+     * 清除所有选中标签
+     */
+    fun clearSelectedTags() {
+        _selectedTags.value = emptyList()
+    }
+    
+    // ==================== 排序 ====================
+    
+    /**
+     * 设置排序选项
+     */
+    fun setSortOption(option: CharacterSortOption) {
+        _sortOption.value = option
+    }
+    
+    /**
+     * 切换收藏过滤
+     */
+    fun toggleFavoriteFilter() {
+        _favoriteOnly.value = !_favoriteOnly.value
+    }
 }
 
 /**
@@ -226,5 +303,10 @@ data class CharacterListUiState(
     val isSearching: Boolean = false,
     val isImporting: Boolean = false,
     val errorMessage: String? = null,
-    val successMessage: String? = null
+    val successMessage: String? = null,
+    // 过滤和排序状态
+    val selectedTags: List<String> = emptyList(),
+    val availableTags: List<String> = emptyList(),
+    val sortOption: CharacterSortOption = CharacterSortOption.LAST_CHAT_DESC,
+    val favoriteOnly: Boolean = false
 )

@@ -17,6 +17,8 @@ import com.eterultimate.eteruee.roleplay.domain.service.BookmarkService
 import com.eterultimate.eteruee.roleplay.domain.service.BookmarkServiceImpl
 import com.eterultimate.eteruee.roleplay.domain.service.BackupService
 import com.eterultimate.eteruee.roleplay.domain.service.BackupServiceImpl
+import com.eterultimate.eteruee.roleplay.domain.service.PromptBuilderService
+import com.eterultimate.eteruee.roleplay.domain.service.PromptBuilderServiceImpl
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.ChatViewModel
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.CharacterEditViewModel
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.CharacterListViewModel
@@ -59,6 +61,7 @@ val roleplayModule = module {
     single<TokenService> { TokenServiceImpl() }
     single<BookmarkService> { BookmarkServiceImpl(get()) }
     single<BackupService> { BackupServiceImpl(get()) }
+    single<PromptBuilderService> { PromptBuilderServiceImpl() }
     
     // ViewModels
     viewModel { CharacterListViewModel(get()) }

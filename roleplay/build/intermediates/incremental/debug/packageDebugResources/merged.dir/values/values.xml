@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="character_avatar">Avatar</string>
+    <string name="character_create">Create Character</string>
+    <string name="character_delete">Delete Character</string>
+    <string name="character_description">Description</string>
+    <string name="character_edit">Edit Character</string>
+    <string name="character_export">Export Character</string>
+    <string name="character_first_message">First Message</string>
+    <string name="character_import">Import Character</string>
+    <string name="character_name">Name</string>
+    <string name="character_personality">Personality</string>
+    <string name="character_scenario">Scenario</string>
+    <string name="character_tags">Tags</string>
+    <string name="chat_backup">Backup Chat</string>
+    <string name="chat_delete">Delete Chat</string>
+    <string name="chat_export">Export Chat</string>
+    <string name="chat_new">New Chat</string>
+    <string name="chat_rename">Rename Chat</string>
+    <string name="chat_swipe_left">Swipe Left</string>
+    <string name="chat_swipe_right">Swipe Right</string>
+    <string name="group_create">Create Group</string>
+    <string name="group_delete">Delete Group</string>
+    <string name="group_edit">Edit Group</string>
+    <string name="group_members">Members</string>
+    <string name="roleplay_characters">Characters</string>
+    <string name="roleplay_chats">Chats</string>
+    <string name="roleplay_groups">Groups</string>
+    <string name="roleplay_title">RolePlay</string>
+    <string name="roleplay_worldinfo">World Info</string>
+    <string name="worldinfo_create">Create World Info</string>
+    <string name="worldinfo_delete">Delete World Info</string>
+    <string name="worldinfo_edit">Edit World Info</string>
+    <string name="worldinfo_entry_content">Content</string>
+    <string name="worldinfo_entry_key">Key</string>
+</resources>

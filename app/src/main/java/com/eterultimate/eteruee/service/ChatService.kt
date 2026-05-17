@@ -518,6 +518,8 @@ class ChatService(
                 },
                 assistant = assistant,
                 conversationSystemPrompt = conversation.customSystemPrompt,
+                conversationModeInjectionIds = conversation.modeInjectionIds,
+                conversationLorebookIds = conversation.lorebookIds,
                 memories = if (assistant.useGlobalMemory) {
                     memoryRepository.getGlobalMemories()
                 } else {
@@ -1149,6 +1151,8 @@ class ChatService(
             assistantId = currentConversation.assistantId,
             messageNodes = copiedNodes,
             customSystemPrompt = currentConversation.customSystemPrompt,
+            modeInjectionIds = currentConversation.modeInjectionIds,
+            lorebookIds = currentConversation.lorebookIds,
         )
 
         saveConversation(forkConversation.id, forkConversation)

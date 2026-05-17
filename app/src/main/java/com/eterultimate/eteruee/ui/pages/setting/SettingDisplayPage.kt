@@ -1,9 +1,8 @@
 ﻿package com.eterultimate.eteruee.ui.pages.setting
 
 import android.os.Build
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -11,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.LocalTextStyle
@@ -36,7 +37,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import me.rerere.hugeicons.HugeIcons
+import me.rerere.hugeicons.stroke.ArrowRight01
 import com.eterultimate.eteruee.R
+import com.eterultimate.eteruee.Screen
 import com.eterultimate.eteruee.data.datastore.ChatFontFamily
 import com.eterultimate.eteruee.data.datastore.DisplaySetting
 import com.eterultimate.eteruee.ui.components.nav.BackButton
@@ -45,16 +49,19 @@ import com.eterultimate.eteruee.ui.components.ui.CardGroup
 import com.eterultimate.eteruee.ui.components.ui.permission.PermissionManager
 import com.eterultimate.eteruee.ui.components.ui.permission.PermissionNotification
 import com.eterultimate.eteruee.ui.components.ui.permission.rememberPermissionState
+import com.eterultimate.eteruee.ui.context.LocalNavController
+import com.eterultimate.eteruee.ui.hooks.rememberAmoledDarkMode
 import com.eterultimate.eteruee.ui.hooks.rememberSharedPreferenceBoolean
 import com.eterultimate.eteruee.ui.theme.CustomColors
 import com.eterultimate.eteruee.utils.plus
 import org.koin.androidx.compose.koinViewModel
-import androidx.compose.ui.graphics.RectangleShape
 
 @Composable
 fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
     val settings by vm.settings.collectAsStateWithLifecycle()
     var displaySetting by remember(settings) { mutableStateOf(settings.displaySetting) }
+    var amoledDarkMode by rememberAmoledDarkMode()
+
     fun updateDisplaySetting(setting: DisplaySetting) {
         displaySetting = setting
         vm.updateSettings(settings.copy(displaySetting = setting))
@@ -101,30 +108,59 @@ fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 8.dp)
                     )
-                    // Cyberpunk 主题（单主题系统，不可切换）
-                    Box(
+                    ListItem(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(
-                                RectangleShape
+                                RoundedCornerShape(
+                                    topStart = 20.dp,
+                                    topEnd = 20.dp,
+                                    bottomStart = 4.dp,
+                                    bottomEnd = 4.dp
+                                )
+                            ),
+                        headlineContent = { Text(stringResource(R.string.setting_page_dynamic_color)) },
+                        supportingContent = { Text(stringResource(R.string.setting_page_dynamic_color_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = settings.dynamicColor,
+                                onCheckedChange = { vm.updateSettings(settings.copy(dynamicColor = it)) },
                             )
-                            .background(MaterialTheme.colorScheme.surfaceBright)
-                            .padding(16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "CYBERPUNK INDUSTRIAL",
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontFamily = FontFamily.Monospace
-                                ),
-                                color = MaterialTheme.colorScheme.primary
+                        },
+                        colors = CustomColors.listItemColors,
+                    )
+                    val navController = LocalNavController.current
+                    ListItem(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(4.dp))
+                            .clickable { navController.navigate(Screen.SettingTheme) },
+                        headlineContent = { Text(stringResource(R.string.setting_page_theme_setting)) },
+                        supportingContent = { Text(stringResource(R.string.setting_page_theme_setting_desc)) },
+                        trailingContent = { Icon(HugeIcons.ArrowRight01, contentDescription = null) },
+                        colors = CustomColors.listItemColors,
+                    )
+                    ListItem(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(
+                                RoundedCornerShape(
+                                    topStart = 4.dp,
+                                    topEnd = 4.dp,
+                                    bottomStart = 20.dp,
+                                    bottomEnd = 20.dp
+                                )
+                            ),
+                        headlineContent = { Text(stringResource(R.string.setting_display_page_amoled_dark_mode_title)) },
+                        supportingContent = { Text(stringResource(R.string.setting_display_page_amoled_dark_mode_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = amoledDarkMode,
+                                onCheckedChange = { amoledDarkMode = it }
                             )
-                        }
-                    }
+                        },
+                        colors = CustomColors.listItemColors,
+                    )
                 }
             }
 

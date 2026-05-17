@@ -40,6 +40,7 @@ import com.eterultimate.eteruee.data.model.PromptInjection
 import com.eterultimate.eteruee.data.model.QuickMessage
 import com.eterultimate.eteruee.data.model.Tag
 import com.eterultimate.eteruee.data.sync.s3.S3Config
+import com.eterultimate.eteruee.ui.theme.CustomTheme
 import com.eterultimate.eteruee.ui.theme.PresetThemes
 import com.eterultimate.eteruee.utils.JsonInstant
 import com.eterultimate.eteruee.utils.toMutableStateFlow
@@ -74,6 +75,7 @@ class SettingsStore(
         // UI设置
         val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
         val THEME_ID = stringPreferencesKey("theme_id")
+        val CUSTOM_THEMES = stringPreferencesKey("custom_themes")
         val DISPLAY_SETTING = stringPreferencesKey("display_setting")
         val DEVELOPER_MODE = booleanPreferencesKey("developer_mode")
 
@@ -185,6 +187,9 @@ class SettingsStore(
                 assistants = JsonInstant.decodeFromString(preferences[ASSISTANTS] ?: "[]"),
                 dynamicColor = preferences[DYNAMIC_COLOR] != false,
                 themeId = preferences[THEME_ID] ?: PresetThemes[0].id,
+                customThemes = preferences[CUSTOM_THEMES]?.let {
+                    JsonInstant.decodeFromString(it)
+                } ?: emptyList(),
                 developerMode = preferences[DEVELOPER_MODE] == true,
                 displaySetting = JsonInstant.decodeFromString(preferences[DISPLAY_SETTING] ?: "{}"),
                 searchServices = preferences[SEARCH_SERVICES]?.let {
@@ -332,6 +337,7 @@ class SettingsStore(
         dataStore.edit { preferences ->
             preferences[DYNAMIC_COLOR] = settings.dynamicColor
             preferences[THEME_ID] = settings.themeId
+            preferences[CUSTOM_THEMES] = JsonInstant.encodeToString(settings.customThemes)
             preferences[DEVELOPER_MODE] = settings.developerMode
             preferences[DISPLAY_SETTING] = JsonInstant.encodeToString(settings.displaySetting)
 
@@ -465,6 +471,7 @@ data class Settings(
     val init: Boolean = false,
     val dynamicColor: Boolean = true,
     val themeId: String = PresetThemes[0].id,
+    val customThemes: List<CustomTheme> = emptyList(),
     val developerMode: Boolean = false,
     val displaySetting: DisplaySetting = DisplaySetting(),
     val enableWebSearch: Boolean = false,

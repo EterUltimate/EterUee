@@ -34,6 +34,7 @@ Build from source or grab the latest APK from <a href="https://github.com/EterUl
 - 📝 **AI Translation** — one-tap message translation
 - 🌐 **Custom HTTP Headers & Body** — full request customization
 - 💌 **Silly Tavern Character Card Import** — .png card support
+- 🎭 **Roleplay Module** — Full SillyTavern-compatible experience (characters, chat, world info, groups)
 - 📡 **LAN Discovery** — auto-discover providers on local network
 - 🧪 **Message Transformers** — template, regex, OCR, think-tag extraction, document-as-prompt
 - 🌙 **Dark Mode Only** — immersive OLED-friendly UI
@@ -47,6 +48,7 @@ EterUee
 ├── common       — Shared utilities and Kotlin extensions
 ├── document     — Document parser (PDF, DOCX, PPTX)
 ├── highlight    — Code syntax highlighting engine
+├── roleplay     — Roleplay module (SillyTavern compatible: characters/chat/world info/groups)
 ├── search       — Search SDK (Exa, Tavily, Zhipu, LinkUp, Brave, Perplexity)
 ├── tts          — Text-to-Speech providers
 ├── web          — Embedded Ktor server + static web-ui hosting

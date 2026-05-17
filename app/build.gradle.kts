@@ -298,6 +298,7 @@ dependencies {
     implementation(project(":search"))
     implementation(project(":tts"))
     implementation(project(":common"))
+    implementation(project(":roleplay"))
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
     implementation(kotlin("reflect"))
 

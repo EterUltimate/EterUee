@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.extensions
+package com.eterultimate.eteruee.ui.pages.extensions
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues

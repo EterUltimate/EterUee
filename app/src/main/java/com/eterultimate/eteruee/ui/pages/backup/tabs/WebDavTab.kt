@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.backup.tabs
+package com.eterultimate.eteruee.ui.pages.backup.tabs
 
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.View

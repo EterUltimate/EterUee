@@ -87,7 +87,7 @@ import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import me.rerere.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessage
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.data.datastore.findModelById
@@ -639,7 +639,7 @@ private fun ChatListPreview(
                 key = { index, item -> item.second.id },
             ) { _, (originalIndex, node) ->
                 val message = node.currentMessage
-                val isUser = message.role == me.rerere.ai.core.MessageRole.USER
+                val isUser = message.role == com.eterultimate.eteruee.ai.core.MessageRole.USER
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()

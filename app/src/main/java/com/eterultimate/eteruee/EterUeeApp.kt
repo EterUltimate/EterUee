@@ -27,6 +27,7 @@ import com.eterultimate.eteruee.di.appModule
 import com.eterultimate.eteruee.di.dataSourceModule
 import com.eterultimate.eteruee.di.repositoryModule
 import com.eterultimate.eteruee.di.viewModelModule
+import com.eterultimate.eteruee.roleplay.di.roleplayModule
 import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.service.WebServerService
@@ -51,7 +52,7 @@ class EterUeeApp : Application() {
             androidLogger()
             androidContext(this@EterUeeApp)
             workManagerFactory()
-            modules(appModule, viewModelModule, dataSourceModule, repositoryModule)
+            modules(appModule, viewModelModule, dataSourceModule, repositoryModule, roleplayModule)
         }
         this.createNotificationChannel()
 

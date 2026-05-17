@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.imggen
+package com.eterultimate.eteruee.ui.pages.imggen
 
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -303,6 +303,10 @@ private fun ImageGenScreen(
                             ImagePreviewDialog(
                                 images = listOf(File(image.filePath).toUri().toString()),
                                 onDismissRequest = { showPreview = false },
+                                onDeleteImage = { index ->
+                                    vm.deleteImage(image)
+                                    showPreview = false
+                                }
                             )
                         }
                     }
@@ -686,18 +690,6 @@ private fun ImageGalleryScreen(
                                                 modifier = Modifier.size(16.dp)
                                             )
                                         }
-
-                                        IconButton(
-                                            onClick = { vm.deleteImage(it) },
-                                            modifier = Modifier.size(32.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = HugeIcons.Delete01,
-                                                contentDescription = stringResource(R.string.imggen_page_delete),
-                                                modifier = Modifier.size(16.dp),
-                                                tint = MaterialTheme.colorScheme.error
-                                            )
-                                        }
                                     }
                                 }
                             }
@@ -706,7 +698,11 @@ private fun ImageGalleryScreen(
                         if (showPreview) {
                             ImagePreviewDialog(
                                 images = listOf(File(it.filePath).toUri().toString()),
-                                onDismissRequest = { showPreview = false }
+                                onDismissRequest = { showPreview = false },
+                                onDeleteImage = { index ->
+                                    vm.deleteImage(it)
+                                    showPreview = false
+                                }
                             )
                         }
                     }

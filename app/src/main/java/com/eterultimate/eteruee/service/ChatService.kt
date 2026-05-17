@@ -32,20 +32,20 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.jsonObject
-import me.rerere.ai.core.MessageRole
-import me.rerere.ai.core.ReasoningLevel
-import me.rerere.ai.core.Tool
-import me.rerere.ai.provider.ModelAbility
-import me.rerere.ai.provider.ProviderManager
-import me.rerere.ai.provider.TextGenerationParams
-import me.rerere.ai.ui.ToolApprovalState
-import me.rerere.ai.ui.UIMessage
-import me.rerere.ai.ui.UIMessagePart
-import me.rerere.ai.ui.canResumeToolExecution
-import me.rerere.ai.ui.finishPendingTools
-import me.rerere.ai.ui.finishReasoning
-import me.rerere.ai.ui.isEmptyInputMessage
-import me.rerere.common.android.Logging
+import com.eterultimate.eteruee.ai.core.MessageRole
+import com.eterultimate.eteruee.ai.core.ReasoningLevel
+import com.eterultimate.eteruee.ai.core.Tool
+import com.eterultimate.eteruee.ai.provider.ModelAbility
+import com.eterultimate.eteruee.ai.provider.ProviderManager
+import com.eterultimate.eteruee.ai.provider.TextGenerationParams
+import com.eterultimate.eteruee.ai.ui.ToolApprovalState
+import com.eterultimate.eteruee.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.ai.ui.canResumeToolExecution
+import com.eterultimate.eteruee.ai.ui.finishPendingTools
+import com.eterultimate.eteruee.ai.ui.finishReasoning
+import com.eterultimate.eteruee.ai.ui.isEmptyInputMessage
+import com.eterultimate.eteruee.common.android.Logging
 import com.eterultimate.eteruee.AppScope
 import com.eterultimate.eteruee.CHAT_COMPLETED_NOTIFICATION_CHANNEL_ID
 import com.eterultimate.eteruee.CHAT_LIVE_UPDATE_NOTIFICATION_CHANNEL_ID
@@ -268,9 +268,12 @@ class ChatService(
             if (currentSessions.isEmpty()) {
                 flowOf(emptyMap())
             } else {
-                combine(currentSessions.map { s ->
-                    s.generationJob.map { job -> s.id to job }
-                }) { pairs ->
+                // Create a list of Flows, each mapping a session's job to a Pair
+                val sessionJobFlows: List<Flow<Pair<Uuid, Job?>>> = currentSessions.map { s ->
+                    s.generationJob.map { job: Job? -> s.id to job }
+                }
+                // Combine all the flows by spreading the list
+                combine(sessionJobFlows) { pairs: Array<Pair<Uuid, Job?>> ->
                     pairs.filter { it.second != null }.toMap()
                 }
             }
@@ -336,7 +339,7 @@ class ChatService(
 
     private fun preprocessUserInputParts(parts: List<UIMessagePart>): List<UIMessagePart> {
         val assistant = settingsStore.settingsFlow.value.getCurrentAssistant()
-        return parts.map { part ->
+        val result: List<UIMessagePart> = parts.map { part: UIMessagePart ->
             when (part) {
                 is UIMessagePart.Text -> {
                     part.copy(
@@ -351,6 +354,7 @@ class ChatService(
                 else -> part
             }
         }
+        return result
     }
 
     // ---- 重新生成消息 ----
@@ -650,13 +654,15 @@ class ChatService(
         updateConversation(conversationId, conversation.copy(messageNodes = messagesNodes))
     }
 
+    @OptIn(kotlin.ExperimentalStdlibApi::class)
     private fun cancelToolByUser(tool: UIMessagePart.Tool): UIMessagePart.Tool {
+        val newOutput: List<UIMessagePart> = listOf<UIMessagePart>(
+            UIMessagePart.Text(
+                """{"status":"cancelled","error":"Generation cancelled by user before tool execution completed."}"""
+            )
+        )
         return tool.copy(
-            output = listOf(
-                UIMessagePart.Text(
-                    """{"status":"cancelled","error":"Generation cancelled by user before tool execution completed."}"""
-                )
-            ),
+            output = newOutput,
             approvalState = ToolApprovalState.Denied("Generation cancelled by user")
         )
     }
@@ -840,12 +846,11 @@ class ChatService(
         }
 
         // Create new conversation with compressed history as multiple user messages + kept messages
-        val newMessageNodes = buildList {
-            compressedSummaries.forEach { summary ->
-                add(UIMessage.user(summary).toMessageNode())
-            }
-            addAll(messagesToKeep.map { it.toMessageNode() })
+        val summariesAsNodes = compressedSummaries.map { summary ->
+            UIMessage.user(summary).toMessageNode()
         }
+        val keptAsNodes = messagesToKeep.map { it.toMessageNode() }
+        val newMessageNodes = summariesAsNodes + keptAsNodes
         val newConversation = conversation.copy(
             messageNodes = newMessageNodes,
             chatSuggestions = emptyList(),

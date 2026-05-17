@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.developer
+package com.eterultimate.eteruee.ui.pages.developer
 
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.FileScript

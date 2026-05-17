@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.setting
+package com.eterultimate.eteruee.ui.pages.setting
 
 import com.eterultimate.eteruee.ai.core.ReasoningLevel
 import me.rerere.hugeicons.HugeIcons

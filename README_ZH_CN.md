@@ -35,6 +35,7 @@
 - 📝 **AI 翻译** — 一键翻译消息
 - 🌐 **自定义 HTTP 请求头与请求体** — 完整请求定制
 - 💌 **Silly Tavern 角色卡导入** — 支持 .png 角色卡
+- 🎭 **角色扮演模块** — 完整的 SillyTavern 兼容体验 (角色管理、聊天、世界书、群组)
 - 📡 **局域网发现** — 自动发现局域网内的供应商
 - 🧪 **消息转换器** — 模板、正则、OCR、think 标签提取、文档转提示词
 - 🌙 **纯深色模式** — 沉浸式 OLED 友好界面
@@ -48,6 +49,7 @@ EterUee
 ├── common       — 共享工具类与 Kotlin 扩展
 ├── document     — 文档解析器（PDF、DOCX、PPTX）
 ├── highlight    — 代码语法高亮引擎
+├── roleplay     — 角色扮演模块（SillyTavern 兼容：角色/聊天/世界书/群组）
 ├── search       — 搜索 SDK（Exa、Tavily、Zhipu、LinkUp、Brave、Perplexity）
 ├── tts          — 文本转语音供应商
 ├── web          — 嵌入式 Ktor 服务器 + 静态 web-ui 托管

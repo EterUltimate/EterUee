@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.search
+package com.eterultimate.eteruee.ui.pages.search
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import me.rerere.hugeicons.HugeIcons

@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.log
+package com.eterultimate.eteruee.ui.pages.log
 
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Delete01

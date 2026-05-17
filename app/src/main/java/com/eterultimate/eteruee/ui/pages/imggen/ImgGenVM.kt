@@ -17,11 +17,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import me.rerere.ai.provider.ImageEditParams
-import me.rerere.ai.provider.ImageGenerationParams
-import me.rerere.ai.provider.ProviderManager
-import me.rerere.ai.ui.ImageAspectRatio
-import me.rerere.ai.ui.ImageGenerationItem
+import com.eterultimate.eteruee.ai.provider.ImageEditParams
+import com.eterultimate.eteruee.ai.provider.ImageGenerationParams
+import com.eterultimate.eteruee.ai.provider.ProviderManager
+import com.eterultimate.eteruee.ai.provider.VideoGenerationParams
+import com.eterultimate.eteruee.ai.ui.ImageAspectRatio
+import com.eterultimate.eteruee.ai.ui.ImageGenerationItem
+import com.eterultimate.eteruee.ai.ui.VideoGenerationItem
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.datastore.findModelById
 import com.eterultimate.eteruee.data.datastore.findProvider
@@ -82,6 +84,22 @@ class ImgGenVM(
     private val _referenceImages = MutableStateFlow<List<String>>(emptyList())
     val referenceImages: StateFlow<List<String>> = _referenceImages
 
+    // Video generation properties
+    private val _isVideoMode = MutableStateFlow(false)
+    val isVideoMode: StateFlow<Boolean> = _isVideoMode
+
+    private val _videoDuration = MutableStateFlow(5)
+    val videoDuration: StateFlow<Int> = _videoDuration
+
+    private val _videoResolution = MutableStateFlow("720p")
+    val videoResolution: StateFlow<String> = _videoResolution
+
+    private val _videoAspectRatio = MutableStateFlow("16:9")
+    val videoAspectRatio: StateFlow<String> = _videoAspectRatio
+
+    private val _generateAudio = MutableStateFlow(false)
+    val generateAudio: StateFlow<Boolean> = _generateAudio
+
     val pager = Pager(
         config = PagingConfig(pageSize = 20, enablePlaceholders = false),
         pagingSourceFactory = { genMediaRepository.getAllMedia() }
@@ -102,6 +120,27 @@ class ImgGenVM(
 
     fun updateAspectRatio(aspectRatio: ImageAspectRatio) {
         _aspectRatio.value = aspectRatio
+    }
+
+    // Video mode methods
+    fun setVideoMode(enabled: Boolean) {
+        _isVideoMode.value = enabled
+    }
+
+    fun updateVideoDuration(duration: Int) {
+        _videoDuration.value = duration.coerceIn(3, 10)
+    }
+
+    fun updateVideoResolution(resolution: String) {
+        _videoResolution.value = resolution
+    }
+
+    fun updateVideoAspectRatio(aspectRatio: String) {
+        _videoAspectRatio.value = aspectRatio
+    }
+
+    fun updateGenerateAudio(enabled: Boolean) {
+        _generateAudio.value = enabled
     }
 
     fun addReferenceImages(paths: List<String>) {
@@ -129,6 +168,7 @@ class ImgGenVM(
         _currentGeneratedImages.value = emptyList()
         _error.value = null
         _isGenerating.value = false
+        _isVideoMode.value = false
     }
 
     fun generateImage() {
@@ -257,6 +297,69 @@ class ImgGenVM(
         }
     }
 
+    fun generateVideo() {
+        if (prompt.value.isBlank()) return
+        cancelJob?.cancel()
+        cancelJob = viewModelScope.launch {
+            try {
+                _isGenerating.value = true
+                _error.value = null
+                _currentGeneratedImages.value = emptyList()
+
+                val settings = settingsStore.settingsFlow.first()
+                val model = settings.findModelById(settings.videoGenerationModelId)
+                    ?: throw IllegalStateException("No video model selected")
+
+                val provider = model.findProvider(settings.providers)
+                    ?: throw IllegalStateException("Provider not found")
+
+                val providerSetting = settings.providers.find { it.id == provider.id }
+                    ?: throw IllegalStateException("Provider setting not found")
+
+                val params = VideoGenerationParams(
+                    model = model,
+                    prompt = _prompt.value,
+                    aspectRatio = _videoAspectRatio.value,
+                    durationSeconds = _videoDuration.value,
+                    resolution = _videoResolution.value,
+                    generateAudio = _generateAudio.value,
+                    customHeaders = model.customHeaders,
+                    customBody = model.customBodies
+                )
+
+                val result = providerManager.getProviderByType(provider)
+                    .generateVideo(providerSetting, params)
+
+                val newVideos = mutableListOf<GeneratedImage>()
+
+                result.items.forEachIndexed { index, item ->
+                    val videoFile = saveVideoToStorage(
+                        item = item,
+                        prompt = _prompt.value,
+                        modelName = model.displayName,
+                        index = index
+                    )
+                    val generatedVideo = GeneratedImage(
+                        id = 0, // Will be updated after database insertion
+                        prompt = _prompt.value,
+                        filePath = videoFile.absolutePath,
+                        timestamp = System.currentTimeMillis(),
+                        model = model.displayName
+                    )
+                    newVideos.add(generatedVideo)
+                }
+
+                _currentGeneratedImages.value = newVideos
+            } catch (e: Exception) {
+                if (e is CancellationException) return@launch
+                Log.e(TAG, "Failed to generate video", e)
+                _error.value = e.message ?: "Unknown error occurred"
+            } finally {
+                _isGenerating.value = false
+            }
+        }
+    }
+
     fun cancelGeneration() {
         cancelJob?.cancel()
         clearReferenceImages()
@@ -287,6 +390,35 @@ class ImgGenVM(
             createAt = timestamp,
             type = type,
             sourcePaths = sourcePaths,
+        )
+        genMediaRepository.insertMedia(entity)
+
+        return createdFile
+    }
+
+    private suspend fun saveVideoToStorage(
+        item: VideoGenerationItem,
+        prompt: String,
+        modelName: String,
+        index: Int,
+    ): File {
+        val videosDir = filesManager.getVideosDir()
+
+        val timestamp = System.currentTimeMillis()
+        val filename = "${timestamp}_${modelName}_$index.mp4"
+        val videoFile = File(videosDir, filename)
+
+        // Reuse createImageFileFromBase64 as it just decodes base64 and writes to file
+        val createdFile = filesManager.createImageFileFromBase64(item.videoUrl, videoFile.absolutePath)
+
+        // Save to database with relative path
+        val relativePath = "videos/${videoFile.name}"
+        val entity = GenMediaEntity(
+            path = relativePath,
+            modelId = modelName,
+            prompt = prompt,
+            createAt = timestamp,
+            type = GenMediaEntity.TYPE_VIDEO_GENERATION,
         )
         genMediaRepository.insertMedia(entity)
 

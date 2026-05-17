@@ -25,7 +25,6 @@ import com.eterultimate.eteruee.data.repository.ConversationRepository
 import com.eterultimate.eteruee.service.ChatService
 import com.eterultimate.eteruee.web.BadRequestException
 import com.eterultimate.eteruee.web.NotFoundException
-import com.eterultimate.eteruee.web.dto.AISDKEvents
 import com.eterultimate.eteruee.web.dto.ConversationDto
 import com.eterultimate.eteruee.web.dto.ConversationListInvalidateEvent
 import com.eterultimate.eteruee.web.dto.ConversationNodeUpdateEvent
@@ -354,7 +353,7 @@ fun Route.conversationRoutes(
         // SSE /api/conversations/stream-v2 - AI SDK v5 标准化事件格式
         sse("/stream-v2") {
             val request = call.receive<StreamTextRequest>()
-            
+
             try {
                 aiSDK.streamText(request).collect { chunk ->
                     when (chunk) {

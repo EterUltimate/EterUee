@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.setting.components
+package com.eterultimate.eteruee.ui.pages.setting.components
 
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.ArrowDown01

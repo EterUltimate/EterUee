@@ -114,6 +114,13 @@ import com.eterultimate.eteruee.ui.pages.ssh.SshPage
 import com.eterultimate.eteruee.ui.pages.stats.StatsPage
 import com.eterultimate.eteruee.ui.pages.translator.TranslatorPage
 import com.eterultimate.eteruee.ui.pages.webview.WebViewPage
+import com.eterultimate.eteruee.roleplay.ui.pages.RolePlayMainPage
+import com.eterultimate.eteruee.roleplay.ui.pages.character.CharacterEditPage
+import com.eterultimate.eteruee.roleplay.ui.pages.chat.ChatPage as RpChatPage
+import com.eterultimate.eteruee.roleplay.ui.pages.worldinfo.WorldInfoListPage
+import com.eterultimate.eteruee.roleplay.ui.pages.worldinfo.WorldInfoEditPage
+import com.eterultimate.eteruee.roleplay.ui.pages.group.GroupListPage
+import com.eterultimate.eteruee.roleplay.ui.pages.group.GroupEditPage
 import com.eterultimate.eteruee.ui.theme.LocalDarkMode
 import com.eterultimate.eteruee.ui.theme.EterUeeTheme
 import com.eterultimate.eteruee.utils.CrashHandler
@@ -471,6 +478,75 @@ class RouteActivity : ComponentActivity() {
                             entry<Screen.Ssh> {
                                 SshPage()
                             }
+
+                            // RolePlay routes
+                            entry<Screen.RolePlay> {
+                                val navController = LocalNavController.current
+                                RolePlayMainPage(
+                                    onCharacterClick = { character ->
+                                        navController.navigate(Screen.CharacterEdit(character.id.toString()))
+                                    },
+                                    onCreateCharacter = {
+                                        navController.navigate(Screen.CharacterEdit(null))
+                                    },
+                                    onWorldInfoClick = {
+                                        navController.navigate(Screen.WorldInfoEdit(it.id.toString()))
+                                    },
+                                    onCreateWorldInfo = {
+                                        navController.navigate(Screen.WorldInfoEdit(null))
+                                    },
+                                    onGroupChatClick = {
+                                        navController.navigate(Screen.GroupEdit(it.id.toString()))
+                                    },
+                                    onCreateGroup = {
+                                        navController.navigate(Screen.GroupEdit(null))
+                                    }
+                                )
+                            }
+
+                            entry<Screen.CharacterEdit> { key ->
+                                val navController = LocalNavController.current
+                                CharacterEditPage(
+                                    characterId = key.characterId?.let { kotlin.uuid.Uuid.parse(it) },
+                                    onSaveSuccess = {
+                                        navController.popBackStack()
+                                    }
+                                )
+                            }
+
+                            entry<Screen.CharacterChat> { key ->
+                                val navController = LocalNavController.current
+                                RpChatPage(
+                                    chatId = kotlin.uuid.Uuid.parse(key.chatId ?: key.characterId),
+                                    onBackClick = {
+                                        navController.popBackStack()
+                                    }
+                                )
+                            }
+
+                            entry<Screen.WorldInfoEdit> { key ->
+                                val navController = LocalNavController.current
+                                WorldInfoEditPage(
+                                    worldInfoId = key.worldInfoId?.let { kotlin.uuid.Uuid.parse(it) },
+                                    onSaveSuccess = {
+                                        navController.popBackStack()
+                                    }
+                                )
+                            }
+
+                            entry<Screen.GroupEdit> { key ->
+                                val navController = LocalNavController.current
+                                GroupEditPage(
+                                    groupId = key.groupId?.let { kotlin.uuid.Uuid.parse(it) },
+                                    onSaveSuccess = {
+                                        navController.popBackStack()
+                                    }
+                                )
+                            }
+
+                            entry<Screen.GroupChat> { key ->
+                                GroupListPage()
+                            }
                         }
                     )
                     if (BuildConfig.DEBUG) {
@@ -649,4 +725,26 @@ sealed interface Screen : NavKey {
 
     @Serializable
     data object Ssh : Screen
+
+    // RolePlay routes
+    @Serializable
+    data object RolePlay : Screen
+
+    @Serializable
+    data object CharacterList : Screen
+
+    @Serializable
+    data class CharacterEdit(val characterId: String? = null) : Screen
+
+    @Serializable
+    data class CharacterChat(val characterId: String, val chatId: String? = null) : Screen
+
+    @Serializable
+    data class WorldInfoEdit(val worldInfoId: String? = null) : Screen
+
+    @Serializable
+    data class GroupEdit(val groupId: String? = null) : Screen
+
+    @Serializable
+    data class GroupChat(val groupId: String) : Screen
 }

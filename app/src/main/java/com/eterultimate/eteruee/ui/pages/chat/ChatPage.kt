@@ -57,7 +57,6 @@ import com.eterultimate.eteruee.data.datastore.getCurrentAssistant
 import com.eterultimate.eteruee.data.datastore.getCurrentChatModel
 import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.model.Conversation
-import com.eterultimate.eteruee.data.model.MessageNode
 import com.eterultimate.eteruee.service.ChatError
 import com.eterultimate.eteruee.ui.components.ai.ChatInput
 import com.eterultimate.eteruee.ui.context.LocalNavController
@@ -86,7 +85,6 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>, nodeId: Uuid? = null) {
 
     val setting by vm.settings.collectAsStateWithLifecycle()
     val conversation by vm.conversation.collectAsStateWithLifecycle()
-    val nodes by vm.chatState.nodes.collectAsStateWithLifecycle()
     val isLoading by vm.chatState.isLoading.collectAsStateWithLifecycle()
     val processingStatus by vm.processingStatus.collectAsStateWithLifecycle()
     val currentChatModel by vm.currentChatModel.collectAsStateWithLifecycle()
@@ -180,7 +178,6 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>, nodeId: Uuid? = null) {
                     processingStatus = processingStatus,
                     setting = setting,
                     conversation = conversation,
-                    nodes = nodes,
                     drawerState = drawerState,
                     navController = navController,
                     vm = vm,
@@ -213,7 +210,6 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>, nodeId: Uuid? = null) {
                     processingStatus = processingStatus,
                     setting = setting,
                     conversation = conversation,
-                    nodes = nodes,
                     drawerState = drawerState,
                     navController = navController,
                     vm = vm,
@@ -241,7 +237,6 @@ private fun ChatPageContent(
     setting: Settings,
     bigScreen: Boolean,
     conversation: Conversation,
-    nodes: List<MessageNode>,
     drawerState: DrawerState,
     navController: Navigator,
     vm: ChatVM,
@@ -272,6 +267,7 @@ private fun ChatPageContent(
                     bigScreen = bigScreen,
                     drawerState = drawerState,
                     previewMode = previewMode,
+                    navController = navController,
                     onNewChat = {
                         navigateToChatPage(navController)
                     },
@@ -363,7 +359,6 @@ private fun ChatPageContent(
             ChatList(
                 innerPadding = innerPadding,
                 conversation = conversation,
-                nodes = nodes,
                 state = chatListState,
                 loading = isLoading,
                 processingStatus = processingStatus,
@@ -443,6 +438,7 @@ private fun TopBar(
     drawerState: DrawerState,
     bigScreen: Boolean,
     previewMode: Boolean,
+    navController: Navigator,
     onClickMenu: () -> Unit,
     onNewChat: () -> Unit,
     onUpdateTitle: (String) -> Unit
@@ -503,6 +499,15 @@ private fun TopBar(
             }
         },
         actions = {
+            // RolePlay 入口
+            IconButton(
+                onClick = {
+                    navController.navigate(com.eterultimate.eteruee.Screen.RolePlay)
+                }
+            ) {
+                Icon(HugeIcons.MessageAdd01, "RolePlay")
+            }
+
             IconButton(
                 onClick = {
                     onClickMenu()

@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.chat
+package com.eterultimate.eteruee.ui.pages.chat
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import android.content.Context

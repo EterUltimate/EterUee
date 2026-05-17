@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.setting.components
+package com.eterultimate.eteruee.ui.pages.setting.components
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import me.rerere.hugeicons.HugeIcons

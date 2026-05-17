@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.stats
+package com.eterultimate.eteruee.ui.pages.stats
 
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.ChartColumn

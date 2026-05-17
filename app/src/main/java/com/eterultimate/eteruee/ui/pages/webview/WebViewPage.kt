@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.webview
+package com.eterultimate.eteruee.ui.pages.webview
 
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.ArrowRight01

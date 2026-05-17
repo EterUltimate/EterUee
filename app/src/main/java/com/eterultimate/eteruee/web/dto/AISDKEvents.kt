@@ -1,10 +1,11 @@
 package com.eterultimate.eteruee.web.dto
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 
 /**
  * AI SDK v5 标准 SSE 事件格式
- * 
+ *
  * 参考: https://sdk.vercel.ai/docs/advanced/streaming
  */
 
@@ -23,7 +24,7 @@ data class TextDeltaEvent(
 data class ToolCallStartEvent(
     val toolCallId: String,
     val toolName: String,
-    val args: Map<String, Any>
+    val args: Map<String, JsonElement>
 )
 
 /**

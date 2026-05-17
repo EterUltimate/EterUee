@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.favorite
+package com.eterultimate.eteruee.ui.pages.favorite
 
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Delete01

@@ -833,6 +833,11 @@
   <string name="setting_theme_page_tertiary_color">Tertiary Color</string>
   <string name="setting_theme_page_preview">Preview</string>
   <string name="setting_theme_page_save">Save</string>
+  <string name="setting_theme_page_import_theme">Import</string>
+  <string name="setting_theme_page_export_success">Theme JSON copied to clipboard</string>
+  <string name="setting_theme_page_import_success">Theme imported successfully</string>
+  <string name="setting_theme_page_delete_theme_title">Delete Theme</string>
+  <string name="setting_theme_page_delete_theme_message">Are you sure you want to delete this theme?</string>
   <string name="setting_theme_page_dynamic_color_hint">Dynamic color is enabled. Disable it in Display Settings to use custom themes.</string>
   <string name="setting_page_tts_service">Speech Services</string>
   <string name="setting_page_tts_service_desc">Configure text-to-speech and speech recognition providers</string>
@@ -1171,4 +1176,3 @@
   <string name="setting_asr_configure_resource_id">Resource ID</string>
   <string name="setting_asr_configure_resource_id_desc">X-Api-Resource-Id for billing</string>
 </resources>
-

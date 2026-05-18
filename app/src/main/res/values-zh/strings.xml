@@ -833,6 +833,11 @@
   <string name="setting_theme_page_tertiary_color">第三色</string>
   <string name="setting_theme_page_preview">预览</string>
   <string name="setting_theme_page_save">保存</string>
+  <string name="setting_theme_page_import_theme">导入</string>
+  <string name="setting_theme_page_export_success">主题 JSON 已复制到剪贴板</string>
+  <string name="setting_theme_page_import_success">主题导入成功</string>
+  <string name="setting_theme_page_delete_theme_title">删除主题</string>
+  <string name="setting_theme_page_delete_theme_message">确定要删除此主题吗？</string>
   <string name="setting_theme_page_dynamic_color_hint">动态颜色已开启，请在显示设置中关闭以使用自定义主题。</string>
   <string name="setting_page_tts_service">语音服务</string>
   <string name="setting_page_tts_service_desc">配置语音合成与语音识别服务提供商</string>
@@ -1183,4 +1188,3 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="chat_page_conversation_system_prompt_clear">清除</string>
   <string name="chat_page_conversation_system_prompt_save">保存</string>
 </resources>
-

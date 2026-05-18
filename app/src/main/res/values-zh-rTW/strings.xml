@@ -833,6 +833,11 @@
   <string name="setting_theme_page_tertiary_color">第三色</string>
   <string name="setting_theme_page_preview">預覽</string>
   <string name="setting_theme_page_save">儲存</string>
+  <string name="setting_theme_page_import_theme">匯入</string>
+  <string name="setting_theme_page_export_success">主題 JSON 已複製到剪貼簿</string>
+  <string name="setting_theme_page_import_success">主題匯入成功</string>
+  <string name="setting_theme_page_delete_theme_title">刪除主題</string>
+  <string name="setting_theme_page_delete_theme_message">確定要刪除此主題嗎？</string>
   <string name="setting_theme_page_dynamic_color_hint">動態顏色已開啟，請在顯示設定中關閉以使用自訂主題。</string>
   <string name="setting_page_tts_service">語音服務</string>
   <string name="setting_page_tts_service_desc">配置語音合成與語音識別服務提供商</string>
@@ -1183,4 +1188,3 @@
   <string name="chat_page_conversation_system_prompt_clear">清除</string>
   <string name="chat_page_conversation_system_prompt_save">儲存</string>
 </resources>
-

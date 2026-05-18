@@ -25,7 +25,14 @@ val buildWebUi = tasks.register<Exec>("buildWebUi") {
 
     dependsOn(installWebUiDeps)
     workingDir = webUiDir.asFile
-    commandLine("pnpm", "run", "build")
+    val hasZsh = runCatching {
+        ProcessBuilder("which", "zsh").start().waitFor() == 0
+    }.getOrDefault(false)
+    if (hasZsh) {
+        commandLine("zsh", "-ic", "pnpm run build")
+    } else {
+        commandLine("pnpm", "run", "build")
+    }
 
     inputs.files(
         webUiDir.file("package.json"),

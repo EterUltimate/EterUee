@@ -1,8 +1,10 @@
 ﻿package com.eterultimate.eteruee.web.routes
 
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
+import io.ktor.server.response.respondBytesWriter
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
@@ -16,6 +18,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import io.ktor.utils.io.writeStringUtf8
 import com.eterultimate.eteruee.ai.sdk.AISDK
 import com.eterultimate.eteruee.ai.sdk.GenerateTextRequest
 import com.eterultimate.eteruee.ai.sdk.StreamTextRequest
@@ -408,6 +413,73 @@ fun Route.conversationRoutes(
                     event = "error",
                     data = JsonInstant.encodeToString(errorEvent)
                 )
+            }
+        }
+
+        // POST /api/conversations/stream-v2/chat - Vercel AI SDK data stream compatible endpoint
+        post("/stream-v2/chat") {
+            val request = call.receive<StreamTextRequest>()
+
+            call.respondBytesWriter(
+                contentType = ContentType.Text.Plain,
+                status = HttpStatusCode.OK
+            ) {
+                var promptTokens = 0
+                var completionTokens = 0
+
+                suspend fun sendDataPart(code: String, value: String) {
+                    writeStringUtf8("$code:$value\n")
+                    flush()
+                }
+
+                try {
+                    aiSDK.streamText(request).collect { chunk ->
+                        when (chunk) {
+                            is TextChunk.TextDelta -> {
+                                sendDataPart("0", JsonInstant.encodeToString(chunk.text))
+                            }
+
+                            is TextChunk.ToolCall -> {
+                                val args = runCatching {
+                                    JsonInstant.parseToJsonElement(chunk.arguments)
+                                }.getOrElse {
+                                    JsonInstant.parseToJsonElement("{}")
+                                }
+                                val payload = JsonObject(
+                                    mapOf(
+                                        "toolCallId" to JsonPrimitive(chunk.toolCallId),
+                                        "toolName" to JsonPrimitive(chunk.toolName),
+                                        "args" to args
+                                    )
+                                )
+                                sendDataPart("9", JsonInstant.encodeToString(payload))
+                            }
+
+                            is TextChunk.Usage -> {
+                                promptTokens = chunk.tokenUsage.promptTokens
+                                completionTokens = chunk.tokenUsage.completionTokens
+                            }
+
+                            is TextChunk.Finish -> {
+                                sendDataPart(
+                                    "d",
+                                    JsonInstant.encodeToString(
+                                        FinishEvent(
+                                            finishReason = "stop",
+                                            usage = UsageEvent(
+                                                promptTokens = promptTokens,
+                                                completionTokens = completionTokens,
+                                                totalTokens = promptTokens + completionTokens
+                                            )
+                                        )
+                                    )
+                                )
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    sendDataPart("3", JsonInstant.encodeToString(e.message ?: "Unknown error"))
+                }
             }
         }
 

@@ -39,6 +39,7 @@
     "theme_light": "Light",
     "theme_dark": "Dark",
     "theme_system": "System",
+    "color_vercel": "Vercel",
     "color_default": "Default",
     "color_claude": "Claude",
     "color_t3_chat": "T3 Chat",

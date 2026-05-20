@@ -97,6 +97,10 @@ const COLOR_THEME_OPTIONS: Array<{
   labelKey: string;
 }> = [
   {
+    value: "vercel",
+    labelKey: "color_vercel",
+  },
+  {
     value: "default",
     labelKey: "color_default",
   },

@@ -39,6 +39,7 @@
     "theme_light": "浅色",
     "theme_dark": "深色",
     "theme_system": "跟随系统",
+    "color_vercel": "Vercel",
     "color_default": "默认",
     "color_claude": "Claude",
     "color_t3_chat": "T3 Chat",

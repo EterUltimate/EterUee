@@ -2,9 +2,17 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 export type ThemeMode = "dark" | "light" | "system";
 export type Theme = ThemeMode;
-export type ColorTheme = "default" | "claude" | "t3-chat" | "mono" | "bubblegum" | "custom";
+export type ColorTheme =
+  | "vercel"
+  | "default"
+  | "claude"
+  | "t3-chat"
+  | "mono"
+  | "bubblegum"
+  | "custom";
 
 export const COLOR_THEMES: ColorTheme[] = [
+  "vercel",
   "default",
   "claude",
   "t3-chat",
@@ -41,7 +49,7 @@ type ThemeProviderState = {
 
 const initialState: ThemeProviderState = {
   theme: "system",
-  colorTheme: "default",
+  colorTheme: "vercel",
   customThemeCss: {
     light: "",
     dark: "",
@@ -111,7 +119,7 @@ function scopeCustomThemeCss(value: string, mode: "light" | "dark"): string {
 export function ThemeProvider({
   children,
   defaultTheme = "system",
-  defaultColorTheme = "default",
+  defaultColorTheme = "vercel",
   storageKey = "vite-ui-theme",
   ...props
 }: ThemeProviderProps) {

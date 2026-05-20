@@ -24,6 +24,7 @@ import { useIsMobile } from "~/hooks/use-mobile";
 import { toConversationSummaryUpdate, useConversationList } from "~/hooks/use-conversation-list";
 import { useCurrentAssistant } from "~/hooks/use-current-assistant";
 import { useCurrentModel } from "~/hooks/use-current-model";
+import { useAISDKConversation } from "~/hooks/use-ai-sdk-conversation";
 import { getAssistantDisplayName, getModelDisplayName } from "~/lib/display";
 import { convertConversationToMarkdown, downloadMarkdown } from "~/lib/export-markdown";
 import { cn } from "~/lib/utils";
@@ -422,6 +423,7 @@ function useDraftInputController({
   setHomeDraftId,
   navigate,
   refreshList,
+  onSubmitParts,
 }: {
   activeId: string | null;
   isHomeRoute: boolean;
@@ -429,6 +431,7 @@ function useDraftInputController({
   setHomeDraftId: React.Dispatch<React.SetStateAction<string>>;
   navigate: ReturnType<typeof useNavigate>;
   refreshList: () => void;
+  onSubmitParts: (parts: UIMessagePart[], conversationId?: string) => Promise<void>;
 }) {
   const draftKey = activeId ?? (isHomeRoute ? homeDraftId : null);
   const draft = useChatInputStore(
@@ -475,7 +478,7 @@ function useDraftInputController({
     if (parts.length === 0) return;
 
     if (activeId) {
-      await api.post<{ status: string }>(`conversations/${activeId}/messages`, { parts });
+      await onSubmitParts(parts, activeId);
       clearDraft(draftKey);
       return;
     }
@@ -483,12 +486,21 @@ function useDraftInputController({
     const conversationId = uuidv4();
     setHomeDraftId(createHomeDraftId());
 
-    await api.post<{ status: string }>(`conversations/${conversationId}/messages`, { parts });
+    await onSubmitParts(parts, conversationId);
     clearDraft(draftKey);
 
     navigate(`/c/${conversationId}`);
     refreshList();
-  }, [activeId, clearDraft, draftKey, getSubmitParts, navigate, refreshList, setHomeDraftId]);
+  }, [
+    activeId,
+    clearDraft,
+    draftKey,
+    getSubmitParts,
+    navigate,
+    onSubmitParts,
+    refreshList,
+    setHomeDraftId,
+  ]);
 
   const replaceDraft = React.useCallback(
     (text: string, parts: UIMessagePart[]) => {
@@ -708,6 +720,22 @@ function ConversationsPageInner() {
 
   const { detail, detailLoading, detailError, selectedNodeMessages, resetDetail } =
     useConversationDetail(activeId, updateConversationSummary);
+  const handlePersistedAISDKSubmit = React.useCallback(
+    async (parts: UIMessagePart[], conversationId?: string) => {
+      const targetConversationId = conversationId ?? activeId;
+      if (!targetConversationId) return;
+
+      await api.post<{ status: string }>(`conversations/${targetConversationId}/messages`, {
+        parts,
+      });
+    },
+    [activeId],
+  );
+  const aiSdkConversation = useAISDKConversation({
+    conversation: detail,
+    currentModel,
+    onPersistedSubmit: handlePersistedAISDKSubmit,
+  });
 
   const {
     draftKey,
@@ -727,6 +755,7 @@ function ConversationsPageInner() {
     setHomeDraftId,
     navigate,
     refreshList,
+    onSubmitParts: aiSdkConversation.submitPersisted,
   });
 
   const activeConversation = conversations.find((item) => item.id === activeId);
@@ -1012,7 +1041,7 @@ function ConversationsPageInner() {
           value={inputText}
           attachments={inputAttachments}
           ready={draftKey !== null}
-          isGenerating={detail?.isGenerating ?? false}
+          isGenerating={(detail?.isGenerating ?? false) || aiSdkConversation.aiSdkStatus === "submitted"}
           disabled={detailLoading || Boolean(detailError)}
           onValueChange={handleInputTextChange}
           onAddParts={handleAddInputParts}

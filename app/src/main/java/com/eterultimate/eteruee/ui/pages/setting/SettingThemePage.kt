@@ -72,7 +72,7 @@ import me.rerere.hugeicons.stroke.PlusSign
 import me.rerere.hugeicons.stroke.Tick01
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.ui.components.nav.BackButton
-import com.eterultimate.eteruee.ui.components.ui.RikkaConfirmDialog
+import com.eterultimate.eteruee.ui.components.ui.EterUeeConfirmDialog
 import com.eterultimate.eteruee.ui.context.LocalToaster
 import com.eterultimate.eteruee.ui.pages.setting.components.PresetThemeButtonGroup
 import com.eterultimate.eteruee.ui.theme.CustomColors
@@ -285,7 +285,7 @@ fun SettingThemePage(vm: SettingVM = koinViewModel()) {
         )
     }
 
-    RikkaConfirmDialog(
+    EterUeeConfirmDialog(
         show = deletingTheme != null,
         title = stringResource(R.string.setting_theme_page_delete_theme_title),
         confirmText = stringResource(android.R.string.ok),

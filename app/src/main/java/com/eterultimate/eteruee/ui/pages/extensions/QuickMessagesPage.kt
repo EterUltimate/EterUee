@@ -47,7 +47,7 @@ import me.rerere.hugeicons.stroke.Zap
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.model.QuickMessage
 import com.eterultimate.eteruee.ui.components.nav.BackButton
-import com.eterultimate.eteruee.ui.components.ui.RikkaConfirmDialog
+import com.eterultimate.eteruee.ui.components.ui.EterUeeConfirmDialog
 import com.eterultimate.eteruee.ui.theme.CustomColors
 import com.eterultimate.eteruee.utils.plus
 import org.koin.androidx.compose.koinViewModel
@@ -150,7 +150,7 @@ fun QuickMessagesPage(vm: QuickMessagesVM = koinViewModel()) {
         )
     }
 
-    RikkaConfirmDialog(
+    EterUeeConfirmDialog(
         show = deleteTarget != null,
         title = stringResource(R.string.quick_messages_page_delete_title),
         confirmText = stringResource(R.string.delete),

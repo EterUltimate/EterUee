@@ -7,7 +7,7 @@
   <string name="about_page_version">版本</string>
   <string name="about_page_website">官網</string>
   <string name="add">添加</string>
-  <string name="app_name">RikkaHub</string>
+  <string name="app_name">EterUee</string>
   <string name="asr_button_content_description">語音辨識</string>
   <string name="asr_button_stop">停止</string>
   <string name="assistant_detail_basic_desc">設定名稱、頭像、模型與參數</string>
@@ -547,7 +547,7 @@
   <string name="regenerate">重新生成</string>
   <string name="regenerate_confirm_message">您確定要重新產生這則訊息嗎？</string>
   <string name="render_with_webview">網頁視圖渲染</string>
-  <string name="rikkahub_provider_description">官方免費 AI 服務，使用用戶贊助資金為新用戶提供部分免費模型作為備用，無需 API 金鑰。具有嚴格速率限制，若您已購買自己的提供者，請盡量使用自有提供者。</string>
+  <string name="eteruee_provider_description">官方免費 AI 服務，使用用戶贊助資金為新用戶提供部分免費模型作為備用，無需 API 金鑰。具有嚴格速率限制，若您已購買自己的提供者，請盡量使用自有提供者。</string>
   <string name="safe_mode_assistants">助理</string>
   <string name="safe_mode_copy">複製</string>
   <string name="safe_mode_crash_report">當機報告</string>
@@ -814,7 +814,7 @@
   <string name="setting_page_search_title">搜尋服務</string>
   <string name="setting_page_share">分享</string>
   <string name="setting_page_share_desc">分享本APP給朋友</string>
-  <string name="setting_page_share_text">RikkaHub - 開源安卓AI助手\n\n官網: https://rikka-ai.com/</string>
+  <string name="setting_page_share_text">EterUee - 開源安卓AI助手\n\n官網: https://github.com/EterUltimate/EterUee</string>
   <string name="setting_page_sponsor_alert_confirm">捐款</string>
   <string name="setting_page_sponsor_alert_desc">您已啟動應用程式超過 100 次！如果您喜歡使用它，請考慮支持開發者。</string>
   <string name="setting_page_sponsor_alert_dismiss">稍後再說</string>
@@ -845,7 +845,7 @@
   <string name="setting_page_web_server">Web伺服器</string>
   <string name="setting_page_web_server_address_note">位址備註</string>
   <string name="setting_page_web_server_address_note_desc">LAN 位址：使用裝置 WiFi IP，可供同一網路上的其他裝置存取。行動數據無法使用。\n本機位址：使用 localhost，僅供本裝置存取。\nmDNS 位址：使用 .local 主機名稱，可供同一網路上的其他裝置透過名稱存取，無需知道 IP。</string>
-  <string name="setting_page_web_server_desc">允許您透過網頁存取 RikkaHub</string>
+  <string name="setting_page_web_server_desc">允許您透過網頁存取 EterUee</string>
   <string name="setting_page_web_server_error">錯誤</string>
   <string name="setting_page_web_server_jwt_enable">啟用身分驗證</string>
   <string name="setting_page_web_server_jwt_enable_desc">存取網頁介面時需要密碼驗證</string>

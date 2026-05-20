@@ -97,6 +97,10 @@ const COLOR_THEME_OPTIONS: Array<{
   labelKey: string;
 }> = [
   {
+    value: "hitech",
+    labelKey: "color_hitech",
+  },
+  {
     value: "vercel",
     labelKey: "color_vercel",
   },
@@ -973,7 +977,7 @@ export const ConversationSidebar = React.memo(({
           </DropdownMenu>
 
           <a
-            href="https://rikka-ai.com"
+            href="https://github.com/EterUltimate/EterUee"
             target="_blank"
             rel="noopener noreferrer"
             className="ml-auto text-xs font-normal text-foreground/80 hover:text-foreground transition-colors"

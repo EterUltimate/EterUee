@@ -241,7 +241,7 @@ val dataSourceModule = module {
 
     single<Retrofit> {
         Retrofit.Builder()
-            .baseUrl("https://api.rikka-ai.com")
+            .baseUrl("https://api.eteruee.com")
             .addConverterFactory(get<Json>().asConverterFactory("application/json; charset=UTF8".toMediaType()))
             .build()
     }

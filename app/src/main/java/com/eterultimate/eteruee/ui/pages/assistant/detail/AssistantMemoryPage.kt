@@ -46,7 +46,7 @@ import com.eterultimate.eteruee.data.model.Assistant
 import com.eterultimate.eteruee.data.model.AssistantMemory
 import com.eterultimate.eteruee.ui.components.nav.BackButton
 import com.eterultimate.eteruee.ui.components.ui.CardGroup
-import com.eterultimate.eteruee.ui.components.ui.RikkaConfirmDialog
+import com.eterultimate.eteruee.ui.components.ui.EterUeeConfirmDialog
 import com.eterultimate.eteruee.ui.hooks.EditStateContent
 import com.eterultimate.eteruee.ui.hooks.useEditState
 import com.eterultimate.eteruee.ui.theme.CustomColors
@@ -287,7 +287,7 @@ private fun AssistantMemoryContent(
         }
     }
 
-    RikkaConfirmDialog(
+    EterUeeConfirmDialog(
         show = pendingDeleteMemory != null,
         title = stringResource(R.string.confirm_delete),
         confirmText = stringResource(R.string.confirm),

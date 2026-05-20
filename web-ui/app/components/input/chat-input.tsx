@@ -494,6 +494,7 @@ function ChatInputInner({
 
   return (
     <div
+      data-ui="chat-input-shell"
       className={cn(
         "bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60",
         className,
@@ -501,8 +502,9 @@ function ChatInputInner({
     >
       <div className="mx-auto w-full max-w-3xl px-4 py-4">
         <div
+          data-ui="composer-panel"
           className={cn(
-            "relative flex flex-col gap-2 rounded-lg border bg-muted/50 p-2 shadow-sm transition-shadow focus-within:shadow-md focus-within:ring-1 focus-within:ring-ring",
+            "relative flex flex-col gap-2 rounded-2xl border bg-muted/50 p-2 shadow-sm transition-[border-color,box-shadow,background-color] focus-within:shadow-md focus-within:ring-1 focus-within:ring-ring",
             dragActive &&
               "border-primary/40 bg-primary/5 ring-2 ring-primary/30",
           )}
@@ -538,6 +540,7 @@ function ChatInputInner({
             <div className="flex gap-2 overflow-x-auto rounded-lg px-1 py-1">
               {suggestions.map((suggestion, index) => (
                 <button
+                  data-ui="suggestion-chip"
                   key={`${suggestion}-${index}`}
                   type="button"
                   disabled={!canUseQuickMessage}
@@ -560,6 +563,7 @@ function ChatInputInner({
                 const key = `${part.type}-${index}`;
                 return (
                   <div
+                    data-ui="attachment-chip"
                     key={key}
                     className="group inline-flex max-w-[220px] items-center gap-1 rounded-full border bg-background/80 px-2 py-1 text-xs"
                   >

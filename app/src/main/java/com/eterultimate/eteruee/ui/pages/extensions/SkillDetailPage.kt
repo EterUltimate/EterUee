@@ -52,7 +52,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Trash2
 import com.eterultimate.eteruee.ui.components.nav.BackButton
-import com.eterultimate.eteruee.ui.components.ui.RikkaConfirmDialog
+import com.eterultimate.eteruee.ui.components.ui.EterUeeConfirmDialog
 import com.eterultimate.eteruee.ui.context.LocalToaster
 import com.eterultimate.eteruee.ui.theme.CustomColors
 import com.eterultimate.eteruee.utils.plus
@@ -130,7 +130,7 @@ fun SkillDetailPage(skillName: String) {
         )
     }
 
-    RikkaConfirmDialog(
+    EterUeeConfirmDialog(
         show = deleteTarget != null,
         title = stringResource(R.string.skill_detail_page_delete_file),
         confirmText = stringResource(R.string.delete),

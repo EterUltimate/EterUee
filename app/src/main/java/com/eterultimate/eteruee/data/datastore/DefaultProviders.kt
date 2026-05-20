@@ -28,7 +28,7 @@ val DEFAULT_PROVIDERS = listOf(
         enabled = true,
         builtIn = true,
         description = {
-            Text(stringResource(R.string.rikkahub_provider_description))
+            Text(stringResource(R.string.eteruee_provider_description))
         },
         models = listOf(
             Model(

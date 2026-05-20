@@ -1111,7 +1111,7 @@ function ConversationsPageInner() {
         webAuthEnabled={settings?.webServerJwtEnabled === true}
       />
       <SidebarInset className="flex min-h-svh flex-col overflow-hidden">
-        <div className="flex items-center gap-2 border-b px-4 py-3">
+        <div data-ui="app-header" className="flex items-center gap-2 border-b px-4 py-3">
           <SidebarTrigger />
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm text-muted-foreground">

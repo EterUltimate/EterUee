@@ -4,17 +4,19 @@ plugins {
 
 val webUiDir = rootProject.layout.projectDirectory.dir("web-ui")
 val webStaticResourcesDir = layout.projectDirectory.dir("src/main/resources/static")
+val npxExecutable = if (System.getProperty("os.name").lowercase().contains("windows")) "npx.cmd" else "npx"
+val pnpmCommand = listOf(npxExecutable, "--yes", "pnpm@10.24.0")
 
 val installWebUiDeps = tasks.register<Exec>("installWebUiDeps") {
     group = "build"
-    description = "Install web-ui dependencies using bun."
+    description = "Install web-ui dependencies using pnpm."
 
     workingDir = webUiDir.asFile
-    commandLine("bun", "install")
+    commandLine(pnpmCommand + listOf("install", "--frozen-lockfile"))
 
     inputs.files(
         webUiDir.file("package.json"),
-        webUiDir.file("bun.lock"),
+        webUiDir.file("pnpm-lock.yaml"),
     )
     outputs.dir(webUiDir.dir("node_modules"))
 }
@@ -25,14 +27,7 @@ val buildWebUi = tasks.register<Exec>("buildWebUi") {
 
     dependsOn(installWebUiDeps)
     workingDir = webUiDir.asFile
-    val hasZsh = runCatching {
-        ProcessBuilder("which", "zsh").start().waitFor() == 0
-    }.getOrDefault(false)
-    if (hasZsh) {
-        commandLine("zsh", "-ic", "pnpm run build")
-    } else {
-        commandLine("pnpm", "run", "build")
-    }
+    commandLine(pnpmCommand + listOf("run", "build"))
 
     inputs.files(
         webUiDir.file("package.json"),

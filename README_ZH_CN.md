@@ -64,15 +64,15 @@ app/build/outputs/apk/debug/
 ### 用例图
 
 ```mermaid
-flowchart LR
-    User["用户"]
-    Chat["与 LLM 对话"]
-    Configure["配置 Assistant"]
-    Search["执行联网搜索"]
-    Parse["附加文档"]
-    Branch["创建对话分支"]
-    Roleplay["使用角色扮演模块"]
-    WebAccess["通过浏览器访问"]
+graph TD
+    User[用户]
+    Chat[与 LLM 对话]
+    Configure[配置 Assistant]
+    Search[执行联网搜索]
+    Parse[附加文档]
+    Branch[创建对话分支]
+    Roleplay[使用角色扮演模块]
+    WebAccess[通过浏览器访问]
 
     User --> Chat
     User --> Configure
@@ -86,19 +86,19 @@ flowchart LR
 ### 组件图
 
 ```mermaid
-flowchart LR
-    User["用户"]
-    Android["Android 应用\napp"]
-    WebUI["React Web UI\nweb-ui"]
-    WebServer["嵌入式 Ktor 服务\nweb"]
-    Conversation["对话服务\napp"]
-    AI["AI SDK\nai"]
-    Search["搜索 SDK\nsearch"]
-    Docs["文档解析\ndocument"]
-    TTS["TTS\ntts"]
-    Roleplay["角色扮演\nroleplay"]
-    Store["Room / DataStore"]
-    Provider["LLM / 搜索 / TTS 供应商"]
+graph TD
+    User[用户]
+    Android[Android 应用]
+    WebUI[React Web UI]
+    WebServer[嵌入式 Ktor 服务]
+    Conversation[对话服务]
+    AI[AI SDK]
+    Search[搜索 SDK]
+    Docs[文档解析]
+    TTS[TTS]
+    Roleplay[角色扮演]
+    Store[Room 和 DataStore]
+    Provider[供应商 API]
 
     User --> Android
     User --> WebUI
@@ -119,105 +119,81 @@ flowchart LR
 ### 对话模型
 
 ```mermaid
-classDiagram
-    class Assistant {
-        id
-        modelSettings
-        systemPrompt
-        tools
-        memory
-    }
+graph TD
+    Assistant[Assistant]
+    Conversation[Conversation]
+    MessageNode[Message node]
+    UIMessage[UI message]
+    UIMessagePart[Message part]
+    Settings[模型和提示词设置]
+    Memory[记忆]
+    Tools[工具]
 
-    class Conversation {
-        id
-        title
-        createdAt
-        pinned
-    }
-
-    class MessageNode {
-        id
-        parentId
-        selectIndex
-    }
-
-    class UIMessage {
-        id
-        role
-        modelId
-        createdAt
-    }
-
-    class UIMessagePart {
-        type
-        text
-        metadata
-    }
-
-    Assistant "1" --> "0..*" Conversation
-    Conversation "1" --> "1..*" MessageNode
-    MessageNode "1" --> "1..*" UIMessage
-    UIMessage "1" --> "1..*" UIMessagePart
+    Assistant --> Settings
+    Assistant --> Memory
+    Assistant --> Tools
+    Assistant --> Conversation
+    Conversation --> MessageNode
+    MessageNode --> UIMessage
+    UIMessage --> UIMessagePart
 ```
 
 ### 聊天流
 
 ```mermaid
-sequenceDiagram
-    participant User as 用户
-    participant UI as Compose / Web UI
-    participant Routes as ConversationRoutes
-    participant SDK as AISDK
-    participant Provider as AI Provider
-    participant Store as 本地存储
+graph TD
+    User[用户]
+    UI[Compose 或 Web UI]
+    SaveUser[保存用户消息]
+    Stream[启动聊天流]
+    SDK[AI SDK]
+    Provider[AI 供应商]
+    Delta[流式数据块]
+    SaveAssistant[保存助手结果]
 
-    User->>UI: 提交消息
-    UI->>Routes: POST /api/conversations/{id}/messages
-    Routes->>Store: 保存用户消息
-    UI->>Routes: POST /api/conversations/stream-v2/chat
-    Routes->>SDK: streamText(request)
-    SDK->>Provider: 请求流式生成
-    Provider-->>SDK: Delta / tool call / usage
-    SDK-->>Routes: TextChunk
-    Routes-->>UI: AI SDK data stream
-    Routes->>Store: 保存助手结果
+    User --> UI
+    UI --> SaveUser
+    SaveUser --> Stream
+    Stream --> SDK
+    SDK --> Provider
+    Provider --> Delta
+    Delta --> UI
+    Delta --> SaveAssistant
 ```
 
 ### 消息状态
 
 ```mermaid
-stateDiagram-v2
-    [*] --> Draft
-    Draft --> Persisted: submit
-    Persisted --> Generating: stream request
-    Generating --> Completed: finish
-    Generating --> Failed: error
-    Completed --> Branched: regenerate or fork
-    Failed --> Draft: edit and retry
-    Branched --> Persisted: select branch
+graph TD
+    Draft[草稿]
+    Persisted[已保存]
+    Generating[生成中]
+    Completed[已完成]
+    Failed[失败]
+    Branched[已分支]
+
+    Draft --> Persisted
+    Persisted --> Generating
+    Generating --> Completed
+    Generating --> Failed
+    Completed --> Branched
+    Failed --> Draft
+    Branched --> Persisted
 ```
 
 ### 部署图
 
 ```mermaid
-flowchart TB
-    subgraph AndroidDevice["Android 设备"]
-        App["EterUee APK"]
-        Ktor["Ktor 服务"]
-        Static["内置 web-ui 静态文件"]
-        Room["Room 数据库"]
-        DataStore["DataStore"]
-    end
-
-    subgraph LocalNetwork["局域网"]
-        Browser["桌面 / 平板浏览器"]
-    end
-
-    subgraph External["外部服务"]
-        LLM["LLM 供应商"]
-        SearchAPI["搜索 API"]
-        TTSAPI["TTS 供应商"]
-    end
+graph TD
+    Browser[桌面或平板浏览器]
+    App[EterUee APK]
+    Ktor[Ktor 服务]
+    Static[内置 Web UI 静态文件]
+    Room[Room 数据库]
+    DataStore[DataStore]
+    LLM[LLM 供应商]
+    SearchAPI[搜索 API]
+    TTSAPI[TTS 供应商]
 
     Browser --> Ktor
     App --> Ktor
@@ -232,13 +208,21 @@ flowchart TB
 ### 数据关系
 
 ```mermaid
-erDiagram
-    ASSISTANT ||--o{ CONVERSATION : owns
-    CONVERSATION ||--o{ MESSAGE_NODE : contains
-    MESSAGE_NODE ||--o{ UI_MESSAGE : selects
-    UI_MESSAGE ||--o{ MESSAGE_PART : contains
-    ASSISTANT ||--o{ MEMORY : stores
-    CONVERSATION ||--o{ BRANCH : exposes
+graph TD
+    Assistant[Assistant]
+    Conversation[Conversation]
+    MessageNode[Message node]
+    UIMessage[UI message]
+    MessagePart[Message part]
+    Memory[Memory]
+    Branch[Branch]
+
+    Assistant --> Conversation
+    Conversation --> MessageNode
+    MessageNode --> UIMessage
+    UIMessage --> MessagePart
+    Assistant --> Memory
+    Conversation --> Branch
 ```
 
 ## 开发

@@ -64,15 +64,15 @@ app/build/outputs/apk/debug/
 ### Use Cases
 
 ```mermaid
-flowchart LR
-    User["User"]
-    Chat["Chat with LLM"]
-    Configure["Configure assistant"]
-    Search["Run web search"]
-    Parse["Attach documents"]
-    Branch["Branch conversation"]
-    Roleplay["Use roleplay module"]
-    WebAccess["Access from browser"]
+graph TD
+    User[User]
+    Chat[Chat with LLM]
+    Configure[Configure assistant]
+    Search[Run web search]
+    Parse[Attach documents]
+    Branch[Branch conversation]
+    Roleplay[Use roleplay module]
+    WebAccess[Access from browser]
 
     User --> Chat
     User --> Configure
@@ -86,19 +86,19 @@ flowchart LR
 ### Component
 
 ```mermaid
-flowchart LR
-    User["User"]
-    Android["Android app\napp"]
-    WebUI["React web UI\nweb-ui"]
-    WebServer["Embedded Ktor server\nweb"]
-    Conversation["Conversation services\napp"]
-    AI["AI SDK\nai"]
-    Search["Search SDK\nsearch"]
-    Docs["Document parser\ndocument"]
-    TTS["TTS\ntts"]
-    Roleplay["Roleplay\nroleplay"]
-    Store["Room / DataStore"]
-    Provider["LLM / search / TTS providers"]
+graph TD
+    User[User]
+    Android[Android app]
+    WebUI[React web UI]
+    WebServer[Embedded Ktor server]
+    Conversation[Conversation services]
+    AI[AI SDK]
+    Search[Search SDK]
+    Docs[Document parser]
+    TTS[TTS]
+    Roleplay[Roleplay]
+    Store[Room and DataStore]
+    Provider[Provider APIs]
 
     User --> Android
     User --> WebUI
@@ -119,105 +119,81 @@ flowchart LR
 ### Conversation Model
 
 ```mermaid
-classDiagram
-    class Assistant {
-        id
-        modelSettings
-        systemPrompt
-        tools
-        memory
-    }
+graph TD
+    Assistant[Assistant]
+    Conversation[Conversation]
+    MessageNode[Message node]
+    UIMessage[UI message]
+    UIMessagePart[Message part]
+    Settings[Model and prompt settings]
+    Memory[Memory]
+    Tools[Tools]
 
-    class Conversation {
-        id
-        title
-        createdAt
-        pinned
-    }
-
-    class MessageNode {
-        id
-        parentId
-        selectIndex
-    }
-
-    class UIMessage {
-        id
-        role
-        modelId
-        createdAt
-    }
-
-    class UIMessagePart {
-        type
-        text
-        metadata
-    }
-
-    Assistant "1" --> "0..*" Conversation
-    Conversation "1" --> "1..*" MessageNode
-    MessageNode "1" --> "1..*" UIMessage
-    UIMessage "1" --> "1..*" UIMessagePart
+    Assistant --> Settings
+    Assistant --> Memory
+    Assistant --> Tools
+    Assistant --> Conversation
+    Conversation --> MessageNode
+    MessageNode --> UIMessage
+    UIMessage --> UIMessagePart
 ```
 
 ### Chat Stream
 
 ```mermaid
-sequenceDiagram
-    participant User
-    participant UI as Compose / Web UI
-    participant Routes as ConversationRoutes
-    participant SDK as AISDK
-    participant Provider as AI Provider
-    participant Store as Local Store
+graph TD
+    User[User]
+    UI[Compose or Web UI]
+    SaveUser[Persist user message]
+    Stream[Start chat stream]
+    SDK[AI SDK]
+    Provider[AI provider]
+    Delta[Stream chunks]
+    SaveAssistant[Persist assistant result]
 
-    User->>UI: Submit message
-    UI->>Routes: POST /api/conversations/{id}/messages
-    Routes->>Store: Persist user message
-    UI->>Routes: POST /api/conversations/stream-v2/chat
-    Routes->>SDK: streamText(request)
-    SDK->>Provider: Stream completion
-    Provider-->>SDK: Delta / tool call / usage
-    SDK-->>Routes: TextChunk
-    Routes-->>UI: AI SDK data stream
-    Routes->>Store: Persist assistant result
+    User --> UI
+    UI --> SaveUser
+    SaveUser --> Stream
+    Stream --> SDK
+    SDK --> Provider
+    Provider --> Delta
+    Delta --> UI
+    Delta --> SaveAssistant
 ```
 
 ### Message State
 
 ```mermaid
-stateDiagram-v2
-    [*] --> Draft
-    Draft --> Persisted: submit
-    Persisted --> Generating: stream request
-    Generating --> Completed: finish
-    Generating --> Failed: error
-    Completed --> Branched: regenerate or fork
-    Failed --> Draft: edit and retry
-    Branched --> Persisted: select branch
+graph TD
+    Draft[Draft]
+    Persisted[Persisted]
+    Generating[Generating]
+    Completed[Completed]
+    Failed[Failed]
+    Branched[Branched]
+
+    Draft --> Persisted
+    Persisted --> Generating
+    Generating --> Completed
+    Generating --> Failed
+    Completed --> Branched
+    Failed --> Draft
+    Branched --> Persisted
 ```
 
 ### Deployment
 
 ```mermaid
-flowchart TB
-    subgraph AndroidDevice["Android device"]
-        App["EterUee APK"]
-        Ktor["Ktor server"]
-        Static["Bundled web-ui static files"]
-        Room["Room database"]
-        DataStore["DataStore"]
-    end
-
-    subgraph LocalNetwork["Local network"]
-        Browser["Desktop / tablet browser"]
-    end
-
-    subgraph External["External services"]
-        LLM["LLM providers"]
-        SearchAPI["Search APIs"]
-        TTSAPI["TTS providers"]
-    end
+graph TD
+    Browser[Desktop or tablet browser]
+    App[EterUee APK]
+    Ktor[Ktor server]
+    Static[Bundled web UI files]
+    Room[Room database]
+    DataStore[DataStore]
+    LLM[LLM providers]
+    SearchAPI[Search APIs]
+    TTSAPI[TTS providers]
 
     Browser --> Ktor
     App --> Ktor
@@ -232,13 +208,21 @@ flowchart TB
 ### Data Relations
 
 ```mermaid
-erDiagram
-    ASSISTANT ||--o{ CONVERSATION : owns
-    CONVERSATION ||--o{ MESSAGE_NODE : contains
-    MESSAGE_NODE ||--o{ UI_MESSAGE : selects
-    UI_MESSAGE ||--o{ MESSAGE_PART : contains
-    ASSISTANT ||--o{ MEMORY : stores
-    CONVERSATION ||--o{ BRANCH : exposes
+graph TD
+    Assistant[Assistant]
+    Conversation[Conversation]
+    MessageNode[Message node]
+    UIMessage[UI message]
+    MessagePart[Message part]
+    Memory[Memory]
+    Branch[Branch]
+
+    Assistant --> Conversation
+    Conversation --> MessageNode
+    MessageNode --> UIMessage
+    UIMessage --> MessagePart
+    Assistant --> Memory
+    Conversation --> Branch
 ```
 
 ## Development

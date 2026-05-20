@@ -19,7 +19,8 @@ import { WebAuthGate } from "./components/web-auth-gate";
 const queryClient = new QueryClient();
 
 export const links: Route.LinksFunction = () => [
-  { rel: "icon", href: "/favicon.ico", type: "image/x-icon", sizes: "any" },
+  { rel: "icon", href: "/icon.svg", type: "image/svg+xml" },
+  { rel: "alternate icon", href: "/favicon.ico", type: "image/x-icon", sizes: "32x32" },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {

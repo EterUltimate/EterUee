@@ -1,118 +1,260 @@
-<div align="center">
-  <img src="docs/icon.svg" alt="App Icon" width="100" />
-  <h1>EterUee</h1>
-  <p><strong>A native Android LLM chat client forged in cyberpunk aesthetics — pure black canvas, RGB pure colors, zero-radius corners, and neon data streams.</strong></p>
-  <p>
-    <a href="README_ZH_CN.md">简体中文</a> |
-    <a href="README_ZH_TW.md">繁體中文</a> |
-    English
-  </p>
-</div>
+# EterUee
 
-<div align="center">
+<img src="docs/icon.svg" alt="EterUee icon" width="72" />
 
-</div>
+Native Android LLM chat client.
 
-## 🚀 Download
+Languages: English | [简体中文](README_ZH_CN.md) | [繁體中文](README_ZH_TW.md)
 
-Build from source or grab the latest APK from <a href="https://github.com/EterUltimate/EterUee/releases">GitHub Releases</a>.
+## Scope
 
-## ✨ Features
+- Android client built with Kotlin and Jetpack Compose.
+- Multi-provider AI access through a shared `ai` module.
+- Tree-based conversations with message branches.
+- Assistants with isolated model, prompt, memory, tool, and request settings.
+- Document, search, TTS, syntax highlighting, and roleplay modules.
+- Embedded Ktor server that hosts the React web UI on the local network.
 
-- 🎨 **Cyberpunk Design** — pure black background, RGB pure colors, zero-radius corners
-- 🔄 **Universal AI Providers** — custom API / base URL / model (OpenAI, Google, Anthropic, and any OpenAI-compatible endpoint)
-- 🖼️ **Multimodal Input** — Image, Text, PDF, DOCX, PPTX
-- 🖥️ **Web Access** — built-in Ktor server + React web-ui for desktop/tablet use
-- 🛠️ **MCP Support** — both SSE and STDIO transport for tool calling
-- 🐚 **SSH & Shell** — built-in terminal for remote server interaction
-- 🔀 **Message Branching** — tree-structured conversations with regenerate & switch
-- 🔍 **Web Search** — Exa, Tavily, Zhipu, LinkUp, Brave, Perplexity, and more
-- 🧩 **Prompt Variables** — model name, current time, date, custom placeholders
-- 🤳 **QR Code Sync** — export / import provider configs via QR
-- 🤖 **Agent Customization** — per-assistant system prompts, temperature, context window, headers
-- 🧠 **ChatGPT-like Memory** — persistent cross-conversation memory per assistant
-- 📝 **AI Translation** — one-tap message translation
-- 🌐 **Custom HTTP Headers & Body** — full request customization
-- 💌 **Silly Tavern Character Card Import** — .png card support
-- 🎭 **Roleplay Module** — Full SillyTavern-compatible experience (characters, chat, world info, groups)
-- 📡 **LAN Discovery** — auto-discover providers on local network
-- 🧪 **Message Transformers** — template, regex, OCR, think-tag extraction, document-as-prompt
-- 🌙 **Dark Mode Only** — immersive OLED-friendly UI
+## Modules
 
-## 🏗️ Architecture
+| Path | Responsibility |
+| --- | --- |
+| `app` | Android app, Compose UI, ViewModels, persistence, web routes |
+| `ai` | Provider abstraction, message model, streaming text generation |
+| `common` | Shared utilities and Kotlin extensions |
+| `document` | PDF, DOCX, PPTX parsing |
+| `highlight` | Code syntax highlighting |
+| `roleplay` | Character, chat, world info, preset, group workflows |
+| `search` | Search providers and search SDK integration |
+| `tts` | Text-to-speech providers |
+| `web` | Embedded Ktor server and static web UI hosting |
+| `web-ui` | React frontend for browser access |
 
-```
-EterUee
-├── app          — Main Android app (Compose UI, ViewModels, navigation)
-├── ai           — AI SDK abstraction (OpenAI, Google, Anthropic, streaming)
-├── common       — Shared utilities and Kotlin extensions
-├── document     — Document parser (PDF, DOCX, PPTX)
-├── highlight    — Code syntax highlighting engine
-├── roleplay     — Roleplay module (SillyTavern compatible: characters/chat/world info/groups)
-├── search       — Search SDK (Exa, Tavily, Zhipu, LinkUp, Brave, Perplexity)
-├── tts          — Text-to-Speech providers
-├── web          — Embedded Ktor server + static web-ui hosting
-└── web-ui       — React + Vite frontend for cross-platform web access
-```
+## Build
 
-## 🛠️ Tech Stack
-
-| Category | Technology | Purpose |
-|----------|------------|---------|
-| Language | <a href="https://kotlinlang.org/">Kotlin</a> | Primary development language |
-| UI | <a href="https://developer.android.com/jetpack/compose">Jetpack Compose</a> | Declarative Android UI |
-| UI | <a href="https://m3.material.io/">Material You</a> | Design system & dynamic theming |
-| Icons | <a href="https://composeicons.com/icon-libraries/lucide">compose-icons/lucide</a> | Iconography |
-| DI | <a href="https://insert-koin.io/">Koin</a> | Dependency injection |
-| Navigation | <a href="https://developer.android.com/develop/ui/compose/navigation">Navigation Compose</a> | In-app navigation |
-| Storage | <a href="https://developer.android.com/topic/libraries/architecture/datastore">DataStore</a> | Preferences & proto storage |
-| Database | <a href="https://developer.android.com/training/data-storage/room">Room</a> | Local SQLite persistence |
-| Network | <a href="https://square.github.io/okhttp/">OkHttp</a> | HTTP client |
-| Serialization | <a href="https://github.com/Kotlin/kotlinx.serialization">kotlinx.serialization</a> | JSON handling |
-| Images | <a href="https://coil-kt.github.io/coil/">Coil</a> | Image loading & caching |
-| Web Server | <a href="https://ktor.io/">Ktor</a> | Embedded server for web-ui |
-| Web UI | React + Vite | Cross-platform web frontend |
-
-## 🏗️ Build from Source
+`app/google-services.json` is required for Firebase-backed builds.
 
 ```bash
-# 1. Clone
 git clone https://github.com/EterUltimate/EterUee.git
 cd EterUee
-
-# 2. Add google-services.json (required for Firebase)
-# Place your google-services.json inside the app/ directory.
-
-# 3. Build debug APK
 ./gradlew assembleDebug
 ```
 
-> [!TIP]
-> You need a `google-services.json` file in the `app/` folder to build the app.
+## Test
 
-## 🤝 Contributing
+```bash
+./gradlew test
+./gradlew connectedDebugAndroidTest
+```
 
-1. **Fork** the repository
-2. Create a **feature branch** (`git checkout -b feature/amazing-feature`)
-3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
-4. **Push** to the branch (`git push origin feature/amazing-feature`)
-5. Open a **Pull Request**
+## APK
 
-This project is developed with <a href="https://developer.android.com/studio">Android Studio</a>. PRs are welcome!
+```bash
+./gradlew :app:assembleDebug
+```
 
-## ⭐ Star History
+Debug APKs are written to:
 
-If you like this project, please give it a star ⭐
+```text
+app/build/outputs/apk/debug/
+```
 
-<a href="https://star-history.com/#EterUltimate/EterUee&Date">
-  <img src="https://api.star-history.com/svg?repos=EterUltimate/EterUee&type=Date" alt="Star History Chart" />
-</a>
+## UML
 
-## 📄 License
+### Use Cases
 
-This project is dual-licensed:
+```mermaid
+flowchart LR
+    User["User"]
+    Chat["Chat with LLM"]
+    Configure["Configure assistant"]
+    Search["Run web search"]
+    Parse["Attach documents"]
+    Branch["Branch conversation"]
+    Roleplay["Use roleplay module"]
+    WebAccess["Access from browser"]
 
-- <a href="LICENSE">AGPL v3</a> — for non-commercial and open-source use
-- **Commercial License** — contact us for commercial usage
+    User --> Chat
+    User --> Configure
+    User --> Search
+    User --> Parse
+    User --> Branch
+    User --> Roleplay
+    User --> WebAccess
+```
 
-See <a href="LICENSE">LICENSE</a> for full details.
+### Component
+
+```mermaid
+flowchart LR
+    User["User"]
+    Android["Android app\napp"]
+    WebUI["React web UI\nweb-ui"]
+    WebServer["Embedded Ktor server\nweb"]
+    Conversation["Conversation services\napp"]
+    AI["AI SDK\nai"]
+    Search["Search SDK\nsearch"]
+    Docs["Document parser\ndocument"]
+    TTS["TTS\ntts"]
+    Roleplay["Roleplay\nroleplay"]
+    Store["Room / DataStore"]
+    Provider["LLM / search / TTS providers"]
+
+    User --> Android
+    User --> WebUI
+    WebUI --> WebServer
+    Android --> Conversation
+    WebServer --> Conversation
+    Conversation --> AI
+    Conversation --> Search
+    Conversation --> Docs
+    Conversation --> TTS
+    Conversation --> Roleplay
+    Conversation --> Store
+    AI --> Provider
+    Search --> Provider
+    TTS --> Provider
+```
+
+### Conversation Model
+
+```mermaid
+classDiagram
+    class Assistant {
+        id
+        modelSettings
+        systemPrompt
+        tools
+        memory
+    }
+
+    class Conversation {
+        id
+        title
+        createdAt
+        pinned
+    }
+
+    class MessageNode {
+        id
+        parentId
+        selectIndex
+    }
+
+    class UIMessage {
+        id
+        role
+        modelId
+        createdAt
+    }
+
+    class UIMessagePart {
+        type
+        text
+        metadata
+    }
+
+    Assistant "1" --> "0..*" Conversation
+    Conversation "1" --> "1..*" MessageNode
+    MessageNode "1" --> "1..*" UIMessage
+    UIMessage "1" --> "1..*" UIMessagePart
+```
+
+### Chat Stream
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant UI as Compose / Web UI
+    participant Routes as ConversationRoutes
+    participant SDK as AISDK
+    participant Provider as AI Provider
+    participant Store as Local Store
+
+    User->>UI: Submit message
+    UI->>Routes: POST /api/conversations/{id}/messages
+    Routes->>Store: Persist user message
+    UI->>Routes: POST /api/conversations/stream-v2/chat
+    Routes->>SDK: streamText(request)
+    SDK->>Provider: Stream completion
+    Provider-->>SDK: Delta / tool call / usage
+    SDK-->>Routes: TextChunk
+    Routes-->>UI: AI SDK data stream
+    Routes->>Store: Persist assistant result
+```
+
+### Message State
+
+```mermaid
+stateDiagram-v2
+    [*] --> Draft
+    Draft --> Persisted: submit
+    Persisted --> Generating: stream request
+    Generating --> Completed: finish
+    Generating --> Failed: error
+    Completed --> Branched: regenerate or fork
+    Failed --> Draft: edit and retry
+    Branched --> Persisted: select branch
+```
+
+### Deployment
+
+```mermaid
+flowchart TB
+    subgraph AndroidDevice["Android device"]
+        App["EterUee APK"]
+        Ktor["Ktor server"]
+        Static["Bundled web-ui static files"]
+        Room["Room database"]
+        DataStore["DataStore"]
+    end
+
+    subgraph LocalNetwork["Local network"]
+        Browser["Desktop / tablet browser"]
+    end
+
+    subgraph External["External services"]
+        LLM["LLM providers"]
+        SearchAPI["Search APIs"]
+        TTSAPI["TTS providers"]
+    end
+
+    Browser --> Ktor
+    App --> Ktor
+    Ktor --> Static
+    App --> Room
+    App --> DataStore
+    App --> LLM
+    App --> SearchAPI
+    App --> TTSAPI
+```
+
+### Data Relations
+
+```mermaid
+erDiagram
+    ASSISTANT ||--o{ CONVERSATION : owns
+    CONVERSATION ||--o{ MESSAGE_NODE : contains
+    MESSAGE_NODE ||--o{ UI_MESSAGE : selects
+    UI_MESSAGE ||--o{ MESSAGE_PART : contains
+    ASSISTANT ||--o{ MEMORY : stores
+    CONVERSATION ||--o{ BRANCH : exposes
+```
+
+## Development
+
+- Use Android Studio for Android modules.
+- Use Gradle wrapper commands from the repository root.
+- Use `web-ui/` for React frontend work.
+- Do not commit generated build output.
+
+## Acknowledgements
+
+Thanks to [Rikkahub](https://github.com/rikkahub/rikkahub). Its work in the Android LLM client space is an important reference and source of inspiration for this project.
+
+## License
+
+Dual license:
+
+- [AGPL v3](LICENSE) for open-source and non-commercial use.
+- Commercial license for commercial use.

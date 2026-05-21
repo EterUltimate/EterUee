@@ -121,6 +121,482 @@
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
 }
 
+:root[data-theme="soft-glass"] {
+  --background: hsl(210 35% 98%);
+  --foreground: hsl(222 29% 16%);
+  --card: hsl(0 0% 100% / 0.74);
+  --card-foreground: hsl(222 29% 16%);
+  --popover: hsl(0 0% 100% / 0.86);
+  --popover-foreground: hsl(222 29% 16%);
+  --primary: hsl(203 82% 39%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(210 38% 94%);
+  --secondary-foreground: hsl(222 29% 18%);
+  --muted: hsl(210 34% 93% / 0.72);
+  --muted-foreground: hsl(217 14% 42%);
+  --accent: hsl(196 76% 92%);
+  --accent-foreground: hsl(204 68% 24%);
+  --destructive: hsl(0 76% 52%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(214 26% 84% / 0.72);
+  --input: hsl(214 26% 84% / 0.76);
+  --ring: hsl(203 82% 39% / 0.62);
+  --chart-1: hsl(203 82% 39%);
+  --chart-2: hsl(171 56% 40%);
+  --chart-3: hsl(264 54% 58%);
+  --chart-4: hsl(28 84% 58%);
+  --chart-5: hsl(342 65% 56%);
+  --sidebar: hsl(213 34% 96% / 0.76);
+  --sidebar-foreground: hsl(222 29% 18%);
+  --sidebar-primary: hsl(203 82% 39%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(205 72% 91% / 0.72);
+  --sidebar-accent-foreground: hsl(204 68% 24%);
+  --sidebar-border: hsl(214 26% 84% / 0.68);
+  --sidebar-ring: hsl(203 82% 39% / 0.62);
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+  --radius: 0.9rem;
+  --shadow-x: 0;
+  --shadow-y: 16px;
+  --shadow-blur: 44px;
+  --shadow-spread: -24px;
+  --shadow-opacity: 0.2;
+  --shadow-color: hsl(214 44% 32%);
+  --shadow-2xs: 0 1px 2px 0 hsl(214 44% 32% / 0.05);
+  --shadow-xs: 0 2px 8px -6px hsl(214 44% 32% / 0.18);
+  --shadow-sm: 0 8px 24px -18px hsl(214 44% 32% / 0.22);
+  --shadow: 0 16px 40px -28px hsl(214 44% 32% / 0.28);
+  --shadow-md: 0 20px 54px -32px hsl(214 44% 32% / 0.3);
+  --shadow-lg: 0 28px 70px -38px hsl(214 44% 32% / 0.34);
+  --shadow-xl: 0 34px 90px -44px hsl(214 44% 32% / 0.38);
+  --shadow-2xl: 0 44px 120px -54px hsl(214 44% 32% / 0.45);
+  --surface-glass: hsl(0 0% 100% / 0.7);
+  --surface-glass-strong: hsl(0 0% 100% / 0.82);
+  --glass-border: hsl(214 26% 84% / 0.7);
+  --glass-highlight: hsl(0 0% 100% / 0.62);
+  --glass-shadow: 0 18px 52px -34px hsl(214 44% 32% / 0.34);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+}
+
+:root.dark[data-theme="soft-glass"] {
+  --background: hsl(220 22% 10%);
+  --foreground: hsl(214 28% 92%);
+  --card: hsl(222 22% 16% / 0.68);
+  --card-foreground: hsl(214 28% 92%);
+  --popover: hsl(222 22% 15% / 0.86);
+  --popover-foreground: hsl(214 28% 92%);
+  --primary: hsl(199 86% 62%);
+  --primary-foreground: hsl(222 28% 10%);
+  --secondary: hsl(219 20% 20% / 0.76);
+  --secondary-foreground: hsl(214 28% 92%);
+  --muted: hsl(219 20% 20% / 0.62);
+  --muted-foreground: hsl(216 16% 72%);
+  --accent: hsl(202 68% 28% / 0.72);
+  --accent-foreground: hsl(196 82% 86%);
+  --destructive: hsl(0 72% 60%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(216 18% 33% / 0.68);
+  --input: hsl(216 18% 33% / 0.74);
+  --ring: hsl(199 86% 62% / 0.64);
+  --chart-1: hsl(199 86% 62%);
+  --chart-2: hsl(171 64% 54%);
+  --chart-3: hsl(264 72% 72%);
+  --chart-4: hsl(32 86% 66%);
+  --chart-5: hsl(342 76% 68%);
+  --sidebar: hsl(222 22% 14% / 0.74);
+  --sidebar-foreground: hsl(214 28% 92%);
+  --sidebar-primary: hsl(199 86% 62%);
+  --sidebar-primary-foreground: hsl(222 28% 10%);
+  --sidebar-accent: hsl(202 68% 28% / 0.68);
+  --sidebar-accent-foreground: hsl(196 82% 86%);
+  --sidebar-border: hsl(216 18% 33% / 0.64);
+  --sidebar-ring: hsl(199 86% 62% / 0.64);
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+  --radius: 0.9rem;
+  --shadow-x: 0;
+  --shadow-y: 18px;
+  --shadow-blur: 52px;
+  --shadow-spread: -28px;
+  --shadow-opacity: 0.42;
+  --shadow-color: hsl(220 38% 4%);
+  --shadow-2xs: 0 1px 2px 0 hsl(220 38% 4% / 0.2);
+  --shadow-xs: 0 2px 8px -6px hsl(220 38% 4% / 0.42);
+  --shadow-sm: 0 8px 24px -18px hsl(220 38% 4% / 0.48);
+  --shadow: 0 18px 48px -30px hsl(220 38% 4% / 0.58);
+  --shadow-md: 0 24px 64px -34px hsl(220 38% 4% / 0.62);
+  --shadow-lg: 0 30px 84px -40px hsl(220 38% 4% / 0.68);
+  --shadow-xl: 0 36px 100px -44px hsl(220 38% 4% / 0.74);
+  --shadow-2xl: 0 48px 130px -54px hsl(220 38% 4% / 0.82);
+  --surface-glass: hsl(222 22% 16% / 0.66);
+  --surface-glass-strong: hsl(222 22% 18% / 0.82);
+  --glass-border: hsl(216 18% 33% / 0.66);
+  --glass-highlight: hsl(0 0% 100% / 0.12);
+  --glass-shadow: 0 22px 64px -36px hsl(220 38% 4% / 0.82);
+}
+
+:root[data-theme="minimal"] {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(0 0% 9%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(0 0% 9%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(0 0% 9%);
+  --primary: hsl(0 0% 9%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(0 0% 96%);
+  --secondary-foreground: hsl(0 0% 12%);
+  --muted: hsl(0 0% 96%);
+  --muted-foreground: hsl(0 0% 43%);
+  --accent: hsl(0 0% 94%);
+  --accent-foreground: hsl(0 0% 12%);
+  --destructive: hsl(0 74% 49%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(0 0% 88%);
+  --input: hsl(0 0% 88%);
+  --ring: hsl(0 0% 18%);
+  --chart-1: hsl(0 0% 18%);
+  --chart-2: hsl(0 0% 34%);
+  --chart-3: hsl(0 0% 50%);
+  --chart-4: hsl(0 0% 66%);
+  --chart-5: hsl(0 0% 78%);
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(0 0% 12%);
+  --sidebar-primary: hsl(0 0% 9%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(0 0% 94%);
+  --sidebar-accent-foreground: hsl(0 0% 12%);
+  --sidebar-border: hsl(0 0% 88%);
+  --sidebar-ring: hsl(0 0% 18%);
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+  --radius: 0.375rem;
+  --shadow-x: 0;
+  --shadow-y: 0;
+  --shadow-blur: 0;
+  --shadow-spread: 0;
+  --shadow-opacity: 0;
+  --shadow-color: hsl(0 0% 0%);
+  --shadow-2xs: none;
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-xl: none;
+  --shadow-2xl: none;
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+}
+
+:root.dark[data-theme="minimal"] {
+  --background: hsl(0 0% 7%);
+  --foreground: hsl(0 0% 94%);
+  --card: hsl(0 0% 9%);
+  --card-foreground: hsl(0 0% 94%);
+  --popover: hsl(0 0% 10%);
+  --popover-foreground: hsl(0 0% 94%);
+  --primary: hsl(0 0% 94%);
+  --primary-foreground: hsl(0 0% 8%);
+  --secondary: hsl(0 0% 14%);
+  --secondary-foreground: hsl(0 0% 92%);
+  --muted: hsl(0 0% 14%);
+  --muted-foreground: hsl(0 0% 64%);
+  --accent: hsl(0 0% 18%);
+  --accent-foreground: hsl(0 0% 94%);
+  --destructive: hsl(0 70% 58%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(0 0% 21%);
+  --input: hsl(0 0% 21%);
+  --ring: hsl(0 0% 84%);
+  --chart-1: hsl(0 0% 84%);
+  --chart-2: hsl(0 0% 70%);
+  --chart-3: hsl(0 0% 56%);
+  --chart-4: hsl(0 0% 42%);
+  --chart-5: hsl(0 0% 30%);
+  --sidebar: hsl(0 0% 9%);
+  --sidebar-foreground: hsl(0 0% 94%);
+  --sidebar-primary: hsl(0 0% 94%);
+  --sidebar-primary-foreground: hsl(0 0% 8%);
+  --sidebar-accent: hsl(0 0% 16%);
+  --sidebar-accent-foreground: hsl(0 0% 94%);
+  --sidebar-border: hsl(0 0% 21%);
+  --sidebar-ring: hsl(0 0% 84%);
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+  --radius: 0.375rem;
+  --shadow-x: 0;
+  --shadow-y: 0;
+  --shadow-blur: 0;
+  --shadow-spread: 0;
+  --shadow-opacity: 0;
+  --shadow-color: hsl(0 0% 0%);
+  --shadow-2xs: none;
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-xl: none;
+  --shadow-2xl: none;
+}
+
+:root[data-theme="chatgpt"] {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(0 0% 8%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(0 0% 8%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(0 0% 8%);
+  --primary: hsl(160 84% 34%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(0 0% 96%);
+  --secondary-foreground: hsl(0 0% 12%);
+  --muted: hsl(0 0% 96%);
+  --muted-foreground: hsl(0 0% 43%);
+  --accent: hsl(160 38% 92%);
+  --accent-foreground: hsl(160 72% 20%);
+  --destructive: hsl(0 74% 49%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(0 0% 88%);
+  --input: hsl(0 0% 88%);
+  --ring: hsl(160 84% 34%);
+  --chart-1: hsl(160 84% 34%);
+  --chart-2: hsl(198 70% 44%);
+  --chart-3: hsl(38 82% 54%);
+  --chart-4: hsl(267 58% 58%);
+  --chart-5: hsl(0 72% 56%);
+  --sidebar: hsl(0 0% 97%);
+  --sidebar-foreground: hsl(0 0% 12%);
+  --sidebar-primary: hsl(160 84% 34%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(0 0% 92%);
+  --sidebar-accent-foreground: hsl(0 0% 12%);
+  --sidebar-border: hsl(0 0% 88%);
+  --sidebar-ring: hsl(160 84% 34%);
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+  --radius: 0.75rem;
+  --shadow-x: 0;
+  --shadow-y: 8px;
+  --shadow-blur: 24px;
+  --shadow-spread: -18px;
+  --shadow-opacity: 0.12;
+  --shadow-color: hsl(0 0% 0%);
+  --shadow-2xs: 0 1px 2px 0 hsl(0 0% 0% / 0.03);
+  --shadow-xs: 0 2px 6px -4px hsl(0 0% 0% / 0.08);
+  --shadow-sm: 0 6px 18px -14px hsl(0 0% 0% / 0.14);
+  --shadow: 0 10px 28px -20px hsl(0 0% 0% / 0.16);
+  --shadow-md: 0 14px 36px -24px hsl(0 0% 0% / 0.18);
+  --shadow-lg: 0 20px 52px -32px hsl(0 0% 0% / 0.22);
+  --shadow-xl: 0 28px 68px -38px hsl(0 0% 0% / 0.26);
+  --shadow-2xl: 0 36px 92px -44px hsl(0 0% 0% / 0.3);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+}
+
+:root.dark[data-theme="chatgpt"] {
+  --background: hsl(0 0% 8%);
+  --foreground: hsl(0 0% 92%);
+  --card: hsl(0 0% 10%);
+  --card-foreground: hsl(0 0% 92%);
+  --popover: hsl(0 0% 12%);
+  --popover-foreground: hsl(0 0% 92%);
+  --primary: hsl(160 70% 45%);
+  --primary-foreground: hsl(0 0% 7%);
+  --secondary: hsl(0 0% 17%);
+  --secondary-foreground: hsl(0 0% 92%);
+  --muted: hsl(0 0% 15%);
+  --muted-foreground: hsl(0 0% 68%);
+  --accent: hsl(160 45% 18%);
+  --accent-foreground: hsl(160 70% 80%);
+  --destructive: hsl(0 70% 58%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(0 0% 22%);
+  --input: hsl(0 0% 22%);
+  --ring: hsl(160 70% 45%);
+  --chart-1: hsl(160 70% 45%);
+  --chart-2: hsl(198 76% 60%);
+  --chart-3: hsl(38 86% 64%);
+  --chart-4: hsl(267 64% 68%);
+  --chart-5: hsl(0 76% 66%);
+  --sidebar: hsl(0 0% 10%);
+  --sidebar-foreground: hsl(0 0% 92%);
+  --sidebar-primary: hsl(160 70% 45%);
+  --sidebar-primary-foreground: hsl(0 0% 7%);
+  --sidebar-accent: hsl(0 0% 18%);
+  --sidebar-accent-foreground: hsl(0 0% 92%);
+  --sidebar-border: hsl(0 0% 22%);
+  --sidebar-ring: hsl(160 70% 45%);
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+  --radius: 0.75rem;
+  --shadow-x: 0;
+  --shadow-y: 12px;
+  --shadow-blur: 36px;
+  --shadow-spread: -22px;
+  --shadow-opacity: 0.34;
+  --shadow-color: hsl(0 0% 0%);
+  --shadow-2xs: 0 1px 2px 0 hsl(0 0% 0% / 0.12);
+  --shadow-xs: 0 2px 6px -4px hsl(0 0% 0% / 0.28);
+  --shadow-sm: 0 8px 24px -16px hsl(0 0% 0% / 0.38);
+  --shadow: 0 14px 38px -24px hsl(0 0% 0% / 0.42);
+  --shadow-md: 0 18px 52px -28px hsl(0 0% 0% / 0.48);
+  --shadow-lg: 0 26px 72px -36px hsl(0 0% 0% / 0.55);
+  --shadow-xl: 0 34px 92px -42px hsl(0 0% 0% / 0.62);
+  --shadow-2xl: 0 44px 120px -50px hsl(0 0% 0% / 0.7);
+}
+
+:root[data-theme="gemini"] {
+  --background: hsl(220 60% 99%);
+  --foreground: hsl(225 28% 14%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(225 28% 14%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(225 28% 14%);
+  --primary: hsl(217 89% 54%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(218 72% 96%);
+  --secondary-foreground: hsl(225 42% 22%);
+  --muted: hsl(220 54% 96%);
+  --muted-foreground: hsl(224 18% 45%);
+  --accent: hsl(190 78% 93%);
+  --accent-foreground: hsl(218 72% 26%);
+  --destructive: hsl(0 74% 49%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(222 34% 88%);
+  --input: hsl(222 34% 88%);
+  --ring: hsl(261 72% 62%);
+  --chart-1: hsl(217 89% 54%);
+  --chart-2: hsl(261 72% 62%);
+  --chart-3: hsl(190 83% 45%);
+  --chart-4: hsl(32 88% 58%);
+  --chart-5: hsl(338 74% 58%);
+  --sidebar: hsl(221 48% 97%);
+  --sidebar-foreground: hsl(225 28% 16%);
+  --sidebar-primary: hsl(217 89% 54%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(218 72% 94%);
+  --sidebar-accent-foreground: hsl(225 42% 22%);
+  --sidebar-border: hsl(222 34% 88%);
+  --sidebar-ring: hsl(261 72% 62%);
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+  --radius: 0.85rem;
+  --shadow-x: 0;
+  --shadow-y: 16px;
+  --shadow-blur: 40px;
+  --shadow-spread: -28px;
+  --shadow-opacity: 0.18;
+  --shadow-color: hsl(221 58% 30%);
+  --shadow-2xs: 0 1px 2px 0 hsl(221 58% 30% / 0.04);
+  --shadow-xs: 0 2px 8px -6px hsl(221 58% 30% / 0.14);
+  --shadow-sm: 0 8px 22px -16px hsl(221 58% 30% / 0.18);
+  --shadow: 0 16px 40px -28px hsl(221 58% 30% / 0.22);
+  --shadow-md: 0 22px 56px -34px hsl(221 58% 30% / 0.26);
+  --shadow-lg: 0 28px 76px -40px hsl(221 58% 30% / 0.3);
+  --shadow-xl: 0 36px 96px -46px hsl(221 58% 30% / 0.34);
+  --shadow-2xl: 0 44px 120px -54px hsl(221 58% 30% / 0.4);
+  --gemini-accent: linear-gradient(135deg, hsl(217 89% 58%), hsl(261 72% 64%), hsl(190 83% 46%));
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+}
+
+:root.dark[data-theme="gemini"] {
+  --background: hsl(225 24% 10%);
+  --foreground: hsl(220 34% 92%);
+  --card: hsl(224 22% 14%);
+  --card-foreground: hsl(220 34% 92%);
+  --popover: hsl(224 22% 15%);
+  --popover-foreground: hsl(220 34% 92%);
+  --primary: hsl(213 92% 68%);
+  --primary-foreground: hsl(225 24% 8%);
+  --secondary: hsl(226 22% 19%);
+  --secondary-foreground: hsl(220 34% 92%);
+  --muted: hsl(226 20% 18%);
+  --muted-foreground: hsl(221 18% 70%);
+  --accent: hsl(216 50% 24%);
+  --accent-foreground: hsl(206 88% 84%);
+  --destructive: hsl(0 70% 58%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(226 18% 28%);
+  --input: hsl(226 18% 28%);
+  --ring: hsl(263 78% 72%);
+  --chart-1: hsl(213 92% 68%);
+  --chart-2: hsl(263 78% 72%);
+  --chart-3: hsl(188 78% 58%);
+  --chart-4: hsl(34 92% 66%);
+  --chart-5: hsl(338 82% 68%);
+  --sidebar: hsl(224 24% 13%);
+  --sidebar-foreground: hsl(220 34% 92%);
+  --sidebar-primary: hsl(213 92% 68%);
+  --sidebar-primary-foreground: hsl(225 24% 8%);
+  --sidebar-accent: hsl(226 22% 20%);
+  --sidebar-accent-foreground: hsl(220 34% 92%);
+  --sidebar-border: hsl(226 18% 28%);
+  --sidebar-ring: hsl(263 78% 72%);
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+  --radius: 0.85rem;
+  --shadow-x: 0;
+  --shadow-y: 18px;
+  --shadow-blur: 54px;
+  --shadow-spread: -30px;
+  --shadow-opacity: 0.42;
+  --shadow-color: hsl(225 34% 4%);
+  --shadow-2xs: 0 1px 2px 0 hsl(225 34% 4% / 0.18);
+  --shadow-xs: 0 2px 8px -6px hsl(225 34% 4% / 0.34);
+  --shadow-sm: 0 8px 24px -16px hsl(225 34% 4% / 0.46);
+  --shadow: 0 18px 48px -30px hsl(225 34% 4% / 0.56);
+  --shadow-md: 0 24px 64px -34px hsl(225 34% 4% / 0.62);
+  --shadow-lg: 0 30px 84px -40px hsl(225 34% 4% / 0.68);
+  --shadow-xl: 0 38px 104px -46px hsl(225 34% 4% / 0.74);
+  --shadow-2xl: 0 48px 132px -54px hsl(225 34% 4% / 0.82);
+  --gemini-accent: linear-gradient(135deg, hsl(213 92% 68%), hsl(263 78% 72%), hsl(188 78% 58%));
+}
+
 :root[data-theme="claude"] {
   --background: oklch(0.9818 0.0054 95.0986);
   --foreground: oklch(0.3438 0.0269 95.7226);
@@ -678,8 +1154,167 @@
   }
 }
 
-[data-theme="claude"] [data-message-bubble] {
-  font-family: var(--font-serif);
+@layer components {
+  [data-theme] [data-ui="app-header"],
+  [data-theme] [data-ui="composer-panel"],
+  [data-theme] [data-slot="sidebar-inner"],
+  [data-theme] [data-message-bubble],
+  [data-theme] [data-slot="button"] {
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      color 160ms ease,
+      transform 160ms ease;
+  }
+
+  [data-theme="soft-glass"] body {
+    background: linear-gradient(
+      135deg,
+      hsl(205 58% 98%) 0%,
+      hsl(220 46% 96%) 45%,
+      hsl(190 42% 96%) 100%
+    );
+  }
+
+  :root.dark[data-theme="soft-glass"] body {
+    background: linear-gradient(
+      135deg,
+      hsl(220 24% 10%) 0%,
+      hsl(216 24% 12%) 50%,
+      hsl(202 28% 11%) 100%
+    );
+  }
+
+  [data-theme="soft-glass"] [data-ui="app-header"],
+  [data-theme="soft-glass"] [data-ui="chat-input-shell"],
+  [data-theme="soft-glass"] [data-slot="sidebar-inner"],
+  [data-theme="soft-glass"] [data-slot="dialog-content"],
+  [data-theme="soft-glass"] [data-slot="dropdown-menu-content"],
+  [data-theme="soft-glass"] [data-slot="popover-content"],
+  [data-theme="soft-glass"] [data-slot="sheet-content"] {
+    border-color: var(--glass-border);
+    background: var(--surface-glass);
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: blur(22px) saturate(145%);
+  }
+
+  [data-theme="soft-glass"] [data-ui="composer-panel"] {
+    border-color: var(--glass-border);
+    background: var(--surface-glass-strong);
+    box-shadow:
+      var(--glass-shadow),
+      inset 0 1px 0 var(--glass-highlight);
+    backdrop-filter: blur(24px) saturate(150%);
+  }
+
+  [data-theme="soft-glass"] [data-ui="composer-panel"]:focus-within,
+  [data-theme="gemini"] [data-ui="composer-panel"]:focus-within,
+  [data-theme="chatgpt"] [data-ui="composer-panel"]:focus-within {
+    transform: translateY(-1px);
+  }
+
+  [data-theme="soft-glass"] [data-message-role="user"] [data-message-bubble] {
+    border: 1px solid var(--glass-border);
+    background: var(--surface-glass-strong);
+    box-shadow:
+      var(--shadow-sm),
+      inset 0 1px 0 var(--glass-highlight);
+    backdrop-filter: blur(18px) saturate(140%);
+  }
+
+  [data-theme="minimal"] [data-ui="app-header"],
+  [data-theme="minimal"] [data-ui="chat-input-shell"],
+  [data-theme="minimal"] [data-ui="composer-panel"],
+  [data-theme="minimal"] [data-slot="sidebar-inner"],
+  [data-theme="minimal"] [data-slot="dialog-content"],
+  [data-theme="minimal"] [data-slot="dropdown-menu-content"],
+  [data-theme="minimal"] [data-slot="popover-content"] {
+    box-shadow: none;
+  }
+
+  [data-theme="minimal"] [data-ui="composer-panel"],
+  [data-theme="minimal"] [data-message-role="user"] [data-message-bubble] {
+    border: 1px solid var(--border);
+    background: var(--card);
+  }
+
+  [data-theme="minimal"] [data-slot="button"] {
+    box-shadow: none;
+  }
+
+  [data-theme="claude"] [data-message-bubble] {
+    font-family: var(--font-serif);
+  }
+
+  [data-theme="claude"] [data-ui="composer-panel"],
+  [data-theme="claude"] [data-message-role="user"] [data-message-bubble] {
+    border-color: var(--border);
+    background: var(--secondary);
+  }
+
+  [data-theme="chatgpt"] [data-ui="app-header"],
+  [data-theme="chatgpt"] [data-slot="sidebar-inner"] {
+    background: var(--sidebar);
+  }
+
+  [data-theme="chatgpt"] [data-ui="composer-panel"] {
+    border-color: var(--border);
+    background: var(--card);
+    border-radius: 1.35rem;
+    box-shadow: var(--shadow-md);
+  }
+
+  [data-theme="chatgpt"] [data-message-role="user"] [data-message-bubble] {
+    border: 1px solid var(--border);
+    background: var(--secondary);
+    color: var(--foreground);
+    border-radius: 1.25rem;
+  }
+
+  [data-theme="chatgpt"] [data-slot="button"][data-variant="default"] {
+    box-shadow: 0 10px 28px -20px hsl(160 84% 28% / 0.68);
+  }
+
+  [data-theme="gemini"] [data-ui="app-header"],
+  [data-theme="gemini"] [data-slot="sidebar-inner"] {
+    border-color: var(--border);
+    background: var(--sidebar);
+  }
+
+  [data-theme="gemini"] [data-ui="composer-panel"] {
+    border-color: var(--border);
+    background: var(--card);
+    box-shadow: var(--shadow-md);
+  }
+
+  [data-theme="gemini"] [data-message-role="user"] [data-message-bubble],
+  [data-theme="gemini"] [data-slot="button"][data-variant="default"] {
+    border-color: transparent;
+    background: var(--gemini-accent);
+    color: hsl(0 0% 100%);
+    box-shadow: 0 16px 34px -26px hsl(221 70% 32% / 0.55);
+  }
+
+  [data-theme="gemini"] [data-message-role="user"] [data-message-bubble] {
+    border-radius: 1.2rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-theme] [data-ui="app-header"],
+    [data-theme] [data-ui="composer-panel"],
+    [data-theme] [data-slot="sidebar-inner"],
+    [data-theme] [data-message-bubble],
+    [data-theme] [data-slot="button"] {
+      transition: none;
+    }
+
+    [data-theme="soft-glass"] [data-ui="composer-panel"]:focus-within,
+    [data-theme="gemini"] [data-ui="composer-panel"]:focus-within,
+    [data-theme="chatgpt"] [data-ui="composer-panel"]:focus-within {
+      transform: none;
+    }
+  }
 }
 
 /* Keep the utility class for compatibility with existing usage. */

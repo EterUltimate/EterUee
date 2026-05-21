@@ -2,11 +2,25 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 export type ThemeMode = "dark" | "light" | "system";
 export type Theme = ThemeMode;
-export type ColorTheme = "default" | "claude" | "t3-chat" | "mono" | "bubblegum" | "custom";
+export type ColorTheme =
+  | "default"
+  | "soft-glass"
+  | "minimal"
+  | "claude"
+  | "chatgpt"
+  | "gemini"
+  | "t3-chat"
+  | "mono"
+  | "bubblegum"
+  | "custom";
 
 export const COLOR_THEMES: ColorTheme[] = [
   "default",
+  "soft-glass",
+  "minimal",
   "claude",
+  "chatgpt",
+  "gemini",
   "t3-chat",
   "mono",
   "bubblegum",

@@ -160,8 +160,8 @@
     "Segoe UI Symbol", "Noto Color Emoji";
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono:
-    "SFMono-Regular", "Cascadia Code", "JetBrains Mono", Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+    "SFMono-Regular", "Cascadia Code", "JetBrains Mono", Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   --radius: 0.95rem;
   --shadow-x: 0;
   --shadow-y: 10px;
@@ -179,9 +179,11 @@
   --shadow-2xl: 0 44px 100px -38px hsl(210 36% 18% / 0.42);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
-  --glass-bg: color-mix(in oklch, var(--card) 78%, transparent);
-  --glass-strong-bg: color-mix(in oklch, var(--card) 88%, transparent);
-  --glass-border: color-mix(in oklch, var(--border) 72%, transparent);
+  --glass-bg: color-mix(in oklch, var(--card) 74%, transparent);
+  --glass-strong-bg: color-mix(in oklch, var(--card) 86%, transparent);
+  --glass-border: color-mix(in oklch, var(--border) 62%, transparent);
+  --glass-highlight: color-mix(in oklch, oklch(1 0 0) 54%, transparent);
+  --glass-shadow: 0 20px 56px -34px color-mix(in oklch, var(--foreground) 36%, transparent);
   --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --ambient-opacity: 0.7;
 }
@@ -225,8 +227,8 @@
     "Segoe UI Symbol", "Noto Color Emoji";
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono:
-    "SFMono-Regular", "Cascadia Code", "JetBrains Mono", Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+    "SFMono-Regular", "Cascadia Code", "JetBrains Mono", Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   --radius: 0.95rem;
   --shadow-x: 0;
   --shadow-y: 18px;
@@ -242,9 +244,11 @@
   --shadow-lg: 0 30px 70px -32px hsl(0 0% 0% / 0.72);
   --shadow-xl: 0 42px 92px -38px hsl(0 0% 0% / 0.78);
   --shadow-2xl: 0 54px 120px -44px hsl(0 0% 0% / 0.86);
-  --glass-bg: color-mix(in oklch, var(--card) 72%, transparent);
-  --glass-strong-bg: color-mix(in oklch, var(--card) 84%, transparent);
-  --glass-border: color-mix(in oklch, var(--border) 74%, transparent);
+  --glass-bg: color-mix(in oklch, var(--card) 68%, transparent);
+  --glass-strong-bg: color-mix(in oklch, var(--card) 80%, transparent);
+  --glass-border: color-mix(in oklch, var(--border) 68%, transparent);
+  --glass-highlight: color-mix(in oklch, var(--foreground) 16%, transparent);
+  --glass-shadow: 0 26px 72px -34px hsl(0 0% 0% / 0.72);
   --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --ambient-opacity: 0.5;
 }
@@ -912,7 +916,11 @@
     z-index: -1;
     pointer-events: none;
     background:
-      linear-gradient(120deg, color-mix(in oklch, var(--primary) 10%, transparent), transparent 42%),
+      linear-gradient(
+        120deg,
+        color-mix(in oklch, var(--primary) 10%, transparent),
+        transparent 42%
+      ),
       linear-gradient(180deg, color-mix(in oklch, var(--accent) 18%, transparent), transparent 58%);
     opacity: var(--ambient-opacity, 0);
   }
@@ -959,6 +967,8 @@
 @layer components {
   [data-theme="hitech"] [data-slot="sidebar-wrapper"] {
     background:
+      linear-gradient(180deg, color-mix(in oklch, var(--accent) 7%, transparent), transparent 34%),
+      linear-gradient(110deg, color-mix(in oklch, var(--primary) 6%, transparent), transparent 52%),
       linear-gradient(90deg, color-mix(in oklch, var(--sidebar) 86%, transparent), transparent 45%),
       var(--background);
   }
@@ -981,11 +991,14 @@
   }
 
   [data-theme="hitech"] [data-slot="sidebar-inset"] {
-    background: color-mix(in oklch, var(--background) 88%, transparent);
+    background:
+      linear-gradient(180deg, color-mix(in oklch, var(--accent) 6%, transparent), transparent 28%),
+      linear-gradient(135deg, color-mix(in oklch, var(--primary) 5%, transparent), transparent 46%),
+      color-mix(in oklch, var(--background) 90%, transparent);
   }
 
   [data-theme="hitech"] [data-ui="app-header"] {
-    background: var(--glass-bg);
+    background: linear-gradient(180deg, var(--glass-strong-bg), var(--glass-bg)), var(--glass-bg);
     border-color: var(--glass-border);
     box-shadow: 0 10px 28px -26px color-mix(in oklch, var(--foreground) 40%, transparent);
     backdrop-filter: blur(18px) saturate(1.16);
@@ -993,15 +1006,30 @@
   }
 
   [data-theme="hitech"] [data-ui="chat-input-shell"] {
-    background: linear-gradient(180deg, transparent, color-mix(in oklch, var(--background) 86%, transparent) 24%);
+    background: linear-gradient(
+      180deg,
+      transparent,
+      color-mix(in oklch, var(--background) 86%, transparent) 24%
+    );
   }
 
   [data-theme="hitech"] [data-ui="composer-panel"] {
-    background: var(--glass-bg);
+    overflow: hidden;
+    background: linear-gradient(180deg, var(--glass-strong-bg), var(--glass-bg)), var(--glass-bg);
     border-color: var(--glass-border);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--glass-shadow);
     backdrop-filter: blur(24px) saturate(1.18);
     -webkit-backdrop-filter: blur(24px) saturate(1.18);
+  }
+
+  [data-theme="hitech"] [data-ui="composer-panel"]::before {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    content: "";
+    background: linear-gradient(135deg, var(--glass-highlight), transparent 42%);
+    border-radius: inherit;
+    opacity: 0.6;
   }
 
   [data-theme="hitech"] [data-ui="composer-panel"]:focus-within {
@@ -1009,6 +1037,7 @@
     box-shadow:
       0 0 0 1px color-mix(in oklch, var(--primary) 26%, transparent),
       var(--shadow-xl);
+    transform: translateY(-1px);
   }
 
   [data-theme="hitech"] [data-ui="suggestion-chip"],
@@ -1047,6 +1076,18 @@
     animation: hitech-rise 180ms var(--motion-ease) both;
   }
 
+  [data-theme="hitech"] [data-ui="new-chat-hero"] {
+    animation: hitech-rise 220ms var(--motion-ease) both;
+  }
+
+  [data-theme="hitech"] [data-ui="new-chat-hero"] img {
+    filter: drop-shadow(0 12px 28px color-mix(in oklch, var(--primary) 22%, transparent));
+  }
+
+  [data-theme="hitech"] [data-ui="empty-state-icon"] {
+    color: color-mix(in oklch, var(--primary) 72%, var(--muted-foreground));
+  }
+
   [data-theme="hitech"] [data-message-role="user"] [data-message-bubble] {
     background: color-mix(in oklch, var(--primary) 13%, var(--card));
     border: 1px solid color-mix(in oklch, var(--primary) 20%, var(--border));
@@ -1072,6 +1113,26 @@
     background: color-mix(in oklch, var(--foreground) 24%, transparent);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
+  }
+}
+
+@media (max-width: 640px) {
+  [data-theme="hitech"] [data-ui="app-header"] {
+    box-shadow: 0 8px 20px -20px color-mix(in oklch, var(--foreground) 42%, transparent);
+  }
+
+  [data-theme="hitech"] [data-ui="chat-input-shell"] {
+    background: linear-gradient(
+      180deg,
+      transparent,
+      color-mix(in oklch, var(--background) 92%, transparent) 18%
+    );
+  }
+
+  [data-theme="hitech"] [data-ui="composer-panel"] {
+    box-shadow: 0 16px 42px -30px color-mix(in oklch, var(--foreground) 40%, transparent);
+    backdrop-filter: blur(18px) saturate(1.12);
+    -webkit-backdrop-filter: blur(18px) saturate(1.12);
   }
 }
 

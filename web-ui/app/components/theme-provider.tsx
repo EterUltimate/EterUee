@@ -5,7 +5,11 @@ export type Theme = ThemeMode;
 export type ColorTheme =
   | "vercel"
   | "default"
+  | "soft-glass"
+  | "minimal"
   | "claude"
+  | "chatgpt"
+  | "gemini"
   | "t3-chat"
   | "mono"
   | "bubblegum"
@@ -14,7 +18,11 @@ export type ColorTheme =
 export const COLOR_THEMES: ColorTheme[] = [
   "vercel",
   "default",
+  "soft-glass",
+  "minimal",
   "claude",
+  "chatgpt",
+  "gemini",
   "t3-chat",
   "mono",
   "bubblegum",

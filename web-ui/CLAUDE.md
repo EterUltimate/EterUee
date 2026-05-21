@@ -16,28 +16,28 @@ web-ui 是 EterUee 项目的嵌入式 Web 前端，基于 React Router 7 的单�
 - **Zustand** (5.0.11): 轻量级状态管理（组合 slices 模式）
 - **ky** (1.14.3): 基于 fetch 的 HTTP 客户端
 - **i18next + react-i18next**: 国际化方案（zh-CN / en-US）
-- **Bun**: 包管理器和运行时
+- **pnpm**: 包管理器
 
 ## Development Commands
 
 ```bash
 # 开发服务器 (HMR + API 代理到 localhost:8080)
-bun run dev
+pnpm run dev
 
 # 生产构建 (构建 + 复制到后端)
-bun run build
+pnpm run build
 
 # 类型检查和生成
-bun run typecheck
+pnpm run typecheck
 
 # 代码格式化
-bun run fmt
+pnpm run fmt
 
 # 检查格式
-bun run fmt:check
+pnpm run fmt:check
 
 # 生产服务器 (运行 build/server/index.js)
-bun run start
+pnpm run start
 ```
 
 ## Architecture
@@ -343,12 +343,12 @@ react-router build
 ### 2. Copy to Backend
 
 ```bash
-bun run copy.ts
+pnpm run copy.ts
 # 将 build/client/ 复制到 ../web/src/main/resources/static/
 # Kotlin 后端的 Ktor 服务器从该目录提供静态文件服务
 ```
 
-**完整构建命令**: `bun run build` (执行上述两步)
+**完整构建命令**: `pnpm run build` (执行上述两步)
 
 ## Development Guidelines
 
@@ -459,13 +459,13 @@ resolveFileUrl(url: string): string
 
 **严格类型检查**:
 ```bash
-bun run typecheck  # React Router 类型生成 + tsc 检查
+pnpm run typecheck  # React Router 类型生成 + tsc 检查
 ```
 
 **与 Kotlin 同步**:
 - 修改 `app/types/` 下任何类型时，必须同步更新 Kotlin 后端
 - 参考上方的类型映射表确定对应的 Kotlin 文件
-- 运行 `bun run typecheck` 确保前端类型正确
+- 运行 `pnpm run typecheck` 确保前端类型正确
 
 ### Data Flow and Real-time Communication
 
@@ -595,7 +595,7 @@ web-ui/build/client/
 
 - [ ] 更新 TypeScript 类型 (`app/types/`)
 - [ ] 更新对应的 Kotlin 类型（参考上方类型映射表）
-- [ ] 运行 `bun run typecheck` 确保前端类型正确
+- [ ] 运行 `pnpm run typecheck` 确保前端类型正确
 - [ ] 在 Kotlin 端运行类型检查
 - [ ] 测试前后端数据序列化/反序列化
 - [ ] 更新相关组件的类型守卫 (`app/types/helpers.ts`)
@@ -615,7 +615,7 @@ web-ui/build/client/
 检查端口 5173 是否被占用：
 ```bash
 lsof -ti:5173 | xargs kill -9  # 杀掉占用进程
-bun run dev
+pnpm run dev
 ```
 
 ### API 请求失败 (开发环境)
@@ -630,7 +630,7 @@ bun run dev
 
 运行类型生成和检查：
 ```bash
-bun run typecheck
+pnpm run typecheck
 # 检查 .react-router/types/ 下生成的类型
 ```
 
@@ -639,6 +639,6 @@ bun run typecheck
 清理缓存和重新安装依赖：
 ```bash
 rm -rf node_modules .react-router build
-bun install
-bun run build
+pnpm install
+pnpm run build
 ```

@@ -105,7 +105,9 @@ import com.eterultimate.eteruee.ui.pages.setting.SettingModelPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingProviderDetailPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingProviderPage
+import com.eterultimate.eteruee.ui.pages.setting.SettingSearchDetailPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingSearchPage
+import com.eterultimate.eteruee.ui.pages.setting.SettingThemePage
 import com.eterultimate.eteruee.ui.pages.setting.SettingTTSPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingWebPage
 import com.eterultimate.eteruee.ui.pages.share.handler.ShareHandlerPage
@@ -386,6 +388,10 @@ class RouteActivity : ComponentActivity() {
                                 WebViewPage(key.url, key.content)
                             }
 
+                            entry<Screen.SettingTheme> {
+                                SettingThemePage()
+                            }
+
                             entry<Screen.SettingDisplay> {
                                 SettingDisplayPage()
                             }
@@ -409,6 +415,11 @@ class RouteActivity : ComponentActivity() {
 
                             entry<Screen.SettingSearch> {
                                 SettingSearchPage()
+                            }
+
+                            entry<Screen.SettingSearchDetail> { key ->
+                                val id = Uuid.parse(key.serviceId)
+                                SettingSearchDetailPage(id)
                             }
 
                             entry<Screen.SettingTTS> {
@@ -658,6 +669,9 @@ sealed interface Screen : NavKey {
     data class WebView(val url: String = "", val content: String = "") : Screen
 
     @Serializable
+    data object SettingTheme : Screen
+
+    @Serializable
     data object SettingDisplay : Screen
 
     @Serializable
@@ -674,6 +688,9 @@ sealed interface Screen : NavKey {
 
     @Serializable
     data object SettingSearch : Screen
+
+    @Serializable
+    data class SettingSearchDetail(val serviceId: String) : Screen
 
     @Serializable
     data object SettingTTS : Screen

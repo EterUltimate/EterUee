@@ -67,7 +67,7 @@ fun computeAIIconByName(name: String): String? {
     return result
 }
 
-private val PATTERN_ETERUEE = Regex("rikka|auto")
+private val PATTERN_ETERUEE = Regex("eteruee|auto")
 private val PATTERN_OPENAI = Regex("(gpt|openai|o\\d)")
 private val PATTERN_GEMINI = Regex("(gemini|nano-banana)")
 private val PATTERN_GOOGLE = Regex("google")

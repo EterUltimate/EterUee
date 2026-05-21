@@ -47,7 +47,7 @@ function AppContent() {
     <ThemeProvider defaultTheme="system">
       <Outlet />
       <WebAuthGate />
-      <Toaster position="top-center"/>
+      <Toaster position="top-center" />
     </ThemeProvider>
   );
 }
@@ -62,7 +62,7 @@ export default function App() {
 
 export function HydrateFallback() {
   return (
-    <div className="flex items-center justify-center h-screen w-screen bg-background">
+    <div className="flex min-h-[100dvh] w-screen items-center justify-center bg-background">
       <div className="flex items-center gap-1.5">
         {[0, 1, 2].map((i) => (
           <div
@@ -91,7 +91,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <main className="flex items-center justify-center min-h-screen bg-background p-4">
+    <main className="flex min-h-[100dvh] items-center justify-center bg-background p-4">
       <div className="max-w-md w-full space-y-6 text-center">
         <div className="space-y-3">
           <h1 className="text-6xl font-bold text-primary">{message}</h1>

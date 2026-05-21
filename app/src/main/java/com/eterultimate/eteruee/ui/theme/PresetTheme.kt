@@ -25,3 +25,14 @@ fun findPresetTheme(id: String): PresetTheme {
     return PresetThemes.find { it.id == id } ?: CyberpunkThemePreset
 }
 
+fun findThemeById(id: String, customThemes: List<CustomTheme>): PresetTheme? {
+    PresetThemes.find { it.id == id }?.let { return it }
+    val custom = customThemes.find { it.id == id } ?: return null
+    return PresetTheme(
+        id = custom.id,
+        name = { androidx.compose.material3.Text(custom.name) },
+        standardLight = custom.generateColorScheme(dark = false),
+        standardDark = custom.generateColorScheme(dark = true),
+    )
+}
+

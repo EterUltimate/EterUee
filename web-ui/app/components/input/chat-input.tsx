@@ -36,12 +36,14 @@ import { Textarea } from "~/components/ui/textarea";
 import { resolveFileUrl } from "~/lib/files";
 import { cn } from "~/lib/utils";
 import api from "~/services/api";
-import type { UIMessagePart, UploadFilesResponseDto } from "~/types";
+import type { ConversationDto, UIMessagePart, UploadFilesResponseDto } from "~/types";
 
 export interface ChatInputProps {
   value: string;
   attachments: UIMessagePart[];
   suggestions?: string[];
+  conversation?: ConversationDto | null;
+  draftKey?: string | null;
   ready?: boolean;
   disabled?: boolean;
   isGenerating?: boolean;
@@ -175,6 +177,8 @@ function ChatInputInner({
   value,
   attachments,
   suggestions = [],
+  conversation = null,
+  draftKey = null,
   ready = true,
   disabled = false,
   isGenerating = false,
@@ -475,11 +479,11 @@ function ChatInputInner({
         className,
       )}
     >
-      <div className="mx-auto w-full max-w-3xl px-4 py-4">
+      <div className="mx-auto w-full max-w-3xl px-3 py-2.5 sm:px-4 sm:py-4">
         <div
           data-ui="composer-panel"
           className={cn(
-            "relative flex flex-col gap-2 rounded-lg border bg-muted/50 p-2 shadow-sm transition-shadow focus-within:shadow-md focus-within:ring-1 focus-within:ring-ring",
+            "relative flex flex-col gap-1.5 rounded-[1.35rem] border bg-muted/50 p-1.5 shadow-sm transition-[border-color,box-shadow,background-color] focus-within:shadow-md focus-within:ring-1 focus-within:ring-ring sm:gap-2 sm:rounded-2xl sm:p-2",
             dragActive && "border-primary/40 bg-primary/5 ring-2 ring-primary/30",
           )}
           onDragEnter={handleDragEnter}
@@ -514,6 +518,7 @@ function ChatInputInner({
             <div className="flex gap-2 overflow-x-auto rounded-lg px-1 py-1">
               {suggestions.map((suggestion, index) => (
                 <button
+                  data-ui="suggestion-chip"
                   key={`${suggestion}-${index}`}
                   type="button"
                   disabled={!canUseQuickMessage}
@@ -536,6 +541,7 @@ function ChatInputInner({
                 const key = `${part.type}-${index}`;
                 return (
                   <div
+                    data-ui="attachment-chip"
                     key={key}
                     className="group inline-flex max-w-[220px] items-center gap-1 rounded-full border bg-background/80 px-2 py-1 text-xs"
                   >
@@ -590,11 +596,11 @@ function ChatInputInner({
             }}
             placeholder={placeholder}
             disabled={!ready || disabled}
-            className="min-h-[60px] max-h-[200px] resize-none border-0 bg-transparent dark:bg-transparent p-2 text-sm shadow-none focus-visible:ring-0"
-            rows={2}
+            className="min-h-[48px] max-h-[132px] resize-none border-0 bg-transparent p-2 text-sm shadow-none focus-visible:ring-0 dark:bg-transparent sm:min-h-[60px] sm:max-h-[200px]"
+            rows={1}
           />
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex min-w-0 items-center gap-1">
+          <div className="flex items-center justify-between gap-1.5 sm:gap-2">
+            <div className="flex min-w-0 items-center gap-1 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <DropdownMenu open={uploadMenuOpen} onOpenChange={setUploadMenuOpen}>
                 <input
                   ref={fileInputRef}
@@ -666,7 +672,11 @@ function ChatInputInner({
               <SearchPickerButton disabled={!canSwitchModel} />
               <ReasoningPickerButton disabled={!canSwitchModel} />
               <McpPickerButton disabled={!canSwitchModel} />
-              <ExtensionPickerButton disabled={!canSwitchModel} />
+              <ExtensionPickerButton
+                conversation={conversation}
+                draftKey={draftKey}
+                disabled={!canSwitchModel}
+              />
               <QuickMessageButton
                 quickMessages={quickMessages}
                 disabled={!canUseQuickMessage}
@@ -696,7 +706,7 @@ function ChatInputInner({
             </Button>
           </div>
         </div>
-        <p className="mt-2 text-center text-xs text-muted-foreground">{sendHint}</p>
+        <p className="mt-2 hidden text-center text-xs text-muted-foreground sm:block">{sendHint}</p>
         {error ? <p className="mt-1 text-center text-xs text-destructive">{error}</p> : null}
       </div>
     </div>

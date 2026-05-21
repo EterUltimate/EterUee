@@ -6,7 +6,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 
 @Composable
-fun RikkaConfirmDialog(
+fun EterUeeConfirmDialog(
     show: Boolean,
     title: String,
     confirmText: String,

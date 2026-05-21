@@ -97,6 +97,10 @@ const COLOR_THEME_OPTIONS: Array<{
   labelKey: string;
 }> = [
   {
+    value: "hitech",
+    labelKey: "color_hitech",
+  },
+  {
     value: "vercel",
     labelKey: "color_vercel",
   },

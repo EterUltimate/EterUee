@@ -70,9 +70,11 @@ import com.eterultimate.eteruee.data.ai.transformers.TimeReminderTransformer
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.datastore.findModelById
 import com.eterultimate.eteruee.data.datastore.findProvider
+import com.eterultimate.eteruee.data.datastore.getAssistantById
 import com.eterultimate.eteruee.data.datastore.getCurrentAssistant
 import com.eterultimate.eteruee.data.datastore.getCurrentChatModel
 import com.eterultimate.eteruee.data.files.FilesManager
+import com.eterultimate.eteruee.data.model.Assistant
 import com.eterultimate.eteruee.data.model.Conversation
 import com.eterultimate.eteruee.data.model.AssistantAffectScope
 import com.eterultimate.eteruee.data.model.replaceRegexes
@@ -308,11 +310,14 @@ class ChatService(
 
         val session = getOrCreateSession(conversationId)
         session.getJob()?.cancel()
-        val processedContent = preprocessUserInputParts(content)
 
         val job = appScope.launch {
             try {
                 val currentConversation = session.state.value
+                val settings = settingsStore.settingsFlow.first()
+                val assistant = settings.getAssistantById(currentConversation.assistantId)
+                    ?: settings.getCurrentAssistant()
+                val processedContent = preprocessUserInputParts(content, assistant)
 
                 // 添加消息到列表
                 val newConversation = currentConversation.copy(
@@ -337,9 +342,8 @@ class ChatService(
         session.setJob(job)
     }
 
-    private fun preprocessUserInputParts(parts: List<UIMessagePart>): List<UIMessagePart> {
-        val assistant = settingsStore.settingsFlow.value.getCurrentAssistant()
-        val result: List<UIMessagePart> = parts.map { part: UIMessagePart ->
+    private fun preprocessUserInputParts(parts: List<UIMessagePart>, assistant: Assistant): List<UIMessagePart> {
+        return parts.map { part ->
             when (part) {
                 is UIMessagePart.Text -> {
                     part.copy(
@@ -354,7 +358,6 @@ class ChatService(
                 else -> part
             }
         }
-        return result
     }
 
     // ---- 重新生成消息 ----
@@ -469,9 +472,11 @@ class ChatService(
         messageRange: ClosedRange<Int>? = null
     ) {
         val settings = settingsStore.settingsFlow.first()
-        val model = settings.getCurrentChatModel() ?: return
+        val initialConversation = getConversationFlow(conversationId).value
+        val assistant = settings.getAssistantById(initialConversation.assistantId)
+            ?: settings.getCurrentAssistant()
+        val model = settings.findModelById(assistant.chatModelId ?: settings.chatModelId) ?: return
 
-        val assistant = settings.getCurrentAssistant()
         val senderName = if (assistant.useAssistantAvatar) {
             assistant.name.ifEmpty { context.getString(R.string.assistant_page_default_assistant) }
         } else {
@@ -479,7 +484,6 @@ class ChatService(
         }
 
         runCatching {
-            val initialConversation = getConversationFlow(conversationId).value
 
             // reset suggestions
             updateConversation(conversationId, initialConversation.copy(chatSuggestions = emptyList()))
@@ -512,11 +516,14 @@ class ChatService(
                         it
                     }
                 },
-                assistant = settings.getCurrentAssistant(),
-                memories = if (settings.getCurrentAssistant().useGlobalMemory) {
+                assistant = assistant,
+                conversationSystemPrompt = conversation.customSystemPrompt,
+                conversationModeInjectionIds = conversation.modeInjectionIds,
+                conversationLorebookIds = conversation.lorebookIds,
+                memories = if (assistant.useGlobalMemory) {
                     memoryRepository.getGlobalMemories()
                 } else {
-                    memoryRepository.getMemoriesOfAssistant(settings.assistantId.toString())
+                    memoryRepository.getMemoriesOfAssistant(assistant.id.toString())
                 },
                 inputTransformers = buildList {
                     addAll(inputTransformers)
@@ -527,8 +534,7 @@ class ChatService(
                     if (settings.enableWebSearch) {
                         addAll(createSearchTools(settings))
                     }
-                    addAll(localTools.getTools(settings.getCurrentAssistant().localTools))
-                    val assistant = settings.getCurrentAssistant()
+                    addAll(localTools.getTools(assistant.localTools))
                     if (assistant.enabledSkills.isNotEmpty()) {
                         addAll(
                             createSkillTools(
@@ -1085,9 +1091,12 @@ class ChatService(
         parts: List<UIMessagePart>
     ) {
         if (parts.isEmptyInputMessage()) return
-        val processedParts = preprocessUserInputParts(parts)
 
         val currentConversation = getConversationFlow(conversationId).value
+        val settings = settingsStore.settingsFlow.first()
+        val assistant = settings.getAssistantById(currentConversation.assistantId)
+            ?: settings.getCurrentAssistant()
+        val processedParts = preprocessUserInputParts(parts, assistant)
         var edited = false
 
         val updatedNodes = currentConversation.messageNodes.map { node ->
@@ -1141,6 +1150,9 @@ class ChatService(
             id = Uuid.random(),
             assistantId = currentConversation.assistantId,
             messageNodes = copiedNodes,
+            customSystemPrompt = currentConversation.customSystemPrompt,
+            modeInjectionIds = currentConversation.modeInjectionIds,
+            lorebookIds = currentConversation.lorebookIds,
         )
 
         saveConversation(forkConversation.id, forkConversation)

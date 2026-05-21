@@ -6,6 +6,7 @@ import me.rerere.hugeicons.stroke.ArrowUp01
 import me.rerere.hugeicons.stroke.Add01
 import me.rerere.hugeicons.stroke.Delete01
 import me.rerere.hugeicons.stroke.Cancel01
+import me.rerere.hugeicons.stroke.Refresh03
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -204,9 +205,78 @@ private fun AssistantPromptContent(
             FormItem(
                 modifier = Modifier.padding(8.dp),
                 label = {
-                    Text(stringResource(R.string.assistant_page_message_template))
+                    Text(stringResource(R.string.assistant_page_allow_conversation_system_prompt))
+                },
+                description = {
+                    Text(stringResource(R.string.assistant_page_allow_conversation_system_prompt_desc))
+                },
+                tail = {
+                    Switch(
+                        checked = assistant.allowConversationSystemPrompt,
+                        onCheckedChange = {
+                            onUpdate(
+                                assistant.copy(
+                                    allowConversationSystemPrompt = it
+                                )
+                            )
+                        }
+                    )
+                }
+            )
+        }
+
+        Card(
+            colors = CustomColors.cardColorsOnSurfaceContainer
+        ) {
+            FormItem(
+                modifier = Modifier.padding(8.dp),
+                label = {
+                    Text(stringResource(R.string.assistant_page_allow_conversation_prompt_injection))
+                },
+                description = {
+                    Text(stringResource(R.string.assistant_page_allow_conversation_prompt_injection_desc))
+                },
+                tail = {
+                    Switch(
+                        checked = assistant.allowConversationPromptInjection,
+                        onCheckedChange = {
+                            onUpdate(
+                                assistant.copy(
+                                    allowConversationPromptInjection = it
+                                )
+                            )
+                        }
+                    )
+                }
+            )
+        }
+
+        Card(
+            colors = CustomColors.cardColorsOnSurfaceContainer
+        ) {
+            FormItem(
+                modifier = Modifier.padding(8.dp),
+                label = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(stringResource(R.string.assistant_page_message_template))
+                        Spacer(Modifier.weight(1f))
+                        IconButton(
+                            onClick = {
+                                onUpdate(assistant.copy(messageTemplate = "{{ message }}"))
+                            },
+                            enabled = assistant.messageTemplate != "{{ message }}",
+                        ) {
+                            Icon(
+                                imageVector = HugeIcons.Refresh03,
+                                contentDescription = null,
+                            )
+                        }
+                    }
                 },
                 content = {
+                    val missingMessage = "{{ message }}" !in assistant.messageTemplate
                     OutlinedTextField(
                         value = assistant.messageTemplate,
                         onValueChange = {
@@ -219,6 +289,10 @@ private fun AssistantPromptContent(
                         modifier = Modifier.fillMaxWidth(),
                         minLines = 5,
                         maxLines = 15,
+                        isError = missingMessage,
+                        supportingText = if (missingMessage) {
+                            { Text(stringResource(R.string.assistant_page_message_template_missing_message)) }
+                        } else null,
                         textStyle = LocalTextStyle.current.copy(
                             fontSize = 12.sp,
                             fontFamily = JetbrainsMono,

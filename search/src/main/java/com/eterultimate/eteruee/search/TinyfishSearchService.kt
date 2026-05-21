@@ -1,6 +1,10 @@
 package com.eterultimate.eteruee.search
 
 import androidx.compose.runtime.Composable
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
@@ -21,8 +25,20 @@ import com.eterultimate.eteruee.search.SearchResult.SearchResultItem
 object TinyfishSearchService : SearchService<SearchServiceOptions.TinyfishOptions> {
     override val name: String = "Tinyfish"
 
-    override val parameters: InputSchema?
-        get() = InputSchema.Obj(
+    @Composable
+    override fun Description() {
+        val urlHandler = LocalUriHandler.current
+        TextButton(
+            onClick = {
+                urlHandler.openUri("https://agent.tinyfish.ai/api-keys")
+            }
+        ) {
+            Text(stringResource(R.string.click_to_get_api_key))
+        }
+    }
+
+    override fun parameters(options: SearchServiceOptions.TinyfishOptions): InputSchema? =
+        InputSchema.Obj(
             properties = buildJsonObject {
                 put("query", buildJsonObject {
                     put("type", "string")
@@ -32,8 +48,8 @@ object TinyfishSearchService : SearchService<SearchServiceOptions.TinyfishOption
             required = listOf("query")
         )
 
-    override val scrapingParameters: InputSchema?
-        get() = InputSchema.Obj(
+    override fun scrapingParameters(options: SearchServiceOptions.TinyfishOptions): InputSchema? =
+        InputSchema.Obj(
             properties = buildJsonObject {
                 put("url", buildJsonObject {
                     put("type", "string")
@@ -42,9 +58,6 @@ object TinyfishSearchService : SearchService<SearchServiceOptions.TinyfishOption
             },
             required = listOf("url")
         )
-
-    @Composable
-    override fun Description() {}
 
     override suspend fun search(
         params: kotlinx.serialization.json.JsonObject,

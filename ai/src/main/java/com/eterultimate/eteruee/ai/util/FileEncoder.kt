@@ -116,7 +116,8 @@ fun UIMessagePart.Audio.encodeBase64(withPrefix: Boolean = true): Result<String>
 
 private fun File.compressAndEncode(
     mimeType: String,
-    maxDimension: Int = 2048,
+    maxDimension: Int = 10_000,
+    maxPixels: Long = 16_000_000L,
     quality: Int = 85
 ): Pair<String, String> {
     // GIF 保持原样（可能是动图）
@@ -130,8 +131,12 @@ private fun File.compressAndEncode(
     }
     BitmapFactory.decodeFile(absolutePath, options)
 
-    // 强制压缩处理
-    options.inSampleSize = calculateInSampleSize(options, maxDimension, maxDimension)
+    options.inSampleSize = calculateImageInSampleSize(
+        width = options.outWidth,
+        height = options.outHeight,
+        maxDimension = maxDimension,
+        maxPixels = maxPixels
+    )
     options.inJustDecodeBounds = false
 
     val bitmap = BitmapFactory.decodeFile(absolutePath, options)
@@ -200,11 +205,20 @@ private fun File.encodeToBase64Streaming(): String {
     return byteArrayOutputStream.toString(Charsets.ISO_8859_1.name())
 }
 
-private fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
-    val height = options.outHeight
-    val width = options.outWidth
+internal fun calculateImageInSampleSize(
+    width: Int,
+    height: Int,
+    maxDimension: Int,
+    maxPixels: Long
+): Int {
+    if (width <= 0 || height <= 0) return 1
+
     var inSampleSize = 1
-    while ((height / inSampleSize) > reqHeight || (width / inSampleSize) > reqWidth) {
+    while (
+        (height / inSampleSize) > maxDimension ||
+        (width / inSampleSize) > maxDimension ||
+        (width.toLong() / inSampleSize) * (height.toLong() / inSampleSize) > maxPixels
+    ) {
         inSampleSize *= 2
     }
     return inSampleSize

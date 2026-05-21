@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.search
+package com.eterultimate.eteruee.search
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,8 +23,8 @@ object BingSearchService : SearchService<SearchServiceOptions.BingLocalOptions> 
         Text(stringResource(R.string.bing_desc))
     }
 
-    override val parameters: InputSchema?
-        get() = InputSchema.Obj(
+    override fun parameters(options: SearchServiceOptions.BingLocalOptions): InputSchema? =
+        InputSchema.Obj(
             properties = buildJsonObject {
                 put("query", buildJsonObject {
                     put("type", "string")
@@ -34,7 +34,7 @@ object BingSearchService : SearchService<SearchServiceOptions.BingLocalOptions> 
             required = listOf("query")
         )
 
-    override val scrapingParameters: InputSchema? = null
+    override fun scrapingParameters(options: SearchServiceOptions.BingLocalOptions): InputSchema? = null
 
     override suspend fun search(
         params: JsonObject,
@@ -61,7 +61,7 @@ object BingSearchService : SearchService<SearchServiceOptions.BingLocalOptions> 
                 .timeout(5000)
                 .get()
 
-            // 瑙ｆ瀽鎼滅储缁撴灉
+            // 解析搜索结果
             val results = doc.select("li.b_algo").map { element ->
                 val title = element.select("h2").text()
                 val link = element.select("h2 > a").attr("href")
@@ -89,4 +89,3 @@ object BingSearchService : SearchService<SearchServiceOptions.BingLocalOptions> 
         return Result.failure(Exception("Scraping is not supported for Bing"))
     }
 }
-

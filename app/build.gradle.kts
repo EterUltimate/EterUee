@@ -21,8 +21,8 @@ android {
         applicationId = "com.eterultimate.eteruee"
         minSdk = 26
         targetSdk = 37
-        versionCode = 154
-        versionName = "2.1.11"
+        versionCode = 155
+        versionName = "5.20.alpha"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -299,6 +299,7 @@ dependencies {
     implementation(project(":tts"))
     implementation(project(":common"))
     implementation(project(":roleplay"))
+    implementation(project(":material3"))
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
     implementation(kotlin("reflect"))
 

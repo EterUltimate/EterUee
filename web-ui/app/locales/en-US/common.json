@@ -39,6 +39,7 @@
     "theme_light": "Light",
     "theme_dark": "Dark",
     "theme_system": "System",
+    "color_hitech": "HiTech",
     "color_vercel": "Vercel",
     "color_default": "Default",
     "color_soft_glass": "Soft Glass",

@@ -56,7 +56,7 @@ import me.rerere.hugeicons.stroke.VolumeHigh
 import me.rerere.hugeicons.stroke.WebDesign01
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.model.MessageNode
-import com.eterultimate.eteruee.ui.components.ui.RikkaConfirmDialog
+import com.eterultimate.eteruee.ui.components.ui.EterUeeConfirmDialog
 import com.eterultimate.eteruee.ui.context.LocalSettings
 import com.eterultimate.eteruee.ui.context.LocalTTSState
 import com.eterultimate.eteruee.utils.copyMessageToClipboard
@@ -210,7 +210,7 @@ fun ColumnScope.ChatMessageActionButtons(
     }
 
     // Regenerate confirmation dialog
-    RikkaConfirmDialog(
+    EterUeeConfirmDialog(
         show = showRegenerateConfirm,
         title = stringResource(R.string.regenerate),
         confirmText = stringResource(R.string.confirm),

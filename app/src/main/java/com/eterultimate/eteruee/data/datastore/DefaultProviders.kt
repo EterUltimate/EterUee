@@ -28,7 +28,7 @@ val DEFAULT_PROVIDERS = listOf(
         enabled = true,
         builtIn = true,
         description = {
-            Text(stringResource(R.string.rikkahub_provider_description))
+            Text(stringResource(R.string.eteruee_provider_description))
         },
         models = listOf(
             Model(
@@ -261,26 +261,6 @@ val DEFAULT_PROVIDERS = listOf(
                     withLink(LinkAnnotation.Url("https://ackai.fun/register?aff=jxpP")) {
                         withStyle(SpanStyle(MaterialTheme.colorScheme.primary)) {
                             append("https://ackai.fun")
-                        }
-                    }
-                }
-            )
-        }
-    ),
-    ProviderSetting.OpenAI(
-        id = Uuid.parse("4da09554-8844-4cc8-a4a9-fe1b2515e91b"),
-        name = "UnifyLLM",
-        baseUrl = "https://apicn.unifyllm.top/v1",
-        apiKey = "",
-        enabled = false,
-        builtIn = true,
-        description = {
-            Text(
-                text = buildAnnotatedString {
-                    append("一站式LLM API中转平台货源站\n官网：")
-                    withLink(LinkAnnotation.Url("https://www.unifyllm.com/")) {
-                        withStyle(SpanStyle(MaterialTheme.colorScheme.primary)) {
-                            append("https://www.unifyllm.com/")
                         }
                     }
                 }

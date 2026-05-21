@@ -421,6 +421,7 @@ function useDraftInputController({
   isHomeRoute,
   homeDraftId,
   setHomeDraftId,
+  useConversationPromptInjection,
   navigate,
   refreshList,
   onSubmitParts,
@@ -429,6 +430,7 @@ function useDraftInputController({
   isHomeRoute: boolean;
   homeDraftId: string;
   setHomeDraftId: React.Dispatch<React.SetStateAction<string>>;
+  useConversationPromptInjection: boolean;
   navigate: ReturnType<typeof useNavigate>;
   refreshList: () => void;
   onSubmitParts: (parts: UIMessagePart[], conversationId?: string) => Promise<void>;
@@ -442,6 +444,7 @@ function useDraftInputController({
   const addDraftParts = useChatInputStore((state) => state.addParts);
   const removeDraftPart = useChatInputStore((state) => state.removePartAt);
   const getSubmitParts = useChatInputStore((state) => state.getSubmitParts);
+  const getPromptInjectionIds = useChatInputStore((state) => state.getPromptInjectionIds);
   const clearDraft = useChatInputStore((state) => state.clearDraft);
 
   const inputText = draft?.text ?? "";
@@ -485,8 +488,17 @@ function useDraftInputController({
 
     const conversationId = uuidv4();
     setHomeDraftId(createHomeDraftId());
+    const promptInjectionIds = getPromptInjectionIds(draftKey);
 
-    await onSubmitParts(parts, conversationId);
+    await api.post<{ status: string }>(`conversations/${conversationId}/messages`, {
+      parts,
+      ...(useConversationPromptInjection
+        ? {
+            modeInjectionIds: promptInjectionIds.modeInjectionIds,
+            lorebookIds: promptInjectionIds.lorebookIds,
+          }
+        : {}),
+    });
     clearDraft(draftKey);
 
     navigate(`/c/${conversationId}`);
@@ -495,11 +507,13 @@ function useDraftInputController({
     activeId,
     clearDraft,
     draftKey,
+    getPromptInjectionIds,
     getSubmitParts,
     navigate,
     onSubmitParts,
     refreshList,
     setHomeDraftId,
+    useConversationPromptInjection,
   ]);
 
   const replaceDraft = React.useCallback(
@@ -760,6 +774,7 @@ function ConversationsPageInner() {
     isHomeRoute,
     homeDraftId,
     setHomeDraftId,
+    useConversationPromptInjection: currentAssistant?.allowConversationPromptInjection === true,
     navigate,
     refreshList,
     onSubmitParts: aiSdkConversation.submitPersisted,
@@ -1035,20 +1050,26 @@ function ConversationsPageInner() {
 
       <div>
         {isNewChat && (
-          <div className="mb-4 text-center">
-            <div className="mb-3 flex justify-center">
-              <div className="[&>svg]:size-16">
-                <Logo className="size-16 text-primary" />
+          <div data-ui="new-chat-hero" className="mb-3 text-center sm:mb-4">
+            <div className="mb-2 flex justify-center sm:mb-3">
+              <div className="[&>svg]:size-12 sm:[&>svg]:size-16">
+                <Logo className="size-12 text-primary sm:size-16" />
               </div>
             </div>
-            <p className="text-lg text-muted-foreground">{t("conversations.welcome_prompt")}</p>
+            <p className="text-base text-muted-foreground sm:text-lg">
+              {t("conversations.welcome_prompt")}
+            </p>
           </div>
         )}
         <ChatInput
           value={inputText}
           attachments={inputAttachments}
+          conversation={detail}
+          draftKey={draftKey}
           ready={draftKey !== null}
-          isGenerating={(detail?.isGenerating ?? false) || aiSdkConversation.aiSdkStatus === "submitted"}
+          isGenerating={
+            (detail?.isGenerating ?? false) || aiSdkConversation.aiSdkStatus === "submitted"
+          }
           disabled={detailLoading || Boolean(detailError)}
           onValueChange={handleInputTextChange}
           onAddParts={handleAddInputParts}

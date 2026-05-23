@@ -146,6 +146,28 @@ tasks.register("buildAll") {
     description = "Build both APK and AAB"
 }
 
+tasks.register("precompileRelease") {
+    group = "build"
+    description = "Merge ART baseline profiles and build a release APK with startup precompilation metadata."
+    dependsOn(
+        "mergeReleaseStartupProfile",
+        "mergeReleaseArtProfile",
+        "compileReleaseArtProfile",
+        "packageRelease",
+        "createReleaseApkListingFileRedirect"
+    )
+}
+
+val precompileReleaseRequested = providers.provider {
+    gradle.startParameter.taskNames.any { it == "precompileRelease" || it.endsWith(":precompileRelease") }
+}
+
+tasks.matching { it.name == "uploadCrashlyticsMappingFileRelease" }.configureEach {
+    onlyIf("precompileRelease builds local APKs without uploading Crashlytics mappings") {
+        !precompileReleaseRequested.get()
+    }
+}
+
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }

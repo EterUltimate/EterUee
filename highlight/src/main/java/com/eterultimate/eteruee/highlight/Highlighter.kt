@@ -1,6 +1,7 @@
 ﻿package com.eterultimate.eteruee.highlight
 
 import android.content.Context
+import com.whl.quickjs.android.QuickJSLoader
 import com.whl.quickjs.wrapper.QuickJSArray
 import com.whl.quickjs.wrapper.QuickJSContext
 import com.whl.quickjs.wrapper.QuickJSObject
@@ -21,17 +22,12 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import com.eterultimate.eteruee.highlight.HighlightToken.Token.StringContent
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 class Highlighter(ctx: Context) {
     private val executor = Executors.newSingleThreadExecutor()
-
-    init {
-        executor.submit {
-            context // init context
-        }
-    }
 
     private val script: String by lazy {
         ctx.resources.openRawResource(R.raw.prism).use {
@@ -39,11 +35,15 @@ class Highlighter(ctx: Context) {
         }
     }
 
-    private val context: QuickJSContext by lazy {
+    private val contextLazy = lazy {
+        ensureQuickJsInitialized()
         QuickJSContext.create().also {
             it.evaluate(script)
         }
     }
+
+    private val context: QuickJSContext
+        get() = contextLazy.value
 
     private val highlightFn by lazy {
         context.globalObject.getJSFunction("highlight")
@@ -89,7 +89,21 @@ class Highlighter(ctx: Context) {
         }
 
     fun destroy() {
-        context.destroy()
+        if (contextLazy.isInitialized()) {
+            context.destroy()
+        }
+    }
+}
+
+private val quickJsInitialized = AtomicBoolean(false)
+
+private fun ensureQuickJsInitialized() {
+    if (quickJsInitialized.get()) return
+    synchronized(quickJsInitialized) {
+        if (!quickJsInitialized.get()) {
+            QuickJSLoader.init()
+            quickJsInitialized.set(true)
+        }
     }
 }
 

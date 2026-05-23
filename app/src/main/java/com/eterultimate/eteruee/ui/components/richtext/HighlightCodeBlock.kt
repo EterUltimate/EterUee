@@ -167,7 +167,7 @@ fun HighlightCodeBlock(
                         val result = when (language.lowercase()) {
                             "javascript", "js" -> executeJavaScriptCode(code)
                             "python", "py" -> executePythonScript(code)
-                            else -> executeJavaScriptCode(code)
+                            else -> return@launch
                         }
                         val output = buildString {
                             result.result?.let { appendLine(it) }

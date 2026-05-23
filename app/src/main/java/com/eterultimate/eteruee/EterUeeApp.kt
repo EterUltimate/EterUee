@@ -20,9 +20,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
-import com.whl.quickjs.android.QuickJSLoader
+import kotlinx.coroutines.launch
 import com.eterultimate.eteruee.common.android.appTempFolder
 import com.eterultimate.eteruee.di.appModule
 import com.eterultimate.eteruee.di.dataSourceModule
@@ -41,6 +40,8 @@ import org.koin.androidx.workmanager.koin.workManagerFactory
 import org.koin.core.context.startKoin
 
 private const val TAG = "EterUeeApp"
+private const val DEFERRED_STARTUP_DELAY_MS = 1_500L
+private const val WEB_SERVER_STARTUP_DELAY_MS = 3_000L
 
 const val CHAT_COMPLETED_NOTIFICATION_CHANNEL_ID = "chat_completed"
 const val CHAT_LIVE_UPDATE_NOTIFICATION_CHANNEL_ID = "chat_live_update"
@@ -63,100 +64,102 @@ class EterUeeApp : Application() {
         // install crash handler
         CrashHandler.install(this)
 
-        // Init QuickJS native library
-        QuickJSLoader.init()
-
-        // delete temp files
-        deleteTempFiles()
-
-        // sync upload files to DB
-        syncManagedFiles()
-
-        // Init remote config
-        get<FirebaseRemoteConfig>().apply {
-            setConfigSettingsAsync(remoteConfigSettings {
-                minimumFetchIntervalInSeconds = 1800
-            })
-            setDefaultsAsync(R.xml.remote_config_defaults)
-            fetchAndActivate()
-        }
-
-        // Start WebServer if enabled in settings
-        startWebServerIfEnabled()
-
-        // Increment launch count
-        incrementLaunchCount()
+        runDeferredStartupTasks()
 
         // Composer.setDiagnosticStackTraceMode(ComposeStackTraceMode.Auto)
     }
 
-    private fun incrementLaunchCount() {
-        get<AppScope>().launch {
-            runCatching {
-                val store = get<SettingsStore>()
-                val current = store.settingsFlowRaw.first()
-                store.update(current.copy(launchCount = current.launchCount + 1))
-                Log.i(TAG, "incrementLaunchCount: ${store.settingsFlowRaw.first().launchCount}")
-            }.onFailure {
-                Log.e(TAG, "incrementLaunchCount failed", it)
+    private fun runDeferredStartupTasks() {
+        val appScope = get<AppScope>()
+        appScope.launch(Dispatchers.IO) {
+            delay(DEFERRED_STARTUP_DELAY_MS)
+            launch { initRemoteConfig() }
+            launch { deleteTempFiles() }
+            launch { syncManagedFiles() }
+            launch { incrementLaunchCount() }
+        }
+        appScope.launch {
+            delay(WEB_SERVER_STARTUP_DELAY_MS)
+            startWebServerIfEnabled()
+        }
+    }
+
+    private fun initRemoteConfig() {
+        runCatching {
+            get<FirebaseRemoteConfig>().apply {
+                setConfigSettingsAsync(remoteConfigSettings {
+                    minimumFetchIntervalInSeconds = 1800
+                })
+                setDefaultsAsync(R.xml.remote_config_defaults)
+                fetchAndActivate()
             }
+        }.onFailure {
+            Log.e(TAG, "initRemoteConfig failed", it)
+        }
+    }
+
+    private suspend fun incrementLaunchCount() {
+        runCatching {
+            val store = get<SettingsStore>()
+            val current = store.settingsFlowRaw.first()
+            store.update(current.copy(launchCount = current.launchCount + 1))
+            Log.i(TAG, "incrementLaunchCount: ${current.launchCount + 1}")
+        }.onFailure {
+            Log.e(TAG, "incrementLaunchCount failed", it)
         }
     }
 
     private fun deleteTempFiles() {
-        get<AppScope>().launch(Dispatchers.IO) {
+        runCatching {
             val dir = appTempFolder
             if (dir.exists()) {
                 dir.deleteRecursively()
             }
+        }.onFailure {
+            Log.e(TAG, "deleteTempFiles failed", it)
         }
     }
 
-    private fun syncManagedFiles() {
-        get<AppScope>().launch(Dispatchers.IO) {
-            runCatching {
-                get<FilesManager>().syncFolder()
-            }.onFailure {
-                Log.e(TAG, "syncManagedFiles failed", it)
-            }
+    private suspend fun syncManagedFiles() {
+        runCatching {
+            get<FilesManager>().syncFolder()
+        }.onFailure {
+            Log.e(TAG, "syncManagedFiles failed", it)
         }
     }
 
-    private fun startWebServerIfEnabled() {
-        get<AppScope>().launch {
-            runCatching {
-                delay(500)
-                val settings = get<SettingsStore>().settingsFlowRaw.first()
-                if (settings.webServerEnabled) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                        ContextCompat.checkSelfPermission(
-                            this@EterUeeApp,
-                            android.Manifest.permission.POST_NOTIFICATIONS
-                        ) != PackageManager.PERMISSION_GRANTED
-                    ) {
-                        Log.w(TAG, "startWebServerIfEnabled: notification permission not granted, skipping")
-                        return@launch
-                    }
-                    if (Build.VERSION.SDK_INT >= 37 &&
-                        !settings.webServerLocalhostOnly &&
-                        ContextCompat.checkSelfPermission(
-                            this@EterUeeApp,
-                            android.Manifest.permission.ACCESS_LOCAL_NETWORK
-                        ) != PackageManager.PERMISSION_GRANTED
-                    ) {
-                        Log.w(TAG, "startWebServerIfEnabled: local network permission not granted, skipping")
-                        return@launch
-                    }
-                    val intent = Intent(this@EterUeeApp, WebServerService::class.java).apply {
-                        action = WebServerService.ACTION_START
-                        putExtra(WebServerService.EXTRA_PORT, settings.webServerPort)
-                        putExtra(WebServerService.EXTRA_LOCALHOST_ONLY, settings.webServerLocalhostOnly)
-                    }
-                    startForegroundService(intent)
+    private suspend fun startWebServerIfEnabled() {
+        runCatching {
+            val settings = get<SettingsStore>().settingsFlowRaw.first()
+            if (settings.webServerEnabled) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                    ContextCompat.checkSelfPermission(
+                        this@EterUeeApp,
+                        android.Manifest.permission.POST_NOTIFICATIONS
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    Log.w(TAG, "startWebServerIfEnabled: notification permission not granted, skipping")
+                    return
                 }
-            }.onFailure {
-                Log.e(TAG, "startWebServerIfEnabled failed", it)
+                if (Build.VERSION.SDK_INT >= 37 &&
+                    !settings.webServerLocalhostOnly &&
+                    ContextCompat.checkSelfPermission(
+                        this@EterUeeApp,
+                        android.Manifest.permission.ACCESS_LOCAL_NETWORK
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    Log.w(TAG, "startWebServerIfEnabled: local network permission not granted, skipping")
+                    return
+                }
+                val intent = Intent(this@EterUeeApp, WebServerService::class.java).apply {
+                    action = WebServerService.ACTION_START
+                    putExtra(WebServerService.EXTRA_PORT, settings.webServerPort)
+                    putExtra(WebServerService.EXTRA_LOCALHOST_ONLY, settings.webServerLocalhostOnly)
+                }
+                startForegroundService(intent)
             }
+        }.onFailure {
+            Log.e(TAG, "startWebServerIfEnabled failed", it)
         }
     }
 

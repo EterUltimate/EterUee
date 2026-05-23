@@ -1,6 +1,7 @@
 ﻿package com.eterultimate.eteruee.data.ai.tools
 
 import android.content.Context
+import com.whl.quickjs.android.QuickJSLoader
 import com.whl.quickjs.wrapper.QuickJSContext
 import com.whl.quickjs.wrapper.QuickJSObject
 import kotlinx.serialization.SerialName
@@ -23,6 +24,7 @@ import com.eterultimate.eteruee.utils.writeClipboardText
 import java.time.ZonedDateTime
 import java.time.format.TextStyle
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicBoolean
 
 @Serializable
 sealed class LocalToolOption {
@@ -67,10 +69,30 @@ data class ScriptExecutionResult(
 
 private const val QUICKJS_MEMORY_LIMIT = 8 * 1024 * 1024 // 8 MB
 private const val QUICKJS_STACK_SIZE = 256 * 1024 // 256 KB
+private val quickJsInitialized = AtomicBoolean(false)
+
+private fun ensureQuickJsInitialized() {
+    if (quickJsInitialized.get()) return
+    synchronized(quickJsInitialized) {
+        if (!quickJsInitialized.get()) {
+            QuickJSLoader.init()
+            quickJsInitialized.set(true)
+        }
+    }
+}
 
 fun executeJavaScriptCode(code: String?): ScriptExecutionResult {
     val logs = arrayListOf<String>()
-    val context = QuickJSContext.create()
+    val context = try {
+        ensureQuickJsInitialized()
+        QuickJSContext.create()
+    } catch (t: Throwable) {
+        return ScriptExecutionResult(
+            result = null,
+            logs = logs,
+            error = "QuickJS engine is unavailable: ${t.message ?: t.javaClass.simpleName}",
+        )
+    }
     return try {
         context.setMemoryLimit(QUICKJS_MEMORY_LIMIT)
         context.setMaxStackSize(QUICKJS_STACK_SIZE)

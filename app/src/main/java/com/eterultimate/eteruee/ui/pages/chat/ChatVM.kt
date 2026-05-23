@@ -46,7 +46,10 @@ import com.eterultimate.eteruee.ui.hooks.writeStringPreference
 import com.eterultimate.eteruee.ui.hooks.ChatInputState
 import com.eterultimate.eteruee.ui.hooks.ChatStateHolder
 import com.eterultimate.eteruee.utils.UiState
+import com.eterultimate.eteruee.utils.UpdateInfo
 import com.eterultimate.eteruee.utils.UpdateChecker
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.util.Locale
 import kotlin.uuid.Uuid
 
@@ -225,8 +228,18 @@ class ChatVM(
     }
 
     // Update checker
-    val updateState =
-        updateChecker.checkUpdate().stateIn(viewModelScope, SharingStarted.Eagerly, UiState.Loading)
+    private val _updateState = MutableStateFlow<UiState<UpdateInfo>>(UiState.Idle)
+    val updateState = _updateState.asStateFlow()
+    private var updateCheckJob: Job? = null
+
+    fun checkForUpdatesIfNeeded() {
+        if (_updateState.value is UiState.Success || updateCheckJob?.isActive == true) return
+        updateCheckJob = viewModelScope.launch {
+            updateChecker.checkUpdate().collect { state ->
+                _updateState.value = state
+            }
+        }
+    }
 
     /**
      * 处理消息发送

@@ -3,6 +3,7 @@ package com.eterultimate.eteruee.search
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import com.whl.quickjs.android.QuickJSLoader
 import com.whl.quickjs.wrapper.JSCallFunction
 import com.whl.quickjs.wrapper.QuickJSContext
 import kotlinx.coroutines.Dispatchers
@@ -19,6 +20,7 @@ import com.eterultimate.eteruee.search.SearchService.Companion.json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.util.concurrent.atomic.AtomicBoolean
 
 object CustomJsSearchService : SearchService<SearchServiceOptions.CustomJsOptions> {
     override val name: String = "Custom JS"
@@ -89,6 +91,7 @@ object CustomJsSearchService : SearchService<SearchServiceOptions.CustomJsOption
     }
 
     private fun executeScript(userScript: String, invocation: String): String {
+        ensureQuickJsInitialized()
         val context = QuickJSContext.create()
         try {
             injectApis(context)
@@ -210,4 +213,16 @@ globalThis.fetch = function(url, options) {
     };
 };
 """
+}
+
+private val quickJsInitialized = AtomicBoolean(false)
+
+private fun ensureQuickJsInitialized() {
+    if (quickJsInitialized.get()) return
+    synchronized(quickJsInitialized) {
+        if (!quickJsInitialized.get()) {
+            QuickJSLoader.init()
+            quickJsInitialized.set(true)
+        }
+    }
 }

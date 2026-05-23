@@ -53,7 +53,11 @@ fun HighlightText(
     LaunchedEffect(Unit) {
         snapshotFlow { updatedCode to updatedLanguage }.collect {
             tokens = if (updatedCode.length <= MAX_CODE_LENGTH) {
-                highlighter.highlight(updatedCode, updatedLanguage)
+                runCatching {
+                    highlighter.highlight(updatedCode, updatedLanguage)
+                }.getOrElse {
+                    listOf(HighlightToken.Plain(content = updatedCode))
+                }
             } else {
                 listOf(
                     HighlightToken.Plain(content = updatedCode)

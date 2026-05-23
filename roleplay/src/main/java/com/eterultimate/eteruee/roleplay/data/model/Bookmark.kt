@@ -6,28 +6,19 @@ import java.time.Instant
 import kotlin.uuid.Uuid
 
 /**
- * 书签模型
- * 用于标记聊天中的重要消息或位置
+ * 书签数据模型
  */
 @Serializable
 data class Bookmark(
     val id: Uuid = Uuid.random(),
     val chatId: Uuid,
-    val characterId: Uuid,
-    val messageId: Uuid? = null,  // 可选，标记特定消息
-    val nodeId: Uuid? = null,     // 可选，标记特定分支节点
-    val title: String = "",
-    val note: String = "",        // 用户备注
+    val messageIndex: Int,  // 消息在聊天中的索引位置
+    val title: String = "",  // 书签标题（可选）
+    val note: String = "",  // 备注说明（可选）
     @Contextual val createdAt: Instant = Instant.now(),
-    @Contextual val updatedAt: Instant = Instant.now(),
-    val color: String = "#FFD700", // 书签颜色（十六进制）
-    val tags: List<String> = emptyList()  // 标签列表
+    @Contextual val updatedAt: Instant = Instant.now()
 ) {
     fun getDisplayName(): String {
-        return title.ifBlank { "Bookmark" }
-    }
-    
-    fun hasMessageReference(): Boolean {
-        return messageId != null || nodeId != null
+        return title.ifBlank { "Bookmark #${id.toString().take(8)}" }
     }
 }

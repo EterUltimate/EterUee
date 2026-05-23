@@ -11,6 +11,6 @@ class ExampleInstrumentedTest {
     @Test
     fun useAppContext() {
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals(BuildConfig.APPLICATION_ID, appContext.packageName)
+        assertEquals("com.eterultimate.eteruee", appContext.packageName)
     }
 }

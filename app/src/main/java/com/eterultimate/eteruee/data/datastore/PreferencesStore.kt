@@ -32,6 +32,8 @@ import com.eterultimate.eteruee.data.ai.prompts.LEARNING_MODE_PROMPT
 import com.eterultimate.eteruee.data.datastore.migration.PreferenceStoreV1Migration
 import com.eterultimate.eteruee.data.datastore.migration.PreferenceStoreV2Migration
 import com.eterultimate.eteruee.data.datastore.migration.PreferenceStoreV3Migration
+import com.eterultimate.eteruee.data.datastore.migration.PreferenceStoreV4Migration
+import com.eterultimate.eteruee.data.datastore.migration.PreferenceStoreV5Migration
 import com.eterultimate.eteruee.data.model.Assistant
 import com.eterultimate.eteruee.data.model.Avatar
 import com.eterultimate.eteruee.data.model.InjectionPosition
@@ -59,7 +61,9 @@ private val Context.settingsStore by preferencesDataStore(
         listOf(
             PreferenceStoreV1Migration(),
             PreferenceStoreV2Migration(),
-            PreferenceStoreV3Migration()
+            PreferenceStoreV3Migration(),
+            PreferenceStoreV4Migration(),
+            PreferenceStoreV5Migration(),
         )
     }
 )
@@ -81,6 +85,7 @@ class SettingsStore(
 
         // 模型选择
         val ENABLE_WEB_SEARCH = booleanPreferencesKey("enable_web_search")
+        val ENABLE_SUBAGENT = booleanPreferencesKey("enable_subagent")
         val FAVORITE_MODELS = stringPreferencesKey("favorite_models")
         val SELECT_MODEL = stringPreferencesKey("chat_model")
         val TITLE_MODEL = stringPreferencesKey("title_model")
@@ -157,6 +162,7 @@ class SettingsStore(
         }.map { preferences ->
             Settings(
                 enableWebSearch = preferences[ENABLE_WEB_SEARCH] == true,
+                enableSubagent = preferences[ENABLE_SUBAGENT] == true,
                 favoriteModels = preferences[FAVORITE_MODELS]?.let {
                     JsonInstant.decodeFromString(it)
                 } ?: emptyList(),
@@ -185,7 +191,7 @@ class SettingsStore(
                 } ?: emptyList(),
                 providers = JsonInstant.decodeFromString(preferences[PROVIDERS] ?: "[]"),
                 assistants = JsonInstant.decodeFromString(preferences[ASSISTANTS] ?: "[]"),
-                dynamicColor = preferences[DYNAMIC_COLOR] != false,
+                dynamicColor = preferences[DYNAMIC_COLOR] == true,
                 themeId = preferences[THEME_ID] ?: PresetThemes[0].id,
                 customThemes = preferences[CUSTOM_THEMES]?.let {
                     JsonInstant.decodeFromString(it)
@@ -342,6 +348,7 @@ class SettingsStore(
             preferences[DISPLAY_SETTING] = JsonInstant.encodeToString(settings.displaySetting)
 
             preferences[ENABLE_WEB_SEARCH] = settings.enableWebSearch
+            preferences[ENABLE_SUBAGENT] = settings.enableSubagent
             preferences[FAVORITE_MODELS] = JsonInstant.encodeToString(settings.favoriteModels)
             preferences[SELECT_MODEL] = settings.chatModelId.toString()
             preferences[TITLE_MODEL] = settings.titleModelId.toString()
@@ -372,9 +379,11 @@ class SettingsStore(
             preferences[WEBDAV_CONFIG] = JsonInstant.encodeToString(settings.webDavConfig)
             preferences[S3_CONFIG] = JsonInstant.encodeToString(settings.s3Config)
             preferences[TTS_PROVIDERS] = JsonInstant.encodeToString(settings.ttsProviders)
-            settings.selectedTTSProviderId?.let {
-                preferences[SELECTED_TTS_PROVIDER] = it.toString()
-            } ?: preferences.remove(SELECTED_TTS_PROVIDER)
+            if (settings.selectedTTSProviderId != null) {
+                preferences[SELECTED_TTS_PROVIDER] = settings.selectedTTSProviderId.toString()
+            } else {
+                preferences.remove(SELECTED_TTS_PROVIDER)
+            }
             preferences[MODE_INJECTIONS] = JsonInstant.encodeToString(settings.modeInjections)
             preferences[LOREBOOKS] = JsonInstant.encodeToString(settings.lorebooks)
             preferences[QUICK_MESSAGES] = JsonInstant.encodeToString(settings.quickMessages)
@@ -469,12 +478,13 @@ class SettingsStore(
 data class Settings(
     @Transient
     val init: Boolean = false,
-    val dynamicColor: Boolean = true,
+    val dynamicColor: Boolean = false,
     val themeId: String = PresetThemes[0].id,
     val customThemes: List<CustomTheme> = emptyList(),
     val developerMode: Boolean = false,
     val displaySetting: DisplaySetting = DisplaySetting(),
     val enableWebSearch: Boolean = false,
+    val enableSubagent: Boolean = false,
     val favoriteModels: List<Uuid> = emptyList(),
     val chatModelId: Uuid = Uuid.random(),
     val titleModelId: Uuid = Uuid.random(),
@@ -625,9 +635,11 @@ fun Settings.getQuickMessagesOfAssistant(assistant: Assistant) =
     quickMessages.filter { it.id in assistant.quickMessageIds }
 
 fun Settings.getSelectedTTSProvider(): TTSProviderSetting? {
-    return selectedTTSProviderId?.let { id ->
-        ttsProviders.find { it.id == id }
-    } ?: ttsProviders.firstOrNull()
+    return if (selectedTTSProviderId != null) {
+        ttsProviders.find { it.id == selectedTTSProviderId }
+    } else {
+        ttsProviders.firstOrNull()
+    }
 }
 
 fun Model.findProvider(providers: List<ProviderSetting>, checkOverwrite: Boolean = true): ProviderSetting? {

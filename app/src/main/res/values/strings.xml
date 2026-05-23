@@ -626,6 +626,7 @@
   <string name="setting_asr_page_edit_provider">Edit ASR Provider</string>
   <string name="setting_display_page_amoled_dark_mode_desc">Use pure black background in dark theme, suitable for AMOLED screens</string>
   <string name="setting_display_page_amoled_dark_mode_title">AMOLED Dark Mode</string>
+  <string name="setting_display_page_theme_preset_title">Theme Preset</string>
   <string name="setting_display_page_auto_collapse_thinking_desc">Automatically collapse thinking content after thinking is complete</string>
   <string name="setting_display_page_auto_collapse_thinking_title">Auto Collapse Thinking</string>
   <string name="setting_display_page_auto_play_tts_desc">Automatically play TTS after assistant message generation completes</string>
@@ -1048,8 +1049,13 @@
   <string name="text_area_save">Save</string>
   <string name="theme_name_autumn">Autumn Yellow</string>
   <string name="theme_name_black">Neutral Black</string>
+  <string name="theme_name_chatgpt">ChatGPT Style</string>
+  <string name="theme_name_claude">Claude Style</string>
+  <string name="theme_name_gemini">Gemini Style</string>
+  <string name="theme_name_minimal">Minimal</string>
   <string name="theme_name_ocean">Ocean Blue</string>
   <string name="theme_name_sakura">Sakura Pink</string>
+  <string name="theme_name_soft_glass">Soft Glass</string>
   <string name="theme_name_spring">Meadow Green</string>
   <string name="title_activity_safe_mode">Safe Mode</string>
   <string name="tools_warning">The current model does not have tool calling enabled. Please enable the model\'s tool capabilities in the settings to use features like search/MCP.</string>

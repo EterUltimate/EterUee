@@ -67,6 +67,7 @@ import {
 import { ConversationSearchButton } from "~/components/conversation-search-button";
 import { CustomThemeDialog } from "~/components/custom-theme-dialog";
 import { getAssistantDisplayName } from "~/lib/display";
+import { cn } from "~/lib/utils";
 import { clearWebAuthToken } from "~/services/api";
 import type { AssistantAvatar, AssistantProfile, AssistantTag, ConversationListDto } from "~/types";
 
@@ -95,6 +96,7 @@ const THEME_OPTIONS: Array<{
 const COLOR_THEME_OPTIONS: Array<{
   value: ColorTheme;
   labelKey: string;
+  swatch: string;
 }> = [
   {
     value: "hitech",
@@ -107,42 +109,52 @@ const COLOR_THEME_OPTIONS: Array<{
   {
     value: "soft-glass",
     labelKey: "color_soft_glass",
+    swatch: "bg-[linear-gradient(135deg,#eaf7ff,#ffffff,#dff3ee)]",
   },
   {
     value: "minimal",
     labelKey: "color_minimal",
+    swatch: "bg-[linear-gradient(135deg,#ffffff_0%,#ffffff_45%,#111111_46%,#111111_100%)]",
   },
   {
     value: "default",
     labelKey: "color_default",
+    swatch: "bg-[linear-gradient(135deg,#ffffff,#f1f5f9,#18181b)]",
   },
   {
     value: "claude",
     labelKey: "color_claude",
+    swatch: "bg-[linear-gradient(135deg,#fcf7ef,#d97745,#2d211b)]",
   },
   {
     value: "chatgpt",
     labelKey: "color_chatgpt",
+    swatch: "bg-[linear-gradient(135deg,#ffffff,#10a37f,#202123)]",
   },
   {
     value: "gemini",
     labelKey: "color_gemini",
+    swatch: "bg-[linear-gradient(135deg,#4285f4,#8ab4f8,#34a853)]",
   },
   {
     value: "t3-chat",
     labelKey: "color_t3_chat",
+    swatch: "bg-[linear-gradient(135deg,#f4f0ff,#7c3aed,#1f1436)]",
   },
   {
     value: "mono",
     labelKey: "color_mono",
+    swatch: "bg-[linear-gradient(135deg,#f8f8f8,#777777,#111111)]",
   },
   {
     value: "bubblegum",
     labelKey: "color_bubblegum",
+    swatch: "bg-[linear-gradient(135deg,#f9d7e8,#85d8ff,#ffe88a)]",
   },
   {
     value: "custom",
     labelKey: "color_custom",
+    swatch: "bg-[conic-gradient(from_180deg,#111,#fff,#999,#111)]",
   },
 ];
 
@@ -983,6 +995,10 @@ export const ConversationSidebar = React.memo(
                         setColorTheme(option.value);
                       }}
                     >
+                      <span
+                        aria-hidden="true"
+                        className={cn("size-4 rounded-full border border-border", option.swatch)}
+                      />
                       <span className="flex-1">{t(`conversation_sidebar.${option.labelKey}`)}</span>
                       <Check className={selected ? "size-4" : "size-4 opacity-0"} />
                     </DropdownMenuItem>

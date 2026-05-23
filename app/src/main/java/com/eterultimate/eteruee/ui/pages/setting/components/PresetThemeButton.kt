@@ -1,8 +1,5 @@
 package com.eterultimate.eteruee.ui.pages.setting.components
 
-import androidx.compose.foundation.shape.RoundedCornerShape
-import me.rerere.hugeicons.HugeIcons
-import me.rerere.hugeicons.stroke.Tick01
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
@@ -16,11 +13,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
-import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -37,7 +33,8 @@ import androidx.compose.ui.util.fastForEach
 import com.eterultimate.eteruee.ui.theme.LocalDarkMode
 import com.eterultimate.eteruee.ui.theme.PresetTheme
 import com.eterultimate.eteruee.ui.theme.PresetThemes
-import androidx.compose.ui.graphics.RectangleShape
+import me.rerere.hugeicons.HugeIcons
+import me.rerere.hugeicons.stroke.Tick01
 
 @Composable
 fun PresetThemeButton(
@@ -53,7 +50,7 @@ fun PresetThemeButton(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = modifier
-            .clip(RoundedCornerShape(0.dp))
+            .clip(RoundedCornerShape(18.dp))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = LocalIndication.current,
@@ -68,19 +65,27 @@ fun PresetThemeButton(
         ) {
             Canvas(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(0.dp))
-                    .size(48.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .size(56.dp)
             ) {
                 drawRect(
-                    color = scheme.primaryContainer,
+                    color = scheme.surfaceContainerHigh,
                     size = size
+                )
+                drawRect(
+                    color = scheme.primaryContainer,
+                    size = size,
+                    topLeft = Offset(
+                        x = size.width / 2,
+                        y = 0f
+                    ),
                 )
                 drawRect(
                     color = scheme.secondaryContainer,
                     size = size,
                     topLeft = Offset(
-                        x = size.width / 2,
-                        y = 0f
+                        x = 0f,
+                        y = size.height / 2
                     ),
                 )
                 drawRect(
@@ -93,7 +98,7 @@ fun PresetThemeButton(
                 )
                 drawCircle(
                     color = scheme.primary,
-                    radius = if (selected) 12.dp.toPx() else 8.dp.toPx(),
+                    radius = if (selected) 14.dp.toPx() else 9.dp.toPx(),
                     center = Offset(
                         x = size.width / 2,
                         y = size.height / 2
@@ -104,7 +109,7 @@ fun PresetThemeButton(
                 Icon(
                     HugeIcons.Tick01,
                     contentDescription = null,
-                    tint = scheme.contentColorFor(scheme.onPrimary)
+                    tint = scheme.onPrimary
                 )
             }
         }
@@ -123,9 +128,9 @@ fun PresetThemeButtonGroup(
     onChangeTheme: (String) -> Unit,
 ) {
     Column(
-        modifier = modifier.padding(12.dp),
+        modifier = modifier.padding(top = 8.dp, bottom = 4.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.Start,
     ) {
         Row(
             modifier = Modifier
@@ -151,7 +156,7 @@ fun PresetThemeButtonGroup(
 @Preview(showBackground = true)
 @Composable
 fun PresetThemeButtonPreview() {
-    var themeId by remember { mutableStateOf("ocean") }
+    var themeId by remember { mutableStateOf("soft-glass") }
     PresetThemeButtonGroup(
         themeId = themeId,
         onChangeTheme = { themeId = it }

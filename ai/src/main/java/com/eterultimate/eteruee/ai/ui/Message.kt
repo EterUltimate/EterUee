@@ -437,6 +437,43 @@ sealed class UIMessagePart {
     ) : UIMessagePart()
 
     @Serializable
+    @SerialName("subagent_plan")
+    data class SubagentPlan(
+        val planId: String = "",
+        val planText: String,
+        val reasoning: String = "",
+        val steps: List<PlanStep> = emptyList(),
+        val isExecuting: Boolean = false,
+        val executionResults: List<PlanStepResult> = emptyList(),
+        override var metadata: JsonObject? = null
+    ) : UIMessagePart()
+
+    @Serializable
+    data class PlanStep(
+        val stepId: String,
+        val toolName: String,
+        val description: String,
+        val arguments: String,
+        val status: StepStatus = StepStatus.PENDING,
+        val dependsOn: List<String> = emptyList()
+    )
+
+    @Serializable
+    enum class StepStatus {
+        PENDING,
+        RUNNING,
+        COMPLETED,
+        FAILED
+    }
+
+    @Serializable
+    data class PlanStepResult(
+        val stepId: String,
+        val result: String,
+        val isError: Boolean = false
+    )
+
+    @Serializable
     @SerialName("tool")
     data class Tool(
         val toolCallId: String,
@@ -502,6 +539,7 @@ fun List<UIMessagePart>.toSortedMessageParts(): List<UIMessagePart> {
             is UIMessagePart.ToolCall -> 0
             is UIMessagePart.ToolResult -> 0
             is UIMessagePart.Search -> 0
+            is UIMessagePart.SubagentPlan -> 0
             is UIMessagePart.Image -> 1
             is UIMessagePart.Video -> 1
             is UIMessagePart.Audio -> 1

@@ -19,7 +19,7 @@ import com.eterultimate.eteruee.roleplay.data.local.entity.*
         BookmarkEntity::class,
         PresetEntity::class
     ],
-    version = 4,  // 升级到版本4以支持预设功能
+    version = 5,  // 升级到版本5以支持简化的书签结构
     exportSchema = true
 )
 abstract class RolePlayDatabase : RoomDatabase() {
@@ -27,12 +27,12 @@ abstract class RolePlayDatabase : RoomDatabase() {
     abstract fun chatDao(): ChatDAO
     abstract fun worldInfoDao(): WorldInfoDAO
     abstract fun groupDao(): GroupDAO
-    abstract fun bookmarkDao(): BookmarkDAO
+    abstract fun bookmarkDao(): BookmarkDao
     abstract fun presetDao(): PresetDAO
-    
+
     companion object {
         const val DATABASE_NAME = "roleplay_database"
-        
+
         /**
          * 从版本1迁移到版本2：添加分支支持字段
          */
@@ -44,7 +44,7 @@ abstract class RolePlayDatabase : RoomDatabase() {
                 database.execSQL("ALTER TABLE rp_chats ADD COLUMN rootNodesJson TEXT NOT NULL DEFAULT '[]'")
             }
         }
-        
+
         /**
          * 从版本2迁移到版本3：添加书签表
          */
@@ -68,7 +68,7 @@ abstract class RolePlayDatabase : RoomDatabase() {
                 """.trimIndent())
             }
         }
-        
+
         /**
          * 从版本3迁移到版本4：添加预设表
          */
@@ -82,6 +82,28 @@ abstract class RolePlayDatabase : RoomDatabase() {
                         description TEXT NOT NULL,
                         type TEXT NOT NULL,
                         parametersJson TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL,
+                        updatedAt INTEGER NOT NULL
+                    )
+                """.trimIndent())
+            }
+        }
+
+        /**
+         * 从版本4迁移到版本5：简化书签表结构
+         */
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // 删除旧的书签表
+                database.execSQL("DROP TABLE IF EXISTS rp_bookmarks")
+                // 创建新的书签表（简化版）
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS rp_bookmarks (
+                        id TEXT NOT NULL PRIMARY KEY,
+                        chatId TEXT NOT NULL,
+                        messageIndex INTEGER NOT NULL,
+                        title TEXT NOT NULL,
+                        note TEXT NOT NULL,
                         createdAt INTEGER NOT NULL,
                         updatedAt INTEGER NOT NULL
                     )

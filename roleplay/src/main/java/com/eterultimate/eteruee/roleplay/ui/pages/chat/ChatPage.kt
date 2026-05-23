@@ -1,5 +1,6 @@
 package com.eterultimate.eteruee.roleplay.ui.pages.chat
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,44 +35,71 @@ fun ChatPage(
     chatId: Uuid,
     onBackClick: () -> Unit,
     onRegenerate: (Int) -> Unit = {},
+    onShowBookmarks: () -> Unit = {},  // 新增：显示书签页面回调
+    scrollToMessageIndex: Int? = null,  // 新增：滚动到指定消息索引
     viewModel: ChatViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
-    
+
     // 输入框状态
     var inputText by remember { mutableStateOf("") }
-    
+
     // 设置对话框状态
     var showSettingsDialog by remember { mutableStateOf(false) }
-    
+
     // 分支选择器状态
     var showBranchMenu by remember { mutableStateOf(false) }
-    
+
     // 消息编辑对话框状态
     var showEditDialog by remember { mutableStateOf(false) }
-    
+
     // 消息操作菜单状态
     var showActionMenu by remember { mutableStateOf(false) }
     var actionMenuMessageIndex by remember { mutableStateOf(-1) }
     var actionMenuMessage by remember { mutableStateOf<ChatMessage?>(null) }
-    
+
+    // 添加书签对话框状态
+    var showAddBookmarkDialog by remember { mutableStateOf(false) }
+    var bookmarkMessageIndex by remember { mutableStateOf(-1) }
+    var bookmarkTitle by remember { mutableStateOf("") }
+    var bookmarkNote by remember { mutableStateOf("") }
+
+    // 高亮消息索引（用于书签跳转后的高亮效果）
+    var highlightedMessageIndex by remember { mutableStateOf<Int?>(null) }
+
     // 初始化
     LaunchedEffect(chatId) {
         viewModel.initialize(chatId)
     }
-    
+
     // 自动滚动到底部
     LaunchedEffect(uiState.messages.size) {
         if (uiState.messages.isNotEmpty()) {
             listState.animateScrollToItem(0)
         }
     }
-    
+
+    // 滚动到指定消息（从书签跳转）
+    LaunchedEffect(scrollToMessageIndex) {
+        if (scrollToMessageIndex != null && scrollToMessageIndex >= 0 && scrollToMessageIndex < uiState.messages.size) {
+            // 设置高亮
+            highlightedMessageIndex = scrollToMessageIndex
+
+            // 延迟一下确保列表已渲染
+            kotlinx.coroutines.delay(100)
+            listState.animateScrollToItem(scrollToMessageIndex)
+
+            // 3秒后取消高亮
+            kotlinx.coroutines.delay(3000)
+            highlightedMessageIndex = null
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
+                title = {
                     Text(uiState.chat?.title ?: "聊天")
                 },
                 navigationIcon = {
@@ -86,7 +114,7 @@ fun ChatPage(
                             IconButton(onClick = { showBranchMenu = true }) {
                                 Icon(Icons.Default.AccountTree, contentDescription = "分支")
                             }
-                            
+
                             DropdownMenu(
                                 expanded = showBranchMenu,
                                 onDismissRequest = { showBranchMenu = false }
@@ -113,9 +141,9 @@ fun ChatPage(
                                         }
                                     )
                                 }
-                                
+
                                 HorizontalDivider()
-                                
+
                                 DropdownMenuItem(
                                     text = { Text("新建分支") },
                                     onClick = {
@@ -129,19 +157,59 @@ fun ChatPage(
                             }
                         }
                     }
-                    
+
                     // 设置按钮
-                    IconButton(onClick = { 
+                    IconButton(onClick = {
+                        viewModel.toggleSubagent()
+                    }) {
+                        Icon(
+                            Icons.Default.Bolt,
+                            contentDescription = "Subagent",
+                            tint = if (uiState.enableSubagent) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                LocalContentColor.current
+                            }
+                        )
+                    }
+
+                    // 设置按钮
+                    IconButton(onClick = {
                         showSettingsDialog = true
                     }) {
                         Icon(Icons.Default.Settings, contentDescription = "设置")
                     }
-                    
+
                     // 清空对话按钮
-                    IconButton(onClick = { 
+                    IconButton(onClick = {
                         viewModel.clearAllMessages()
                     }) {
                         Icon(Icons.Default.DeleteSweep, contentDescription = "清空对话")
+                    }
+
+                    // 书签按钮
+                    Box {
+                        IconButton(onClick = onShowBookmarks) {
+                            Icon(Icons.Default.Bookmark, contentDescription = "书签")
+                        }
+
+                        // 书签数量 Badge
+                        val bookmarks by viewModel.bookmarks.collectAsState()
+                        if (bookmarks.isNotEmpty()) {
+                            Text(
+                                text = if (bookmarks.size > 99) "99+" else bookmarks.size.toString(),
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .offset(x = (-4).dp, y = 4.dp)
+                                    .background(
+                                        MaterialTheme.colorScheme.primary,
+                                        shape = androidx.compose.foundation.shape.CircleShape
+                                    )
+                                    .padding(horizontal = 4.dp, vertical = 1.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
                     }
                 }
             )
@@ -150,6 +218,16 @@ fun ChatPage(
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
+                // Token 统计显示
+                if (uiState.subagentStatus != null) {
+                    Text(
+                        text = uiState.subagentStatus!!,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+
                 // Token 统计显示
                 if (uiState.totalTokens > 0 || uiState.currentMessageTokens > 0) {
                     Row(
@@ -164,7 +242,7 @@ fun ChatPage(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        
+
                         if (uiState.currentMessageTokens > 0) {
                             Text(
                                 text = "当前: ${uiState.currentMessageTokens}",
@@ -174,55 +252,85 @@ fun ChatPage(
                         }
                     }
                 }
-                
+
                 // 输入框
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.large
                 ) {
-                    Row(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(8.dp)
                     ) {
-                        TextField(
-                            value = inputText,
-                            onValueChange = { inputText = it },
-                            modifier = Modifier.weight(1f),
-                            placeholder = { Text("输入消息...") },
-                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-                            keyboardActions = KeyboardActions(
-                                onSend = {
-                                    if (inputText.isNotBlank()) {
+                        // Token 统计显示
+                        if (uiState.totalTokens > 0 || uiState.currentMessageTokens > 0) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "总 Token: ${uiState.totalTokens}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+
+                                if (uiState.currentMessageTokens > 0) {
+                                    Text(
+                                        text = "当前: ${uiState.currentMessageTokens}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        }
+
+                        // 输入框行
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            TextField(
+                                value = inputText,
+                                onValueChange = { inputText = it },
+                                modifier = Modifier.weight(1f),
+                                placeholder = { Text("输入消息...") },
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                                keyboardActions = KeyboardActions(
+                                    onSend = {
+                                        if (inputText.isNotBlank()) {
+                                            viewModel.sendMessage(inputText)
+                                            inputText = ""
+                                        }
+                                    }
+                                ),
+                                maxLines = 4,
+                                enabled = !uiState.isGenerating
+                            )
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            // 发送/停止按钮
+                            IconButton(
+                                onClick = {
+                                    if (uiState.isGenerating) {
+                                        // 停止生成
+                                        viewModel.stopGeneration()
+                                    } else if (inputText.isNotBlank()) {
                                         viewModel.sendMessage(inputText)
                                         inputText = ""
                                     }
-                                }
-                            ),
-                            maxLines = 4,
-                            enabled = !uiState.isGenerating
-                        )
-                        
-                        Spacer(modifier = Modifier.width(8.dp))
-                        
-                        // 发送/停止按钮
-                        IconButton(
-                            onClick = {
+                                },
+                                enabled = inputText.isNotBlank() || uiState.isGenerating
+                            ) {
                                 if (uiState.isGenerating) {
-                                    // 停止生成
-                                    viewModel.stopGeneration()
-                                } else if (inputText.isNotBlank()) {
-                                    viewModel.sendMessage(inputText)
-                                    inputText = ""
+                                    Icon(Icons.Default.Stop, contentDescription = "停止")
+                                } else {
+                                    Icon(Icons.Default.Send, contentDescription = "发送")
                                 }
-                            },
-                            enabled = inputText.isNotBlank() || uiState.isGenerating
-                        ) {
-                            if (uiState.isGenerating) {
-                                Icon(Icons.Default.Stop, contentDescription = "停止")
-                            } else {
-                                Icon(Icons.Default.Send, contentDescription = "发送")
                             }
                         }
                     }
@@ -245,7 +353,7 @@ fun ChatPage(
                         CircularProgressIndicator()
                     }
                 }
-                
+
                 uiState.errorMessage != null -> {
                     // 错误提示
                     Snackbar(
@@ -262,7 +370,7 @@ fun ChatPage(
                     }
                 }
             }
-            
+
             // 消息列表
             LazyColumn(
                 state = listState,
@@ -275,9 +383,9 @@ fun ChatPage(
                     MessageBubble(
                         message = message,
                         messageIndex = index,
-                        isStreaming = message.id.toString().startsWith("streaming_"),
+                        isStreaming = message.isStreaming,
                         onDelete = { viewModel.deleteMessage(message.id) },
-                        onRegenerate = { idx -> 
+                        onRegenerate = { idx ->
                             // 重新生成消息
                             viewModel.regenerateMessage(message.id)
                         },
@@ -287,13 +395,20 @@ fun ChatPage(
                         },
                         onCreateBranch = { fromIndex ->
                             viewModel.createBranch(fromIndex)
-                        }
+                        },
+                        onAddBookmark = { msgIndex ->
+                            bookmarkMessageIndex = msgIndex
+                            bookmarkTitle = ""
+                            bookmarkNote = ""
+                            showAddBookmarkDialog = true
+                        },
+                        highlighted = (index == highlightedMessageIndex)  // 传递高亮状态
                     )
                 }
             }
         }
     }
-    
+
     // 设置对话框
     if (showSettingsDialog) {
         ChatSettingsDialog(
@@ -304,7 +419,7 @@ fun ChatPage(
             }
         )
     }
-    
+
     // 消息编辑对话框
     if (showEditDialog && uiState.editingMessageId != null) {
         AlertDialog(
@@ -317,7 +432,7 @@ fun ChatPage(
                 var editContent by remember(uiState.editContent) {
                     mutableStateOf(uiState.editContent)
                 }
-                
+
                 OutlinedTextField(
                     value = editContent,
                     onValueChange = { editContent = it },
@@ -326,7 +441,7 @@ fun ChatPage(
                     maxLines = 10,
                     placeholder = { Text("输入消息内容...") }
                 )
-                
+
                 LaunchedEffect(editContent) {
                     // 实时更新编辑内容
                     // 注意：这里不直接调用 ViewModel，只在保存时更新
@@ -350,6 +465,62 @@ fun ChatPage(
             }
         )
     }
+
+    // 添加书签对话框
+    if (showAddBookmarkDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showAddBookmarkDialog = false
+                bookmarkTitle = ""
+                bookmarkNote = ""
+            },
+            title = { Text("添加书签") },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedTextField(
+                        value = bookmarkTitle,
+                        onValueChange = { bookmarkTitle = it },
+                        label = { Text("标题（可选）") },
+                        placeholder = { Text("输入书签标题") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    OutlinedTextField(
+                        value = bookmarkNote,
+                        onValueChange = { bookmarkNote = it },
+                        label = { Text("备注（可选）") },
+                        placeholder = { Text("输入备注说明") },
+                        minLines = 3,
+                        maxLines = 5,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.addBookmark(bookmarkMessageIndex, bookmarkTitle, bookmarkNote)
+                    showAddBookmarkDialog = false
+                    bookmarkTitle = ""
+                    bookmarkNote = ""
+                }) {
+                    Text("保存")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showAddBookmarkDialog = false
+                    bookmarkTitle = ""
+                    bookmarkNote = ""
+                }) {
+                    Text("取消")
+                }
+            }
+        )
+    }
 }
 
 /**
@@ -363,21 +534,31 @@ fun MessageBubble(
     onDelete: () -> Unit,
     onRegenerate: (Int) -> Unit = {},
     onEdit: (kotlin.uuid.Uuid, String) -> Unit = { _, _ -> },
-    onCreateBranch: (Int) -> Unit = {}
+    onCreateBranch: (Int) -> Unit = {},
+    onAddBookmark: (Int) -> Unit = {},
+    highlighted: Boolean = false  // 新增：高亮状态
 ) {
     val isUser = message.role == MessageRole.USER
     var showMenu by remember { mutableStateOf(false) }
-    
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = if (isUser) Alignment.End else Alignment.Start
     ) {
         Card(
-            colors = if (isUser) {
+            colors = if (highlighted) {
+                // 高亮状态：使用黄色边框和背景
+                CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.3f)
+                )
+            } else if (isUser) {
                 CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
             } else {
                 CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
             },
+            border = if (highlighted) {
+                androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+            } else null,
             modifier = Modifier
                 .widthIn(max = 300.dp)
                 .pointerInput(Unit) {
@@ -397,7 +578,7 @@ fun MessageBubble(
                     enableCodeHighlight = true,
                     showCopyButton = !isUser // 仅助手消息显示复制按钮
                 )
-                
+
                 // 流式指示器
                 if (isStreaming) {
                     Row(
@@ -416,7 +597,7 @@ fun MessageBubble(
                         )
                     }
                 }
-                
+
                 // 消息操作(仅助手消息)
                 if (!isUser && !isStreaming) {
                     Row(
@@ -428,7 +609,7 @@ fun MessageBubble(
                             Spacer(modifier = Modifier.width(4.dp))
                             Text("重新生成", style = MaterialTheme.typography.labelSmall)
                         }
-                        
+
                         TextButton(onClick = onDelete) {
                             Icon(Icons.Default.Delete, contentDescription = "删除", modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
@@ -438,7 +619,7 @@ fun MessageBubble(
                 }
             }
         }
-        
+
         // 消息操作菜单（长按触发）
         DropdownMenu(
             expanded = showMenu,
@@ -455,7 +636,7 @@ fun MessageBubble(
                     Icon(Icons.Default.Edit, contentDescription = null)
                 }
             )
-            
+
             // 从此处新建分支
             DropdownMenuItem(
                 text = { Text("从此处新建分支") },
@@ -467,7 +648,19 @@ fun MessageBubble(
                     Icon(Icons.Default.AccountTree, contentDescription = null)
                 }
             )
-            
+
+            // 添加书签
+            DropdownMenuItem(
+                text = { Text("添加书签") },
+                onClick = {
+                    showMenu = false
+                    onAddBookmark(messageIndex)
+                },
+                leadingIcon = {
+                    Icon(Icons.Default.Bookmark, contentDescription = null)
+                }
+            )
+
             // 重新生成（仅助手消息）
             if (!isUser && !isStreaming) {
                 DropdownMenuItem(
@@ -481,9 +674,9 @@ fun MessageBubble(
                     }
                 )
             }
-            
+
             HorizontalDivider()
-            
+
             // 删除消息
             DropdownMenuItem(
                 text = { Text("删除", color = MaterialTheme.colorScheme.error) },

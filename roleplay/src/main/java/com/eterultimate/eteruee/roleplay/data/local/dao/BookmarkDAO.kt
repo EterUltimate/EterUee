@@ -8,15 +8,34 @@ import kotlinx.coroutines.flow.Flow
  * 书签数据访问对象
  */
 @Dao
-interface BookmarkDAO {
-    /**
-     * 获取角色的所有书签
-     */
-    @Query("SELECT * FROM rp_bookmarks WHERE characterId = :characterId ORDER BY createdAt DESC")
-    fun getBookmarksByCharacter(characterId: String): Flow<List<BookmarkEntity>>
+interface BookmarkDao {
     
     /**
-     * 获取聊天的所有书签
+     * 插入书签
+     */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertBookmark(bookmark: BookmarkEntity)
+    
+    /**
+     * 批量插入书签
+     */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertBookmarks(bookmarks: List<BookmarkEntity>)
+    
+    /**
+     * 删除书签
+     */
+    @Delete
+    suspend fun deleteBookmark(bookmark: BookmarkEntity)
+    
+    /**
+     * 根据ID删除书签
+     */
+    @Query("DELETE FROM rp_bookmarks WHERE id = :id")
+    suspend fun deleteBookmarkById(id: String)
+    
+    /**
+     * 获取特定聊天的所有书签
      */
     @Query("SELECT * FROM rp_bookmarks WHERE chatId = :chatId ORDER BY createdAt DESC")
     fun getBookmarksByChat(chatId: String): Flow<List<BookmarkEntity>>
@@ -28,50 +47,14 @@ interface BookmarkDAO {
     suspend fun getBookmarkById(id: String): BookmarkEntity?
     
     /**
-     * 插入或更新书签
+     * 获取所有书签
      */
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertBookmark(entity: BookmarkEntity)
+    @Query("SELECT * FROM rp_bookmarks ORDER BY updatedAt DESC")
+    fun getAllBookmarks(): Flow<List<BookmarkEntity>>
     
     /**
-     * 批量插入书签
+     * 更新书签标题和备注
      */
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertBookmarks(entities: List<BookmarkEntity>)
-    
-    /**
-     * 删除书签
-     */
-    @Delete
-    suspend fun deleteBookmark(entity: BookmarkEntity)
-    
-    /**
-     * 根据ID删除书签
-     */
-    @Query("DELETE FROM rp_bookmarks WHERE id = :id")
-    suspend fun deleteBookmarkById(id: String)
-    
-    /**
-     * 删除角色的所有书签
-     */
-    @Query("DELETE FROM rp_bookmarks WHERE characterId = :characterId")
-    suspend fun deleteBookmarksByCharacter(characterId: String)
-    
-    /**
-     * 删除聊天的所有书签
-     */
-    @Query("DELETE FROM rp_bookmarks WHERE chatId = :chatId")
-    suspend fun deleteBookmarksByChat(chatId: String)
-    
-    /**
-     * 搜索书签(按标题或备注)
-     */
-    @Query("SELECT * FROM rp_bookmarks WHERE title LIKE '%' || :query || '%' OR note LIKE '%' || :query || '%' ORDER BY createdAt DESC")
-    suspend fun searchBookmarks(query: String): List<BookmarkEntity>
-    
-    /**
-     * 按标签查询书签
-     */
-    @Query("SELECT * FROM rp_bookmarks WHERE tagsJson LIKE '%' || :tag || '%' ORDER BY createdAt DESC")
-    suspend fun getBookmarksByTag(tag: String): List<BookmarkEntity>
+    @Query("UPDATE rp_bookmarks SET title = :title, note = :note, updatedAt = :updatedAt WHERE id = :id")
+    suspend fun updateBookmark(id: String, title: String, note: String, updatedAt: Long)
 }

@@ -2,7 +2,12 @@
 
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
+import com.eterultimate.eteruee.ui.theme.presets.ChatGptThemePreset
+import com.eterultimate.eteruee.ui.theme.presets.ClaudeThemePreset
 import com.eterultimate.eteruee.ui.theme.presets.CyberpunkThemePreset
+import com.eterultimate.eteruee.ui.theme.presets.GeminiThemePreset
+import com.eterultimate.eteruee.ui.theme.presets.MinimalThemePreset
+import com.eterultimate.eteruee.ui.theme.presets.SoftGlassThemePreset
 
 data class PresetTheme(
     val id: String,
@@ -15,14 +20,21 @@ data class PresetTheme(
     }
 }
 
+const val CyberpunkThemeId = "cyberpunk"
+
 val PresetThemes by lazy {
     listOf(
+        SoftGlassThemePreset,
+        MinimalThemePreset,
+        ClaudeThemePreset,
+        ChatGptThemePreset,
+        GeminiThemePreset,
         CyberpunkThemePreset,
     )
 }
 
 fun findPresetTheme(id: String): PresetTheme {
-    return PresetThemes.find { it.id == id } ?: CyberpunkThemePreset
+    return PresetThemes.find { it.id == id } ?: SoftGlassThemePreset
 }
 
 fun findThemeById(id: String, customThemes: List<CustomTheme>): PresetTheme? {

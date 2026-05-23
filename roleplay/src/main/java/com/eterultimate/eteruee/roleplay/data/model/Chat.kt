@@ -46,6 +46,7 @@ data class ChatMessage(
     val swipeAlternatives: List<String> = emptyList(),  // 滑动回复备选
     val speakerId: Uuid? = null,  // 群组聊天中的发言人角色ID（单聊为null）
     val speakerName: String? = null,  // 发言人名称（用于显示）
+    val isStreaming: Boolean = false,
     val extra: Map<String, JsonElement> = emptyMap()  // 透传字段
 )
 

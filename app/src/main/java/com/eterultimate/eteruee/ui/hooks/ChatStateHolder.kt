@@ -22,6 +22,9 @@ import kotlin.uuid.Uuid
 
 import com.eterultimate.eteruee.ai.sdk.ToolExecutor
 import com.eterultimate.eteruee.ai.sdk.streamTextWithTools
+import com.eterultimate.eteruee.ai.sdk.streamTextWithSubagent
+import com.eterultimate.eteruee.ai.subagent.SubagentTextChunk
+import com.eterultimate.eteruee.ai.subagent.SubagentToolExecutor
 
 /**
  * Chat 状态持有者
@@ -47,6 +50,8 @@ class ChatStateHolder(
     var onFinish: ((result: GenerateTextResult) -> Unit)? = null
     var onError: ((error: Exception) -> Unit)? = null
     var toolExecutor: ToolExecutor? = null
+    var subagentToolExecutor: SubagentToolExecutor? = null
+    var enableSubagent: Boolean = false
 
     fun appendNode(node: MessageNode) {
         _nodes.value = _nodes.value + node
@@ -60,7 +65,8 @@ class ChatStateHolder(
         model: Model,
         text: String,
         attachments: List<UIMessagePart> = emptyList(),
-        addMessage: Boolean = true
+        addMessage: Boolean = true,
+        useSubagent: Boolean = false
     ) {
         if (text.isBlank() && attachments.isEmpty() && addMessage) return
 
@@ -101,41 +107,160 @@ class ChatStateHolder(
 
                 // 4. 流式生成
                 var accumulatedText = ""
-                val stream = if (toolExecutor != null) {
-                    aiSDK.streamTextWithTools(request, toolExecutor!!)
-                } else {
-                    aiSDK.streamText(request)
-                }
 
-                stream.collectLatest { chunk ->
-                    when (chunk) {
-                        is TextChunk.TextDelta -> {
-                            accumulatedText += chunk.text
-                            updateAssistantMessage(assistantMessageId) {
-                                it.copy(parts = listOf(UIMessagePart.Text(text = accumulatedText)))
+                if (useSubagent && subagentToolExecutor != null) {
+                    // Subagent 模式
+                    val subagentStream = aiSDK.streamTextWithSubagent(
+                        request = request,
+                        toolExecutor = subagentToolExecutor!!
+                    )
+
+                    subagentStream.collectLatest { chunk ->
+                        when (chunk) {
+                            is SubagentTextChunk.TextDelta -> {
+                                accumulatedText += chunk.text
+                                updateAssistantMessage(assistantMessageId) {
+                                    it.copy(parts = listOf(UIMessagePart.Text(text = accumulatedText)))
+                                }
                             }
-                        }
-                        is TextChunk.Usage -> {
-                            updateAssistantMessage(assistantMessageId) {
-                                it.copy(usage = chunk.tokenUsage)
+                            is SubagentTextChunk.PlanGenerated -> {
+                                // 在消息中添加 plan 信息
+                                updateAssistantMessage(assistantMessageId) {
+                                    val planPart = UIMessagePart.SubagentPlan(
+                                        planId = chunk.plan.planId,
+                                        planText = chunk.plan.planText,
+                                        reasoning = chunk.plan.reasoning,
+                                        steps = chunk.plan.steps.map { step ->
+                                            UIMessagePart.PlanStep(
+                                                stepId = step.stepId,
+                                                toolName = step.toolName,
+                                                description = step.description,
+                                                arguments = step.arguments,
+                                                status = UIMessagePart.StepStatus.PENDING,
+                                                dependsOn = step.dependsOn
+                                            )
+                                        },
+                                        isExecuting = true
+                                    )
+                                    it.copy(parts = listOf(planPart))
+                                }
                             }
-                        }
-                        is TextChunk.Finish -> {
-                            _isLoading.value = false
-                            val finalMessage = _nodes.value.lastOrNull { it.currentMessage.id == assistantMessageId }?.currentMessage
-                            if (finalMessage != null) {
-                                val result = GenerateTextResult(
-                                    text = accumulatedText,
-                                    usage = finalMessage.usage,
-                                    finishReason = FinishReason.STOP,
-                                    message = finalMessage
-                                )
-                                onFinish?.invoke(result)
+                            is SubagentTextChunk.StepExecuting -> {
+                                // 更新 plan 中的步骤状态
+                                updateAssistantMessage(assistantMessageId) {
+                                    val updatedParts = it.parts.map { part ->
+                                        if (part is UIMessagePart.SubagentPlan) {
+                                            part.copy(
+                                                steps = part.steps.map { step ->
+                                                    if (step.stepId == chunk.stepId) {
+                                                        step.copy(status = UIMessagePart.StepStatus.RUNNING)
+                                                    } else step
+                                                }
+                                            )
+                                        } else part
+                                    }
+                                    it.copy(parts = updatedParts)
+                                }
                             }
+                            is SubagentTextChunk.StepCompleted -> {
+                                // 更新 plan 中的步骤状态和结果
+                                updateAssistantMessage(assistantMessageId) {
+                                    val updatedParts = it.parts.map { part ->
+                                        if (part is UIMessagePart.SubagentPlan) {
+                                            part.copy(
+                                                steps = part.steps.map { step ->
+                                                    if (step.stepId == chunk.stepId) {
+                                                        step.copy(status = if (chunk.result.isError)
+                                                            UIMessagePart.StepStatus.FAILED
+                                                        else
+                                                            UIMessagePart.StepStatus.COMPLETED
+                                                        )
+                                                    } else step
+                                                },
+                                                executionResults = part.executionResults + UIMessagePart.PlanStepResult(
+                                                    stepId = chunk.result.stepId,
+                                                    result = chunk.result.result,
+                                                    isError = chunk.result.isError
+                                                )
+                                            )
+                                        } else part
+                                    }
+                                    it.copy(parts = updatedParts)
+                                }
+                            }
+                            is SubagentTextChunk.PlanExecuted -> {
+                                updateAssistantMessage(assistantMessageId) {
+                                    val updatedParts = it.parts.map { part ->
+                                        if (part is UIMessagePart.SubagentPlan) {
+                                            part.copy(isExecuting = false)
+                                        } else part
+                                    }
+                                    it.copy(parts = updatedParts)
+                                }
+                            }
+                            is SubagentTextChunk.Usage -> {
+                                updateAssistantMessage(assistantMessageId) {
+                                    it.copy(usage = chunk.tokenUsage)
+                                }
+                            }
+                            is SubagentTextChunk.Error -> {
+                                _error.value = Exception(chunk.error)
+                                _isLoading.value = false
+                            }
+                            SubagentTextChunk.Finish -> {
+                                _isLoading.value = false
+                                val finalMessage = _nodes.value.lastOrNull { it.currentMessage.id == assistantMessageId }?.currentMessage
+                                if (finalMessage != null) {
+                                    val result = GenerateTextResult(
+                                        text = accumulatedText,
+                                        usage = finalMessage.usage,
+                                        finishReason = FinishReason.STOP,
+                                        message = finalMessage
+                                    )
+                                    onFinish?.invoke(result)
+                                }
+                            }
+                            else -> {}
                         }
-                        is TextChunk.ToolCall -> {
-                            // 工具调用由 streamTextWithTools 内部处理并产生新的 TextDelta
-                            // 这里可以更新 UI 显示正在调用工具
+                    }
+                } else {
+                    // 标准模式
+                    val stream = if (toolExecutor != null) {
+                        aiSDK.streamTextWithTools(request, toolExecutor!!)
+                    } else {
+                        aiSDK.streamText(request)
+                    }
+
+                    stream.collectLatest { chunk ->
+                        when (chunk) {
+                            is TextChunk.TextDelta -> {
+                                accumulatedText += chunk.text
+                                updateAssistantMessage(assistantMessageId) {
+                                    it.copy(parts = listOf(UIMessagePart.Text(text = accumulatedText)))
+                                }
+                            }
+                            is TextChunk.Usage -> {
+                                updateAssistantMessage(assistantMessageId) {
+                                    it.copy(usage = chunk.tokenUsage)
+                                }
+                            }
+                            is TextChunk.Finish -> {
+                                _isLoading.value = false
+                                val finalMessage = _nodes.value.lastOrNull { it.currentMessage.id == assistantMessageId }?.currentMessage
+                                if (finalMessage != null) {
+                                    val result = GenerateTextResult(
+                                        text = accumulatedText,
+                                        usage = finalMessage.usage,
+                                        finishReason = FinishReason.STOP,
+                                        message = finalMessage
+                                    )
+                                    onFinish?.invoke(result)
+                                }
+                            }
+                            is TextChunk.ToolCall -> {
+                                // 工具调用由 streamTextWithTools 内部处理并产生新的 TextDelta
+                                // 这里可以更新 UI 显示正在调用工具
+                            }
                         }
                     }
                 }

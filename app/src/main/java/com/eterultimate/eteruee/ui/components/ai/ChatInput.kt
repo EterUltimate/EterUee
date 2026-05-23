@@ -134,6 +134,7 @@ import com.eterultimate.eteruee.data.model.Conversation
 import com.eterultimate.eteruee.data.model.QuickMessage
 import com.eterultimate.eteruee.ui.components.ui.ExtensionSelector
 import com.eterultimate.eteruee.ui.components.ui.KeepScreenOn
+import com.eterultimate.eteruee.ui.components.ui.ToggleSurface
 import com.eterultimate.eteruee.ui.components.ui.permission.PermissionCamera
 import com.eterultimate.eteruee.ui.components.ui.permission.PermissionManager
 import com.eterultimate.eteruee.ui.components.ui.permission.rememberPermissionState
@@ -160,6 +161,8 @@ fun ChatInput(
     hazeState: HazeState,
     enableSearch: Boolean,
     onToggleSearch: (Boolean) -> Unit,
+    enableSubagent: Boolean = false,
+    onToggleSubagent: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier,
     onUpdateChatModel: (Model) -> Unit,
     onUpdateAssistant: (Assistant) -> Unit,
@@ -499,6 +502,11 @@ fun ChatInput(
                                 model = chatModel,
                             )
 
+                            SubagentToggleButton(
+                                enabled = enableSubagent,
+                                onToggle = onToggleSubagent
+                            )
+
                             // Reasoning
                             val model = settings.getCurrentChatModel()
                             if (model?.abilities?.contains(ModelAbility.REASONING) == true) {
@@ -652,6 +660,38 @@ private fun ActionIconButton(
             modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
         ) {
             content()
+        }
+    }
+}
+
+@Composable
+private fun SubagentToggleButton(
+    enabled: Boolean,
+    onToggle: (Boolean) -> Unit,
+) {
+    val toaster = LocalToaster.current
+    ToggleSurface(
+        checked = enabled,
+        onClick = {
+            val next = !enabled
+            onToggle(next)
+            toaster.show(
+                message = if (next) "Subagent enabled" else "Subagent disabled",
+                duration = 1.seconds,
+                type = if (next) ToastType.Success else ToastType.Normal
+            )
+        }
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(vertical = 8.dp, horizontal = 8.dp)
+                .size(24.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = HugeIcons.Zap,
+                contentDescription = "Subagent"
+            )
         }
     }
 }

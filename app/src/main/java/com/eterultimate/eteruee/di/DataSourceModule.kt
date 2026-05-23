@@ -149,6 +149,7 @@ val dataSourceModule = module {
         GenerationHandler(
             context = get(),
             providerManager = get(),
+            aiSDK = get(),
             json = get(),
             memoryRepo = get(),
             conversationRepo = get(),

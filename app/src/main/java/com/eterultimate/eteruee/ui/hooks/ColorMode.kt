@@ -10,12 +10,13 @@ import com.eterultimate.eteruee.ui.theme.ColorMode
 
 @Composable
 fun rememberColorMode(): MutableState<ColorMode> {
-    var colorModeValue by rememberSharedPreferenceString("colorMode", "SYSTEM")
+    var colorModeValue by rememberSharedPreferenceString("colorMode", ColorMode.SYSTEM.name)
     val colorMode by remember(colorModeValue) {
         derivedStateOf {
             ColorMode.entries.firstOrNull { it.name == colorModeValue } ?: ColorMode.SYSTEM
         }
     }
+
     return remember {
         object : MutableState<ColorMode> {
             override var value: ColorMode
@@ -25,7 +26,6 @@ fun rememberColorMode(): MutableState<ColorMode> {
                 }
 
             override fun component1(): ColorMode = value
-
             override fun component2(): (ColorMode) -> Unit = { value = it }
         }
     }

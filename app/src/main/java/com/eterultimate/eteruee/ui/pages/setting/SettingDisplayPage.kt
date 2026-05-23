@@ -1,7 +1,6 @@
 ﻿package com.eterultimate.eteruee.ui.pages.setting
 
 import android.os.Build
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,10 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -31,16 +27,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import me.rerere.hugeicons.HugeIcons
-import me.rerere.hugeicons.stroke.ArrowRight01
 import com.eterultimate.eteruee.R
-import com.eterultimate.eteruee.Screen
 import com.eterultimate.eteruee.data.datastore.ChatFontFamily
 import com.eterultimate.eteruee.data.datastore.DisplaySetting
 import com.eterultimate.eteruee.ui.components.nav.BackButton
@@ -49,9 +41,11 @@ import com.eterultimate.eteruee.ui.components.ui.CardGroup
 import com.eterultimate.eteruee.ui.components.ui.permission.PermissionManager
 import com.eterultimate.eteruee.ui.components.ui.permission.PermissionNotification
 import com.eterultimate.eteruee.ui.components.ui.permission.rememberPermissionState
-import com.eterultimate.eteruee.ui.context.LocalNavController
 import com.eterultimate.eteruee.ui.hooks.rememberAmoledDarkMode
+import com.eterultimate.eteruee.ui.hooks.rememberColorMode
 import com.eterultimate.eteruee.ui.hooks.rememberSharedPreferenceBoolean
+import com.eterultimate.eteruee.ui.pages.setting.components.PresetThemeButtonGroup
+import com.eterultimate.eteruee.ui.theme.ColorMode
 import com.eterultimate.eteruee.ui.theme.CustomColors
 import com.eterultimate.eteruee.utils.plus
 import org.koin.androidx.compose.koinViewModel
@@ -60,6 +54,7 @@ import org.koin.androidx.compose.koinViewModel
 fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
     val settings by vm.settings.collectAsStateWithLifecycle()
     var displaySetting by remember(settings) { mutableStateOf(settings.displaySetting) }
+    var colorMode by rememberColorMode()
     var amoledDarkMode by rememberAmoledDarkMode()
 
     fun updateDisplaySetting(setting: DisplaySetting) {
@@ -98,59 +93,60 @@ fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                Column(
+                CardGroup(
                     modifier = Modifier.padding(horizontal = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                    title = { Text(stringResource(R.string.setting_page_theme_setting)) },
                 ) {
-                    Text(
-                        text = stringResource(R.string.setting_page_theme_setting),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 8.dp)
+                    item(
+                        headlineContent = { Text(stringResource(R.string.setting_page_color_mode)) },
+                        supportingContent = {
+                            val colorModeOptions = listOf(
+                                ColorMode.SYSTEM to stringResource(R.string.setting_page_color_mode_system),
+                                ColorMode.LIGHT to stringResource(R.string.setting_page_color_mode_light),
+                                ColorMode.DARK to stringResource(R.string.setting_page_color_mode_dark),
+                            )
+                            SingleChoiceSegmentedButtonRow(
+                                modifier = Modifier
+                                    .padding(top = 4.dp)
+                                    .fillMaxWidth()
+                            ) {
+                                colorModeOptions.forEachIndexed { index, (mode, label) ->
+                                    SegmentedButton(
+                                        selected = colorMode == mode,
+                                        onClick = { colorMode = mode },
+                                        shape = SegmentedButtonDefaults.itemShape(index, colorModeOptions.size),
+                                    ) {
+                                        Text(text = label)
+                                    }
+                                }
+                            }
+                        },
                     )
-                    ListItem(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(
-                                RoundedCornerShape(
-                                    topStart = 20.dp,
-                                    topEnd = 20.dp,
-                                    bottomStart = 4.dp,
-                                    bottomEnd = 4.dp
-                                )
-                            ),
+                    item(
                         headlineContent = { Text(stringResource(R.string.setting_page_dynamic_color)) },
                         supportingContent = { Text(stringResource(R.string.setting_page_dynamic_color_desc)) },
                         trailingContent = {
                             Switch(
                                 checked = settings.dynamicColor,
-                                onCheckedChange = { vm.updateSettings(settings.copy(dynamicColor = it)) },
+                                onCheckedChange = {
+                                    vm.updateSettings(settings.copy(dynamicColor = it))
+                                }
                             )
                         },
-                        colors = CustomColors.listItemColors,
                     )
-                    val navController = LocalNavController.current
-                    ListItem(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(4.dp))
-                            .clickable { navController.navigate(Screen.SettingTheme) },
-                        headlineContent = { Text(stringResource(R.string.setting_page_theme_setting)) },
-                        supportingContent = { Text(stringResource(R.string.setting_page_theme_setting_desc)) },
-                        trailingContent = { Icon(HugeIcons.ArrowRight01, contentDescription = null) },
-                        colors = CustomColors.listItemColors,
+                    item(
+                        headlineContent = { Text(stringResource(R.string.setting_display_page_theme_preset_title)) },
+                        supportingContent = {
+                            PresetThemeButtonGroup(
+                                themeId = settings.themeId,
+                                modifier = Modifier.fillMaxWidth(),
+                                onChangeTheme = {
+                                    vm.updateSettings(settings.copy(dynamicColor = false, themeId = it))
+                                },
+                            )
+                        },
                     )
-                    ListItem(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(
-                                RoundedCornerShape(
-                                    topStart = 4.dp,
-                                    topEnd = 4.dp,
-                                    bottomStart = 20.dp,
-                                    bottomEnd = 20.dp
-                                )
-                            ),
+                    item(
                         headlineContent = { Text(stringResource(R.string.setting_display_page_amoled_dark_mode_title)) },
                         supportingContent = { Text(stringResource(R.string.setting_display_page_amoled_dark_mode_desc)) },
                         trailingContent = {
@@ -159,7 +155,6 @@ fun SettingDisplayPage(vm: SettingVM = koinViewModel()) {
                                 onCheckedChange = { amoledDarkMode = it }
                             )
                         },
-                        colors = CustomColors.listItemColors,
                     )
                 }
             }

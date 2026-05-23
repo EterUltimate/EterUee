@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Icon
@@ -70,8 +72,12 @@ import com.eterultimate.eteruee.ai.ui.UIMessageAnnotation
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.ai.ui.isEmptyUIMessage
 import me.rerere.hugeicons.HugeIcons
+import me.rerere.hugeicons.stroke.CheckmarkCircle02
+import me.rerere.hugeicons.stroke.Circle
 import me.rerere.hugeicons.stroke.File02
 import me.rerere.hugeicons.stroke.MusicNote03
+import me.rerere.hugeicons.stroke.Settings05
+import me.rerere.hugeicons.stroke.Unavailable
 import me.rerere.hugeicons.stroke.Video01
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.Screen
@@ -542,6 +548,10 @@ private fun MessagePartsBlock(
                         }
                     }
 
+                    is UIMessagePart.SubagentPlan -> {
+                        SubagentPlanBlock(part)
+                    }
+
                     else -> {
                         // Skip unknown part types (e.g., deprecated ToolCall, ToolResult, Search)
                     }
@@ -603,6 +613,116 @@ private fun MessagePartsBlock(
                 }
             ) {
                 Text(stringResource(R.string.citations_count, annotations.size))
+            }
+        }
+    }
+}
+
+@Composable
+private fun SubagentPlanBlock(plan: UIMessagePart.SubagentPlan) {
+    Column(
+        modifier = Modifier
+            .animateContentSize()
+            .drawWithContent {
+                drawContent()
+                drawRoundRect(
+                    color = Color(0xFF4CAF50).copy(alpha = 0.25f),
+                    size = Size(width = 8f, height = size.height),
+                )
+            }
+            .padding(start = 14.dp)
+            .padding(vertical = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Text(
+            text = if (plan.isExecuting) "Subagent planning" else "Subagent plan",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            text = plan.planText.ifBlank { "No external tool is needed." },
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        if (plan.reasoning.isNotBlank()) {
+            Text(
+                text = plan.reasoning,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        plan.steps.forEach { step ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val (icon, tint, label) = when (step.status) {
+                    UIMessagePart.StepStatus.PENDING -> Triple(
+                        HugeIcons.Circle,
+                        MaterialTheme.colorScheme.onSurfaceVariant,
+                        "Pending"
+                    )
+
+                    UIMessagePart.StepStatus.RUNNING -> Triple(
+                        HugeIcons.Settings05,
+                        MaterialTheme.colorScheme.primary,
+                        "Running"
+                    )
+
+                    UIMessagePart.StepStatus.COMPLETED -> Triple(
+                        HugeIcons.CheckmarkCircle02,
+                        MaterialTheme.colorScheme.primary,
+                        "Done"
+                    )
+
+                    UIMessagePart.StepStatus.FAILED -> Triple(
+                        HugeIcons.Unavailable,
+                        MaterialTheme.colorScheme.error,
+                        "Failed"
+                    )
+                }
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = tint,
+                    modifier = Modifier.size(16.dp)
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = step.description.ifBlank { step.toolName },
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = "${step.toolName} · $label",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
+        val failed = plan.executionResults.count { it.isError }
+        val succeeded = plan.executionResults.count { !it.isError }
+        if (succeeded + failed > 0) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "$succeeded completed",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (failed > 0) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "$failed failed",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
         }
     }

@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.put
 import com.eterultimate.eteruee.ai.core.MessageRole
 import com.eterultimate.eteruee.ai.core.ReasoningLevel
@@ -25,6 +26,14 @@ import com.eterultimate.eteruee.ai.provider.ProviderManager
 import com.eterultimate.eteruee.ai.provider.ProviderSetting
 import com.eterultimate.eteruee.ai.provider.TextGenerationParams
 import com.eterultimate.eteruee.ai.registry.ModelRegistry
+import com.eterultimate.eteruee.ai.sdk.AISDK
+import com.eterultimate.eteruee.ai.sdk.ToolExecutor
+import com.eterultimate.eteruee.ai.sdk.ToolResult
+import com.eterultimate.eteruee.ai.sdk.streamTextWithSubagent
+import com.eterultimate.eteruee.ai.subagent.DefaultSubagentToolExecutor
+import com.eterultimate.eteruee.ai.subagent.PlanStepResult
+import com.eterultimate.eteruee.ai.subagent.SubagentPlan
+import com.eterultimate.eteruee.ai.subagent.SubagentTextChunk
 import com.eterultimate.eteruee.ai.ui.UIMessage
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.ai.ui.ToolApprovalState
@@ -61,6 +70,7 @@ sealed interface GenerationChunk {
 class GenerationHandler(
     private val context: Context,
     private val providerManager: ProviderManager,
+    private val aiSDK: AISDK,
     private val json: Json,
     private val memoryRepo: MemoryRepository,
     private val conversationRepo: ConversationRepository,
@@ -91,7 +101,7 @@ class GenerationHandler(
 
             val toolsInternal = buildList {
                 Log.i(TAG, "generateInternal: build tools($assistant)")
-                if (assistant?.enableMemory == true) {
+                if (assistant.enableMemory == true) {
                     val memoryAssistantId = if (assistant.useGlobalMemory) {
                         MemoryRepository.GLOBAL_MEMORY_ID
                     } else {
@@ -117,6 +127,29 @@ class GenerationHandler(
             val pendingTools = messages.lastOrNull()?.getTools()?.filter {
                 it.canResumeExecution
             } ?: emptyList()
+
+            if (settings.enableSubagent && pendingTools.isEmpty()) {
+                messages = generateWithSubagent(
+                    settings = settings,
+                    model = model,
+                    messages = messages,
+                    inputTransformers = inputTransformers,
+                    outputTransformers = outputTransformers,
+                    assistant = assistant,
+                    memories = memories ?: emptyList(),
+                    tools = toolsInternal,
+                    provider = provider,
+                    processingStatus = processingStatus,
+                    conversationSystemPrompt = conversationSystemPrompt,
+                    conversationModeInjectionIds = conversationModeInjectionIds,
+                    conversationLorebookIds = conversationLorebookIds,
+                    onUpdateMessages = {
+                        messages = it
+                        emit(GenerationChunk.Messages(it))
+                    }
+                )
+                break
+            }
 
             val toolsToProcess: List<UIMessagePart.Tool>
 
@@ -350,45 +383,18 @@ class GenerationHandler(
         conversationModeInjectionIds: Set<Uuid> = emptySet(),
         conversationLorebookIds: Set<Uuid> = emptySet(),
     ) {
-        val internalMessages = buildList {
-            val system = buildString {
-                val effectiveSystemPrompt =
-                    if (assistant.allowConversationSystemPrompt && !conversationSystemPrompt.isNullOrBlank()) {
-                        conversationSystemPrompt
-                    } else {
-                        assistant.systemPrompt
-                    }
-                if (effectiveSystemPrompt.isNotBlank()) {
-                    append(effectiveSystemPrompt)
-                }
-
-                // 记忆
-                if (assistant.enableMemory) {
-                    appendLine()
-                    append(buildMemoryPrompt(memories = memories))
-                }
-                if (assistant.enableRecentChatsReference) {
-                    appendLine()
-                    append(buildRecentChatsPrompt(assistant, conversationRepo))
-                }
-
-                // 工具prompt
-                tools.forEach { tool ->
-                    appendLine()
-                    append(tool.systemPrompt(model, messages))
-                }
-            }
-            if (system.isNotBlank()) add(UIMessage.system(prompt = system))
-            addAll(messages.limitContext(assistant.contextMessageSize))
-        }.transforms(
-            transformers = transformers,
-            context = context,
-            model = model,
+        val internalMessages = buildInternalMessages(
             assistant = assistant,
             settings = settings,
+            messages = messages,
+            transformers = transformers,
+            model = model,
+            tools = tools,
+            memories = memories,
+            processingStatus = processingStatus,
+            conversationSystemPrompt = conversationSystemPrompt,
             conversationModeInjectionIds = conversationModeInjectionIds,
             conversationLorebookIds = conversationLorebookIds,
-            processingStatus = processingStatus,
         )
 
         var messages: List<UIMessage> = messages
@@ -461,6 +467,355 @@ class GenerationHandler(
                 }
             }
             onUpdateMessages(messages)
+        }
+    }
+
+    private suspend fun generateWithSubagent(
+        settings: Settings,
+        model: Model,
+        messages: List<UIMessage>,
+        inputTransformers: List<InputMessageTransformer>,
+        outputTransformers: List<OutputMessageTransformer>,
+        assistant: Assistant,
+        memories: List<AssistantMemory>,
+        tools: List<Tool>,
+        provider: ProviderSetting,
+        processingStatus: MutableStateFlow<String?>,
+        conversationSystemPrompt: String?,
+        conversationModeInjectionIds: Set<Uuid>,
+        conversationLorebookIds: Set<Uuid>,
+        onUpdateMessages: suspend (List<UIMessage>) -> Unit,
+    ): List<UIMessage> {
+        val executableTools = tools.filterNot { it.needsApproval }
+        if (executableTools.size < tools.size) {
+            Log.i(TAG, "generateWithSubagent: skipped ${tools.size - executableTools.size} approval-required tools")
+        }
+        val internalMessages = buildInternalMessages(
+            assistant = assistant,
+            settings = settings,
+            messages = messages,
+            transformers = inputTransformers,
+            model = model,
+            tools = executableTools,
+            memories = memories,
+            processingStatus = processingStatus,
+            conversationSystemPrompt = conversationSystemPrompt,
+            conversationModeInjectionIds = conversationModeInjectionIds,
+            conversationLorebookIds = conversationLorebookIds,
+        )
+
+        val params = TextGenerationParams(
+            model = model,
+            temperature = assistant.temperature,
+            topP = assistant.topP,
+            maxTokens = assistant.maxTokens,
+            tools = executableTools,
+            reasoningLevel = assistant.reasoningLevel,
+            customHeaders = buildList {
+                addAll(assistant.customHeaders)
+                addAll(model.customHeaders)
+            },
+            customBody = buildList {
+                addAll(assistant.customBodies)
+                addAll(model.customBodies)
+            }
+        )
+        aiLoggingManager.addLog(
+            AILogging.Generation(
+                params = params,
+                messages = internalMessages,
+                providerSetting = provider,
+                stream = assistant.streamOutput
+            )
+        )
+
+        val toolExecutor = DefaultSubagentToolExecutor(InMemoryToolExecutor(executableTools, json))
+        var outputMessages = ensureAssistantMessage(messages)
+        var generatedText = outputMessages.last().toText()
+
+        aiSDK.streamTextWithSubagent(
+            request = com.eterultimate.eteruee.ai.sdk.StreamTextRequest(
+                model = model,
+                messages = internalMessages,
+                temperature = assistant.temperature,
+                topP = assistant.topP,
+                maxTokens = assistant.maxTokens,
+                tools = executableTools,
+                customHeaders = params.customHeaders,
+                customBody = params.customBody,
+            ),
+            toolExecutor = toolExecutor
+        ).collect { chunk ->
+            processingStatus.value = when (chunk) {
+                is SubagentTextChunk.PlanGenerating -> chunk.status
+                is SubagentTextChunk.Status -> chunk.status
+                is SubagentTextChunk.StepExecuting -> "正在执行工具: ${chunk.toolName}"
+                else -> processingStatus.value
+            }
+
+            outputMessages = when (chunk) {
+                is SubagentTextChunk.PlanGenerated -> {
+                    outputMessages.updateAssistantSubagentPlan(chunk.plan)
+                }
+
+                is SubagentTextChunk.StepExecuting -> {
+                    outputMessages.updateAssistantSubagentStep(chunk.stepId, UIMessagePart.StepStatus.RUNNING)
+                }
+
+                is SubagentTextChunk.StepCompleted -> {
+                    outputMessages.updateAssistantSubagentResult(chunk.stepId, chunk.result)
+                }
+
+                is SubagentTextChunk.PlanExecuted -> {
+                    outputMessages.updateAssistantSubagentExecuting(false)
+                }
+
+                is SubagentTextChunk.TextDelta -> {
+                    generatedText += chunk.text
+                    outputMessages.updateAssistantText(generatedText)
+                }
+
+                is SubagentTextChunk.Usage -> {
+                    outputMessages.updateLastAssistant { message ->
+                        message.copy(usage = message.usage.merge(chunk.tokenUsage))
+                    }
+                }
+
+                is SubagentTextChunk.Error -> {
+                    outputMessages.updateAssistantText(chunk.error)
+                }
+
+                else -> outputMessages
+            }
+
+            val transformed = outputMessages.transforms(
+                transformers = outputTransformers,
+                context = context,
+                model = model,
+                assistant = assistant,
+                settings = settings
+            ).visualTransforms(
+                transformers = outputTransformers,
+                context = context,
+                model = model,
+                assistant = assistant,
+                settings = settings
+            )
+            onUpdateMessages(transformed)
+        }
+
+        processingStatus.value = null
+        outputMessages = outputMessages.visualTransforms(
+            transformers = outputTransformers,
+            context = context,
+            model = model,
+            assistant = assistant,
+            settings = settings
+        ).onGenerationFinish(
+            transformers = outputTransformers,
+            context = context,
+            model = model,
+            assistant = assistant,
+            settings = settings
+        )
+
+        val finalMessages = outputMessages.slice(0 until outputMessages.lastIndex) + outputMessages.last().copy(
+            finishedAt = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        )
+        onUpdateMessages(finalMessages)
+        return finalMessages
+    }
+
+    private suspend fun buildInternalMessages(
+        assistant: Assistant,
+        settings: Settings,
+        messages: List<UIMessage>,
+        transformers: List<MessageTransformer>,
+        model: Model,
+        tools: List<Tool>,
+        memories: List<AssistantMemory>,
+        processingStatus: MutableStateFlow<String?> = MutableStateFlow(null),
+        conversationSystemPrompt: String? = null,
+        conversationModeInjectionIds: Set<Uuid> = emptySet(),
+        conversationLorebookIds: Set<Uuid> = emptySet(),
+    ): List<UIMessage> {
+        return buildList {
+            val system = buildString {
+                val effectiveSystemPrompt =
+                    if (assistant.allowConversationSystemPrompt && !conversationSystemPrompt.isNullOrBlank()) {
+                        conversationSystemPrompt
+                    } else {
+                        assistant.systemPrompt
+                    }
+                if (effectiveSystemPrompt.isNotBlank()) {
+                    append(effectiveSystemPrompt)
+                }
+                if (assistant.enableMemory) {
+                    appendLine()
+                    append(buildMemoryPrompt(memories = memories))
+                }
+                if (assistant.enableRecentChatsReference) {
+                    appendLine()
+                    append(buildRecentChatsPrompt(assistant, conversationRepo))
+                }
+                tools.forEach { tool ->
+                    appendLine()
+                    append(tool.systemPrompt(model, messages))
+                }
+            }
+            if (system.isNotBlank()) add(UIMessage.system(prompt = system))
+            addAll(messages.limitContext(assistant.contextMessageSize))
+        }.transforms(
+            transformers = transformers,
+            context = context,
+            model = model,
+            assistant = assistant,
+            settings = settings,
+            conversationModeInjectionIds = conversationModeInjectionIds,
+            conversationLorebookIds = conversationLorebookIds,
+            processingStatus = processingStatus,
+        )
+    }
+
+    private class InMemoryToolExecutor(
+        private val tools: List<Tool>,
+        private val json: Json
+    ) : ToolExecutor {
+        override suspend fun execute(toolCallId: String, toolName: String, arguments: String): ToolResult {
+            return runCatching {
+                val tool = tools.find { it.name == toolName }
+                    ?: throw IllegalArgumentException("Tool not found: $toolName")
+                val args = json.parseToJsonElement(arguments.ifBlank { "{}" })
+                val outputParts = tool.execute(args)
+                ToolResult(
+                    toolCallId = toolCallId,
+                    result = outputParts.joinToString("\n") { part ->
+                        when (part) {
+                            is UIMessagePart.Text -> part.text
+                            else -> json.encodeToString(part)
+                        }
+                    }
+                )
+            }.getOrElse { error ->
+                ToolResult(
+                    toolCallId = toolCallId,
+                    result = "Error: ${error.message}",
+                    isError = true
+                )
+            }
+        }
+    }
+
+    private fun ensureAssistantMessage(messages: List<UIMessage>): List<UIMessage> {
+        if (messages.lastOrNull()?.role == MessageRole.ASSISTANT) {
+            return messages
+        }
+        return messages + UIMessage(
+            id = Uuid.random(),
+            role = MessageRole.ASSISTANT,
+            parts = emptyList()
+        )
+    }
+
+    private fun List<UIMessage>.updateLastAssistant(transform: (UIMessage) -> UIMessage): List<UIMessage> {
+        val index = indexOfLast { it.role == MessageRole.ASSISTANT }
+        if (index == -1) return this
+        return mapIndexed { messageIndex, message ->
+            if (messageIndex == index) transform(message) else message
+        }
+    }
+
+    private fun List<UIMessage>.updateAssistantText(text: String): List<UIMessage> {
+        return updateLastAssistant { message ->
+            val partsWithoutText = message.parts.filterNot { it is UIMessagePart.Text }
+            message.copy(parts = partsWithoutText + UIMessagePart.Text(text))
+        }
+    }
+
+    private fun List<UIMessage>.updateAssistantSubagentPlan(plan: SubagentPlan): List<UIMessage> {
+        return updateLastAssistant { message ->
+            val planPart = UIMessagePart.SubagentPlan(
+                planId = plan.planId,
+                planText = plan.planText,
+                reasoning = plan.reasoning,
+                steps = plan.steps.map { step ->
+                    UIMessagePart.PlanStep(
+                        stepId = step.stepId,
+                        toolName = step.toolName,
+                        description = step.description,
+                        arguments = step.arguments,
+                        status = UIMessagePart.StepStatus.PENDING,
+                        dependsOn = step.dependsOn
+                    )
+                },
+                isExecuting = plan.steps.isNotEmpty()
+            )
+            val parts = message.parts.filterNot { it is UIMessagePart.SubagentPlan } + planPart
+            message.copy(parts = parts)
+        }
+    }
+
+    private fun List<UIMessage>.updateAssistantSubagentStep(
+        stepId: String,
+        status: UIMessagePart.StepStatus
+    ): List<UIMessage> {
+        return updateLastAssistant { message ->
+            message.copy(
+                parts = message.parts.map { part ->
+                    if (part is UIMessagePart.SubagentPlan) {
+                        part.copy(
+                            steps = part.steps.map { step ->
+                                if (step.stepId == stepId) step.copy(status = status) else step
+                            }
+                        )
+                    } else {
+                        part
+                    }
+                }
+            )
+        }
+    }
+
+    private fun List<UIMessage>.updateAssistantSubagentResult(
+        stepId: String,
+        result: PlanStepResult
+    ): List<UIMessage> {
+        val status = if (result.isError) UIMessagePart.StepStatus.FAILED else UIMessagePart.StepStatus.COMPLETED
+        return updateLastAssistant { message ->
+            message.copy(
+                parts = message.parts.map { part ->
+                    if (part is UIMessagePart.SubagentPlan) {
+                        part.copy(
+                            steps = part.steps.map { step ->
+                                if (step.stepId == stepId) step.copy(status = status) else step
+                            },
+                            executionResults = part.executionResults.filterNot {
+                                it.stepId == result.stepId
+                            } + UIMessagePart.PlanStepResult(
+                                stepId = result.stepId,
+                                result = result.result,
+                                isError = result.isError
+                            )
+                        )
+                    } else {
+                        part
+                    }
+                }
+            )
+        }
+    }
+
+    private fun List<UIMessage>.updateAssistantSubagentExecuting(isExecuting: Boolean): List<UIMessage> {
+        return updateLastAssistant { message ->
+            message.copy(
+                parts = message.parts.map { part ->
+                    if (part is UIMessagePart.SubagentPlan) {
+                        part.copy(isExecuting = isExecuting)
+                    } else {
+                        part
+                    }
+                }
+            )
         }
     }
 

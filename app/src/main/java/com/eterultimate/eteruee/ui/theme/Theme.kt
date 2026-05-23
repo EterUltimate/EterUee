@@ -20,10 +20,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import kotlinx.serialization.Serializable
 import com.eterultimate.eteruee.ui.hooks.rememberAmoledDarkMode
 import com.eterultimate.eteruee.ui.hooks.rememberColorMode
 import com.eterultimate.eteruee.ui.hooks.rememberUserSettingsState
+import kotlinx.serialization.Serializable
 
 private val ExtendLightColors = lightExtendColors()
 private val ExtendDarkColors = darkExtendColors()
@@ -45,7 +45,6 @@ fun EterUeeTheme(
     content: @Composable () -> Unit
 ) {
     val settings by rememberUserSettingsState()
-
     val colorMode by rememberColorMode()
     val darkTheme = when (colorMode) {
         ColorMode.SYSTEM -> isSystemInDarkTheme()
@@ -98,7 +97,11 @@ fun EterUeeTheme(
         MaterialExpressiveTheme(
             colorScheme = colorSchemeConverted,
             typography = Typography,
-            shapes = CyberpunkShapes,
+            shapes = if (settings.themeId == CyberpunkThemeId && !settings.dynamicColor) {
+                CyberpunkShapes
+            } else {
+                EterUeeShapes
+            },
             content = content,
             motionScheme = MotionScheme.expressive()
         )

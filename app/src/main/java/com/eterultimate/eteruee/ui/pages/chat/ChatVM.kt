@@ -29,8 +29,8 @@ import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.datastore.getCurrentChatModel
 import com.eterultimate.eteruee.data.files.FilesManager
+import com.eterultimate.eteruee.data.ai.ChatSubagentExecutor
 import com.eterultimate.eteruee.data.ai.ChatToolExecutor
-import com.eterultimate.eteruee.data.ai.DynamicAISDK
 import com.eterultimate.eteruee.data.files.SkillManager
 import com.eterultimate.eteruee.data.model.Assistant
 import com.eterultimate.eteruee.data.model.Avatar
@@ -101,6 +101,14 @@ class ChatVM(
     // MCP管理器
     val mcpManager = chatService.mcpManager
 
+    // Subagent 支持
+    private var chatSubagentExecutor: ChatSubagentExecutor? = null
+
+    // Subagent 启用状态（可从设置中控制）
+    val enableSubagent = settings.map {
+        it.enableSubagent
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     init {
         // 配置工具执行器
         chatState.toolExecutor = ChatToolExecutor(
@@ -109,6 +117,14 @@ class ChatVM(
             localTools = localTools,
             skillManager = skillManager
         )
+
+        // 配置 Subagent 执行器
+        chatSubagentExecutor = ChatSubagentExecutor(
+            mcpManager = mcpManager,
+            localTools = localTools,
+            skillManager = skillManager
+        )
+        chatState.subagentToolExecutor = chatSubagentExecutor?.createToolExecutor(settings.value)
 
         // 添加对话引用
         chatService.addConversationReference(_conversationId)
@@ -226,11 +242,19 @@ class ChatVM(
         val text = content.filterIsInstance<UIMessagePart.Text>().joinToString("") { it.text }
         val attachments = content.filter { it !is UIMessagePart.Text }
 
+        // 更新 subagent 工具执行器（设置可能已更改）
+        if (chatSubagentExecutor != null) {
+            chatState.subagentToolExecutor = chatSubagentExecutor?.createToolExecutor(settings.value)
+        }
+
+        // 检查是否启用 subagent 模式
+        val useSubagent = enableSubagent.value
+
         if (answer) {
             // 先保存用户消息到 DB
             chatService.sendMessage(_conversationId, content, answer = false)
-            // 触发 AI 生成
-            chatState.handleSubmit(model, text, attachments, addMessage = false)
+            // 触发 AI 生成（根据设置决定是否使用 subagent）
+            chatState.handleSubmit(model, text, attachments, addMessage = false, useSubagent = useSubagent)
         } else {
             // 如果不触发生成，仍然使用 service 保存消息
             chatService.sendMessage(_conversationId, content, false)

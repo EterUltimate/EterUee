@@ -9,8 +9,8 @@ import androidx.room.util.TableInfo.Companion.read
 import androidx.room.util.dropFtsSyncTriggers
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.execSQL
-import com.eterultimate.eteruee.roleplay.`data`.local.dao.BookmarkDAO
-import com.eterultimate.eteruee.roleplay.`data`.local.dao.BookmarkDAO_Impl
+import com.eterultimate.eteruee.roleplay.`data`.local.dao.BookmarkDao
+import com.eterultimate.eteruee.roleplay.`data`.local.dao.BookmarkDao_Impl
 import com.eterultimate.eteruee.roleplay.`data`.local.dao.CharacterDAO
 import com.eterultimate.eteruee.roleplay.`data`.local.dao.CharacterDAO_Impl
 import com.eterultimate.eteruee.roleplay.`data`.local.dao.ChatDAO
@@ -55,8 +55,8 @@ public class RolePlayDatabase_Impl : RolePlayDatabase() {
     GroupDAO_Impl(this)
   }
 
-  private val _bookmarkDAO: Lazy<BookmarkDAO> = lazy {
-    BookmarkDAO_Impl(this)
+  private val _bookmarkDao: Lazy<BookmarkDao> = lazy {
+    BookmarkDao_Impl(this)
   }
 
   private val _presetDAO: Lazy<PresetDAO> = lazy {
@@ -64,16 +64,16 @@ public class RolePlayDatabase_Impl : RolePlayDatabase() {
   }
 
   protected override fun createOpenDelegate(): RoomOpenDelegate {
-    val _openDelegate: RoomOpenDelegate = object : RoomOpenDelegate(4, "3336025d1db0908a87c8ced5bbc81afb", "4c97db221152df8edce7f3b0dd978d9f") {
+    val _openDelegate: RoomOpenDelegate = object : RoomOpenDelegate(5, "7ae11b2e9ab6d15d88177db0343e2eb3", "4d912751a59b84064f3a0002bb15d777") {
       public override fun createAllTables(connection: SQLiteConnection) {
         connection.execSQL("CREATE TABLE IF NOT EXISTS `rp_characters` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `avatarUrl` TEXT, `favorite` INTEGER NOT NULL, `chatCount` INTEGER NOT NULL, `lastChatAt` INTEGER, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `jsonData` TEXT NOT NULL, PRIMARY KEY(`id`))")
         connection.execSQL("CREATE TABLE IF NOT EXISTS `rp_chats` (`id` TEXT NOT NULL, `characterId` TEXT NOT NULL, `groupId` TEXT, `title` TEXT NOT NULL, `messageCount` INTEGER NOT NULL, `pinned` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `jsonFilePath` TEXT NOT NULL, `activeBranchId` TEXT, `rootNodesJson` TEXT NOT NULL, PRIMARY KEY(`id`))")
         connection.execSQL("CREATE TABLE IF NOT EXISTS `rp_world_infos` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT NOT NULL, `scanDepth` INTEGER NOT NULL, `scanTrigger` TEXT NOT NULL, `selectiveLogic` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `entriesJson` TEXT NOT NULL, PRIMARY KEY(`id`))")
         connection.execSQL("CREATE TABLE IF NOT EXISTS `rp_groups` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT NOT NULL, `avatarUrl` TEXT, `membersJson` TEXT NOT NULL, `activeMembersJson` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))")
-        connection.execSQL("CREATE TABLE IF NOT EXISTS `rp_bookmarks` (`id` TEXT NOT NULL, `chatId` TEXT NOT NULL, `characterId` TEXT NOT NULL, `messageId` TEXT, `nodeId` TEXT, `title` TEXT NOT NULL, `note` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `color` TEXT NOT NULL, `tagsJson` TEXT NOT NULL, PRIMARY KEY(`id`))")
+        connection.execSQL("CREATE TABLE IF NOT EXISTS `rp_bookmarks` (`id` TEXT NOT NULL, `chatId` TEXT NOT NULL, `messageIndex` INTEGER NOT NULL, `title` TEXT NOT NULL, `note` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))")
         connection.execSQL("CREATE TABLE IF NOT EXISTS `rp_presets` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT NOT NULL, `type` TEXT NOT NULL, `parametersJson` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))")
         connection.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)")
-        connection.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3336025d1db0908a87c8ced5bbc81afb')")
+        connection.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7ae11b2e9ab6d15d88177db0343e2eb3')")
       }
 
       public override fun dropAllTables(connection: SQLiteConnection) {
@@ -196,15 +196,11 @@ public class RolePlayDatabase_Impl : RolePlayDatabase() {
         val _columnsRpBookmarks: MutableMap<String, TableInfo.Column> = mutableMapOf()
         _columnsRpBookmarks.put("id", TableInfo.Column("id", "TEXT", true, 1, null, TableInfo.CREATED_FROM_ENTITY))
         _columnsRpBookmarks.put("chatId", TableInfo.Column("chatId", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY))
-        _columnsRpBookmarks.put("characterId", TableInfo.Column("characterId", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY))
-        _columnsRpBookmarks.put("messageId", TableInfo.Column("messageId", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY))
-        _columnsRpBookmarks.put("nodeId", TableInfo.Column("nodeId", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY))
+        _columnsRpBookmarks.put("messageIndex", TableInfo.Column("messageIndex", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY))
         _columnsRpBookmarks.put("title", TableInfo.Column("title", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY))
         _columnsRpBookmarks.put("note", TableInfo.Column("note", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY))
         _columnsRpBookmarks.put("createdAt", TableInfo.Column("createdAt", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY))
         _columnsRpBookmarks.put("updatedAt", TableInfo.Column("updatedAt", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY))
-        _columnsRpBookmarks.put("color", TableInfo.Column("color", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY))
-        _columnsRpBookmarks.put("tagsJson", TableInfo.Column("tagsJson", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY))
         val _foreignKeysRpBookmarks: MutableSet<TableInfo.ForeignKey> = mutableSetOf()
         val _indicesRpBookmarks: MutableSet<TableInfo.Index> = mutableSetOf()
         val _infoRpBookmarks: TableInfo = TableInfo("rp_bookmarks", _columnsRpBookmarks, _foreignKeysRpBookmarks, _indicesRpBookmarks)
@@ -261,7 +257,7 @@ public class RolePlayDatabase_Impl : RolePlayDatabase() {
     _typeConvertersMap.put(ChatDAO::class, ChatDAO_Impl.getRequiredConverters())
     _typeConvertersMap.put(WorldInfoDAO::class, WorldInfoDAO_Impl.getRequiredConverters())
     _typeConvertersMap.put(GroupDAO::class, GroupDAO_Impl.getRequiredConverters())
-    _typeConvertersMap.put(BookmarkDAO::class, BookmarkDAO_Impl.getRequiredConverters())
+    _typeConvertersMap.put(BookmarkDao::class, BookmarkDao_Impl.getRequiredConverters())
     _typeConvertersMap.put(PresetDAO::class, PresetDAO_Impl.getRequiredConverters())
     return _typeConvertersMap
   }
@@ -284,7 +280,7 @@ public class RolePlayDatabase_Impl : RolePlayDatabase() {
 
   public override fun groupDao(): GroupDAO = _groupDAO.value
 
-  public override fun bookmarkDao(): BookmarkDAO = _bookmarkDAO.value
+  public override fun bookmarkDao(): BookmarkDao = _bookmarkDao.value
 
   public override fun presetDao(): PresetDAO = _presetDAO.value
 }

@@ -626,6 +626,7 @@
   <string name="setting_asr_page_edit_provider">编辑ASR提供商</string>
   <string name="setting_display_page_amoled_dark_mode_desc">在暗色主题中使用纯黑背景，适合 AMOLED 屏幕</string>
   <string name="setting_display_page_amoled_dark_mode_title">AMOLED 暗色模式</string>
+  <string name="setting_display_page_theme_preset_title">主题预设</string>
   <string name="setting_display_page_auto_collapse_thinking_desc">思考完成自动折叠思考内容</string>
   <string name="setting_display_page_auto_collapse_thinking_title">自动折叠思考</string>
   <string name="setting_display_page_auto_play_tts_desc">助手消息生成完成后自动播放TTS</string>
@@ -1050,8 +1051,13 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="text_area_save">保存</string>
   <string name="theme_name_autumn">秋黄</string>
   <string name="theme_name_black">中性黑</string>
+  <string name="theme_name_chatgpt">ChatGPT 风格</string>
+  <string name="theme_name_claude">Claude 风格</string>
+  <string name="theme_name_gemini">Gemini 风格</string>
+  <string name="theme_name_minimal">极简主题</string>
   <string name="theme_name_ocean">海湾蓝</string>
   <string name="theme_name_sakura">樱花粉</string>
+  <string name="theme_name_soft_glass">柔和毛玻璃</string>
   <string name="theme_name_spring">原野绿</string>
   <string name="title_activity_safe_mode">安全模式</string>
   <string name="tools_warning">当前模型未开启工具调用，请在设置内启用模型的工具能力，再使用搜索/MCP等功能</string>

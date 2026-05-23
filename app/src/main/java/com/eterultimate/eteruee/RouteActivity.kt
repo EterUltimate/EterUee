@@ -123,6 +123,7 @@ import com.eterultimate.eteruee.roleplay.ui.pages.worldinfo.WorldInfoListPage
 import com.eterultimate.eteruee.roleplay.ui.pages.worldinfo.WorldInfoEditPage
 import com.eterultimate.eteruee.roleplay.ui.pages.group.GroupListPage
 import com.eterultimate.eteruee.roleplay.ui.pages.group.GroupEditPage
+import com.eterultimate.eteruee.roleplay.ui.pages.bookmark.BookmarkPage
 import com.eterultimate.eteruee.ui.theme.LocalDarkMode
 import com.eterultimate.eteruee.ui.theme.EterUeeTheme
 import com.eterultimate.eteruee.utils.CrashHandler
@@ -558,6 +559,23 @@ class RouteActivity : ComponentActivity() {
                             entry<Screen.GroupChat> { key ->
                                 GroupListPage()
                             }
+
+                            // Bookmark route
+                            entry<Screen.Bookmark> { key ->
+                                val navController = LocalNavController.current
+                                BookmarkPage(
+                                    chatId = kotlin.uuid.Uuid.parse(key.chatId),
+                                    onBackClick = {
+                                        navController.popBackStack()
+                                    },
+                                    onBookmarkClick = { messageIndex ->
+                                        // 返回聊天页并传递消息索引（通过Intent或共享状态）
+                                        // 注意：这里需要更复杂的逻辑来实现滚动定位
+                                        // 当前简化实现：只返回聊天页
+                                        navController.popBackStack()
+                                    }
+                                )
+                            }
                         }
                     )
                     if (BuildConfig.DEBUG) {
@@ -764,4 +782,8 @@ sealed interface Screen : NavKey {
 
     @Serializable
     data class GroupChat(val groupId: String) : Screen
+
+    // Bookmark route
+    @Serializable
+    data class Bookmark(val chatId: String) : Screen
 }

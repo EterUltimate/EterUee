@@ -1433,15 +1433,27 @@
 @layer components {
   [data-theme] [data-ui="app-header"],
   [data-theme] [data-ui="composer-panel"],
+  [data-theme] [data-ui="chat-input-shell"],
   [data-theme] [data-slot="sidebar-inner"],
   [data-theme] [data-message-bubble],
+  [data-theme] [data-message-actions],
+  [data-theme] [data-slot="dropdown-menu-content"],
+  [data-theme] [data-slot="dialog-content"],
+  [data-theme] [data-slot="popover-content"],
+  [data-theme] [data-slot="sheet-content"],
   [data-theme] [data-slot="button"] {
     transition:
       background-color 160ms ease,
       border-color 160ms ease,
+      opacity 160ms ease,
       box-shadow 160ms ease,
       color 160ms ease,
       transform 160ms ease;
+  }
+
+  [data-theme] [data-slot="button"]:active,
+  [data-theme] [data-message-actions] [data-slot="button"]:active {
+    transform: scale(0.98);
   }
 
   [data-theme="soft-glass"] body {
@@ -1475,9 +1487,20 @@
     backdrop-filter: blur(22px) saturate(145%);
   }
 
+  [data-theme="soft-glass"] [data-ui="app-header"],
+  [data-theme="soft-glass"] [data-ui="chat-input-shell"] {
+    background: hsl(0 0% 100% / 0.52);
+  }
+
+  :root.dark[data-theme="soft-glass"] [data-ui="app-header"],
+  :root.dark[data-theme="soft-glass"] [data-ui="chat-input-shell"] {
+    background: hsl(222 22% 14% / 0.58);
+  }
+
   [data-theme="soft-glass"] [data-ui="composer-panel"] {
     border-color: var(--glass-border);
     background: var(--surface-glass-strong);
+    border-radius: 1.5rem;
     box-shadow:
       var(--glass-shadow),
       inset 0 1px 0 var(--glass-highlight);
@@ -1493,10 +1516,15 @@
   [data-theme="soft-glass"] [data-message-role="user"] [data-message-bubble] {
     border: 1px solid var(--glass-border);
     background: var(--surface-glass-strong);
+    border-radius: 1.35rem;
     box-shadow:
       var(--shadow-sm),
       inset 0 1px 0 var(--glass-highlight);
     backdrop-filter: blur(18px) saturate(140%);
+  }
+
+  [data-theme="soft-glass"] [data-message-role="assistant"] [data-message-bubble] {
+    color: var(--foreground);
   }
 
   [data-theme="minimal"] [data-ui="app-header"],
@@ -1513,20 +1541,49 @@
   [data-theme="minimal"] [data-message-role="user"] [data-message-bubble] {
     border: 1px solid var(--border);
     background: var(--card);
+    border-radius: 0.75rem;
   }
 
   [data-theme="minimal"] [data-slot="button"] {
     box-shadow: none;
   }
 
+  [data-theme="minimal"] [data-ui="chat-input-shell"],
+  [data-theme="minimal"] [data-ui="app-header"],
+  [data-theme="minimal"] [data-slot="sidebar-inner"] {
+    background: var(--background);
+  }
+
   [data-theme="claude"] [data-message-bubble] {
     font-family: var(--font-serif);
+  }
+
+  [data-theme="claude"] body {
+    background: linear-gradient(180deg, hsl(42 52% 98%) 0%, hsl(36 36% 94%) 100%);
+  }
+
+  :root.dark[data-theme="claude"] body {
+    background: linear-gradient(180deg, hsl(28 18% 13%) 0%, hsl(24 16% 11%) 100%);
+  }
+
+  [data-theme="claude"] [data-ui="app-header"],
+  [data-theme="claude"] [data-slot="sidebar-inner"] {
+    background: color-mix(in srgb, var(--background) 88%, var(--primary) 12%);
   }
 
   [data-theme="claude"] [data-ui="composer-panel"],
   [data-theme="claude"] [data-message-role="user"] [data-message-bubble] {
     border-color: var(--border);
     background: var(--secondary);
+    border-radius: 1rem;
+  }
+
+  [data-theme="claude"] [data-ui="composer-panel"] {
+    box-shadow: 0 18px 46px -36px hsl(24 42% 24% / 0.38);
+  }
+
+  [data-theme="claude"] [data-slot="button"][data-variant="default"] {
+    box-shadow: 0 12px 30px -24px hsl(20 70% 28% / 0.65);
   }
 
   [data-theme="chatgpt"] [data-ui="app-header"],
@@ -1537,8 +1594,10 @@
   [data-theme="chatgpt"] [data-ui="composer-panel"] {
     border-color: var(--border);
     background: var(--card);
-    border-radius: 1.35rem;
-    box-shadow: var(--shadow-md);
+    border-radius: 1.5rem;
+    box-shadow:
+      var(--shadow-md),
+      0 0 0 1px hsl(0 0% 100% / 0.42) inset;
   }
 
   [data-theme="chatgpt"] [data-message-role="user"] [data-message-bubble] {
@@ -1548,20 +1607,41 @@
     border-radius: 1.25rem;
   }
 
+  [data-theme="chatgpt"] [data-message-role="assistant"] [data-message-bubble] {
+    color: var(--foreground);
+  }
+
   [data-theme="chatgpt"] [data-slot="button"][data-variant="default"] {
     box-shadow: 0 10px 28px -20px hsl(160 84% 28% / 0.68);
+  }
+
+  [data-theme="gemini"] body {
+    background:
+      radial-gradient(circle at 18% 0%, hsl(217 89% 96%) 0%, transparent 28rem),
+      radial-gradient(circle at 88% 12%, hsl(190 78% 94%) 0%, transparent 22rem), var(--background);
+  }
+
+  :root.dark[data-theme="gemini"] body {
+    background:
+      radial-gradient(circle at 18% 0%, hsl(217 89% 18%) 0%, transparent 30rem),
+      radial-gradient(circle at 88% 12%, hsl(190 78% 14%) 0%, transparent 24rem), var(--background);
   }
 
   [data-theme="gemini"] [data-ui="app-header"],
   [data-theme="gemini"] [data-slot="sidebar-inner"] {
     border-color: var(--border);
-    background: var(--sidebar);
+    background: color-mix(in srgb, var(--sidebar) 84%, transparent);
+    backdrop-filter: blur(18px) saturate(130%);
   }
 
   [data-theme="gemini"] [data-ui="composer-panel"] {
     border-color: var(--border);
-    background: var(--card);
-    box-shadow: var(--shadow-md);
+    background: color-mix(in srgb, var(--card) 90%, transparent);
+    border-radius: 1.35rem;
+    box-shadow:
+      var(--shadow-md),
+      0 0 0 1px hsl(0 0% 100% / 0.35) inset;
+    backdrop-filter: blur(16px) saturate(120%);
   }
 
   [data-theme="gemini"] [data-message-role="user"] [data-message-bubble],
@@ -1576,11 +1656,21 @@
     border-radius: 1.2rem;
   }
 
+  [data-theme="gemini"] [data-message-role="assistant"] [data-message-bubble] {
+    color: var(--foreground);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     [data-theme] [data-ui="app-header"],
     [data-theme] [data-ui="composer-panel"],
+    [data-theme] [data-ui="chat-input-shell"],
     [data-theme] [data-slot="sidebar-inner"],
     [data-theme] [data-message-bubble],
+    [data-theme] [data-message-actions],
+    [data-theme] [data-slot="dropdown-menu-content"],
+    [data-theme] [data-slot="dialog-content"],
+    [data-theme] [data-slot="popover-content"],
+    [data-theme] [data-slot="sheet-content"],
     [data-theme] [data-slot="button"] {
       transition: none;
     }

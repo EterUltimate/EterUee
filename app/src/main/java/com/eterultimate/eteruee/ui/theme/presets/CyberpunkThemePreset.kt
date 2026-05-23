@@ -6,11 +6,12 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.eterultimate.eteruee.R
+import com.eterultimate.eteruee.ui.theme.CyberpunkThemeId
 import com.eterultimate.eteruee.ui.theme.PresetTheme
 
 val CyberpunkThemePreset by lazy {
     PresetTheme(
-        id = "cyberpunk",
+        id = CyberpunkThemeId,
         name = {
             Text(stringResource(id = R.string.theme_name_cyberpunk))
         },

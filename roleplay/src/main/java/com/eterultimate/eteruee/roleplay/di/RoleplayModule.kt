@@ -23,6 +23,7 @@ import com.eterultimate.eteruee.roleplay.domain.service.GroupSpeakerService
 import com.eterultimate.eteruee.roleplay.domain.service.GroupSpeakerServiceImpl
 import com.eterultimate.eteruee.roleplay.domain.service.PresetService
 import com.eterultimate.eteruee.roleplay.domain.service.PresetServiceImpl
+import com.eterultimate.eteruee.roleplay.domain.subagent.RoleplaySubagentExecutor
 import com.eterultimate.eteruee.roleplay.domain.extension.ExtensionManager
 import com.eterultimate.eteruee.roleplay.domain.extension.ExtensionManagerImpl
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.ChatViewModel
@@ -47,7 +48,14 @@ val roleplayModule = module {
             androidContext(),
             RolePlayDatabase::class.java,
             RolePlayDatabase.DATABASE_NAME
-        ).build()
+        )
+        .addMigrations(
+            RolePlayDatabase.MIGRATION_1_2,
+            RolePlayDatabase.MIGRATION_2_3,
+            RolePlayDatabase.MIGRATION_3_4,
+            RolePlayDatabase.MIGRATION_4_5
+        )
+        .build()
     }
     
     // DAOs
@@ -73,11 +81,12 @@ val roleplayModule = module {
     single<GroupSpeakerService> { GroupSpeakerServiceImpl() }
     single<ExtensionManager> { ExtensionManagerImpl() }
     single<PresetService> { PresetServiceImpl(get()) }
+    single { RoleplaySubagentExecutor() }
     
     // ViewModels
     viewModel { CharacterListViewModel(get()) }
     viewModel { CharacterEditViewModel(get()) }
-    viewModel { ChatViewModel(get(), get(), get()) }
+    viewModel { ChatViewModel(get(), get(), get(), get(), get()) }
     viewModel { WorldInfoListViewModel(get()) }
     viewModel { WorldInfoEditViewModel(get()) }
     viewModel { GroupListViewModel(get()) }

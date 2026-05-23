@@ -3,6 +3,7 @@ package com.eterultimate.eteruee.roleplay.domain.service
 import android.net.Uri
 import androidx.paging.PagingData
 import com.eterultimate.eteruee.roleplay.data.model.Character
+import com.eterultimate.eteruee.roleplay.data.tavern.TavernCharacterCardFormat
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -77,7 +78,11 @@ interface CharacterService {
     /**
      * 导出PNG角色卡
      */
-    suspend fun exportPngCharacter(characterId: kotlin.uuid.Uuid, outputUri: Uri): Result<Unit>
+    suspend fun exportPngCharacter(
+        characterId: kotlin.uuid.Uuid,
+        outputUri: Uri,
+        format: TavernCharacterCardFormat = TavernCharacterCardFormat.V2
+    ): Result<Unit>
     
     /**
      * 导入JSON角色卡
@@ -87,7 +92,11 @@ interface CharacterService {
     /**
      * 导出JSON角色卡
      */
-    suspend fun exportJsonCharacter(characterId: kotlin.uuid.Uuid, outputUri: Uri): Result<Unit>
+    suspend fun exportJsonCharacter(
+        characterId: kotlin.uuid.Uuid,
+        outputUri: Uri,
+        format: TavernCharacterCardFormat = TavernCharacterCardFormat.V2
+    ): Result<Unit>
 }
 
 /**

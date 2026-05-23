@@ -19,7 +19,7 @@ import com.eterultimate.eteruee.roleplay.data.local.entity.*
         BookmarkEntity::class,
         PresetEntity::class
     ],
-    version = 5,  // 升级到版本5以支持简化的书签结构
+    version = 6,  // 升级到版本6以保留 Tavern 扩展元数据
     exportSchema = true
 )
 abstract class RolePlayDatabase : RoomDatabase() {
@@ -108,6 +108,16 @@ abstract class RolePlayDatabase : RoomDatabase() {
                         updatedAt INTEGER NOT NULL
                     )
                 """.trimIndent())
+            }
+        }
+
+        /**
+         * 从版本5迁移到版本6：为世界书和聊天元数据保存完整 JSON，避免丢失 Tavern 扩展字段
+         */
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE rp_world_infos ADD COLUMN jsonData TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE rp_chats ADD COLUMN jsonData TEXT NOT NULL DEFAULT ''")
             }
         }
     }

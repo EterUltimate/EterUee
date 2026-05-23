@@ -59,6 +59,10 @@ class WorldInfoServiceImpl(
             }
         }
     }
+
+    override suspend fun saveWorldInfo(worldInfo: WorldInfo): Result<WorldInfo> {
+        return updateWorldInfo(worldInfo)
+    }
     
     override suspend fun updateWorldInfo(worldInfo: WorldInfo): Result<WorldInfo> {
         return withContext(Dispatchers.IO) {

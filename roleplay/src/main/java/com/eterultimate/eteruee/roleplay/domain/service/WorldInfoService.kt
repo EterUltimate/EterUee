@@ -22,6 +22,11 @@ interface WorldInfoService {
      * 创建世界书
      */
     suspend fun createWorldInfo(name: String, description: String = ""): Result<WorldInfo>
+
+    /**
+     * 保存完整世界书(创建或更新)
+     */
+    suspend fun saveWorldInfo(worldInfo: WorldInfo): Result<WorldInfo>
     
     /**
      * 更新世界书

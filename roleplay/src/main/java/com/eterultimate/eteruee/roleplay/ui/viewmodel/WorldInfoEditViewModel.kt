@@ -132,8 +132,8 @@ class WorldInfoEditViewModel(
                 // 编辑现有世界书
                 worldInfoService.updateWorldInfo(worldInfo)
             } else {
-                // 创建新世界书
-                worldInfoService.createWorldInfo(worldInfo.name, worldInfo.description)
+                // 创建新世界书并保留条目/扫描配置
+                worldInfoService.saveWorldInfo(worldInfo)
             }
             
             result

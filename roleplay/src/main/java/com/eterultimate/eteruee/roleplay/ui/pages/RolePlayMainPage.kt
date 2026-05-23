@@ -2,19 +2,21 @@ package com.eterultimate.eteruee.roleplay.ui.pages
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.eterultimate.eteruee.roleplay.data.model.Character
 import com.eterultimate.eteruee.roleplay.data.model.WorldInfo
 import com.eterultimate.eteruee.roleplay.data.model.Group
+import com.eterultimate.eteruee.roleplay.data.model.Preset
 import com.eterultimate.eteruee.roleplay.ui.pages.character.CharacterListPage
 import com.eterultimate.eteruee.roleplay.ui.pages.worldinfo.WorldInfoListPage
 import com.eterultimate.eteruee.roleplay.ui.pages.group.GroupListPage
+import com.eterultimate.eteruee.roleplay.ui.pages.preset.PresetListPage
 import org.koin.androidx.compose.koinViewModel
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.CharacterListViewModel
 
@@ -28,6 +30,8 @@ fun RolePlayMainPage(
     onCreateCharacter: () -> Unit,
     onWorldInfoClick: (WorldInfo) -> Unit,
     onCreateWorldInfo: () -> Unit,
+    onPresetClick: (Preset) -> Unit,
+    onCreatePreset: () -> Unit,
     onGroupChatClick: (Group) -> Unit,
     onCreateGroup: () -> Unit,
     viewModel: CharacterListViewModel = koinViewModel()
@@ -52,6 +56,12 @@ fun RolePlayMainPage(
                 NavigationBarItem(
                     selected = selectedTab == 2,
                     onClick = { selectedTab = 2 },
+                    icon = { Icon(Icons.Default.Settings, contentDescription = "预设") },
+                    label = { Text("预设") }
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 3,
+                    onClick = { selectedTab = 3 },
                     icon = { Icon(Icons.Default.Group, contentDescription = "群组") },
                     label = { Text("群组") }
                 )
@@ -69,7 +79,11 @@ fun RolePlayMainPage(
                     onWorldInfoClick = onWorldInfoClick,
                     onCreateWorldInfo = onCreateWorldInfo
                 )
-                2 -> GroupListPage(
+                2 -> PresetListPage(
+                    onPresetClick = onPresetClick,
+                    onCreatePreset = onCreatePreset
+                )
+                3 -> GroupListPage(
                     onGroupClick = onGroupChatClick,
                     onCreateGroup = onCreateGroup
                 )

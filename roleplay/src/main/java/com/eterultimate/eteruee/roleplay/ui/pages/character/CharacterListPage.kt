@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil3.compose.AsyncImage
@@ -282,33 +283,17 @@ fun CharacterListPage(
                 }
             } else {
                 // 显示所有角色(分页)
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(pagingItems.itemCount) { index ->
-                        pagingItems[index]?.let { character ->
-                            CharacterCard(
-                                character = character,
-                                onClick = { 
-                                    if (isMultiSelectMode) {
-                                        viewModel.toggleCharacterSelection(character.id)
-                                    } else {
-                                        onCharacterClick(character) 
-                                    }
-                                },
-                                onFavoriteClick = { viewModel.toggleFavorite(character.id) },
-                                onDeleteClick = { viewModel.deleteCharacter(character.id) },
-                                isSelected = selectedIds.contains(character.id),
-                                isMultiSelectMode = isMultiSelectMode
-                            )
-                        }
+                val isInitialLoading = pagingItems.loadState.refresh is LoadState.Loading
+                val isEmpty = pagingItems.loadState.refresh is LoadState.NotLoading && pagingItems.itemCount == 0
+
+                if (isInitialLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
                     }
-                }
-                
-                // 空状态
-                if (pagingItems.itemCount == 0) {
+                } else if (isEmpty) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -318,6 +303,31 @@ fun CharacterListPage(
                             Spacer(modifier = Modifier.height(8.dp))
                             Button(onClick = onCreateCharacter) {
                                 Text("创建第一个角色")
+                            }
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(pagingItems.itemCount) { index ->
+                            pagingItems[index]?.let { character ->
+                                CharacterCard(
+                                    character = character,
+                                    onClick = {
+                                        if (isMultiSelectMode) {
+                                            viewModel.toggleCharacterSelection(character.id)
+                                        } else {
+                                            onCharacterClick(character)
+                                        }
+                                    },
+                                    onFavoriteClick = { viewModel.toggleFavorite(character.id) },
+                                    onDeleteClick = { viewModel.deleteCharacter(character.id) },
+                                    isSelected = selectedIds.contains(character.id),
+                                    isMultiSelectMode = isMultiSelectMode
+                                )
                             }
                         }
                     }

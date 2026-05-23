@@ -16,6 +16,10 @@ data class ChatMetadata(
     val characterId: Uuid,
     val groupId: Uuid? = null,  // 群组聊天ID,单角色聊天为null
     val title: String = "",
+    val userName: String = "",
+    val characterName: String = "",
+    val createDate: String = "",
+    val tavernChatId: String = "",
     @Contextual val createdAt: Instant = Instant.now(),
     @Contextual val updatedAt: Instant = Instant.now(),
     val messageCount: Int = 0,
@@ -25,6 +29,7 @@ data class ChatMetadata(
     val rootNodes: List<Uuid> = emptyList(),  // 根节点ID列表
     // 扩展字段
     val variables: Map<String, String> = emptyMap(),
+    val tavernMetadata: JsonElement? = null,
     val extensions: Map<String, JsonElement> = emptyMap()
 ) {
     fun getDisplayName(): String {
@@ -41,6 +46,8 @@ data class ChatMessage(
     val role: MessageRole,
     val content: String,
     @Contextual val timestamp: Instant = Instant.now(),
+    val tavernName: String = "",
+    val tavernSendDate: String = "",
     val model: String? = null,
     val tokenCount: Int? = null,
     val swipeAlternatives: List<String> = emptyList(),  // 滑动回复备选

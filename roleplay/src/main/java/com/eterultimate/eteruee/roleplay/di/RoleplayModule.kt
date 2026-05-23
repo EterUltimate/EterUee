@@ -31,6 +31,8 @@ import com.eterultimate.eteruee.roleplay.ui.viewmodel.CharacterEditViewModel
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.CharacterListViewModel
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.GroupEditViewModel
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.GroupListViewModel
+import com.eterultimate.eteruee.roleplay.ui.viewmodel.PresetEditViewModel
+import com.eterultimate.eteruee.roleplay.ui.viewmodel.PresetListViewModel
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.WorldInfoEditViewModel
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.WorldInfoListViewModel
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.WorldInfoTestViewModel
@@ -53,7 +55,8 @@ val roleplayModule = module {
             RolePlayDatabase.MIGRATION_1_2,
             RolePlayDatabase.MIGRATION_2_3,
             RolePlayDatabase.MIGRATION_3_4,
-            RolePlayDatabase.MIGRATION_4_5
+            RolePlayDatabase.MIGRATION_4_5,
+            RolePlayDatabase.MIGRATION_5_6
         )
         .build()
     }
@@ -92,4 +95,6 @@ val roleplayModule = module {
     viewModel { GroupListViewModel(get()) }
     viewModel { GroupEditViewModel(get()) }
     viewModel { WorldInfoTestViewModel(get()) }
+    viewModel { PresetListViewModel(get()) }
+    viewModel { PresetEditViewModel(get()) }
 }

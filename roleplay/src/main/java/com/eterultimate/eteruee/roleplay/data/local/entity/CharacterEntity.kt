@@ -2,6 +2,7 @@ package com.eterultimate.eteruee.roleplay.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.eterultimate.eteruee.roleplay.data.serialization.RoleplayJson
 
 /**
  * 角色卡数据库实体
@@ -30,12 +31,12 @@ data class CharacterEntity(
                 lastChatAt = model.lastChatAt?.toEpochMilli(),
                 createdAt = model.createdAt.toEpochMilli(),
                 updatedAt = model.updatedAt.toEpochMilli(),
-                jsonData = kotlinx.serialization.json.Json.encodeToString(model)
+                jsonData = RoleplayJson.encodeToString(model)
             )
         }
         
         fun toModel(entity: CharacterEntity): com.eterultimate.eteruee.roleplay.data.model.Character {
-            return kotlinx.serialization.json.Json.decodeFromString(entity.jsonData)
+            return RoleplayJson.decodeFromString(entity.jsonData)
         }
     }
 }

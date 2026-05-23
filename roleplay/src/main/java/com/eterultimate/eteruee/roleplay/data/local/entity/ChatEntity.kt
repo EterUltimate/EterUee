@@ -2,6 +2,7 @@ package com.eterultimate.eteruee.roleplay.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.eterultimate.eteruee.roleplay.data.serialization.RoleplayJson
 
 /**
  * 聊天数据库实体
@@ -19,7 +20,8 @@ data class ChatEntity(
     val updatedAt: Long,
     val jsonFilePath: String,  // JSONL文件路径
     val activeBranchId: String? = null,  // 当前激活的分支节点ID
-    val rootNodesJson: String = "[]"  // 根节点ID列表(JSON数组)
+    val rootNodesJson: String = "[]",  // 根节点ID列表(JSON数组)
+    val jsonData: String = ""
 ) {
     companion object {
         fun fromModel(model: com.eterultimate.eteruee.roleplay.data.model.ChatMetadata): ChatEntity {
@@ -34,15 +36,18 @@ data class ChatEntity(
                 updatedAt = model.updatedAt.toEpochMilli(),
                 jsonFilePath = "",  // 文件路径由服务层管理
                 activeBranchId = model.activeBranchId?.toString(),
-                rootNodesJson = kotlinx.serialization.json.Json.encodeToString(
-                    model.rootNodes.map { it.toString() }
-                )
+                rootNodesJson = RoleplayJson.encodeToString(model.rootNodes.map { it.toString() }),
+                jsonData = RoleplayJson.encodeToString(model)
             )
         }
         
         fun toModel(entity: ChatEntity): com.eterultimate.eteruee.roleplay.data.model.ChatMetadata {
+            if (entity.jsonData.isNotBlank()) {
+                return RoleplayJson.decodeFromString(entity.jsonData)
+            }
+
             val rootNodes = try {
-                kotlinx.serialization.json.Json.decodeFromString<List<String>>(entity.rootNodesJson)
+                RoleplayJson.decodeFromString<List<String>>(entity.rootNodesJson)
                     .mapNotNull { id -> runCatching { kotlin.uuid.Uuid.parse(id) }.getOrNull() }
             } catch (e: Exception) {
                 emptyList()

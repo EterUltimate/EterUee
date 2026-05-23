@@ -119,6 +119,7 @@ import com.eterultimate.eteruee.ui.pages.webview.WebViewPage
 import com.eterultimate.eteruee.roleplay.ui.pages.RolePlayMainPage
 import com.eterultimate.eteruee.roleplay.ui.pages.character.CharacterEditPage
 import com.eterultimate.eteruee.roleplay.ui.pages.chat.ChatPage as RpChatPage
+import com.eterultimate.eteruee.roleplay.ui.pages.preset.PresetEditPage
 import com.eterultimate.eteruee.roleplay.ui.pages.worldinfo.WorldInfoListPage
 import com.eterultimate.eteruee.roleplay.ui.pages.worldinfo.WorldInfoEditPage
 import com.eterultimate.eteruee.roleplay.ui.pages.group.GroupListPage
@@ -507,6 +508,12 @@ class RouteActivity : ComponentActivity() {
                                     onCreateWorldInfo = {
                                         navController.navigate(Screen.WorldInfoEdit(null))
                                     },
+                                    onPresetClick = {
+                                        navController.navigate(Screen.PresetEdit(it.id.toString()))
+                                    },
+                                    onCreatePreset = {
+                                        navController.navigate(Screen.PresetEdit(null))
+                                    },
                                     onGroupChatClick = {
                                         navController.navigate(Screen.GroupEdit(it.id.toString()))
                                     },
@@ -540,6 +547,16 @@ class RouteActivity : ComponentActivity() {
                                 val navController = LocalNavController.current
                                 WorldInfoEditPage(
                                     worldInfoId = key.worldInfoId?.let { kotlin.uuid.Uuid.parse(it) },
+                                    onSaveSuccess = {
+                                        navController.popBackStack()
+                                    }
+                                )
+                            }
+
+                            entry<Screen.PresetEdit> { key ->
+                                val navController = LocalNavController.current
+                                PresetEditPage(
+                                    presetId = key.presetId?.let { kotlin.uuid.Uuid.parse(it) },
                                     onSaveSuccess = {
                                         navController.popBackStack()
                                     }
@@ -776,6 +793,9 @@ sealed interface Screen : NavKey {
 
     @Serializable
     data class WorldInfoEdit(val worldInfoId: String? = null) : Screen
+
+    @Serializable
+    data class PresetEdit(val presetId: String? = null) : Screen
 
     @Serializable
     data class GroupEdit(val groupId: String? = null) : Screen

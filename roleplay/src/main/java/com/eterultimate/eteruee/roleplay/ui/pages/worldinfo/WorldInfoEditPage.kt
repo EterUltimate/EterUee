@@ -10,11 +10,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.eterultimate.eteruee.roleplay.data.model.InsertionPosition
 import com.eterultimate.eteruee.roleplay.data.model.WorldInfo
 import com.eterultimate.eteruee.roleplay.data.model.WorldInfoEntry
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.WorldInfoEditViewModel
 import com.eterultimate.eteruee.roleplay.ui.viewmodel.WorldInfoProperty
 import org.koin.androidx.compose.koinViewModel
+import kotlin.math.roundToInt
 
 /**
  * 世界书编辑页
@@ -94,21 +96,29 @@ fun WorldInfoEditPage(
             }
             
             // 基本信息
-            OutlinedTextField(
-                value = uiState.worldInfo.name,
-                onValueChange = { viewModel.updateWorldInfoProperty(WorldInfoProperty.NAME, it) },
-                label = { Text("世界书名称 *") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-            
-            OutlinedTextField(
-                value = uiState.worldInfo.description,
-                onValueChange = { viewModel.updateWorldInfoProperty(WorldInfoProperty.DESCRIPTION, it) },
-                label = { Text("描述") },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 3
-            )
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text("基础信息", style = MaterialTheme.typography.titleMedium)
+                    OutlinedTextField(
+                        value = uiState.worldInfo.name,
+                        onValueChange = { viewModel.updateWorldInfoProperty(WorldInfoProperty.NAME, it) },
+                        label = { Text("世界书名称 *") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+
+                    OutlinedTextField(
+                        value = uiState.worldInfo.description,
+                        onValueChange = { viewModel.updateWorldInfoProperty(WorldInfoProperty.DESCRIPTION, it) },
+                        label = { Text("描述") },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 3
+                    )
+                }
+            }
             
             // 条目列表
             Card(
@@ -123,7 +133,7 @@ fun WorldInfoEditPage(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "条目 (${uiState.worldInfo.entries.size})",
+                            text = "触发条目 (${uiState.worldInfo.entries.size})",
                             style = MaterialTheme.typography.titleMedium
                         )
                         
@@ -154,7 +164,7 @@ fun WorldInfoEditPage(
                     
                     if (uiState.worldInfo.entries.isEmpty()) {
                         Text(
-                            text = "暂无条目，点击右上角 + 添加",
+                            text = "暂无条目，点击右上角 + 添加触发规则",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(vertical = 16.dp)
@@ -210,6 +220,16 @@ fun EntryCard(
             Spacer(modifier = Modifier.height(8.dp))
             
             OutlinedTextField(
+                value = entry.comment,
+                onValueChange = { onUpdate(entry.copy(comment = it)) },
+                label = { Text("条目名称") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
                 value = entry.keys.joinToString(", "),
                 onValueChange = { 
                     val keysList = it.split(",").map { key -> key.trim() }.filter { key -> key.isNotBlank() }
@@ -219,7 +239,20 @@ fun EntryCard(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
-            
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = entry.secondaryKeys.joinToString(", "),
+                onValueChange = {
+                    val keysList = it.split(",").map { key -> key.trim() }.filter { key -> key.isNotBlank() }
+                    onUpdate(entry.copy(secondaryKeys = keysList))
+                },
+                label = { Text("次级关键词（逗号分隔）") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
             Spacer(modifier = Modifier.height(8.dp))
             
             OutlinedTextField(
@@ -229,6 +262,104 @@ fun EntryCard(
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3
             )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            WorldInfoEntryControls(
+                entry = entry,
+                onUpdate = onUpdate
+            )
         }
+    }
+}
+
+@Composable
+private fun WorldInfoEntryControls(
+    entry: WorldInfoEntry,
+    onUpdate: (WorldInfoEntry) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("启用条目")
+            Switch(
+                checked = entry.enabled,
+                onCheckedChange = { onUpdate(entry.copy(enabled = it)) }
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("始终注入")
+            Switch(
+                checked = entry.constant,
+                onCheckedChange = { onUpdate(entry.copy(constant = it)) }
+            )
+        }
+
+        Column {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("触发概率")
+                Text("${(entry.probability.coerceIn(0f, 1f) * 100).roundToInt()}%")
+            }
+            Slider(
+                value = entry.probability.coerceIn(0f, 1f),
+                onValueChange = { onUpdate(entry.copy(probability = it, useProbability = it < 1f)) },
+                valueRange = 0f..1f
+            )
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            OutlinedTextField(
+                value = entry.order.toString(),
+                onValueChange = { value ->
+                    value.toIntOrNull()?.let { onUpdate(entry.copy(order = it)) }
+                },
+                label = { Text("顺序") },
+                modifier = Modifier.weight(1f),
+                singleLine = true
+            )
+            OutlinedTextField(
+                value = entry.depth.toString(),
+                onValueChange = { value ->
+                    value.toIntOrNull()?.let { onUpdate(entry.copy(depth = it.coerceAtLeast(0))) }
+                },
+                label = { Text("扫描深度") },
+                modifier = Modifier.weight(1f),
+                singleLine = true
+            )
+        }
+
+        Text("插入位置", style = MaterialTheme.typography.labelLarge)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            InsertionPosition.entries.forEach { position ->
+                AssistChip(
+                    onClick = { onUpdate(entry.copy(position = position)) },
+                    label = { Text(position.displayName()) },
+                    leadingIcon = if (entry.position == position) {
+                        { Icon(Icons.Default.Check, contentDescription = null) }
+                    } else {
+                        null
+                    }
+                )
+            }
+        }
+    }
+}
+
+private fun InsertionPosition.displayName(): String {
+    return when (this) {
+        InsertionPosition.AFTER_SYSTEM_PROMPT -> "系统后"
+        InsertionPosition.BEFORE_LAST_USER_MESSAGE -> "末条前"
+        InsertionPosition.AT_END -> "末尾"
     }
 }

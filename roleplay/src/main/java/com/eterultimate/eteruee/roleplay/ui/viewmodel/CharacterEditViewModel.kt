@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eterultimate.eteruee.roleplay.data.model.Character
+import com.eterultimate.eteruee.roleplay.data.tavern.TavernCharacterCardFormat
 import com.eterultimate.eteruee.roleplay.domain.service.CharacterService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -159,12 +160,15 @@ class CharacterEditViewModel(
     /**
      * 导出PNG角色卡
      */
-    fun exportPngCharacter(outputUri: Uri) {
+    fun exportPngCharacter(
+        outputUri: Uri,
+        format: TavernCharacterCardFormat = TavernCharacterCardFormat.V2
+    ) {
         val characterId = _uiState.value.character.id
         _uiState.value = _uiState.value.copy(isExporting = true, errorMessage = null)
         
         viewModelScope.launch {
-            val result = characterService.exportPngCharacter(characterId, outputUri)
+            val result = characterService.exportPngCharacter(characterId, outputUri, format)
             result
                 .onSuccess {
                     _uiState.value = _uiState.value.copy(
@@ -184,12 +188,15 @@ class CharacterEditViewModel(
     /**
      * 导出JSON角色卡
      */
-    fun exportJsonCharacter(outputUri: Uri) {
+    fun exportJsonCharacter(
+        outputUri: Uri,
+        format: TavernCharacterCardFormat = TavernCharacterCardFormat.V2
+    ) {
         val characterId = _uiState.value.character.id
         _uiState.value = _uiState.value.copy(isExporting = true, errorMessage = null)
         
         viewModelScope.launch {
-            val result = characterService.exportJsonCharacter(characterId, outputUri)
+            val result = characterService.exportJsonCharacter(characterId, outputUri, format)
             result
                 .onSuccess {
                     _uiState.value = _uiState.value.copy(

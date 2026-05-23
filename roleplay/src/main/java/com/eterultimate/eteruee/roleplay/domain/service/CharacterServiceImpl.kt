@@ -1,8 +1,6 @@
 package com.eterultimate.eteruee.roleplay.domain.service
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -12,14 +10,13 @@ import com.eterultimate.eteruee.roleplay.data.local.RolePlayFileStorage
 import com.eterultimate.eteruee.roleplay.data.local.dao.CharacterDAO
 import com.eterultimate.eteruee.roleplay.data.local.entity.CharacterEntity
 import com.eterultimate.eteruee.roleplay.data.model.Character
+import com.eterultimate.eteruee.roleplay.data.tavern.TavernCharacterCardFormat
+import com.eterultimate.eteruee.roleplay.data.tavern.TavernCharacterCodec
+import com.eterultimate.eteruee.roleplay.data.tavern.TavernPngCodec
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import java.io.ByteArrayOutputStream
-import java.util.zip.InflaterInputStream
 import kotlin.uuid.Uuid
 
 /**
@@ -30,9 +27,7 @@ class CharacterServiceImpl(
     private val characterDao: CharacterDAO,
     private val fileStorage: RolePlayFileStorage
 ) : CharacterService {
-    
-    private val json = Json { ignoreUnknownKeys = true }
-    
+
     override fun getAllCharacters(): Flow<PagingData<Character>> {
         return Pager(
             config = PagingConfig(pageSize = 20, enablePlaceholders = false),
@@ -207,16 +202,16 @@ class CharacterServiceImpl(
                 val inputStream = context.contentResolver.openInputStream(uri)
                     ?: return@withContext Result.failure(Exception("Cannot open file"))
                 
-                // 读取PNG并提取tEXt/zTXt chunk中的JSON
+                // 读取PNG并提取 SillyTavern chara/ccv3 元数据
                 val pngData = inputStream.readBytes()
-                val jsonData = extractJsonFromPng(pngData)
+                val jsonData = TavernPngCodec.readCharacterJson(pngData)
                 
                 if (jsonData == null) {
                     return@withContext Result.failure(Exception("No character data found in PNG"))
                 }
                 
                 // 解析JSON为Character
-                val character = json.decodeFromString<Character>(jsonData)
+                val character = TavernCharacterCodec.decode(jsonData)
                 
                 // 保存头像(PNG本身)
                 val avatarPath = fileStorage.saveCharacterAvatar(character.id, uri)
@@ -233,24 +228,36 @@ class CharacterServiceImpl(
         }
     }
     
-    override suspend fun exportPngCharacter(characterId: kotlin.uuid.Uuid, outputUri: Uri): Result<Unit> {
+    override suspend fun exportPngCharacter(
+        characterId: kotlin.uuid.Uuid,
+        outputUri: Uri,
+        format: TavernCharacterCardFormat
+    ): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
                 val character = getCharacterById(characterId)
                     ?: return@withContext Result.failure(Exception("Character not found"))
                 
-                // 读取原始PNG或使用默认模板
+                // 读取原始PNG
                 val avatarPath = character.avatarUrl
                 val pngBytes = if (avatarPath != null && java.io.File(avatarPath).exists()) {
                     java.io.File(avatarPath).readBytes()
                 } else {
-                    // TODO: 使用默认PNG模板
-                    byteArrayOf()
+                    return@withContext Result.failure(Exception("Character avatar PNG is required for PNG export"))
                 }
                 
-                // 将Character JSON嵌入PNG的tEXt chunk
-                val characterJson = json.encodeToString(character)
-                val pngWithMetadata = embedJsonInPng(pngBytes, characterJson)
+                // V1/V2 use SillyTavern's chara key. V3 uses ccv3 and keeps V2 as a fallback for older tools.
+                val characterJson = if (format == TavernCharacterCardFormat.V3) {
+                    TavernCharacterCodec.encode(character, TavernCharacterCardFormat.V2)
+                } else {
+                    TavernCharacterCodec.encode(character, format)
+                }
+                val v3Json = if (format == TavernCharacterCardFormat.V3) {
+                    TavernCharacterCodec.encode(character, TavernCharacterCardFormat.V3)
+                } else {
+                    null
+                }
+                val pngWithMetadata = TavernPngCodec.writeCharacterJson(pngBytes, characterJson, v3Json)
                 
                 // 写入输出文件
                 context.contentResolver.openOutputStream(outputUri)?.use { output ->
@@ -274,7 +281,7 @@ class CharacterServiceImpl(
                     input.bufferedReader().readText()
                 } ?: return@withContext Result.failure(Exception("Cannot read file"))
                 
-                val character = json.decodeFromString<Character>(jsonString)
+                val character = TavernCharacterCodec.decode(jsonString)
                 
                 // 保存JSON和数据库
                 fileStorage.saveCharacterJson(character, character.avatarUrl)
@@ -288,13 +295,17 @@ class CharacterServiceImpl(
         }
     }
     
-    override suspend fun exportJsonCharacter(characterId: kotlin.uuid.Uuid, outputUri: Uri): Result<Unit> {
+    override suspend fun exportJsonCharacter(
+        characterId: kotlin.uuid.Uuid,
+        outputUri: Uri,
+        format: TavernCharacterCardFormat
+    ): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
                 val character = getCharacterById(characterId)
                     ?: return@withContext Result.failure(Exception("Character not found"))
                 
-                val jsonString = json.encodeToString(character)
+                val jsonString = TavernCharacterCodec.encode(character, format)
                 
                 context.contentResolver.openOutputStream(outputUri)?.use { output ->
                     output.write(jsonString.toByteArray(Charsets.UTF_8))
@@ -308,91 +319,4 @@ class CharacterServiceImpl(
         }
     }
     
-    // ==================== PNG元数据提取工具方法 ====================
-    
-    /**
-     * 从PNG中提取tEXt/zTXt chunk的JSON数据
-     */
-    private fun extractJsonFromPng(pngData: ByteArray): String? {
-        // PNG签名: 89 50 4E 47 0D 0A 1A 0A
-        if (pngData.size < 8 || 
-            pngData[0] != 0x89.toByte() || 
-            pngData[1] != 0x50.toByte() ||
-            pngData[2] != 0x4E.toByte() ||
-            pngData[3] != 0x47.toByte()) {
-            return null
-        }
-        
-        var offset = 8
-        while (offset < pngData.size - 12) {
-            // 读取chunk长度(4字节)
-            val length = ((pngData[offset].toInt() and 0xFF) shl 24) or
-                        ((pngData[offset + 1].toInt() and 0xFF) shl 16) or
-                        ((pngData[offset + 2].toInt() and 0xFF) shl 8) or
-                        (pngData[offset + 3].toInt() and 0xFF)
-            
-            // 读取chunk类型(4字节)
-            val type = String(pngData, offset + 4, 4, Charsets.US_ASCII)
-            
-            // 检查是否为tEXt或zTXt
-            if (type == "tEXt" || type == "zTXt") {
-                val chunkData = pngData.copyOfRange(offset + 8, offset + 8 + length)
-                
-                if (type == "tEXt") {
-                    // tEXt格式: keyword\0text
-                    val nullIndex = chunkData.indexOf(0)
-                    if (nullIndex > 0) {
-                        val keyword = String(chunkData, 0, nullIndex, Charsets.US_ASCII)
-                        if (keyword == "chara" || keyword == "Chara") {
-                            return String(chunkData, nullIndex + 1, length - nullIndex - 1, Charsets.UTF_8)
-                        }
-                    }
-                } else if (type == "zTXt") {
-                    // zTXt格式: keyword\0compression_method\0compressed_text
-                    val nullIndex = chunkData.indexOf(0)
-                    if (nullIndex > 0) {
-                        val keyword = String(chunkData, 0, nullIndex, Charsets.US_ASCII)
-                        if (keyword == "chara" || keyword == "Chara") {
-                            // 跳过压缩方法字节
-                            val compressedData = chunkData.copyOfRange(nullIndex + 2, length)
-                            return try {
-                                decompressZlib(compressedData)
-                            } catch (e: Exception) {
-                                null
-                            }
-                        }
-                    }
-                }
-            }
-            
-            // 移动到下一个chunk (length + 4(type) + 4(crc))
-            offset += 12 + length
-        }
-        
-        return null
-    }
-    
-    /**
-     * 解压zlib数据
-     */
-    private fun decompressZlib(data: ByteArray): String {
-        InflaterInputStream(data.inputStream()).use { inflater ->
-            val buffer = ByteArray(8192)
-            val outputStream = ByteArrayOutputStream()
-            var bytesRead: Int
-            while (inflater.read(buffer).also { bytesRead = it } != -1) {
-                outputStream.write(buffer, 0, bytesRead)
-            }
-            return outputStream.toString(Charsets.UTF_8.name())
-        }
-    }
-    
-    /**
-     * 将JSON嵌入PNG的tEXt chunk
-     */
-    private fun embedJsonInPng(pngData: ByteArray, jsonData: String): ByteArray {
-        // 简化实现:直接返回原始PNG
-        // TODO: 完整实现需要正确插入tEXt/zTXt chunk
-        return pngData
-    }
 }

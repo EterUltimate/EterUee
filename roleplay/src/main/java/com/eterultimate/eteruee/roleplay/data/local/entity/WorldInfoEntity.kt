@@ -2,6 +2,7 @@ package com.eterultimate.eteruee.roleplay.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.eterultimate.eteruee.roleplay.data.serialization.RoleplayJson
 
 /**
  * 世界书数据库实体
@@ -17,7 +18,8 @@ data class WorldInfoEntity(
     val selectiveLogic: String,  // enum ordinal name
     val createdAt: Long,
     val updatedAt: Long,
-    val entriesJson: String  // List<WorldInfoEntry> JSON
+    val entriesJson: String,  // List<WorldInfoEntry> JSON
+    val jsonData: String = ""
 ) {
     companion object {
         fun fromModel(model: com.eterultimate.eteruee.roleplay.data.model.WorldInfo): WorldInfoEntity {
@@ -30,12 +32,17 @@ data class WorldInfoEntity(
                 selectiveLogic = model.selectiveLogic.name,
                 createdAt = model.createdAt.toEpochMilli(),
                 updatedAt = model.updatedAt.toEpochMilli(),
-                entriesJson = kotlinx.serialization.json.Json.encodeToString(model.entries)
+                entriesJson = RoleplayJson.encodeToString(model.entries),
+                jsonData = RoleplayJson.encodeToString(model)
             )
         }
         
         fun toModel(entity: WorldInfoEntity): com.eterultimate.eteruee.roleplay.data.model.WorldInfo {
-            val entries = kotlinx.serialization.json.Json.decodeFromString<List<com.eterultimate.eteruee.roleplay.data.model.WorldInfoEntry>>(
+            if (entity.jsonData.isNotBlank()) {
+                return RoleplayJson.decodeFromString(entity.jsonData)
+            }
+
+            val entries = RoleplayJson.decodeFromString<List<com.eterultimate.eteruee.roleplay.data.model.WorldInfoEntry>>(
                 entity.entriesJson
             )
             

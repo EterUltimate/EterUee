@@ -3,10 +3,13 @@ package com.eterultimate.eteruee.roleplay.data.local
 import android.content.Context
 import android.net.Uri
 import com.eterultimate.eteruee.roleplay.data.model.*
+import com.eterultimate.eteruee.roleplay.data.serialization.RoleplayJson
+import com.eterultimate.eteruee.roleplay.data.tavern.TavernChatCodec
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
@@ -41,11 +44,7 @@ class RolePlayFileStorage(private val context: Context) {
     private val baseDir = context.filesDir.resolve("roleplay").apply { mkdirs() }
     
     // JSON 序列化器
-    private val json = Json {
-        prettyPrint = true
-        encodeDefaults = true
-        ignoreUnknownKeys = true
-    }
+    private val json = RoleplayJson
     
     // ==================== 角色卡文件操作 ====================
     
@@ -173,9 +172,7 @@ class RolePlayFileStorage(private val context: Context) {
                 lines.drop(offset)
                     .take(limit)
                     .filter { it.isNotBlank() }
-                    .mapNotNull { line ->
-                        runCatching { json.decodeFromString<ChatMessage>(line) }.getOrNull()
-                    }
+                    .mapNotNull(::decodeJsonlMessageLine)
                     .toList()
             }
         } catch (e: Exception) {
@@ -193,9 +190,7 @@ class RolePlayFileStorage(private val context: Context) {
         try {
             BufferedReader(FileReader(file)).useLines { lines ->
                 lines.filter { it.isNotBlank() }
-                    .mapNotNull { line ->
-                        runCatching { json.decodeFromString<ChatMessage>(line) }.getOrNull()
-                    }
+                    .mapNotNull(::decodeJsonlMessageLine)
                     .toList()
             }
         } catch (e: Exception) {
@@ -230,6 +225,23 @@ class RolePlayFileStorage(private val context: Context) {
             e.printStackTrace()
             0
         }
+    }
+
+    private fun decodeJsonlMessageLine(line: String): ChatMessage? {
+        return runCatching { json.decodeFromString<ChatMessage>(line) }
+            .recoverCatching {
+                val root = json.parseToJsonElement(line).jsonObject
+                if (root.isTavernChatHeader()) {
+                    null
+                } else {
+                    TavernChatCodec.decodeMessage(root)
+                }
+            }
+            .getOrNull()
+    }
+
+    private fun JsonObject.isTavernChatHeader(): Boolean {
+        return containsKey("user_name") || containsKey("chat_metadata")
     }
     
     /**

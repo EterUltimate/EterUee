@@ -24,6 +24,7 @@ data class Character(
     val creator: String = "",
     val creatorNotes: String = "",
     val tags: List<String> = emptyList(),
+    val talkativeness: Float = 0.5f,
     val alternateGreetings: List<String> = emptyList(),  // 滑动回复备选问候
     val characterVersion: String = "",
     @Contextual val createdAt: Instant = Instant.now(),
@@ -34,6 +35,8 @@ data class Character(
     // V2/V3 兼容字段
     val spec: String = "chara_card_v3",
     val specVersion: String = "3.0",
+    // SillyTavern V2/V3 embedded character book. Kept as JSON to avoid dropping vendor-specific fields.
+    val characterBook: JsonElement? = null,
     // 扩展字段(透传,保持兼容性)
     val extensions: Map<String, JsonElement> = emptyMap()
 ) {

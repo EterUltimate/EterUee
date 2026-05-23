@@ -155,7 +155,6 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                     modifier = Modifier.padding(horizontal = 8.dp),
                     title = { Text(stringResource(R.string.setting_page_general_settings)) },
                 ) {
-                    // Cyberpunk: color mode selector removed (always dark)
                     item(
                         onClick = { navController.navigate(Screen.SettingDisplay) },
                         leadingContent = { Icon(HugeIcons.Settings03, null) },

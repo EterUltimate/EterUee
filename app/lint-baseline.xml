@@ -552,17 +552,6 @@
     </issue>
 
     <issue
-        id="MissingTranslation"
-        message="&quot;theme_name_cyberpunk&quot; is not translated in &quot;ru&quot; (Russian), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
-        errorLine1="  &lt;string name=&quot;theme_name_cyberpunk&quot;>Cyberpunk Neon&lt;/string>"
-        errorLine2="          ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="973"
-            column="11"/>
-    </issue>
-
-    <issue
         id="Typos"
         message="&quot;Avaliable&quot; is a common misspelling; did you mean &quot;Available&quot;?"
         errorLine1="  &lt;string name=&quot;setting_provider_page_avaliable_models&quot;>Avaliable Models&lt;/string>"
@@ -1018,28 +1007,6 @@
             file="src/main/res/values/strings.xml"
             line="744"
             column="11"/>
-    </issue>
-
-    <issue
-        id="UseOfNonLambdaOffsetOverload"
-        message="State backed values should use the lambda overload of Modifier.offset"
-        errorLine1="            modifier = Modifier.offset(x = (offsetX * glitchIntensity).dp)"
-        errorLine2="                                ~~~~~~">
-        <location
-            file="src/main/java/com/eterultimate/eteruee/ui/components/cyberpunk/GlitchText.kt"
-            line="51"
-            column="33"/>
-    </issue>
-
-    <issue
-        id="UseOfNonLambdaOffsetOverload"
-        message="State backed values should use the lambda overload of Modifier.offset"
-        errorLine1="            modifier = Modifier.offset(x = (-offsetX * glitchIntensity).dp)"
-        errorLine2="                                ~~~~~~">
-        <location
-            file="src/main/java/com/eterultimate/eteruee/ui/components/cyberpunk/GlitchText.kt"
-            line="58"
-            column="33"/>
     </issue>
 
     <issue

@@ -97,11 +97,7 @@ fun EterUeeTheme(
         MaterialExpressiveTheme(
             colorScheme = colorSchemeConverted,
             typography = Typography,
-            shapes = if (settings.themeId == CyberpunkThemeId && !settings.dynamicColor) {
-                CyberpunkShapes
-            } else {
-                EterUeeShapes
-            },
+            shapes = EterUeeShapes,
             content = content,
             motionScheme = MotionScheme.expressive()
         )

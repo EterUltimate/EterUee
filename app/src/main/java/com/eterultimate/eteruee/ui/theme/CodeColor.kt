@@ -3,7 +3,7 @@ package com.eterultimate.eteruee.ui.theme
 import androidx.compose.ui.graphics.Color
 import com.eterultimate.eteruee.highlight.HighlightTextColorPalette
 
-// Cyberpunk Code Highlight Colors — Dark Theme
+// High-contrast code highlight colors for dark surfaces.
 val AtomOneDarkPalette = HighlightTextColorPalette(
     keyword = Color(0xFFFF0000),     // Red
     string = Color(0xFF0000FF),      // Blue
@@ -22,5 +22,5 @@ val AtomOneDarkPalette = HighlightTextColorPalette(
     fallback = Color(0xFFFFFFFF)     // White
 )
 
-// Light palette not used (cyberpunk is always dark), kept as fallback
+// Reuse the high-contrast palette as a fallback for light surfaces.
 val AtomOneLightPalette = AtomOneDarkPalette

@@ -1052,6 +1052,7 @@
   <string name="theme_name_chatgpt">ChatGPT Style</string>
   <string name="theme_name_claude">Claude Style</string>
   <string name="theme_name_gemini">Gemini Style</string>
+  <string name="theme_name_hitech">HiTech</string>
   <string name="theme_name_minimal">Minimal</string>
   <string name="theme_name_ocean">Ocean Blue</string>
   <string name="theme_name_sakura">Sakura Pink</string>
@@ -1137,5 +1138,4 @@
   <string name="setting_page_ssh">SSH</string>
   <string name="setting_page_ssh_desc">Execute commands on remote servers via SSH</string>
   <string name="setting_provider_page_video_model">Video</string>
-  <string name="theme_name_cyberpunk">Cyberpunk</string>
 </resources>

@@ -1054,6 +1054,7 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="theme_name_chatgpt">ChatGPT 风格</string>
   <string name="theme_name_claude">Claude 风格</string>
   <string name="theme_name_gemini">Gemini 风格</string>
+  <string name="theme_name_hitech">HiTech</string>
   <string name="theme_name_minimal">极简主题</string>
   <string name="theme_name_ocean">海湾蓝</string>
   <string name="theme_name_sakura">樱花粉</string>
@@ -1139,5 +1140,4 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="setting_page_ssh">SSH</string>
   <string name="setting_page_ssh_desc">通过SSH在远程服务器上执行命令</string>
   <string name="setting_provider_page_video_model">视频</string>
-  <string name="theme_name_cyberpunk">赛博朋克</string>
 </resources>

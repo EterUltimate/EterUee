@@ -2,6 +2,12 @@
 
 import PackageDescription
 
+let kotlinNativeLinkerSettings: [LinkerSetting] = [
+    .linkedFramework("Foundation"),
+    .linkedFramework("CoreFoundation"),
+    .linkedLibrary("xpc", .when(platforms: [.macOS])),
+]
+
 let package = Package(
     name: "EterUeeApple",
     platforms: [
@@ -21,11 +27,13 @@ let package = Package(
         ),
         .target(
             name: "EterUeeAppleSupport",
-            dependencies: ["EterUeeShared"]
+            dependencies: ["EterUeeShared"],
+            linkerSettings: kotlinNativeLinkerSettings
         ),
         .testTarget(
             name: "EterUeeAppleSupportTests",
-            dependencies: ["EterUeeAppleSupport"]
+            dependencies: ["EterUeeAppleSupport"],
+            linkerSettings: kotlinNativeLinkerSettings
         ),
     ]
 )

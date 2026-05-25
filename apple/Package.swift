@@ -5,14 +5,13 @@ import PackageDescription
 let kotlinNativeLinkerSettings: [LinkerSetting] = [
     .linkedFramework("Foundation"),
     .linkedFramework("CoreFoundation"),
-    .linkedLibrary("xpc", .when(platforms: [.macOS])),
 ]
 
 let package = Package(
     name: "EterUeeApple",
     platforms: [
         .iOS(.v16),
-        .macOS(.v14),
+        .macOS(.v15),
     ],
     products: [
         .library(

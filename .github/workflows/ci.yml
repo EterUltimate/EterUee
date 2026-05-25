@@ -93,8 +93,15 @@ jobs:
       - name: Build Swift iOS simulator host
         working-directory: apple
         run: |
+          SCHEMES="$(xcodebuild -list | awk '/Schemes:/{p=1;next} p && NF {sub(/^[[:space:]]*/, ""); sub(/[[:space:]]*$/, ""); print}')"
+          PACKAGE_SCHEME="$(printf '%s\n' "$SCHEMES" | grep -- '-Package$' | head -n 1 || true)"
+          if [ -z "$PACKAGE_SCHEME" ]; then
+            PACKAGE_SCHEME="$(printf '%s\n' "$SCHEMES" | head -n 1)"
+          fi
+          test -n "$PACKAGE_SCHEME"
+          echo "Using Swift package scheme: $PACKAGE_SCHEME"
           xcodebuild \
-            -scheme EterUeeAppleSupport \
+            -scheme "$PACKAGE_SCHEME" \
             -destination 'generic/platform=iOS Simulator' \
             -sdk iphonesimulator \
             -derivedDataPath .build/xcode-derived \

@@ -31,6 +31,8 @@ shared/build/XCFrameworks/
 ```
 
 Swift and SwiftUI hosts should import `EterUeeShared` from the generated XCFramework.
+The framework is dynamic so Apple hosts can link Kotlin/Native platform dependencies through the
+framework boundary instead of re-linking the full Kotlin/Native static archive in each host target.
 
 ## Swift Package Host
 

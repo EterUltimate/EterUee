@@ -29,7 +29,7 @@ kotlin {
     ).forEach { target ->
         target.binaries.framework {
             baseName = "EterUeeShared"
-            isStatic = true
+            isStatic = false
             sharedFramework.add(this)
         }
     }

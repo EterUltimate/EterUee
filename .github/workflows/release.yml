@@ -64,10 +64,11 @@ jobs:
 
       - name: Sign APK verification
         run: |
-          APK_PATH=$(find app/build/outputs/apk/release -name '*.apk' -not -name '*unsigned*' | head -1)
+          APK_PATH="$(find app/build/outputs/apk/release -name '*.apk' -not -name '*unsigned*' | head -1)"
           if [ -n "$APK_PATH" ]; then
             echo "✅ Signed APK found: $APK_PATH"
-            $ANDROID_HOME/build-tools/*/apksigner verify --print-certs "$APK_PATH" || true
+            APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -1)"
+            "$APKSIGNER" verify --print-certs "$APK_PATH" || true
           else
             echo "⚠️ No signed APK found"
           fi
@@ -75,24 +76,25 @@ jobs:
       - name: Extract version info
         id: version
         run: |
-          APK_PATH=$(find app/build/outputs/apk/release -name '*.apk' -not -name '*unsigned*' | head -1)
+          APK_PATH="$(find app/build/outputs/apk/release -name '*.apk' -not -name '*unsigned*' | head -1)"
           if [ -n "$APK_PATH" ]; then
-            VERSION_NAME=$($ANDROID_HOME/build-tools/*/aapt dump badging "$APK_PATH" | grep versionName | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")
-            VERSION_CODE=$($ANDROID_HOME/build-tools/*/aapt dump badging "$APK_PATH" | grep versionCode | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")
-            echo "name=$VERSION_NAME" >> $GITHUB_OUTPUT
-            echo "code=$VERSION_CODE" >> $GITHUB_OUTPUT
+            AAPT="$(find "$ANDROID_HOME/build-tools" -name aapt -type f | sort -V | tail -1)"
+            VERSION_NAME="$("$AAPT" dump badging "$APK_PATH" | grep versionName | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")"
+            VERSION_CODE="$("$AAPT" dump badging "$APK_PATH" | grep versionCode | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")"
+            echo "name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+            echo "code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
             echo "📦 Version: $VERSION_NAME ($VERSION_CODE)"
           fi
 
       - name: Upload APK artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-apk
           path: app/build/outputs/apk/release/*.apk
           retention-days: 30
 
       - name: Upload AAB artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-aab
           path: app/build/outputs/bundle/release/*.aab
@@ -103,18 +105,18 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           # Get previous tag
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          PREV_TAG="$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")"
           
           if [ -n "$PREV_TAG" ]; then
             echo "📋 Changes since $PREV_TAG:"
-            git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges > CHANGELOG.md
+            git log "${PREV_TAG}..HEAD" --pretty=format:"- %s (%h)" --no-merges > CHANGELOG.md
           else
             echo "📋 Full changelog:"
             git log --pretty=format:"- %s (%h)" --no-merges -30 > CHANGELOG.md
           fi
           
           cat CHANGELOG.md
-          echo "path=CHANGELOG.md" >> $GITHUB_OUTPUT
+          echo "path=CHANGELOG.md" >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.create_release)

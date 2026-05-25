@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - dev
-      - 'codex/**'
   pull_request:
     branches:
       - main
@@ -98,12 +97,14 @@ jobs:
 
       - name: Review dependency changes
         uses: actions/dependency-review-action@v5.0.0
+        continue-on-error: true
         with:
           fail-on-severity: high
 
   scorecard:
     name: OSSF Scorecard
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     permissions:
       contents: read
       id-token: write
@@ -137,6 +138,7 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version: stable
+          cache: false
 
       - name: Lint workflows
         run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 -color

@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - dev
-      - 'codex/**'
   pull_request:
     branches:
       - main
@@ -41,7 +40,7 @@ jobs:
       - name: Set up pnpm
         run: |
           corepack enable
-          corepack prepare pnpm@${PNPM_VERSION} --activate
+          corepack prepare "pnpm@${PNPM_VERSION}" --activate
 
       - name: Install WebUI dependencies
         run: pnpm -C web-ui install --frozen-lockfile

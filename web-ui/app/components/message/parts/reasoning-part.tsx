@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ChevronDown, ChevronRight, Brain } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import Markdown from "~/components/markdown/markdown";
 import Think from "~/assets/think.svg?react";
 

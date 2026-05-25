@@ -9,7 +9,6 @@ import {
   LoaderCircle,
   Mic,
   Plus,
-  Send,
   Square,
   Video,
   X,

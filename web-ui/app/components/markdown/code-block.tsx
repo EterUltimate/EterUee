@@ -274,7 +274,7 @@ export function highlightCode(
         subscribers.delete(tokensCacheKey);
       }
     })
-    .catch((e) => {
+    .catch(() => {
       const fallback = createRawTokens(code);
       writeTokensToCache(tokensCacheKey, fallback);
       const subs = subscribers.get(tokensCacheKey);

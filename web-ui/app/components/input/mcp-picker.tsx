@@ -11,7 +11,7 @@ import { extractErrorMessage } from "~/lib/error";
 import { safeStringArray } from "~/lib/type-guards";
 import { cn } from "~/lib/utils";
 import api from "~/services/api";
-import type { McpServerConfig, McpToolOption } from "~/types";
+import type { McpToolOption } from "~/types";
 import { Button } from "~/components/ui/button";
 import {
   Popover,

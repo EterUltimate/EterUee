@@ -30,3 +30,19 @@ updates:
     labels:
       - dependencies
       - github-actions
+
+  # WebUI dependencies
+  - package-ecosystem: npm
+    directory: /web-ui
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: Asia/Shanghai
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: deps
+      prefix-development: deps-dev
+    labels:
+      - dependencies
+      - web-ui

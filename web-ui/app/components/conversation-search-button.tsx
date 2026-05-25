@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import dayjs from "dayjs";
-import { Circle, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "~/components/ui/button";

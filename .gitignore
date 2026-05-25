@@ -5,6 +5,8 @@
 .DS_Store
 /build
 shared/build/
+apple/.build/
+apple/Frameworks/*.xcframework/
 /captures
 .externalNativeBuild
 .cxx

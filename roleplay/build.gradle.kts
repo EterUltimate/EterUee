@@ -43,6 +43,7 @@ android {
 dependencies {
     implementation(project(":common"))
     implementation(project(":ai"))
+    implementation(project(":shared"))
 
     // AndroidX Core
     implementation(libs.androidx.core.ktx)

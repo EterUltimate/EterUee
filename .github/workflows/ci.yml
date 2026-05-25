@@ -81,6 +81,25 @@ jobs:
       - name: Build Apple XCFramework
         run: ./gradlew :shared:assembleEterUeeSharedDebugXCFramework --no-daemon --stacktrace
 
+      - name: Prepare Swift package framework
+        run: |
+          rm -rf apple/Frameworks/EterUeeShared.xcframework
+          mkdir -p apple/Frameworks
+          cp -R shared/build/XCFrameworks/debug/EterUeeShared.xcframework apple/Frameworks/
+
+      - name: Test Swift macOS host
+        run: swift test --package-path apple
+
+      - name: Build Swift iOS simulator host
+        run: |
+          xcodebuild \
+            -scheme EterUeeAppleSupport \
+            -packagePath apple \
+            -destination 'generic/platform=iOS Simulator' \
+            -sdk iphonesimulator \
+            -derivedDataPath apple/.build/xcode-derived \
+            build
+
       - name: Upload Apple XCFramework
         uses: actions/upload-artifact@v7
         with:

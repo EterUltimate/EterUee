@@ -1,6 +1,8 @@
 package com.eterultimate.eteruee.shared
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -29,6 +31,11 @@ expect val currentPlatformFamily: PlatformFamily
 
 object EterUeeShared {
     const val frameworkName: String = "EterUeeShared"
+
+    private val json = Json {
+        encodeDefaults = true
+        ignoreUnknownKeys = true
+    }
 
     val supportedAppleTargets: List<AppleTarget> = listOf(
         AppleTarget(
@@ -59,4 +66,6 @@ object EterUeeShared {
         appleTargets = supportedAppleTargets,
         generatedAtEpochMilliseconds = Clock.System.now().toEpochMilliseconds(),
     )
+
+    fun runtimeCapabilitiesJson(): String = json.encodeToString(runtimeCapabilities())
 }

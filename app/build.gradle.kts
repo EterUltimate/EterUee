@@ -319,6 +319,7 @@ dependencies {
     implementation(project(":search"))
     implementation(project(":tts"))
     implementation(project(":common"))
+    implementation(project(":shared"))
     implementation(project(":roleplay"))
     implementation(project(":material3"))
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))

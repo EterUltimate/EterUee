@@ -79,7 +79,18 @@ jobs:
         run: ./gradlew :shared:metadataCommonMainClasses :shared:compileAndroidMain :shared:testAndroidHostTest --no-daemon --stacktrace
 
       - name: Build Apple XCFramework
-        run: ./gradlew :shared:assembleEterUeeSharedDebugXCFramework --no-daemon --stacktrace
+        run: |
+          for attempt in 1 2 3; do
+            if ./gradlew :shared:assembleEterUeeSharedDebugXCFramework --no-daemon --stacktrace; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              exit 1
+            fi
+            sleep_seconds=$((attempt * 20))
+            echo "Apple XCFramework build failed; retrying in ${sleep_seconds}s..."
+            sleep "$sleep_seconds"
+          done
 
       - name: Prepare Swift package framework
         run: |

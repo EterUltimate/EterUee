@@ -48,7 +48,7 @@ then runs:
 
 ```bash
 swift test --package-path apple
-xcodebuild -scheme EterUeeAppleSupport -packagePath apple -destination 'generic/platform=iOS Simulator' -sdk iphonesimulator build
+(cd apple && xcodebuild -scheme EterUeeAppleSupport -destination 'generic/platform=iOS Simulator' -sdk iphonesimulator build)
 ```
 
 This verifies that Swift can import the Kotlin/Native framework, call the stable bridge, run a

@@ -91,13 +91,13 @@ jobs:
         run: swift test --package-path apple
 
       - name: Build Swift iOS simulator host
+        working-directory: apple
         run: |
           xcodebuild \
             -scheme EterUeeAppleSupport \
-            -packagePath apple \
             -destination 'generic/platform=iOS Simulator' \
             -sdk iphonesimulator \
-            -derivedDataPath apple/.build/xcode-derived \
+            -derivedDataPath .build/xcode-derived \
             build
 
       - name: Upload Apple XCFramework

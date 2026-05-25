@@ -3,6 +3,7 @@ package com.eterultimate.eteruee.data.db.migrations
 import android.database.sqlite.SQLiteBlobTooBigException
 import android.util.Log
 import androidx.room.migration.Migration
+import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -98,6 +99,83 @@ val Migration_11_12 = object : Migration(11, 12) {
             )
         } finally {
             db.endTransaction()
+            DatabaseMigrationTracker.onMigrationEnd()
+        }
+    }
+
+    override fun migrate(connection: SQLiteConnection) {
+        Log.i(TAG, "migrate: start migrate from 11 to 12 (extracting message nodes to separate table)")
+        DatabaseMigrationTracker.onMigrationStart(11, 12)
+        try {
+            connection.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS message_node (
+                    id TEXT NOT NULL PRIMARY KEY,
+                    conversation_id TEXT NOT NULL,
+                    node_index INTEGER NOT NULL,
+                    messages TEXT NOT NULL,
+                    select_index INTEGER NOT NULL,
+                    FOREIGN KEY (conversation_id) REFERENCES ConversationEntity(id) ON DELETE CASCADE
+                )
+                """.trimIndent()
+            )
+            connection.execSQL("CREATE INDEX IF NOT EXISTS index_message_node_conversation_id ON message_node(conversation_id)")
+
+            val conversationIds = mutableListOf<String>()
+            connection.query("SELECT id FROM conversationentity") { statement ->
+                while (statement.step()) {
+                    conversationIds.add(statement.getText(0))
+                }
+            }
+
+            var migratedCount = 0
+            var nodeCount = 0
+            var skippedCount = 0
+
+            conversationIds.forEach { conversationId ->
+                val nodesJson = runCatching {
+                    connection.query(
+                        "SELECT nodes FROM conversationentity WHERE id = ?",
+                        arrayOf(conversationId)
+                    ) { statement ->
+                        if (statement.step()) statement.getText(0) else null
+                    }
+                }.getOrElse {
+                    skippedCount++
+                    Log.w(TAG, "migrate: skip conversation $conversationId due to unreadable nodes blob", it)
+                    return@forEach
+                } ?: return@forEach
+
+                val nodesArray = runCatching {
+                    JsonInstant.parseToJsonElement(nodesJson) as? JsonArray
+                }.getOrNull() ?: JsonArray(emptyList())
+
+                nodesArray.forEachIndexed { index, nodeElement ->
+                    val nodeObject = nodeElement as? JsonObject ?: return@forEachIndexed
+                    val messagesElement = nodeObject["messages"] ?: JsonArray(emptyList())
+                    val migratedMessages = migrateMessagesElement(messagesElement)
+                    val messagesJson = JsonInstant.encodeToString(migratedMessages)
+                    val selectIndex = runCatching {
+                        nodeObject["selectIndex"]?.jsonPrimitive?.int ?: 0
+                    }.getOrDefault(0)
+                    connection.execSQL(
+                        "INSERT INTO message_node (id, conversation_id, node_index, messages, select_index) VALUES (?, ?, ?, ?, ?)",
+                        arrayOf<Any?>(Uuid.random().toString(), conversationId, index, messagesJson, selectIndex)
+                    )
+                    nodeCount++
+                }
+                connection.execSQL(
+                    "UPDATE conversationentity SET nodes = '[]' WHERE id = ?",
+                    arrayOf(conversationId)
+                )
+                migratedCount++
+            }
+
+            Log.i(
+                TAG,
+                "migrate: migrate from 11 to 12 success ($migratedCount conversations, $nodeCount nodes, $skippedCount skipped)"
+            )
+        } finally {
             DatabaseMigrationTracker.onMigrationEnd()
         }
     }

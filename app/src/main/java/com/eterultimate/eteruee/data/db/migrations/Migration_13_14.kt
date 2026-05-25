@@ -2,6 +2,7 @@
 
 import android.util.Log
 import androidx.room.migration.Migration
+import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.eterultimate.eteruee.data.db.DatabaseMigrationTracker
 
@@ -32,6 +33,33 @@ val Migration_13_14 = object : Migration(13, 14) {
             Log.i(TAG, "migrate: migrate from 13 to 14 success ($updatedCount nodes updated)")
         } finally {
             db.endTransaction()
+            DatabaseMigrationTracker.onMigrationEnd()
+        }
+    }
+
+    override fun migrate(connection: SQLiteConnection) {
+        Log.i(TAG, "migrate: start migrate from 13 to 14 (UIMessagePart type -> @SerialName)")
+        DatabaseMigrationTracker.onMigrationStart(13, 14)
+        try {
+            val updates = mutableListOf<Pair<String, String>>()
+            connection.query("SELECT id, messages FROM message_node") { statement ->
+                while (statement.step()) {
+                    val id = statement.getText(0)
+                    val messagesJson = statement.getText(1)
+                    val migratedJson = migrateMessagesJson(messagesJson)
+                    if (migratedJson != messagesJson) {
+                        updates.add(id to migratedJson)
+                    }
+                }
+            }
+            updates.forEach { (id, migratedJson) ->
+                connection.execSQL(
+                    "UPDATE message_node SET messages = ? WHERE id = ?",
+                    arrayOf(migratedJson, id)
+                )
+            }
+            Log.i(TAG, "migrate: migrate from 13 to 14 success (${updates.size} nodes updated)")
+        } finally {
             DatabaseMigrationTracker.onMigrationEnd()
         }
     }

@@ -6,3 +6,4 @@ export * from "./conversation";
 export * from "./dto";
 export * from "./settings";
 export * from "./helpers";
+export * from "./roleplay";

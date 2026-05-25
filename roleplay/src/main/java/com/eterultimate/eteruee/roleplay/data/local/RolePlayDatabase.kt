@@ -3,7 +3,9 @@ package com.eterultimate.eteruee.roleplay.data.local
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
+import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.sqlite.execSQL
 import com.eterultimate.eteruee.roleplay.data.local.dao.*
 import com.eterultimate.eteruee.roleplay.data.local.entity.*
 
@@ -43,6 +45,11 @@ abstract class RolePlayDatabase : RoomDatabase() {
                 // 添加 rootNodesJson 列，默认值为空JSON数组
                 database.execSQL("ALTER TABLE rp_chats ADD COLUMN rootNodesJson TEXT NOT NULL DEFAULT '[]'")
             }
+
+            override fun migrate(connection: SQLiteConnection) {
+                connection.execSQL("ALTER TABLE rp_chats ADD COLUMN activeBranchId TEXT")
+                connection.execSQL("ALTER TABLE rp_chats ADD COLUMN rootNodesJson TEXT NOT NULL DEFAULT '[]'")
+            }
         }
 
         /**
@@ -52,6 +59,24 @@ abstract class RolePlayDatabase : RoomDatabase() {
             override fun migrate(database: SupportSQLiteDatabase) {
                 // 创建书签表
                 database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS rp_bookmarks (
+                        id TEXT NOT NULL PRIMARY KEY,
+                        chatId TEXT NOT NULL,
+                        characterId TEXT NOT NULL,
+                        messageId TEXT,
+                        nodeId TEXT,
+                        title TEXT NOT NULL,
+                        note TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL,
+                        updatedAt INTEGER NOT NULL,
+                        color TEXT NOT NULL,
+                        tagsJson TEXT NOT NULL
+                    )
+                """.trimIndent())
+            }
+
+            override fun migrate(connection: SQLiteConnection) {
+                connection.execSQL("""
                     CREATE TABLE IF NOT EXISTS rp_bookmarks (
                         id TEXT NOT NULL PRIMARY KEY,
                         chatId TEXT NOT NULL,
@@ -87,6 +112,20 @@ abstract class RolePlayDatabase : RoomDatabase() {
                     )
                 """.trimIndent())
             }
+
+            override fun migrate(connection: SQLiteConnection) {
+                connection.execSQL("""
+                    CREATE TABLE IF NOT EXISTS rp_presets (
+                        id TEXT NOT NULL PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        description TEXT NOT NULL,
+                        type TEXT NOT NULL,
+                        parametersJson TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL,
+                        updatedAt INTEGER NOT NULL
+                    )
+                """.trimIndent())
+            }
         }
 
         /**
@@ -109,6 +148,21 @@ abstract class RolePlayDatabase : RoomDatabase() {
                     )
                 """.trimIndent())
             }
+
+            override fun migrate(connection: SQLiteConnection) {
+                connection.execSQL("DROP TABLE IF EXISTS rp_bookmarks")
+                connection.execSQL("""
+                    CREATE TABLE IF NOT EXISTS rp_bookmarks (
+                        id TEXT NOT NULL PRIMARY KEY,
+                        chatId TEXT NOT NULL,
+                        messageIndex INTEGER NOT NULL,
+                        title TEXT NOT NULL,
+                        note TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL,
+                        updatedAt INTEGER NOT NULL
+                    )
+                """.trimIndent())
+            }
         }
 
         /**
@@ -118,6 +172,11 @@ abstract class RolePlayDatabase : RoomDatabase() {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE rp_world_infos ADD COLUMN jsonData TEXT NOT NULL DEFAULT ''")
                 database.execSQL("ALTER TABLE rp_chats ADD COLUMN jsonData TEXT NOT NULL DEFAULT ''")
+            }
+
+            override fun migrate(connection: SQLiteConnection) {
+                connection.execSQL("ALTER TABLE rp_world_infos ADD COLUMN jsonData TEXT NOT NULL DEFAULT ''")
+                connection.execSQL("ALTER TABLE rp_chats ADD COLUMN jsonData TEXT NOT NULL DEFAULT ''")
             }
         }
     }

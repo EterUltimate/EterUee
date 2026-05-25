@@ -69,8 +69,85 @@ function dispatchWebAuthRequired(detail: WebAuthRequiredEventDetail) {
   window.dispatchEvent(new CustomEvent<WebAuthRequiredEventDetail>(WEB_AUTH_REQUIRED_EVENT, { detail }));
 }
 
-const kyInstance = ky.create({
-  prefixUrl: "/api",
+function createAuthenticatedKy(prefixUrl: string) {
+  return ky.create({
+    prefixUrl,
+    timeout: 30000,
+    hooks: {
+      beforeRequest: [
+        (request) => {
+          const token = getValidWebAuthToken();
+          if (!token || request.headers.has("Authorization")) return;
+          request.headers.set("Authorization", `Bearer ${token}`);
+        },
+      ],
+    },
+  });
+}
+
+const kyInstance = createAuthenticatedKy("/api/agent");
+const roleplayKyInstance = createAuthenticatedKy("/api/roleplay");
+const authKyInstance = createAuthenticatedKy("/api");
+
+const api = createApiClient(kyInstance);
+const roleplayApi = createApiClient(roleplayKyInstance);
+
+/**
+ * API client with unwrapped response data
+ */
+function createApiClient(client: typeof kyInstance) {
+  return {
+    async get<T>(url: string, options?: Options): Promise<T> {
+      try {
+        return await client.get(url, options).json<T>();
+      } catch (error) {
+        return handleError(error);
+      }
+    },
+    async post<T>(url: string, data?: unknown, options?: Options): Promise<T> {
+      try {
+        return await client.post(url, { ...options, json: data }).json<T>();
+      } catch (error) {
+        return handleError(error);
+      }
+    },
+    async postMultipart<T>(url: string, formData: FormData, options?: Options): Promise<T> {
+      try {
+        return await client.post(url, { ...options, body: formData }).json<T>();
+      } catch (error) {
+        return handleError(error);
+      }
+    },
+    async put<T>(url: string, data?: unknown, options?: Options): Promise<T> {
+      try {
+        return await client.put(url, { ...options, json: data }).json<T>();
+      } catch (error) {
+        return handleError(error);
+      }
+    },
+    async patch<T>(url: string, data?: unknown, options?: Options): Promise<T> {
+      try {
+        return await client.patch(url, { ...options, json: data }).json<T>();
+      } catch (error) {
+        return handleError(error);
+      }
+    },
+    async delete<T>(url: string, options?: Options): Promise<T> {
+      try {
+        const response = await client.delete(url, options);
+        if (response.status === 204) {
+          return undefined as T;
+        }
+        return await response.json<T>();
+      } catch (error) {
+        return handleError(error);
+      }
+    },
+  };
+}
+
+const sseKyInstance = ky.create({
+  prefixUrl: "/api/agent",
   timeout: 30000,
   hooks: {
     beforeRequest: [
@@ -143,56 +220,13 @@ export function appendWebAuthQuery(url: string): string {
   return hash ? `${nextPath}#${hash}` : nextPath;
 }
 
-/**
- * API client with unwrapped response data
- */
-const api = {
-  async get<T>(url: string, options?: Options): Promise<T> {
-    try {
-      return await kyInstance.get(url, options).json<T>();
-    } catch (error) {
-      return handleError(error);
-    }
-  },
-  async post<T>(url: string, data?: unknown, options?: Options): Promise<T> {
-    try {
-      return await kyInstance.post(url, { ...options, json: data }).json<T>();
-    } catch (error) {
-      return handleError(error);
-    }
-  },
-  async postMultipart<T>(url: string, formData: FormData, options?: Options): Promise<T> {
-    try {
-      return await kyInstance.post(url, { ...options, body: formData }).json<T>();
-    } catch (error) {
-      return handleError(error);
-    }
-  },
-  async put<T>(url: string, data?: unknown, options?: Options): Promise<T> {
-    try {
-      return await kyInstance.put(url, { ...options, json: data }).json<T>();
-    } catch (error) {
-      return handleError(error);
-    }
-  },
-  async patch<T>(url: string, data?: unknown, options?: Options): Promise<T> {
-    try {
-      return await kyInstance.patch(url, { ...options, json: data }).json<T>();
-    } catch (error) {
-      return handleError(error);
-    }
-  },
-  async delete<T>(url: string, options?: Options): Promise<T> {
-    try {
-      return await kyInstance.delete(url, options).json<T>();
-    } catch (error) {
-      return handleError(error);
-    }
-  },
-};
-
 export async function requestWebAuthToken(password: string): Promise<WebAuthTokenResponse> {
-  const response = await api.post<WebAuthTokenResponse>("auth/token", { password });
+  let response: WebAuthTokenResponse;
+  try {
+    response = await authKyInstance.post("auth/token", { json: { password } }).json<WebAuthTokenResponse>();
+  } catch (error) {
+    return handleError(error);
+  }
   setWebAuthToken(response.token, response.expiresAt);
   return response;
 }
@@ -221,7 +255,7 @@ async function sse<T>(
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
 
   try {
-    const response = await kyInstance.get(url, {
+    const response = await sseKyInstance.get(url, {
       ...options,
       headers: {
         ...options?.headers,
@@ -293,4 +327,5 @@ async function sse<T>(
 }
 
 export { sse };
+export { roleplayApi };
 export default api;

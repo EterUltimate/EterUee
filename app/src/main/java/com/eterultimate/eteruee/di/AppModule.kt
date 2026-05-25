@@ -19,6 +19,11 @@ import com.eterultimate.eteruee.utils.JsonInstant
 import com.eterultimate.eteruee.utils.UpdateChecker
 import com.eterultimate.eteruee.web.WebServerManager
 import com.eterultimate.eteruee.tts.provider.TTSManager
+import com.eterultimate.eteruee.roleplay.domain.service.CharacterService as RoleplayCharacterService
+import com.eterultimate.eteruee.roleplay.domain.service.ChatService as RoleplayChatService
+import com.eterultimate.eteruee.roleplay.domain.service.GroupService as RoleplayGroupService
+import com.eterultimate.eteruee.roleplay.domain.service.PresetService as RoleplayPresetService
+import com.eterultimate.eteruee.roleplay.domain.service.WorldInfoService as RoleplayWorldInfoService
 import org.koin.dsl.module
 
 val appModule = module {
@@ -97,7 +102,12 @@ val appModule = module {
             aiSDK = get(),
             conversationRepo = get(),
             settingsStore = get(),
-            filesManager = get()
+            filesManager = get(),
+            roleplayCharacterService = get<RoleplayCharacterService>(),
+            roleplayChatService = get<RoleplayChatService>(),
+            roleplayWorldInfoService = get<RoleplayWorldInfoService>(),
+            roleplayGroupService = get<RoleplayGroupService>(),
+            roleplayPresetService = get<RoleplayPresetService>(),
         )
     }
 }

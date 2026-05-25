@@ -268,6 +268,8 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.paging)
+    implementation(libs.androidx.room.sqlite.wrapper)
+    implementation(libs.androidx.sqlite.bundled)
     ksp(libs.androidx.room.compiler)
 
     // Paging3
@@ -305,9 +307,6 @@ dependencies {
     // SLF4J Android binding — routes Ktor/SLF4J logs to logcat
     implementation(libs.slf4j.api)
     implementation(libs.slf4j.android)
-
-    // sqlite-android (requery SQLite for Android)
-    implementation(libs.sqlite.android)
 
     // JSch (SSH client)
     implementation(libs.jsch)

@@ -26,6 +26,7 @@ retrofit = "3.0.0"
 coil = "3.4.0"
 quickjs = "3.2.3"
 room = "2.8.4"
+sqlite = "2.6.2"
 koin-bom = "4.2.1"
 datastore = "1.2.1"
 serialization-json = "1.11.0"
@@ -62,7 +63,6 @@ ktor = "3.4.3"
 sqlite-vector = "0.9.95"
 jmdns = "3.6.3"
 slf4j = "2.0.17"
-sqlite-android = "-SNAPSHOT"
 jsch = "0.2.18"
 
 [libraries]
@@ -105,6 +105,8 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 androidx-room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
+androidx-room-sqlite-wrapper = { group = "androidx.room", name = "room-sqlite-wrapper", version.ref = "room" }
+androidx-sqlite-bundled = { group = "androidx.sqlite", name = "sqlite-bundled", version.ref = "sqlite" }
 androidx-paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "paging" }
 androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
@@ -175,7 +177,6 @@ sqlite-vector = { module = "ai.sqlite:vector", version.ref = "sqlite-vector" }
 jmdns = { module = "org.jmdns:jmdns", version.ref = "jmdns" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-android = { module = "uk.uuid.slf4j:slf4j-android", version = "2.0.17-0" }
-sqlite-android = { module = "com.github.rikkahub:sqlite-android", version.ref = "sqlite-android" }
 jsch = { module = "com.github.mwiede:jsch", version.ref = "jsch" }
 
 [plugins]

@@ -1,5 +1,7 @@
 ﻿package com.eterultimate.eteruee.data.db.migrations
 
+import androidx.sqlite.SQLiteConnection
+import androidx.sqlite.SQLiteStatement
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -7,6 +9,44 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import com.eterultimate.eteruee.utils.JsonInstant
 import com.eterultimate.eteruee.utils.jsonPrimitiveOrNull
+
+internal fun SQLiteConnection.execSQL(sql: String, bindArgs: Array<out Any?> = emptyArray()) {
+    prepare(sql).use { statement ->
+        statement.bindArgs(bindArgs)
+        statement.step()
+    }
+}
+
+internal inline fun <T> SQLiteConnection.query(
+    sql: String,
+    bindArgs: Array<out Any?> = emptyArray(),
+    block: (SQLiteStatement) -> T,
+): T {
+    return prepare(sql).use { statement ->
+        statement.bindArgs(bindArgs)
+        block(statement)
+    }
+}
+
+internal fun SQLiteStatement.bindArgs(bindArgs: Array<out Any?>) {
+    bindArgs.forEachIndexed { index, arg ->
+        val bindIndex = index + 1
+        when (arg) {
+            null -> bindNull(bindIndex)
+            is Boolean -> bindBoolean(bindIndex, arg)
+            is Int -> bindInt(bindIndex, arg)
+            is Long -> bindLong(bindIndex, arg)
+            is Float -> bindFloat(bindIndex, arg)
+            is Double -> bindDouble(bindIndex, arg)
+            is String -> bindText(bindIndex, arg)
+            is ByteArray -> bindBlob(bindIndex, arg)
+            else -> error("Unsupported SQLite bind argument type: ${arg::class.qualifiedName}")
+        }
+    }
+}
+
+internal fun SQLiteStatement.getTextOrNull(index: Int): String? =
+    if (isNull(index)) null else getText(index)
 
 internal val partTypeMapping = mapOf(
     "Text" to "text",

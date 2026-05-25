@@ -1,6 +1,7 @@
 package com.eterultimate.eteruee.data.db.migrations
 
 import androidx.room.migration.Migration
+import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 val MIGRATION_17_18 = object : Migration(17, 18) {
@@ -14,5 +15,10 @@ val MIGRATION_17_18 = object : Migration(17, 18) {
         database.execSQL(
             "ALTER TABLE GenMediaEntity ADD COLUMN source_paths TEXT"
         )
+    }
+
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL("ALTER TABLE GenMediaEntity ADD COLUMN type TEXT NOT NULL DEFAULT 'image_generation'")
+        connection.execSQL("ALTER TABLE GenMediaEntity ADD COLUMN source_paths TEXT")
     }
 }

@@ -1,6 +1,7 @@
 ﻿package com.eterultimate.eteruee.data.db.migrations
 
 import androidx.room.migration.Migration
+import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.eterultimate.eteruee.data.db.DatabaseMigrationTracker
 
@@ -29,5 +30,36 @@ val Migration_14_15 = object : Migration(14, 15) {
             DatabaseMigrationTracker.onMigrationEnd()
         }
     }
+
+    override fun migrate(connection: SQLiteConnection) {
+        DatabaseMigrationTracker.onMigrationStart(14, 15)
+        try {
+            createFavoritesTable(
+                exec = { sql -> connection.execSQL(sql) }
+            )
+        } finally {
+            DatabaseMigrationTracker.onMigrationEnd()
+        }
+    }
+}
+
+private inline fun createFavoritesTable(exec: (String) -> Unit) {
+    exec(
+        """
+        CREATE TABLE IF NOT EXISTS favorites (
+            id TEXT NOT NULL PRIMARY KEY,
+            type TEXT NOT NULL,
+            ref_key TEXT NOT NULL,
+            ref_json TEXT NOT NULL,
+            snapshot_json TEXT NOT NULL,
+            meta_json TEXT,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
+        )
+        """.trimIndent()
+    )
+    exec("CREATE UNIQUE INDEX IF NOT EXISTS index_favorites_ref_key ON favorites(ref_key)")
+    exec("CREATE INDEX IF NOT EXISTS index_favorites_type ON favorites(type)")
+    exec("CREATE INDEX IF NOT EXISTS index_favorites_created_at ON favorites(created_at)")
 }
 

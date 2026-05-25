@@ -202,6 +202,10 @@
   <string name="backup_page_reminder_never_backed_up">Never backed up</string>
   <string name="backup_page_reminder_no_record">No backup time recorded</string>
   <string name="backup_page_reminder_title">Backup Reminder</string>
+  <string name="backup_page_postgres_gateway">PostgreSQL</string>
+  <string name="backup_page_postgres_gateway_namespace">Namespace</string>
+  <string name="backup_page_postgres_gateway_token">Access Token</string>
+  <string name="backup_page_postgres_gateway_url">Gateway URL</string>
   <string name="backup_page_restart_app">Restart App</string>
   <string name="backup_page_restart_desc">The app needs to restart for the changes to take effect.</string>
   <string name="backup_page_restore">Restore</string>

@@ -501,7 +501,7 @@ function useDraftInputController({
     });
     clearDraft(draftKey);
 
-    navigate(`/c/${conversationId}`);
+    navigate(`/agent/c/${conversationId}`);
     refreshList();
   }, [
     activeId,
@@ -799,7 +799,7 @@ function ConversationsPageInner() {
     (id: string) => {
       setActiveId(id);
       if (routeId !== id) {
-        navigate(`/c/${id}`);
+        navigate(`/agent/c/${id}`);
       }
     },
     [navigate, routeId, setActiveId],
@@ -815,7 +815,7 @@ function ConversationsPageInner() {
       setActiveId(null);
       resetDetail();
       if (routeId) {
-        navigate("/", { replace: true });
+        navigate("/agent", { replace: true });
       }
       refreshList();
     },
@@ -873,7 +873,7 @@ function ConversationsPageInner() {
         },
       );
       setActiveId(response.conversationId);
-      navigate(`/c/${response.conversationId}`);
+      navigate(`/agent/c/${response.conversationId}`);
       refreshList();
     },
     [activeId, navigate, refreshList, setActiveId],
@@ -957,7 +957,7 @@ function ConversationsPageInner() {
         resetDetail();
         setHomeDraftId(createHomeDraftId());
         if (routeId === conversationId) {
-          navigate("/", { replace: true });
+          navigate("/agent", { replace: true });
         }
       }
       refreshList();
@@ -983,7 +983,7 @@ function ConversationsPageInner() {
         resetDetail();
         setHomeDraftId(createHomeDraftId());
         if (routeId === conversationId) {
-          navigate("/", { replace: true });
+          navigate("/agent", { replace: true });
         }
       }
       refreshList();
@@ -998,7 +998,7 @@ function ConversationsPageInner() {
     setHomeDraftId(createHomeDraftId());
 
     if (routeId) {
-      navigate("/");
+      navigate("/agent");
     }
   }, [closePanel, navigate, resetDetail, routeId, setActiveId]);
 

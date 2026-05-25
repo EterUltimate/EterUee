@@ -2,6 +2,7 @@
 
 import android.util.Log
 import androidx.room.migration.Migration
+import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.eterultimate.eteruee.ai.ui.UIMessage
 import com.eterultimate.eteruee.ai.ui.migrateToolNodes
@@ -10,14 +11,18 @@ import com.eterultimate.eteruee.data.db.DatabaseMigrationTracker
 
 private const val TAG = "Migration_15_16"
 
+private data class Migration15NodeRow(
+    val id: String,
+    val messages: List<UIMessage>,
+    val selectIndex: Int,
+)
+
 val Migration_15_16 = object : Migration(15, 16) {
     override fun migrate(db: SupportSQLiteDatabase) {
         Log.i(TAG, "migrate: start migrate from 15 to 16 (eager tool message migration)")
         DatabaseMigrationTracker.onMigrationStart(15, 16)
         db.beginTransaction()
         try {
-            data class NodeRow(val id: String, val messages: List<UIMessage>, val selectIndex: Int)
-
             // Get all distinct conversation IDs
             val convCursor = db.query("SELECT DISTINCT conversation_id FROM message_node")
             val conversationIds = mutableListOf<String>()
@@ -35,14 +40,14 @@ val Migration_15_16 = object : Migration(15, 16) {
                     arrayOf(conversationId)
                 )
 
-                val rows = mutableListOf<NodeRow>()
+                val rows = mutableListOf<Migration15NodeRow>()
                 while (nodeCursor.moveToNext()) {
                     val id = nodeCursor.getString(0)
                     val messagesJson = nodeCursor.getString(1)
                     val selectIndex = nodeCursor.getInt(3)
                     runCatching {
                         val messages = JsonInstant.decodeFromString<List<UIMessage>>(messagesJson)
-                        rows.add(NodeRow(id, messages, selectIndex))
+                        rows.add(Migration15NodeRow(id, messages, selectIndex))
                     }.onFailure {
                         Log.w(TAG, "migrate: failed to parse messages for node $id", it)
                     }
@@ -79,6 +84,65 @@ val Migration_15_16 = object : Migration(15, 16) {
             Log.i(TAG, "migrate: migrate from 15 to 16 success ($updatedConversations conversations updated)")
         } finally {
             db.endTransaction()
+            DatabaseMigrationTracker.onMigrationEnd()
+        }
+    }
+
+    override fun migrate(connection: SQLiteConnection) {
+        Log.i(TAG, "migrate: start migrate from 15 to 16 (eager tool message migration)")
+        DatabaseMigrationTracker.onMigrationStart(15, 16)
+        try {
+            val conversationIds = mutableListOf<String>()
+            connection.query("SELECT DISTINCT conversation_id FROM message_node") { statement ->
+                while (statement.step()) {
+                    conversationIds.add(statement.getText(0))
+                }
+            }
+
+            var updatedConversations = 0
+
+            for (conversationId in conversationIds) {
+                val rows = mutableListOf<Migration15NodeRow>()
+                connection.query(
+                    "SELECT id, messages, node_index, select_index FROM message_node WHERE conversation_id = ? ORDER BY node_index ASC",
+                    arrayOf(conversationId)
+                ) { statement ->
+                    while (statement.step()) {
+                        val id = statement.getText(0)
+                        val messagesJson = statement.getText(1)
+                        val selectIndex = statement.getInt(3)
+                        runCatching {
+                            val messages = JsonInstant.decodeFromString<List<UIMessage>>(messagesJson)
+                            rows.add(Migration15NodeRow(id, messages, selectIndex))
+                        }.onFailure {
+                            Log.w(TAG, "migrate: failed to parse messages for node $id", it)
+                        }
+                    }
+                }
+
+                if (rows.isEmpty()) continue
+
+                val migrated = rows.migrateToolNodes(
+                    getMessages = { it.messages },
+                    setMessages = { row, msgs -> row.copy(messages = msgs) }
+                )
+                val changed = migrated.size != rows.size ||
+                    migrated.zip(rows).any { (a, b) -> a.messages != b.messages }
+                if (!changed) continue
+
+                connection.execSQL("DELETE FROM message_node WHERE conversation_id = ?", arrayOf(conversationId))
+                migrated.forEachIndexed { index, row ->
+                    val messagesJson = JsonInstant.encodeToString(row.messages)
+                    connection.execSQL(
+                        "INSERT INTO message_node (id, conversation_id, node_index, messages, select_index) VALUES (?, ?, ?, ?, ?)",
+                        arrayOf<Any?>(row.id, conversationId, index, messagesJson, row.selectIndex)
+                    )
+                }
+                updatedConversations++
+            }
+
+            Log.i(TAG, "migrate: migrate from 15 to 16 success ($updatedConversations conversations updated)")
+        } finally {
             DatabaseMigrationTracker.onMigrationEnd()
         }
     }

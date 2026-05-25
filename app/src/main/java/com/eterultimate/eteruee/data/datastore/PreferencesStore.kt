@@ -41,6 +41,7 @@ import com.eterultimate.eteruee.data.model.Lorebook
 import com.eterultimate.eteruee.data.model.PromptInjection
 import com.eterultimate.eteruee.data.model.QuickMessage
 import com.eterultimate.eteruee.data.model.Tag
+import com.eterultimate.eteruee.data.sync.postgres.PostgresGatewayConfig
 import com.eterultimate.eteruee.data.sync.s3.S3Config
 import com.eterultimate.eteruee.ui.theme.CustomTheme
 import com.eterultimate.eteruee.ui.theme.PresetThemes
@@ -123,6 +124,9 @@ class SettingsStore(
 
         // S3
         val S3_CONFIG = stringPreferencesKey("s3_config")
+
+        // PostgreSQL Gateway
+        val POSTGRES_GATEWAY_CONFIG = stringPreferencesKey("postgres_gateway_config")
 
         // TTS
         val TTS_PROVIDERS = stringPreferencesKey("tts_providers")
@@ -214,6 +218,9 @@ class SettingsStore(
                 s3Config = preferences[S3_CONFIG]?.let {
                     JsonInstant.decodeFromString(it)
                 } ?: S3Config(),
+                postgresGatewayConfig = preferences[POSTGRES_GATEWAY_CONFIG]?.let {
+                    JsonInstant.decodeFromString(it)
+                } ?: PostgresGatewayConfig(),
                 ttsProviders = preferences[TTS_PROVIDERS]?.let {
                     JsonInstant.decodeFromString(it)
                 } ?: emptyList(),
@@ -378,6 +385,7 @@ class SettingsStore(
             preferences[MCP_SERVERS] = JsonInstant.encodeToString(settings.mcpServers)
             preferences[WEBDAV_CONFIG] = JsonInstant.encodeToString(settings.webDavConfig)
             preferences[S3_CONFIG] = JsonInstant.encodeToString(settings.s3Config)
+            preferences[POSTGRES_GATEWAY_CONFIG] = JsonInstant.encodeToString(settings.postgresGatewayConfig)
             preferences[TTS_PROVIDERS] = JsonInstant.encodeToString(settings.ttsProviders)
             if (settings.selectedTTSProviderId != null) {
                 preferences[SELECTED_TTS_PROVIDER] = settings.selectedTTSProviderId.toString()
@@ -510,6 +518,7 @@ data class Settings(
     val mcpServers: List<McpServerConfig> = emptyList(),
     val webDavConfig: WebDavConfig = WebDavConfig(),
     val s3Config: S3Config = S3Config(),
+    val postgresGatewayConfig: PostgresGatewayConfig = PostgresGatewayConfig(),
     val ttsProviders: List<TTSProviderSetting> = DEFAULT_TTS_PROVIDERS,
     val selectedTTSProviderId: Uuid = DEFAULT_SYSTEM_TTS_ID,
     val modeInjections: List<PromptInjection.ModeInjection> = DEFAULT_MODE_INJECTIONS,

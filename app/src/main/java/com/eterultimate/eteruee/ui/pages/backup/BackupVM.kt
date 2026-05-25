@@ -16,6 +16,7 @@ import com.eterultimate.eteruee.data.sync.webdav.WebDavBackupItem
 import com.eterultimate.eteruee.data.sync.webdav.WebDavSync
 import com.eterultimate.eteruee.data.sync.S3BackupItem
 import com.eterultimate.eteruee.data.sync.S3Sync
+import com.eterultimate.eteruee.data.sync.PostgresGatewaySync
 import com.eterultimate.eteruee.utils.UiState
 import java.io.File
 
@@ -25,6 +26,7 @@ class BackupVM(
     private val settingsStore: SettingsStore,
     private val webDavSync: WebDavSync,
     private val s3Sync: S3Sync,
+    private val postgresGatewaySync: PostgresGatewaySync,
     private val conversationRepository: ConversationRepository,
 ) : ViewModel() {
     val settings = settingsStore.settingsFlow.stateIn(
@@ -190,6 +192,15 @@ class BackupVM(
 
     suspend fun deleteS3BackupFile(item: S3BackupItem) {
         s3Sync.deleteS3BackupFile(settings.value.s3Config, item)
+    }
+
+    suspend fun testPostgresGateway() {
+        postgresGatewaySync.testConnection(settings.value.postgresGatewayConfig)
+    }
+
+    suspend fun backupToPostgresGateway() {
+        postgresGatewaySync.backup(settings.value.postgresGatewayConfig)
+        recordBackupTime()
     }
 
     private suspend fun recordBackupTime() {

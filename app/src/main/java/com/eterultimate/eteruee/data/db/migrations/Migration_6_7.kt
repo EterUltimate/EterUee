@@ -2,6 +2,7 @@ package com.eterultimate.eteruee.data.db.migrations
 
 import android.util.Log
 import androidx.room.migration.Migration
+import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.eterultimate.eteruee.ai.ui.UIMessage
 import com.eterultimate.eteruee.data.model.MessageNode
@@ -96,6 +97,76 @@ val Migration_6_7 = object : Migration(6, 7) {
             Log.i(TAG, "migrate: migrate from 6 to 7 success (${updates.size} conversations updated)")
         } finally {
             db.endTransaction()
+            DatabaseMigrationTracker.onMigrationEnd()
+        }
+    }
+
+    override fun migrate(connection: SQLiteConnection) {
+        Log.i(TAG, "migrate: start migrate from 6 to 7")
+        DatabaseMigrationTracker.onMigrationStart(6, 7)
+        try {
+            connection.execSQL(
+                """
+                CREATE TABLE ConversationEntity_new (
+                    id TEXT NOT NULL PRIMARY KEY,
+                    assistant_id TEXT NOT NULL DEFAULT '0950e2dc-9bd5-4801-afa3-aa887aa36b4e',
+                    title TEXT NOT NULL,
+                    nodes TEXT NOT NULL,
+                    usage TEXT,
+                    create_at INTEGER NOT NULL,
+                    update_at INTEGER NOT NULL,
+                    truncate_index INTEGER NOT NULL DEFAULT -1
+                )
+                """.trimIndent()
+            )
+
+            val updates = mutableListOf<Array<Any?>>()
+            connection.query(
+                "SELECT id, assistant_id, title, messages, usage, create_at, update_at, truncate_index FROM ConversationEntity"
+            ) { statement ->
+                while (statement.step()) {
+                    val id = statement.getText(0)
+                    val assistantId = statement.getText(1)
+                    val title = statement.getText(2)
+                    val messagesJson = statement.getText(3)
+                    val usage = statement.getTextOrNull(4)
+                    val createAt = statement.getLong(5)
+                    val updateAt = statement.getLong(6)
+                    val truncateIndex = statement.getInt(7)
+
+                    try {
+                        val oldMessages = JsonInstant.decodeFromString<List<UIMessage>>(messagesJson)
+                        val newMessagesJson = JsonInstant.encodeToString(oldMessages.map { MessageNode.of(it) })
+                        updates.add(
+                            arrayOf(
+                                id,
+                                assistantId,
+                                title,
+                                newMessagesJson,
+                                usage,
+                                createAt,
+                                updateAt,
+                                truncateIndex
+                            )
+                        )
+                    } catch (e: Exception) {
+                        error("Failed to migrate messages for conversation $id: ${e.message}")
+                    }
+                }
+            }
+
+            updates.forEach { values ->
+                connection.execSQL(
+                    "INSERT INTO ConversationEntity_new (id, assistant_id, title, nodes, usage, create_at, update_at, truncate_index) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    values
+                )
+            }
+
+            connection.execSQL("DROP TABLE ConversationEntity")
+            connection.execSQL("ALTER TABLE ConversationEntity_new RENAME TO ConversationEntity")
+
+            Log.i(TAG, "migrate: migrate from 6 to 7 success (${updates.size} conversations updated)")
+        } finally {
             DatabaseMigrationTracker.onMigrationEnd()
         }
     }

@@ -33,7 +33,13 @@ import com.eterultimate.eteruee.web.routes.aiIconRoutes
 import com.eterultimate.eteruee.web.routes.assetsRoutes
 import com.eterultimate.eteruee.web.routes.conversationRoutes
 import com.eterultimate.eteruee.web.routes.filesRoutes
+import com.eterultimate.eteruee.web.routes.roleplayRoutes
 import com.eterultimate.eteruee.web.routes.settingsRoutes
+import com.eterultimate.eteruee.roleplay.domain.service.CharacterService as RoleplayCharacterService
+import com.eterultimate.eteruee.roleplay.domain.service.ChatService as RoleplayChatService
+import com.eterultimate.eteruee.roleplay.domain.service.GroupService as RoleplayGroupService
+import com.eterultimate.eteruee.roleplay.domain.service.PresetService as RoleplayPresetService
+import com.eterultimate.eteruee.roleplay.domain.service.WorldInfoService as RoleplayWorldInfoService
 import java.security.MessageDigest
 import java.util.Date
 import java.util.UUID
@@ -62,7 +68,12 @@ fun Application.configureWebApi(
     aiSDK: AISDK,
     conversationRepo: ConversationRepository,
     settingsStore: SettingsStore,
-    filesManager: FilesManager
+    filesManager: FilesManager,
+    roleplayCharacterService: RoleplayCharacterService,
+    roleplayChatService: RoleplayChatService,
+    roleplayWorldInfoService: RoleplayWorldInfoService,
+    roleplayGroupService: RoleplayGroupService,
+    roleplayPresetService: RoleplayPresetService,
 ) {
     val jwtEnabled = settingsStore.settingsFlow.value.webServerJwtEnabled
 
@@ -167,19 +178,63 @@ fun Application.configureWebApi(
 
             if (jwtEnabled) {
                 authenticate("auth-jwt") {
-                    conversationRoutes(chatService, aiSDK, conversationRepo, settingsStore)
-                    settingsRoutes(settingsStore)
-                    filesRoutes(filesManager, context)
-                    assetsRoutes(context)
+                    agentApiRoutes(
+                        context = context,
+                        chatService = chatService,
+                        aiSDK = aiSDK,
+                        conversationRepo = conversationRepo,
+                        settingsStore = settingsStore,
+                        filesManager = filesManager,
+                    )
+                    roleplayRoutes(
+                        characterService = roleplayCharacterService,
+                        chatService = roleplayChatService,
+                        worldInfoService = roleplayWorldInfoService,
+                        groupService = roleplayGroupService,
+                        presetService = roleplayPresetService,
+                    )
                 }
             } else {
-                conversationRoutes(chatService, aiSDK, conversationRepo, settingsStore)
-                settingsRoutes(settingsStore)
-                filesRoutes(filesManager, context)
-                assetsRoutes(context)
+                agentApiRoutes(
+                    context = context,
+                    chatService = chatService,
+                    aiSDK = aiSDK,
+                    conversationRepo = conversationRepo,
+                    settingsStore = settingsStore,
+                    filesManager = filesManager,
+                )
+                roleplayRoutes(
+                    characterService = roleplayCharacterService,
+                    chatService = roleplayChatService,
+                    worldInfoService = roleplayWorldInfoService,
+                    groupService = roleplayGroupService,
+                    presetService = roleplayPresetService,
+                )
             }
         }
     }
+}
+
+private fun io.ktor.server.routing.Route.agentApiRoutes(
+    context: Context,
+    chatService: ChatService,
+    aiSDK: AISDK,
+    conversationRepo: ConversationRepository,
+    settingsStore: SettingsStore,
+    filesManager: FilesManager,
+) {
+    route("/agent") {
+        conversationRoutes(chatService, aiSDK, conversationRepo, settingsStore)
+        settingsRoutes(settingsStore)
+        filesRoutes(filesManager, context)
+        assetsRoutes(context)
+    }
+
+    // Compatibility layer for existing web clients and shared file URLs.
+    conversationRoutes(chatService, aiSDK, conversationRepo, settingsStore)
+    settingsRoutes(settingsStore)
+    filesRoutes(filesManager, context)
+    assetsRoutes(context)
 }
 
 private fun createWebJwt(secret: String): Pair<String, Long> {

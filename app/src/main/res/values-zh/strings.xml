@@ -202,6 +202,10 @@
   <string name="backup_page_reminder_never_backed_up">从未备份</string>
   <string name="backup_page_reminder_no_record">未记录备份时间</string>
   <string name="backup_page_reminder_title">备份提醒</string>
+  <string name="backup_page_postgres_gateway">PostgreSQL</string>
+  <string name="backup_page_postgres_gateway_namespace">命名空间</string>
+  <string name="backup_page_postgres_gateway_token">访问令牌</string>
+  <string name="backup_page_postgres_gateway_url">网关地址</string>
   <string name="backup_page_restart_app">重启应用</string>
   <string name="backup_page_restart_desc">应用需要重启以使设置生效。</string>
   <string name="backup_page_restore">恢复</string>

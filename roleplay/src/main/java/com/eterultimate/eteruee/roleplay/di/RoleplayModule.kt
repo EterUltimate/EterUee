@@ -1,6 +1,7 @@
 package com.eterultimate.eteruee.roleplay.di
 
 import androidx.room.Room
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.eterultimate.eteruee.roleplay.data.local.RolePlayDatabase
 import com.eterultimate.eteruee.roleplay.data.local.RolePlayFileStorage
 import com.eterultimate.eteruee.roleplay.domain.service.CharacterService
@@ -51,6 +52,7 @@ val roleplayModule = module {
             RolePlayDatabase::class.java,
             RolePlayDatabase.DATABASE_NAME
         )
+        .setDriver(BundledSQLiteDriver())
         .addMigrations(
             RolePlayDatabase.MIGRATION_1_2,
             RolePlayDatabase.MIGRATION_2_3,

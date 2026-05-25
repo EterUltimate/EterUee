@@ -116,4 +116,4 @@ export function toEterUeeAISDKModel(model: ProviderModel): EterUeeAISDKModel {
   };
 }
 
-export const ETERUEE_AI_SDK_CHAT_API = "/api/conversations/stream-v2/chat";
+export const ETERUEE_AI_SDK_CHAT_API = "/api/agent/conversations/stream-v2/chat";

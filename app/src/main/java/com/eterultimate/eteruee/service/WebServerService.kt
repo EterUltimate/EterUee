@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.WEB_SERVER_NOTIFICATION_CHANNEL_ID
 import com.eterultimate.eteruee.data.datastore.SettingsStore
+import com.eterultimate.eteruee.shared.WebUiConfig
 import com.eterultimate.eteruee.web.WebServerManager
 import org.koin.android.ext.android.inject
 
@@ -45,7 +46,7 @@ class WebServerService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_START -> {
-                val port = intent.getIntExtra(EXTRA_PORT, 8080)
+                val port = intent.getIntExtra(EXTRA_PORT, WebUiConfig.DEFAULT_PORT)
                 val localhostOnly = intent.getBooleanExtra(EXTRA_LOCALHOST_ONLY, false)
                 startForegroundCompat()
                 startObservingState()

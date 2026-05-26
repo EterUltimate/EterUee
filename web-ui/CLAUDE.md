@@ -21,7 +21,7 @@ web-ui 是 EterUee 项目的嵌入式 Web 前端，基于 React Router 7 的单�
 ## Development Commands
 
 ```bash
-# 开发服务器 (HMR + API 代理到 localhost:8080)
+# 开发服务器 (HMR + API 代理到 localhost:18080)
 pnpm run dev
 
 # 生产构建 (构建 + 复制到后端)
@@ -223,7 +223,7 @@ sse<T>(url, {
 ```
 
 **配置**:
-- 默认前缀: `/api` (开发时代理到 `http://localhost:8080`)
+- 默认前缀: `/api` (开发时代理到 `http://localhost:18080`)
 - 超时: 30 秒
 - 自动错误处理: 转换为 `ApiError` 类
 
@@ -232,7 +232,7 @@ sse<T>(url, {
 server: {
   proxy: {
     "/api": {
-      target: "http://localhost:8080",
+      target: "http://localhost:18080",
       changeOrigin: true,
     },
   },
@@ -575,7 +575,7 @@ web-ui/build/client/
     ↓ (copy.ts)
 ../web/src/main/resources/static/
     ↓ (Ktor 静态文件路由)
-用户访问 http://localhost:8080/
+用户访问 http://localhost:18080/
 ```
 
 ### API Endpoints
@@ -620,7 +620,7 @@ pnpm run dev
 
 ### API 请求失败 (开发环境)
 
-确保 Kotlin 后端在 8080 端口运行：
+确保 Kotlin 后端在 18080 端口运行：
 ```bash
 # 在 Kotlin 项目目录
 ./gradlew :web:run

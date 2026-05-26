@@ -49,6 +49,7 @@ import com.eterultimate.eteruee.utils.JsonInstant
 import com.eterultimate.eteruee.utils.toMutableStateFlow
 import com.eterultimate.eteruee.search.SearchCommonOptions
 import com.eterultimate.eteruee.search.SearchServiceOptions
+import com.eterultimate.eteruee.shared.WebUiConfig
 import com.eterultimate.eteruee.tts.provider.TTSProviderSetting
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
@@ -236,7 +237,7 @@ class SettingsStore(
                     JsonInstant.decodeFromString(it)
                 } ?: emptyList(),
                 webServerEnabled = preferences[WEB_SERVER_ENABLED] == true,
-                webServerPort = preferences[WEB_SERVER_PORT] ?: 8080,
+                webServerPort = preferences[WEB_SERVER_PORT] ?: WebUiConfig.DEFAULT_PORT,
                 webServerJwtEnabled = preferences[WEB_SERVER_JWT_ENABLED] == true,
                 webServerAccessPassword = preferences[WEB_SERVER_ACCESS_PASSWORD] ?: "",
                 webServerLocalhostOnly = preferences[WEB_SERVER_LOCALHOST_ONLY] == true,
@@ -525,7 +526,7 @@ data class Settings(
     val lorebooks: List<Lorebook> = emptyList(),
     val quickMessages: List<QuickMessage> = emptyList(),
     val webServerEnabled: Boolean = false,
-    val webServerPort: Int = 8080,
+    val webServerPort: Int = WebUiConfig.DEFAULT_PORT,
     val webServerJwtEnabled: Boolean = false,
     val webServerAccessPassword: String = "",
     val webServerLocalhostOnly: Boolean = false,

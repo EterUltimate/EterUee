@@ -296,7 +296,7 @@ import requests
 import json
 
 def stream_text():
-    url = "http://localhost:8080/api/conversations/stream-v2"
+    url = "http://localhost:18080/api/conversations/stream-v2"
     
     payload = {
         "model": {
@@ -341,7 +341,7 @@ stream_text()
 ### 1. 使用 curl 测试
 
 ```bash
-curl -N -X POST http://localhost:8080/api/conversations/stream-v2 \
+curl -N -X POST http://localhost:18080/api/conversations/stream-v2 \
   -H "Content-Type: application/json" \
   -d '{
     "model": {

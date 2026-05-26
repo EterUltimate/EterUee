@@ -46,6 +46,12 @@ class EterUeeSharedTest {
     }
 
     @Test
+    fun webUiDefaultPortAvoidsLocalDatabasePort() {
+        assertEquals(18080, WebUiConfig.DEFAULT_PORT)
+        assertEquals("http://localhost:18080", WebUiConfig.LOCAL_URL)
+    }
+
+    @Test
     fun roleplayPromptInjectsWorldInfoBeforeLastUser() {
         val prompt = RoleplayPromptEngine.buildPrompt(
             systemPrompt = "Stay in character.",

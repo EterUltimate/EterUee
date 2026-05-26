@@ -21,8 +21,8 @@ android {
         applicationId = "com.eterultimate.eteruee"
         minSdk = 26
         targetSdk = 37
-        versionCode = 160
-        versionName = "5.2.5"
+        versionCode = 161
+        versionName = "5.2.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

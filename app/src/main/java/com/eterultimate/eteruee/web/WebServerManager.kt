@@ -23,6 +23,7 @@ import com.eterultimate.eteruee.roleplay.domain.service.ChatService as RoleplayC
 import com.eterultimate.eteruee.roleplay.domain.service.GroupService as RoleplayGroupService
 import com.eterultimate.eteruee.roleplay.domain.service.PresetService as RoleplayPresetService
 import com.eterultimate.eteruee.roleplay.domain.service.WorldInfoService as RoleplayWorldInfoService
+import com.eterultimate.eteruee.shared.WebUiConfig
 import java.net.ServerSocket
 
 private const val TAG = "WebServerManager"
@@ -32,7 +33,7 @@ private const val HOST_LOOPBACK = "127.0.0.1"
 data class WebServerState(
     val isRunning: Boolean = false,
     val isLoading: Boolean = false,
-    val port: Int = 8080,
+    val port: Int = WebUiConfig.DEFAULT_PORT,
     val serviceName: String = DEFAULT_SERVICE_NAME,
     val localhostOnly: Boolean = false,
     val hostname: String? = null,
@@ -61,7 +62,7 @@ class WebServerManager(
     val state: StateFlow<WebServerState> = _state.asStateFlow()
 
     fun start(
-        port: Int = 8080,
+        port: Int = WebUiConfig.DEFAULT_PORT,
         serviceName: String = DEFAULT_SERVICE_NAME,
         localhostOnly: Boolean = false
     ) {

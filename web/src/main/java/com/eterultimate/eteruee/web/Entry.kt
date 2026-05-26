@@ -1,5 +1,6 @@
 package com.eterultimate.eteruee.web
 
+import com.eterultimate.eteruee.shared.WebUiConfig
 import io.ktor.http.HttpHeaders
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -16,7 +17,7 @@ import io.ktor.server.routing.routing
 import io.ktor.server.sse.SSE
 
 fun startWebServer(
-    port: Int = 8080,
+    port: Int = WebUiConfig.DEFAULT_PORT,
     host: String = "0.0.0.0",
     module: suspend Application.() -> Unit
 ): EmbeddedServer<CIOApplicationEngine, CIOApplicationEngine.Configuration> {

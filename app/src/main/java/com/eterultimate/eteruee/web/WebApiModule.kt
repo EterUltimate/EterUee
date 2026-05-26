@@ -57,7 +57,7 @@ private const val WEB_AUTH_REALM = "eteruee-web-api"
  *
  * Example usage:
  * ```
- * startWebServer(port = 8080) {
+ * startWebServer(port = WebUiConfig.DEFAULT_PORT) {
  *     configureWebApi(context, chatService, conversationRepo, settingsStore, filesManager)
  * }
  * ```

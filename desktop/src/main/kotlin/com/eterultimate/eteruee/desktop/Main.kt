@@ -47,6 +47,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.eterultimate.eteruee.shared.EterUeeShared
 import com.eterultimate.eteruee.shared.PlatformFamily
+import com.eterultimate.eteruee.shared.WebUiConfig
 import com.eterultimate.eteruee.shared.currentPlatformFamily
 import com.eterultimate.eteruee.shared.roleplay.RoleplayPromptBuildRequest
 import com.eterultimate.eteruee.shared.roleplay.RoleplayPromptBuildResult
@@ -201,7 +202,7 @@ private fun RuntimePanel(modifier: Modifier = Modifier) {
                 style = MaterialTheme.typography.bodyMedium,
             )
             Spacer(Modifier.height(12.dp))
-            OutlinedButton(onClick = { openUri("http://localhost:8080") }) {
+            OutlinedButton(onClick = { openUri(WebUiConfig.LOCAL_URL) }) {
                 Text("Open local Web UI")
             }
         }

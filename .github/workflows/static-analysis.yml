@@ -75,9 +75,16 @@ jobs:
         run: chmod +x gradlew
 
       - name: Compile Kotlin for CodeQL
-        run: ./gradlew :app:compileDebugKotlin :desktop:compileKotlin --no-daemon --stacktrace
+        run: >
+          ./gradlew clean :app:compileDebugKotlin :desktop:compileKotlin
+          --no-daemon
+          --no-build-cache
+          --rerun-tasks
+          --stacktrace
+          -Dorg.gradle.caching=false
+          -Dkotlin.compiler.execution.strategy=in-process
         env:
-          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g
+          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g -Dkotlin.compiler.execution.strategy=in-process
 
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@v4

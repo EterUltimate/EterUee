@@ -50,30 +50,52 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: gradle-${{ runner.os }}-
 
+      - name: Check Android signing secrets
+        id: signing
+        env:
+          KEY_BASE64: ${{ secrets.KEY_BASE64 }}
+          SIGNING_CONFIG: ${{ secrets.SIGNING_CONFIG }}
+        run: |
+          if [ -n "$KEY_BASE64" ] && [ -n "$SIGNING_CONFIG" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Android signing secrets are not configured; skipping Android APK/AAB release artifacts."
+          fi
+
       - name: Prepare build files
+        if: steps.signing.outputs.enabled == 'true'
+        env:
+          KEY_BASE64: ${{ secrets.KEY_BASE64 }}
+          SIGNING_CONFIG: ${{ secrets.SIGNING_CONFIG }}
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
           # Decode base64-encoded keystore
-          echo "${{ secrets.KEY_BASE64 }}" | base64 -d > app/app.key
+          printf '%s' "$KEY_BASE64" | base64 -d > app/app.key
 
           # Write signing config to local.properties
-          printf '%s\n' "${{ secrets.SIGNING_CONFIG }}" > local.properties
+          printf '%s\n' "$SIGNING_CONFIG" > local.properties
           printf '%s\n' "storeFile=app.key" >> local.properties
 
           # Write Google Services config (if needed)
-          if [ -n "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then
-            echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > app/google-services.json
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            printf '%s\n' "$GOOGLE_SERVICES_JSON" > app/google-services.json
           fi
 
       - name: Grant execute permission
+        if: steps.signing.outputs.enabled == 'true'
         run: chmod +x gradlew
 
       - name: Build release APK
+        if: steps.signing.outputs.enabled == 'true'
         run: ./gradlew assembleRelease --no-daemon
 
       - name: Build release AAB (AppBundle)
+        if: steps.signing.outputs.enabled == 'true'
         run: ./gradlew bundleRelease --no-daemon
 
       - name: Sign APK verification
+        if: steps.signing.outputs.enabled == 'true'
         run: |
           APK_PATH="$(find app/build/outputs/apk/release -name '*.apk' -not -name '*unsigned*' | head -1)"
           if [ -n "$APK_PATH" ]; then
@@ -85,6 +107,7 @@ jobs:
           fi
 
       - name: Extract version info
+        if: steps.signing.outputs.enabled == 'true'
         id: version
         run: |
           APK_PATH="$(find app/build/outputs/apk/release -name '*.apk' -not -name '*unsigned*' | head -1)"
@@ -98,6 +121,7 @@ jobs:
           fi
 
       - name: Upload APK artifacts
+        if: steps.signing.outputs.enabled == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: release-apk
@@ -105,6 +129,7 @@ jobs:
           retention-days: 30
 
       - name: Upload AAB artifacts
+        if: steps.signing.outputs.enabled == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: release-aab
@@ -256,6 +281,7 @@ jobs:
           body_path: ${{ steps.changelog.outputs.path }}
           draft: false
           prerelease: ${{ contains(env.RELEASE_TAG, '-rc') || contains(env.RELEASE_TAG, '-beta') || contains(env.RELEASE_TAG, '-alpha') }}
+          overwrite_files: true
           files: |
             release-artifacts/**/*.apk
             release-artifacts/**/*.aab

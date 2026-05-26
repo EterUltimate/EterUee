@@ -5,6 +5,8 @@
 .DS_Store
 /build
 shared/build/
+desktop/build/
+roleplay/build/
 apple/.build/
 apple/Frameworks/*.xcframework/
 /captures

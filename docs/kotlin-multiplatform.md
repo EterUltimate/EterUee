@@ -2,7 +2,9 @@
 
 `shared` is the first Kotlin Multiplatform boundary for EterUee. It keeps Android-specific UI,
 Room, Firebase, WebView, and Compose Android code out of portable targets while exposing stable
-Kotlin/Native host surfaces for iOS, iPadOS, macOS, Windows 11, and Linux.
+Kotlin/Native host surfaces for iOS, iPadOS, macOS, Windows 11, and Linux. The `desktop`
+module is the first full desktop GUI packaging boundary and uses Compose Multiplatform/JVM
+for native Windows and Linux distributions.
 
 ## Supported Targets
 
@@ -12,14 +14,15 @@ Kotlin/Native host surfaces for iOS, iPadOS, macOS, Windows 11, and Linux.
 - macOS: `macosArm64`
 - Windows 11 x64: `mingwX64`
 - Linux x64: `linuxX64`
+- Desktop JVM GUI: `desktop`
 
 `macosX64` is intentionally not enabled because Kotlin 2.3 marks that target as deprecated.
 Windows support is intentionally limited to Windows 11 x64. Older Windows releases are not part
 of the compatibility contract even though the Kotlin/Native `mingwX64` toolchain can run on older
 64-bit Windows versions.
-Linux support targets x64 glibc environments through Kotlin/Native `linuxX64`. Distribution-
-specific packaging, desktop shell integration, and AppImage/Flatpak installers are intentionally
-kept outside this shared runtime boundary.
+Linux support targets x64 glibc environments through Kotlin/Native `linuxX64`. Full GUI
+desktop packaging is owned by `desktop`; AppImage and Flatpak remain outside the current release
+contract.
 
 ## Framework
 
@@ -143,6 +146,60 @@ shared/build/bin/linuxX64/debugExecutable/
 The GitHub Actions Linux job runs on GitHub's standard Ubuntu x64 runner and validates the
 `linuxX64` build, smoke executable, native tests, and uploaded debug executable.
 
+## Desktop GUI Packages
+
+`desktop/` is a Compose Multiplatform desktop application. It provides a packaged GUI shell with
+separate Agent and Roleplay workspaces, reuses `shared` runtime and roleplay prompt logic, and
+keeps the Android production data layer out of the desktop binary until those Android-only
+dependencies are moved behind portable interfaces.
+
+Run and test:
+
+```bash
+./gradlew :desktop:test
+./gradlew :desktop:run
+```
+
+Build and verify a release app image:
+
+```bash
+./gradlew :desktop:desktopReleaseAppImage
+```
+
+The app image and checksum manifest are written to:
+
+```text
+desktop/build/compose/binaries/main-release/app/
+desktop/build/compose/binaries/main-release/desktop-app-image-manifest.txt
+```
+
+Build and verify native installers on the matching operating system:
+
+```powershell
+.\gradlew.bat :desktop:desktopReleasePackage --no-daemon --stacktrace --console=plain
+```
+
+```bash
+./gradlew :desktop:desktopReleasePackage --no-daemon --stacktrace --console=plain
+```
+
+Installer outputs are written to:
+
+```text
+desktop/build/compose/binaries/main-release/exe/
+desktop/build/compose/binaries/main-release/deb/
+desktop/build/compose/binaries/main-release/desktop-release-manifest.txt
+```
+
+`jpackage` cannot cross-build native installer formats. Windows `.exe` must be built on Windows
+with WiX available; Linux `.deb` must be built on Linux with Debian packaging tools such as
+`fakeroot` and `dpkg-dev`.
+
+If Windows `.exe` packaging fails in `jpackage` after the app image has been validated, inspect
+`desktop/build/compose/logs/packageReleaseExe/`. That failure is in the host installer toolchain;
+`:desktop:desktopReleaseAppImage` still validates the runnable GUI app image, while CI and release
+jobs run `:desktop:desktopReleasePackage` on clean Windows and Linux runners.
+
 ## Local Verification
 
 Windows and Linux can validate the portable metadata and Android target:
@@ -173,9 +230,17 @@ cp -R shared/build/XCFrameworks/debug/EterUeeShared.xcframework apple/Frameworks
 swift test --package-path apple
 ```
 
+Desktop GUI verification can run on Windows and Linux:
+
+```bash
+./gradlew :desktop:desktopReleaseAppImage
+./gradlew :desktop:desktopReleasePackage
+```
+
 ## Migration Boundary
 
-The Android app still owns the current production UI and platform integrations. Move code into
-`shared` only when it is free of Android framework, AndroidX-only, Room runtime, Firebase Android,
-or Android WebView APIs. Good early candidates are serializable data contracts, prompt/template
-logic, provider request/response normalization, and roleplay domain rules.
+The Android app still owns the current production data layer and platform integrations. Move code
+into `shared` only when it is free of Android framework, AndroidX-only, Room runtime, Firebase
+Android, or Android WebView APIs. Move UI to `desktop` only after the feature depends on portable
+contracts. Good early candidates are serializable data contracts, prompt/template logic, provider
+request/response normalization, and roleplay domain rules.

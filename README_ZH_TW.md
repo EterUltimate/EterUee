@@ -2,13 +2,14 @@
 
 <img src="docs/icon.svg" alt="EterUee 圖示" width="72" />
 
-原生 Android LLM 聊天客戶端。
+原生 Android 與桌面 LLM 聊天客戶端。
 
 語言：[English](README.md) | [簡體中文](README_ZH_CN.md) | 繁體中文
 
 ## 範圍
 
 - 使用 Kotlin 與 Jetpack Compose 建構的 Android 客戶端。
+- 使用 Compose Multiplatform 打包 Windows 和 Linux 桌面 GUI。
 - 透過 `ai` 模組統一接入多類 AI 供應商。
 - 樹狀對話結構，支援訊息分支。
 - Assistant 獨立儲存模型、提示詞、記憶、工具、請求設定。
@@ -22,6 +23,7 @@
 | `app` | Android 應用、Compose UI、ViewModel、持久化、Web 路由 |
 | `ai` | Provider 抽象、訊息模型、串流文字生成 |
 | `common` | 共用工具與 Kotlin 擴充 |
+| `desktop` | Compose Desktop GUI 外殼與原生桌面安裝包 |
 | `document` | PDF、DOCX、PPTX 解析 |
 | `highlight` | 程式碼語法高亮 |
 | `roleplay` | 角色、聊天、世界書、預設、群組工作流程 |
@@ -58,6 +60,32 @@ Debug APK 輸出目錄：
 ```text
 app/build/outputs/apk/debug/
 ```
+
+## 桌面端
+
+```bash
+./gradlew :desktop:desktopReleaseAppImage
+```
+
+原生桌面安裝包必須在目標作業系統上建置：
+
+```powershell
+.\gradlew.bat :desktop:desktopReleasePackage
+```
+
+```bash
+./gradlew :desktop:desktopReleasePackage
+```
+
+輸出目錄：
+
+```text
+desktop/build/compose/binaries/main-release/
+```
+
+app image 任務會校驗可執行的桌面 GUI 啟動器並寫入 `desktop-app-image-manifest.txt`。
+原生安裝包任務會額外建置 Windows `.exe` 或 Linux `.deb`，並寫入
+`desktop-release-manifest.txt`。
 
 ## UML
 

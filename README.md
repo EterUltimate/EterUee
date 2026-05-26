@@ -2,13 +2,14 @@
 
 <img src="docs/icon.svg" alt="EterUee icon" width="72" />
 
-Native Android LLM chat client.
+Native Android and desktop LLM chat client.
 
 Languages: English | [简体中文](README_ZH_CN.md) | [繁體中文](README_ZH_TW.md)
 
 ## Scope
 
 - Android client built with Kotlin and Jetpack Compose.
+- Desktop GUI shell packaged with Compose Multiplatform for Windows and Linux.
 - Multi-provider AI access through a shared `ai` module.
 - Tree-based conversations with message branches.
 - Assistants with isolated model, prompt, memory, tool, and request settings.
@@ -22,6 +23,7 @@ Languages: English | [简体中文](README_ZH_CN.md) | [繁體中文](README_ZH_
 | `app` | Android app, Compose UI, ViewModels, persistence, web routes |
 | `ai` | Provider abstraction, message model, streaming text generation |
 | `common` | Shared utilities and Kotlin extensions |
+| `desktop` | Compose Desktop GUI shell and native desktop installers |
 | `document` | PDF, DOCX, PPTX parsing |
 | `highlight` | Code syntax highlighting |
 | `roleplay` | Character, chat, world info, preset, group workflows |
@@ -58,6 +60,32 @@ Debug APKs are written to:
 ```text
 app/build/outputs/apk/debug/
 ```
+
+## Desktop
+
+```bash
+./gradlew :desktop:desktopReleaseAppImage
+```
+
+Native desktop installers must be built on their target operating system:
+
+```powershell
+.\gradlew.bat :desktop:desktopReleasePackage
+```
+
+```bash
+./gradlew :desktop:desktopReleasePackage
+```
+
+Outputs are written under:
+
+```text
+desktop/build/compose/binaries/main-release/
+```
+
+The app-image task verifies the runnable desktop GUI launcher and writes
+`desktop-app-image-manifest.txt`. The native package task additionally builds the Windows `.exe`
+or Linux `.deb` installer and writes `desktop-release-manifest.txt`.
 
 ## UML
 

@@ -199,6 +199,94 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  desktop-windows:
+    name: Desktop Windows EXE
+    runs-on: windows-2025
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Build and verify Windows desktop package
+        run: .\gradlew.bat :desktop:desktopReleasePackage --no-daemon --stacktrace --console=plain
+
+      - name: Upload Windows desktop package
+        uses: actions/upload-artifact@v7
+        with:
+          name: desktop-windows-exe
+          path: |
+            desktop/build/compose/binaries/main-release/exe/*.exe
+            desktop/build/compose/binaries/main-release/desktop-release-manifest.txt
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload Windows packaging logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: desktop-windows-exe-logs
+          path: desktop/build/compose/logs/**
+          if-no-files-found: ignore
+          retention-days: 7
+
+  desktop-linux:
+    name: Desktop Linux DEB
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Install Linux packaging tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fakeroot dpkg-dev
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Grant execute permission
+        run: chmod +x gradlew
+
+      - name: Build and verify Linux desktop package
+        run: ./gradlew :desktop:desktopReleasePackage --no-daemon --stacktrace --console=plain
+
+      - name: Upload Linux desktop package
+        uses: actions/upload-artifact@v7
+        with:
+          name: desktop-linux-deb
+          path: |
+            desktop/build/compose/binaries/main-release/deb/*.deb
+            desktop/build/compose/binaries/main-release/desktop-release-manifest.txt
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload Linux packaging logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: desktop-linux-deb-logs
+          path: desktop/build/compose/logs/**
+          if-no-files-found: ignore
+          retention-days: 7
+
   android:
     name: Android Lint, Test, Build
     runs-on: ubuntu-latest

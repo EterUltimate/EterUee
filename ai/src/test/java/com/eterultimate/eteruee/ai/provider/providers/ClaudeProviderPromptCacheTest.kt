@@ -5,12 +5,14 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import com.eterultimate.eteruee.ai.core.InputSchema
+import com.eterultimate.eteruee.ai.core.MessageRole
 import com.eterultimate.eteruee.ai.core.Tool
 import com.eterultimate.eteruee.ai.provider.Model
 import com.eterultimate.eteruee.ai.provider.ModelAbility
 import com.eterultimate.eteruee.ai.provider.ProviderSetting
 import com.eterultimate.eteruee.ai.provider.TextGenerationParams
 import com.eterultimate.eteruee.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import okhttp3.OkHttpClient
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -205,5 +207,66 @@ class ClaudeProviderPromptCacheTest {
                 assertNull(block.jsonObject["cache_control"])
             }
         }
+    }
+
+    @Test
+    fun `promptCaching=true should add cache_control to tool_result blocks`() {
+        val providerSetting = ProviderSetting.Claude(promptCaching = true)
+        val messages = listOf(
+            UIMessage(
+                role = MessageRole.ASSISTANT,
+                parts = listOf(
+                    UIMessagePart.Tool(
+                        toolCallId = "call_1",
+                        toolName = "search",
+                        input = "{}",
+                        output = listOf(UIMessagePart.Text("tool output"))
+                    )
+                )
+            )
+        )
+        val params = TextGenerationParams(
+            model = Model(modelId = "claude-test", abilities = listOf(ModelAbility.TOOL)),
+            tools = emptyList()
+        )
+
+        val request = buildRequest(providerSetting, messages, params)
+        val msgs = request["messages"]!!.jsonArray
+        val toolResult = msgs.first { msg ->
+            msg.jsonObject["role"]?.jsonPrimitive?.content == "user"
+        }.jsonObject["content"]!!.jsonArray.first().jsonObject
+        val cacheControl = toolResult["cache_control"]!!.jsonObject
+
+        assertEquals("ephemeral", cacheControl["type"]!!.jsonPrimitive.content)
+    }
+
+    @Test
+    fun `promptCaching=false should not add cache_control to tool_result blocks`() {
+        val providerSetting = ProviderSetting.Claude(promptCaching = false)
+        val messages = listOf(
+            UIMessage(
+                role = MessageRole.ASSISTANT,
+                parts = listOf(
+                    UIMessagePart.Tool(
+                        toolCallId = "call_1",
+                        toolName = "search",
+                        input = "{}",
+                        output = listOf(UIMessagePart.Text("tool output"))
+                    )
+                )
+            )
+        )
+        val params = TextGenerationParams(
+            model = Model(modelId = "claude-test", abilities = listOf(ModelAbility.TOOL)),
+            tools = emptyList()
+        )
+
+        val request = buildRequest(providerSetting, messages, params)
+        val msgs = request["messages"]!!.jsonArray
+        val toolResult = msgs.first { msg ->
+            msg.jsonObject["role"]?.jsonPrimitive?.content == "user"
+        }.jsonObject["content"]!!.jsonArray.first().jsonObject
+
+        assertNull(toolResult["cache_control"])
     }
 }

@@ -20,6 +20,13 @@ kotlin {
         }
     }
 
+    jvm("desktop") {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+            optIn.add("kotlin.time.ExperimentalTime")
+        }
+    }
+
     val sharedFramework = XCFramework("EterUeeShared")
     listOf(
         iosArm64(),

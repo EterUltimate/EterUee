@@ -128,7 +128,7 @@ jobs:
 
   shared-kmp-windows:
     name: Shared KMP Windows Native
-    runs-on: windows-latest
+    runs-on: windows-2025
     steps:
       - name: Checkout
         uses: actions/checkout@v6

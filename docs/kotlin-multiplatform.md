@@ -103,9 +103,10 @@ The generated executable is written under:
 shared/build/bin/mingwX64/debugExecutable/
 ```
 
-The GitHub Actions Windows job runs on GitHub's standard x64 Windows runner and validates the
-`mingwX64` build, smoke executable, and native tests. Exact Windows 11 OS validation should be run
-on a Windows 11 machine before release.
+The GitHub Actions Windows job runs on GitHub's standard `windows-2025` x64 runner and validates
+the `mingwX64` build, smoke executable, and native tests. Exact Windows 11 OS validation should be
+run on a Windows 11 machine before release because GitHub does not currently provide a standard
+Windows 11 x64 hosted-runner label.
 
 ## Local Verification
 

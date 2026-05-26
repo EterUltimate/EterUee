@@ -21,8 +21,8 @@ android {
         applicationId = "com.eterultimate.eteruee"
         minSdk = 26
         targetSdk = 37
-        versionCode = 159
-        versionName = "5.2.4"
+        versionCode = 160
+        versionName = "5.2.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -47,23 +47,77 @@ android {
         create("release") {
             val localProperties = Properties()
             val localPropertiesFile = rootProject.file("local.properties")
+            val releaseSigningRequested = gradle.startParameter.taskNames.any { taskName ->
+                val normalizedTaskName = taskName.substringAfterLast(":").lowercase()
+                normalizedTaskName in setOf("assemblerelease", "bundlerelease", "buildall", "precompilerelease") ||
+                    normalizedTaskName.contains("packagerelease")
+            }
 
             if (localPropertiesFile.exists()) {
-                localProperties.load(FileInputStream(localPropertiesFile))
+                FileInputStream(localPropertiesFile).use(localProperties::load)
 
-                val storeFilePath = localProperties.getProperty("storeFile")
-                val storePasswordValue = localProperties.getProperty("storePassword")
-                val keyAliasValue = localProperties.getProperty("keyAlias")
-                val keyPasswordValue = localProperties.getProperty("keyPassword")
+                fun signingProperty(vararg names: String): String? =
+                    names.firstNotNullOfOrNull { name ->
+                        localProperties.getProperty(name)?.trim()?.takeIf { it.isNotEmpty() }
+                    }
 
-                if (storeFilePath != null && storePasswordValue != null &&
-                    keyAliasValue != null && keyPasswordValue != null
+                val storeFilePath = signingProperty(
+                    "storeFile",
+                    "STORE_FILE",
+                    "KEYSTORE_FILE",
+                    "KEYSTORE_PATH",
+                    "RELEASE_STORE_FILE",
+                    "signing.storeFile",
+                    "android.injected.signing.store.file"
+                )
+                val storePasswordValue = signingProperty(
+                    "storePassword",
+                    "STORE_PASSWORD",
+                    "KEYSTORE_PASSWORD",
+                    "KEY_STORE_PASSWORD",
+                    "RELEASE_STORE_PASSWORD",
+                    "signing.storePassword",
+                    "android.injected.signing.store.password"
+                )
+                val keyAliasValue = signingProperty(
+                    "keyAlias",
+                    "KEY_ALIAS",
+                    "RELEASE_KEY_ALIAS",
+                    "signing.keyAlias",
+                    "android.injected.signing.key.alias"
+                )
+                val keyPasswordValue = signingProperty(
+                    "keyPassword",
+                    "KEY_PASSWORD",
+                    "RELEASE_KEY_PASSWORD",
+                    "signing.keyPassword",
+                    "android.injected.signing.key.password"
+                )
+
+                if (
+                    storeFilePath != null &&
+                    storePasswordValue != null &&
+                    keyAliasValue != null &&
+                    keyPasswordValue != null
                 ) {
                     storeFile = file(storeFilePath)
                     storePassword = storePasswordValue
                     keyAlias = keyAliasValue
                     keyPassword = keyPasswordValue
+                } else if (releaseSigningRequested) {
+                    val missingSigningProperties = buildList {
+                        if (storeFilePath == null) add("storeFile")
+                        if (storePasswordValue == null) add("storePassword")
+                        if (keyAliasValue == null) add("keyAlias")
+                        if (keyPasswordValue == null) add("keyPassword")
+                    }
+                    error(
+                        "Release signing config is incomplete in local.properties. " +
+                            "Missing: ${missingSigningProperties.joinToString()}."
+                    )
                 }
+            } else if (releaseSigningRequested) {
+                error("Release signing config requires local.properties.")
             }
         }
     }

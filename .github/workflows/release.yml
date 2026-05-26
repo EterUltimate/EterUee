@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Git tag to publish, for example v5.2.4'
+        description: 'Git tag to publish, for example v5.2.5'
         required: false
         default: ''
         type: string
@@ -56,8 +56,8 @@ jobs:
           echo "${{ secrets.KEY_BASE64 }}" | base64 -d > app/app.key
 
           # Write signing config to local.properties
-          echo "${{ secrets.SIGNING_CONFIG }}" > local.properties
-          echo "storeFile=app.key" >> local.properties
+          printf '%s\n' "${{ secrets.SIGNING_CONFIG }}" > local.properties
+          printf '%s\n' "storeFile=app.key" >> local.properties
 
           # Write Google Services config (if needed)
           if [ -n "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then

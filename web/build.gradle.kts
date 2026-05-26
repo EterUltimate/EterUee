@@ -46,9 +46,7 @@ val buildWebUi = tasks.register<Exec>("buildWebUi") {
 
 android {
     namespace = "com.eterultimate.eteruee.web"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 24

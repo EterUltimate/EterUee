@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@ai-sdk/provider": "^1.0.0",
-    "@ai-sdk/react": "^1.0.0",
+    "@ai-sdk/react": "^3.0.193",
     "@react-router/node": "7.13.0",
     "@react-router/serve": "7.13.0",
     "@streamdown/cjk": "^1.0.2",

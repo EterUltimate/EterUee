@@ -31,6 +31,16 @@ class EterUeeSharedTest {
     }
 
     @Test
+    fun supportedLinuxTargetCoversLinuxX64() {
+        assertEquals(
+            listOf("linuxX64"),
+            EterUeeShared.supportedLinuxTargets.map { it.kotlinTarget },
+        )
+        assertEquals(PlatformFamily.LINUX, EterUeeShared.supportedLinuxTargets.single().family)
+        assertEquals("glibc", EterUeeShared.supportedLinuxTargets.single().libc)
+    }
+
+    @Test
     fun frameworkNameIsStableForSwiftImport() {
         assertEquals("EterUeeShared", EterUeeShared.frameworkName)
     }
@@ -97,6 +107,14 @@ class EterUeeSharedTest {
         assertTrue(EterUeeWindowsBridge.runtimeCapabilitiesJson().contains("windowsTargets"))
         assertTrue(EterUeeWindowsBridge.supportedWindowsTargetsJson().contains("Windows 11"))
         assertTrue(EterUeeWindowsBridge.sampleRoleplayPrompt().contains("Arcadia"))
+    }
+
+    @Test
+    fun linuxBridgeExposesStableSmokeApis() {
+        assertEquals("EterUeeShared Linux", EterUeeLinuxBridge.runtimeName())
+        assertTrue(EterUeeLinuxBridge.runtimeCapabilitiesJson().contains("linuxTargets"))
+        assertTrue(EterUeeLinuxBridge.supportedLinuxTargetsJson().contains("linuxX64"))
+        assertTrue(EterUeeLinuxBridge.sampleRoleplayPrompt().contains("Arcadia"))
     }
 
     @Test

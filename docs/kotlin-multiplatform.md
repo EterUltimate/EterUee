@@ -2,7 +2,7 @@
 
 `shared` is the first Kotlin Multiplatform boundary for EterUee. It keeps Android-specific UI,
 Room, Firebase, WebView, and Compose Android code out of portable targets while exposing stable
-Kotlin/Native host surfaces for iOS, iPadOS, macOS, and Windows 11.
+Kotlin/Native host surfaces for iOS, iPadOS, macOS, Windows 11, and Linux.
 
 ## Supported Targets
 
@@ -11,11 +11,15 @@ Kotlin/Native host surfaces for iOS, iPadOS, macOS, and Windows 11.
 - iOS and iPadOS simulators: `iosSimulatorArm64`, `iosX64`
 - macOS: `macosArm64`
 - Windows 11 x64: `mingwX64`
+- Linux x64: `linuxX64`
 
 `macosX64` is intentionally not enabled because Kotlin 2.3 marks that target as deprecated.
 Windows support is intentionally limited to Windows 11 x64. Older Windows releases are not part
 of the compatibility contract even though the Kotlin/Native `mingwX64` toolchain can run on older
 64-bit Windows versions.
+Linux support targets x64 glibc environments through Kotlin/Native `linuxX64`. Distribution-
+specific packaging, desktop shell integration, and AppImage/Flatpak installers are intentionally
+kept outside this shared runtime boundary.
 
 ## Framework
 
@@ -73,6 +77,8 @@ The first shared domain surface is roleplay prompt assembly:
 - `SharedWorldInfoEntry`
 - `RoleplayPromptEngine`
 - `EterUeeAppleBridge`
+- `EterUeeWindowsBridge`
+- `EterUeeLinuxBridge`
 
 Android `roleplay` delegates prompt assembly to the shared engine, so Apple hosts and Android use
 the same world-info insertion and context truncation behavior.
@@ -108,6 +114,35 @@ the `mingwX64` build, smoke executable, and native tests. Exact Windows 11 OS va
 run on a Windows 11 machine before release because GitHub does not currently provide a standard
 Windows 11 x64 hosted-runner label.
 
+## Linux Native Host
+
+Linux uses the Kotlin/Native `linuxX64` target and a thin smoke executable under
+`shared/src/linuxMain`. The stable host entrypoint is:
+
+- `EterUeeLinuxBridge`
+
+The smoke executable verifies that the compiled Linux binary can call the shared runtime capability
+bridge and roleplay prompt engine:
+
+```bash
+./gradlew :shared:compileKotlinLinuxX64 :shared:runDebugExecutableLinuxX64 :shared:linuxX64Test --no-daemon --stacktrace --console=plain
+```
+
+Expected smoke output:
+
+```text
+EterUeeShared Linux x64 smoke OK
+```
+
+The generated executable is written under:
+
+```text
+shared/build/bin/linuxX64/debugExecutable/
+```
+
+The GitHub Actions Linux job runs on GitHub's standard Ubuntu x64 runner and validates the
+`linuxX64` build, smoke executable, native tests, and uploaded debug executable.
+
 ## Local Verification
 
 Windows and Linux can validate the portable metadata and Android target:
@@ -120,6 +155,12 @@ Windows 11 can validate the Windows native target:
 
 ```powershell
 .\gradlew.bat :shared:metadataCommonMainClasses :shared:compileKotlinMingwX64 :shared:runDebugExecutableMingwX64 :shared:mingwX64Test :shared:testAndroidHostTest --no-daemon --stacktrace --console=plain
+```
+
+Linux x64 can validate the Linux native target:
+
+```bash
+./gradlew :shared:metadataCommonMainClasses :shared:compileKotlinLinuxX64 :shared:runDebugExecutableLinuxX64 :shared:linuxX64Test :shared:testAndroidHostTest --no-daemon --stacktrace --console=plain
 ```
 
 Apple framework linking must run on a macOS host:

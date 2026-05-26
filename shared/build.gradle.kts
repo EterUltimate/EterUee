@@ -42,6 +42,14 @@ kotlin {
         }
     }
 
+    linuxX64 {
+        binaries {
+            executable {
+                entryPoint = "com.eterultimate.eteruee.shared.linux.main"
+            }
+        }
+    }
+
     sourceSets {
         commonMain.dependencies {
             api(libs.kotlinx.serialization.json)

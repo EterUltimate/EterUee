@@ -57,6 +57,7 @@ jobs:
 
           # Write signing config to local.properties
           echo "${{ secrets.SIGNING_CONFIG }}" > local.properties
+          echo "storeFile=app.key" >> local.properties
 
           # Write Google Services config (if needed)
           if [ -n "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then

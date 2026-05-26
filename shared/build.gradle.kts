@@ -34,6 +34,14 @@ kotlin {
         }
     }
 
+    mingwX64 {
+        binaries {
+            executable {
+                entryPoint = "com.eterultimate.eteruee.shared.windows.main"
+            }
+        }
+    }
+
     sourceSets {
         commonMain.dependencies {
             api(libs.kotlinx.serialization.json)

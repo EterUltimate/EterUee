@@ -1,8 +1,8 @@
-# Kotlin Multiplatform Apple Compatibility
+# Kotlin Multiplatform Compatibility
 
 `shared` is the first Kotlin Multiplatform boundary for EterUee. It keeps Android-specific UI,
-Room, Firebase, WebView, and Compose Android code out of Apple targets while exposing a stable
-Kotlin/Native framework for iOS, iPadOS, and macOS hosts.
+Room, Firebase, WebView, and Compose Android code out of portable targets while exposing stable
+Kotlin/Native host surfaces for iOS, iPadOS, macOS, and Windows 11.
 
 ## Supported Targets
 
@@ -10,8 +10,12 @@ Kotlin/Native framework for iOS, iPadOS, and macOS hosts.
 - iOS and iPadOS device: `iosArm64`
 - iOS and iPadOS simulators: `iosSimulatorArm64`, `iosX64`
 - macOS: `macosArm64`
+- Windows 11 x64: `mingwX64`
 
 `macosX64` is intentionally not enabled because Kotlin 2.3 marks that target as deprecated.
+Windows support is intentionally limited to Windows 11 x64. Older Windows releases are not part
+of the compatibility contract even though the Kotlin/Native `mingwX64` toolchain can run on older
+64-bit Windows versions.
 
 ## Framework
 
@@ -73,12 +77,48 @@ The first shared domain surface is roleplay prompt assembly:
 Android `roleplay` delegates prompt assembly to the shared engine, so Apple hosts and Android use
 the same world-info insertion and context truncation behavior.
 
+## Windows 11 Native Host
+
+Windows uses the Kotlin/Native `mingwX64` target and a thin smoke executable under
+`shared/src/mingwMain`. The stable host entrypoint is:
+
+- `EterUeeWindowsBridge`
+
+The smoke executable verifies that the compiled Windows binary can call the shared runtime
+capability bridge and roleplay prompt engine:
+
+```powershell
+.\gradlew.bat :shared:compileKotlinMingwX64 :shared:runDebugExecutableMingwX64 :shared:mingwX64Test --no-daemon --stacktrace --console=plain
+```
+
+Expected smoke output:
+
+```text
+EterUeeShared Windows 11 smoke OK
+```
+
+The generated executable is written under:
+
+```text
+shared/build/bin/mingwX64/debugExecutable/
+```
+
+The GitHub Actions Windows job runs on GitHub's standard x64 Windows runner and validates the
+`mingwX64` build, smoke executable, and native tests. Exact Windows 11 OS validation should be run
+on a Windows 11 machine before release.
+
 ## Local Verification
 
 Windows and Linux can validate the portable metadata and Android target:
 
 ```bash
 ./gradlew :shared:metadataCommonMainClasses :shared:compileAndroidMain :shared:testAndroidHostTest
+```
+
+Windows 11 can validate the Windows native target:
+
+```powershell
+.\gradlew.bat :shared:metadataCommonMainClasses :shared:compileKotlinMingwX64 :shared:runDebugExecutableMingwX64 :shared:mingwX64Test :shared:testAndroidHostTest --no-daemon --stacktrace --console=plain
 ```
 
 Apple framework linking must run on a macOS host:

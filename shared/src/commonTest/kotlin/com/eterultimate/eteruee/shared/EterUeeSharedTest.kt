@@ -22,6 +22,15 @@ class EterUeeSharedTest {
     }
 
     @Test
+    fun supportedWindowsTargetIsWindows11Only() {
+        assertEquals(
+            listOf("mingwX64"),
+            EterUeeShared.supportedWindowsTargets.map { it.kotlinTarget },
+        )
+        assertEquals("Windows 11", EterUeeShared.supportedWindowsTargets.single().minimumOs)
+    }
+
+    @Test
     fun frameworkNameIsStableForSwiftImport() {
         assertEquals("EterUeeShared", EterUeeShared.frameworkName)
     }
@@ -80,6 +89,14 @@ class EterUeeSharedTest {
         assertEquals("EterUeeShared", EterUeeAppleBridge.frameworkName())
         assertTrue(EterUeeAppleBridge.runtimeCapabilitiesJson().contains("appleTargets"))
         assertTrue(EterUeeAppleBridge.sampleRoleplayPrompt().contains("Arcadia"))
+    }
+
+    @Test
+    fun windowsBridgeExposesStableSmokeApis() {
+        assertEquals("EterUeeShared Windows", EterUeeWindowsBridge.runtimeName())
+        assertTrue(EterUeeWindowsBridge.runtimeCapabilitiesJson().contains("windowsTargets"))
+        assertTrue(EterUeeWindowsBridge.supportedWindowsTargetsJson().contains("Windows 11"))
+        assertTrue(EterUeeWindowsBridge.sampleRoleplayPrompt().contains("Arcadia"))
     }
 
     @Test

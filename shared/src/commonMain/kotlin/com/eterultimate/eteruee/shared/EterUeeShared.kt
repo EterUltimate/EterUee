@@ -11,6 +11,7 @@ enum class PlatformFamily {
     ANDROID,
     IOS,
     MACOS,
+    WINDOWS,
 }
 
 @Serializable
@@ -21,9 +22,18 @@ data class AppleTarget(
 )
 
 @Serializable
+data class WindowsTarget(
+    val family: PlatformFamily,
+    val kotlinTarget: String,
+    val runtime: String,
+    val minimumOs: String,
+)
+
+@Serializable
 data class SharedRuntimeCapabilities(
     val platformFamily: PlatformFamily,
     val appleTargets: List<AppleTarget>,
+    val windowsTargets: List<WindowsTarget>,
     val generatedAtEpochMilliseconds: Long,
 )
 
@@ -60,10 +70,20 @@ object EterUeeShared {
         ),
     )
 
+    val supportedWindowsTargets: List<WindowsTarget> = listOf(
+        WindowsTarget(
+            family = PlatformFamily.WINDOWS,
+            kotlinTarget = "mingwX64",
+            runtime = "Windows x64 native executable",
+            minimumOs = "Windows 11",
+        ),
+    )
+
     @OptIn(ExperimentalTime::class)
     fun runtimeCapabilities(): SharedRuntimeCapabilities = SharedRuntimeCapabilities(
         platformFamily = currentPlatformFamily,
         appleTargets = supportedAppleTargets,
+        windowsTargets = supportedWindowsTargets,
         generatedAtEpochMilliseconds = Clock.System.now().toEpochMilliseconds(),
     )
 

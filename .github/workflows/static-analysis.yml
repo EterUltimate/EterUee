@@ -18,6 +18,14 @@ concurrency:
   group: static-analysis-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  JAVA_VERSION: '21'
+  NODE_VERSION: '24'
+  TERMUX_APP_COMMIT: '30ebb2dee381d292ade0f2868cfde0f9f20b89fe'
+  HIDDIFY_CORE_VERSION: 'v4.1.0'
+  HIDDIFY_CORE_ANDROID_SHA256: '6c4841f7aab23eb1fb17831349ecdfc3ca9c31553b8cbe5effd820cb12607f56'
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g
+
 jobs:
   codeql-javascript:
     name: CodeQL JavaScript/TypeScript
@@ -54,15 +62,34 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: ${{ env.JAVA_VERSION }}
 
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
-          node-version: '24'
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
+
+      - name: Prepare Termux Android modules
+        run: |
+          git clone https://github.com/termux/termux-app.git ../termux-app
+          git -C ../termux-app checkout "$TERMUX_APP_COMMIT"
+          perl -0pi -e 's/proguard-android\.txt/proguard-android-optimize.txt/g' \
+            ../termux-app/terminal-emulator/build.gradle \
+            ../termux-app/terminal-view/build.gradle
+
+      - name: Prepare Hiddify Core Android AAR
+        run: |
+          mkdir -p ../hiddify-core/bin /tmp/hiddify-core-android
+          curl -L --fail --retry 5 --retry-delay 3 --retry-all-errors \
+            -o /tmp/hiddify-lib-android.tar.gz \
+            "https://github.com/hiddify/hiddify-core/releases/download/${HIDDIFY_CORE_VERSION}/hiddify-lib-android.tar.gz"
+          echo "${HIDDIFY_CORE_ANDROID_SHA256}  /tmp/hiddify-lib-android.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/hiddify-lib-android.tar.gz -C /tmp/hiddify-core-android
+          cp "$(find /tmp/hiddify-core-android -name hiddify-core.aar -type f | head -1)" ../hiddify-core/bin/hiddify-core.aar
+          test -s ../hiddify-core/bin/hiddify-core.aar
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4

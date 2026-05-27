@@ -22,6 +22,9 @@ env:
   JAVA_VERSION: '21'
   NODE_VERSION: '24'
   PNPM_VERSION: '10.28.2'
+  TERMUX_APP_COMMIT: '30ebb2dee381d292ade0f2868cfde0f9f20b89fe'
+  HIDDIFY_CORE_VERSION: 'v4.1.0'
+  HIDDIFY_CORE_ANDROID_SHA256: '6c4841f7aab23eb1fb17831349ecdfc3ca9c31553b8cbe5effd820cb12607f56'
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g
 
 jobs:
@@ -62,6 +65,14 @@ jobs:
         uses: actions/checkout@v6
         with:
           submodules: recursive
+
+      - name: Prepare Termux Android modules
+        run: |
+          git clone https://github.com/termux/termux-app.git ../termux-app
+          git -C ../termux-app checkout "$TERMUX_APP_COMMIT"
+          perl -0pi -e 's/proguard-android\.txt/proguard-android-optimize.txt/g' \
+            ../termux-app/terminal-emulator/build.gradle \
+            ../termux-app/terminal-view/build.gradle
 
       - name: Set up JDK
         uses: actions/setup-java@v5
@@ -135,6 +146,18 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Prepare Termux Android modules
+        shell: pwsh
+        run: |
+          git clone https://github.com/termux/termux-app.git ../termux-app
+          git -C ../termux-app checkout $env:TERMUX_APP_COMMIT
+          (Get-Content ../termux-app/terminal-emulator/build.gradle) `
+            -replace 'proguard-android\.txt', 'proguard-android-optimize.txt' |
+            Set-Content ../termux-app/terminal-emulator/build.gradle
+          (Get-Content ../termux-app/terminal-view/build.gradle) `
+            -replace 'proguard-android\.txt', 'proguard-android-optimize.txt' |
+            Set-Content ../termux-app/terminal-view/build.gradle
+
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
@@ -169,6 +192,14 @@ jobs:
         uses: actions/checkout@v6
         with:
           submodules: recursive
+
+      - name: Prepare Termux Android modules
+        run: |
+          git clone https://github.com/termux/termux-app.git ../termux-app
+          git -C ../termux-app checkout "$TERMUX_APP_COMMIT"
+          perl -0pi -e 's/proguard-android\.txt/proguard-android-optimize.txt/g' \
+            ../termux-app/terminal-emulator/build.gradle \
+            ../termux-app/terminal-view/build.gradle
 
       - name: Set up JDK
         uses: actions/setup-java@v5
@@ -207,6 +238,18 @@ jobs:
         uses: actions/checkout@v6
         with:
           submodules: recursive
+
+      - name: Prepare Termux Android modules
+        shell: pwsh
+        run: |
+          git clone https://github.com/termux/termux-app.git ../termux-app
+          git -C ../termux-app checkout $env:TERMUX_APP_COMMIT
+          (Get-Content ../termux-app/terminal-emulator/build.gradle) `
+            -replace 'proguard-android\.txt', 'proguard-android-optimize.txt' |
+            Set-Content ../termux-app/terminal-emulator/build.gradle
+          (Get-Content ../termux-app/terminal-view/build.gradle) `
+            -replace 'proguard-android\.txt', 'proguard-android-optimize.txt' |
+            Set-Content ../termux-app/terminal-view/build.gradle
 
       - name: Set up JDK
         uses: actions/setup-java@v5
@@ -247,6 +290,14 @@ jobs:
         uses: actions/checkout@v6
         with:
           submodules: recursive
+
+      - name: Prepare Termux Android modules
+        run: |
+          git clone https://github.com/termux/termux-app.git ../termux-app
+          git -C ../termux-app checkout "$TERMUX_APP_COMMIT"
+          perl -0pi -e 's/proguard-android\.txt/proguard-android-optimize.txt/g' \
+            ../termux-app/terminal-emulator/build.gradle \
+            ../termux-app/terminal-view/build.gradle
 
       - name: Set up JDK
         uses: actions/setup-java@v5
@@ -295,6 +346,25 @@ jobs:
         uses: actions/checkout@v6
         with:
           submodules: recursive
+
+      - name: Prepare Termux Android modules
+        run: |
+          git clone https://github.com/termux/termux-app.git ../termux-app
+          git -C ../termux-app checkout "$TERMUX_APP_COMMIT"
+          perl -0pi -e 's/proguard-android\.txt/proguard-android-optimize.txt/g' \
+            ../termux-app/terminal-emulator/build.gradle \
+            ../termux-app/terminal-view/build.gradle
+
+      - name: Prepare Hiddify Core Android AAR
+        run: |
+          mkdir -p ../hiddify-core/bin /tmp/hiddify-core-android
+          curl -L --fail --retry 5 --retry-delay 3 --retry-all-errors \
+            -o /tmp/hiddify-lib-android.tar.gz \
+            "https://github.com/hiddify/hiddify-core/releases/download/${HIDDIFY_CORE_VERSION}/hiddify-lib-android.tar.gz"
+          echo "${HIDDIFY_CORE_ANDROID_SHA256}  /tmp/hiddify-lib-android.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/hiddify-lib-android.tar.gz -C /tmp/hiddify-core-android
+          cp "$(find /tmp/hiddify-core-android -name hiddify-core.aar -type f | head -1)" ../hiddify-core/bin/hiddify-core.aar
+          test -s ../hiddify-core/bin/hiddify-core.aar
 
       - name: Set up JDK
         uses: actions/setup-java@v5

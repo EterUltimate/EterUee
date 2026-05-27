@@ -18,12 +18,15 @@ import com.eterultimate.eteruee.ui.components.richtext.MarkdownBlock
 import kotlin.uuid.Uuid
 
 val DEFAULT_AUTO_MODEL_ID = Uuid.parse("b7055fb4-39f9-4042-a88a-0d80ed76cf08")
+val DEFAULT_ETERUEE_PROVIDER_ID = Uuid.parse("a8d2d463-e8c0-41f2-b89e-f5eb8e716cce")
+const val DEFAULT_ETERUEE_PROVIDER_BASE_URL = "https://newapi.eterultimate.asia/v1"
+const val LEGACY_ETERUEE_PROVIDER_BASE_URL = "https://api.eteruee.com/v1"
 
 val DEFAULT_PROVIDERS = listOf(
     ProviderSetting.OpenAI(
-        id = Uuid.parse("a8d2d463-e8c0-41f2-b89e-f5eb8e716cce"),
+        id = DEFAULT_ETERUEE_PROVIDER_ID,
         name = "EterUee",
-        baseUrl = "https://api.eteruee.com/v1",
+        baseUrl = DEFAULT_ETERUEE_PROVIDER_BASE_URL,
         apiKey = "",
         enabled = true,
         builtIn = true,

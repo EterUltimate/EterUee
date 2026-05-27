@@ -551,7 +551,7 @@
   <string name="regenerate">重新生成</string>
   <string name="regenerate_confirm_message">确定要重新生成此消息吗？</string>
   <string name="render_with_webview">网页视图渲染</string>
-  <string name="eteruee_provider_description">官方免费 AI 服务，使用用户赞助资金为新用户提供部分免费模型作为备用，无需 API 密钥。有严格速率限制，如已购买自有服务商，请尽量使用自有服务商。</string>
+  <string name="eteruee_provider_description">官方提供的 API。</string>
   <string name="safe_mode_assistants">助手</string>
   <string name="safe_mode_copy">复制</string>
   <string name="safe_mode_crash_report">崩溃报告</string>
@@ -1143,5 +1143,21 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="setting_page_shell_desc">在设备上执行Shell命令</string>
   <string name="setting_page_ssh">SSH</string>
   <string name="setting_page_ssh_desc">通过SSH在远程服务器上执行命令</string>
+  <string name="setting_page_traffic_control">流量管控</string>
+  <string name="setting_page_traffic_control_desc">通过 Hiddify Core 管理本地流量</string>
+  <string name="setting_traffic_control_actions">操作</string>
+  <string name="setting_traffic_control_config">配置</string>
+  <string name="setting_traffic_control_config_content">配置内容</string>
+  <string name="setting_traffic_control_config_path">配置路径</string>
+  <string name="setting_traffic_control_core">Hiddify Core</string>
+  <string name="setting_traffic_control_core_message">核心消息</string>
+  <string name="setting_traffic_control_missing_aar">缺少 ../hiddify-core/bin/hiddify-core.aar</string>
+  <string name="setting_traffic_control_start">启动</string>
+  <string name="setting_traffic_control_status_missing">核心缺失</string>
+  <string name="setting_traffic_control_status_ready">核心就绪</string>
+  <string name="setting_traffic_control_status_running">核心运行中</string>
+  <string name="setting_traffic_control_stop">停止</string>
+  <string name="setting_traffic_control_test">测试</string>
+  <string name="setting_traffic_control_test_success">Hiddify core 绑定已加载</string>
   <string name="setting_provider_page_video_model">视频</string>
 </resources>

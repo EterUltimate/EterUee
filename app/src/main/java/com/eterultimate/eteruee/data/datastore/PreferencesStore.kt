@@ -256,14 +256,22 @@ class SettingsStore(
                 }
             }
             providers = providers.map { provider ->
-                val defaultProvider = DEFAULT_PROVIDERS.find { it.id == provider.id }
+                val normalizedProvider = when {
+                    provider is ProviderSetting.OpenAI &&
+                        provider.id == DEFAULT_ETERUEE_PROVIDER_ID &&
+                        provider.baseUrl == LEGACY_ETERUEE_PROVIDER_BASE_URL ->
+                        provider.copy(baseUrl = DEFAULT_ETERUEE_PROVIDER_BASE_URL)
+
+                    else -> provider
+                }
+                val defaultProvider = DEFAULT_PROVIDERS.find { it.id == normalizedProvider.id }
                 if (defaultProvider != null) {
-                    provider.copyProvider(
+                    normalizedProvider.copyProvider(
                         builtIn = defaultProvider.builtIn,
                         description = defaultProvider.description,
                         shortDescription = defaultProvider.shortDescription,
                     )
-                } else provider
+                } else normalizedProvider
             }.toMutableList()
             val assistants = it.assistants.ifEmpty { DEFAULT_ASSISTANTS }.toMutableList()
             DEFAULT_ASSISTANTS.forEach { defaultAssistant ->

@@ -109,6 +109,7 @@ import com.eterultimate.eteruee.ui.pages.setting.SettingSearchDetailPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingSearchPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingThemePage
 import com.eterultimate.eteruee.ui.pages.setting.SettingTTSPage
+import com.eterultimate.eteruee.ui.pages.setting.SettingTrafficControlPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingWebPage
 import com.eterultimate.eteruee.ui.pages.share.handler.ShareHandlerPage
 import com.eterultimate.eteruee.ui.pages.shell.ShellPage
@@ -444,6 +445,10 @@ class RouteActivity : ComponentActivity() {
                                 SettingWebPage()
                             }
 
+                            entry<Screen.SettingTrafficControl> {
+                                SettingTrafficControlPage()
+                            }
+
                             entry<Screen.Developer> {
                                 DeveloperPage()
                             }
@@ -741,6 +746,9 @@ sealed interface Screen : NavKey {
 
     @Serializable
     data object SettingWeb : Screen
+
+    @Serializable
+    data object SettingTrafficControl : Screen
 
     @Serializable
     data object Developer : Screen

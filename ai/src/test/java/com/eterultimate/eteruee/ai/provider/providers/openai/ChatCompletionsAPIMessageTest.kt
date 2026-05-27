@@ -1,13 +1,27 @@
 package com.eterultimate.eteruee.ai.provider.providers.openai
 
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 import com.eterultimate.eteruee.ai.core.MessageRole
+import com.eterultimate.eteruee.ai.core.ReasoningLevel
+import com.eterultimate.eteruee.ai.provider.Modality
+import com.eterultimate.eteruee.ai.provider.Model
+import com.eterultimate.eteruee.ai.provider.ModelAbility
+import com.eterultimate.eteruee.ai.provider.ProviderSetting
+import com.eterultimate.eteruee.ai.provider.TextGenerationParams
+import com.eterultimate.eteruee.ai.ui.MessageChunk
 import com.eterultimate.eteruee.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessageChoice
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.ai.ui.handleMessageChunk
 import com.eterultimate.eteruee.ai.util.KeyRoulette
 import okhttp3.OkHttpClient
 import org.junit.Assert.assertEquals
@@ -37,6 +51,47 @@ class ChatCompletionsAPIMessageTest {
         )
         method.isAccessible = true
         return method.invoke(api, messages) as JsonArray
+    }
+
+    private fun invokeParseMessage(message: JsonObject): UIMessage {
+        val method = ChatCompletionsAPI::class.java.getDeclaredMethod(
+            "parseMessage",
+            JsonObject::class.java
+        )
+        method.isAccessible = true
+        return method.invoke(api, message) as UIMessage
+    }
+
+    private fun invokeParseMessage(message: JsonObject, wrapImagesAsDataUri: Boolean): UIMessage {
+        val method = ChatCompletionsAPI::class.java.getDeclaredMethod(
+            "parseMessage",
+            JsonObject::class.java,
+            Boolean::class.javaPrimitiveType
+        )
+        method.isAccessible = true
+        return method.invoke(api, message, wrapImagesAsDataUri) as UIMessage
+    }
+
+    private fun invokeBuildChatCompletionRequest(
+        providerSetting: ProviderSetting.OpenAI,
+        model: Model,
+        reasoningLevel: ReasoningLevel = ReasoningLevel.OFF,
+    ): JsonObject {
+        val method = ChatCompletionsAPI::class.java.getDeclaredMethod(
+            "buildChatCompletionRequest",
+            List::class.java,
+            TextGenerationParams::class.java,
+            ProviderSetting.OpenAI::class.java,
+            Boolean::class.javaPrimitiveType
+        )
+        method.isAccessible = true
+        return method.invoke(
+            api,
+            listOf(UIMessage.user("Generate an image")),
+            TextGenerationParams(model = model, reasoningLevel = reasoningLevel),
+            providerSetting,
+            false
+        ) as JsonObject
     }
 
     @Test
@@ -344,6 +399,149 @@ class ChatCompletionsAPIMessageTest {
         assertEquals("assistant", result[1].jsonObject["role"]?.jsonPrimitive?.content)
         assertEquals("thinking", result[1].jsonObject["reasoning_content"]?.jsonPrimitive?.content)
         assertEquals("", result[1].jsonObject["content"]?.jsonPrimitive?.content)
+    }
+
+    @Test
+    fun `parseMessage should parse aihubmix multi modal image and normalize mime`() {
+        val message = buildJsonObject {
+            put("role", "assistant")
+            put("content", "")
+            put("multi_mod_content", buildJsonArray {
+                add(buildJsonObject {
+                    put("text", "caption")
+                    put("inlineData", buildJsonObject {
+                        put("data", "JPEG_BASE64")
+                        put("mimeType", " image/JPG ")
+                    })
+                })
+            })
+        }
+
+        val result = invokeParseMessage(message)
+
+        assertEquals(2, result.parts.size)
+        assertEquals("caption", (result.parts[0] as UIMessagePart.Text).text)
+        val image = result.parts[1] as UIMessagePart.Image
+        assertEquals("JPEG_BASE64", image.url)
+        assertEquals("image/jpeg", image.metadata?.get("mimeType")?.jsonPrimitive?.content)
+    }
+
+    @Test
+    fun `parseMessage should wrap final image response as data uri`() {
+        val message = buildJsonObject {
+            put("role", "assistant")
+            put("content", "")
+            put("multi_mod_content", buildJsonArray {
+                add(buildJsonObject {
+                    put("inline_data", buildJsonObject {
+                        put("data", "PNG_BASE64")
+                        put("mime_type", "png")
+                    })
+                })
+            })
+        }
+
+        val result = invokeParseMessage(message, wrapImagesAsDataUri = true)
+
+        val image = result.parts.single() as UIMessagePart.Image
+        assertEquals("data:image/png;base64,PNG_BASE64", image.url)
+        assertEquals("image/png", image.metadata?.get("mimeType")?.jsonPrimitive?.content)
+    }
+
+    @Test
+    fun `parseMessage should tolerate non-primitive multi modal fields`() {
+        val message = buildJsonObject {
+            put("role", "assistant")
+            put("content", "")
+            put("multi_mod_content", buildJsonArray {
+                add(buildJsonObject {
+                    put("text", buildJsonObject { put("nested", "object") })
+                    put("inlineData", buildJsonObject {
+                        put("data", buildJsonArray { add(JsonPrimitive("not-a-string")) })
+                        put("mimeType", buildJsonObject { put("garbage", true) })
+                    })
+                })
+            })
+        }
+
+        val result = invokeParseMessage(message)
+
+        assertTrue(result.parts.none { it is UIMessagePart.Text })
+        assertTrue(result.parts.none { it is UIMessagePart.Image })
+    }
+
+    @Test
+    fun `handleMessageChunk should use image mime metadata without double prefix`() {
+        val messages = listOf(UIMessage.user("Generate an image"))
+        val chunk = MessageChunk(
+            id = "chunk-id",
+            model = "model-id",
+            choices = listOf(
+                UIMessageChoice(
+                    index = 0,
+                    delta = null,
+                    message = UIMessage(
+                        role = MessageRole.ASSISTANT,
+                        parts = listOf(
+                            UIMessagePart.Image(
+                                url = "data:image/jpeg;base64,JPEG_BASE64",
+                                metadata = buildJsonObject { put("mimeType", "image/jpeg") }
+                            )
+                        )
+                    ),
+                    finishReason = "stop"
+                )
+            )
+        )
+
+        val result = messages.handleMessageChunk(chunk)
+        val image = result.last().parts.single() as UIMessagePart.Image
+
+        assertEquals("data:image/jpeg;base64,JPEG_BASE64", image.url)
+    }
+
+    @Test
+    fun `buildChatCompletionRequest should send provider-specific image modalities for subdomains`() {
+        val imageModel = Model(
+            modelId = "gemini-2.5-flash-image-preview",
+            outputModalities = listOf(Modality.TEXT, Modality.IMAGE)
+        )
+        val aihubmixRequest = invokeBuildChatCompletionRequest(
+            providerSetting = ProviderSetting.OpenAI(baseUrl = "https://api.aihubmix.com/v1"),
+            model = imageModel
+        )
+        val openrouterRequest = invokeBuildChatCompletionRequest(
+            providerSetting = ProviderSetting.OpenAI(baseUrl = "https://api.openrouter.ai/v1"),
+            model = imageModel
+        )
+
+        val aihubmixModalities = aihubmixRequest["modalities"]!!.jsonArray
+        assertEquals("text", aihubmixModalities[0].jsonPrimitive.content)
+        assertEquals("image", aihubmixModalities[1].jsonPrimitive.content)
+
+        val openrouterModalities = openrouterRequest["modalities"]!!.jsonArray
+        assertEquals("image", openrouterModalities[0].jsonPrimitive.content)
+        assertEquals("text", openrouterModalities[1].jsonPrimitive.content)
+    }
+
+    @Test
+    fun `buildChatCompletionRequest should route dashscope intl reasoning params`() {
+        val reasoningModel = Model(
+            modelId = "qwen3-max",
+            abilities = listOf(ModelAbility.REASONING)
+        )
+
+        val request = invokeBuildChatCompletionRequest(
+            providerSetting = ProviderSetting.OpenAI(
+                baseUrl = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+            ),
+            model = reasoningModel,
+            reasoningLevel = ReasoningLevel.HIGH
+        )
+
+        assertEquals("true", request["enable_thinking"]?.jsonPrimitive?.content)
+        assertEquals("8000", request["thinking_budget"]?.jsonPrimitive?.content)
+        assertTrue(!request.containsKey("reasoning_effort"))
     }
 
     // ==================== Helper Functions ====================

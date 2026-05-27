@@ -551,7 +551,7 @@
   <string name="regenerate">Regenerate</string>
   <string name="regenerate_confirm_message">Are you sure you want to regenerate this message?</string>
   <string name="render_with_webview">Render with WebView</string>
-  <string name="eteruee_provider_description">Official free AI service, using user sponsorship funds to provide some free models for new users as fallback, no API key required. Has strict rate limits, if you have purchased your own provider, please use your own provider as much as possible.</string>
+  <string name="eteruee_provider_description">Official API provided by EterUee.</string>
   <string name="safe_mode_assistants">Assistants</string>
   <string name="safe_mode_copy">Copy</string>
   <string name="safe_mode_crash_report">Crash Report</string>
@@ -1141,5 +1141,21 @@
   <string name="setting_page_shell_desc">Execute shell commands on device</string>
   <string name="setting_page_ssh">SSH</string>
   <string name="setting_page_ssh_desc">Execute commands on remote servers via SSH</string>
+  <string name="setting_page_traffic_control">Traffic Control</string>
+  <string name="setting_page_traffic_control_desc">Manage local traffic through Hiddify Core</string>
+  <string name="setting_traffic_control_actions">Actions</string>
+  <string name="setting_traffic_control_config">Config</string>
+  <string name="setting_traffic_control_config_content">Config content</string>
+  <string name="setting_traffic_control_config_path">Config path</string>
+  <string name="setting_traffic_control_core">Hiddify Core</string>
+  <string name="setting_traffic_control_core_message">Core message</string>
+  <string name="setting_traffic_control_missing_aar">Missing ../hiddify-core/bin/hiddify-core.aar</string>
+  <string name="setting_traffic_control_start">Start</string>
+  <string name="setting_traffic_control_status_missing">Core missing</string>
+  <string name="setting_traffic_control_status_ready">Core ready</string>
+  <string name="setting_traffic_control_status_running">Core running</string>
+  <string name="setting_traffic_control_stop">Stop</string>
+  <string name="setting_traffic_control_test">Test</string>
+  <string name="setting_traffic_control_test_success">Hiddify core binding loaded</string>
   <string name="setting_provider_page_video_model">Video</string>
 </resources>

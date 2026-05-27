@@ -4,6 +4,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileInputStream
 import java.util.Properties
 
+val localHiddifyCoreAar = rootProject.file("../hiddify-core/bin/hiddify-core.aar")
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -21,8 +23,8 @@ android {
         applicationId = "com.eterultimate.eteruee"
         minSdk = 26
         targetSdk = 37
-        versionCode = 161
-        versionName = "5.2.6"
+        versionCode = 162
+        versionName = "5.2.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -376,6 +378,10 @@ dependencies {
     implementation(project(":shared"))
     implementation(project(":roleplay"))
     implementation(project(":material3"))
+    implementation(project(":terminal-view"))
+    if (localHiddifyCoreAar.exists()) {
+        implementation(files(localHiddifyCoreAar))
+    }
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
     implementation(kotlin("reflect"))
 

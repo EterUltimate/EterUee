@@ -46,3 +46,8 @@ include(":document")
 include(":web")
 include(":roleplay")
 include(":material3")
+
+include(":terminal-emulator")
+project(":terminal-emulator").projectDir = file("../termux-app/terminal-emulator")
+include(":terminal-view")
+project(":terminal-view").projectDir = file("../termux-app/terminal-view")

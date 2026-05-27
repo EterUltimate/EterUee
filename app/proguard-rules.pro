@@ -49,3 +49,9 @@
 # JSch (SSH client) — uses reflection for crypto providers
 -keep class com.jcraft.jsch.** { *; }
 -dontwarn com.jcraft.jsch.**
+
+# Hiddify Core is loaded through reflection and native gomobile bindings.
+-keep class com.hiddify.core.** { *; }
+-keep class go.** { *; }
+-dontwarn com.hiddify.core.**
+-dontwarn go.**

@@ -161,7 +161,7 @@ android {
         buildConfig = true
     }
     sourceSets {
-        getByName("androidTest").assets.srcDirs("$projectDir/schemas")
+        getByName("androidTest").assets.directories.add(layout.projectDirectory.dir("schemas").asFile.path)
     }
     androidResources {
         generateLocaleConfig = true

@@ -177,6 +177,8 @@
   <string name="backup_page_delete_failed">删除失败: %s</string>
   <string name="backup_page_delete_success">删除成功</string>
   <string name="backup_page_export_desc">导出APP数据为文件</string>
+  <string name="backup_page_export_zip_backup">导出 ZIP 备份</string>
+  <string name="backup_page_export_zip_backup_desc">将应用设置、聊天记录、文件和技能导出为 ZIP 备份</string>
   <string name="backup_page_exporting">正在导出...</string>
   <string name="backup_page_files">文件</string>
   <string name="backup_page_import_chatbox_desc">导入 ChatBox 提供商配置和完整聊天记录</string>

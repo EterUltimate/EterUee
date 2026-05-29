@@ -177,6 +177,8 @@
   <string name="backup_page_delete_failed">Delete failed: %s</string>
   <string name="backup_page_delete_success">Delete successful</string>
   <string name="backup_page_export_desc">Export app data to a file</string>
+  <string name="backup_page_export_zip_backup">Export ZIP Backup</string>
+  <string name="backup_page_export_zip_backup_desc">Export app settings, chat records, files, and skills as a ZIP backup</string>
   <string name="backup_page_exporting">Exporting...</string>
   <string name="backup_page_files">Files</string>
   <string name="backup_page_import_chatbox_desc">Import ChatBox provider configurations and full chat history</string>

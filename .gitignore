@@ -4,6 +4,7 @@
 /.idea
 .DS_Store
 /build
+**/build/
 shared/build/
 desktop/build/
 roleplay/build/
@@ -16,5 +17,7 @@ local.properties
 .cursor
 .history
 .kotlin
+emulator_*.png
+emulator_*.xml
 # Node.js (sharp for icon generation)
 node_modules/

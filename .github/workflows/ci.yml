@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  JAVA_VERSION: '21'
+  JAVA_VERSION: '26'
   NODE_VERSION: '24'
   PNPM_VERSION: '10.28.2'
   TERMUX_APP_COMMIT: '30ebb2dee381d292ade0f2868cfde0f9f20b89fe'
@@ -77,7 +77,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
-          distribution: temurin
+          distribution: oracle
           java-version: ${{ env.JAVA_VERSION }}
 
       - name: Set up Gradle
@@ -161,7 +161,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
-          distribution: temurin
+          distribution: oracle
           java-version: ${{ env.JAVA_VERSION }}
 
       - name: Set up Gradle
@@ -204,7 +204,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
-          distribution: temurin
+          distribution: oracle
           java-version: ${{ env.JAVA_VERSION }}
 
       - name: Set up Gradle
@@ -254,7 +254,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
-          distribution: temurin
+          distribution: oracle
           java-version: ${{ env.JAVA_VERSION }}
 
       - name: Set up Gradle
@@ -302,7 +302,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
-          distribution: temurin
+          distribution: oracle
           java-version: ${{ env.JAVA_VERSION }}
 
       - name: Install Linux packaging tools
@@ -369,7 +369,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
-          distribution: temurin
+          distribution: oracle
           java-version: ${{ env.JAVA_VERSION }}
 
       - name: Set up Node

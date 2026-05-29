@@ -1,231 +1,125 @@
-# RolePlay 模块
+# RolePlay Module
 
-> Android 角色扮演聊天应用 - 完整的角色管理、世界书、群组和 AI 聊天功能
+`roleplay` is the local roleplay feature module embedded in the EterUee Android app. It owns roleplay-specific data, domain services, Compose screens, ViewModels, Tavern-compatible import/export logic, and local persistence.
 
-## 📖 简介
+## Current Scope
 
-RolePlay 是一个功能完整的角色扮演聊天模块，支持：
-- 🎭 **角色管理** - 创建、编辑、删除角色，支持头像上传
-- 📚 **世界书** - 关键词匹配的世界观设定，自动注入对话上下文
-- 👥 **群组聊天** - 多角色群聊，成员管理
-- 💬 **AI 聊天** - 流式生成、消息管理、重新生成
-- 🎨 **Material Design 3** - 现代化 UI 设计
+Implemented or wired into the current app:
 
-## ✨ 特性
+- Character list and editor.
+- Chat list and chat screen.
+- World info list, editor, and entries.
+- Group list and editor.
+- Preset list/editor path.
+- Bookmark page and bookmark navigation.
+- Message branching and regeneration.
+- AI response generation through the shared AI layer.
+- Tavern character, chat, world info, and PNG codec support.
+- Local Room database and file-backed asset storage.
+- Koin module integration.
+- App navigation integration through `RouteActivity`.
 
-### 核心功能
-- ✅ 完整的 CRUD 操作（角色、世界书、群组、聊天）
-- ✅ AI 流式响应（SSE）
-- ✅ 消息分支与重新生成
-- ✅ 关键词自动匹配
-- ✅ 头像文件管理
-- ✅ JSONL 数据持久化
-- ✅ Room 数据库存储
+## Module Structure
 
-### 技术亮点
-- 🏗️ Clean Architecture + MVVM
-- 🔄 单向数据流（StateFlow）
-- ⚡ Kotlin Coroutines 异步编程
-- 💉 Koin 依赖注入
-- 🎨 Jetpack Compose 声明式 UI
-- 📱 Material Design 3
-
-## 📁 项目结构
-
-```
+```text
 roleplay/
-├── src/main/java/com/eterultimate/eteruee/roleplay/
-│   ├── data/
-│   │   ├── local/          # 本地数据存储
-│   │   │   ├── dao/        # Room DAOs
-│   │   │   ├── entity/     # Room Entities
-│   │   │   ├── RolePlayDatabase.kt
-│   │   │   └── RolePlayFileStorage.kt
-│   │   ├── model/          # 数据模型
-│   │   │   ├── Character.kt
-│   │   │   ├── Chat.kt
-│   │   │   ├── Group.kt
-│   │   │   ├── WorldInfo.kt
-│   │   │   └── Preset.kt
-│   │   └── repository/     # 数据仓库
-│   ├── di/                 # 依赖注入
-│   │   └── RoleplayModule.kt
-│   ├── domain/             # 领域层
-│   │   └── service/        # 业务服务
-│   │       ├── CharacterService.kt
-│   │       ├── ChatService.kt
-│   │       ├── GroupService.kt
-│   │       └── WorldInfoService.kt
-│   └── ui/                 # 表现层
-│       ├── pages/          # Compose 页面
-│       │   ├── character/
-│       │   ├── chat/
-│       │   ├── group/
-│       │   ├── worldinfo/
-│       │   └── RolePlayMainPage.kt
-│       └── viewmodel/      # ViewModels
-│           ├── CharacterListViewModel.kt
-│           ├── ChatViewModel.kt
-│           ├── GroupEditViewModel.kt
-│           └── ...
-├── FEATURE_CHECKLIST.md    # 功能清单与测试指南
-├── QUICK_START.md          # 快速启动指南
-├── ARCHITECTURE.md         # 架构设计文档
-└── build.gradle.kts        # Gradle 配置
+  src/main/java/com/eterultimate/eteruee/roleplay/
+    data/
+      local/          Room database, DAOs, entities, file storage
+      model/          Character, Chat, Group, Preset, WorldInfo, Bookmark
+      serialization/  JSON helpers
+      tavern/         Tavern-compatible codecs
+    domain/
+      extension/      Roleplay extension primitives
+      service/        Business services and prompt/token helpers
+      subagent/       Roleplay subagent executor glue
+    di/               Koin module
+    ui/
+      components/     Shared roleplay UI components
+      pages/          Compose pages
+      viewmodel/      StateFlow-backed ViewModels
 ```
 
-## 🚀 快速开始
+## App Routes
 
-### 前置要求
-- Android Studio Hedgehog 或更高版本
-- JDK 17+
-- Android SDK API 24+
+The app currently wires RolePlay screens in `app/src/main/java/com/eterultimate/eteruee/RouteActivity.kt`.
 
-### 编译项目
+Relevant screen keys:
+
+- `Screen.RolePlay`
+- `Screen.CharacterList`
+- character edit route
+- roleplay chat route
+- world info routes
+- group routes
+- preset route
+- bookmark route
+
+Keep route ownership in `app`; expose roleplay pages from this module.
+
+## Persistence
+
+The module uses Room for structured state and app-local files for assets/imports.
+
+Primary local entities:
+
+- `rp_characters`
+- `rp_chats`
+- `rp_world_infos`
+- `rp_groups`
+- `rp_bookmarks`
+- `rp_presets`
+
+File storage is rooted under the app files directory, not external shared storage by default.
+
+## AI Boundary
+
+RolePlay should call the shared AI layer instead of implementing provider-specific logic.
+
+Use:
+
+- `com.eterultimate.eteruee.ai.ui.UIMessage`
+- `com.eterultimate.eteruee.ai.sdk.AISDK`
+- app-level provider/model settings
+
+Keep roleplay-specific prompt construction inside `domain/service`, especially prompt building, world info injection, character context, and group speaker selection.
+
+## Build And Test
+
+Run from repository root:
 
 ```bash
-# 克隆仓库
-git clone https://github.com/your-repo/EterUee.git
-cd EterUee
-
-# 切换到功能分支
-git checkout feature/roleplay
-
-# 编译项目
+./gradlew :roleplay:assembleDebug
+./gradlew :roleplay:testDebugUnitTest
 ./gradlew :app:assembleDebug
 ```
 
-### 运行应用
-
-1. 在 Android Studio 中打开项目
-2. 连接设备或启动模拟器
-3. 点击 Run 按钮
-4. 在主界面找到 **RolePlay** 入口
-
-### 第一个角色
-
-1. 进入 RolePlay 模块
-2. 点击 **+** 创建角色
-3. 填写角色信息并保存
-4. 点击角色开始聊天
-
-详细步骤请查看 [快速启动指南](QUICK_START.md)
-
-## 📚 文档
-
-| 文档 | 说明 |
-|------|------|
-| [快速启动指南](QUICK_START.md) | 5分钟快速上手 |
-| [功能清单](FEATURE_CHECKLIST.md) | 完整功能列表和测试场景 |
-| [架构设计](ARCHITECTURE.md) | 技术架构和设计决策 |
-
-## 🧪 测试
-
-### 单元测试
+For broad validation:
 
 ```bash
-# 运行所有测试
-./gradlew :roleplay:test
-
-# 运行特定测试
-./gradlew :roleplay:testDebugUnitTest --tests "*CharacterServiceTest*"
+./gradlew test
+git diff --check -- roleplay
 ```
 
-### UI 测试
+## Manual Smoke Test
 
-```bash
-# 连接设备后运行
-./gradlew :roleplay:connectedAndroidTest
-```
+After installing a debug build:
 
-### 手动测试
+1. Open EterUee.
+2. Enter RolePlay from the app navigation.
+3. Create or import a character.
+4. Open a chat for that character.
+5. Send a message and confirm streaming response behavior.
+6. Edit or regenerate a message and confirm branch state.
+7. Add a bookmark and navigate back to the message.
+8. Create a world info entry and confirm it can be selected/edited.
+9. Open preset and group editors to confirm forms load and save.
 
-参考 [功能清单](FEATURE_CHECKLIST.md) 中的测试场景进行手动测试。
+## Related Docs
 
-## 🛠️ 技术栈
-
-| 类别 | 技术 |
-|------|------|
-| UI | Jetpack Compose, Material Design 3 |
-| 状态管理 | StateFlow, Kotlin Flow |
-| 异步 | Kotlin Coroutines |
-| 依赖注入 | Koin |
-| 数据库 | Room (SQLite) |
-| 文件存储 | JSONL, File I/O |
-| 网络 | OkHttp, SSE |
-| 图片 | （待集成 Coil/Glide） |
-| 构建 | Gradle Kotlin DSL |
-
-## 📊 代码统计
-
-| 指标 | 数量 |
-|------|------|
-| 总文件数 | 36 |
-| 代码行数 | ~5,660 |
-| UI 页面 | 7 |
-| ViewModels | 7 |
-| Services | 4 |
-| 数据模型 | 5 |
-| DAOs | 4 |
-
-## 🎯 路线图
-
-### 已完成 ✅
-- [x] 角色管理（CRUD + 头像）
-- [x] 世界书管理（CRUD + 关键词匹配）
-- [x] 群组管理（CRUD + 成员管理）
-- [x] 聊天功能（发送、接收、流式生成）
-- [x] 消息操作（删除、重新生成）
-- [x] 数据持久化（Room + JSONL）
-
-### 短期计划 🚧
-- [ ] Markdown 渲染支持
-- [ ] 代码高亮
-- [ ] 图片缓存（Coil）
-- [ ] 聊天设置对话框
-- [ ] 消息复制功能
-
-### 长期愿景 🔮
-- [ ] 角色卡导入/导出（PNG 元数据）
-- [ ] 多模型切换
-- [ ] 本地模型支持（Ollama）
-- [ ] 语音合成（TTS）
-- [ ] 聊天记录导出
-
-## 🤝 贡献
-
-欢迎贡献代码！请遵循以下步骤：
-
-1. Fork 本仓库
-2. 创建功能分支 (`git checkout -b feature/amazing-feature`)
-3. 提交更改 (`git commit -m 'Add amazing feature'`)
-4. 推送到分支 (`git push origin feature/amazing-feature`)
-5. 开启 Pull Request
-
-### 代码规范
-- 遵循 Kotlin 官方代码风格
-- 使用 4 空格缩进
-- 添加必要的注释
-- 编写单元测试
-
-## 📄 许可证
-
-本项目采用 MIT 许可证 - 详见 [LICENSE](../LICENSE) 文件
-
-## 🙏 致谢
-
-- [Jetpack Compose](https://developer.android.com/jetpack/compose)
-- [Kotlin Coroutines](https://kotlinlang.org/docs/coroutines-overview.html)
-- [Room Database](https://developer.android.com/training/data-storage/room)
-- [Koin](https://insert-koin.io/)
-- [Material Design 3](https://m3.material.io/)
-
-## 📞 联系
-
-- 项目主页: [GitHub](https://github.com/your-repo/EterUee)
-- 问题反馈: [Issues](https://github.com/your-repo/EterUee/issues)
-- 邮箱: your-email@example.com
-
----
-
-**Made with ❤️ using Kotlin & Jetpack Compose**
+- [../docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md)
+- [../docs/PROJECT_STATUS.md](../docs/PROJECT_STATUS.md)
+- [ARCHITECTURE.md](ARCHITECTURE.md)
+- [QUICK_START.md](QUICK_START.md)
+- [FEATURE_CHECKLIST.md](FEATURE_CHECKLIST.md)
+- [INTEGRATION.md](INTEGRATION.md)

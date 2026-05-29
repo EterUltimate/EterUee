@@ -46,6 +46,9 @@ jobs:
           perl -0pi -e 's/proguard-android\.txt/proguard-android-optimize.txt/g' \
             ../termux-app/terminal-emulator/build.gradle \
             ../termux-app/terminal-view/build.gradle
+          perl -0pi -e 's/JavaVersion\.VERSION_1_8/JavaVersion.VERSION_11/g' \
+            ../termux-app/terminal-emulator/build.gradle \
+            ../termux-app/terminal-view/build.gradle
 
       - name: Prepare Hiddify Core Android AAR
         run: |
@@ -180,6 +183,12 @@ jobs:
           (Get-Content ../termux-app/terminal-view/build.gradle) `
             -replace 'proguard-android\.txt', 'proguard-android-optimize.txt' |
             Set-Content ../termux-app/terminal-view/build.gradle
+          (Get-Content ../termux-app/terminal-emulator/build.gradle) `
+            -replace 'JavaVersion\.VERSION_1_8', 'JavaVersion.VERSION_11' |
+            Set-Content ../termux-app/terminal-emulator/build.gradle
+          (Get-Content ../termux-app/terminal-view/build.gradle) `
+            -replace 'JavaVersion\.VERSION_1_8', 'JavaVersion.VERSION_11' |
+            Set-Content ../termux-app/terminal-view/build.gradle
 
       - name: Set up JDK 24 for desktop packaging
         uses: actions/setup-java@v5
@@ -241,6 +250,9 @@ jobs:
           git clone https://github.com/termux/termux-app.git ../termux-app
           git -C ../termux-app checkout "$TERMUX_APP_COMMIT"
           perl -0pi -e 's/proguard-android\.txt/proguard-android-optimize.txt/g' \
+            ../termux-app/terminal-emulator/build.gradle \
+            ../termux-app/terminal-view/build.gradle
+          perl -0pi -e 's/JavaVersion\.VERSION_1_8/JavaVersion.VERSION_11/g' \
             ../termux-app/terminal-emulator/build.gradle \
             ../termux-app/terminal-view/build.gradle
 

@@ -190,6 +190,13 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
 
+      - name: Use setup-java runtime for desktop packaging
+        shell: pwsh
+        run: |
+          if (Test-Path gradle/gradle-daemon-jvm.properties) {
+            Move-Item gradle/gradle-daemon-jvm.properties gradle/gradle-daemon-jvm.properties.release-backup
+          }
+
       - name: Build and verify Windows desktop package
         run: .\gradlew.bat :desktop:desktopReleasePackage --no-daemon --stacktrace --console=plain
 
@@ -253,6 +260,12 @@ jobs:
 
       - name: Grant execute permission
         run: chmod +x gradlew
+
+      - name: Use setup-java runtime for desktop packaging
+        run: |
+          if [ -f gradle/gradle-daemon-jvm.properties ]; then
+            mv gradle/gradle-daemon-jvm.properties gradle/gradle-daemon-jvm.properties.release-backup
+          fi
 
       - name: Build and verify Linux desktop package
         run: ./gradlew :desktop:desktopReleasePackage --no-daemon --stacktrace --console=plain

@@ -20,6 +20,7 @@ concurrency:
 
 env:
   JAVA_VERSION: '26'
+  DESKTOP_JAVA_VERSION: '24'
   NODE_VERSION: '24'
   PNPM_VERSION: '10.28.2'
   TERMUX_APP_COMMIT: '30ebb2dee381d292ade0f2868cfde0f9f20b89fe'
@@ -251,14 +252,21 @@ jobs:
             -replace 'proguard-android\.txt', 'proguard-android-optimize.txt' |
             Set-Content ../termux-app/terminal-view/build.gradle
 
-      - name: Set up JDK
+      - name: Set up JDK 24 for desktop packaging
         uses: actions/setup-java@v5
         with:
           distribution: oracle
-          java-version: ${{ env.JAVA_VERSION }}
+          java-version: ${{ env.DESKTOP_JAVA_VERSION }}
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
+
+      - name: Use setup-java runtime for desktop packaging
+        shell: pwsh
+        run: |
+          if (Test-Path gradle/gradle-daemon-jvm.properties) {
+            Move-Item gradle/gradle-daemon-jvm.properties gradle/gradle-daemon-jvm.properties.ci-backup
+          }
 
       - name: Build and verify Windows desktop package
         run: .\gradlew.bat :desktop:desktopReleasePackage --no-daemon --stacktrace --console=plain
@@ -299,11 +307,11 @@ jobs:
             ../termux-app/terminal-emulator/build.gradle \
             ../termux-app/terminal-view/build.gradle
 
-      - name: Set up JDK
+      - name: Set up JDK 24 for desktop packaging
         uses: actions/setup-java@v5
         with:
           distribution: oracle
-          java-version: ${{ env.JAVA_VERSION }}
+          java-version: ${{ env.DESKTOP_JAVA_VERSION }}
 
       - name: Install Linux packaging tools
         run: |
@@ -315,6 +323,12 @@ jobs:
 
       - name: Grant execute permission
         run: chmod +x gradlew
+
+      - name: Use setup-java runtime for desktop packaging
+        run: |
+          if [ -f gradle/gradle-daemon-jvm.properties ]; then
+            mv gradle/gradle-daemon-jvm.properties gradle/gradle-daemon-jvm.properties.ci-backup
+          fi
 
       - name: Build and verify Linux desktop package
         run: ./gradlew :desktop:desktopReleasePackage --no-daemon --stacktrace --console=plain

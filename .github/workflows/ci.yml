@@ -82,7 +82,7 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Grant execute permission
         run: chmod +x gradlew
@@ -166,7 +166,7 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Build shared metadata and Windows target
         run: .\gradlew.bat :shared:metadataCommonMainClasses :shared:compileKotlinMingwX64 --no-daemon --stacktrace --console=plain
@@ -209,7 +209,7 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Grant execute permission
         run: chmod +x gradlew
@@ -259,7 +259,7 @@ jobs:
           java-version: ${{ env.DESKTOP_JAVA_VERSION }}
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Use setup-java runtime for desktop packaging
         shell: pwsh
@@ -319,7 +319,7 @@ jobs:
           sudo apt-get install -y fakeroot dpkg-dev
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Grant execute permission
         run: chmod +x gradlew
@@ -392,7 +392,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Grant execute permission
         run: chmod +x gradlew

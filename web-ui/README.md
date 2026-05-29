@@ -1,88 +1,100 @@
-# Welcome to React Router!
+# EterUee Web UI
 
-A modern, production-ready template for building full-stack React applications using React Router.
+`web-ui` is the React browser frontend embedded into the Android app. It is built as static client assets and copied into the Android `web` module, where Ktor serves it from the device.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+## Runtime Path
 
-## Features
+```text
+web-ui
+  -> react-router build
+  -> copy.ts
+  -> ../web/src/main/resources/static
+  -> :web Android library
+  -> WebServerManager / Ktor
+  -> browser on local network
+```
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+The app does not deploy `web-ui` as a standalone hosted service for normal Android builds. Standalone dev mode is for frontend iteration only.
 
-## Getting Started
+## Stack
 
-### Installation
+| Area | Technology |
+| --- | --- |
+| Framework | React Router 7 |
+| React | React 19 |
+| Data/query | TanStack Query, ky |
+| Streaming/rendering | streamdown, shiki, KaTeX, remark/rehype |
+| State | Zustand, Immer |
+| UI utilities | radix-ui, lucide-react, motion, Tailwind CSS |
+| Validation | zod |
+| Formatting/lint | oxfmt, oxlint |
+| Build tool | Vite through React Router |
 
-Install the dependencies:
+## Directory Map
+
+| Path | Responsibility |
+| --- | --- |
+| `app/routes` | Route modules |
+| `app/components` | Shared UI components |
+| `app/hooks` | React hooks |
+| `app/services` | API clients and service wrappers |
+| `app/stores` | Client state stores |
+| `app/types` | Shared TypeScript types |
+| `app/locales` | i18n resources |
+| `public` | Static public assets |
+| `copy.ts` | Copies `build/client` into `../web/src/main/resources/static` |
+
+## Commands
+
+Run from `web-ui/`:
 
 ```bash
-npm install
+npx --yes pnpm@10.24.0 install --frozen-lockfile
+npx --yes pnpm@10.24.0 run dev
+npx --yes pnpm@10.24.0 run typecheck
+npx --yes pnpm@10.24.0 run build
+npx --yes pnpm@10.24.0 run fmt:check
 ```
 
-### Development
-
-Start the development server with HMR:
+The Android `web` module also invokes:
 
 ```bash
-npm run dev
+npx --yes pnpm@10.24.0 install --frozen-lockfile
+npx --yes pnpm@10.24.0 run build
 ```
 
-Your application will be available at `http://localhost:5173`.
+through `web/build.gradle.kts`.
 
-## Building for Production
+## API Boundary
 
-Create a production build:
+The Web UI talks to the embedded Ktor server in the Android app. Streaming chat work should stay compatible with:
 
-```bash
-npm run build
+- [../docs/STREAM_V2_USAGE_GUIDE.md](../docs/STREAM_V2_USAGE_GUIDE.md)
+- [../docs/BACKEND_SSE_STANDARDIZATION.md](../docs/BACKEND_SSE_STANDARDIZATION.md)
+- [../docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md)
+
+Do not assume a public cloud API base URL unless a feature explicitly introduces one. The default production path is browser to local Android device.
+
+## Build Output
+
+React Router writes client assets under:
+
+```text
+web-ui/build/client
 ```
 
-## Deployment
+`copy.ts` replaces:
 
-### Docker Deployment
-
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
+```text
+web/src/main/resources/static
 ```
 
-The containerized application can be deployed to any platform that supports Docker, including:
+Generated output should not be committed unless the release/build process explicitly requires it.
 
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
+## Development Notes
 
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting
-experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
+- Keep API clients typed and close to `app/services`.
+- Keep route-level state in route modules; share reusable cross-route state through `app/stores`.
+- Prefer the existing streaming message model over ad hoc text-only state.
+- Verify text wrapping and layout in both desktop browser and mobile browser widths when changing core chat UI.
+- When changing build scripts, update `web/build.gradle.kts` and [../docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md).

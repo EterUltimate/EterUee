@@ -10,14 +10,17 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import com.eterultimate.eteruee.common.http.await
 import com.eterultimate.eteruee.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.util.Locale
 
-private const val API_URL = "https://updates.eteruee.com/"
+private const val RELEASES_URL = "https://github.com/EterUltimate/EterUee/releases"
+private const val RELEASES_API_URL = "https://api.github.com/repos/EterUltimate/EterUee/releases/latest"
 
 class UpdateChecker(private val client: OkHttpClient) {
     private val json = Json { ignoreUnknownKeys = true }
@@ -29,18 +32,21 @@ class UpdateChecker(private val client: OkHttpClient) {
                 data = try {
                     val response = client.newCall(
                         Request.Builder()
-                            .url(API_URL)
+                            .url(RELEASES_API_URL)
                             .get()
+                            .addHeader("Accept", "application/vnd.github+json")
                             .addHeader(
                                 "User-Agent",
                                 "EterUee ${BuildConfig.VERSION_NAME} #${BuildConfig.VERSION_CODE}"
                             )
                             .build()
                     ).await()
-                    if (response.isSuccessful) {
-                        json.decodeFromString<UpdateInfo>(response.body.string())
-                    } else {
-                        throw Exception("Failed to fetch update info")
+                    response.use {
+                        if (it.isSuccessful) {
+                            json.decodeFromString<GitHubRelease>(it.body.string()).toUpdateInfo()
+                        } else {
+                            throw Exception("Failed to fetch update info")
+                        }
                     }
                 } catch (e: Exception) {
                     throw Exception("Failed to fetch update info", e)
@@ -72,7 +78,7 @@ class UpdateChecker(private val client: OkHttpClient) {
             // 你可以保存返回的downloadId到本地，以便后续查询下载进度或状态
         }.onFailure {
             Toast.makeText(context, "Failed to update", Toast.LENGTH_SHORT).show()
-            context.openUrl(download.url) // 跳转到下载页面
+            context.openUrl(RELEASES_URL) // 跳转到 GitHub Releases 页面
         }
     }
 }
@@ -91,6 +97,62 @@ data class UpdateInfo(
     val changelog: String,
     val downloads: List<UpdateDownload>
 )
+
+@Serializable
+private data class GitHubRelease(
+    @SerialName("tag_name")
+    val tagName: String,
+    @SerialName("published_at")
+    val publishedAt: String,
+    @SerialName("html_url")
+    val htmlUrl: String = RELEASES_URL,
+    val body: String = "",
+    val assets: List<GitHubReleaseAsset> = emptyList(),
+) {
+    fun toUpdateInfo(): UpdateInfo {
+        val changelog = body.ifBlank {
+            "See the GitHub release page: $htmlUrl"
+        }
+        return UpdateInfo(
+            version = tagName.trimStart('v', 'V'),
+            publishedAt = publishedAt,
+            changelog = changelog,
+            downloads = assets
+                .filter { it.name.endsWith(".apk", ignoreCase = true) }
+                .map {
+                    UpdateDownload(
+                        name = it.name,
+                        url = it.browserDownloadUrl,
+                        size = it.size.toReadableSize()
+                    )
+                }
+        )
+    }
+}
+
+@Serializable
+private data class GitHubReleaseAsset(
+    val name: String,
+    @SerialName("browser_download_url")
+    val browserDownloadUrl: String,
+    val size: Long = 0,
+)
+
+private fun Long.toReadableSize(): String {
+    if (this <= 0L) return ""
+    val units = listOf("B", "KB", "MB", "GB")
+    var value = this.toDouble()
+    var unitIndex = 0
+    while (value >= 1024 && unitIndex < units.lastIndex) {
+        value /= 1024
+        unitIndex++
+    }
+    return if (unitIndex == 0) {
+        "$this ${units[unitIndex]}"
+    } else {
+        String.format(Locale.US, "%.1f %s", value, units[unitIndex])
+    }
+}
 
 /**
  * 版本号值类，封装版本号字符串并提供比较功能

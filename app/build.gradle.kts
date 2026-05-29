@@ -4,6 +4,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileInputStream
 import java.util.Properties
 
+val localHiddifyCoreAar = rootProject.file("../hiddify-core/bin/hiddify-core.aar")
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -105,7 +107,7 @@ android {
         buildConfig = true
     }
     sourceSets {
-        getByName("androidTest").assets.srcDirs("$projectDir/schemas")
+        getByName("androidTest").assets.directories.add(layout.projectDirectory.dir("schemas").asFile.path)
     }
     androidResources {
         generateLocaleConfig = true
@@ -322,6 +324,10 @@ dependencies {
     implementation(project(":common"))
     implementation(project(":roleplay"))
     implementation(project(":material3"))
+    implementation(project(":terminal-view"))
+    if (localHiddifyCoreAar.exists()) {
+        implementation(files(localHiddifyCoreAar))
+    }
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
     implementation(kotlin("reflect"))
 

@@ -42,6 +42,7 @@ import com.eterultimate.eteruee.ai.util.KeyRoulette
 import com.eterultimate.eteruee.ai.util.configureReferHeaders
 import com.eterultimate.eteruee.ai.util.encodeBase64
 import com.eterultimate.eteruee.ai.util.json
+import com.eterultimate.eteruee.ai.util.matchesHostOrSubdomain
 import com.eterultimate.eteruee.ai.util.mergeCustomBody
 import com.eterultimate.eteruee.ai.util.parseErrorDetail
 import com.eterultimate.eteruee.ai.util.stringSafe
@@ -116,7 +117,7 @@ class ChatCompletionsAPI(
                 UIMessageChoice(
                     index = 0,
                     delta = null,
-                    message = parseMessage(message),
+                    message = parseMessage(message, wrapImagesAsDataUri = true),
                     finishReason = finishReason
                 )
             ),
@@ -264,27 +265,31 @@ class ChatCompletionsAPI(
 
             put("stream", stream)
             if (stream) {
-                if (host != "api.mistral.ai") { // mistral 不支持 stream_options
+                if (!host.matchesHostOrSubdomain("api.mistral.ai")) { // mistral 不支持 stream_options
                     put("stream_options", buildJsonObject {
                         put("include_usage", true)
                     })
                 }
             }
 
-            // open router适配
-            if(host == "openrouter.ai") {
-                if(params.model.outputModalities.contains(Modality.IMAGE)) {
+            if (params.model.outputModalities.contains(Modality.IMAGE)) {
+                if (host.matchesHostOrSubdomain("openrouter.ai")) {
                     put("modalities", buildJsonArray {
                         add("image")
                         add("text")
+                    })
+                } else if (host.matchesHostOrSubdomain("aihubmix.com")) {
+                    put("modalities", buildJsonArray {
+                        add("text")
+                        add("image")
                     })
                 }
             }
 
             if (params.model.abilities.contains(ModelAbility.REASONING)) {
                 val level = params.reasoningLevel
-                when (host) {
-                    "openrouter.ai" -> {
+                when {
+                    host.matchesHostOrSubdomain("openrouter.ai") -> {
                         // https://openrouter.ai/docs/use-cases/reasoning-tokens
                         put("reasoning", buildJsonObject {
                             when (level) {
@@ -295,31 +300,31 @@ class ChatCompletionsAPI(
                         })
                     }
 
-                    "dashscope.aliyuncs.com" -> {
+                    host.matchesDashScopeHost() -> {
                         // 阿里云百炼
                         // https://bailian.console.aliyun.com/console?tab=doc#/doc/?type=model&url=https%3A%2F%2Fhelp.aliyun.com%2Fdocument_detail%2F2870973.html&renderType=iframe
                         put("enable_thinking", level.isEnabled)
                         if (level != ReasoningLevel.AUTO) put("thinking_budget", level.budgetTokens)
                     }
 
-                    "ark.cn-beijing.volces.com" -> {
+                    host.matchesHostOrSubdomain("ark.cn-beijing.volces.com") -> {
                         // 豆包 (火山)
                         put("thinking", buildJsonObject {
                             put("type", if (!level.isEnabled) "disabled" else "enabled")
                         })
                     }
 
-                    "api.mistral.ai" -> {
+                    host.matchesHostOrSubdomain("api.mistral.ai") -> {
                         // Mistral 不支持
                     }
 
-                    "chat.intern-ai.org.cn" -> {
+                    host.matchesHostOrSubdomain("chat.intern-ai.org.cn") -> {
                         // 书生
                         // https://internlm.intern-ai.org.cn/api/document?lang=zh
                         put("thinking_mode", level.isEnabled)
                     }
 
-                    "api.siliconflow.cn" -> {
+                    host.matchesHostOrSubdomain("api.siliconflow.cn") -> {
                         // https://docs.siliconflow.cn/cn/userguide/capabilities/reasoning#3-1-api-%E5%8F%82%E6%95%B0
                         val modelId = params.model.modelId
                         val siliconflowThinkingModels = setOf(
@@ -350,19 +355,19 @@ class ChatCompletionsAPI(
                         }
                     }
 
-                    "open.bigmodel.cn" -> {
+                    host.matchesHostOrSubdomain("open.bigmodel.cn") -> {
                         put("thinking", buildJsonObject {
                             put("type", if (!level.isEnabled) "disabled" else "enabled")
                         })
                     }
 
-                    "api.moonshot.cn" -> {
+                    host.matchesHostOrSubdomain("api.moonshot.cn") -> {
                         put("thinking", buildJsonObject {
                             put("type", if (!level.isEnabled) "disabled" else "enabled")
                         })
                     }
 
-                    "api.deepseek.com" -> {
+                    host.matchesHostOrSubdomain("api.deepseek.com") -> {
                         put("thinking", buildJsonObject {
                             put("type", if (!level.isEnabled) "disabled" else "enabled")
                         })
@@ -371,7 +376,7 @@ class ChatCompletionsAPI(
                         }
                     }
 
-                    "integrate.api.nvidia.com" -> {
+                    host.matchesHostOrSubdomain("integrate.api.nvidia.com") -> {
                         if ("deepseek-v4" in params.model.modelId.lowercase()) {
                             if (level != ReasoningLevel.AUTO) {
                                 val effort = when (level) {
@@ -618,7 +623,12 @@ class ChatCompletionsAPI(
         })
     }
 
-    private fun parseMessage(jsonObject: JsonObject): UIMessage {
+    private fun parseMessage(jsonObject: JsonObject): UIMessage = parseMessage(
+        jsonObject = jsonObject,
+        wrapImagesAsDataUri = false
+    )
+
+    private fun parseMessage(jsonObject: JsonObject, wrapImagesAsDataUri: Boolean): UIMessage {
         val role = MessageRole.valueOf(
             jsonObject["role"]?.jsonPrimitive?.contentOrNull?.uppercase() ?: "ASSISTANT"
         )
@@ -633,9 +643,10 @@ class ChatCompletionsAPI(
                 arr.jsonArrayOrNull?.getOrNull(0)?.jsonObject?.get("thinking")?.jsonArrayOrNull?.getOrNull(0)?.jsonObjectOrNull?.get(
                     "text"
                 )?.jsonPrimitiveOrNull?.contentOrNull
-            }
+        }
         val toolCalls = jsonObject["tool_calls"] as? JsonArray ?: JsonArray(emptyList())
         val images = jsonObject["images"] as? JsonArray ?: JsonArray(emptyList())
+        val multiModContent = jsonObject["multi_mod_content"] as? JsonArray ?: JsonArray(emptyList())
 
         return UIMessage(
             role = role,
@@ -671,9 +682,40 @@ class ChatCompletionsAPI(
                     val imageObject = image.jsonObjectOrNull ?: return@forEach
                     val type = imageObject["type"]?.jsonPrimitive?.contentOrNull ?: return@forEach
                     if (type != "image_url") return@forEach
-                    val url = imageObject["image_url"]?.jsonObjectOrNull?.get("url")?.jsonPrimitive?.contentOrNull ?: return@forEach
-                    require(url.startsWith("data:image")) { "Only data uri is supported" }
-                    add(UIMessagePart.Image(url.substringAfter("data:image/png;base64,")))
+                    val url = imageObject["image_url"]?.jsonObjectOrNull?.get("url")?.jsonPrimitiveOrNull?.contentOrNull
+                        ?: return@forEach
+                    val parsedImage = parseImageContent(url, allowRawBase64 = false)
+                    add(
+                        UIMessagePart.Image(
+                            url = parsedImage.toImageUrl(wrapImagesAsDataUri),
+                            metadata = buildJsonObject {
+                                put("mimeType", parsedImage.mimeType)
+                            }
+                        )
+                    )
+                }
+                multiModContent.forEach { item ->
+                    val obj = item.jsonObjectOrNull ?: return@forEach
+                    val text = obj["text"]?.jsonPrimitiveOrNull?.contentOrNull
+                    if (content.isEmpty() && !text.isNullOrEmpty()) {
+                        add(UIMessagePart.Text(text))
+                    }
+
+                    val inlineData = (obj["inlineData"] ?: obj["inline_data"])?.jsonObjectOrNull
+                    val data = inlineData?.get("data")?.jsonPrimitiveOrNull?.contentOrNull
+                    val rawMime = (inlineData?.get("mimeType") ?: inlineData?.get("mime_type"))
+                        ?.jsonPrimitiveOrNull?.contentOrNull
+                    if (!data.isNullOrEmpty()) {
+                        val parsedImage = parseImageContent(data, rawMime)
+                        add(
+                            UIMessagePart.Image(
+                                url = parsedImage.toImageUrl(wrapImagesAsDataUri),
+                                metadata = buildJsonObject {
+                                    put("mimeType", parsedImage.mimeType)
+                                }
+                            )
+                        )
+                    }
                 }
             },
             annotations = parseAnnotations(
@@ -682,6 +724,63 @@ class ChatCompletionsAPI(
                 )
             ),
         )
+    }
+
+    private data class ParsedImageContent(
+        val base64: String,
+        val mimeType: String,
+    ) {
+        fun toImageUrl(wrapAsDataUri: Boolean): String {
+            return if (wrapAsDataUri) "data:$mimeType;base64,$base64" else base64
+        }
+    }
+
+    private fun parseImageContent(
+        data: String,
+        mime: String? = null,
+        allowRawBase64: Boolean = true
+    ): ParsedImageContent {
+        if (data.startsWith("data:", ignoreCase = true)) {
+            require(data.startsWith("data:image", ignoreCase = true)) {
+                "Only data uri is supported"
+            }
+            val base64Marker = "base64,"
+            val base64Index = data.indexOf(base64Marker, ignoreCase = true)
+            require(base64Index >= 0) {
+                "Only base64 data uri is supported"
+            }
+            val mimeType = data.substring("data:".length, base64Index).substringBefore(";")
+            return ParsedImageContent(
+                base64 = data.substring(base64Index + base64Marker.length),
+                mimeType = normalizeImageMime(mimeType)
+            )
+        }
+        require(allowRawBase64) {
+            "Only data uri is supported"
+        }
+        return ParsedImageContent(
+            base64 = data,
+            mimeType = normalizeImageMime(mime)
+        )
+    }
+
+    private fun normalizeImageMime(mime: String?): String {
+        return when (val cleaned = mime?.trim()?.lowercase()) {
+            null, "" -> "image/png"
+            "jpg", "jpeg", "image/jpg", "image/jpeg" -> "image/jpeg"
+            "png", "image/png" -> "image/png"
+            "webp", "image/webp" -> "image/webp"
+            "gif", "image/gif" -> "image/gif"
+            "avif", "image/avif" -> "image/avif"
+            "heic", "image/heic" -> "image/heic"
+            "svg", "svg+xml", "image/svg", "image/svg+xml" -> "image/svg+xml"
+            else -> if (cleaned.startsWith("image/")) cleaned else "image/png"
+        }
+    }
+
+    private fun String.matchesDashScopeHost(): Boolean {
+        return matchesHostOrSubdomain("dashscope.aliyuncs.com") ||
+            matchesHostOrSubdomain("dashscope-intl.aliyuncs.com")
     }
 
     private fun parseAnnotations(jsonArray: JsonArray): List<UIMessageAnnotation> {

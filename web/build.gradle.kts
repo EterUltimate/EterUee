@@ -10,6 +10,7 @@ val pnpmCommand = listOf(npxExecutable, "--yes", "pnpm@10.24.0")
 val installWebUiDeps = tasks.register<Exec>("installWebUiDeps") {
     group = "build"
     description = "Install web-ui dependencies using pnpm."
+    doNotTrackState("pnpm node_modules contains symlinks and virtual-store entries that Gradle cannot snapshot reliably.")
 
     workingDir = webUiDir.asFile
     commandLine(pnpmCommand + listOf("install", "--frozen-lockfile"))
@@ -18,7 +19,6 @@ val installWebUiDeps = tasks.register<Exec>("installWebUiDeps") {
         webUiDir.file("package.json"),
         webUiDir.file("pnpm-lock.yaml"),
     )
-    outputs.dir(webUiDir.dir("node_modules"))
 }
 
 val buildWebUi = tasks.register<Exec>("buildWebUi") {

@@ -25,11 +25,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up JDK 21
+      - name: Check out Termux app modules
+        uses: actions/checkout@v6
+        with:
+          repository: termux/termux-app
+          path: termux-app
+
+      - name: Set up JDK 26
         uses: actions/setup-java@v5
         with:
-          distribution: temurin
-          java-version: '21'
+          distribution: oracle
+          java-version: '26'
 
       - name: Gradle cache
         uses: actions/cache@v5

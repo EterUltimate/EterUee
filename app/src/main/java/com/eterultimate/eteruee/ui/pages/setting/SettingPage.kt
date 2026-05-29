@@ -185,6 +185,12 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                         supportingContent = { Text(stringResource(R.string.setting_page_ssh_desc)) },
                         headlineContent = { Text(stringResource(R.string.setting_page_ssh)) },
                     )
+                    item(
+                        onClick = { navController.navigate(Screen.SettingTrafficControl) },
+                        leadingContent = { Icon(HugeIcons.ServerStack01, null) },
+                        supportingContent = { Text(stringResource(R.string.setting_page_traffic_control_desc)) },
+                        headlineContent = { Text(stringResource(R.string.setting_page_traffic_control)) },
+                    )
                 }
             }
 

@@ -1,8 +1,8 @@
 package com.eterultimate.eteruee.ui.pages.backup.tabs
 
 import me.rerere.hugeicons.HugeIcons
-import me.rerere.hugeicons.stroke.File01
 import me.rerere.hugeicons.stroke.FileImport
+import me.rerere.hugeicons.stroke.FileZip
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -175,7 +175,7 @@ fun ImportExportTab(
     ) {
         stickyHeader {
             StickyHeader {
-                Text(stringResource(R.string.backup_page_local_backup_export))
+                Text(stringResource(R.string.backup_page_import_export))
             }
         }
 
@@ -189,13 +189,13 @@ fun ImportExportTab(
                             createDocumentLauncher.launch("eteruee_backup_$timestamp.zip")
                         }
                     } else null,
-                    headlineContent = { Text(stringResource(R.string.backup_page_local_backup_export)) },
+                    headlineContent = { Text(stringResource(R.string.backup_page_export_zip_backup)) },
                     supportingContent = {
                         Text(
                             if (isExporting) {
                                 stringResource(R.string.backup_page_exporting)
                             } else {
-                                stringResource(R.string.backup_page_export_desc)
+                                stringResource(R.string.backup_page_export_zip_backup_desc)
                             }
                         )
                     },
@@ -203,7 +203,7 @@ fun ImportExportTab(
                         if (isExporting) {
                             CircularWavyProgressIndicator(modifier = Modifier.size(24.dp))
                         } else {
-                            Icon(HugeIcons.File01, null)
+                            Icon(HugeIcons.FileZip, null)
                         }
                     },
                 )

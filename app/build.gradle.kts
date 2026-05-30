@@ -31,6 +31,18 @@ android {
         ndk {
             abiFilters += listOf("arm64-v8a", "x86_64")
         }
+        externalNativeBuild {
+            cmake {
+                cppFlags += listOf(
+                    "-std=c++17",
+                    "-O3",
+                    "-fvisibility=hidden",
+                    "-fdata-sections",
+                    "-ffunction-sections"
+                )
+                abiFilters += listOf("arm64-v8a", "x86_64")
+            }
+        }
     }
 
     splits {
@@ -115,6 +127,12 @@ android {
     packaging {
         jniLibs {
             useLegacyPackaging = true
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
         }
     }
     lint {

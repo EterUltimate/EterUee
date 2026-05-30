@@ -213,7 +213,7 @@ def set(key: str, value: str, lang: str, module: str):
 
     try:
         StringsXmlParser.update_entry(target_file, key, value)
-        click.echo(f"✓ 设置成功")
+        click.echo("✓ 设置成功")
     except Exception as e:
         click.echo(f"错误：设置失败 - {e}", err=True)
         sys.exit(1)

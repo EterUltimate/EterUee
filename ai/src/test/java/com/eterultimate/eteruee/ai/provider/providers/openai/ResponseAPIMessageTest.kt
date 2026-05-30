@@ -2,9 +2,11 @@ package com.eterultimate.eteruee.ai.provider.providers.openai
 
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 import com.eterultimate.eteruee.ai.core.MessageRole
 import com.eterultimate.eteruee.ai.core.ReasoningLevel
 import com.eterultimate.eteruee.ai.provider.Model
@@ -251,6 +253,37 @@ class ResponseAPIMessageTest {
             else -> false
         }
         assertTrue("First assistant should contain 'Hello'", hasHello)
+    }
+
+    @Test
+    fun `assistant images should be re-uploaded instead of referencing stored generation calls`() {
+        val assistantMessage = UIMessage(
+            role = MessageRole.ASSISTANT,
+            parts = listOf(
+                UIMessagePart.Text("Generated image"),
+                UIMessagePart.Image(
+                    url = "data:image/png;base64,iVBORw0KGgo=",
+                    metadata = buildJsonObject {
+                        put("openai_image_call_id", "ig_123")
+                    }
+                )
+            )
+        )
+
+        val result = invokeBuildMessages(listOf(UIMessage.user("make image"), assistantMessage))
+
+        val generationCalls = result.filter {
+            it.jsonObject["type"]?.jsonPrimitive?.content == "image_generation_call"
+        }
+        assertTrue("Should not reference stored image_generation_call ids", generationCalls.isEmpty())
+
+        val inputImages = result.filter {
+            val content = it.jsonObject["content"] as? JsonArray
+            content?.any { item ->
+                item.jsonObject["type"]?.jsonPrimitive?.content == "input_image"
+            } == true
+        }
+        assertTrue("Assistant image history should be re-uploaded as input_image", inputImages.isNotEmpty())
     }
 
     @Test

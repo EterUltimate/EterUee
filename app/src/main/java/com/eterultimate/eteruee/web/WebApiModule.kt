@@ -24,6 +24,11 @@ import com.eterultimate.eteruee.ai.sdk.AISDK
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.repository.ConversationRepository
+import com.eterultimate.eteruee.roleplay.domain.service.CharacterService as RoleplayCharacterService
+import com.eterultimate.eteruee.roleplay.domain.service.ChatService as RoleplayChatService
+import com.eterultimate.eteruee.roleplay.domain.service.GroupService as RoleplayGroupService
+import com.eterultimate.eteruee.roleplay.domain.service.PresetService as RoleplayPresetService
+import com.eterultimate.eteruee.roleplay.domain.service.WorldInfoService as RoleplayWorldInfoService
 import com.eterultimate.eteruee.service.ChatService
 import com.eterultimate.eteruee.utils.JsonInstant
 import com.eterultimate.eteruee.web.dto.ErrorResponse
@@ -33,6 +38,7 @@ import com.eterultimate.eteruee.web.routes.aiIconRoutes
 import com.eterultimate.eteruee.web.routes.assetsRoutes
 import com.eterultimate.eteruee.web.routes.conversationRoutes
 import com.eterultimate.eteruee.web.routes.filesRoutes
+import com.eterultimate.eteruee.web.routes.roleplayRoutes
 import com.eterultimate.eteruee.web.routes.settingsRoutes
 import java.security.MessageDigest
 import java.util.Date
@@ -62,7 +68,12 @@ fun Application.configureWebApi(
     aiSDK: AISDK,
     conversationRepo: ConversationRepository,
     settingsStore: SettingsStore,
-    filesManager: FilesManager
+    filesManager: FilesManager,
+    roleplayCharacterService: RoleplayCharacterService,
+    roleplayChatService: RoleplayChatService,
+    roleplayGroupService: RoleplayGroupService,
+    roleplayPresetService: RoleplayPresetService,
+    roleplayWorldInfoService: RoleplayWorldInfoService
 ) {
     val jwtEnabled = settingsStore.settingsFlow.value.webServerJwtEnabled
 
@@ -171,12 +182,30 @@ fun Application.configureWebApi(
                     settingsRoutes(settingsStore)
                     filesRoutes(filesManager, context)
                     assetsRoutes(context)
+                    roleplayRoutes(
+                        aiSDK = aiSDK,
+                        settingsStore = settingsStore,
+                        characterService = roleplayCharacterService,
+                        chatService = roleplayChatService,
+                        groupService = roleplayGroupService,
+                        presetService = roleplayPresetService,
+                        worldInfoService = roleplayWorldInfoService,
+                    )
                 }
             } else {
                 conversationRoutes(chatService, aiSDK, conversationRepo, settingsStore)
                 settingsRoutes(settingsStore)
                 filesRoutes(filesManager, context)
                 assetsRoutes(context)
+                roleplayRoutes(
+                    aiSDK = aiSDK,
+                    settingsStore = settingsStore,
+                    characterService = roleplayCharacterService,
+                    chatService = roleplayChatService,
+                    groupService = roleplayGroupService,
+                    presetService = roleplayPresetService,
+                    worldInfoService = roleplayWorldInfoService,
+                )
             }
         }
     }

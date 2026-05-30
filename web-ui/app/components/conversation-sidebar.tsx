@@ -101,10 +101,12 @@ const COLOR_THEME_OPTIONS: Array<{
   {
     value: "hitech",
     labelKey: "color_hitech",
+    swatch: "bg-[linear-gradient(135deg,#0b1220,#2dd4bf,#f8fafc)]",
   },
   {
     value: "vercel",
     labelKey: "color_vercel",
+    swatch: "bg-[linear-gradient(135deg,#000000,#ffffff)]",
   },
   {
     value: "soft-glass",

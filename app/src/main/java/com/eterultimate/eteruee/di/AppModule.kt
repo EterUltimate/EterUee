@@ -102,7 +102,12 @@ val appModule = module {
             aiSDK = get(),
             conversationRepo = get(),
             settingsStore = get(),
-            filesManager = get()
+            filesManager = get(),
+            roleplayCharacterService = get(),
+            roleplayChatService = get(),
+            roleplayGroupService = get(),
+            roleplayPresetService = get(),
+            roleplayWorldInfoService = get(),
         )
     }
 }

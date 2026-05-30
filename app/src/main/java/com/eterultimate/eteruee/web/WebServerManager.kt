@@ -16,9 +16,14 @@ import com.eterultimate.eteruee.AppScope
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.repository.ConversationRepository
+import com.eterultimate.eteruee.roleplay.domain.service.CharacterService as RoleplayCharacterService
+import com.eterultimate.eteruee.roleplay.domain.service.ChatService as RoleplayChatService
+import com.eterultimate.eteruee.roleplay.domain.service.GroupService as RoleplayGroupService
+import com.eterultimate.eteruee.roleplay.domain.service.PresetService as RoleplayPresetService
+import com.eterultimate.eteruee.roleplay.domain.service.WorldInfoService as RoleplayWorldInfoService
+import com.eterultimate.eteruee.runtime.NativeRuntime
 import com.eterultimate.eteruee.service.ChatService
 import com.eterultimate.eteruee.web.startWebServer
-import java.net.ServerSocket
 
 private const val TAG = "WebServerManager"
 private const val HOST_ALL_INTERFACES = "0.0.0.0"
@@ -42,7 +47,12 @@ class WebServerManager(
     private val aiSDK: AISDK,
     private val conversationRepo: ConversationRepository,
     private val settingsStore: SettingsStore,
-    private val filesManager: FilesManager
+    private val filesManager: FilesManager,
+    private val roleplayCharacterService: RoleplayCharacterService,
+    private val roleplayChatService: RoleplayChatService,
+    private val roleplayGroupService: RoleplayGroupService,
+    private val roleplayPresetService: RoleplayPresetService,
+    private val roleplayWorldInfoService: RoleplayWorldInfoService
 ) {
     private var server: EmbeddedServer<CIOApplicationEngine, CIOApplicationEngine.Configuration>? = null
     private val nsdRegistrar = NsdServiceRegistrar(context)
@@ -77,7 +87,19 @@ class WebServerManager(
                     return@launch
                 }
                 server = startWebServer(port = port, host = host) {
-                    configureWebApi(context, chatService, aiSDK, conversationRepo, settingsStore, filesManager)
+                    configureWebApi(
+                        context = context,
+                        chatService = chatService,
+                        aiSDK = aiSDK,
+                        conversationRepo = conversationRepo,
+                        settingsStore = settingsStore,
+                        filesManager = filesManager,
+                        roleplayCharacterService = roleplayCharacterService,
+                        roleplayChatService = roleplayChatService,
+                        roleplayGroupService = roleplayGroupService,
+                        roleplayPresetService = roleplayPresetService,
+                        roleplayWorldInfoService = roleplayWorldInfoService,
+                    )
                 }.start(wait = false)
 
                 _state.value = baseState.copy(isRunning = true)
@@ -139,10 +161,6 @@ class WebServerManager(
     }
 
     private fun isPortAvailable(port: Int): Boolean {
-        return try {
-            ServerSocket(port).use { true }
-        } catch (e: Exception) {
-            false
-        }
+        return NativeRuntime.isTcpPortAvailable(port)
     }
 }

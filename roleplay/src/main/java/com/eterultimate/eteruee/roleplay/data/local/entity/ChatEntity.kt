@@ -42,15 +42,24 @@ data class ChatEntity(
         }
         
         fun toModel(entity: ChatEntity): com.eterultimate.eteruee.roleplay.data.model.ChatMetadata {
-            if (entity.jsonData.isNotBlank()) {
-                return RoleplayJson.decodeFromString(entity.jsonData)
-            }
-
             val rootNodes = try {
                 RoleplayJson.decodeFromString<List<String>>(entity.rootNodesJson)
                     .mapNotNull { id -> runCatching { kotlin.uuid.Uuid.parse(id) }.getOrNull() }
             } catch (e: Exception) {
                 emptyList()
+            }
+
+            if (entity.jsonData.isNotBlank()) {
+                return RoleplayJson.decodeFromString<com.eterultimate.eteruee.roleplay.data.model.ChatMetadata>(
+                    entity.jsonData
+                ).copy(
+                    title = entity.title,
+                    messageCount = entity.messageCount,
+                    pinned = entity.pinned,
+                    updatedAt = java.time.Instant.ofEpochMilli(entity.updatedAt),
+                    activeBranchId = entity.activeBranchId?.let { kotlin.uuid.Uuid.parse(it) },
+                    rootNodes = rootNodes
+                )
             }
             
             return com.eterultimate.eteruee.roleplay.data.model.ChatMetadata(

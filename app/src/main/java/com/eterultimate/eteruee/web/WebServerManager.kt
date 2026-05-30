@@ -16,6 +16,7 @@ import com.eterultimate.eteruee.AppScope
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.repository.ConversationRepository
+import com.eterultimate.eteruee.runtime.NativeRuntime
 import com.eterultimate.eteruee.service.ChatService
 import com.eterultimate.eteruee.web.startWebServer
 import com.eterultimate.eteruee.roleplay.domain.service.CharacterService as RoleplayCharacterService
@@ -24,7 +25,6 @@ import com.eterultimate.eteruee.roleplay.domain.service.GroupService as Roleplay
 import com.eterultimate.eteruee.roleplay.domain.service.PresetService as RoleplayPresetService
 import com.eterultimate.eteruee.roleplay.domain.service.WorldInfoService as RoleplayWorldInfoService
 import com.eterultimate.eteruee.shared.WebUiConfig
-import java.net.ServerSocket
 
 private const val TAG = "WebServerManager"
 private const val HOST_ALL_INTERFACES = "0.0.0.0"
@@ -162,10 +162,6 @@ class WebServerManager(
     }
 
     private fun isPortAvailable(port: Int): Boolean {
-        return try {
-            ServerSocket(port).use { true }
-        } catch (e: Exception) {
-            false
-        }
+        return NativeRuntime.isTcpPortAvailable(port)
     }
 }

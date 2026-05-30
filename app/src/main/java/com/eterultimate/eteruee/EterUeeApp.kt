@@ -30,6 +30,7 @@ import com.eterultimate.eteruee.di.viewModelModule
 import com.eterultimate.eteruee.roleplay.di.roleplayModule
 import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.datastore.SettingsStore
+import com.eterultimate.eteruee.runtime.NativeRuntime
 import com.eterultimate.eteruee.service.WebServerService
 import com.eterultimate.eteruee.utils.CrashHandler
 import com.eterultimate.eteruee.utils.DatabaseUtil
@@ -113,7 +114,7 @@ class EterUeeApp : Application() {
         runCatching {
             val dir = appTempFolder
             if (dir.exists()) {
-                dir.deleteRecursively()
+                NativeRuntime.deleteDirectoryTree(dir)
             }
         }.onFailure {
             Log.e(TAG, "deleteTempFiles failed", it)

@@ -76,7 +76,7 @@ val roleplayModule = module {
     
     // Services
     single<CharacterService> { CharacterServiceImpl(androidContext(), get(), get()) }
-    single<ChatService> { ChatServiceImpl(androidContext(), get(), get()) }
+    single<ChatService> { ChatServiceImpl(androidContext(), get(), get(), get()) }
     single<WorldInfoService> { WorldInfoServiceImpl(androidContext(), get(), get()) }
     single<GroupService> { GroupServiceImpl(androidContext(), get(), get(), get()) }
     single<TokenService> { TokenServiceImpl() }

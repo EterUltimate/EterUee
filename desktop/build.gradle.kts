@@ -6,7 +6,7 @@ import java.util.Locale
 
 private val desktopPackageName = "EterUee"
 private val desktopLinuxPackageName = "eteruee"
-private val desktopPackageVersion = "5.2.12"
+private val desktopPackageVersion = "5.2.13"
 private val hostOsName = System.getProperty("os.name").lowercase(Locale.ROOT)
 private val isWindowsHost = hostOsName.contains("win")
 private val isLinuxHost = hostOsName.contains("linux")

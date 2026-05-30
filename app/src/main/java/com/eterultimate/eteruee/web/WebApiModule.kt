@@ -187,6 +187,8 @@ fun Application.configureWebApi(
                         filesManager = filesManager,
                     )
                     roleplayRoutes(
+                        aiSDK = aiSDK,
+                        settingsStore = settingsStore,
                         characterService = roleplayCharacterService,
                         chatService = roleplayChatService,
                         worldInfoService = roleplayWorldInfoService,
@@ -204,6 +206,8 @@ fun Application.configureWebApi(
                     filesManager = filesManager,
                 )
                 roleplayRoutes(
+                    aiSDK = aiSDK,
+                    settingsStore = settingsStore,
                     characterService = roleplayCharacterService,
                     chatService = roleplayChatService,
                     worldInfoService = roleplayWorldInfoService,

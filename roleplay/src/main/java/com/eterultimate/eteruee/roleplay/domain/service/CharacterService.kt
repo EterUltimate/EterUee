@@ -74,6 +74,8 @@ interface CharacterService {
      * 导入PNG角色卡
      */
     suspend fun importPngCharacter(uri: Uri): Result<Character>
+
+    suspend fun importPngCharacter(bytes: ByteArray): Result<Character>
     
     /**
      * 导出PNG角色卡
@@ -83,11 +85,18 @@ interface CharacterService {
         outputUri: Uri,
         format: TavernCharacterCardFormat = TavernCharacterCardFormat.V2
     ): Result<Unit>
+
+    suspend fun exportPngCharacterBytes(
+        characterId: kotlin.uuid.Uuid,
+        format: TavernCharacterCardFormat = TavernCharacterCardFormat.V2
+    ): Result<ByteArray>
     
     /**
      * 导入JSON角色卡
      */
     suspend fun importJsonCharacter(uri: Uri): Result<Character>
+
+    suspend fun importJsonCharacter(jsonString: String): Result<Character>
     
     /**
      * 导出JSON角色卡
@@ -97,6 +106,11 @@ interface CharacterService {
         outputUri: Uri,
         format: TavernCharacterCardFormat = TavernCharacterCardFormat.V2
     ): Result<Unit>
+
+    suspend fun exportJsonCharacterString(
+        characterId: kotlin.uuid.Uuid,
+        format: TavernCharacterCardFormat = TavernCharacterCardFormat.V2
+    ): Result<String>
 }
 
 /**

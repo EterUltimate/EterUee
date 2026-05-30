@@ -201,26 +201,19 @@ class CharacterServiceImpl(
             try {
                 val inputStream = context.contentResolver.openInputStream(uri)
                     ?: return@withContext Result.failure(Exception("Cannot open file"))
-                
-                // 读取PNG并提取 SillyTavern chara/ccv3 元数据
                 val pngData = inputStream.readBytes()
-                val jsonData = TavernPngCodec.readCharacterJson(pngData)
-                
-                if (jsonData == null) {
-                    return@withContext Result.failure(Exception("No character data found in PNG"))
-                }
-                
-                // 解析JSON为Character
-                val character = TavernCharacterCodec.decode(jsonData)
-                
-                // 保存头像(PNG本身)
-                val avatarPath = fileStorage.saveCharacterAvatar(character.id, uri)
-                
-                // 保存JSON和数据库
-                fileStorage.saveCharacterJson(character, avatarPath)
-                characterDao.insertCharacter(CharacterEntity.fromModel(character))
-                
-                Result.success(character)
+                importPngCharacterData(pngData)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Result.failure(e)
+            }
+        }
+    }
+
+    override suspend fun importPngCharacter(bytes: ByteArray): Result<Character> {
+        return withContext(Dispatchers.IO) {
+            try {
+                importPngCharacterData(bytes)
             } catch (e: Exception) {
                 e.printStackTrace()
                 Result.failure(e)
@@ -235,31 +228,7 @@ class CharacterServiceImpl(
     ): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                val character = getCharacterById(characterId)
-                    ?: return@withContext Result.failure(Exception("Character not found"))
-                
-                // 读取原始PNG
-                val avatarPath = character.avatarUrl
-                val pngBytes = if (avatarPath != null && java.io.File(avatarPath).exists()) {
-                    java.io.File(avatarPath).readBytes()
-                } else {
-                    return@withContext Result.failure(Exception("Character avatar PNG is required for PNG export"))
-                }
-                
-                // V1/V2 use SillyTavern's chara key. V3 uses ccv3 and keeps V2 as a fallback for older tools.
-                val characterJson = if (format == TavernCharacterCardFormat.V3) {
-                    TavernCharacterCodec.encode(character, TavernCharacterCardFormat.V2)
-                } else {
-                    TavernCharacterCodec.encode(character, format)
-                }
-                val v3Json = if (format == TavernCharacterCardFormat.V3) {
-                    TavernCharacterCodec.encode(character, TavernCharacterCardFormat.V3)
-                } else {
-                    null
-                }
-                val pngWithMetadata = TavernPngCodec.writeCharacterJson(pngBytes, characterJson, v3Json)
-                
-                // 写入输出文件
+                val pngWithMetadata = buildPngCharacterBytes(characterId, format).getOrThrow()
                 context.contentResolver.openOutputStream(outputUri)?.use { output ->
                     output.write(pngWithMetadata)
                 }
@@ -271,6 +240,15 @@ class CharacterServiceImpl(
             }
         }
     }
+
+    override suspend fun exportPngCharacterBytes(
+        characterId: kotlin.uuid.Uuid,
+        format: TavernCharacterCardFormat
+    ): Result<ByteArray> {
+        return withContext(Dispatchers.IO) {
+            buildPngCharacterBytes(characterId, format)
+        }
+    }
     
     // ==================== JSON导入/导出 ====================
     
@@ -280,14 +258,18 @@ class CharacterServiceImpl(
                 val jsonString = context.contentResolver.openInputStream(uri)?.use { input ->
                     input.bufferedReader().readText()
                 } ?: return@withContext Result.failure(Exception("Cannot read file"))
-                
-                val character = TavernCharacterCodec.decode(jsonString)
-                
-                // 保存JSON和数据库
-                fileStorage.saveCharacterJson(character, character.avatarUrl)
-                characterDao.insertCharacter(CharacterEntity.fromModel(character))
-                
-                Result.success(character)
+                importJsonCharacterData(jsonString)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Result.failure(e)
+            }
+        }
+    }
+
+    override suspend fun importJsonCharacter(jsonString: String): Result<Character> {
+        return withContext(Dispatchers.IO) {
+            try {
+                importJsonCharacterData(jsonString)
             } catch (e: Exception) {
                 e.printStackTrace()
                 Result.failure(e)
@@ -302,11 +284,7 @@ class CharacterServiceImpl(
     ): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                val character = getCharacterById(characterId)
-                    ?: return@withContext Result.failure(Exception("Character not found"))
-                
-                val jsonString = TavernCharacterCodec.encode(character, format)
-                
+                val jsonString = exportJsonCharacterString(characterId, format).getOrThrow()
                 context.contentResolver.openOutputStream(outputUri)?.use { output ->
                     output.write(jsonString.toByteArray(Charsets.UTF_8))
                 }
@@ -317,6 +295,65 @@ class CharacterServiceImpl(
                 Result.failure(e)
             }
         }
+    }
+
+    override suspend fun exportJsonCharacterString(
+        characterId: kotlin.uuid.Uuid,
+        format: TavernCharacterCardFormat
+    ): Result<String> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val character = getCharacterById(characterId)
+                    ?: return@withContext Result.failure(Exception("Character not found"))
+                Result.success(TavernCharacterCodec.encode(character, format))
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Result.failure(e)
+            }
+        }
+    }
+
+    private suspend fun importPngCharacterData(pngData: ByteArray): Result<Character> {
+        val jsonData = TavernPngCodec.readCharacterJson(pngData)
+            ?: return Result.failure(Exception("No character data found in PNG"))
+        val character = TavernCharacterCodec.decode(jsonData)
+        val avatarPath = fileStorage.saveCharacterAvatarBytes(character.id, pngData)
+        val stored = character.copy(avatarUrl = avatarPath ?: character.avatarUrl)
+        fileStorage.saveCharacterJson(stored, stored.avatarUrl)
+        characterDao.insertCharacter(CharacterEntity.fromModel(stored))
+        return Result.success(stored)
+    }
+
+    private suspend fun importJsonCharacterData(jsonString: String): Result<Character> {
+        val character = TavernCharacterCodec.decode(jsonString)
+        fileStorage.saveCharacterJson(character, character.avatarUrl)
+        characterDao.insertCharacter(CharacterEntity.fromModel(character))
+        return Result.success(character)
+    }
+
+    private suspend fun buildPngCharacterBytes(
+        characterId: Uuid,
+        format: TavernCharacterCardFormat
+    ): Result<ByteArray> {
+        val character = getCharacterById(characterId)
+            ?: return Result.failure(Exception("Character not found"))
+        val avatarPath = character.avatarUrl
+        val pngBytes = if (avatarPath != null && java.io.File(avatarPath).exists()) {
+            java.io.File(avatarPath).readBytes()
+        } else {
+            return Result.failure(Exception("Character avatar PNG is required for PNG export"))
+        }
+        val characterJson = if (format == TavernCharacterCardFormat.V3) {
+            TavernCharacterCodec.encode(character, TavernCharacterCardFormat.V2)
+        } else {
+            TavernCharacterCodec.encode(character, format)
+        }
+        val v3Json = if (format == TavernCharacterCardFormat.V3) {
+            TavernCharacterCodec.encode(character, TavernCharacterCardFormat.V3)
+        } else {
+            null
+        }
+        return Result.success(TavernPngCodec.writeCharacterJson(pngBytes, characterJson, v3Json))
     }
     
 }

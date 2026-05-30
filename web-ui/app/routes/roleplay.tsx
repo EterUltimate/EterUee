@@ -1,871 +1,1523 @@
 import * as React from "react";
 
-import { Link } from "react-router";
 import {
-  BookMarked,
+  BookOpen,
   Bot,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  GitBranch,
   MessageSquare,
   Plus,
-  RefreshCw,
+  RefreshCcw,
+  Save,
   Send,
-  Settings2,
   Star,
   Trash2,
-  UserRound,
+  Upload,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { ButtonGroup } from "~/components/ui/button-group";
 import { Input } from "~/components/ui/input";
-import { ScrollArea } from "~/components/ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
-import { Skeleton } from "~/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { resolveFileUrl } from "~/lib/files";
+import { useCurrentModel } from "~/hooks/use-current-model";
 import { cn } from "~/lib/utils";
-import { roleplayApi } from "~/services/api";
+import { roleplayApi } from "~/services/roleplay";
 import type {
-  RoleplayCharacterDto,
-  RoleplayChatDetailDto,
-  RoleplayChatDto,
-  RoleplayMessageDto,
-  RoleplayOverviewDto,
-  RoleplayPresetDto,
-  RoleplayWorldInfoDto,
-  UpsertRoleplayCharacterRequest,
-} from "~/types";
+  InsertionPosition,
+  RoleplayCharacter,
+  RoleplayChatMessage,
+  RoleplayChatMetadata,
+  RoleplayGenerationEvent,
+  RoleplayGroup,
+  RoleplayGroupMember,
+  RoleplayMessageNode,
+  RoleplayPreset,
+  RoleplayPresetType,
+  RoleplaySummary,
+  RoleplayWorldInfo,
+  RoleplayWorldInfoEntry,
+  SaveRoleplayCharacterRequest,
+  SaveRoleplayGroupRequest,
+  SaveRoleplayPresetRequest,
+} from "~/types/roleplay";
 
-type RoleplaySection = "characters" | "chats" | "worlds" | "presets";
-type ComposeRole = "user" | "assistant";
+type Section = "characters" | "chat" | "groups" | "worlds" | "presets";
 
-interface CharacterDraft {
-  name: string;
-  description: string;
-  personality: string;
-  scenario: string;
-  firstMessage: string;
-  tags: string;
-}
-
-interface WorldInfoDraft {
-  name: string;
-  description: string;
-}
-
-interface PresetDraft {
-  name: string;
-  description: string;
-  type: string;
-  parameters: string;
-}
-
-const sectionItems: Array<{
-  id: RoleplaySection;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-}> = [
-  { id: "characters", label: "Characters", icon: UserRound },
-  { id: "chats", label: "Chats", icon: MessageSquare },
-  { id: "worlds", label: "World Info", icon: BookMarked },
-  { id: "presets", label: "Presets", icon: Settings2 },
+const sections: Array<{ id: Section; label: string; icon: React.ComponentType<{ className?: string }> }> = [
+  { id: "characters", label: "Characters", icon: Bot },
+  { id: "chat", label: "Chats", icon: MessageSquare },
+  { id: "groups", label: "Groups", icon: Users },
+  { id: "worlds", label: "World Info", icon: BookOpen },
+  { id: "presets", label: "Presets", icon: Save },
 ];
 
-const emptyCharacterDraft: CharacterDraft = {
+const emptyCharacterForm: SaveRoleplayCharacterRequest = {
   name: "",
   description: "",
   personality: "",
   scenario: "",
   firstMessage: "",
-  tags: "",
+  messageExamples: "",
+  systemPrompt: "",
+  postHistoryInstructions: "",
+  creator: "",
+  creatorNotes: "",
+  tags: [],
+  alternateGreetings: [],
+  characterBook: null,
+  extensions: {},
 };
 
-const emptyWorldInfoDraft: WorldInfoDraft = {
+const emptyGroupForm: SaveRoleplayGroupRequest = {
   name: "",
   description: "",
 };
 
-const emptyPresetDraft: PresetDraft = {
+const emptyPresetForm: SaveRoleplayPresetRequest = {
   name: "",
   description: "",
   type: "OPENAI",
-  parameters: '{\n  "temperature": 0.7,\n  "max_tokens": 2048\n}',
+  parameters: {},
 };
 
-export function meta() {
-  return [
-    { title: "EterUee Roleplay" },
-    {
-      name: "description",
-      content: "Tavern-style character, chat, world info, and preset workspace.",
-    },
-  ];
+function toCharacterForm(character: RoleplayCharacter): SaveRoleplayCharacterRequest {
+  return {
+    name: character.name,
+    description: character.description,
+    personality: character.personality,
+    scenario: character.scenario,
+    firstMessage: character.firstMessage,
+    messageExamples: character.messageExamples,
+    systemPrompt: character.systemPrompt,
+    postHistoryInstructions: character.postHistoryInstructions,
+    creator: character.creator,
+    creatorNotes: character.creatorNotes,
+    tags: character.tags,
+    alternateGreetings: character.alternateGreetings,
+    characterBook: character.characterBook ?? null,
+    extensions: character.extensions ?? {},
+  };
 }
 
-function getInitials(name: string): string {
-  const normalized = name.trim();
-  if (!normalized) return "RP";
-  return normalized.slice(0, 2).toUpperCase();
-}
-
-function formatTime(value: number | null | undefined): string {
-  if (!value) return "Never";
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
-}
-
-function splitList(value: string): string[] {
+function parseList(value: string): string[] {
   return value
-    .split(/[,;\n]/)
+    .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
 }
 
-function getCharacterPayload(draft: CharacterDraft): UpsertRoleplayCharacterRequest {
+function formatDate(value?: string | null): string {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString();
+}
+
+function fileStem(value: string | undefined | null, fallback: string): string {
+  return (value?.trim() || fallback).replace(/[\\/:*?"<>|\r\n]+/g, "_").slice(0, 80);
+}
+
+function downloadBlob(blob: Blob, fileName: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function createClientId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `client-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function makeEmptyWorld(): RoleplayWorldInfo {
+  const now = new Date().toISOString();
   return {
-    name: draft.name.trim(),
-    description: draft.description,
-    personality: draft.personality,
-    scenario: draft.scenario,
-    firstMessage: draft.firstMessage,
-    tags: splitList(draft.tags),
+    id: createClientId(),
+    name: "",
+    description: "",
+    entries: [],
+    scanDepth: 4,
+    scanTrigger: "ALWAYS",
+    selectiveLogic: "AND",
+    createdAt: now,
+    updatedAt: now,
   };
 }
 
-function truncateText(value: string, maxLength: number): string {
-  const normalized = value.trim().replace(/\s+/g, " ");
-  if (normalized.length <= maxLength) return normalized;
-  return `${normalized.slice(0, maxLength)}...`;
+function makeEmptyEntry(): RoleplayWorldInfoEntry {
+  return {
+    id: createClientId(),
+    key: "",
+    keys: [],
+    secondaryKeys: [],
+    comment: "",
+    content: "",
+    constant: false,
+    selective: false,
+    order: 0,
+    position: "AFTER_SYSTEM_PROMPT",
+    tavernPosition: 1,
+    enabled: true,
+    probability: 1,
+    useProbability: false,
+    depth: 4,
+    role: 0,
+    displayIndex: 0,
+  };
 }
 
-function roleLabel(message: RoleplayMessageDto): string {
-  if (message.speakerName) return message.speakerName;
-  if (message.tavernName) return message.tavernName;
-  return message.role === "user" ? "User" : "Character";
-}
-
-function EmptyPane({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="flex min-h-[220px] flex-1 items-center justify-center p-6 text-center">
-      <div className="max-w-sm space-y-2">
-        <div className="text-sm font-medium">{title}</div>
-        <div className="text-sm text-muted-foreground">{description}</div>
-      </div>
-    </div>
-  );
-}
-
-function StatBadge({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="min-w-0 rounded-md border bg-background px-3 py-2">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="text-lg font-semibold leading-6">{value}</div>
-    </div>
-  );
-}
-
-function CharacterAvatar({ character }: { character: RoleplayCharacterDto }) {
-  return (
-    <Avatar size="lg" className="rounded-md">
-      {character.avatarUrl ? (
-        <AvatarImage src={resolveFileUrl(character.avatarUrl)} alt={character.name} />
-      ) : null}
-      <AvatarFallback className="rounded-md">{getInitials(character.name)}</AvatarFallback>
-    </Avatar>
-  );
-}
-
-function LoadingList() {
-  return (
-    <div className="space-y-2 p-3">
-      {[0, 1, 2, 3].map((item) => (
-        <Skeleton key={item} className="h-16 w-full rounded-md" />
-      ))}
-    </div>
-  );
+export function meta() {
+  return [{ title: "Roleplay - EterUee" }];
 }
 
 export default function RoleplayPage() {
-  const [section, setSection] = React.useState<RoleplaySection>("characters");
-  const [overview, setOverview] = React.useState<RoleplayOverviewDto | null>(null);
-  const [characters, setCharacters] = React.useState<RoleplayCharacterDto[]>([]);
-  const [worldInfos, setWorldInfos] = React.useState<RoleplayWorldInfoDto[]>([]);
-  const [presets, setPresets] = React.useState<RoleplayPresetDto[]>([]);
-  const [chats, setChats] = React.useState<RoleplayChatDto[]>([]);
-  const [chatDetail, setChatDetail] = React.useState<RoleplayChatDetailDto | null>(null);
+  const { currentModel, currentProvider } = useCurrentModel();
+  const [section, setSection] = React.useState<Section>("characters");
+  const [summary, setSummary] = React.useState<RoleplaySummary | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [saving, setSaving] = React.useState(false);
+
   const [selectedCharacterId, setSelectedCharacterId] = React.useState<string | null>(null);
   const [selectedChatId, setSelectedChatId] = React.useState<string | null>(null);
-  const [selectedWorldInfoId, setSelectedWorldInfoId] = React.useState<string | null>(null);
+  const [selectedGroupId, setSelectedGroupId] = React.useState<string | null>(null);
+  const [selectedWorldId, setSelectedWorldId] = React.useState<string | null>(null);
   const [selectedPresetId, setSelectedPresetId] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [chatsLoading, setChatsLoading] = React.useState(false);
-  const [chatLoading, setChatLoading] = React.useState(false);
-  const [busy, setBusy] = React.useState(false);
-  const [characterDraft, setCharacterDraft] = React.useState<CharacterDraft>(emptyCharacterDraft);
-  const [chatTitle, setChatTitle] = React.useState("");
-  const [composeRole, setComposeRole] = React.useState<ComposeRole>("user");
-  const [composeText, setComposeText] = React.useState("");
-  const [worldInfoDraft, setWorldInfoDraft] =
-    React.useState<WorldInfoDraft>(emptyWorldInfoDraft);
-  const [presetDraft, setPresetDraft] = React.useState<PresetDraft>(emptyPresetDraft);
+
+  const [characterForm, setCharacterForm] = React.useState<SaveRoleplayCharacterRequest>(emptyCharacterForm);
+  const [groupForm, setGroupForm] = React.useState<SaveRoleplayGroupRequest>(emptyGroupForm);
+  const [worldForm, setWorldForm] = React.useState<RoleplayWorldInfo>(makeEmptyWorld);
+  const [entryForm, setEntryForm] = React.useState<RoleplayWorldInfoEntry>(makeEmptyEntry);
+  const [presetForm, setPresetForm] = React.useState<SaveRoleplayPresetRequest>(emptyPresetForm);
+  const [presetParametersText, setPresetParametersText] = React.useState("{}");
+
+  const [messages, setMessages] = React.useState<RoleplayChatMessage[]>([]);
+  const [messageNodes, setMessageNodes] = React.useState<RoleplayMessageNode[]>([]);
+  const [branches, setBranches] = React.useState<RoleplayMessageNode[]>([]);
+  const [activeBranchId, setActiveBranchId] = React.useState<string | null>(null);
+  const [chatInput, setChatInput] = React.useState("");
+  const [selectedMessageId, setSelectedMessageId] = React.useState<string | null>(null);
+  const [selectedMessageIndex, setSelectedMessageIndex] = React.useState<number | null>(null);
+  const [messageEditText, setMessageEditText] = React.useState("");
+  const [swipeText, setSwipeText] = React.useState("");
+  const [generationText, setGenerationText] = React.useState("");
+  const [isGenerating, setIsGenerating] = React.useState(false);
+  const [temperature, setTemperature] = React.useState(0.7);
+  const [maxTokens, setMaxTokens] = React.useState(2048);
+  const characterImportInputRef = React.useRef<HTMLInputElement>(null);
+  const worldImportInputRef = React.useRef<HTMLInputElement>(null);
+  const presetImportInputRef = React.useRef<HTMLInputElement>(null);
 
   const selectedCharacter = React.useMemo(
-    () => characters.find((item) => item.id === selectedCharacterId) ?? null,
-    [characters, selectedCharacterId],
+    () => summary?.characters.find((item) => item.id === selectedCharacterId) ?? null,
+    [selectedCharacterId, summary?.characters],
   );
-  const selectedWorldInfo = React.useMemo(
-    () => worldInfos.find((item) => item.id === selectedWorldInfoId) ?? null,
-    [selectedWorldInfoId, worldInfos],
+  const selectedGroup = React.useMemo(
+    () => summary?.groups.find((item) => item.id === selectedGroupId) ?? null,
+    [selectedGroupId, summary?.groups],
+  );
+  const selectedWorld = React.useMemo(
+    () => summary?.worldInfos.find((item) => item.id === selectedWorldId) ?? null,
+    [selectedWorldId, summary?.worldInfos],
   );
   const selectedPreset = React.useMemo(
-    () => presets.find((item) => item.id === selectedPresetId) ?? null,
-    [presets, selectedPresetId],
+    () => summary?.presets.find((item) => item.id === selectedPresetId) ?? null,
+    [selectedPresetId, summary?.presets],
   );
 
-  const refreshWorkspace = React.useCallback(async () => {
+  const refresh = React.useCallback(async () => {
     setLoading(true);
     try {
-      const [nextOverview, nextCharacters, nextWorldInfos, nextPresets] = await Promise.all([
-        roleplayApi.get<RoleplayOverviewDto>("overview"),
-        roleplayApi.get<RoleplayCharacterDto[]>("characters"),
-        roleplayApi.get<RoleplayWorldInfoDto[]>("world-infos"),
-        roleplayApi.get<RoleplayPresetDto[]>("presets"),
-      ]);
-      setOverview(nextOverview);
-      setCharacters(nextCharacters);
-      setWorldInfos(nextWorldInfos);
-      setPresets(nextPresets);
-
-      setSelectedCharacterId((current) => {
-        if (current && nextCharacters.some((item) => item.id === current)) return current;
-        return nextCharacters[0]?.id ?? null;
-      });
-      setSelectedWorldInfoId((current) => {
-        if (current && nextWorldInfos.some((item) => item.id === current)) return current;
-        return nextWorldInfos[0]?.id ?? null;
-      });
-      setSelectedPresetId((current) => {
-        if (current && nextPresets.some((item) => item.id === current)) return current;
-        return nextPresets[0]?.id ?? null;
-      });
+      const data = await roleplayApi.summary();
+      setSummary(data);
+      if (!selectedCharacterId && data.characters[0]) {
+        setSelectedCharacterId(data.characters[0].id);
+        setCharacterForm(toCharacterForm(data.characters[0]));
+      }
+      if (!selectedGroupId && data.groups[0]) {
+        setSelectedGroupId(data.groups[0].id);
+        setGroupForm({ name: data.groups[0].name, description: data.groups[0].description });
+      }
+      if (!selectedWorldId && data.worldInfos[0]) {
+        setSelectedWorldId(data.worldInfos[0].id);
+        setWorldForm(data.worldInfos[0]);
+      }
+      if (!selectedPresetId && data.presets[0]) {
+        setSelectedPresetId(data.presets[0].id);
+        setPresetForm({
+          name: data.presets[0].name,
+          description: data.presets[0].description,
+          type: data.presets[0].type,
+          parameters: data.presets[0].parameters,
+        });
+        setPresetParametersText(JSON.stringify(data.presets[0].parameters ?? {}, null, 2));
+      }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to load roleplay workspace");
+      toast.error(error instanceof Error ? error.message : "Failed to load roleplay data");
     } finally {
       setLoading(false);
     }
+  }, [selectedCharacterId, selectedGroupId, selectedPresetId, selectedWorldId]);
+
+  React.useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  React.useEffect(() => {
+    if (selectedCharacter) setCharacterForm(toCharacterForm(selectedCharacter));
+  }, [selectedCharacter]);
+
+  React.useEffect(() => {
+    if (selectedGroup) setGroupForm({ name: selectedGroup.name, description: selectedGroup.description });
+  }, [selectedGroup]);
+
+  React.useEffect(() => {
+    if (selectedWorld) setWorldForm(selectedWorld);
+  }, [selectedWorld]);
+
+  React.useEffect(() => {
+    if (!selectedPreset) return;
+    setPresetForm({
+      name: selectedPreset.name,
+      description: selectedPreset.description,
+      type: selectedPreset.type,
+      parameters: selectedPreset.parameters,
+    });
+    setPresetParametersText(JSON.stringify(selectedPreset.parameters ?? {}, null, 2));
+  }, [selectedPreset]);
+
+  const loadChatMessages = React.useCallback(async (chatId: string) => {
+    const [chat, data, branchData] = await Promise.all([
+      roleplayApi.chats.get(chatId),
+      roleplayApi.chats.messages(chatId),
+      roleplayApi.chats.branches(chatId),
+    ]);
+    const nextMessages = data.nodes
+      .map((node) => node.messages[node.selectedIndex] ?? node.messages[0])
+      .filter((message): message is RoleplayChatMessage => Boolean(message));
+    setMessageNodes(data.nodes);
+    setMessages(nextMessages);
+    setBranches(branchData);
+    setActiveBranchId(chat.activeBranchId ?? chat.chatId);
+    setSelectedMessageIndex(null);
+    setSelectedMessageId(null);
+    setMessageEditText("");
+    setSwipeText("");
+    setGenerationText("");
   }, []);
 
-  const loadChats = React.useCallback(async (characterId: string | null) => {
-    if (!characterId) {
-      setChats([]);
-      setSelectedChatId(null);
+  const saveCharacter = React.useCallback(async () => {
+    if (!characterForm.name?.trim()) {
+      toast.error("Character name is required");
       return;
     }
-
-    setChatsLoading(true);
+    setSaving(true);
     try {
-      const nextChats = await roleplayApi.get<RoleplayChatDto[]>(`characters/${characterId}/chats`);
-      setChats(nextChats);
-      setSelectedChatId((current) => {
-        if (current && nextChats.some((item) => item.id === current)) return current;
-        return nextChats[0]?.id ?? null;
-      });
+      const saved = selectedCharacterId
+        ? await roleplayApi.characters.update(selectedCharacterId, characterForm)
+        : await roleplayApi.characters.create(characterForm);
+      setSelectedCharacterId(saved.id);
+      await refresh();
+      toast.success("Character saved");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to load chats");
-      setChats([]);
+      toast.error(error instanceof Error ? error.message : "Failed to save character");
     } finally {
-      setChatsLoading(false);
+      setSaving(false);
     }
-  }, []);
+  }, [characterForm, refresh, selectedCharacterId]);
 
-  const loadChatDetail = React.useCallback(async (chatId: string | null) => {
-    if (!chatId) {
-      setChatDetail(null);
+  const deleteCharacter = React.useCallback(async () => {
+    if (!selectedCharacterId) return;
+    await roleplayApi.characters.delete(selectedCharacterId);
+    setSelectedCharacterId(null);
+    setCharacterForm(emptyCharacterForm);
+    await refresh();
+  }, [refresh, selectedCharacterId]);
+
+  const createChatForCharacter = React.useCallback(async () => {
+    if (!selectedCharacterId) {
+      toast.error("Select a character first");
       return;
     }
+    const chat = await roleplayApi.characters.createChat(selectedCharacterId, {
+      title: selectedCharacter?.name ? `${selectedCharacter.name} Chat` : "New Chat",
+    });
+    setSelectedChatId(chat.chatId);
+    setSection("chat");
+    await loadChatMessages(chat.chatId);
+    await refresh();
+  }, [loadChatMessages, refresh, selectedCharacter?.name, selectedCharacterId]);
 
-    setChatLoading(true);
-    try {
-      setChatDetail(await roleplayApi.get<RoleplayChatDetailDto>(`chats/${chatId}`));
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to load chat");
-      setChatDetail(null);
-    } finally {
-      setChatLoading(false);
+  const sendChatMessage = React.useCallback(async () => {
+    if (!selectedChatId || !chatInput.trim()) return;
+    const text = chatInput.trim();
+    setChatInput("");
+    await roleplayApi.chats.append(selectedChatId, "USER", text);
+    await loadChatMessages(selectedChatId);
+    await refresh();
+  }, [chatInput, loadChatMessages, refresh, selectedChatId]);
+
+  const generateReply = React.useCallback(async () => {
+    if (!selectedChatId) return;
+    const modelId = currentModel?.id ?? currentModel?.modelId;
+    if (!modelId) {
+      toast.error("No chat model configured");
+      return;
     }
-  }, []);
+    setIsGenerating(true);
+    setGenerationText("");
+    await roleplayApi.chats.generate(
+      selectedChatId,
+      {
+        providerId: currentProvider?.id ?? "",
+        modelId,
+        systemPrompt: selectedCharacter?.systemPrompt ?? "",
+        temperature,
+        maxTokens,
+      },
+      {
+        onEvent: (event: RoleplayGenerationEvent) => {
+          if (event.type === "delta") {
+            setGenerationText((current) => current + (event.delta ?? ""));
+          } else if (event.type === "complete") {
+            setGenerationText("");
+            void loadChatMessages(selectedChatId);
+            void refresh();
+          } else if (event.type === "error") {
+            toast.error(event.error ?? "Generation failed");
+          }
+        },
+        onError: (error) => toast.error(error.message),
+      },
+    );
+    setIsGenerating(false);
+  }, [
+    currentModel?.id,
+    currentModel?.modelId,
+    currentProvider?.id,
+    loadChatMessages,
+    maxTokens,
+    refresh,
+    selectedCharacter?.systemPrompt,
+    selectedChatId,
+    temperature,
+  ]);
 
-  React.useEffect(() => {
-    void refreshWorkspace();
-  }, [refreshWorkspace]);
+  const saveMessageEdit = React.useCallback(async () => {
+    if (!selectedChatId || !selectedMessageId) return;
+    await roleplayApi.chats.editMessage(selectedChatId, selectedMessageId, messageEditText);
+    setSelectedMessageId(null);
+    setSelectedMessageIndex(null);
+    setMessageEditText("");
+    setSwipeText("");
+    await loadChatMessages(selectedChatId);
+  }, [loadChatMessages, messageEditText, selectedChatId, selectedMessageId]);
 
-  React.useEffect(() => {
-    void loadChats(selectedCharacterId);
-  }, [loadChats, selectedCharacterId]);
+  const deleteMessage = React.useCallback(async () => {
+    if (!selectedChatId || !selectedMessageId) return;
+    await roleplayApi.chats.deleteMessage(selectedChatId, selectedMessageId);
+    setSelectedMessageId(null);
+    setSelectedMessageIndex(null);
+    setMessageEditText("");
+    setSwipeText("");
+    await loadChatMessages(selectedChatId);
+  }, [loadChatMessages, selectedChatId, selectedMessageId]);
 
-  React.useEffect(() => {
-    void loadChatDetail(selectedChatId);
-  }, [loadChatDetail, selectedChatId]);
+  const createBranchFromSelection = React.useCallback(async () => {
+    if (!selectedChatId || selectedMessageIndex == null) return;
+    await roleplayApi.chats.createBranch(selectedChatId, selectedMessageIndex);
+    await loadChatMessages(selectedChatId);
+    await refresh();
+  }, [loadChatMessages, refresh, selectedChatId, selectedMessageIndex]);
 
-  const handleCreateCharacter = React.useCallback(
-    async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      const payload = getCharacterPayload(characterDraft);
-      if (!payload.name) {
-        toast.error("Character name is required");
-        return;
-      }
-
-      setBusy(true);
-      try {
-        const created = await roleplayApi.post<RoleplayCharacterDto>("characters", payload);
-        setCharacterDraft(emptyCharacterDraft);
-        setCharacters((current) => [created, ...current]);
-        setSelectedCharacterId(created.id);
-        setSection("chats");
-        toast.success("Character created");
-        void refreshWorkspace();
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Failed to create character");
-      } finally {
-        setBusy(false);
-      }
-    },
-    [characterDraft, refreshWorkspace],
-  );
-
-  const handleToggleFavorite = React.useCallback(async (characterId: string) => {
-    setBusy(true);
-    try {
-      const response = await roleplayApi.post<{ favorite: boolean }>(
-        `characters/${characterId}/favorite`,
-      );
-      setCharacters((current) =>
-        current.map((item) =>
-          item.id === characterId ? { ...item, favorite: response.favorite } : item,
-        ),
-      );
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to update favorite");
-    } finally {
-      setBusy(false);
-    }
-  }, []);
-
-  const handleCreateChat = React.useCallback(
-    async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      if (!selectedCharacterId) {
-        toast.error("Select a character first");
-        return;
-      }
-
-      setBusy(true);
-      try {
-        const created = await roleplayApi.post<RoleplayChatDto>("chats", {
-          characterId: selectedCharacterId,
-          title: chatTitle.trim(),
-        });
-        setChatTitle("");
-        setChats((current) => [created, ...current]);
-        setSelectedChatId(created.id);
-        setSection("chats");
-        toast.success("Chat created");
-        void refreshWorkspace();
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Failed to create chat");
-      } finally {
-        setBusy(false);
-      }
-    },
-    [chatTitle, refreshWorkspace, selectedCharacterId],
-  );
-
-  const handleDeleteChat = React.useCallback(
-    async (chatId: string) => {
-      setBusy(true);
-      try {
-        await roleplayApi.delete<void>(`chats/${chatId}`);
-        setChats((current) => current.filter((item) => item.id !== chatId));
-        setSelectedChatId((current) => (current === chatId ? null : current));
-        toast.success("Chat deleted");
-        void refreshWorkspace();
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Failed to delete chat");
-      } finally {
-        setBusy(false);
-      }
-    },
-    [refreshWorkspace],
-  );
-
-  const handleTogglePinChat = React.useCallback(async (chatId: string) => {
-    setBusy(true);
-    try {
-      const response = await roleplayApi.post<{ pinned: boolean }>(`chats/${chatId}/pin`);
-      setChats((current) =>
-        current.map((item) => (item.id === chatId ? { ...item, pinned: response.pinned } : item)),
-      );
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to pin chat");
-    } finally {
-      setBusy(false);
-    }
-  }, []);
-
-  const handleAppendMessage = React.useCallback(
-    async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      if (!selectedChatId || !composeText.trim()) return;
-
-      setBusy(true);
-      try {
-        const created = await roleplayApi.post<RoleplayMessageDto>(`chats/${selectedChatId}/messages`, {
-          content: composeText,
-          role: composeRole,
-        });
-        setComposeText("");
-        setChatDetail((current) =>
-          current
-            ? {
-                ...current,
-                messages: [...current.messages, created],
-                chat: {
-                  ...current.chat,
-                  messageCount: current.chat.messageCount + 1,
-                  updatedAt: Date.now(),
-                },
-              }
-            : current,
-        );
-        setChats((current) =>
-          current.map((item) =>
-            item.id === selectedChatId
-              ? { ...item, messageCount: item.messageCount + 1, updatedAt: Date.now() }
-              : item,
-          ),
-        );
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Failed to append message");
-      } finally {
-        setBusy(false);
-      }
-    },
-    [composeRole, composeText, selectedChatId],
-  );
-
-  const handleDeleteMessage = React.useCallback(
-    async (messageId: string) => {
+  const switchBranch = React.useCallback(
+    async (branchId: string) => {
       if (!selectedChatId) return;
-
-      setBusy(true);
-      try {
-        await roleplayApi.delete<void>(`chats/${selectedChatId}/messages/${messageId}`);
-        setChatDetail((current) =>
-          current
-            ? {
-                ...current,
-                messages: current.messages.filter((item) => item.id !== messageId),
-                chat: {
-                  ...current.chat,
-                  messageCount: Math.max(current.chat.messageCount - 1, 0),
-                  updatedAt: Date.now(),
-                },
-              }
-            : current,
-        );
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Failed to delete message");
-      } finally {
-        setBusy(false);
-      }
+      await roleplayApi.chats.selectBranch(selectedChatId, branchId);
+      await loadChatMessages(selectedChatId);
+      await refresh();
     },
-    [selectedChatId],
+    [loadChatMessages, refresh, selectedChatId],
   );
 
-  const handleCreateWorldInfo = React.useCallback(
-    async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      if (!worldInfoDraft.name.trim()) {
-        toast.error("World info name is required");
-        return;
-      }
+  const deleteBranch = React.useCallback(
+    async (branchId: string) => {
+      if (!selectedChatId) return;
+      await roleplayApi.chats.deleteBranch(selectedChatId, branchId);
+      await loadChatMessages(selectedChatId);
+      await refresh();
+    },
+    [loadChatMessages, refresh, selectedChatId],
+  );
 
-      setBusy(true);
+  const addSwipe = React.useCallback(async () => {
+    if (!selectedChatId || selectedMessageIndex == null || !swipeText.trim()) return;
+    await roleplayApi.chats.addSwipe(selectedChatId, selectedMessageIndex, swipeText.trim());
+    await loadChatMessages(selectedChatId);
+  }, [loadChatMessages, selectedChatId, selectedMessageIndex, swipeText]);
+
+  const rotateSwipe = React.useCallback(
+    async (direction: "next" | "previous") => {
+      if (!selectedChatId || selectedMessageIndex == null) return;
+      if (direction === "next") {
+        await roleplayApi.chats.nextSwipe(selectedChatId, selectedMessageIndex);
+      } else {
+        await roleplayApi.chats.previousSwipe(selectedChatId, selectedMessageIndex);
+      }
+      await loadChatMessages(selectedChatId);
+    },
+    [loadChatMessages, selectedChatId, selectedMessageIndex],
+  );
+
+  const saveGroup = React.useCallback(async () => {
+    if (!groupForm.name.trim()) return;
+    const saved = selectedGroupId
+      ? await roleplayApi.groups.update(selectedGroupId, groupForm)
+      : await roleplayApi.groups.create(groupForm);
+    setSelectedGroupId(saved.id);
+    await refresh();
+  }, [groupForm, refresh, selectedGroupId]);
+
+  const deleteGroup = React.useCallback(async () => {
+    if (!selectedGroupId) return;
+    await roleplayApi.groups.delete(selectedGroupId);
+    setSelectedGroupId(null);
+    setGroupForm(emptyGroupForm);
+    await refresh();
+  }, [refresh, selectedGroupId]);
+
+  const saveWorld = React.useCallback(async () => {
+    if (!worldForm.name.trim()) return;
+    const saved = selectedWorldId
+      ? await roleplayApi.worldInfos.update(selectedWorldId, worldForm)
+      : await roleplayApi.worldInfos.create({ template: worldForm });
+    setSelectedWorldId(saved.id);
+    await refresh();
+  }, [refresh, selectedWorldId, worldForm]);
+
+  const deleteWorld = React.useCallback(async () => {
+    if (!selectedWorldId) return;
+    await roleplayApi.worldInfos.delete(selectedWorldId);
+    setSelectedWorldId(null);
+    setWorldForm(makeEmptyWorld());
+    await refresh();
+  }, [refresh, selectedWorldId]);
+
+  const saveEntry = React.useCallback(async () => {
+    if (!selectedWorldId) return;
+    const exists = selectedWorld?.entries.some((item) => item.id === entryForm.id);
+    const saved = exists
+      ? await roleplayApi.worldInfos.updateEntry(selectedWorldId, entryForm.id, entryForm)
+      : await roleplayApi.worldInfos.addEntry(selectedWorldId, entryForm);
+    setWorldForm(saved);
+    setEntryForm(makeEmptyEntry());
+    await refresh();
+  }, [entryForm, refresh, selectedWorld?.entries, selectedWorldId]);
+
+  const savePreset = React.useCallback(async () => {
+    if (!presetForm.name.trim()) return;
+    let parameters: Record<string, unknown>;
+    try {
+      parameters = JSON.parse(presetParametersText || "{}") as Record<string, unknown>;
+    } catch {
+      toast.error("Preset parameters must be valid JSON");
+      return;
+    }
+    const payload = { ...presetForm, parameters };
+    const saved = selectedPresetId
+      ? await roleplayApi.presets.update(selectedPresetId, payload)
+      : await roleplayApi.presets.create(payload);
+    setSelectedPresetId(saved.id);
+    await refresh();
+  }, [presetForm, presetParametersText, refresh, selectedPresetId]);
+
+  const deletePreset = React.useCallback(async () => {
+    if (!selectedPresetId) return;
+    await roleplayApi.presets.delete(selectedPresetId);
+    setSelectedPresetId(null);
+    setPresetForm(emptyPresetForm);
+    setPresetParametersText("{}");
+    await refresh();
+  }, [refresh, selectedPresetId]);
+
+  const importCharacter = React.useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.currentTarget.files?.[0];
+      event.currentTarget.value = "";
+      if (!file) return;
+      setSaving(true);
       try {
-        const created = await roleplayApi.post<RoleplayWorldInfoDto>("world-infos", {
-          name: worldInfoDraft.name.trim(),
-          description: worldInfoDraft.description,
+        const { item } = await roleplayApi.characters.importFile(file);
+        await refresh();
+        setSelectedCharacterId(item.id);
+        setCharacterForm(toCharacterForm(item));
+        setSection("characters");
+        toast.success("Character imported");
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Failed to import character");
+      } finally {
+        setSaving(false);
+      }
+    },
+    [refresh],
+  );
+
+  const exportCharacterJson = React.useCallback(async () => {
+    if (!selectedCharacterId || !selectedCharacter) return;
+    try {
+      const blob = await roleplayApi.characters.exportJson(selectedCharacterId);
+      downloadBlob(blob, `${fileStem(selectedCharacter.name, "character")}-character.json`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to export character");
+    }
+  }, [selectedCharacter, selectedCharacterId]);
+
+  const exportCharacterPng = React.useCallback(async () => {
+    if (!selectedCharacterId || !selectedCharacter) return;
+    try {
+      const blob = await roleplayApi.characters.exportPng(selectedCharacterId);
+      downloadBlob(blob, `${fileStem(selectedCharacter.name, "character")}-character.png`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to export character PNG");
+    }
+  }, [selectedCharacter, selectedCharacterId]);
+
+  const importWorldInfo = React.useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.currentTarget.files?.[0];
+      event.currentTarget.value = "";
+      if (!file) return;
+      try {
+        const { item } = await roleplayApi.worldInfos.importFile(file);
+        await refresh();
+        setSelectedWorldId(item.id);
+        setWorldForm(item);
+        setSection("worlds");
+        toast.success("World info imported");
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Failed to import world info");
+      }
+    },
+    [refresh],
+  );
+
+  const exportWorldInfo = React.useCallback(async () => {
+    if (!selectedWorldId || !selectedWorld) return;
+    try {
+      const blob = await roleplayApi.worldInfos.exportJson(selectedWorldId);
+      downloadBlob(blob, `${fileStem(selectedWorld.name, "world")}-world.json`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to export world info");
+    }
+  }, [selectedWorld, selectedWorldId]);
+
+  const importPreset = React.useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.currentTarget.files?.[0];
+      event.currentTarget.value = "";
+      if (!file) return;
+      try {
+        const { item } = await roleplayApi.presets.importFile(file);
+        await refresh();
+        setSelectedPresetId(item.id);
+        setPresetForm({
+          name: item.name,
+          description: item.description,
+          type: item.type,
+          parameters: item.parameters,
         });
-        setWorldInfoDraft(emptyWorldInfoDraft);
-        setWorldInfos((current) => [created, ...current]);
-        setSelectedWorldInfoId(created.id);
-        toast.success("World info created");
-        void refreshWorkspace();
+        setPresetParametersText(JSON.stringify(item.parameters ?? {}, null, 2));
+        setSection("presets");
+        toast.success("Preset imported");
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Failed to create world info");
-      } finally {
-        setBusy(false);
+        toast.error(error instanceof Error ? error.message : "Failed to import preset");
       }
     },
-    [refreshWorkspace, worldInfoDraft],
+    [refresh],
   );
 
-  const handleCreatePreset = React.useCallback(
-    async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      if (!presetDraft.name.trim()) {
-        toast.error("Preset name is required");
-        return;
-      }
-
-      let parameters: Record<string, unknown>;
-      try {
-        const parsed = JSON.parse(presetDraft.parameters || "{}") as unknown;
-        if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") {
-          throw new Error("Preset parameters must be a JSON object");
-        }
-        parameters = parsed as Record<string, unknown>;
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Invalid preset parameters");
-        return;
-      }
-
-      setBusy(true);
-      try {
-        const created = await roleplayApi.post<RoleplayPresetDto>("presets", {
-          name: presetDraft.name.trim(),
-          description: presetDraft.description,
-          type: presetDraft.type,
-          parameters,
-        });
-        setPresetDraft(emptyPresetDraft);
-        setPresets((current) => [created, ...current]);
-        setSelectedPresetId(created.id);
-        toast.success("Preset created");
-        void refreshWorkspace();
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Failed to create preset");
-      } finally {
-        setBusy(false);
-      }
-    },
-    [presetDraft, refreshWorkspace],
-  );
+  const exportPreset = React.useCallback(async () => {
+    if (!selectedPresetId || !selectedPreset) return;
+    try {
+      const blob = await roleplayApi.presets.exportJson(selectedPresetId);
+      downloadBlob(blob, `${fileStem(selectedPreset.name, "preset")}-preset.json`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to export preset");
+    }
+  }, [selectedPreset, selectedPresetId]);
 
   return (
-    <TooltipProvider>
-      <div className="flex h-svh min-h-0 flex-col overflow-hidden bg-background text-foreground">
-        <header className="flex h-14 shrink-0 items-center gap-3 border-b px-4">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-md border bg-muted">
-            <Bot className="size-4" />
+    <main className="flex h-svh min-h-0 bg-background text-foreground">
+      <input
+        ref={characterImportInputRef}
+        type="file"
+        accept=".json,.png,application/json,image/png"
+        className="hidden"
+        onChange={importCharacter}
+      />
+      <input
+        ref={worldImportInputRef}
+        type="file"
+        accept=".json,application/json"
+        className="hidden"
+        onChange={importWorldInfo}
+      />
+      <input
+        ref={presetImportInputRef}
+        type="file"
+        accept=".json,application/json"
+        className="hidden"
+        onChange={importPreset}
+      />
+      <aside className="hidden w-56 shrink-0 border-r bg-sidebar p-3 md:block">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <div className="text-sm font-semibold">Roleplay</div>
+            <div className="text-xs text-muted-foreground">Tavern workspace</div>
           </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate text-sm font-semibold">Roleplay</h1>
+          <Button size="icon-sm" variant="ghost" onClick={() => void refresh()}>
+            <RefreshCcw className="size-4" />
+          </Button>
+        </div>
+        <nav className="space-y-1">
+          {sections.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setSection(item.id)}
+                className={cn(
+                  "flex h-9 w-full items-center gap-2 rounded-md px-2 text-left text-sm",
+                  section === item.id
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent/70",
+                )}
+              >
+                <Icon className="size-4" />
+                {item.label}
+              </button>
+            );
+          })}
+        </nav>
+      </aside>
+
+      <section className="flex min-w-0 flex-1 flex-col">
+        <header className="flex h-14 shrink-0 items-center justify-between border-b px-4">
+          <div className="min-w-0">
+            <h1 className="truncate text-sm font-semibold">{sections.find((item) => item.id === section)?.label}</h1>
             <p className="truncate text-xs text-muted-foreground">
-              Tavern-style characters, chats, world info, and presets
+              {loading
+                ? "Loading..."
+                : `${summary?.characters.length ?? 0} characters, ${summary?.groups.length ?? 0} groups, ${summary?.worldInfos.length ?? 0} worlds`}
             </p>
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/agent">Agent</Link>
-          </Button>
-          <Button
-            variant="outline"
-            size="icon-sm"
-            onClick={() => void refreshWorkspace()}
-            disabled={loading || busy}
-            aria-label="Refresh roleplay workspace"
-          >
-            <RefreshCw className={cn("size-4", loading && "animate-spin")} />
+          <Button size="sm" variant="outline" onClick={() => void refresh()}>
+            <RefreshCcw className="size-4" />
+            Refresh
           </Button>
         </header>
 
-        <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[4rem_21rem_minmax(0,1fr)_22rem]">
-          <nav className="flex gap-2 overflow-x-auto border-b p-2 lg:flex-col lg:overflow-x-visible lg:border-r lg:border-b-0">
-            {sectionItems.map((item) => {
-              const Icon = item.icon;
-              const active = section === item.id;
-              return (
-                <Tooltip key={item.id}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={active ? "secondary" : "ghost"}
-                      size="icon-sm"
-                      className="shrink-0"
-                      onClick={() => setSection(item.id)}
-                      aria-label={item.label}
-                    >
-                      <Icon className="size-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">{item.label}</TooltipContent>
-                </Tooltip>
-              );
-            })}
-          </nav>
+        <div className="grid min-h-0 flex-1 grid-cols-1 md:grid-cols-[280px_minmax(0,1fr)]">
+          <ResourceList
+            section={section}
+            summary={summary}
+            selectedCharacterId={selectedCharacterId}
+            selectedChatId={selectedChatId}
+            selectedGroupId={selectedGroupId}
+            selectedWorldId={selectedWorldId}
+            selectedPresetId={selectedPresetId}
+            onSelectCharacter={(character) => {
+              setSelectedCharacterId(character.id);
+              setCharacterForm(toCharacterForm(character));
+              setSection("characters");
+            }}
+            onSelectChat={(chat) => {
+              setSelectedChatId(chat.chatId);
+              setSection("chat");
+              void loadChatMessages(chat.chatId);
+            }}
+            onSelectGroup={(group) => {
+              setSelectedGroupId(group.id);
+              setGroupForm({ name: group.name, description: group.description });
+              setSection("groups");
+            }}
+            onSelectWorld={(world) => {
+              setSelectedWorldId(world.id);
+              setWorldForm(world);
+              setSection("worlds");
+            }}
+            onSelectPreset={(preset) => {
+              setSelectedPresetId(preset.id);
+              setPresetForm({
+                name: preset.name,
+                description: preset.description,
+                type: preset.type,
+                parameters: preset.parameters,
+              });
+              setPresetParametersText(JSON.stringify(preset.parameters ?? {}, null, 2));
+              setSection("presets");
+            }}
+          />
 
-          <aside className="min-h-0 border-b lg:border-r lg:border-b-0">
-            <div className="flex h-full min-h-0 flex-col">
-              <div className="shrink-0 border-b p-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <StatBadge label="Characters" value={overview?.characterCount ?? 0} />
-                  <StatBadge label="World Info" value={overview?.worldInfoCount ?? 0} />
-                  <StatBadge label="Presets" value={overview?.presetCount ?? 0} />
-                  <StatBadge label="Groups" value={overview?.groupCount ?? 0} />
-                </div>
-              </div>
+          <div className="min-h-0 overflow-auto p-4">
+            {section === "characters" ? (
+              <CharacterEditor
+                form={characterForm}
+                selectedCharacter={selectedCharacter}
+                saving={saving}
+                onChange={setCharacterForm}
+                onNew={() => {
+                  setSelectedCharacterId(null);
+                  setCharacterForm(emptyCharacterForm);
+                }}
+                onSave={() => void saveCharacter()}
+                onDelete={() => void deleteCharacter()}
+                onFavorite={async () => {
+                  if (!selectedCharacterId) return;
+                  await roleplayApi.characters.favorite(selectedCharacterId);
+                  await refresh();
+                }}
+                onCreateChat={() => void createChatForCharacter()}
+                onImport={() => characterImportInputRef.current?.click()}
+                onExportJson={() => void exportCharacterJson()}
+                onExportPng={() => void exportCharacterPng()}
+              />
+            ) : null}
 
-              {loading ? (
-                <LoadingList />
-              ) : (
-                <ScrollArea className="min-h-0 flex-1">
-                  {section === "characters" ? (
-                    <CharactersPane
-                      characters={characters}
-                      selectedCharacterId={selectedCharacterId}
-                      busy={busy}
-                      draft={characterDraft}
-                      onDraftChange={setCharacterDraft}
-                      onCreateCharacter={handleCreateCharacter}
-                      onSelectCharacter={(id) => {
-                        setSelectedCharacterId(id);
-                        setSection("chats");
-                      }}
-                      onToggleFavorite={(id) => void handleToggleFavorite(id)}
-                    />
-                  ) : null}
+            {section === "chat" ? (
+              <ChatPanel
+                selectedChatId={selectedChatId}
+                modelLabel={
+                  currentModel
+                    ? `${currentModel.displayName || currentModel.modelId}${currentProvider ? ` / ${currentProvider.name}` : ""}`
+                    : "No model"
+                }
+                messages={messages}
+                messageNodes={messageNodes}
+                branches={branches}
+                activeBranchId={activeBranchId}
+                generationText={generationText}
+                isGenerating={isGenerating}
+                input={chatInput}
+                temperature={temperature}
+                maxTokens={maxTokens}
+                selectedMessageId={selectedMessageId}
+                selectedMessageIndex={selectedMessageIndex}
+                messageEditText={messageEditText}
+                swipeText={swipeText}
+                onInputChange={setChatInput}
+                onSend={() => void sendChatMessage()}
+                onGenerate={() => void generateReply()}
+                onTemperatureChange={setTemperature}
+                onMaxTokensChange={setMaxTokens}
+                onSelectMessage={(message, index) => {
+                  setSelectedMessageId(message.id);
+                  setSelectedMessageIndex(index);
+                  setMessageEditText(message.content);
+                  setSwipeText("");
+                }}
+                onMessageEditChange={setMessageEditText}
+                onSwipeTextChange={setSwipeText}
+                onSaveMessage={() => void saveMessageEdit()}
+                onDeleteMessage={() => void deleteMessage()}
+                onCreateBranch={() => void createBranchFromSelection()}
+                onSwitchBranch={(branchId) => void switchBranch(branchId)}
+                onDeleteBranch={(branchId) => void deleteBranch(branchId)}
+                onAddSwipe={() => void addSwipe()}
+                onPreviousSwipe={() => void rotateSwipe("previous")}
+                onNextSwipe={() => void rotateSwipe("next")}
+                onClear={async () => {
+                  if (!selectedChatId) return;
+                  await roleplayApi.chats.clear(selectedChatId);
+                  await loadChatMessages(selectedChatId);
+                  await refresh();
+                }}
+              />
+            ) : null}
 
-                  {section === "chats" ? (
-                    <ChatsPane
-                      characters={characters}
-                      chats={chats}
-                      selectedCharacterId={selectedCharacterId}
-                      selectedChatId={selectedChatId}
-                      chatTitle={chatTitle}
-                      busy={busy}
-                      loading={chatsLoading}
-                      onSelectCharacter={setSelectedCharacterId}
-                      onSelectChat={setSelectedChatId}
-                      onChatTitleChange={setChatTitle}
-                      onCreateChat={handleCreateChat}
-                      onDeleteChat={(id) => void handleDeleteChat(id)}
-                      onTogglePinChat={(id) => void handleTogglePinChat(id)}
-                    />
-                  ) : null}
+            {section === "groups" ? (
+              <GroupEditor
+                form={groupForm}
+                selectedGroup={selectedGroup}
+                characters={summary?.characters ?? []}
+                onChange={setGroupForm}
+                onNew={() => {
+                  setSelectedGroupId(null);
+                  setGroupForm(emptyGroupForm);
+                }}
+                onSave={() => void saveGroup()}
+                onDelete={() => void deleteGroup()}
+                onAddMember={async (member) => {
+                  if (!selectedGroupId) return;
+                  await roleplayApi.groups.addMember(selectedGroupId, member);
+                  await refresh();
+                }}
+                onRemoveMember={async (characterId) => {
+                  if (!selectedGroupId) return;
+                  await roleplayApi.groups.removeMember(selectedGroupId, characterId);
+                  await refresh();
+                }}
+                onToggleMember={async (characterId) => {
+                  if (!selectedGroupId) return;
+                  await roleplayApi.groups.toggleMember(selectedGroupId, characterId);
+                  await refresh();
+                }}
+                onCreateChat={async () => {
+                  if (!selectedGroupId) return;
+                  const chat = await roleplayApi.groups.createChat(selectedGroupId, { title: groupForm.name });
+                  setSelectedChatId(chat.chatId);
+                  setSection("chat");
+                  await loadChatMessages(chat.chatId);
+                  await refresh();
+                }}
+              />
+            ) : null}
 
-                  {section === "worlds" ? (
-                    <WorldInfoPane
-                      worldInfos={worldInfos}
-                      selectedWorldInfoId={selectedWorldInfoId}
-                      busy={busy}
-                      draft={worldInfoDraft}
-                      onDraftChange={setWorldInfoDraft}
-                      onCreateWorldInfo={handleCreateWorldInfo}
-                      onSelectWorldInfo={setSelectedWorldInfoId}
-                    />
-                  ) : null}
+            {section === "worlds" ? (
+              <WorldEditor
+                form={worldForm}
+                entryForm={entryForm}
+                selectedWorld={selectedWorld}
+                onChange={setWorldForm}
+                onEntryChange={setEntryForm}
+                onNew={() => {
+                  setSelectedWorldId(null);
+                  setWorldForm(makeEmptyWorld());
+                }}
+                onSave={() => void saveWorld()}
+                onDelete={() => void deleteWorld()}
+                onImport={() => worldImportInputRef.current?.click()}
+                onExport={() => void exportWorldInfo()}
+                onEditEntry={setEntryForm}
+                onSaveEntry={() => void saveEntry()}
+                onDeleteEntry={async (entryId) => {
+                  if (!selectedWorldId) return;
+                  const updated = await roleplayApi.worldInfos.deleteEntry(selectedWorldId, entryId);
+                  setWorldForm(updated);
+                  await refresh();
+                }}
+                onToggleEntry={async (entryId) => {
+                  if (!selectedWorldId) return;
+                  const updated = await roleplayApi.worldInfos.toggleEntry(selectedWorldId, entryId);
+                  setWorldForm(updated);
+                  await refresh();
+                }}
+              />
+            ) : null}
 
-                  {section === "presets" ? (
-                    <PresetsPane
-                      presets={presets}
-                      selectedPresetId={selectedPresetId}
-                      busy={busy}
-                      draft={presetDraft}
-                      onDraftChange={setPresetDraft}
-                      onCreatePreset={handleCreatePreset}
-                      onSelectPreset={setSelectedPresetId}
-                    />
-                  ) : null}
-                </ScrollArea>
-              )}
-            </div>
-          </aside>
-
-          <main className="flex min-h-0 flex-col overflow-hidden">
-            <ChatWorkspace
-              character={selectedCharacter}
-              chatDetail={chatDetail}
-              loading={chatLoading}
-              busy={busy}
-              composeRole={composeRole}
-              composeText={composeText}
-              onComposeRoleChange={setComposeRole}
-              onComposeTextChange={setComposeText}
-              onAppendMessage={handleAppendMessage}
-              onDeleteMessage={(id) => void handleDeleteMessage(id)}
-            />
-          </main>
-
-          <aside className="min-h-0 border-t lg:border-l lg:border-t-0">
-            <InspectorPane
-              character={selectedCharacter}
-              chat={chatDetail?.chat ?? null}
-              worldInfo={selectedWorldInfo}
-              preset={selectedPreset}
-              section={section}
-            />
-          </aside>
+            {section === "presets" ? (
+              <PresetEditor
+                form={presetForm}
+                parametersText={presetParametersText}
+                selectedPreset={selectedPreset}
+                onChange={setPresetForm}
+                onParametersChange={setPresetParametersText}
+                onNew={() => {
+                  setSelectedPresetId(null);
+                  setPresetForm(emptyPresetForm);
+                  setPresetParametersText("{}");
+                }}
+                onSave={() => void savePreset()}
+                onDelete={() => void deletePreset()}
+                onImport={() => presetImportInputRef.current?.click()}
+                onExport={() => void exportPreset()}
+              />
+            ) : null}
+          </div>
         </div>
-      </div>
-    </TooltipProvider>
+      </section>
+    </main>
   );
 }
 
-function CharactersPane({
-  characters,
+function ResourceList({
+  section,
+  summary,
   selectedCharacterId,
-  busy,
-  draft,
-  onDraftChange,
-  onCreateCharacter,
+  selectedChatId,
+  selectedGroupId,
+  selectedWorldId,
+  selectedPresetId,
   onSelectCharacter,
-  onToggleFavorite,
+  onSelectChat,
+  onSelectGroup,
+  onSelectWorld,
+  onSelectPreset,
 }: {
-  characters: RoleplayCharacterDto[];
+  section: Section;
+  summary: RoleplaySummary | null;
   selectedCharacterId: string | null;
-  busy: boolean;
-  draft: CharacterDraft;
-  onDraftChange: React.Dispatch<React.SetStateAction<CharacterDraft>>;
-  onCreateCharacter: (event: React.FormEvent<HTMLFormElement>) => void;
-  onSelectCharacter: (id: string) => void;
-  onToggleFavorite: (id: string) => void;
+  selectedChatId: string | null;
+  selectedGroupId: string | null;
+  selectedWorldId: string | null;
+  selectedPresetId: string | null;
+  onSelectCharacter: (character: RoleplayCharacter) => void;
+  onSelectChat: (chat: RoleplayChatMetadata) => void;
+  onSelectGroup: (group: RoleplayGroup) => void;
+  onSelectWorld: (world: RoleplayWorldInfo) => void;
+  onSelectPreset: (preset: RoleplayPreset) => void;
 }) {
-  return (
-    <div className="space-y-3 p-3">
-      <form className="space-y-2 rounded-md border bg-muted/30 p-3" onSubmit={onCreateCharacter}>
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <Plus className="size-4" />
-          New character
-        </div>
-        <Input
-          value={draft.name}
-          onChange={(event) => onDraftChange((current) => ({ ...current, name: event.target.value }))}
-          placeholder="Name"
-        />
-        <Textarea
-          value={draft.description}
-          onChange={(event) =>
-            onDraftChange((current) => ({ ...current, description: event.target.value }))
-          }
-          placeholder="Description"
-          className="min-h-20 resize-none text-sm"
-        />
-        <Textarea
-          value={draft.personality}
-          onChange={(event) =>
-            onDraftChange((current) => ({ ...current, personality: event.target.value }))
-          }
-          placeholder="Personality"
-          className="min-h-16 resize-none text-sm"
-        />
-        <Input
-          value={draft.tags}
-          onChange={(event) => onDraftChange((current) => ({ ...current, tags: event.target.value }))}
-          placeholder="Tags, comma separated"
-        />
-        <Button type="submit" size="sm" className="w-full" disabled={busy}>
-          <Plus className="size-4" />
-          Create
-        </Button>
-      </form>
+  const [chats, setChats] = React.useState<RoleplayChatMetadata[]>([]);
 
-      <div className="space-y-2">
-        {characters.length === 0 ? (
-          <EmptyPane
-            title="No characters"
-            description="Create or import Tavern character cards from the native app."
+  React.useEffect(() => {
+    if (!selectedCharacterId) {
+      setChats([]);
+      return;
+    }
+    roleplayApi.characters.chats(selectedCharacterId).then(setChats).catch(() => setChats([]));
+  }, [selectedCharacterId, summary?.characters.length]);
+
+  return (
+    <aside className="min-h-0 overflow-auto border-r p-3">
+      <ListSection title="Characters">
+        {(summary?.characters ?? []).map((character) => (
+          <ListButton
+            key={character.id}
+            selected={selectedCharacterId === character.id && section === "characters"}
+            onClick={() => onSelectCharacter(character)}
+            title={character.name || "Unnamed"}
+            subtitle={character.description || "No description"}
+            suffix={character.favorite ? <Star className="size-3 fill-current text-amber-500" /> : null}
           />
-        ) : (
-          characters.map((character) => (
-            <button
-              key={character.id}
-              type="button"
-              onClick={() => onSelectCharacter(character.id)}
-              className={cn(
-                "flex w-full min-w-0 items-start gap-3 rounded-md border p-3 text-left transition-colors hover:bg-accent",
-                selectedCharacterId === character.id && "border-primary bg-accent",
-              )}
-            >
-              <CharacterAvatar character={character} />
-              <div className="min-w-0 flex-1">
-                <div className="flex min-w-0 items-center gap-2">
-                  <div className="truncate text-sm font-medium">{character.name || "Unnamed"}</div>
-                  {character.favorite ? <Star className="size-3 fill-current text-primary" /> : null}
-                </div>
-                <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                  {character.description || "No description"}
-                </div>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {character.tags.slice(0, 3).map((tag) => (
-                    <Badge key={tag} variant="secondary" className="max-w-full truncate">
-                      {tag}
-                    </Badge>
-                  ))}
-                  <Badge variant="outline">{character.chatCount} chats</Badge>
-                </div>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onToggleFavorite(character.id);
-                }}
-                aria-label="Toggle favorite"
-              >
-                <Star className={cn("size-3", character.favorite && "fill-current")} />
-              </Button>
-            </button>
-          ))
-        )}
-      </div>
+        ))}
+      </ListSection>
+      <ListSection title="Chats">
+        {chats.map((chat) => (
+          <ListButton
+            key={chat.chatId}
+            selected={selectedChatId === chat.chatId && section === "chat"}
+            onClick={() => onSelectChat(chat)}
+            title={chat.title || "Untitled chat"}
+            subtitle={`${chat.messageCount} messages`}
+          />
+        ))}
+      </ListSection>
+      <ListSection title="Groups">
+        {(summary?.groups ?? []).map((group) => (
+          <ListButton
+            key={group.id}
+            selected={selectedGroupId === group.id && section === "groups"}
+            onClick={() => onSelectGroup(group)}
+            title={group.name || "Untitled group"}
+            subtitle={`${group.members.length} members`}
+          />
+        ))}
+      </ListSection>
+      <ListSection title="World Info">
+        {(summary?.worldInfos ?? []).map((world) => (
+          <ListButton
+            key={world.id}
+            selected={selectedWorldId === world.id && section === "worlds"}
+            onClick={() => onSelectWorld(world)}
+            title={world.name || "Untitled world"}
+            subtitle={`${world.entries.length} entries`}
+          />
+        ))}
+      </ListSection>
+      <ListSection title="Presets">
+        {(summary?.presets ?? []).map((preset) => (
+          <ListButton
+            key={preset.id}
+            selected={selectedPresetId === preset.id && section === "presets"}
+            onClick={() => onSelectPreset(preset)}
+            title={preset.name || "Untitled preset"}
+            subtitle={preset.type}
+          />
+        ))}
+      </ListSection>
+    </aside>
+  );
+}
+
+function ListSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-5">
+      <div className="mb-2 text-xs font-medium uppercase text-muted-foreground">{title}</div>
+      <div className="space-y-1">{children}</div>
     </div>
   );
 }
 
-function ChatsPane({
-  characters,
-  chats,
-  selectedCharacterId,
-  selectedChatId,
-  chatTitle,
-  busy,
-  loading,
-  onSelectCharacter,
-  onSelectChat,
-  onChatTitleChange,
-  onCreateChat,
-  onDeleteChat,
-  onTogglePinChat,
+function ListButton({
+  selected,
+  onClick,
+  title,
+  subtitle,
+  suffix,
 }: {
-  characters: RoleplayCharacterDto[];
-  chats: RoleplayChatDto[];
-  selectedCharacterId: string | null;
-  selectedChatId: string | null;
-  chatTitle: string;
-  busy: boolean;
-  loading: boolean;
-  onSelectCharacter: (id: string) => void;
-  onSelectChat: (id: string) => void;
-  onChatTitleChange: (value: string) => void;
-  onCreateChat: (event: React.FormEvent<HTMLFormElement>) => void;
-  onDeleteChat: (id: string) => void;
-  onTogglePinChat: (id: string) => void;
+  selected: boolean;
+  onClick: () => void;
+  title: string;
+  subtitle: string;
+  suffix?: React.ReactNode;
 }) {
   return (
-    <div className="space-y-3 p-3">
-      <form className="space-y-2 rounded-md border bg-muted/30 p-3" onSubmit={onCreateChat}>
-        <Select value={selectedCharacterId ?? ""} onValueChange={onSelectCharacter}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select character" />
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn("w-full rounded-md px-2 py-2 text-left text-sm hover:bg-accent", selected && "bg-accent")}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className="truncate font-medium">{title}</span>
+        {suffix}
+      </div>
+      <div className="truncate text-xs text-muted-foreground">{subtitle}</div>
+    </button>
+  );
+}
+
+function CharacterEditor({
+  form,
+  selectedCharacter,
+  saving,
+  onChange,
+  onNew,
+  onSave,
+  onDelete,
+  onFavorite,
+  onCreateChat,
+  onImport,
+  onExportJson,
+  onExportPng,
+}: {
+  form: SaveRoleplayCharacterRequest;
+  selectedCharacter: RoleplayCharacter | null;
+  saving: boolean;
+  onChange: (value: SaveRoleplayCharacterRequest) => void;
+  onNew: () => void;
+  onSave: () => void;
+  onDelete: () => void;
+  onFavorite: () => void;
+  onCreateChat: () => void;
+  onImport: () => void;
+  onExportJson: () => void;
+  onExportPng: () => void;
+}) {
+  const update = (patch: Partial<SaveRoleplayCharacterRequest>) => onChange({ ...form, ...patch });
+
+  return (
+    <div className="mx-auto max-w-5xl space-y-4">
+      <EditorToolbar
+        title={selectedCharacter ? selectedCharacter.name : "New Character"}
+        subtitle={selectedCharacter ? `Updated ${formatDate(selectedCharacter.updatedAt)}` : "Create a Tavern character card"}
+        onNew={onNew}
+        onSave={onSave}
+        onDelete={onDelete}
+        saveDisabled={saving}
+        deleteDisabled={!selectedCharacter || saving}
+        extra={
+          <>
+            <Button variant="outline" onClick={onImport} disabled={saving}>
+              <Upload className="size-4" />
+              Import
+            </Button>
+            <Button variant="outline" onClick={onExportJson} disabled={!selectedCharacter}>
+              <Download className="size-4" />
+              JSON
+            </Button>
+            <Button variant="outline" onClick={onExportPng} disabled={!selectedCharacter}>
+              <Download className="size-4" />
+              PNG
+            </Button>
+            <Button variant="outline" onClick={onFavorite} disabled={!selectedCharacter}>
+              <Star className="size-4" />
+            </Button>
+            <Button variant="outline" onClick={onCreateChat} disabled={!selectedCharacter}>
+              <MessageSquare className="size-4" />
+              Chat
+            </Button>
+          </>
+        }
+      />
+      <div className="grid gap-3 md:grid-cols-2">
+        <Input value={form.name ?? ""} onChange={(event) => update({ name: event.target.value })} placeholder="Name" />
+        <Input
+          value={(form.tags ?? []).join(", ")}
+          onChange={(event) => update({ tags: parseList(event.target.value) })}
+          placeholder="Tags"
+        />
+      </div>
+      <Textarea
+        value={form.description ?? ""}
+        onChange={(event) => update({ description: event.target.value })}
+        placeholder="Description"
+        className="min-h-24"
+      />
+      <div className="grid gap-3 md:grid-cols-2">
+        <Textarea
+          value={form.personality ?? ""}
+          onChange={(event) => update({ personality: event.target.value })}
+          placeholder="Personality"
+          className="min-h-32"
+        />
+        <Textarea
+          value={form.scenario ?? ""}
+          onChange={(event) => update({ scenario: event.target.value })}
+          placeholder="Scenario"
+          className="min-h-32"
+        />
+      </div>
+      <Textarea
+        value={form.firstMessage ?? ""}
+        onChange={(event) => update({ firstMessage: event.target.value })}
+        placeholder="First message"
+        className="min-h-24"
+      />
+      <Textarea
+        value={form.messageExamples ?? ""}
+        onChange={(event) => update({ messageExamples: event.target.value })}
+        placeholder="Example dialogue"
+        className="min-h-32 font-mono text-sm"
+      />
+      <div className="grid gap-3 md:grid-cols-2">
+        <Textarea
+          value={form.systemPrompt ?? ""}
+          onChange={(event) => update({ systemPrompt: event.target.value })}
+          placeholder="System prompt"
+          className="min-h-28"
+        />
+        <Textarea
+          value={form.postHistoryInstructions ?? ""}
+          onChange={(event) => update({ postHistoryInstructions: event.target.value })}
+          placeholder="Post-history instructions"
+          className="min-h-28"
+        />
+      </div>
+      <div className="grid gap-3 md:grid-cols-2">
+        <Input
+          value={form.creator ?? ""}
+          onChange={(event) => update({ creator: event.target.value })}
+          placeholder="Creator"
+        />
+        <Input
+          value={(form.alternateGreetings ?? []).join(", ")}
+          onChange={(event) => update({ alternateGreetings: parseList(event.target.value) })}
+          placeholder="Alternate greetings"
+        />
+      </div>
+      <Textarea
+        value={form.creatorNotes ?? ""}
+        onChange={(event) => update({ creatorNotes: event.target.value })}
+        placeholder="Creator notes"
+        className="min-h-20"
+      />
+    </div>
+  );
+}
+
+function ChatPanel({
+  selectedChatId,
+  modelLabel,
+  messages,
+  messageNodes,
+  branches,
+  activeBranchId,
+  generationText,
+  isGenerating,
+  input,
+  temperature,
+  maxTokens,
+  selectedMessageId,
+  selectedMessageIndex,
+  messageEditText,
+  swipeText,
+  onInputChange,
+  onSend,
+  onGenerate,
+  onTemperatureChange,
+  onMaxTokensChange,
+  onSelectMessage,
+  onMessageEditChange,
+  onSwipeTextChange,
+  onSaveMessage,
+  onDeleteMessage,
+  onCreateBranch,
+  onSwitchBranch,
+  onDeleteBranch,
+  onAddSwipe,
+  onPreviousSwipe,
+  onNextSwipe,
+  onClear,
+}: {
+  selectedChatId: string | null;
+  modelLabel: string;
+  messages: RoleplayChatMessage[];
+  messageNodes: RoleplayMessageNode[];
+  branches: RoleplayMessageNode[];
+  activeBranchId: string | null;
+  generationText: string;
+  isGenerating: boolean;
+  input: string;
+  temperature: number;
+  maxTokens: number;
+  selectedMessageId: string | null;
+  selectedMessageIndex: number | null;
+  messageEditText: string;
+  swipeText: string;
+  onInputChange: (value: string) => void;
+  onSend: () => void;
+  onGenerate: () => void;
+  onTemperatureChange: (value: number) => void;
+  onMaxTokensChange: (value: number) => void;
+  onSelectMessage: (message: RoleplayChatMessage, index: number) => void;
+  onMessageEditChange: (value: string) => void;
+  onSwipeTextChange: (value: string) => void;
+  onSaveMessage: () => void;
+  onDeleteMessage: () => void;
+  onCreateBranch: () => void;
+  onSwitchBranch: (branchId: string) => void;
+  onDeleteBranch: (branchId: string) => void;
+  onAddSwipe: () => void;
+  onPreviousSwipe: () => void;
+  onNextSwipe: () => void;
+  onClear: () => void;
+}) {
+  const selectedNode = selectedMessageIndex == null ? null : messageNodes[selectedMessageIndex];
+  const selectedSwipeCount = selectedNode?.messages.length ?? 0;
+
+  return (
+    <div className="mx-auto flex h-full max-w-5xl flex-col gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0">
+          <h2 className="truncate text-lg font-semibold">Chat</h2>
+          <p className="truncate text-sm text-muted-foreground">{selectedChatId ?? "Select or create a chat"}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="outline">{messages.length} messages</Badge>
+          <Badge variant="secondary">{modelLabel}</Badge>
+          <Input
+            type="number"
+            value={temperature}
+            step="0.1"
+            min="0"
+            max="2"
+            onChange={(event) => onTemperatureChange(Number(event.target.value))}
+            className="h-8 w-20"
+          />
+          <Input
+            type="number"
+            value={maxTokens}
+            min="1"
+            onChange={(event) => onMaxTokensChange(Number(event.target.value))}
+            className="h-8 w-24"
+          />
+          <Button variant="outline" size="sm" onClick={onClear} disabled={!selectedChatId || messages.length === 0}>
+            <Trash2 className="size-4" />
+            Clear
+          </Button>
+          <Button size="sm" onClick={onGenerate} disabled={!selectedChatId || isGenerating}>
+            <Bot className="size-4" />
+            Generate
+          </Button>
+        </div>
+      </div>
+      {branches.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-2 rounded-md border bg-muted/20 p-2">
+          <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+            <GitBranch className="size-4" />
+            Branches
+          </div>
+          {branches.map((branch) => (
+            <div key={branch.id} className="flex items-center gap-1">
+              <Button
+                variant={branch.id === activeBranchId ? "default" : "outline"}
+                size="sm"
+                onClick={() => onSwitchBranch(branch.id)}
+                disabled={!selectedChatId || branch.id === activeBranchId}
+              >
+                {branch.branchLabel || branch.id.slice(0, 8)}
+              </Button>
+              {branch.id !== selectedChatId ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onDeleteBranch(branch.id)}
+                  disabled={!selectedChatId || branches.length <= 1}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      ) : null}
+      <div className="min-h-[420px] flex-1 overflow-auto rounded-md border bg-muted/30 p-3">
+        {messages.length === 0 && !generationText ? (
+          <div className="text-sm text-muted-foreground">No messages yet.</div>
+        ) : (
+          <div className="space-y-2">
+            {messages.map((message, index) => (
+              <button
+                key={`${message.id}-${index}`}
+                type="button"
+                onClick={() => onSelectMessage(message, index)}
+                className={cn(
+                  "w-full whitespace-pre-wrap rounded-md border bg-background px-3 py-2 text-left text-sm",
+                  selectedMessageIndex === index && selectedMessageId === message.id && "border-primary",
+                )}
+              >
+                <div className="mb-1 flex items-center justify-between gap-2 text-xs font-medium text-muted-foreground">
+                  <span>{message.role.toLowerCase()}</span>
+                  {message.swipeAlternatives?.length ? (
+                    <span>{message.swipeAlternatives.length + 1} swipes</span>
+                  ) : null}
+                </div>
+                {message.content}
+              </button>
+            ))}
+            {generationText ? (
+              <div className="whitespace-pre-wrap rounded-md border border-dashed bg-background px-3 py-2 text-sm">
+                <div className="mb-1 text-xs font-medium text-muted-foreground">assistant</div>
+                {generationText}
+              </div>
+            ) : null}
+          </div>
+        )}
+      </div>
+      <div className="flex gap-2">
+        <Textarea
+          value={input}
+          onChange={(event) => onInputChange(event.target.value)}
+          placeholder="Send a user message"
+          className="min-h-16"
+        />
+        <Button className="h-auto self-stretch" onClick={onSend} disabled={!selectedChatId || !input.trim()}>
+          <Send className="size-4" />
+        </Button>
+      </div>
+      {selectedMessageId ? (
+        <div className="space-y-2 rounded-md border p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Badge variant="outline">
+              Message {selectedMessageIndex == null ? "-" : selectedMessageIndex + 1}
+            </Badge>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={onCreateBranch} disabled={selectedMessageIndex == null}>
+                <GitBranch className="size-4" />
+                Branch
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onPreviousSwipe}
+                disabled={selectedMessageIndex == null || selectedSwipeCount <= 1}
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onNextSwipe}
+                disabled={selectedMessageIndex == null || selectedSwipeCount <= 1}
+              >
+                <ChevronRight className="size-4" />
+              </Button>
+            </div>
+          </div>
+          <Textarea
+            value={messageEditText}
+            onChange={(event) => onMessageEditChange(event.target.value)}
+            className="min-h-24"
+          />
+          <div className="flex gap-2">
+            <Input
+              value={swipeText}
+              onChange={(event) => onSwipeTextChange(event.target.value)}
+              placeholder="Add swipe alternative"
+            />
+            <Button variant="outline" onClick={onAddSwipe} disabled={!swipeText.trim() || selectedMessageIndex == null}>
+              <Plus className="size-4" />
+            </Button>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={onDeleteMessage}>
+              <Trash2 className="size-4" />
+              Delete
+            </Button>
+            <Button onClick={onSaveMessage}>
+              <Save className="size-4" />
+              Save
+            </Button>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function GroupEditor({
+  form,
+  selectedGroup,
+  characters,
+  onChange,
+  onNew,
+  onSave,
+  onDelete,
+  onAddMember,
+  onRemoveMember,
+  onToggleMember,
+  onCreateChat,
+}: {
+  form: SaveRoleplayGroupRequest;
+  selectedGroup: RoleplayGroup | null;
+  characters: RoleplayCharacter[];
+  onChange: (value: SaveRoleplayGroupRequest) => void;
+  onNew: () => void;
+  onSave: () => void;
+  onDelete: () => void;
+  onAddMember: (member: RoleplayGroupMember) => void;
+  onRemoveMember: (characterId: string) => void;
+  onToggleMember: (characterId: string) => void;
+  onCreateChat: () => void;
+}) {
+  const [memberCharacterId, setMemberCharacterId] = React.useState("");
+  const update = (patch: Partial<SaveRoleplayGroupRequest>) => onChange({ ...form, ...patch });
+  const candidate = characters.find((character) => character.id === memberCharacterId);
+
+  return (
+    <div className="mx-auto max-w-5xl space-y-4">
+      <EditorToolbar
+        title={selectedGroup ? selectedGroup.name : "New Group"}
+        subtitle={selectedGroup ? `${selectedGroup.members.length} members` : "Create a group chat roster"}
+        onNew={onNew}
+        onSave={onSave}
+        onDelete={onDelete}
+        deleteDisabled={!selectedGroup}
+        extra={
+          <Button variant="outline" onClick={onCreateChat} disabled={!selectedGroup}>
+            <MessageSquare className="size-4" />
+            Chat
+          </Button>
+        }
+      />
+      <Input value={form.name} onChange={(event) => update({ name: event.target.value })} placeholder="Group name" />
+      <Textarea
+        value={form.description ?? ""}
+        onChange={(event) => update({ description: event.target.value })}
+        placeholder="Description"
+        className="min-h-24"
+      />
+      <div className="flex flex-wrap gap-2">
+        <Select value={memberCharacterId} onValueChange={setMemberCharacterId}>
+          <SelectTrigger className="w-64">
+            <SelectValue placeholder="Add character" />
           </SelectTrigger>
           <SelectContent>
             {characters.map((character) => (
@@ -875,525 +1527,326 @@ function ChatsPane({
             ))}
           </SelectContent>
         </Select>
-        <Input
-          value={chatTitle}
-          onChange={(event) => onChatTitleChange(event.target.value)}
-          placeholder="Chat title"
-        />
-        <Button type="submit" size="sm" className="w-full" disabled={busy || !selectedCharacterId}>
-          <Plus className="size-4" />
-          New chat
-        </Button>
-      </form>
-
-      {loading ? (
-        <LoadingList />
-      ) : chats.length === 0 ? (
-        <EmptyPane
-          title="No chats"
-          description="Create a chat for the selected character to start a Tavern transcript."
-        />
-      ) : (
-        <div className="space-y-2">
-          {chats.map((chat) => (
-            <button
-              key={chat.id}
-              type="button"
-              onClick={() => onSelectChat(chat.id)}
-              className={cn(
-                "flex w-full min-w-0 items-start gap-3 rounded-md border p-3 text-left transition-colors hover:bg-accent",
-                selectedChatId === chat.id && "border-primary bg-accent",
-              )}
-            >
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted">
-                <MessageSquare className="size-4" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex min-w-0 items-center gap-2">
-                  <div className="truncate text-sm font-medium">{chat.title || "Untitled Chat"}</div>
-                  {chat.pinned ? <Star className="size-3 fill-current" /> : null}
-                </div>
-                <div className="mt-1 truncate text-xs text-muted-foreground">
-                  {chat.characterName || "Character"} / {chat.messageCount} messages
-                </div>
-                <div className="mt-2 text-xs text-muted-foreground">{formatTime(chat.updatedAt)}</div>
-              </div>
-              <div className="flex shrink-0 flex-col gap-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-xs"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onTogglePinChat(chat.id);
-                  }}
-                  aria-label="Toggle pin"
-                >
-                  <Star className={cn("size-3", chat.pinned && "fill-current")} />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-xs"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onDeleteChat(chat.id);
-                  }}
-                  aria-label="Delete chat"
-                >
-                  <Trash2 className="size-3" />
-                </Button>
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function WorldInfoPane({
-  worldInfos,
-  selectedWorldInfoId,
-  busy,
-  draft,
-  onDraftChange,
-  onCreateWorldInfo,
-  onSelectWorldInfo,
-}: {
-  worldInfos: RoleplayWorldInfoDto[];
-  selectedWorldInfoId: string | null;
-  busy: boolean;
-  draft: WorldInfoDraft;
-  onDraftChange: React.Dispatch<React.SetStateAction<WorldInfoDraft>>;
-  onCreateWorldInfo: (event: React.FormEvent<HTMLFormElement>) => void;
-  onSelectWorldInfo: (id: string) => void;
-}) {
-  return (
-    <div className="space-y-3 p-3">
-      <form className="space-y-2 rounded-md border bg-muted/30 p-3" onSubmit={onCreateWorldInfo}>
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <BookMarked className="size-4" />
-          New world info
-        </div>
-        <Input
-          value={draft.name}
-          onChange={(event) => onDraftChange((current) => ({ ...current, name: event.target.value }))}
-          placeholder="Name"
-        />
-        <Textarea
-          value={draft.description}
-          onChange={(event) =>
-            onDraftChange((current) => ({ ...current, description: event.target.value }))
-          }
-          placeholder="Description"
-          className="min-h-20 resize-none text-sm"
-        />
-        <Button type="submit" size="sm" className="w-full" disabled={busy}>
-          <Plus className="size-4" />
-          Create
-        </Button>
-      </form>
-
-      {worldInfos.length === 0 ? (
-        <EmptyPane title="No world info" description="Create lorebooks for Tavern prompt injection." />
-      ) : (
-        <div className="space-y-2">
-          {worldInfos.map((worldInfo) => (
-            <button
-              key={worldInfo.id}
-              type="button"
-              onClick={() => onSelectWorldInfo(worldInfo.id)}
-              className={cn(
-                "w-full rounded-md border p-3 text-left transition-colors hover:bg-accent",
-                selectedWorldInfoId === worldInfo.id && "border-primary bg-accent",
-              )}
-            >
-              <div className="truncate text-sm font-medium">{worldInfo.name}</div>
-              <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                {worldInfo.description || "No description"}
-              </div>
-              <div className="mt-2 flex gap-1">
-                <Badge variant="outline">{worldInfo.entries.length} entries</Badge>
-                <Badge variant="secondary">{worldInfo.scanTrigger}</Badge>
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function PresetsPane({
-  presets,
-  selectedPresetId,
-  busy,
-  draft,
-  onDraftChange,
-  onCreatePreset,
-  onSelectPreset,
-}: {
-  presets: RoleplayPresetDto[];
-  selectedPresetId: string | null;
-  busy: boolean;
-  draft: PresetDraft;
-  onDraftChange: React.Dispatch<React.SetStateAction<PresetDraft>>;
-  onCreatePreset: (event: React.FormEvent<HTMLFormElement>) => void;
-  onSelectPreset: (id: string) => void;
-}) {
-  return (
-    <div className="space-y-3 p-3">
-      <form className="space-y-2 rounded-md border bg-muted/30 p-3" onSubmit={onCreatePreset}>
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <Settings2 className="size-4" />
-          New preset
-        </div>
-        <Input
-          value={draft.name}
-          onChange={(event) => onDraftChange((current) => ({ ...current, name: event.target.value }))}
-          placeholder="Name"
-        />
-        <Select
-          value={draft.type}
-          onValueChange={(value) => onDraftChange((current) => ({ ...current, type: value }))}
+        <Button
+          onClick={() => {
+            if (!candidate) return;
+            onAddMember({
+              characterId: candidate.id,
+              name: candidate.name,
+              priority: 0,
+              responseProbability: 1,
+              forcedResponse: false,
+            });
+            setMemberCharacterId("");
+          }}
+          disabled={!selectedGroup || !candidate}
         >
-          <SelectTrigger className="w-full">
+          <Plus className="size-4" />
+          Member
+        </Button>
+      </div>
+      <div className="grid gap-2">
+        {(selectedGroup?.members ?? []).map((member) => (
+          <div key={member.characterId} className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-3">
+            <div>
+              <div className="font-medium">{member.name || member.characterId}</div>
+              <div className="text-xs text-muted-foreground">
+                priority {member.priority} / probability {member.responseProbability}
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => onToggleMember(member.characterId)}>
+                {selectedGroup?.activeMembers.includes(member.characterId) ? "Disable" : "Enable"}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => onRemoveMember(member.characterId)}>
+                <Trash2 className="size-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WorldEditor({
+  form,
+  entryForm,
+  selectedWorld,
+  onChange,
+  onEntryChange,
+  onNew,
+  onSave,
+  onDelete,
+  onImport,
+  onExport,
+  onEditEntry,
+  onSaveEntry,
+  onDeleteEntry,
+  onToggleEntry,
+}: {
+  form: RoleplayWorldInfo;
+  entryForm: RoleplayWorldInfoEntry;
+  selectedWorld: RoleplayWorldInfo | null;
+  onChange: (value: RoleplayWorldInfo) => void;
+  onEntryChange: (value: RoleplayWorldInfoEntry) => void;
+  onNew: () => void;
+  onSave: () => void;
+  onDelete: () => void;
+  onImport: () => void;
+  onExport: () => void;
+  onEditEntry: (entry: RoleplayWorldInfoEntry) => void;
+  onSaveEntry: () => void;
+  onDeleteEntry: (entryId: string) => void;
+  onToggleEntry: (entryId: string) => void;
+}) {
+  const update = (patch: Partial<RoleplayWorldInfo>) => onChange({ ...form, ...patch });
+  const updateEntry = (patch: Partial<RoleplayWorldInfoEntry>) => onEntryChange({ ...entryForm, ...patch });
+
+  return (
+    <div className="mx-auto max-w-5xl space-y-4">
+      <EditorToolbar
+        title={selectedWorld ? selectedWorld.name : "New World Info"}
+        subtitle={selectedWorld ? `${selectedWorld.entries.length} entries` : "Create a Tavern world book"}
+        onNew={onNew}
+        onSave={onSave}
+        onDelete={onDelete}
+        deleteDisabled={!selectedWorld}
+        extra={
+          <>
+            <Button variant="outline" onClick={onImport}>
+              <Upload className="size-4" />
+              Import
+            </Button>
+            <Button variant="outline" onClick={onExport} disabled={!selectedWorld}>
+              <Download className="size-4" />
+              Export
+            </Button>
+          </>
+        }
+      />
+      <div className="grid gap-3 md:grid-cols-2">
+        <Input value={form.name} onChange={(event) => update({ name: event.target.value })} placeholder="Name" />
+        <Input
+          type="number"
+          value={form.scanDepth}
+          onChange={(event) => update({ scanDepth: Number(event.target.value) })}
+          placeholder="Scan depth"
+        />
+      </div>
+      <Textarea
+        value={form.description}
+        onChange={(event) => update({ description: event.target.value })}
+        placeholder="Description"
+        className="min-h-20"
+      />
+      <div className="grid gap-3 md:grid-cols-2">
+        <Select value={form.scanTrigger} onValueChange={(value) => update({ scanTrigger: value as RoleplayWorldInfo["scanTrigger"] })}>
+          <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {["OPENAI", "CLAUDE", "GEMINI", "KOBOLDAI", "TEXTGEN"].map((type) => (
+            {["ALWAYS", "FIRST_MESSAGE", "RECURSIVE_SCAN"].map((item) => (
+              <SelectItem key={item} value={item}>
+                {item}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={form.selectiveLogic} onValueChange={(value) => update({ selectiveLogic: value as RoleplayWorldInfo["selectiveLogic"] })}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {["AND", "OR"].map((item) => (
+              <SelectItem key={item} value={item}>
+                {item}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="grid gap-3 rounded-md border p-3 md:grid-cols-2">
+        <Input value={entryForm.key} onChange={(event) => updateEntry({ key: event.target.value })} placeholder="Entry key" />
+        <Input
+          value={entryForm.keys.join(", ")}
+          onChange={(event) => updateEntry({ keys: parseList(event.target.value) })}
+          placeholder="Extra keys"
+        />
+        <Input
+          value={entryForm.secondaryKeys.join(", ")}
+          onChange={(event) => updateEntry({ secondaryKeys: parseList(event.target.value) })}
+          placeholder="Secondary keys"
+        />
+        <Select value={entryForm.position} onValueChange={(value) => updateEntry({ position: value as InsertionPosition })}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {["AFTER_SYSTEM_PROMPT", "BEFORE_LAST_USER_MESSAGE", "AT_END"].map((item) => (
+              <SelectItem key={item} value={item}>
+                {item}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Textarea
+          value={entryForm.content}
+          onChange={(event) => updateEntry({ content: event.target.value })}
+          placeholder="Content"
+          className="min-h-28 md:col-span-2"
+        />
+        <div className="flex justify-end gap-2 md:col-span-2">
+          <Button variant="outline" onClick={() => onEntryChange(makeEmptyEntry())}>
+            <Plus className="size-4" />
+            New Entry
+          </Button>
+          <Button onClick={onSaveEntry} disabled={!selectedWorld}>
+            <Save className="size-4" />
+            Save Entry
+          </Button>
+        </div>
+      </div>
+      <div className="grid gap-2">
+        {(selectedWorld?.entries ?? []).map((entry) => (
+          <div key={entry.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-3">
+            <button type="button" onClick={() => onEditEntry(entry)} className="min-w-0 text-left">
+              <div className="truncate font-medium">{entry.key || entry.keys.join(", ") || "Untitled entry"}</div>
+              <div className="truncate text-xs text-muted-foreground">{entry.content}</div>
+            </button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => onToggleEntry(entry.id)}>
+                {entry.enabled ? "Disable" : "Enable"}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => onDeleteEntry(entry.id)}>
+                <Trash2 className="size-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PresetEditor({
+  form,
+  parametersText,
+  selectedPreset,
+  onChange,
+  onParametersChange,
+  onNew,
+  onSave,
+  onDelete,
+  onImport,
+  onExport,
+}: {
+  form: SaveRoleplayPresetRequest;
+  parametersText: string;
+  selectedPreset: RoleplayPreset | null;
+  onChange: (value: SaveRoleplayPresetRequest) => void;
+  onParametersChange: (value: string) => void;
+  onNew: () => void;
+  onSave: () => void;
+  onDelete: () => void;
+  onImport: () => void;
+  onExport: () => void;
+}) {
+  const update = (patch: Partial<SaveRoleplayPresetRequest>) => onChange({ ...form, ...patch });
+
+  return (
+    <div className="mx-auto max-w-5xl space-y-4">
+      <EditorToolbar
+        title={selectedPreset ? selectedPreset.name : "New Preset"}
+        subtitle={selectedPreset ? selectedPreset.type : "Create generation parameters"}
+        onNew={onNew}
+        onSave={onSave}
+        onDelete={onDelete}
+        deleteDisabled={!selectedPreset}
+        extra={
+          <>
+            <Button variant="outline" onClick={onImport}>
+              <Upload className="size-4" />
+              Import
+            </Button>
+            <Button variant="outline" onClick={onExport} disabled={!selectedPreset}>
+              <Download className="size-4" />
+              Export
+            </Button>
+          </>
+        }
+      />
+      <div className="grid gap-3 md:grid-cols-2">
+        <Input value={form.name} onChange={(event) => update({ name: event.target.value })} placeholder="Name" />
+        <Select value={form.type ?? "OPENAI"} onValueChange={(value) => update({ type: value as RoleplayPresetType })}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {["OPENAI", "CLAUDE", "GEMINI", "TEXTGEN", "KOBOLDAI"].map((type) => (
               <SelectItem key={type} value={type}>
                 {type}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <Textarea
-          value={draft.parameters}
-          onChange={(event) =>
-            onDraftChange((current) => ({ ...current, parameters: event.target.value }))
-          }
-          spellCheck={false}
-          className="min-h-28 resize-none font-mono text-xs"
-        />
-        <Button type="submit" size="sm" className="w-full" disabled={busy}>
+      </div>
+      <Textarea
+        value={form.description ?? ""}
+        onChange={(event) => update({ description: event.target.value })}
+        placeholder="Description"
+        className="min-h-20"
+      />
+      <Textarea
+        value={parametersText}
+        onChange={(event) => onParametersChange(event.target.value)}
+        placeholder="Parameters JSON"
+        className="min-h-80 font-mono text-sm"
+      />
+    </div>
+  );
+}
+
+function EditorToolbar({
+  title,
+  subtitle,
+  onNew,
+  onSave,
+  onDelete,
+  saveDisabled,
+  deleteDisabled,
+  extra,
+}: {
+  title: string;
+  subtitle: string;
+  onNew: () => void;
+  onSave: () => void;
+  onDelete: () => void;
+  saveDisabled?: boolean;
+  deleteDisabled?: boolean;
+  extra?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="min-w-0">
+        <h2 className="truncate text-lg font-semibold">{title}</h2>
+        <p className="truncate text-sm text-muted-foreground">{subtitle}</p>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {extra}
+        <Button variant="outline" onClick={onNew}>
           <Plus className="size-4" />
-          Create
+          New
         </Button>
-      </form>
-
-      {presets.length === 0 ? (
-        <EmptyPane title="No presets" description="Create model presets for Tavern generation settings." />
-      ) : (
-        <div className="space-y-2">
-          {presets.map((preset) => (
-            <button
-              key={preset.id}
-              type="button"
-              onClick={() => onSelectPreset(preset.id)}
-              className={cn(
-                "w-full rounded-md border p-3 text-left transition-colors hover:bg-accent",
-                selectedPresetId === preset.id && "border-primary bg-accent",
-              )}
-            >
-              <div className="truncate text-sm font-medium">{preset.name}</div>
-              <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                {preset.description || `${Object.keys(preset.parameters).length} parameters`}
-              </div>
-              <div className="mt-2">
-                <Badge variant="secondary">{preset.type}</Badge>
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ChatWorkspace({
-  character,
-  chatDetail,
-  loading,
-  busy,
-  composeRole,
-  composeText,
-  onComposeRoleChange,
-  onComposeTextChange,
-  onAppendMessage,
-  onDeleteMessage,
-}: {
-  character: RoleplayCharacterDto | null;
-  chatDetail: RoleplayChatDetailDto | null;
-  loading: boolean;
-  busy: boolean;
-  composeRole: ComposeRole;
-  composeText: string;
-  onComposeRoleChange: (role: ComposeRole) => void;
-  onComposeTextChange: (value: string) => void;
-  onAppendMessage: (event: React.FormEvent<HTMLFormElement>) => void;
-  onDeleteMessage: (id: string) => void;
-}) {
-  return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex shrink-0 items-center gap-3 border-b px-4 py-3">
-        {character ? <CharacterAvatar character={character} /> : null}
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold">
-            {chatDetail?.chat.title || character?.name || "Select a character"}
-          </div>
-          <div className="truncate text-xs text-muted-foreground">
-            {chatDetail
-              ? `${chatDetail.chat.characterName || "Character"} / ${chatDetail.messages.length} messages`
-              : "Create a chat to begin a Tavern transcript"}
-          </div>
-        </div>
-        {chatDetail?.chat.pinned ? <Badge variant="secondary">Pinned</Badge> : null}
+        <Button variant="outline" onClick={onDelete} disabled={deleteDisabled}>
+          <Trash2 className="size-4" />
+        </Button>
+        <Button onClick={onSave} disabled={saveDisabled}>
+          <Save className="size-4" />
+          Save
+        </Button>
       </div>
-
-      {loading ? (
-        <div className="space-y-4 p-4">
-          <Skeleton className="h-20 w-4/5 rounded-md" />
-          <Skeleton className="ml-auto h-20 w-3/5 rounded-md" />
-          <Skeleton className="h-24 w-5/6 rounded-md" />
-        </div>
-      ) : !chatDetail ? (
-        <EmptyPane
-          title="No active Tavern chat"
-          description="Select a character, create a chat, then write user and character turns."
-        />
-      ) : (
-        <ScrollArea className="min-h-0 flex-1">
-          <div className="mx-auto flex w-full max-w-4xl flex-col gap-3 px-4 py-4">
-            {chatDetail.messages.length === 0 ? (
-              <EmptyPane
-                title="Empty transcript"
-                description="Append user and character messages to build a Tavern-compatible chat."
-              />
-            ) : (
-              chatDetail.messages.map((message) => {
-                const isUser = message.role === "user";
-                return (
-                  <div
-                    key={message.id}
-                    className={cn(
-                      "group flex w-full items-start gap-2",
-                      isUser && "flex-row-reverse",
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "flex size-8 shrink-0 items-center justify-center rounded-md border bg-muted",
-                        isUser && "bg-primary text-primary-foreground",
-                      )}
-                    >
-                      {isUser ? <UserRound className="size-4" /> : <Bot className="size-4" />}
-                    </div>
-                    <div
-                      className={cn(
-                        "min-w-0 max-w-[78%] rounded-md border bg-background px-3 py-2 shadow-xs",
-                        isUser && "bg-primary text-primary-foreground",
-                      )}
-                    >
-                      <div className="mb-1 flex items-center gap-2 text-xs opacity-75">
-                        <span className="font-medium">{roleLabel(message)}</span>
-                        <span>{formatTime(message.timestamp)}</span>
-                        {message.swipeAlternatives.length > 0 ? (
-                          <Badge variant="outline">{message.swipeAlternatives.length + 1} swipes</Badge>
-                        ) : null}
-                      </div>
-                      <div className="whitespace-pre-wrap break-words text-sm leading-6">
-                        {message.content}
-                      </div>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-xs"
-                      className="opacity-0 transition-opacity group-hover:opacity-100"
-                      onClick={() => onDeleteMessage(message.id)}
-                      aria-label="Delete message"
-                    >
-                      <Trash2 className="size-3" />
-                    </Button>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </ScrollArea>
-      )}
-
-      <form className="shrink-0 border-t p-3" onSubmit={onAppendMessage}>
-        <div className="mx-auto flex w-full max-w-4xl flex-col gap-2">
-          <ButtonGroup>
-            <Button
-              type="button"
-              variant={composeRole === "user" ? "default" : "outline"}
-              size="sm"
-              onClick={() => onComposeRoleChange("user")}
-            >
-              User
-            </Button>
-            <Button
-              type="button"
-              variant={composeRole === "assistant" ? "default" : "outline"}
-              size="sm"
-              onClick={() => onComposeRoleChange("assistant")}
-            >
-              Character
-            </Button>
-          </ButtonGroup>
-          <div className="flex items-end gap-2">
-            <Textarea
-              value={composeText}
-              onChange={(event) => onComposeTextChange(event.target.value)}
-              placeholder="Write the next Tavern message"
-              className="max-h-40 min-h-20 resize-none"
-              disabled={!chatDetail}
-            />
-            <Button
-              type="submit"
-              size="icon-lg"
-              disabled={busy || !chatDetail || composeText.trim().length === 0}
-              aria-label="Append message"
-            >
-              <Send className="size-4" />
-            </Button>
-          </div>
-        </div>
-      </form>
-    </div>
-  );
-}
-
-function InspectorPane({
-  character,
-  chat,
-  worldInfo,
-  preset,
-  section,
-}: {
-  character: RoleplayCharacterDto | null;
-  chat: RoleplayChatDto | null;
-  worldInfo: RoleplayWorldInfoDto | null;
-  preset: RoleplayPresetDto | null;
-  section: RoleplaySection;
-}) {
-  return (
-    <ScrollArea className="h-full">
-      <div className="space-y-4 p-4">
-        <div>
-          <div className="text-sm font-semibold">Inspector</div>
-          <div className="text-xs text-muted-foreground">Active Tavern object metadata</div>
-        </div>
-
-        {character ? (
-          <section className="space-y-3 rounded-md border p-3">
-            <div className="flex items-start gap-3">
-              <CharacterAvatar character={character} />
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium">{character.name || "Unnamed"}</div>
-                <div className="text-xs text-muted-foreground">
-                  {character.spec} / {character.specVersion}
-                </div>
-              </div>
-            </div>
-            <FieldBlock label="Description" value={character.description} />
-            <FieldBlock label="Personality" value={character.personality} />
-            <FieldBlock label="Scenario" value={character.scenario} />
-            <FieldBlock label="First Message" value={character.firstMessage} />
-            <FieldBlock label="System Prompt" value={character.systemPrompt} />
-            <div className="flex flex-wrap gap-1">
-              {character.tags.length === 0 ? (
-                <Badge variant="outline">No tags</Badge>
-              ) : (
-                character.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary">
-                    {tag}
-                  </Badge>
-                ))
-              )}
-            </div>
-          </section>
-        ) : null}
-
-        {chat ? (
-          <section className="space-y-2 rounded-md border p-3">
-            <div className="text-sm font-medium">Chat</div>
-            <dl className="grid grid-cols-2 gap-2 text-xs">
-              <InfoTerm label="Messages" value={String(chat.messageCount)} />
-              <InfoTerm label="Pinned" value={chat.pinned ? "Yes" : "No"} />
-              <InfoTerm label="Created" value={formatTime(chat.createdAt)} />
-              <InfoTerm label="Updated" value={formatTime(chat.updatedAt)} />
-            </dl>
-          </section>
-        ) : null}
-
-        {section === "worlds" && worldInfo ? (
-          <section className="space-y-3 rounded-md border p-3">
-            <div>
-              <div className="text-sm font-medium">{worldInfo.name}</div>
-              <div className="text-xs text-muted-foreground">
-                {worldInfo.entries.length} entries / scan depth {worldInfo.scanDepth}
-              </div>
-            </div>
-            <FieldBlock label="Description" value={worldInfo.description} />
-            <div className="flex flex-wrap gap-1">
-              <Badge variant="secondary">{worldInfo.scanTrigger}</Badge>
-              <Badge variant="outline">{worldInfo.selectiveLogic}</Badge>
-            </div>
-            {worldInfo.entries.slice(0, 6).map((entry) => (
-              <div key={entry.id} className="rounded-md border bg-muted/30 p-2">
-                <div className="truncate text-xs font-medium">{entry.comment || entry.key || "Entry"}</div>
-                <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                  {entry.content || truncateText(entry.keys.join(", "), 120)}
-                </div>
-              </div>
-            ))}
-          </section>
-        ) : null}
-
-        {section === "presets" && preset ? (
-          <section className="space-y-3 rounded-md border p-3">
-            <div>
-              <div className="text-sm font-medium">{preset.name}</div>
-              <div className="text-xs text-muted-foreground">{preset.type}</div>
-            </div>
-            <FieldBlock label="Description" value={preset.description} />
-            <pre className="max-h-72 overflow-auto rounded-md bg-muted p-3 text-xs">
-              {JSON.stringify(preset.parameters, null, 2)}
-            </pre>
-          </section>
-        ) : null}
-
-        {!character && !worldInfo && !preset ? (
-          <EmptyPane title="Nothing selected" description="Select a Tavern object to inspect it." />
-        ) : null}
-      </div>
-    </ScrollArea>
-  );
-}
-
-function FieldBlock({ label, value }: { label: string; value: string }) {
-  if (!value.trim()) return null;
-
-  return (
-    <div>
-      <div className="mb-1 text-xs font-medium text-muted-foreground">{label}</div>
-      <div className="whitespace-pre-wrap break-words rounded-md bg-muted/50 p-2 text-xs leading-5">
-        {value}
-      </div>
-    </div>
-  );
-}
-
-function InfoTerm({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0 rounded-md bg-muted/50 p-2">
-      <dt className="truncate text-muted-foreground">{label}</dt>
-      <dd className="truncate font-medium">{value}</dd>
     </div>
   );
 }

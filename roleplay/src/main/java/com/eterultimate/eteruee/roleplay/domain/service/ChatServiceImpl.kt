@@ -2,14 +2,22 @@ package com.eterultimate.eteruee.roleplay.domain.service
 
 import android.content.Context
 import com.eterultimate.eteruee.ai.core.MessageRole
+import com.eterultimate.eteruee.ai.provider.Model
+import com.eterultimate.eteruee.ai.sdk.AISDK
+import com.eterultimate.eteruee.ai.sdk.StreamTextRequest
+import com.eterultimate.eteruee.ai.sdk.TextChunk
+import com.eterultimate.eteruee.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.roleplay.data.local.RolePlayFileStorage
 import com.eterultimate.eteruee.roleplay.data.local.dao.ChatDAO
 import com.eterultimate.eteruee.roleplay.data.local.entity.ChatEntity
 import com.eterultimate.eteruee.roleplay.data.model.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.time.Instant
 import kotlin.uuid.Uuid
 
@@ -19,7 +27,8 @@ import kotlin.uuid.Uuid
 class ChatServiceImpl(
     private val context: Context,
     private val chatDao: ChatDAO,
-    private val fileStorage: RolePlayFileStorage
+    private val fileStorage: RolePlayFileStorage,
+    private val aiSDK: AISDK
 ) : ChatService {
 
     override fun getChatsByCharacter(characterId: Uuid): Flow<List<ChatMetadata>> {
@@ -58,6 +67,8 @@ class ChatServiceImpl(
                     title = title.ifBlank { "New Chat" },
                     messageCount = 0,
                     pinned = false,
+                    activeBranchId = chatId,
+                    rootNodes = listOf(chatId),
                     createdAt = now,
                     updatedAt = now
                 )
@@ -97,6 +108,7 @@ class ChatServiceImpl(
                     fileStorage.getChatFile(chat.characterId, chatId)
                 }
                 fileStorage.deleteChatFile(chatFile)
+                fileStorage.deleteChatBranchFiles(chatFile, chatId)
 
                 Result.success(Unit)
             } catch (e: Exception) {
@@ -143,22 +155,11 @@ class ChatServiceImpl(
         return withContext(Dispatchers.IO) {
             val chat = getChatById(chatId) ?: return@withContext emptyList()
 
-            val chatFile = if (chat.groupId != null) {
-                fileStorage.getGroupChatFile(chat.groupId, chatId)
-            } else {
-                fileStorage.getChatFile(chat.characterId, chatId)
-            }
+            val chatFile = activeChatFile(chat)
 
             val messages = fileStorage.loadMessagesWindowed(chatFile, offset, limit)
 
-            // 将ChatMessage转换为MessageNode(每个节点只有一个消息)
-            messages.map { msg ->
-                MessageNode(
-                    id = msg.id,
-                    messages = listOf(msg),
-                    selectedIndex = 0
-                )
-            }
+            messages.map { it.toMessageNode() }
         }
     }
 
@@ -174,17 +175,10 @@ class ChatServiceImpl(
                     timestamp = Instant.now()
                 )
 
-                // 追加到JSONL文件
-                val chatFile = if (chat.groupId != null) {
-                    fileStorage.getGroupChatFile(chat.groupId, chatId)
-                } else {
-                    fileStorage.getChatFile(chat.characterId, chatId)
-                }
+                val chatFile = activeChatFile(chat)
                 fileStorage.appendMessageToFile(chatFile, message)
 
-                // 更新消息计数
-                val newCount = chat.messageCount + 1
-                chatDao.updateMessageCount(chatId.toString(), newCount, Instant.now().toEpochMilli())
+                persistChat(chat.copy(messageCount = fileStorage.getChatLineCount(chatFile), updatedAt = Instant.now()))
 
                 Result.success(message)
             } catch (e: Exception) {
@@ -206,17 +200,10 @@ class ChatServiceImpl(
                     timestamp = Instant.now()
                 )
 
-                // 追加到JSONL文件
-                val chatFile = if (chat.groupId != null) {
-                    fileStorage.getGroupChatFile(chat.groupId, chatId)
-                } else {
-                    fileStorage.getChatFile(chat.characterId, chatId)
-                }
+                val chatFile = activeChatFile(chat)
                 fileStorage.appendMessageToFile(chatFile, message)
 
-                // 更新消息计数
-                val newCount = chat.messageCount + 1
-                chatDao.updateMessageCount(chatId.toString(), newCount, Instant.now().toEpochMilli())
+                persistChat(chat.copy(messageCount = fileStorage.getChatLineCount(chatFile), updatedAt = Instant.now()))
 
                 Result.success(message)
             } catch (e: Exception) {
@@ -227,38 +214,70 @@ class ChatServiceImpl(
     }
 
     override suspend fun addSwipeAlternative(chatId: Uuid, messageIndex: Int, content: String): Result<Unit> {
-        // TODO: 需要重新设计JSONL格式以支持MessageNode的备选消息
-        // 当前简化实现:直接返回错误
-        return Result.failure(Exception("Swipe alternatives not yet implemented"))
+        return updateMessageAtIndex(chatId, messageIndex) { message ->
+            val alternatives = (listOf(message.content) + message.swipeAlternatives)
+                .filter { it != content }
+            message.copy(
+                content = content,
+                timestamp = Instant.now(),
+                swipeAlternatives = alternatives
+            )
+        }
     }
 
     override suspend fun nextSwipe(chatId: Uuid, messageIndex: Int): Result<Unit> {
-        return Result.failure(Exception("Swipe not yet implemented"))
+        return updateMessageAtIndex(chatId, messageIndex) { message ->
+            val next = message.swipeAlternatives.firstOrNull() ?: return@updateMessageAtIndex message
+            message.copy(
+                content = next,
+                timestamp = Instant.now(),
+                swipeAlternatives = message.swipeAlternatives.drop(1) + message.content
+            )
+        }
     }
 
     override suspend fun previousSwipe(chatId: Uuid, messageIndex: Int): Result<Unit> {
-        return Result.failure(Exception("Swipe not yet implemented"))
+        return updateMessageAtIndex(chatId, messageIndex) { message ->
+            val previous = message.swipeAlternatives.lastOrNull() ?: return@updateMessageAtIndex message
+            message.copy(
+                content = previous,
+                timestamp = Instant.now(),
+                swipeAlternatives = listOf(message.content) + message.swipeAlternatives.dropLast(1)
+            )
+        }
     }
 
     override suspend fun deleteMessageNode(chatId: Uuid, messageIndex: Int): Result<Unit> {
-        // TODO: 需要实现消息删除逻辑(重写JSONL文件)
-        return Result.failure(Exception("Message deletion not yet implemented"))
+        return withContext(Dispatchers.IO) {
+            try {
+                val chat = getChatById(chatId) ?: return@withContext Result.failure(Exception("Chat not found"))
+                val chatFile = activeChatFile(chat)
+                val messages = fileStorage.loadMessagesFromJsonl(chatFile).toMutableList()
+                if (messageIndex !in messages.indices) {
+                    return@withContext Result.failure(Exception("Message index out of range"))
+                }
+                messages.removeAt(messageIndex)
+                fileStorage.saveMessagesToJsonl(chatFile, messages)
+                persistChat(chat.copy(messageCount = messages.size, updatedAt = Instant.now()))
+                Result.success(Unit)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Result.failure(e)
+            }
+        }
     }
 
     override suspend fun editMessage(chatId: Uuid, messageIndex: Int, content: String): Result<Unit> {
-        // TODO: 需要实现消息编辑逻辑(重写JSONL文件)
-        return Result.failure(Exception("Message editing not yet implemented"))
+        return updateMessageAtIndex(chatId, messageIndex) { message ->
+            message.copy(content = content, timestamp = Instant.now())
+        }
     }
 
     override suspend fun getMessageCount(chatId: Uuid): Int {
         return withContext(Dispatchers.IO) {
             val chat = getChatById(chatId) ?: return@withContext 0
 
-            val chatFile = if (chat.groupId != null) {
-                fileStorage.getGroupChatFile(chat.groupId, chatId)
-            } else {
-                fileStorage.getChatFile(chat.characterId, chatId)
-            }
+            val chatFile = activeChatFile(chat)
 
             fileStorage.getChatLineCount(chatFile)
         }
@@ -269,14 +288,13 @@ class ChatServiceImpl(
             try {
                 val chat = getChatById(chatId) ?: return@withContext Result.failure(Exception("Chat not found"))
 
-                val chatFile = if (chat.groupId != null) {
-                    fileStorage.getGroupChatFile(chat.groupId, chatId)
-                } else {
-                    fileStorage.getChatFile(chat.characterId, chatId)
-                }
+                val chatFile = activeChatFile(chat)
 
                 // 读取所有消息
                 val messages = fileStorage.loadMessagesFromJsonl(chatFile)
+                if (messages.none { it.id == messageId }) {
+                    return@withContext Result.failure(Exception("Message not found"))
+                }
 
                 // 过滤掉要删除的消息
                 val filteredMessages = messages.filter { it.id != messageId }
@@ -284,9 +302,7 @@ class ChatServiceImpl(
                 // 重写文件
                 fileStorage.saveMessagesToJsonl(chatFile, filteredMessages)
 
-                // 更新消息计数
-                val newCount = filteredMessages.size
-                chatDao.updateMessageCount(chatId.toString(), newCount, Instant.now().toEpochMilli())
+                persistChat(chat.copy(messageCount = filteredMessages.size, updatedAt = Instant.now()))
 
                 Result.success(Unit)
             } catch (e: Exception) {
@@ -301,17 +317,12 @@ class ChatServiceImpl(
             try {
                 val chat = getChatById(chatId) ?: return@withContext Result.failure(Exception("Chat not found"))
 
-                val chatFile = if (chat.groupId != null) {
-                    fileStorage.getGroupChatFile(chat.groupId, chatId)
-                } else {
-                    fileStorage.getChatFile(chat.characterId, chatId)
-                }
+                val chatFile = activeChatFile(chat)
 
                 // 清空文件（写入空列表）
                 fileStorage.saveMessagesToJsonl(chatFile, emptyList())
 
-                // 更新消息计数
-                chatDao.updateMessageCount(chatId.toString(), 0, Instant.now().toEpochMilli())
+                persistChat(chat.copy(messageCount = 0, updatedAt = Instant.now()))
 
                 Result.success(Unit)
             } catch (e: Exception) {
@@ -328,40 +339,27 @@ class ChatServiceImpl(
             try {
                 val chat = getChatById(chatId) ?: return@withContext Result.failure(Exception("Chat not found"))
 
-                // 加载所有消息节点
-                val allNodes = loadMessages(chatId)
+                val sourceFile = activeChatFile(chat)
+                val messages = fileStorage.loadMessagesFromJsonl(sourceFile)
 
-                if (fromMessageIndex < 0 || fromMessageIndex >= allNodes.size) {
+                if (fromMessageIndex < 0 || fromMessageIndex >= messages.size) {
                     return@withContext Result.failure(Exception("Invalid message index"))
                 }
 
-                // 从指定节点创建新分支
-                val parentNode = allNodes[fromMessageIndex]
                 val newBranchId = Uuid.random()
+                val branchFile = branchChatFile(chat, newBranchId)
+                val branchMessages = messages.take(fromMessageIndex + 1)
+                fileStorage.saveMessagesToJsonl(branchFile, branchMessages)
 
-                // 创建新的 MessageNode（复制父节点的消息作为起点）
-                val newBranchNode = MessageNode(
-                    id = newBranchId,
-                    messages = parentNode.messages,
-                    selectedIndex = parentNode.selectedIndex,
-                    parentId = parentNode.id,
-                    children = emptyList(),
-                    branchLabel = "Branch ${newBranchId.toString().take(8)}"
-                )
-
-                // 更新父节点的 children 列表
-                val updatedParentNode = parentNode.addChild(newBranchId)
-
-                // TODO: 保存新的分支节点到文件存储
-                // 当前简化实现：只更新数据库中的 rootNodes
-                val updatedRootNodes = chat.rootNodes + newBranchId
+                val updatedRootNodes = (branchIds(chat) + newBranchId).distinct()
                 val updatedChat = chat.copy(
                     rootNodes = updatedRootNodes,
-                    activeBranchId = newBranchId,  // 自动切换到新分支
+                    activeBranchId = newBranchId,
+                    messageCount = branchMessages.size,
                     updatedAt = Instant.now()
                 )
 
-                chatDao.insertChat(ChatEntity.fromModel(updatedChat))
+                persistChat(updatedChat)
 
                 Result.success(newBranchId)
             } catch (e: Exception) {
@@ -376,18 +374,19 @@ class ChatServiceImpl(
             try {
                 val chat = getChatById(chatId) ?: return@withContext Result.failure(Exception("Chat not found"))
 
-                // 验证分支是否存在（在 rootNodes 中）
-                if (!chat.rootNodes.contains(nodeId)) {
+                if (!branchIds(chat).contains(nodeId)) {
                     return@withContext Result.failure(Exception("Branch not found"))
                 }
 
                 // 更新 activeBranchId
+                val branchFile = branchChatFile(chat, nodeId)
                 val updatedChat = chat.copy(
                     activeBranchId = nodeId,
+                    messageCount = fileStorage.getChatLineCount(branchFile),
                     updatedAt = Instant.now()
                 )
 
-                chatDao.insertChat(ChatEntity.fromModel(updatedChat))
+                persistChat(updatedChat)
 
                 Result.success(Unit)
             } catch (e: Exception) {
@@ -402,27 +401,31 @@ class ChatServiceImpl(
             try {
                 val chat = getChatById(chatId) ?: return@withContext Result.failure(Exception("Chat not found"))
 
-                // 不能删除最后一个根节点
-                if (chat.rootNodes.size <= 1) {
+                val branches = branchIds(chat)
+                if (branches.size <= 1) {
                     return@withContext Result.failure(Exception("Cannot delete the last branch"))
+                }
+                if (nodeId == chat.chatId) {
+                    return@withContext Result.failure(Exception("Cannot delete the default branch"))
                 }
 
                 // 从 rootNodes 中移除
-                val updatedRootNodes = chat.rootNodes.filter { it != nodeId }
+                val updatedRootNodes = branches.filter { it != nodeId }
+                val nextActiveBranch = if (chat.activeBranchId == nodeId) {
+                    updatedRootNodes.firstOrNull() ?: chat.chatId
+                } else {
+                    chat.activeBranchId ?: chat.chatId
+                }
+                val nextFile = branchChatFile(chat, nextActiveBranch)
                 val updatedChat = chat.copy(
                     rootNodes = updatedRootNodes,
-                    activeBranchId = if (chat.activeBranchId == nodeId) {
-                        // 如果删除的是当前激活的分支，切换到第一个可用分支
-                        updatedRootNodes.firstOrNull()
-                    } else {
-                        chat.activeBranchId
-                    },
+                    activeBranchId = nextActiveBranch,
+                    messageCount = fileStorage.getChatLineCount(nextFile),
                     updatedAt = Instant.now()
                 )
 
-                chatDao.insertChat(ChatEntity.fromModel(updatedChat))
-
-                // TODO: 删除分支对应的消息文件
+                branchChatFile(chat, nodeId).delete()
+                persistChat(updatedChat)
 
                 Result.success(Unit)
             } catch (e: Exception) {
@@ -436,13 +439,18 @@ class ChatServiceImpl(
         return withContext(Dispatchers.IO) {
             val chat = getChatById(chatId) ?: return@withContext emptyList()
 
-            // 返回所有根节点作为分支列表
-            chat.rootNodes.map { nodeId ->
+            branchIds(chat).map { nodeId ->
+                val branchFile = branchChatFile(chat, nodeId)
+                val messages = fileStorage.loadMessagesFromJsonl(branchFile)
                 MessageNode(
                     id = nodeId,
-                    messages = emptyList(),  // TODO: 从文件存储加载分支的具体消息
+                    messages = messages.takeLast(1),
                     selectedIndex = 0,
-                    branchLabel = "Branch ${nodeId.toString().take(8)}"
+                    branchLabel = if (nodeId == chat.chatId) {
+                        "Main"
+                    } else {
+                        "Branch ${nodeId.toString().take(8)}"
+                    }
                 )
             }
         }
@@ -455,11 +463,7 @@ class ChatServiceImpl(
             try {
                 val chat = getChatById(chatId) ?: return@withContext Result.failure(Exception("Chat not found"))
 
-                val chatFile = if (chat.groupId != null) {
-                    fileStorage.getGroupChatFile(chat.groupId, chatId)
-                } else {
-                    fileStorage.getChatFile(chat.characterId, chatId)
-                }
+                val chatFile = activeChatFile(chat)
 
                 // 加载所有消息
                 val messages = fileStorage.loadMessagesFromJsonl(chatFile)
@@ -498,13 +502,35 @@ class ChatServiceImpl(
         temperature: Float,
         maxTokens: Int
     ): Flow<ChatGenerationEvent> {
-        // TODO: 实现消息重新生成
-        // 1. 删除原消息
-        // 2. 基于之前的上下文重新生成
-        // 3. 流式返回新消息
+        return flow {
+            try {
+                val chat = getChatById(chatId) ?: run {
+                    emit(ChatGenerationEvent.Error(Exception("Chat not found")))
+                    return@flow
+                }
+                val chatFile = activeChatFile(chat)
+                val messages = fileStorage.loadMessagesFromJsonl(chatFile)
+                val targetIndex = messages.indexOfFirst { it.id == messageId }
+                if (targetIndex < 0) {
+                    emit(ChatGenerationEvent.Error(Exception("Message not found")))
+                    return@flow
+                }
 
-        return kotlinx.coroutines.flow.flow {
-            emit(ChatGenerationEvent.Error(Exception("Regeneration not yet implemented")))
+                val keepCount = if (messages[targetIndex].role == MessageRole.ASSISTANT) {
+                    targetIndex
+                } else {
+                    targetIndex + 1
+                }
+                val retainedMessages = messages.take(keepCount)
+                fileStorage.saveMessagesToJsonl(chatFile, retainedMessages)
+                persistChat(chat.copy(messageCount = retainedMessages.size, updatedAt = Instant.now()))
+
+                generateResponse(chatId, providerId, modelId, systemPrompt, temperature, maxTokens).collect { event ->
+                    emit(event)
+                }
+            } catch (e: Exception) {
+                emit(ChatGenerationEvent.Error(e))
+            }
         }
     }
 
@@ -518,15 +544,39 @@ class ChatServiceImpl(
         temperature: Float,
         maxTokens: Int
     ): Flow<ChatGenerationEvent> {
-        // TODO: 集成AI SDK进行流式生成
-        // 这里需要:
-        // 1. 加载历史消息
-        // 2. 构建对话上下文
-        // 3. 调用AI SDK
-        // 4. 流式返回结果
+        return flow {
+            try {
+                val chat = getChatById(chatId) ?: run {
+                    emit(ChatGenerationEvent.Error(Exception("Chat not found")))
+                    return@flow
+                }
+                val model = requestModel(modelId)
+                val messages = buildUiMessages(systemPrompt, loadAllMessages(chat))
+                val request = StreamTextRequest(
+                    model = model,
+                    messages = messages,
+                    temperature = temperature,
+                    maxTokens = maxTokens
+                )
+                val fullMessage = StringBuilder()
+                aiSDK.streamText(request).collect { chunk ->
+                    when (chunk) {
+                        is TextChunk.TextDelta -> {
+                            fullMessage.append(chunk.text)
+                            emit(ChatGenerationEvent.Streaming(chunk.text))
+                        }
 
-        return kotlinx.coroutines.flow.flow {
-            emit(ChatGenerationEvent.Error(Exception("AI generation not yet implemented")))
+                        is TextChunk.Finish -> {
+                            val saved = appendAssistantMessage(chatId, fullMessage.toString()).getOrThrow()
+                            emit(ChatGenerationEvent.Complete(saved))
+                        }
+
+                        else -> Unit
+                    }
+                }
+            } catch (e: Exception) {
+                emit(ChatGenerationEvent.Error(e))
+            }
         }
     }
 
@@ -535,13 +585,109 @@ class ChatServiceImpl(
     /**
      * 加载聊天的所有消息
      */
-    private suspend fun loadAllMessages(chat: ChatMetadata): List<ChatMessage> {
-        val chatFile = if (chat.groupId != null) {
-            fileStorage.getGroupChatFile(chat.groupId, chat.chatId)
-        } else {
-            fileStorage.getChatFile(chat.characterId, chat.chatId)
+    private suspend fun updateMessageAtIndex(
+        chatId: Uuid,
+        messageIndex: Int,
+        transform: (ChatMessage) -> ChatMessage
+    ): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val chat = getChatById(chatId) ?: return@withContext Result.failure(Exception("Chat not found"))
+                val chatFile = activeChatFile(chat)
+                val messages = fileStorage.loadMessagesFromJsonl(chatFile)
+                if (messageIndex !in messages.indices) {
+                    return@withContext Result.failure(Exception("Message index out of range"))
+                }
+                val updatedMessages = messages.mapIndexed { index, message ->
+                    if (index == messageIndex) transform(message) else message
+                }
+                fileStorage.saveMessagesToJsonl(chatFile, updatedMessages)
+                persistChat(chat.copy(messageCount = updatedMessages.size, updatedAt = Instant.now()))
+                Result.success(Unit)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Result.failure(e)
+            }
         }
+    }
 
-        return fileStorage.loadMessagesFromJsonl(chatFile)
+    private fun ChatMessage.toMessageNode(): MessageNode {
+        val alternatives = swipeAlternatives.map { alternative ->
+            copy(content = alternative, swipeAlternatives = emptyList())
+        }
+        return MessageNode(
+            id = id,
+            messages = listOf(this) + alternatives,
+            selectedIndex = 0
+        )
+    }
+
+    private fun requestModel(modelId: String): Model {
+        val trimmedModelId = modelId.trim()
+        val uuid = runCatching { Uuid.parse(trimmedModelId) }.getOrElse { Uuid.random() }
+        return Model(
+            id = uuid,
+            modelId = trimmedModelId,
+            displayName = trimmedModelId
+        )
+    }
+
+    private fun buildUiMessages(systemPrompt: String, messages: List<ChatMessage>): List<UIMessage> {
+        return buildList {
+            systemPrompt.trim().takeIf { it.isNotEmpty() }?.let { prompt ->
+                add(UIMessage.system(prompt))
+            }
+            messages.forEach { message ->
+                add(
+                    UIMessage(
+                        id = message.id,
+                        role = message.role,
+                        parts = listOf(UIMessagePart.Text(message.content))
+                    )
+                )
+            }
+        }
+    }
+
+    private fun branchIds(chat: ChatMetadata): List<Uuid> {
+        return (chat.rootNodes.ifEmpty { listOf(chat.chatId) })
+            .let { ids -> if (chat.chatId in ids) ids else listOf(chat.chatId) + ids }
+            .distinct()
+    }
+
+    private fun activeBranchId(chat: ChatMetadata): Uuid {
+        val active = chat.activeBranchId ?: chat.chatId
+        return if (active in branchIds(chat)) active else chat.chatId
+    }
+
+    private fun activeChatFile(chat: ChatMetadata): File {
+        return branchChatFile(chat, activeBranchId(chat))
+    }
+
+    private fun branchChatFile(chat: ChatMetadata, branchId: Uuid): File {
+        return if (branchId == chat.chatId) {
+            if (chat.groupId != null) {
+                fileStorage.getGroupChatFile(chat.groupId, chat.chatId)
+            } else {
+                fileStorage.getChatFile(chat.characterId, chat.chatId)
+            }
+        } else {
+            if (chat.groupId != null) {
+                fileStorage.getGroupChatBranchFile(chat.groupId, chat.chatId, branchId)
+            } else {
+                fileStorage.getChatBranchFile(chat.characterId, chat.chatId, branchId)
+            }
+        }
+    }
+
+    private suspend fun persistChat(chat: ChatMetadata) {
+        chatDao.insertChat(ChatEntity.fromModel(chat))
+    }
+
+    /**
+     * 加载聊天的所有消息
+     */
+    private suspend fun loadAllMessages(chat: ChatMetadata): List<ChatMessage> {
+        return fileStorage.loadMessagesFromJsonl(activeChatFile(chat))
     }
 }

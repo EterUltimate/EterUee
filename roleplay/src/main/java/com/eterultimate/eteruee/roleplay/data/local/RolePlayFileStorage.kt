@@ -26,10 +26,12 @@ import java.io.FileWriter
  * │   │   └── avatar.png
  * ├── chats/
  * │   ├── {character_id}/
- * │   │   └── {chat_id}.jsonl
+ * │   │   ├── {chat_id}.jsonl
+ * │   │   └── branches/{chat_id}_{branch_id}.jsonl
  * │   └── groups/
  * │       └── {group_id}/
- * │           └── {chat_id}.jsonl
+ * │           ├── {chat_id}.jsonl
+ * │           └── branches/{chat_id}_{branch_id}.jsonl
  * ├── worldinfos/
  * │   └── {worldinfo_id}.json
  * ├── groups/
@@ -107,6 +109,19 @@ class RolePlayFileStorage(private val context: Context) {
             null
         }
     }
+
+    suspend fun saveCharacterAvatarBytes(characterId: kotlin.uuid.Uuid, bytes: ByteArray): String? =
+        withContext(Dispatchers.IO) {
+            try {
+                val dir = getCharacterDir(characterId)
+                val avatarFile = dir.resolve("avatar.png")
+                avatarFile.writeBytes(bytes)
+                avatarFile.absolutePath
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        }
     
     /**
      * 删除角色目录
@@ -138,6 +153,18 @@ class RolePlayFileStorage(private val context: Context) {
         val dir = getCharacterChatDir(characterId)
         return dir.resolve("${chatId}.jsonl")
     }
+
+    /**
+     * 获取角色聊天分支 JSONL 文件
+     */
+    fun getChatBranchFile(
+        characterId: kotlin.uuid.Uuid,
+        chatId: kotlin.uuid.Uuid,
+        branchId: kotlin.uuid.Uuid
+    ): File {
+        val dir = getCharacterChatDir(characterId).resolve("branches").apply { mkdirs() }
+        return dir.resolve("${chatId}_${branchId}.jsonl")
+    }
     
     /**
      * 获取群组聊天JSONL文件
@@ -145,6 +172,28 @@ class RolePlayFileStorage(private val context: Context) {
     fun getGroupChatFile(groupId: kotlin.uuid.Uuid, chatId: kotlin.uuid.Uuid): File {
         val dir = getGroupChatDir(groupId)
         return dir.resolve("${chatId}.jsonl")
+    }
+
+    /**
+     * 获取群组聊天分支 JSONL 文件
+     */
+    fun getGroupChatBranchFile(
+        groupId: kotlin.uuid.Uuid,
+        chatId: kotlin.uuid.Uuid,
+        branchId: kotlin.uuid.Uuid
+    ): File {
+        val dir = getGroupChatDir(groupId).resolve("branches").apply { mkdirs() }
+        return dir.resolve("${chatId}_${branchId}.jsonl")
+    }
+
+    /**
+     * 删除聊天的所有分支文件
+     */
+    suspend fun deleteChatBranchFiles(chatFile: File, chatId: kotlin.uuid.Uuid) = withContext(Dispatchers.IO) {
+        chatFile.parentFile
+            ?.resolve("branches")
+            ?.listFiles { file -> file.name.startsWith("${chatId}_") && file.name.endsWith(".jsonl") }
+            ?.forEach { it.delete() }
     }
     
     /**

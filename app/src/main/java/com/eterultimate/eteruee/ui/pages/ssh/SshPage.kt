@@ -1,31 +1,24 @@
 package com.eterultimate.eteruee.ui.pages.ssh
 
 import android.util.Log
-import com.jcraft.jsch.ChannelExec
-import com.jcraft.jsch.JSch
-import com.jcraft.jsch.Session
-import com.jcraft.jsch.UserInfo
-import me.rerere.hugeicons.HugeIcons
-import me.rerere.hugeicons.stroke.Play
-import me.rerere.hugeicons.stroke.ServerStack01
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -33,8 +26,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -43,42 +36,44 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.ui.components.nav.BackButton
+import com.jcraft.jsch.ChannelShell
+import com.jcraft.jsch.JSch
+import com.jcraft.jsch.Session
+import com.jcraft.jsch.UserInfo
+import java.io.OutputStream
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.rerere.hugeicons.HugeIcons
+import me.rerere.hugeicons.stroke.ServerStack01
 
 private const val TAG = "SshPage"
 
-private data class SshResult(
-    val stdout: String,
-    val stderr: String,
-    val exitCode: Int,
+private data class SshTerminalSession(
+    val session: Session,
+    val channel: ChannelShell,
+    val input: OutputStream,
 )
 
-private data class SshHistoryItem(
-    val command: String,
-    val result: SshResult,
-    val host: String,
-    val timestamp: Long = System.currentTimeMillis(),
-)
-
-private fun executeSshCommand(
+private fun openSshShell(
     host: String,
     port: Int,
     username: String,
     password: String?,
     privateKey: String?,
     passphrase: String?,
-    command: String,
     timeoutSeconds: Int,
-): SshResult {
+): SshTerminalSession {
     var session: Session? = null
-    var channel: ChannelExec? = null
 
     try {
         val jsch = JSch()
@@ -115,51 +110,58 @@ private fun executeSshCommand(
 
         session.connect(timeoutSeconds * 1000)
 
-        channel = session.openChannel("exec") as ChannelExec
-        channel.setCommand(command)
-        channel.setPty(false)
+        val channel = session.openChannel("shell") as ChannelShell
+        channel.setPty(true)
+        channel.setPtyType("xterm")
         channel.connect(timeoutSeconds * 1000)
-
-        val stdout = channel.inputStream.bufferedReader(Charsets.UTF_8).readText()
-        val stderr = channel.errStream.bufferedReader(Charsets.UTF_8).readText()
-
-        val deadline = System.currentTimeMillis() + timeoutSeconds * 1000L
-        while (!channel.isClosed) {
-            if (System.currentTimeMillis() > deadline) {
-                channel.disconnect()
-                return SshResult(
-                    stdout = stdout,
-                    stderr = stderr + "\n[TIMEOUT] Command timed out after ${timeoutSeconds}s",
-                    exitCode = -1,
-                )
-            }
-            Thread.sleep(100)
-        }
-
-        return SshResult(
-            stdout = stdout,
-            stderr = stderr,
-            exitCode = channel.exitStatus,
-        )
+        return SshTerminalSession(session, channel, channel.outputStream)
     } catch (e: Exception) {
-        Log.e(TAG, "SSH execution failed", e)
-        return SshResult(
-            stdout = "",
-            stderr = e.message ?: e.javaClass.simpleName,
-            exitCode = -1,
-        )
-    } finally {
-        channel?.disconnect()
+        Log.e(TAG, "SSH shell failed", e)
         session?.disconnect()
+        throw e
+    }
+}
+
+private fun SshTerminalSession.close() {
+    runCatching { input.close() }
+    runCatching { channel.disconnect() }
+    runCatching { session.disconnect() }
+}
+
+private fun SshTerminalSession.sendLine(command: String) {
+    input.write((command + "\n").toByteArray(Charsets.UTF_8))
+    input.flush()
+}
+
+private suspend fun readSshShellOutput(
+    terminalSession: SshTerminalSession,
+    onOutput: (String) -> Unit,
+) = withContext(Dispatchers.IO) {
+    val input = terminalSession.channel.inputStream
+    val buffer = ByteArray(4096)
+    while (isActive && terminalSession.channel.isConnected && !terminalSession.channel.isClosed) {
+        val available = input.available()
+        if (available > 0) {
+            val read = input.read(buffer, 0, minOf(buffer.size, available))
+            if (read > 0) {
+                val chunk = String(buffer, 0, read, Charsets.UTF_8)
+                withContext(Dispatchers.Main) {
+                    onOutput(chunk)
+                }
+            }
+        } else {
+            Thread.sleep(50)
+        }
     }
 }
 
 @Composable
 fun SshPage() {
     val scope = rememberCoroutineScope()
-    val history = remember { mutableStateListOf<SshHistoryItem>() }
+    var terminalSession by remember { mutableStateOf<SshTerminalSession?>(null) }
+    var readJob by remember { mutableStateOf<Job?>(null) }
+    var terminalOutput by remember { mutableStateOf("") }
 
-    // Connection fields
     var host by remember { mutableStateOf("") }
     var port by remember { mutableStateOf("22") }
     var username by remember { mutableStateOf("") }
@@ -168,64 +170,86 @@ fun SshPage() {
     var privateKey by remember { mutableStateOf("") }
     var passphrase by remember { mutableStateOf("") }
 
-    // Command execution
     var commandInput by remember { mutableStateOf("") }
-    var isExecuting by remember { mutableStateOf(false) }
+    var isConnecting by remember { mutableStateOf(false) }
+
+    fun canConnect(): Boolean {
+        if (isConnecting || terminalSession != null) return false
+        if (host.isBlank() || username.isBlank()) return false
+        if (!useKeyAuth && password.isBlank()) return false
+        if (useKeyAuth && privateKey.isBlank()) return false
+        return true
+    }
+
+    fun disconnect() {
+        readJob?.cancel()
+        readJob = null
+        terminalSession?.close()
+        terminalSession = null
+    }
+
+    fun connect() {
+        if (!canConnect()) return
+        val portNum = port.toIntOrNull() ?: 22
+        isConnecting = true
+        terminalOutput = "Connecting to $username@$host:$portNum...\n"
+
+        scope.launch(Dispatchers.IO) {
+            try {
+                val opened = openSshShell(
+                    host = host,
+                    port = portNum,
+                    username = username,
+                    password = if (useKeyAuth) null else password,
+                    privateKey = if (useKeyAuth) privateKey else null,
+                    passphrase = if (useKeyAuth) passphrase.takeIf { it.isNotBlank() } else null,
+                    timeoutSeconds = 30,
+                )
+                withContext(Dispatchers.Main) {
+                    terminalSession = opened
+                    terminalOutput += "Connected.\n"
+                    readJob = scope.launch {
+                        readSshShellOutput(opened) { chunk -> terminalOutput += chunk }
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    terminalOutput += "Connection failed: ${e.message ?: e.javaClass.simpleName}\n"
+                }
+            } finally {
+                withContext(Dispatchers.Main) {
+                    isConnecting = false
+                }
+            }
+        }
+    }
+
+    fun sendCurrentCommand() {
+        val currentSession = terminalSession ?: return
+        val line = commandInput
+        if (line.isBlank()) return
+        commandInput = ""
+        scope.launch(Dispatchers.IO) {
+            runCatching { currentSession.sendLine(line) }
+                .onFailure { error ->
+                    withContext(Dispatchers.Main) {
+                        terminalOutput += "\n[send failed] ${error.message ?: error.javaClass.simpleName}\n"
+                    }
+                }
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose { disconnect() }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.ssh_page_title)) },
-                navigationIcon = { BackButton() }
+                navigationIcon = { BackButton() },
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    if (commandInput.isBlank() || isExecuting) return@FloatingActionButton
-                    if (host.isBlank() || username.isBlank()) return@FloatingActionButton
-                    if (!useKeyAuth && password.isBlank()) return@FloatingActionButton
-                    if (useKeyAuth && privateKey.isBlank()) return@FloatingActionButton
-
-                    val cmd = commandInput.trim()
-                    val portNum = port.toIntOrNull() ?: 22
-                    commandInput = ""
-                    isExecuting = true
-
-                    scope.launch(Dispatchers.IO) {
-                        val result = executeSshCommand(
-                            host = host,
-                            port = portNum,
-                            username = username,
-                            password = if (useKeyAuth) null else password,
-                            privateKey = if (useKeyAuth) privateKey else null,
-                            passphrase = if (useKeyAuth) passphrase.takeIf { it.isNotBlank() } else null,
-                            command = cmd,
-                            timeoutSeconds = 30,
-                        )
-                        withContext(Dispatchers.Main) {
-                            history.add(SshHistoryItem(cmd, result, host))
-                            isExecuting = false
-                        }
-                    }
-                },
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                if (isExecuting) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Icon(
-                        HugeIcons.Play,
-                        contentDescription = stringResource(R.string.ssh_page_execute),
-                        tint = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
-            }
-        }
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -233,28 +257,27 @@ fun SshPage() {
                 .padding(padding)
                 .padding(horizontal = 16.dp),
             contentPadding = PaddingValues(vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // Connection Card
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    )
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    ),
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         Text(
                             text = stringResource(R.string.ssh_page_connection),
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
                         )
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             OutlinedTextField(
                                 value = host,
@@ -262,14 +285,14 @@ fun SshPage() {
                                 modifier = Modifier.weight(2f),
                                 label = { Text(stringResource(R.string.ssh_page_host)) },
                                 singleLine = true,
-                                leadingIcon = { Icon(HugeIcons.ServerStack01, null) }
+                                leadingIcon = { Icon(HugeIcons.ServerStack01, null) },
                             )
                             OutlinedTextField(
                                 value = port,
                                 onValueChange = { port = it.filter { c -> c.isDigit() } },
                                 modifier = Modifier.weight(1f),
                                 label = { Text(stringResource(R.string.ssh_page_port)) },
-                                singleLine = true
+                                singleLine = true,
                             )
                         }
 
@@ -278,23 +301,22 @@ fun SshPage() {
                             onValueChange = { username = it },
                             modifier = Modifier.fillMaxWidth(),
                             label = { Text(stringResource(R.string.ssh_page_username)) },
-                            singleLine = true
+                            singleLine = true,
                         )
 
-                        // Auth method selector
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             FilterChip(
                                 selected = !useKeyAuth,
                                 onClick = { useKeyAuth = false },
-                                label = { Text(stringResource(R.string.ssh_page_password_auth)) }
+                                label = { Text(stringResource(R.string.ssh_page_password_auth)) },
                             )
                             FilterChip(
                                 selected = useKeyAuth,
                                 onClick = { useKeyAuth = true },
-                                label = { Text(stringResource(R.string.ssh_page_key_auth)) }
+                                label = { Text(stringResource(R.string.ssh_page_key_auth)) },
                             )
                         }
 
@@ -305,7 +327,7 @@ fun SshPage() {
                                 modifier = Modifier.fillMaxWidth(),
                                 label = { Text(stringResource(R.string.ssh_page_password)) },
                                 singleLine = true,
-                                visualTransformation = PasswordVisualTransformation()
+                                visualTransformation = PasswordVisualTransformation(),
                             )
                         } else {
                             OutlinedTextField(
@@ -314,7 +336,7 @@ fun SshPage() {
                                 modifier = Modifier.fillMaxWidth(),
                                 label = { Text(stringResource(R.string.ssh_page_private_key)) },
                                 minLines = 4,
-                                maxLines = 8
+                                maxLines = 8,
                             )
                             OutlinedTextField(
                                 value = passphrase,
@@ -322,117 +344,120 @@ fun SshPage() {
                                 modifier = Modifier.fillMaxWidth(),
                                 label = { Text(stringResource(R.string.ssh_page_passphrase)) },
                                 singleLine = true,
-                                visualTransformation = PasswordVisualTransformation()
+                                visualTransformation = PasswordVisualTransformation(),
                             )
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                        ) {
+                            if (terminalSession == null) {
+                                Button(onClick = { connect() }, enabled = canConnect()) {
+                                    Text(if (isConnecting) "Connecting" else "Connect")
+                                }
+                            } else {
+                                Button(onClick = { disconnect() }) {
+                                    Text("Disconnect")
+                                }
+                            }
                         }
                     }
                 }
             }
 
-            // Command input
             item {
-                HorizontalDivider()
-                OutlinedTextField(
-                    value = commandInput,
-                    onValueChange = { commandInput = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(stringResource(R.string.ssh_page_command_hint)) },
-                    label = { Text(stringResource(R.string.ssh_page_command_label)) },
-                    singleLine = true,
-                    leadingIcon = { Icon(HugeIcons.ServerStack01, null) }
+                SshTerminalPane(
+                    host = host.ifBlank { "host" },
+                    username = username.ifBlank { "user" },
+                    output = terminalOutput,
+                    commandInput = commandInput,
+                    onCommandInputChange = { commandInput = it },
+                    isConnected = terminalSession != null,
+                    onExecute = { sendCurrentCommand() },
                 )
-            }
-
-            // Output history
-            items(history.reversed()) { item ->
-                SshOutputCard(item = item)
-            }
-
-            if (history.isEmpty()) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = stringResource(R.string.ssh_page_empty_hint),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
             }
         }
     }
 }
 
 @Composable
-private fun SshOutputCard(item: SshHistoryItem) {
+private fun SshTerminalPane(
+    host: String,
+    username: String,
+    output: String,
+    commandInput: String,
+    onCommandInputChange: (String) -> Unit,
+    isConnected: Boolean,
+    onExecute: () -> Unit,
+) {
+    val terminalColor = Color(0xFF101418)
+    val terminalText = Color(0xFFE7ECEF)
+    val promptColor = Color(0xFF8BD5A7)
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        )
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 320.dp),
+        colors = CardDefaults.cardColors(containerColor = terminalColor),
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 320.dp)
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            if (output.isBlank()) {
                 Text(
-                    text = item.host,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = "$ ${item.command}",
+                    text = stringResource(R.string.ssh_page_empty_hint),
+                    color = terminalText.copy(alpha = 0.64f),
                     fontFamily = FontFamily.Monospace,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.weight(1f)
                 )
-            }
-
-            val exitColor = when {
-                item.result.exitCode == 0 -> Color(0xFF00C853)
-                else -> Color(0xFFFF5252)
-            }
-            Text(
-                text = "exit: ${item.result.exitCode}",
-                style = MaterialTheme.typography.labelSmall,
-                color = exitColor,
-                fontFamily = FontFamily.Monospace
-            )
-
-            if (item.result.stdout.isNotBlank()) {
+            } else {
                 SelectionContainer {
                     Text(
-                        text = item.result.stdout,
+                        text = output,
+                        color = terminalText,
                         fontFamily = FontFamily.Monospace,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
-
-            if (item.result.stderr.isNotBlank()) {
-                SelectionContainer {
-                    Text(
-                        text = item.result.stderr,
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "$username@$host$ ",
+                    color = promptColor,
+                    fontFamily = FontFamily.Monospace,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                BasicTextField(
+                    value = commandInput,
+                    onValueChange = onCommandInputChange,
+                    enabled = isConnected,
+                    singleLine = true,
+                    textStyle = TextStyle(
+                        color = terminalText,
                         fontFamily = FontFamily.Monospace,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (item.result.exitCode == 0) {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        } else {
-                            MaterialTheme.colorScheme.error
-                        },
-                        modifier = Modifier.fillMaxWidth()
+                        fontSize = MaterialTheme.typography.bodySmall.fontSize,
+                    ),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                    keyboardActions = KeyboardActions(onSend = { onExecute() }),
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(Color.Transparent),
+                )
+                if (!isConnected) {
+                    Text(
+                        text = " disconnected",
+                        color = terminalText.copy(alpha = 0.64f),
+                        fontFamily = FontFamily.Monospace,
+                        style = MaterialTheme.typography.labelSmall,
                     )
                 }
             }

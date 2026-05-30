@@ -23,13 +23,25 @@ android {
         applicationId = "com.eterultimate.eteruee"
         minSdk = 26
         targetSdk = 37
-        versionCode = 167
-        versionName = "5.2.12"
+        versionCode = 168
+        versionName = "5.2.13"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         ndk {
             abiFilters += listOf("arm64-v8a", "x86_64")
+        }
+        externalNativeBuild {
+            cmake {
+                cppFlags += listOf(
+                    "-std=c++17",
+                    "-O3",
+                    "-fvisibility=hidden",
+                    "-fdata-sections",
+                    "-ffunction-sections"
+                )
+                abiFilters += listOf("arm64-v8a", "x86_64")
+            }
         }
     }
 
@@ -169,6 +181,12 @@ android {
     packaging {
         jniLibs {
             useLegacyPackaging = true
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
         }
     }
     lint {

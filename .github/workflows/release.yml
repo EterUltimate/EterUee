@@ -31,6 +31,21 @@ jobs:
           repository: termux/termux-app
           path: termux-app
 
+      - name: Patch Termux app modules for AGP 9
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          for path in Path("termux-app").glob("*/build.gradle"):
+              text = path.read_text()
+              patched = text.replace(
+                  "getDefaultProguardFile('proguard-android.txt')",
+                  "getDefaultProguardFile('proguard-android-optimize.txt')",
+              )
+              if patched != text:
+                  path.write_text(patched)
+          PY
+
       - name: Set up JDK 26
         uses: actions/setup-java@v5
         with:

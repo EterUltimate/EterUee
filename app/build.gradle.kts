@@ -332,6 +332,10 @@ dependencies {
     // JSch (SSH client)
     implementation(libs.jsch)
 
+    // Shizuku privileged shell/API bridge
+    implementation(libs.shizuku.api)
+    implementation(libs.shizuku.provider)
+
     // modules
     implementation(project(":ai"))
     implementation(project(":web"))

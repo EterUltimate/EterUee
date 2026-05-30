@@ -1125,6 +1125,10 @@
   <string name="assistant_page_local_tools_shell_title">Shell</string>
   <string name="assistant_page_local_tools_ssh_desc">透過SSH在遠端伺服器上執行命令</string>
   <string name="assistant_page_local_tools_ssh_title">SSH</string>
+  <string name="assistant_page_local_tools_traffic_control_desc">檢視並控制本機 Hiddify Core 流量路由</string>
+  <string name="assistant_page_local_tools_traffic_control_title">流量管控</string>
+  <string name="assistant_page_local_tools_device_agent_desc">讀取裝置資訊，並在核准後透過 Shizuku 執行 ADB shell 命令</string>
+  <string name="assistant_page_local_tools_device_agent_title">裝置 Agent</string>
   <string name="code_block_execute">執行</string>
   <string name="code_block_executing">執行中...</string>
   <string name="code_block_result">結果</string>

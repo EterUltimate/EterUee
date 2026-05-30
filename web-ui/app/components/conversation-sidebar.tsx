@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 import type { TFunction } from "i18next";
 import { toast } from "sonner";
 import {
+  Bot,
   Check,
   Laptop,
   Languages,
@@ -21,6 +22,7 @@ import {
   Sun,
   Trash2,
 } from "lucide-react";
+import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 
 import { InfiniteScrollArea } from "~/components/extended/infinite-scroll-area";
@@ -928,6 +930,18 @@ export const ConversationSidebar = React.memo(
                 <LogOut className="size-4" />
               </Button>
             )}
+
+            <Button
+              variant="outline"
+              size="icon-sm"
+              className="text-foreground"
+              type="button"
+              asChild
+            >
+              <Link to="/agent" aria-label="Device Agent" title="Device Agent">
+                <Bot className="size-4" />
+              </Link>
+            </Button>
 
             <LanguageSwitcher />
 

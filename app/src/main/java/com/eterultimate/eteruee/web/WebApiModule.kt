@@ -21,9 +21,11 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import com.eterultimate.eteruee.ai.sdk.AISDK
+import com.eterultimate.eteruee.data.ai.tools.LocalTools
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.repository.ConversationRepository
+import com.eterultimate.eteruee.device.DeviceAgentManager
 import com.eterultimate.eteruee.roleplay.domain.service.CharacterService as RoleplayCharacterService
 import com.eterultimate.eteruee.roleplay.domain.service.ChatService as RoleplayChatService
 import com.eterultimate.eteruee.roleplay.domain.service.GroupService as RoleplayGroupService
@@ -37,6 +39,7 @@ import com.eterultimate.eteruee.web.dto.WebAuthTokenResponse
 import com.eterultimate.eteruee.web.routes.aiIconRoutes
 import com.eterultimate.eteruee.web.routes.assetsRoutes
 import com.eterultimate.eteruee.web.routes.conversationRoutes
+import com.eterultimate.eteruee.web.routes.deviceRoutes
 import com.eterultimate.eteruee.web.routes.filesRoutes
 import com.eterultimate.eteruee.web.routes.roleplayRoutes
 import com.eterultimate.eteruee.web.routes.settingsRoutes
@@ -73,7 +76,9 @@ fun Application.configureWebApi(
     roleplayChatService: RoleplayChatService,
     roleplayGroupService: RoleplayGroupService,
     roleplayPresetService: RoleplayPresetService,
-    roleplayWorldInfoService: RoleplayWorldInfoService
+    roleplayWorldInfoService: RoleplayWorldInfoService,
+    localTools: LocalTools,
+    deviceAgentManager: DeviceAgentManager,
 ) {
     val jwtEnabled = settingsStore.settingsFlow.value.webServerJwtEnabled
 
@@ -179,6 +184,7 @@ fun Application.configureWebApi(
             if (jwtEnabled) {
                 authenticate("auth-jwt") {
                     conversationRoutes(chatService, aiSDK, conversationRepo, settingsStore)
+                    deviceRoutes(deviceAgentManager)
                     settingsRoutes(settingsStore)
                     filesRoutes(filesManager, context)
                     assetsRoutes(context)
@@ -190,10 +196,12 @@ fun Application.configureWebApi(
                         groupService = roleplayGroupService,
                         presetService = roleplayPresetService,
                         worldInfoService = roleplayWorldInfoService,
+                        localTools = localTools,
                     )
                 }
             } else {
                 conversationRoutes(chatService, aiSDK, conversationRepo, settingsStore)
+                deviceRoutes(deviceAgentManager)
                 settingsRoutes(settingsStore)
                 filesRoutes(filesManager, context)
                 assetsRoutes(context)
@@ -205,6 +213,7 @@ fun Application.configureWebApi(
                     groupService = roleplayGroupService,
                     presetService = roleplayPresetService,
                     worldInfoService = roleplayWorldInfoService,
+                    localTools = localTools,
                 )
             }
         }

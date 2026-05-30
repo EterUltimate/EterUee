@@ -184,6 +184,34 @@ private fun AssistantLocalToolContent(
                     )
                 }
             )
+            item(
+                headlineContent = {
+                    Text(stringResource(R.string.assistant_page_local_tools_traffic_control_title))
+                },
+                supportingContent = {
+                    Text(stringResource(R.string.assistant_page_local_tools_traffic_control_desc))
+                },
+                trailingContent = {
+                    Switch(
+                        checked = assistant.localTools.contains(LocalToolOption.TrafficControl),
+                        onCheckedChange = { toggleLocalTool(LocalToolOption.TrafficControl, it) }
+                    )
+                }
+            )
+            item(
+                headlineContent = {
+                    Text(stringResource(R.string.assistant_page_local_tools_device_agent_title))
+                },
+                supportingContent = {
+                    Text(stringResource(R.string.assistant_page_local_tools_device_agent_desc))
+                },
+                trailingContent = {
+                    Switch(
+                        checked = assistant.localTools.contains(LocalToolOption.DeviceAgent),
+                        onCheckedChange = { toggleLocalTool(LocalToolOption.DeviceAgent, it) }
+                    )
+                }
+            )
         }
     }
 }

@@ -19,6 +19,8 @@ import com.eterultimate.eteruee.ai.core.Tool
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.data.event.AppEvent
 import com.eterultimate.eteruee.data.event.AppEventBus
+import com.eterultimate.eteruee.device.DeviceAgentManager
+import com.eterultimate.eteruee.network.HiddifyCoreManager
 import com.eterultimate.eteruee.utils.readClipboardText
 import com.eterultimate.eteruee.utils.writeClipboardText
 import java.time.ZonedDateTime
@@ -59,6 +61,14 @@ sealed class LocalToolOption {
     @Serializable
     @SerialName("shell")
     data object Shell : LocalToolOption()
+
+    @Serializable
+    @SerialName("traffic_control")
+    data object TrafficControl : LocalToolOption()
+
+    @Serializable
+    @SerialName("device_agent")
+    data object DeviceAgent : LocalToolOption()
 }
 
 data class ScriptExecutionResult(
@@ -174,7 +184,12 @@ fun executePythonScript(code: String?): ScriptExecutionResult {
     }
 }
 
-class LocalTools(private val context: Context, private val eventBus: AppEventBus) {
+class LocalTools(
+    private val context: Context,
+    private val eventBus: AppEventBus,
+    private val hiddifyCoreManager: HiddifyCoreManager,
+    private val deviceAgentManager: DeviceAgentManager,
+) {
     val javascriptTool by lazy {
         Tool(
             name = "eval_javascript",
@@ -452,6 +467,12 @@ class LocalTools(private val context: Context, private val eventBus: AppEventBus
 
     val shellTool by lazy { ShellTools.createShellExecuteTool(context) }
 
+    val trafficControlTool by lazy { TrafficControlTools.createTrafficControlTool(hiddifyCoreManager) }
+
+    val deviceInfoTool by lazy { DeviceAgentTools.createDeviceInfoTool(deviceAgentManager) }
+
+    val adbShellTool by lazy { DeviceAgentTools.createAdbShellTool(deviceAgentManager) }
+
     fun getTools(options: List<LocalToolOption>): List<Tool> {
         val tools = mutableListOf<Tool>()
         if (options.contains(LocalToolOption.JavascriptEngine)) {
@@ -477,6 +498,13 @@ class LocalTools(private val context: Context, private val eventBus: AppEventBus
         }
         if (options.contains(LocalToolOption.Shell)) {
             tools.add(shellTool)
+        }
+        if (options.contains(LocalToolOption.TrafficControl)) {
+            tools.add(trafficControlTool)
+        }
+        if (options.contains(LocalToolOption.DeviceAgent)) {
+            tools.add(deviceInfoTool)
+            tools.add(adbShellTool)
         }
         return tools
     }

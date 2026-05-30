@@ -1130,6 +1130,10 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="assistant_page_local_tools_shell_title">Shell</string>
   <string name="assistant_page_local_tools_ssh_desc">通过SSH在远程服务器上执行命令</string>
   <string name="assistant_page_local_tools_ssh_title">SSH</string>
+  <string name="assistant_page_local_tools_traffic_control_desc">查看并控制本地 Hiddify Core 流量路由</string>
+  <string name="assistant_page_local_tools_traffic_control_title">流量管控</string>
+  <string name="assistant_page_local_tools_device_agent_desc">读取设备信息，并在审批后通过 Shizuku 执行 ADB shell 命令</string>
+  <string name="assistant_page_local_tools_device_agent_title">设备 Agent</string>
   <string name="code_block_execute">执行</string>
   <string name="code_block_executing">执行中...</string>
   <string name="code_block_result">结果</string>

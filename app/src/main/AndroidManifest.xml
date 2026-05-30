@@ -13,6 +13,10 @@
   <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+  <uses-permission
+    android:name="android.permission.QUERY_ALL_PACKAGES"
+    tools:ignore="QueryAllPackagesPermission" />
+  <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
 
   <uses-feature
     android:name="android.hardware.camera"
@@ -26,6 +30,7 @@
       <action android:name="android.intent.action.TTS_SERVICE" />
     </intent>
     <package android:name="com.termux" />
+    <package android:name="moe.shizuku.privileged.api" />
   </queries>
 
   <application
@@ -114,6 +119,13 @@
         android:name="android.support.FILE_PROVIDER_PATHS"
         android:resource="@xml/file_paths" />
     </provider>
+    <provider
+      android:name="rikka.shizuku.ShizukuProvider"
+      android:authorities="${applicationId}.shizuku"
+      android:enabled="true"
+      android:exported="true"
+      android:multiprocess="false"
+      android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
     <provider
       android:name="androidx.startup.InitializationProvider"
       android:authorities="${applicationId}.androidx-startup"

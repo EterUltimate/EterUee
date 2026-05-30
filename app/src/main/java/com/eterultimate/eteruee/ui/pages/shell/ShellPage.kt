@@ -1,5 +1,7 @@
 package com.eterultimate.eteruee.ui.pages.shell
 
+import android.content.Context
+import android.view.inputmethod.InputMethodManager
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -98,11 +100,18 @@ fun ShellPage() {
                     modifier = Modifier.fillMaxSize(),
                     factory = { viewContext ->
                         TerminalView(viewContext, null).apply {
+                            isFocusable = true
+                            isFocusableInTouchMode = true
                             val textSizePx = (14 * viewContext.resources.displayMetrics.scaledDensity).toInt()
                             setTerminalViewClient(client)
                             setTextSize(textSizePx.coerceAtLeast(12))
                             attachSession(session)
-                            requestFocus()
+                            post {
+                                requestFocus()
+                                requestFocusFromTouch()
+                                (viewContext.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)
+                                    ?.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+                            }
                             client.terminalView = this
                         }
                     },

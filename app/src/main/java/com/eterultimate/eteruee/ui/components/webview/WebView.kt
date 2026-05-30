@@ -1,9 +1,11 @@
 ﻿package com.eterultimate.eteruee.ui.components.webview
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
 import android.view.ViewGroup.LayoutParams
+import android.view.inputmethod.InputMethodManager
 import android.webkit.ConsoleMessage
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
@@ -103,6 +105,16 @@ fun WebView(
                     state.webView = this // Assign the WebView instance to the state
 
                     onCreated(this)
+
+                    isFocusable = true
+                    isFocusableInTouchMode = true
+                    setOnTouchListener { view, _ ->
+                        view.requestFocus()
+                        view.requestFocusFromTouch()
+                        (context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)
+                            ?.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
+                        false
+                    }
 
                     settings.javaScriptEnabled = true // Enable JavaScript
                     settings.domStorageEnabled = true

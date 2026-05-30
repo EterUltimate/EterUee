@@ -49,3 +49,7 @@
 # JSch (SSH client) — uses reflection for crypto providers
 -keep class com.jcraft.jsch.** { *; }
 -dontwarn com.jcraft.jsch.**
+
+# Shizuku provider/API entry points are discovered across process boundaries.
+-keep class rikka.shizuku.** { *; }
+-keep class moe.shizuku.** { *; }

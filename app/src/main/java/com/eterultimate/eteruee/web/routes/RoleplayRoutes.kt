@@ -1,14 +1,20 @@
 package com.eterultimate.eteruee.web.routes
 
 import com.eterultimate.eteruee.ai.core.MessageRole
+import com.eterultimate.eteruee.ai.core.Tool
 import com.eterultimate.eteruee.ai.provider.Model
 import com.eterultimate.eteruee.ai.sdk.AISDK
 import com.eterultimate.eteruee.ai.sdk.StreamTextRequest
 import com.eterultimate.eteruee.ai.sdk.TextChunk
+import com.eterultimate.eteruee.ai.sdk.ToolExecutor
+import com.eterultimate.eteruee.ai.sdk.ToolResult
+import com.eterultimate.eteruee.ai.sdk.streamTextWithTools
 import com.eterultimate.eteruee.ai.ui.UIMessage
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.data.ai.tools.LocalTools
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.datastore.findModelById
+import com.eterultimate.eteruee.data.datastore.getCurrentAssistant
 import com.eterultimate.eteruee.roleplay.data.model.Character
 import com.eterultimate.eteruee.roleplay.data.model.ChatMessage
 import com.eterultimate.eteruee.roleplay.data.model.ChatMetadata
@@ -69,7 +75,8 @@ fun Route.roleplayRoutes(
     chatService: ChatService,
     groupService: GroupService,
     presetService: PresetService,
-    worldInfoService: WorldInfoService
+    worldInfoService: WorldInfoService,
+    localTools: LocalTools,
 ) {
     route("/roleplay") {
         get("/summary") {
@@ -273,8 +280,10 @@ fun Route.roleplayRoutes(
                 }
                 call.respondBytesWriter(contentType = ContentType.Text.EventStream) {
                     runCatching {
+                        val settings = settingsStore.settingsFlow.first()
                         val character = characterService.getCharacterById(chat.characterId)
                         val model = resolveRoleplayModel(settingsStore, request.modelId)
+                        val tools = localTools.getTools(settings.getCurrentAssistant().localTools)
                         val messages = buildRoleplayUiMessages(
                             chatService = chatService,
                             chat = chat,
@@ -286,9 +295,15 @@ fun Route.roleplayRoutes(
                             messages = messages,
                             temperature = request.temperature,
                             maxTokens = request.maxTokens,
+                            tools = tools,
                         )
                         val fullText = StringBuilder()
-                        aiSDK.streamText(streamRequest).collect { chunk ->
+                        val stream = if (tools.isEmpty()) {
+                            aiSDK.streamText(streamRequest)
+                        } else {
+                            aiSDK.streamTextWithTools(streamRequest, RoleplayLocalToolExecutor(tools))
+                        }
+                        stream.collect { chunk ->
                             when (chunk) {
                                 is TextChunk.TextDelta -> {
                                     fullText.append(chunk.text)
@@ -300,6 +315,19 @@ fun Route.roleplayRoutes(
                                 is TextChunk.Finish -> {
                                     val message = chatService.appendAssistantMessage(chatId, fullText.toString()).getOrThrow()
                                     val payload = RoleplayGenerationEvent("complete", null, message, null)
+                                    writeStringUtf8("data: ${JsonInstant.encodeToString(payload)}\n\n")
+                                    flush()
+                                }
+
+                                is TextChunk.ToolCall -> {
+                                    val payload = RoleplayGenerationEvent(
+                                        type = "tool_call",
+                                        toolCall = RoleplayToolCallEvent(
+                                            toolCallId = chunk.toolCallId,
+                                            toolName = chunk.toolName,
+                                            arguments = chunk.arguments,
+                                        ),
+                                    )
                                     writeStringUtf8("data: ${JsonInstant.encodeToString(payload)}\n\n")
                                     flush()
                                 }
@@ -659,6 +687,14 @@ data class RoleplayGenerationEvent(
     val delta: String? = null,
     val message: ChatMessage? = null,
     val error: String? = null,
+    val toolCall: RoleplayToolCallEvent? = null,
+)
+
+@Serializable
+data class RoleplayToolCallEvent(
+    val toolCallId: String,
+    val toolName: String,
+    val arguments: String,
 )
 
 @Serializable
@@ -881,6 +917,36 @@ private suspend fun resolveRoleplayModel(
         ?: settings.chatModelId
     return settings.findModelById(fallbackId)
         ?: throw BadRequestException("Model not found")
+}
+
+private class RoleplayLocalToolExecutor(
+    private val tools: List<Tool>,
+) : ToolExecutor {
+    override suspend fun execute(toolCallId: String, toolName: String, arguments: String): ToolResult {
+        val tool = tools.find { it.name == toolName }
+            ?: return ToolResult(toolCallId, "Error: Tool not found: $toolName", isError = true)
+
+        if (tool.needsApproval) {
+            return ToolResult(
+                toolCallId = toolCallId,
+                result = "Error: Tool $toolName requires explicit approval and cannot run inside the roleplay stream.",
+                isError = true,
+            )
+        }
+
+        return runCatching {
+            val args = JsonInstant.parseToJsonElement(arguments)
+            val output = tool.execute(args).joinToString("\n") { part ->
+                when (part) {
+                    is UIMessagePart.Text -> part.text
+                    else -> JsonInstant.encodeToString(part)
+                }
+            }
+            ToolResult(toolCallId, output)
+        }.getOrElse { error ->
+            ToolResult(toolCallId, "Error: ${error.message ?: error.javaClass.simpleName}", isError = true)
+        }
+    }
 }
 
 private suspend fun buildRoleplayUiMessages(

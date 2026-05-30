@@ -106,6 +106,13 @@ fun ShellPage() {
                             setTerminalViewClient(client)
                             setTextSize(textSizePx.coerceAtLeast(12))
                             attachSession(session)
+                            setOnTouchListener { view, _ ->
+                                view.requestFocus()
+                                view.requestFocusFromTouch()
+                                (viewContext.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)
+                                    ?.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
+                                false
+                            }
                             post {
                                 requestFocus()
                                 requestFocusFromTouch()

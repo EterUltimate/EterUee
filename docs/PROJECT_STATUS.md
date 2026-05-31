@@ -95,7 +95,7 @@
 - `hiddify-core.aar` 是可选本地产物，缺失时流量管控不可用。
 - `dev` 工作树当前包含多项未提交功能改动和测试截图/窗口 XML，文档提交时需要严格控制暂存范围。
 - release 产物以 `main` 工作树和 GitHub Actions 为准，不能只看 `dev` 分支状态判断发布健康。
-- 历史文档中仍有 `master`、`feature/roleplay`、`your-repo` 等旧描述，引用前应核对当前代码。
+- 历史文档中仍有 `feature/roleplay`、`your-repo` 等旧描述，引用前应核对当前代码。
 
 ## 状态更新规则
 

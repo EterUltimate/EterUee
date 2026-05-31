@@ -15,7 +15,7 @@
 ```bash
 git branch
 # 应该显示:
-#   master
+#   main
 # * feature/ai-sdk-refactor  (当前所在分支)
 ```
 
@@ -99,15 +99,15 @@ git commit -m "test: 添加 AISDK 单元测试"
 git checkout feature/ai-sdk-refactor
 
 # 拉取最新代码
-git fetch origin master
+git fetch origin main
 
 # 合并主分支更新
-git merge origin/master
+git merge origin/main
 
 # 解决冲突 (如果有)
 # 测试确保功能正常
 # 提交合并
-git commit -m "merge: sync with master"
+git commit -m "merge: sync with main"
 
 # 推送
 git push

@@ -4,18 +4,18 @@
 
 ### 1. 分支创建
 
-- **主分支 (master)**: 
+- **主分支 (main)**:
   - 保持当前稳定架构
   - 已推送最新代码到远程
   
 - **开发分支 (feature/ai-sdk-refactor)**:
-  - 基于 master 创建
+  - 基于 main 创建
   - 已推送到 GitHub
   - 包含完整的实施计划文档
 
 ### 2. 文档创建
 
-#### master 分支
+#### main 分支
 - ✅ [AI_SDK_REFACTOR_SUMMARY.md](docs/AI_SDK_REFACTOR_SUMMARY.md)
   - 记录已完成的工作
   - 分析技术挑战
@@ -41,7 +41,7 @@
 
 ### 3. 代码准备
 
-#### master 分支已有成果
+#### main 分支已有成果
 - ✅ AISDK 核心接口 (`ai/src/main/java/com/eterultimate/eteruee/ai/sdk/AISDK.kt`)
 - ✅ DefaultAISDK 实现 (`ai/src/main/java/com/eterultimate/eteruee/ai/sdk/DefaultAISDK.kt`)
 - ✅ UseChat Composable Hook (`app/src/main/java/com/eterultimate/eteruee/ui/hooks/UseChat.kt`)
@@ -52,11 +52,11 @@
 
 ## 📊 分支状态
 
-### master 分支
+### main 分支
 ```
-Branch: master
+Branch: main
 Status: ✅ 稳定,生产可用
-Commits: 已同步到 origin/master
+Commits: 已同步到 origin/main
 Architecture: ChatVM → ChatService → Provider
 ```
 
@@ -73,7 +73,7 @@ Docs: 3 个详细文档 (共 999 行)
 
 ## 🎯 下一步行动
 
-### 在 master 分支 (日常开发)
+### 在 main 分支 (日常开发)
 
 继续正常开发工作:
 - Bug 修复
@@ -114,18 +114,18 @@ Docs: 3 个详细文档 (共 999 行)
 
 ## 🔄 分支同步策略
 
-### 定期从 master 同步到开发分支
+### 定期从 main 同步到开发分支
 
 ```bash
-# 每周或当 master 有重要更新时
+# 每周或当 main 有重要更新时
 git checkout feature/ai-sdk-refactor
-git fetch origin master
-git merge origin/master
+git fetch origin main
+git merge origin/main
 # 解决冲突 (如果有)
 git push
 ```
 
-### 开发分支合并回 master (未来)
+### 开发分支合并回 main (未来)
 
 当开发分支功能完成并充分测试后:
 
@@ -133,7 +133,7 @@ git push
 2. Code Review
 3. 运行所有测试
 4. 解决反馈问题
-5. 合并到 master
+5. 合并到 main
 6. 删除开发分支
 
 ---
@@ -162,7 +162,7 @@ git push
 ## ⚠️ 注意事项
 
 ### 分支隔离
-- master 分支的开发**不受影响**
+- main 分支的开发**不受影响**
 - 开发分支的实验**不会影响生产**
 - 两个分支可以**并行工作**
 

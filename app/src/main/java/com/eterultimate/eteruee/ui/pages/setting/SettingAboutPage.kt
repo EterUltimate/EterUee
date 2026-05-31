@@ -169,9 +169,9 @@ fun SettingAboutPage() {
                             headlineContent = { Text(stringResource(R.string.about_page_github)) },
                         )
                         item(
-                            onClick = { context.openUrl("https://github.com/EterUltimate/EterUee/blob/master/LICENSE") },
+                            onClick = { context.openUrl("https://github.com/EterUltimate/EterUee/blob/main/LICENSE") },
                             leadingContent = { Icon(HugeIcons.File02, null) },
-                            supportingContent = { Text("https://github.com/EterUltimate/EterUee/blob/master/LICENSE") },
+                            supportingContent = { Text("https://github.com/EterUltimate/EterUee/blob/main/LICENSE") },
                             headlineContent = { Text(stringResource(R.string.about_page_license)) },
                         )
                     }

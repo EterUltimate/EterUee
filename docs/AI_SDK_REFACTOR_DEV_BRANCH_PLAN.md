@@ -2,7 +2,7 @@
 
 ## 📋 分支策略
 
-- **主分支 (master)**: 保持当前架构,稳定可用
+- **主分支 (main)**: 保持当前架构,稳定可用
 - **开发分支 (feature/ai-sdk-refactor)**: 按 AI SDK v5 最佳实践完全重写
 
 ## 🎯 重构目标
@@ -501,14 +501,14 @@ get("/conversations/{id}/stream") {
 git checkout feature/ai-sdk-refactor
 
 # 拉取主分支最新代码
-git fetch origin master
+git fetch origin main
 
 # 合并主分支更新
-git merge origin/master
+git merge origin/main
 
 # 解决冲突 (如果有)
 # 提交合并
-git commit -m "merge: sync with master"
+git commit -m "merge: sync with main"
 ```
 
 ### 推送开发分支

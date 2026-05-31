@@ -1,6 +1,6 @@
 # 分支与工作树说明
 
-本文档描述当前 EterUee 的分支和本地 worktree 使用方式。旧文档中的 `master` / `feature/ai-sdk-refactor` 描述已经不再代表当前工作流。
+本文档描述当前 EterUee 的分支和本地 worktree 使用方式。旧文档中的 `feature/ai-sdk-refactor` 描述已经不再代表当前工作流。
 
 ## 当前分支
 
@@ -14,7 +14,7 @@
 
 | 路径 | 状态 | 用途 |
 | --- | --- | --- |
-| `C:\Users\zacza\Desktop\x\EterUee-master-pick` | detached | 历史 cherry-pick/比对用途 |
+| 历史 detached pick worktree | detached | 本地历史 cherry-pick/比对用途；含未提交改动时不要清理 |
 | `C:\Users\zacza\Desktop\x\EterUee-release-build` | detached | 历史 release build/比对用途 |
 
 相邻外部仓库：

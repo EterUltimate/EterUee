@@ -5,6 +5,9 @@ import androidx.compose.material3.ColorScheme
 import com.eterultimate.eteruee.utils.base64Encode
 import com.eterultimate.eteruee.utils.toCssHex
 
+@Volatile
+private var cachedMarkdownPreviewTemplate: String? = null
+
 /**
  * Build HTML page for markdown preview with support for:
  * - Markdown rendering via marked.js
@@ -13,7 +16,13 @@ import com.eterultimate.eteruee.utils.toCssHex
  * - Syntax highlighting via highlight.js
  */
 fun buildMarkdownPreviewHtml(context: Context, markdown: String, colorScheme: ColorScheme): String {
-    val htmlTemplate = context.assets.open("html/mark.html").bufferedReader().use { it.readText() }
+    val htmlTemplate = cachedMarkdownPreviewTemplate ?: synchronized(::buildMarkdownPreviewHtml) {
+        cachedMarkdownPreviewTemplate ?: context.applicationContext.assets
+            .open("html/mark.html")
+            .bufferedReader()
+            .use { it.readText() }
+            .also { cachedMarkdownPreviewTemplate = it }
+    }
 
     return htmlTemplate
         .replace("{{MARKDOWN_BASE64}}", markdown.base64Encode())

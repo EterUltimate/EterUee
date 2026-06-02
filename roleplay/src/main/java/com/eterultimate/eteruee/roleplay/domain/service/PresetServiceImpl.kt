@@ -1,9 +1,12 @@
 package com.eterultimate.eteruee.roleplay.domain.service
 
+import android.content.Context
+import android.net.Uri
 import com.eterultimate.eteruee.roleplay.data.local.dao.PresetDAO
 import com.eterultimate.eteruee.roleplay.data.local.entity.PresetEntity
 import com.eterultimate.eteruee.roleplay.data.model.Preset
 import com.eterultimate.eteruee.roleplay.data.model.PresetType
+import com.eterultimate.eteruee.roleplay.data.tavern.TavernPresetCodec
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -13,6 +16,7 @@ import kotlinx.coroutines.withContext
  * 预设服务实现
  */
 class PresetServiceImpl(
+    private val context: Context,
     private val presetDao: PresetDAO
 ) : PresetService {
     
@@ -98,6 +102,34 @@ class PresetServiceImpl(
             }
         }
     }
+
+    override suspend fun importPreset(uri: Uri): Result<Preset> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val jsonString = context.contentResolver.openInputStream(uri)?.use { input ->
+                    input.bufferedReader().readText()
+                } ?: return@withContext Result.failure(Exception("Cannot read file"))
+                val fallbackName = uri.lastPathSegment
+                    ?.substringAfterLast('/')
+                    ?.substringBeforeLast('.')
+                    ?.takeIf { it.isNotBlank() }
+                    ?: "Imported Preset"
+                importPresetData(jsonString, fallbackName)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+    override suspend fun importPreset(jsonString: String, fallbackName: String): Result<Preset> {
+        return withContext(Dispatchers.IO) {
+            try {
+                importPresetData(jsonString, fallbackName)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
     
     override suspend fun exportAllPresets(): Result<String> {
         return withContext(Dispatchers.IO) {
@@ -109,5 +141,11 @@ class PresetServiceImpl(
                 Result.failure(e)
             }
         }
+    }
+
+    private suspend fun importPresetData(jsonString: String, fallbackName: String): Result<Preset> {
+        val preset = TavernPresetCodec.decode(jsonString, fallbackName)
+        presetDao.insertPreset(PresetEntity.fromModel(preset))
+        return Result.success(preset)
     }
 }

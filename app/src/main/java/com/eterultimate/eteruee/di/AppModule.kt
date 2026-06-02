@@ -20,6 +20,7 @@ import com.eterultimate.eteruee.utils.EmojiUtils
 import com.eterultimate.eteruee.utils.JsonInstant
 import com.eterultimate.eteruee.utils.UpdateChecker
 import com.eterultimate.eteruee.web.WebServerManager
+import com.eterultimate.eteruee.web.relay.HttpRelayService
 import com.eterultimate.eteruee.tts.provider.TTSManager
 import org.koin.dsl.module
 
@@ -83,6 +84,10 @@ val appModule = module {
     }
 
     single {
+        HttpRelayService(okHttpClient = get())
+    }
+
+    single {
         ChatService(
             context = get(),
             appScope = get(),
@@ -108,6 +113,8 @@ val appModule = module {
             conversationRepo = get(),
             settingsStore = get(),
             filesManager = get(),
+            webDavSync = get(),
+            httpRelayService = get(),
             roleplayCharacterService = get(),
             roleplayChatService = get(),
             roleplayGroupService = get(),

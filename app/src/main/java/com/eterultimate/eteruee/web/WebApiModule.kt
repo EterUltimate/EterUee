@@ -25,6 +25,7 @@ import com.eterultimate.eteruee.data.ai.tools.LocalTools
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.repository.ConversationRepository
+import com.eterultimate.eteruee.data.sync.webdav.WebDavSync
 import com.eterultimate.eteruee.device.DeviceAgentManager
 import com.eterultimate.eteruee.roleplay.domain.service.CharacterService as RoleplayCharacterService
 import com.eterultimate.eteruee.roleplay.domain.service.ChatService as RoleplayChatService
@@ -33,14 +34,17 @@ import com.eterultimate.eteruee.roleplay.domain.service.PresetService as Rolepla
 import com.eterultimate.eteruee.roleplay.domain.service.WorldInfoService as RoleplayWorldInfoService
 import com.eterultimate.eteruee.service.ChatService
 import com.eterultimate.eteruee.utils.JsonInstant
+import com.eterultimate.eteruee.web.relay.HttpRelayService
 import com.eterultimate.eteruee.web.dto.ErrorResponse
 import com.eterultimate.eteruee.web.dto.WebAuthTokenRequest
 import com.eterultimate.eteruee.web.dto.WebAuthTokenResponse
 import com.eterultimate.eteruee.web.routes.aiIconRoutes
 import com.eterultimate.eteruee.web.routes.assetsRoutes
+import com.eterultimate.eteruee.web.routes.backupRoutes
 import com.eterultimate.eteruee.web.routes.conversationRoutes
 import com.eterultimate.eteruee.web.routes.deviceRoutes
 import com.eterultimate.eteruee.web.routes.filesRoutes
+import com.eterultimate.eteruee.web.routes.relayRoutes
 import com.eterultimate.eteruee.web.routes.roleplayRoutes
 import com.eterultimate.eteruee.web.routes.settingsRoutes
 import java.security.MessageDigest
@@ -72,6 +76,8 @@ fun Application.configureWebApi(
     conversationRepo: ConversationRepository,
     settingsStore: SettingsStore,
     filesManager: FilesManager,
+    webDavSync: WebDavSync,
+    httpRelayService: HttpRelayService,
     roleplayCharacterService: RoleplayCharacterService,
     roleplayChatService: RoleplayChatService,
     roleplayGroupService: RoleplayGroupService,
@@ -188,6 +194,8 @@ fun Application.configureWebApi(
                     settingsRoutes(settingsStore)
                     filesRoutes(filesManager, context)
                     assetsRoutes(context)
+                    backupRoutes(context, settingsStore, webDavSync)
+                    relayRoutes(httpRelayService)
                     roleplayRoutes(
                         aiSDK = aiSDK,
                         settingsStore = settingsStore,
@@ -205,6 +213,8 @@ fun Application.configureWebApi(
                 settingsRoutes(settingsStore)
                 filesRoutes(filesManager, context)
                 assetsRoutes(context)
+                backupRoutes(context, settingsStore, webDavSync)
+                relayRoutes(httpRelayService)
                 roleplayRoutes(
                     aiSDK = aiSDK,
                     settingsStore = settingsStore,

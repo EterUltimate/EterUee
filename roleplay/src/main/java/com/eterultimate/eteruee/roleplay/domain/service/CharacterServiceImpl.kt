@@ -326,9 +326,10 @@ class CharacterServiceImpl(
 
     private suspend fun importJsonCharacterData(jsonString: String): Result<Character> {
         val character = TavernCharacterCodec.decode(jsonString)
-        fileStorage.saveCharacterJson(character, character.avatarUrl)
-        characterDao.insertCharacter(CharacterEntity.fromModel(character))
-        return Result.success(character)
+        val stored = character.copy(avatarUrl = null)
+        fileStorage.saveCharacterJson(stored, stored.avatarUrl)
+        characterDao.insertCharacter(CharacterEntity.fromModel(stored))
+        return Result.success(stored)
     }
 
     private suspend fun buildPngCharacterBytes(

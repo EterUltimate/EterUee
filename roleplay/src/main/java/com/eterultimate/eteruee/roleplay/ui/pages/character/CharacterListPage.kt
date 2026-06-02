@@ -1,5 +1,7 @@
 package com.eterultimate.eteruee.roleplay.ui.pages.character
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,7 +16,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Sort
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -52,6 +54,17 @@ fun CharacterListPage(
     var searchQuery by remember { mutableStateOf("") }
     var isSearching by remember { mutableStateOf(false) }
     var showSortMenu by remember { mutableStateOf(false) }
+    var showImportMenu by remember { mutableStateOf(false) }
+    val pngImportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let(viewModel::importPngCharacter)
+    }
+    val jsonImportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let(viewModel::importJsonCharacter)
+    }
     
     // 加载可用标签
     LaunchedEffect(Unit) {
@@ -152,6 +165,30 @@ fun CharacterListPage(
                             }
                         }) {
                             Icon(Icons.Default.Search, contentDescription = "搜索")
+                        }
+                        Box {
+                            IconButton(onClick = { showImportMenu = true }) {
+                                Icon(Icons.Default.Upload, contentDescription = "导入角色")
+                            }
+                            DropdownMenu(
+                                expanded = showImportMenu,
+                                onDismissRequest = { showImportMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("导入 PNG 角色卡") },
+                                    onClick = {
+                                        showImportMenu = false
+                                        pngImportLauncher.launch(arrayOf("image/png"))
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("导入 JSON 角色卡") },
+                                    onClick = {
+                                        showImportMenu = false
+                                        jsonImportLauncher.launch(arrayOf("application/json", "text/json", "text/plain"))
+                                    }
+                                )
+                            }
                         }
                         IconButton(onClick = onCreateCharacter) {
                             Icon(Icons.Default.Add, contentDescription = "创建角色")

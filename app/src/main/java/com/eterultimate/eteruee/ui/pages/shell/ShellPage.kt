@@ -1,7 +1,6 @@
 package com.eterultimate.eteruee.ui.pages.shell
 
-import android.content.Context
-import android.view.inputmethod.InputMethodManager
+import android.view.MotionEvent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -24,6 +25,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.composables.icons.lucide.Keyboard
+import com.composables.icons.lucide.Lucide
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.shell.EmbeddedTermuxTerminalClient
 import com.eterultimate.eteruee.shell.LocalShellRunner
@@ -57,6 +60,7 @@ fun ShellPage() {
 
     DisposableEffect(session) {
         onDispose {
+            client.hideKeyboard()
             if (session.pid > 0 && session.isRunning) {
                 session.finishIfRunning()
             }
@@ -78,6 +82,14 @@ fun ShellPage() {
                     }
                 },
                 navigationIcon = { BackButton() },
+                actions = {
+                    IconButton(onClick = { client.focusAndShowKeyboard(force = true) }) {
+                        Icon(
+                            imageVector = Lucide.Keyboard,
+                            contentDescription = stringResource(R.string.shell_page_show_keyboard),
+                        )
+                    }
+                },
             )
         },
     ) { padding ->
@@ -106,18 +118,14 @@ fun ShellPage() {
                             setTerminalViewClient(client)
                             setTextSize(textSizePx.coerceAtLeast(12))
                             attachSession(session)
-                            setOnTouchListener { view, _ ->
-                                view.requestFocus()
-                                view.requestFocusFromTouch()
-                                (viewContext.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)
-                                    ?.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
+                            setOnTouchListener { view, event ->
+                                if (event.action == MotionEvent.ACTION_UP && view is TerminalView && view.hasWindowFocus()) {
+                                    client.focusAndShowKeyboard(force = true)
+                                }
                                 false
                             }
                             post {
-                                requestFocus()
-                                requestFocusFromTouch()
-                                (viewContext.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)
-                                    ?.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+                                client.focusAndShowKeyboard(force = true)
                             }
                             client.terminalView = this
                         }

@@ -7,6 +7,8 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.inputmethod.InputMethodManager
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.termux.terminal.TerminalEmulator
 import com.termux.terminal.TerminalSession
 import com.termux.terminal.TerminalSessionClient
@@ -80,15 +82,12 @@ class EmbeddedTermuxTerminalClient(
     }
 
     override fun onSingleTapUp(e: MotionEvent) {
-        val view = terminalView ?: return
-        view.requestFocus()
-        val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-        inputMethodManager?.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
+        focusAndShowKeyboard(force = true)
     }
 
     override fun shouldBackButtonBeMappedToEscape() = false
 
-    override fun shouldEnforceCharBasedInput() = false
+    override fun shouldEnforceCharBasedInput() = true
 
     override fun shouldUseCtrlSpaceWorkaround() = false
 
@@ -144,7 +143,39 @@ class EmbeddedTermuxTerminalClient(
     override fun logStackTrace(tag: String, e: Exception) {
         Log.e(tag, "Terminal error", e)
     }
+
+    fun focusAndShowKeyboard(force: Boolean = false) {
+        terminalView?.focusAndShowKeyboard(force)
+    }
+
+    fun hideKeyboard() {
+        terminalView?.let { view ->
+            view.context.inputMethodManager()?.hideSoftInputFromWindow(view.windowToken, 0)
+            ViewCompat.getWindowInsetsController(view)?.hide(WindowInsetsCompat.Type.ime())
+        }
+    }
 }
+
+private fun TerminalView.focusAndShowKeyboard(force: Boolean) {
+    isFocusable = true
+    isFocusableInTouchMode = true
+    requestFocus()
+    requestFocusFromTouch()
+    post {
+        requestFocus()
+        requestFocusFromTouch()
+        val inputMethodManager = context.inputMethodManager()
+        inputMethodManager?.restartInput(this)
+        ViewCompat.getWindowInsetsController(this)?.show(WindowInsetsCompat.Type.ime())
+        inputMethodManager?.showSoftInput(
+            this,
+            if (force) InputMethodManager.SHOW_FORCED else InputMethodManager.SHOW_IMPLICIT,
+        )
+    }
+}
+
+private fun Context.inputMethodManager(): InputMethodManager? =
+    getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
 
 fun createEmbeddedTermuxSession(
     context: Context,

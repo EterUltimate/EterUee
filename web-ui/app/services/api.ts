@@ -154,6 +154,13 @@ const api = {
       return handleError(error);
     }
   },
+  async getBlob(url: string, options?: Options): Promise<Blob> {
+    try {
+      return await kyInstance.get(url, options).blob();
+    } catch (error) {
+      return handleError(error);
+    }
+  },
   async post<T>(url: string, data?: unknown, options?: Options): Promise<T> {
     try {
       return await kyInstance.post(url, { ...options, json: data }).json<T>();

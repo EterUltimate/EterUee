@@ -111,6 +111,7 @@ fun HighlightCodeBlock(
     val context = LocalContext.current
     val settings = LocalSettings.current
     val colorScheme = MaterialTheme.colorScheme
+    val normalizedLanguage = remember(language) { language.trim().lowercase() }
 
     var isExpanded by remember(settings.displaySetting.codeBlockAutoCollapse) {
         mutableStateOf(!settings.displaySetting.codeBlockAutoCollapse)
@@ -159,30 +160,40 @@ fun HighlightCodeBlock(
                 navController = navController,
                 colorScheme = colorScheme,
                 completeCodeBlock = completeCodeBlock,
+                normalizedLanguage = normalizedLanguage,
                 isExecuting = isExecuting,
                 onExecute = {
                     isExecuting = true
                     showExecResult = true
                     scope.launch(Dispatchers.IO) {
-                        val result = when (language.lowercase()) {
-                            "javascript", "js" -> executeJavaScriptCode(code)
-                            "python", "py" -> executePythonScript(code)
-                            else -> return@launch
-                        }
-                        val output = buildString {
-                            result.result?.let { appendLine(it) }
-                            if (result.logs.isNotEmpty()) {
-                                appendLine("--- Logs ---")
-                                result.logs.forEach { appendLine(it) }
+                        try {
+                            val result = when (normalizedLanguage) {
+                                "javascript", "js" -> executeJavaScriptCode(code)
+                                "python", "py" -> executePythonScript(code)
+                                else -> return@launch
                             }
-                            result.error?.let {
-                                appendLine("--- Error ---")
-                                appendLine(it)
+                            val output = buildString {
+                                result.result?.let { appendLine(it) }
+                                if (result.logs.isNotEmpty()) {
+                                    appendLine("--- Logs ---")
+                                    result.logs.forEach { appendLine(it) }
+                                }
+                                result.error?.let {
+                                    appendLine("--- Error ---")
+                                    appendLine(it)
+                                }
+                            }.trim()
+                            withContext(Dispatchers.Main) {
+                                execResult = output.ifBlank { "No output" }
                             }
-                        }.trim()
-                        withContext(Dispatchers.Main) {
-                            execResult = output.ifBlank { "No output" }
-                            isExecuting = false
+                        } catch (e: Exception) {
+                            withContext(Dispatchers.Main) {
+                                execResult = e.message ?: e.javaClass.simpleName
+                            }
+                        } finally {
+                            withContext(Dispatchers.Main) {
+                                isExecuting = false
+                            }
                         }
                     }
                 },
@@ -192,7 +203,7 @@ fun HighlightCodeBlock(
             modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 8.dp)
         ) {
             when {
-                completeCodeBlock && language == "mermaid" -> {
+                completeCodeBlock && normalizedLanguage == "mermaid" -> {
                     Mermaid(
                         code = code,
                         modifier = Modifier.fillMaxWidth(),
@@ -434,6 +445,7 @@ private fun HighlightCodeActions(
     navController: Navigator,
     colorScheme: ColorScheme = MaterialTheme.colorScheme,
     completeCodeBlock: Boolean = true,
+    normalizedLanguage: String = language.trim().lowercase(),
     isExecuting: Boolean = false,
     onExecute: () -> Unit = {},
 ) {
@@ -464,7 +476,7 @@ private fun HighlightCodeActions(
                 modifier = Modifier
                     .clip(RoundedCornerShape(0.dp))
                     .onClick {
-                        val extension = when (language.lowercase()) {
+                        val extension = when (normalizedLanguage) {
                             "kotlin" -> "kt"
                             "java" -> "java"
                             "python" -> "py"
@@ -509,7 +521,10 @@ private fun HighlightCodeActions(
             )
 
             // Preview button for HTML, SVG, Markdown
-            if (completeCodeBlock && (language == "html" || language == "svg" || language == "markdown" || language == "md")) {
+            if (completeCodeBlock &&
+                (normalizedLanguage == "html" || normalizedLanguage == "svg" ||
+                    normalizedLanguage == "markdown" || normalizedLanguage == "md")
+            ) {
                 Icon(
                     imageVector = HugeIcons.Eye,
                     contentDescription = stringResource(id = R.string.code_block_preview),
@@ -517,7 +532,7 @@ private fun HighlightCodeActions(
                     modifier = Modifier
                         .clip(RoundedCornerShape(0.dp))
                         .onClick {
-                            val content = when (language) {
+                            val content = when (normalizedLanguage) {
                                 "svg" -> {
                                     """<!DOCTYPE html><html><body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;">$code</body></html>"""
                                 }
@@ -538,7 +553,10 @@ private fun HighlightCodeActions(
             }
 
             // Execute button for JavaScript and Python
-            if (completeCodeBlock && (language == "javascript" || language == "js" || language == "python" || language == "py")) {
+            if (completeCodeBlock &&
+                (normalizedLanguage == "javascript" || normalizedLanguage == "js" ||
+                    normalizedLanguage == "python" || normalizedLanguage == "py")
+            ) {
                 Icon(
                     imageVector = HugeIcons.Play,
                     contentDescription = stringResource(id = R.string.code_block_execute),

@@ -147,6 +147,28 @@ class CharacterListViewModel(
             }
         }
     }
+
+    /**
+     * 导入JSON角色卡
+     */
+    fun importJsonCharacter(uri: Uri) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isImporting = true)
+
+            val result = characterService.importJsonCharacter(uri)
+            result.onSuccess {
+                _uiState.value = _uiState.value.copy(
+                    successMessage = "角色导入成功",
+                    isImporting = false
+                )
+            }.onFailure { error ->
+                _uiState.value = _uiState.value.copy(
+                    errorMessage = error.message,
+                    isImporting = false
+                )
+            }
+        }
+    }
     
     /**
      * 切换多选模式

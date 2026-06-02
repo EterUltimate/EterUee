@@ -13,18 +13,22 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import com.eterultimate.eteruee.ai.sdk.AISDK
 import com.eterultimate.eteruee.AppScope
+import com.eterultimate.eteruee.data.ai.tools.LocalTools
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.repository.ConversationRepository
-import com.eterultimate.eteruee.runtime.NativeRuntime
-import com.eterultimate.eteruee.service.ChatService
-import com.eterultimate.eteruee.web.startWebServer
+import com.eterultimate.eteruee.data.sync.webdav.WebDavSync
+import com.eterultimate.eteruee.device.DeviceAgentManager
 import com.eterultimate.eteruee.roleplay.domain.service.CharacterService as RoleplayCharacterService
 import com.eterultimate.eteruee.roleplay.domain.service.ChatService as RoleplayChatService
 import com.eterultimate.eteruee.roleplay.domain.service.GroupService as RoleplayGroupService
 import com.eterultimate.eteruee.roleplay.domain.service.PresetService as RoleplayPresetService
 import com.eterultimate.eteruee.roleplay.domain.service.WorldInfoService as RoleplayWorldInfoService
+import com.eterultimate.eteruee.runtime.NativeRuntime
+import com.eterultimate.eteruee.service.ChatService
 import com.eterultimate.eteruee.shared.WebUiConfig
+import com.eterultimate.eteruee.web.relay.HttpRelayService
+import com.eterultimate.eteruee.web.startWebServer
 
 private const val TAG = "WebServerManager"
 private const val HOST_ALL_INTERFACES = "0.0.0.0"
@@ -49,11 +53,15 @@ class WebServerManager(
     private val conversationRepo: ConversationRepository,
     private val settingsStore: SettingsStore,
     private val filesManager: FilesManager,
+    private val webDavSync: WebDavSync,
+    private val httpRelayService: HttpRelayService,
     private val roleplayCharacterService: RoleplayCharacterService,
     private val roleplayChatService: RoleplayChatService,
     private val roleplayWorldInfoService: RoleplayWorldInfoService,
     private val roleplayGroupService: RoleplayGroupService,
     private val roleplayPresetService: RoleplayPresetService,
+    private val localTools: LocalTools,
+    private val deviceAgentManager: DeviceAgentManager,
 ) {
     private var server: EmbeddedServer<CIOApplicationEngine, CIOApplicationEngine.Configuration>? = null
     private val nsdRegistrar = NsdServiceRegistrar(context)
@@ -95,11 +103,15 @@ class WebServerManager(
                         conversationRepo = conversationRepo,
                         settingsStore = settingsStore,
                         filesManager = filesManager,
+                        webDavSync = webDavSync,
+                        httpRelayService = httpRelayService,
                         roleplayCharacterService = roleplayCharacterService,
                         roleplayChatService = roleplayChatService,
                         roleplayWorldInfoService = roleplayWorldInfoService,
                         roleplayGroupService = roleplayGroupService,
                         roleplayPresetService = roleplayPresetService,
+                        localTools = localTools,
+                        deviceAgentManager = deviceAgentManager,
                     )
                 }.start(wait = false)
 

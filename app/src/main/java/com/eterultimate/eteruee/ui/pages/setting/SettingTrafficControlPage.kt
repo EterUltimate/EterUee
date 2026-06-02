@@ -24,7 +24,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -55,6 +57,7 @@ fun SettingTrafficControlPage(
     var configContent by remember { mutableStateOf("") }
     var localError by remember { mutableStateOf<String?>(null) }
     val testSuccess = stringResource(R.string.setting_traffic_control_test_success)
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     fun runCoreAction(block: suspend () -> Unit) {
         scope.launch {
@@ -139,7 +142,13 @@ fun SettingTrafficControlPage(
                             OutlinedTextField(
                                 value = configPath,
                                 onValueChange = { configPath = it },
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .onFocusChanged {
+                                        if (it.isFocused) {
+                                            keyboardController?.show()
+                                        }
+                                    },
                                 singleLine = true,
                                 textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
                             )
@@ -151,7 +160,13 @@ fun SettingTrafficControlPage(
                             OutlinedTextField(
                                 value = configContent,
                                 onValueChange = { configContent = it },
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .onFocusChanged {
+                                        if (it.isFocused) {
+                                            keyboardController?.show()
+                                        }
+                                    },
                                 minLines = 8,
                                 maxLines = 18,
                                 textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),

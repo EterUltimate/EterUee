@@ -724,6 +724,10 @@
   <string name="setting_mcp_page_import_no_valid_config">未找到有效的 MCP Server 配置</string>
   <string name="setting_mcp_page_import_parse_error">JSON 解析失败：%1$s</string>
   <string name="setting_mcp_page_import_title">导入MCP服务器</string>
+  <string name="setting_mcp_page_json_apply">应用</string>
+  <string name="setting_mcp_page_json_config">JSON 配置</string>
+  <string name="setting_mcp_page_json_config_desc">以标准 mcpServers JSON 编辑当前服务器。应用 JSON 后会更新当前服务器配置。</string>
+  <string name="setting_mcp_page_json_reset">重置</string>
   <string name="setting_mcp_page_name">名称</string>
   <string name="setting_mcp_page_name_desc">MCP服务器的显示名称</string>
   <string name="setting_mcp_page_name_placeholder">例如：My MCP Server</string>
@@ -1114,6 +1118,7 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="shell_page_command_label">命令</string>
   <string name="shell_page_empty_hint">尚未执行任何命令</string>
   <string name="shell_page_execute">执行</string>
+  <string name="shell_page_show_keyboard">打开输入法</string>
   <string name="shell_page_termux_output_hint">输出显示在Termux终端中</string>
   <string name="shell_page_title">Shell</string>
   <string name="ssh_page_command_hint">输入SSH命令...</string>
@@ -1134,6 +1139,10 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="assistant_page_local_tools_shell_title">Shell</string>
   <string name="assistant_page_local_tools_ssh_desc">通过SSH在远程服务器上执行命令</string>
   <string name="assistant_page_local_tools_ssh_title">SSH</string>
+  <string name="assistant_page_local_tools_traffic_control_desc">查看并控制本地 Hiddify Core 流量路由</string>
+  <string name="assistant_page_local_tools_traffic_control_title">流量管控</string>
+  <string name="assistant_page_local_tools_device_agent_desc">读取设备信息，并在审批后通过 Shizuku 执行 ADB shell 命令</string>
+  <string name="assistant_page_local_tools_device_agent_title">设备 Agent</string>
   <string name="code_block_execute">执行</string>
   <string name="code_block_executing">执行中...</string>
   <string name="code_block_result">结果</string>

@@ -85,12 +85,9 @@ function createAuthenticatedKy(prefixUrl: string) {
   });
 }
 
-const kyInstance = createAuthenticatedKy("/api/agent");
-const roleplayKyInstance = createAuthenticatedKy("/api/roleplay");
-const authKyInstance = createAuthenticatedKy("/api");
+const kyInstance = createAuthenticatedKy("/api");
 
 const api = createApiClient(kyInstance);
-const roleplayApi = createApiClient(roleplayKyInstance);
 
 /**
  * API client with unwrapped response data
@@ -100,6 +97,13 @@ function createApiClient(client: typeof kyInstance) {
     async get<T>(url: string, options?: Options): Promise<T> {
       try {
         return await client.get(url, options).json<T>();
+      } catch (error) {
+        return handleError(error);
+      }
+    },
+    async getBlob(url: string, options?: Options): Promise<Blob> {
+      try {
+        return await client.get(url, options).blob();
       } catch (error) {
         return handleError(error);
       }
@@ -146,19 +150,7 @@ function createApiClient(client: typeof kyInstance) {
   };
 }
 
-const sseKyInstance = ky.create({
-  prefixUrl: "/api/agent",
-  timeout: 30000,
-  hooks: {
-    beforeRequest: [
-      (request) => {
-        const token = getValidWebAuthToken();
-        if (!token || request.headers.has("Authorization")) return;
-        request.headers.set("Authorization", `Bearer ${token}`);
-      },
-    ],
-  },
-});
+const sseKyInstance = createAuthenticatedKy("/api");
 
 async function handleError(error: unknown): Promise<never> {
   if (error instanceof HTTPError) {
@@ -223,7 +215,7 @@ export function appendWebAuthQuery(url: string): string {
 export async function requestWebAuthToken(password: string): Promise<WebAuthTokenResponse> {
   let response: WebAuthTokenResponse;
   try {
-    response = await authKyInstance.post("auth/token", { json: { password } }).json<WebAuthTokenResponse>();
+    response = await kyInstance.post("auth/token", { json: { password } }).json<WebAuthTokenResponse>();
   } catch (error) {
     return handleError(error);
   }
@@ -327,5 +319,4 @@ async function sse<T>(
 }
 
 export { sse };
-export { roleplayApi };
 export default api;

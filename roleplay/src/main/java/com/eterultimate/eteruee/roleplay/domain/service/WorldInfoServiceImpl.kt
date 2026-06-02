@@ -1,10 +1,12 @@
 package com.eterultimate.eteruee.roleplay.domain.service
 
 import android.content.Context
+import android.net.Uri
 import com.eterultimate.eteruee.roleplay.data.local.RolePlayFileStorage
 import com.eterultimate.eteruee.roleplay.data.local.dao.WorldInfoDAO
 import com.eterultimate.eteruee.roleplay.data.local.entity.WorldInfoEntity
 import com.eterultimate.eteruee.roleplay.data.model.*
+import com.eterultimate.eteruee.roleplay.data.tavern.TavernWorldInfoCodec
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -63,6 +65,36 @@ class WorldInfoServiceImpl(
     override suspend fun saveWorldInfo(worldInfo: WorldInfo): Result<WorldInfo> {
         return updateWorldInfo(worldInfo)
     }
+
+    override suspend fun importWorldInfo(uri: Uri): Result<WorldInfo> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val jsonString = context.contentResolver.openInputStream(uri)?.use { input ->
+                    input.bufferedReader().readText()
+                } ?: return@withContext Result.failure(Exception("Cannot read file"))
+                val fallbackName = uri.lastPathSegment
+                    ?.substringAfterLast('/')
+                    ?.substringBeforeLast('.')
+                    ?.takeIf { it.isNotBlank() }
+                    ?: "Imported Lorebook"
+                importWorldInfoData(jsonString, fallbackName)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Result.failure(e)
+            }
+        }
+    }
+
+    override suspend fun importWorldInfo(jsonString: String, fallbackName: String): Result<WorldInfo> {
+        return withContext(Dispatchers.IO) {
+            try {
+                importWorldInfoData(jsonString, fallbackName)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Result.failure(e)
+            }
+        }
+    }
     
     override suspend fun updateWorldInfo(worldInfo: WorldInfo): Result<WorldInfo> {
         return withContext(Dispatchers.IO) {
@@ -82,6 +114,14 @@ class WorldInfoServiceImpl(
                 Result.failure(e)
             }
         }
+    }
+
+    private suspend fun importWorldInfoData(jsonString: String, fallbackName: String): Result<WorldInfo> {
+        val worldInfo = TavernWorldInfoCodec.decode(jsonString, fallbackName)
+        val entity = WorldInfoEntity.fromModel(worldInfo)
+        worldInfoDao.insertWorldInfo(entity)
+        fileStorage.saveWorldInfoJson(worldInfo)
+        return Result.success(worldInfo)
     }
     
     override suspend fun deleteWorldInfo(worldInfoId: Uuid): Result<Unit> {

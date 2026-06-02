@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.ViewGroup.LayoutParams
 import android.view.inputmethod.InputMethodManager
 import android.webkit.ConsoleMessage
+import android.webkit.WebResourceRequest
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
@@ -49,6 +50,11 @@ internal class MyWebChromeClient(private val state: WebViewState) : WebChromeCli
 }
 
 internal class MyWebViewClient(private val state: WebViewState) : WebViewClient() {
+    override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+        val url = request?.url?.toString() ?: return false
+        return state.onUrlRequest?.invoke(url) == true
+    }
+
     override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
         super.onPageStarted(view, url, favicon)
         state.isLoading = true
@@ -111,14 +117,15 @@ fun WebView(
                     setOnTouchListener { view, _ ->
                         view.requestFocus()
                         view.requestFocusFromTouch()
-                        (context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)
-                            ?.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
+                        showInputMethod(context, view)
                         false
                     }
 
                     settings.javaScriptEnabled = true // Enable JavaScript
                     settings.domStorageEnabled = true
-                    settings.allowContentAccess = true
+                    settings.allowContentAccess = false
+                    settings.disableLocalFileAccess()
+                    settings.mediaPlaybackRequiresUserGesture = true
                     settings.apply(state.settings)
 
                     // Use the created clients
@@ -222,7 +229,8 @@ sealed class WebContent {
 class WebViewState(
     initialContent: WebContent = WebContent.NavigatorOnly,
     val interfaces: Map<String, Any> = emptyMap(),
-    val settings: WebSettings.() -> Unit = {}
+    val settings: WebSettings.() -> Unit = {},
+    val onUrlRequest: ((String) -> Boolean)? = null,
 ) {
     // --- Content State ---
     var content: WebContent by mutableStateOf(initialContent)
@@ -326,12 +334,27 @@ fun rememberWebViewState(
     additionalHttpHeaders: Map<String, String> = emptyMap(),
     interfaces: Map<String, Any> = emptyMap(),
     settings: WebSettings.() -> Unit = {},
+    onUrlRequest: ((String) -> Boolean)? = null,
 ) = remember(url, additionalHttpHeaders) { // Use keys for better recomposition control
     WebViewState(
         initialContent = WebContent.Url(url, additionalHttpHeaders),
         interfaces = interfaces,
-        settings = settings
+        settings = settings,
+        onUrlRequest = onUrlRequest,
     )
+}
+
+@Suppress("DEPRECATION")
+private fun showInputMethod(context: Context, view: android.view.View) {
+    (context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)
+        ?.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
+}
+
+@Suppress("DEPRECATION")
+fun WebSettings.disableLocalFileAccess() {
+    allowFileAccess = false
+    allowFileAccessFromFileURLs = false
+    allowUniversalAccessFromFileURLs = false
 }
 
 @Composable
@@ -343,11 +366,13 @@ fun rememberWebViewState(
     historyUrl: String? = null,
     interfaces: Map<String, Any> = emptyMap(),
     settings: WebSettings.() -> Unit = {},
+    onUrlRequest: ((String) -> Boolean)? = null,
 ) = remember(data, baseUrl, encoding, mimeType, historyUrl) { // Use keys
     WebViewState(
         initialContent = WebContent.Data(data, baseUrl, encoding, mimeType, historyUrl),
         interfaces = interfaces,
-        settings = settings
+        settings = settings,
+        onUrlRequest = onUrlRequest,
     )
 }
 

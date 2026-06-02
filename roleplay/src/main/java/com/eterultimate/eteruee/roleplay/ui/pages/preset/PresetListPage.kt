@@ -1,5 +1,7 @@
 package com.eterultimate.eteruee.roleplay.ui.pages.preset
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -52,12 +55,23 @@ fun PresetListPage(
     viewModel: PresetListViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let(viewModel::importPreset)
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("预设") },
                 actions = {
+                    IconButton(
+                        onClick = { importLauncher.launch(arrayOf("application/json", "text/json", "text/plain")) },
+                        enabled = !uiState.isImporting
+                    ) {
+                        Icon(Icons.Default.Upload, contentDescription = "导入预设")
+                    }
                     IconButton(onClick = onCreatePreset) {
                         Icon(Icons.Default.Add, contentDescription = "创建预设")
                     }
@@ -80,6 +94,18 @@ fun PresetListPage(
                     }
                 ) {
                     Text(error)
+                }
+            }
+            uiState.successMessage?.let { success ->
+                Snackbar(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    action = {
+                        TextButton(onClick = { viewModel.clearMessage() }) {
+                            Text("关闭")
+                        }
+                    }
+                ) {
+                    Text(success)
                 }
             }
 
@@ -128,8 +154,18 @@ fun PresetListPage(
                             Spacer(modifier = Modifier.height(12.dp))
                             Text("暂无预设", style = MaterialTheme.typography.titleMedium)
                             Spacer(modifier = Modifier.height(8.dp))
-                            TextButton(onClick = onCreatePreset) {
-                                Text("创建第一个预设")
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                TextButton(onClick = onCreatePreset) {
+                                    Text("创建第一个预设")
+                                }
+                                TextButton(
+                                    onClick = {
+                                        importLauncher.launch(arrayOf("application/json", "text/json", "text/plain"))
+                                    },
+                                    enabled = !uiState.isImporting
+                                ) {
+                                    Text(if (uiState.isImporting) "导入中..." else "导入预设")
+                                }
                             }
                         }
                     }

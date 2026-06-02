@@ -1,5 +1,6 @@
 package com.eterultimate.eteruee.roleplay.ui.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eterultimate.eteruee.roleplay.data.model.WorldInfo
@@ -69,12 +70,33 @@ class WorldInfoListViewModel(
             }
         }
     }
+
+    /**
+     * 导入世界书 JSON
+     */
+    fun importWorldInfo(uri: Uri) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isImporting = true)
+
+            worldInfoService.importWorldInfo(uri).onSuccess { worldInfo ->
+                _uiState.value = _uiState.value.copy(
+                    isImporting = false,
+                    successMessage = "已导入世界书：${worldInfo.name.ifBlank { "未命名" }}"
+                )
+            }.onFailure { error ->
+                _uiState.value = _uiState.value.copy(
+                    isImporting = false,
+                    errorMessage = "导入失败: ${error.message}"
+                )
+            }
+        }
+    }
     
     /**
      * 清除错误消息
      */
-    fun clearError() {
-        _uiState.value = _uiState.value.copy(errorMessage = null)
+    fun clearMessage() {
+        _uiState.value = _uiState.value.copy(errorMessage = null, successMessage = null)
     }
 }
 
@@ -84,5 +106,7 @@ class WorldInfoListViewModel(
 data class WorldInfoListUiState(
     val worldInfos: List<WorldInfo> = emptyList(),
     val isLoading: Boolean = true,
-    val errorMessage: String? = null
+    val isImporting: Boolean = false,
+    val errorMessage: String? = null,
+    val successMessage: String? = null
 )

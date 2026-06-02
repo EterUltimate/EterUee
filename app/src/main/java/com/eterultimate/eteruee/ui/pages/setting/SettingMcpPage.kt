@@ -78,12 +78,16 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.contentOrNull
@@ -109,6 +113,11 @@ import com.eterultimate.eteruee.ui.theme.CustomColors
 import com.eterultimate.eteruee.ui.theme.extendColors
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+
+private val mcpJson = Json {
+    ignoreUnknownKeys = true
+    prettyPrint = true
+}
 
 @Composable
 fun SettingMcpPage(vm: SettingVM = koinViewModel()) {
@@ -355,7 +364,7 @@ private fun McpServerItem(
 @Composable
 private fun McpServerConfigModal(state: EditState<McpServerConfig>) {
     state.EditStateContent { config, updateValue ->
-        val pagerState = rememberPagerState { 2 }
+        val pagerState = rememberPagerState { 3 }
         val scope = rememberCoroutineScope()
         ModalBottomSheet(
             onDismissRequest = {
@@ -396,6 +405,17 @@ private fun McpServerConfigModal(state: EditState<McpServerConfig>) {
                             Text(stringResource(R.string.setting_mcp_page_tools))
                         }
                     )
+                    Tab(
+                        selected = pagerState.currentPage == 2,
+                        onClick = {
+                            scope.launch {
+                                pagerState.animateScrollToPage(2)
+                            }
+                        },
+                        text = {
+                            Text(stringResource(R.string.setting_mcp_page_json_config))
+                        }
+                    )
                 }
                 HorizontalPager(
                     state = pagerState,
@@ -417,6 +437,13 @@ private fun McpServerConfigModal(state: EditState<McpServerConfig>) {
                                 update = updateValue,
                             )
                         }
+
+                        2 -> {
+                            McpJsonConfigure(
+                                config = config,
+                                update = updateValue,
+                            )
+                        }
                     }
                 }
                 Row(
@@ -433,6 +460,75 @@ private fun McpServerConfigModal(state: EditState<McpServerConfig>) {
                         Text(stringResource(R.string.setting_mcp_page_save))
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun McpJsonConfigure(
+    config: McpServerConfig,
+    update: (McpServerConfig) -> Unit,
+) {
+    var jsonText by remember(config) { mutableStateOf(config.toMcpServersJson()) }
+    var errorMessage by remember(config) { mutableStateOf<String?>(null) }
+    val noValidConfigMsg = stringResource(R.string.setting_mcp_page_import_no_valid_config)
+    val parseErrorMsg = stringResource(R.string.setting_mcp_page_import_parse_error)
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .imePadding(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.setting_mcp_page_json_config_desc),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        OutlinedTextField(
+            value = jsonText,
+            onValueChange = {
+                jsonText = it
+                errorMessage = null
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+            placeholder = { Text("{ \"mcpServers\": { ... } }") },
+            isError = errorMessage != null,
+            supportingText = errorMessage?.let { msg -> { Text(msg, color = MaterialTheme.colorScheme.error) } },
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+        ) {
+            TextButton(
+                onClick = {
+                    jsonText = config.toMcpServersJson()
+                    errorMessage = null
+                },
+            ) {
+                Text(stringResource(R.string.setting_mcp_page_json_reset))
+            }
+            Button(
+                onClick = {
+                    try {
+                        val parsedConfig = parseSingleMcpServerConfig(jsonText.trim(), config)
+                        if (parsedConfig == null) {
+                            errorMessage = noValidConfigMsg
+                        } else {
+                            update(parsedConfig)
+                            errorMessage = null
+                        }
+                    } catch (e: Exception) {
+                        errorMessage = parseErrorMsg.format(e.message ?: "")
+                    }
+                },
+            ) {
+                Text(stringResource(R.string.setting_mcp_page_json_apply))
             }
         }
     }
@@ -1119,6 +1215,84 @@ private fun parseMcpServersFromJson(json: String): List<McpServerConfig> {
             }
         }
     }
+}
+
+private fun parseSingleMcpServerConfig(json: String, currentConfig: McpServerConfig): McpServerConfig? {
+    val parsedFromMcpServers = parseMcpServersFromJson(json).firstOrNull()
+    if (parsedFromMcpServers != null) {
+        return parsedFromMcpServers.forEditing(currentConfig)
+    }
+
+    val root = Json.parseToJsonElement(json).jsonObject
+    val name = root["name"]?.jsonPrimitive?.contentOrNull
+        ?: currentConfig.commonOptions.name.ifBlank { "MCP Server" }
+    val wrapped = JsonObject(
+        mapOf(
+            "mcpServers" to JsonObject(
+                mapOf(name to root)
+            )
+        )
+    )
+    return parseMcpServersFromJson(mcpJson.encodeToString(JsonObject.serializer(), wrapped))
+        .firstOrNull()
+        ?.forEditing(currentConfig)
+}
+
+private fun McpServerConfig.forEditing(currentConfig: McpServerConfig): McpServerConfig =
+    clone(
+        id = currentConfig.id,
+        commonOptions = commonOptions.copy(
+            enable = currentConfig.commonOptions.enable,
+            tools = currentConfig.commonOptions.tools,
+        ),
+    )
+
+private fun McpServerConfig.toMcpServersJson(): String {
+    val serverName = commonOptions.name.ifBlank { "MCP Server" }
+    val root = JsonObject(
+        mapOf(
+            "mcpServers" to JsonObject(
+                mapOf(serverName to toMcpServerJsonObject())
+            )
+        )
+    )
+    return mcpJson.encodeToString(JsonObject.serializer(), root)
+}
+
+private fun McpServerConfig.toMcpServerJsonObject(): JsonObject {
+    val entries = mutableMapOf<String, JsonElement>()
+    entries["type"] = JsonPrimitive(
+        when (this) {
+            is McpServerConfig.SseTransportServer -> "sse"
+            is McpServerConfig.StreamableHTTPServer -> "streamable_http"
+            is McpServerConfig.StdioTransportServer -> "stdio"
+        }
+    )
+    when (this) {
+        is McpServerConfig.SseTransportServer -> entries["url"] = JsonPrimitive(url)
+        is McpServerConfig.StreamableHTTPServer -> entries["url"] = JsonPrimitive(url)
+        is McpServerConfig.StdioTransportServer -> {
+            entries["command"] = JsonPrimitive(command)
+            if (args.isNotEmpty()) {
+                entries["args"] = JsonArray(args.map { JsonPrimitive(it) })
+            }
+            if (env.any { it.first.isNotBlank() }) {
+                entries["env"] = JsonObject(
+                    env
+                        .filter { it.first.isNotBlank() }
+                        .associate { it.first to JsonPrimitive(it.second) }
+                )
+            }
+        }
+    }
+    if (commonOptions.headers.any { it.first.isNotBlank() }) {
+        entries["headers"] = JsonObject(
+            commonOptions.headers
+                .filter { it.first.isNotBlank() }
+                .associate { it.first to JsonPrimitive(it.second) }
+        )
+    }
+    return JsonObject(entries)
 }
 
 @Composable

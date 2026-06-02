@@ -17,6 +17,7 @@ import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.repository.ConversationRepository
 import com.eterultimate.eteruee.data.ai.tools.LocalTools
+import com.eterultimate.eteruee.data.sync.webdav.WebDavSync
 import com.eterultimate.eteruee.device.DeviceAgentManager
 import com.eterultimate.eteruee.roleplay.domain.service.CharacterService as RoleplayCharacterService
 import com.eterultimate.eteruee.roleplay.domain.service.ChatService as RoleplayChatService
@@ -25,6 +26,7 @@ import com.eterultimate.eteruee.roleplay.domain.service.PresetService as Rolepla
 import com.eterultimate.eteruee.roleplay.domain.service.WorldInfoService as RoleplayWorldInfoService
 import com.eterultimate.eteruee.runtime.NativeRuntime
 import com.eterultimate.eteruee.service.ChatService
+import com.eterultimate.eteruee.web.relay.HttpRelayService
 import com.eterultimate.eteruee.web.startWebServer
 
 private const val TAG = "WebServerManager"
@@ -50,6 +52,8 @@ class WebServerManager(
     private val conversationRepo: ConversationRepository,
     private val settingsStore: SettingsStore,
     private val filesManager: FilesManager,
+    private val webDavSync: WebDavSync,
+    private val httpRelayService: HttpRelayService,
     private val roleplayCharacterService: RoleplayCharacterService,
     private val roleplayChatService: RoleplayChatService,
     private val roleplayGroupService: RoleplayGroupService,
@@ -98,6 +102,8 @@ class WebServerManager(
                         conversationRepo = conversationRepo,
                         settingsStore = settingsStore,
                         filesManager = filesManager,
+                        webDavSync = webDavSync,
+                        httpRelayService = httpRelayService,
                         roleplayCharacterService = roleplayCharacterService,
                         roleplayChatService = roleplayChatService,
                         roleplayGroupService = roleplayGroupService,

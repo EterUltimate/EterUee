@@ -717,6 +717,10 @@
   <string name="setting_mcp_page_import_no_valid_config">未找到有效的 MCP Server 配置</string>
   <string name="setting_mcp_page_import_parse_error">JSON 解析失敗：%1$s</string>
   <string name="setting_mcp_page_import_title">匯入 MCP Server</string>
+  <string name="setting_mcp_page_json_apply">套用</string>
+  <string name="setting_mcp_page_json_config">JSON 設定</string>
+  <string name="setting_mcp_page_json_config_desc">以標準 mcpServers JSON 編輯目前伺服器。套用 JSON 後會更新目前伺服器設定。</string>
+  <string name="setting_mcp_page_json_reset">重設</string>
   <string name="setting_mcp_page_name">名稱</string>
   <string name="setting_mcp_page_name_desc">MCP伺服器的顯示名稱</string>
   <string name="setting_mcp_page_name_placeholder">例如：My MCP Server</string>
@@ -1105,6 +1109,7 @@
   <string name="shell_page_command_label">命令</string>
   <string name="shell_page_empty_hint">尚未執行任何命令</string>
   <string name="shell_page_execute">執行</string>
+  <string name="shell_page_show_keyboard">開啟輸入法</string>
   <string name="shell_page_termux_output_hint">輸出顯示在Termux終端機中</string>
   <string name="shell_page_title">Shell</string>
   <string name="ssh_page_command_hint">輸入SSH命令...</string>

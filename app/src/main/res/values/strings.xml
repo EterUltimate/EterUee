@@ -720,6 +720,10 @@
   <string name="setting_mcp_page_import_no_valid_config">No valid MCP Server configuration found</string>
   <string name="setting_mcp_page_import_parse_error">JSON parse failed: %1$s</string>
   <string name="setting_mcp_page_import_title">Import MCP Server</string>
+  <string name="setting_mcp_page_json_apply">Apply</string>
+  <string name="setting_mcp_page_json_config">JSON Config</string>
+  <string name="setting_mcp_page_json_config_desc">Edit this server as standard mcpServers JSON. Applying the JSON updates the current server.</string>
+  <string name="setting_mcp_page_json_reset">Reset</string>
   <string name="setting_mcp_page_name">Name</string>
   <string name="setting_mcp_page_name_desc">Display name for the MCP server</string>
   <string name="setting_mcp_page_name_placeholder">e.g.: My MCP Server</string>
@@ -1109,6 +1113,7 @@
   <string name="shell_page_command_label">Command</string>
   <string name="shell_page_empty_hint">No commands executed yet</string>
   <string name="shell_page_execute">Execute</string>
+  <string name="shell_page_show_keyboard">Show keyboard</string>
   <string name="shell_page_termux_output_hint">Output shown in Termux terminal</string>
   <string name="shell_page_title">Shell</string>
   <string name="ssh_page_command_hint">Enter SSH command...</string>

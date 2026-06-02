@@ -23,8 +23,8 @@ android {
         applicationId = "com.eterultimate.eteruee"
         minSdk = 26
         targetSdk = 37
-        versionCode = 169
-        versionName = "5.2.14"
+        versionCode = 170
+        versionName = "5.2.15"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -384,6 +384,10 @@ dependencies {
 
     // JSch (SSH client)
     implementation(libs.jsch)
+
+    // Shizuku privileged shell/API bridge
+    implementation(libs.shizuku.api)
+    implementation(libs.shizuku.provider)
 
     // modules
     implementation(project(":ai"))

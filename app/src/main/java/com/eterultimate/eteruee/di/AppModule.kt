@@ -12,6 +12,7 @@ import com.eterultimate.eteruee.ai.sdk.AISDK
 import com.eterultimate.eteruee.data.ai.DynamicAISDK
 import com.eterultimate.eteruee.data.ai.tools.LocalTools
 import com.eterultimate.eteruee.data.event.AppEventBus
+import com.eterultimate.eteruee.device.DeviceAgentManager
 import com.eterultimate.eteruee.network.HiddifyCoreManager
 import com.eterultimate.eteruee.service.ChatService
 import com.eterultimate.eteruee.utils.EmojiData
@@ -19,6 +20,7 @@ import com.eterultimate.eteruee.utils.EmojiUtils
 import com.eterultimate.eteruee.utils.JsonInstant
 import com.eterultimate.eteruee.utils.UpdateChecker
 import com.eterultimate.eteruee.web.WebServerManager
+import com.eterultimate.eteruee.web.relay.HttpRelayService
 import com.eterultimate.eteruee.tts.provider.TTSManager
 import com.eterultimate.eteruee.roleplay.domain.service.CharacterService as RoleplayCharacterService
 import com.eterultimate.eteruee.roleplay.domain.service.ChatService as RoleplayChatService
@@ -43,7 +45,7 @@ val appModule = module {
     }
 
     single {
-        LocalTools(get(), get())
+        LocalTools(get(), get(), get(), get())
     }
 
     single {
@@ -67,6 +69,10 @@ val appModule = module {
     }
 
     single {
+        DeviceAgentManager(get())
+    }
+
+    single {
         Firebase.crashlytics
     }
 
@@ -80,6 +86,10 @@ val appModule = module {
 
     single {
         AILoggingManager()
+    }
+
+    single {
+        HttpRelayService(okHttpClient = get())
     }
 
     single {
@@ -108,11 +118,15 @@ val appModule = module {
             conversationRepo = get(),
             settingsStore = get(),
             filesManager = get(),
+            webDavSync = get(),
+            httpRelayService = get(),
             roleplayCharacterService = get<RoleplayCharacterService>(),
             roleplayChatService = get<RoleplayChatService>(),
             roleplayWorldInfoService = get<RoleplayWorldInfoService>(),
             roleplayGroupService = get<RoleplayGroupService>(),
             roleplayPresetService = get<RoleplayPresetService>(),
+            localTools = get(),
+            deviceAgentManager = get(),
         )
     }
 }

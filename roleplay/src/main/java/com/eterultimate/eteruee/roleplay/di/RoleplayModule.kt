@@ -85,7 +85,7 @@ val roleplayModule = module {
     single<PromptBuilderService> { PromptBuilderServiceImpl() }
     single<GroupSpeakerService> { GroupSpeakerServiceImpl() }
     single<ExtensionManager> { ExtensionManagerImpl() }
-    single<PresetService> { PresetServiceImpl(get()) }
+    single<PresetService> { PresetServiceImpl(androidContext(), get()) }
     single { RoleplaySubagentExecutor() }
     
     // ViewModels

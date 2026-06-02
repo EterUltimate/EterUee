@@ -1,5 +1,6 @@
 package com.eterultimate.eteruee.roleplay.domain.service
 
+import android.net.Uri
 import com.eterultimate.eteruee.roleplay.data.model.Preset
 import com.eterultimate.eteruee.roleplay.data.model.PresetType
 import kotlinx.coroutines.flow.Flow
@@ -63,6 +64,13 @@ interface PresetService {
      * 批量导入预设
      */
     suspend fun importPresets(presets: List<Preset>): Result<Int>
+
+    /**
+     * 导入 Tavern/SillyTavern 生成预设 JSON
+     */
+    suspend fun importPreset(uri: Uri): Result<Preset>
+
+    suspend fun importPreset(jsonString: String, fallbackName: String = "Imported Preset"): Result<Preset>
     
     /**
      * 导出所有预设为JSON

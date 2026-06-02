@@ -1,5 +1,6 @@
 package com.eterultimate.eteruee.roleplay.ui.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eterultimate.eteruee.roleplay.data.model.Preset
@@ -41,8 +42,26 @@ class PresetListViewModel(
         }
     }
 
+    fun importPreset(uri: Uri) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isImporting = true)
+
+            presetService.importPreset(uri).onSuccess { preset ->
+                _uiState.value = _uiState.value.copy(
+                    isImporting = false,
+                    successMessage = "已导入预设：${preset.name.ifBlank { "未命名" }}"
+                )
+            }.onFailure { error ->
+                _uiState.value = _uiState.value.copy(
+                    isImporting = false,
+                    errorMessage = "导入失败: ${error.message}"
+                )
+            }
+        }
+    }
+
     fun clearMessage() {
-        _uiState.value = _uiState.value.copy(errorMessage = null)
+        _uiState.value = _uiState.value.copy(errorMessage = null, successMessage = null)
     }
 }
 
@@ -50,7 +69,9 @@ data class PresetListUiState(
     val presets: List<Preset> = emptyList(),
     val selectedType: PresetType? = null,
     val isLoading: Boolean = true,
-    val errorMessage: String? = null
+    val isImporting: Boolean = false,
+    val errorMessage: String? = null,
+    val successMessage: String? = null
 ) {
     val filteredPresets: List<Preset>
         get() = selectedType?.let { type -> presets.filter { it.type == type } } ?: presets

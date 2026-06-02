@@ -1,5 +1,6 @@
 package com.eterultimate.eteruee.roleplay.domain.service
 
+import android.net.Uri
 import com.eterultimate.eteruee.roleplay.data.model.WorldInfo
 import com.eterultimate.eteruee.roleplay.data.model.WorldInfoEntry
 import kotlinx.coroutines.flow.Flow
@@ -27,6 +28,13 @@ interface WorldInfoService {
      * 保存完整世界书(创建或更新)
      */
     suspend fun saveWorldInfo(worldInfo: WorldInfo): Result<WorldInfo>
+
+    /**
+     * 导入 Tavern/SillyTavern 世界书 JSON
+     */
+    suspend fun importWorldInfo(uri: Uri): Result<WorldInfo>
+
+    suspend fun importWorldInfo(jsonString: String, fallbackName: String = "Imported Lorebook"): Result<WorldInfo>
     
     /**
      * 更新世界书

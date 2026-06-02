@@ -30,6 +30,41 @@ export interface UploadFilesResponseDto {
   files: UploadedFileDto[];
 }
 
+export interface BackupStatusDto {
+  lastBackupTime: number;
+  webDavConfigured: boolean;
+  s3Configured: boolean;
+  includedItems: string[];
+}
+
+export interface BackupRestoreResponse {
+  status: string;
+  fileName: string;
+  size: number;
+}
+
+export interface HttpRelayRequest {
+  url: string;
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | string;
+  headers?: Record<string, string>;
+  body?: string | null;
+  bodyBase64?: string | null;
+  contentType?: string | null;
+  timeoutMillis?: number | null;
+}
+
+export interface HttpRelayResponse {
+  url: string;
+  statusCode: number;
+  statusMessage: string;
+  headers: Record<string, string[]>;
+  contentType?: string | null;
+  body?: string | null;
+  bodyBase64?: string | null;
+  bodyEncoding: "text" | "base64" | string;
+  bodyTruncated: boolean;
+}
+
 export interface ConversationListInvalidateEventDto {
   type: "invalidate";
   assistantId: string;

@@ -21,25 +21,32 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import com.eterultimate.eteruee.ai.sdk.AISDK
+import com.eterultimate.eteruee.data.ai.tools.LocalTools
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.repository.ConversationRepository
-import com.eterultimate.eteruee.service.ChatService
-import com.eterultimate.eteruee.utils.JsonInstant
-import com.eterultimate.eteruee.web.dto.ErrorResponse
-import com.eterultimate.eteruee.web.dto.WebAuthTokenRequest
-import com.eterultimate.eteruee.web.dto.WebAuthTokenResponse
-import com.eterultimate.eteruee.web.routes.aiIconRoutes
-import com.eterultimate.eteruee.web.routes.assetsRoutes
-import com.eterultimate.eteruee.web.routes.conversationRoutes
-import com.eterultimate.eteruee.web.routes.filesRoutes
-import com.eterultimate.eteruee.web.routes.roleplayRoutes
-import com.eterultimate.eteruee.web.routes.settingsRoutes
+import com.eterultimate.eteruee.data.sync.webdav.WebDavSync
+import com.eterultimate.eteruee.device.DeviceAgentManager
 import com.eterultimate.eteruee.roleplay.domain.service.CharacterService as RoleplayCharacterService
 import com.eterultimate.eteruee.roleplay.domain.service.ChatService as RoleplayChatService
 import com.eterultimate.eteruee.roleplay.domain.service.GroupService as RoleplayGroupService
 import com.eterultimate.eteruee.roleplay.domain.service.PresetService as RoleplayPresetService
 import com.eterultimate.eteruee.roleplay.domain.service.WorldInfoService as RoleplayWorldInfoService
+import com.eterultimate.eteruee.service.ChatService
+import com.eterultimate.eteruee.utils.JsonInstant
+import com.eterultimate.eteruee.web.relay.HttpRelayService
+import com.eterultimate.eteruee.web.dto.ErrorResponse
+import com.eterultimate.eteruee.web.dto.WebAuthTokenRequest
+import com.eterultimate.eteruee.web.dto.WebAuthTokenResponse
+import com.eterultimate.eteruee.web.routes.aiIconRoutes
+import com.eterultimate.eteruee.web.routes.assetsRoutes
+import com.eterultimate.eteruee.web.routes.backupRoutes
+import com.eterultimate.eteruee.web.routes.conversationRoutes
+import com.eterultimate.eteruee.web.routes.deviceRoutes
+import com.eterultimate.eteruee.web.routes.filesRoutes
+import com.eterultimate.eteruee.web.routes.relayRoutes
+import com.eterultimate.eteruee.web.routes.roleplayRoutes
+import com.eterultimate.eteruee.web.routes.settingsRoutes
 import java.security.MessageDigest
 import java.util.Date
 import java.util.UUID
@@ -69,11 +76,15 @@ fun Application.configureWebApi(
     conversationRepo: ConversationRepository,
     settingsStore: SettingsStore,
     filesManager: FilesManager,
+    webDavSync: WebDavSync,
+    httpRelayService: HttpRelayService,
     roleplayCharacterService: RoleplayCharacterService,
     roleplayChatService: RoleplayChatService,
     roleplayWorldInfoService: RoleplayWorldInfoService,
     roleplayGroupService: RoleplayGroupService,
     roleplayPresetService: RoleplayPresetService,
+    localTools: LocalTools,
+    deviceAgentManager: DeviceAgentManager,
 ) {
     val jwtEnabled = settingsStore.settingsFlow.value.webServerJwtEnabled
 
@@ -186,6 +197,9 @@ fun Application.configureWebApi(
                         settingsStore = settingsStore,
                         filesManager = filesManager,
                     )
+                    deviceRoutes(deviceAgentManager)
+                    backupRoutes(context, settingsStore, webDavSync)
+                    relayRoutes(httpRelayService)
                     roleplayRoutes(
                         aiSDK = aiSDK,
                         settingsStore = settingsStore,
@@ -194,6 +208,7 @@ fun Application.configureWebApi(
                         worldInfoService = roleplayWorldInfoService,
                         groupService = roleplayGroupService,
                         presetService = roleplayPresetService,
+                        localTools = localTools,
                     )
                 }
             } else {
@@ -205,6 +220,9 @@ fun Application.configureWebApi(
                     settingsStore = settingsStore,
                     filesManager = filesManager,
                 )
+                deviceRoutes(deviceAgentManager)
+                backupRoutes(context, settingsStore, webDavSync)
+                relayRoutes(httpRelayService)
                 roleplayRoutes(
                     aiSDK = aiSDK,
                     settingsStore = settingsStore,
@@ -213,6 +231,7 @@ fun Application.configureWebApi(
                     worldInfoService = roleplayWorldInfoService,
                     groupService = roleplayGroupService,
                     presetService = roleplayPresetService,
+                    localTools = localTools,
                 )
             }
         }

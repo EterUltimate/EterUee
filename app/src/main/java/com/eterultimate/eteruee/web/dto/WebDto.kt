@@ -120,6 +120,17 @@ data class WebAuthTokenRequest(
     val password: String,
 )
 
+@Serializable
+data class HttpRelayRequest(
+    val url: String,
+    val method: String = "GET",
+    val headers: Map<String, String> = emptyMap(),
+    val body: String? = null,
+    val bodyBase64: String? = null,
+    val contentType: String? = null,
+    val timeoutMillis: Long? = null,
+)
+
 // ========== Response DTOs ==========
 
 @Serializable
@@ -209,6 +220,34 @@ data class MessageSearchResultDto(
 data class WebAuthTokenResponse(
     val token: String,
     val expiresAt: Long,
+)
+
+@Serializable
+data class BackupStatusDto(
+    val lastBackupTime: Long,
+    val webDavConfigured: Boolean,
+    val s3Configured: Boolean,
+    val includedItems: List<String>,
+)
+
+@Serializable
+data class BackupRestoreResponse(
+    val status: String,
+    val fileName: String,
+    val size: Long,
+)
+
+@Serializable
+data class HttpRelayResponse(
+    val url: String,
+    val statusCode: Int,
+    val statusMessage: String,
+    val headers: Map<String, List<String>>,
+    val contentType: String? = null,
+    val body: String? = null,
+    val bodyBase64: String? = null,
+    val bodyEncoding: String,
+    val bodyTruncated: Boolean = false,
 )
 
 // ========== Error Response ==========

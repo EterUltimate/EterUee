@@ -19,12 +19,20 @@ import com.eterultimate.eteruee.ai.core.Tool
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.data.event.AppEvent
 import com.eterultimate.eteruee.data.event.AppEventBus
+import com.eterultimate.eteruee.device.DeviceAgentManager
+import com.eterultimate.eteruee.network.HiddifyCoreManager
 import com.eterultimate.eteruee.utils.readClipboardText
 import com.eterultimate.eteruee.utils.writeClipboardText
+import java.io.InputStream
 import java.time.ZonedDateTime
 import java.time.format.TextStyle
 import java.util.Locale
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 
 @Serializable
 sealed class LocalToolOption {
@@ -59,6 +67,14 @@ sealed class LocalToolOption {
     @Serializable
     @SerialName("shell")
     data object Shell : LocalToolOption()
+
+    @Serializable
+    @SerialName("traffic_control")
+    data object TrafficControl : LocalToolOption()
+
+    @Serializable
+    @SerialName("device_agent")
+    data object DeviceAgent : LocalToolOption()
 }
 
 data class ScriptExecutionResult(
@@ -69,7 +85,22 @@ data class ScriptExecutionResult(
 
 private const val QUICKJS_MEMORY_LIMIT = 8 * 1024 * 1024 // 8 MB
 private const val QUICKJS_STACK_SIZE = 256 * 1024 // 256 KB
+private const val QUICKJS_GC_THRESHOLD = 4 * 1024 * 1024 // 4 MB
+private const val MAX_SCRIPT_CODE_CHARS = 200_000
+private const val MAX_SCRIPT_OUTPUT_CHARS = 100_000
+private const val MAX_SCRIPT_LOG_ENTRIES = 200
+private const val MAX_SCRIPT_LOG_CHARS = 4_000
+private const val PYTHON_TIMEOUT_SECONDS = 30L
+private const val PYTHON_BINARY_UNKNOWN = "__unknown__"
+private const val PYTHON_BINARY_MISSING = "__missing__"
 private val quickJsInitialized = AtomicBoolean(false)
+private val pythonBinaryCache = AtomicReference(PYTHON_BINARY_UNKNOWN)
+private val scriptIoThreadIndex = AtomicInteger(0)
+private val scriptIoExecutor = Executors.newCachedThreadPool { runnable ->
+    Thread(runnable, "eteruee-script-io-${scriptIoThreadIndex.incrementAndGet()}").apply {
+        isDaemon = true
+    }
+}
 
 private fun ensureQuickJsInitialized() {
     if (quickJsInitialized.get()) return
@@ -82,6 +113,15 @@ private fun ensureQuickJsInitialized() {
 }
 
 fun executeJavaScriptCode(code: String?): ScriptExecutionResult {
+    val script = code ?: ""
+    if (script.length > MAX_SCRIPT_CODE_CHARS) {
+        return ScriptExecutionResult(
+            result = null,
+            logs = emptyList(),
+            error = "JavaScript code is too large: max $MAX_SCRIPT_CODE_CHARS characters.",
+        )
+    }
+
     val logs = arrayListOf<String>()
     val context = try {
         ensureQuickJsInitialized()
@@ -96,29 +136,31 @@ fun executeJavaScriptCode(code: String?): ScriptExecutionResult {
     return try {
         context.setMemoryLimit(QUICKJS_MEMORY_LIMIT)
         context.setMaxStackSize(QUICKJS_STACK_SIZE)
+        context.setGCThreshold(QUICKJS_GC_THRESHOLD)
+        context.setEnableStackTrace(true)
         context.setConsole(object : QuickJSContext.Console {
             override fun log(info: String?) {
-                logs.add("[LOG] $info")
+                logs.addBoundedLog("[LOG]", info)
             }
 
             override fun info(info: String?) {
-                logs.add("[INFO] $info")
+                logs.addBoundedLog("[INFO]", info)
             }
 
             override fun warn(info: String?) {
-                logs.add("[WARN] $info")
+                logs.addBoundedLog("[WARN]", info)
             }
 
             override fun error(info: String?) {
-                logs.add("[ERROR] $info")
+                logs.addBoundedLog("[ERROR]", info)
             }
         })
-        val result = context.evaluate(code)
+        val result = context.evaluate(script)
         ScriptExecutionResult(
             result = when (result) {
                 null -> null
-                is QuickJSObject -> result.stringify()
-                else -> result.toString()
+                is QuickJSObject -> result.stringify().limitScriptOutput("JavaScript result")
+                else -> result.toString().limitScriptOutput("JavaScript result")
             },
             logs = logs,
             error = null,
@@ -130,11 +172,21 @@ fun executeJavaScriptCode(code: String?): ScriptExecutionResult {
             error = e.message ?: e.javaClass.simpleName,
         )
     } finally {
+        runCatching { context.runGC() }
         context.destroy()
     }
 }
 
 fun executePythonScript(code: String?): ScriptExecutionResult {
+    val script = code ?: ""
+    if (script.length > MAX_SCRIPT_CODE_CHARS) {
+        return ScriptExecutionResult(
+            result = null,
+            logs = emptyList(),
+            error = "Python code is too large: max $MAX_SCRIPT_CODE_CHARS characters.",
+        )
+    }
+
     return try {
         // Try Termux python3 first, then system python3
         val pythonBin = findPythonBinary()
@@ -143,19 +195,38 @@ fun executePythonScript(code: String?): ScriptExecutionResult {
                 logs = emptyList(),
                 error = "Python interpreter not found. Install Python via Termux (pkg install python) or disable the Python tool in settings.",
             )
-        val process = Runtime.getRuntime().exec(arrayOf(pythonBin, "-c", code ?: ""))
+        val process = ProcessBuilder(pythonBin, "-c", script)
+            .apply {
+                environment()["PYTHONIOENCODING"] = "utf-8"
+                environment()["PYTHONUNBUFFERED"] = "1"
+            }
+            .start()
         process.outputStream.close()
 
-        val stdout = process.inputStream.bufferedReader(Charsets.UTF_8).readText()
-        val stderr = process.errorStream.bufferedReader(Charsets.UTF_8).readText()
-        val completed = process.waitFor(30, java.util.concurrent.TimeUnit.SECONDS)
+        val stdoutFuture = scriptIoExecutor.submit(Callable {
+            process.inputStream.readTextLimited(MAX_SCRIPT_OUTPUT_CHARS)
+        })
+        val stderrFuture = scriptIoExecutor.submit(Callable {
+            process.errorStream.readTextLimited(MAX_SCRIPT_OUTPUT_CHARS)
+        })
+
+        val completed = process.waitFor(PYTHON_TIMEOUT_SECONDS, TimeUnit.SECONDS)
 
         if (!completed) {
             process.destroyForcibly()
+            process.waitFor(1, TimeUnit.SECONDS)
+        }
+
+        val stdoutResult = stdoutFuture.getLimitedResult()
+        val stderrResult = stderrFuture.getLimitedResult()
+        val stdout = stdoutResult.toOutputText("stdout")
+        val stderr = stderrResult.toOutputText("stderr")
+
+        if (!completed) {
             return ScriptExecutionResult(
                 result = stdout.ifBlank { null },
                 logs = emptyList(),
-                error = "Python script timed out after 30 seconds.\n$stderr",
+                error = "Python script timed out after ${PYTHON_TIMEOUT_SECONDS} seconds.\n$stderr".trim(),
             )
         }
 
@@ -174,7 +245,12 @@ fun executePythonScript(code: String?): ScriptExecutionResult {
     }
 }
 
-class LocalTools(private val context: Context, private val eventBus: AppEventBus) {
+class LocalTools(
+    private val context: Context,
+    private val eventBus: AppEventBus,
+    private val hiddifyCoreManager: HiddifyCoreManager,
+    private val deviceAgentManager: DeviceAgentManager,
+) {
     val javascriptTool by lazy {
         Tool(
             name = "eval_javascript",
@@ -452,6 +528,12 @@ class LocalTools(private val context: Context, private val eventBus: AppEventBus
 
     val shellTool by lazy { ShellTools.createShellExecuteTool(context) }
 
+    val trafficControlTool by lazy { TrafficControlTools.createTrafficControlTool(hiddifyCoreManager) }
+
+    val deviceInfoTool by lazy { DeviceAgentTools.createDeviceInfoTool(deviceAgentManager) }
+
+    val adbShellTool by lazy { DeviceAgentTools.createAdbShellTool(deviceAgentManager) }
+
     fun getTools(options: List<LocalToolOption>): List<Tool> {
         val tools = mutableListOf<Tool>()
         if (options.contains(LocalToolOption.JavascriptEngine)) {
@@ -478,11 +560,95 @@ class LocalTools(private val context: Context, private val eventBus: AppEventBus
         if (options.contains(LocalToolOption.Shell)) {
             tools.add(shellTool)
         }
+        if (options.contains(LocalToolOption.TrafficControl)) {
+            tools.add(trafficControlTool)
+        }
+        if (options.contains(LocalToolOption.DeviceAgent)) {
+            tools.add(deviceInfoTool)
+            tools.add(adbShellTool)
+        }
         return tools
     }
 }
 
+private fun MutableList<String>.addBoundedLog(prefix: String, message: String?) {
+    if (size >= MAX_SCRIPT_LOG_ENTRIES) {
+        if (size == MAX_SCRIPT_LOG_ENTRIES) {
+            add("[TRUNCATED] Console log limited to $MAX_SCRIPT_LOG_ENTRIES entries.")
+        }
+        return
+    }
+    add("$prefix ${(message ?: "null").limitScriptOutput("console log", MAX_SCRIPT_LOG_CHARS)}")
+}
+
+private fun String.limitScriptOutput(
+    label: String,
+    maxChars: Int = MAX_SCRIPT_OUTPUT_CHARS,
+): String {
+    if (length <= maxChars) return this
+    return take(maxChars) + "\n[TRUNCATED] $label limited to $maxChars characters."
+}
+
+private data class LimitedText(
+    val text: String,
+    val truncated: Boolean,
+)
+
+private fun InputStream.readTextLimited(maxChars: Int): LimitedText {
+    var truncated = false
+    val builder = StringBuilder()
+    bufferedReader(Charsets.UTF_8).use { reader ->
+        val buffer = CharArray(DEFAULT_BUFFER_SIZE)
+        while (true) {
+            val read = reader.read(buffer)
+            if (read < 0) break
+
+            val remaining = maxChars - builder.length
+            if (remaining > 0) {
+                builder.append(buffer, 0, minOf(read, remaining))
+            }
+            if (read > remaining) {
+                truncated = true
+            }
+        }
+    }
+    return LimitedText(builder.toString(), truncated)
+}
+
+private fun java.util.concurrent.Future<LimitedText>.getLimitedResult(): LimitedText {
+    return runCatching {
+        get(1, TimeUnit.SECONDS)
+    }.getOrElse {
+        LimitedText("", truncated = true)
+    }
+}
+
+private fun LimitedText.toOutputText(label: String): String {
+    if (!truncated) return text
+    return text + "\n[TRUNCATED] Python $label limited to $MAX_SCRIPT_OUTPUT_CHARS characters."
+}
+
 private fun findPythonBinary(): String? {
+    when (val cached = pythonBinaryCache.get()) {
+        PYTHON_BINARY_MISSING -> return null
+        PYTHON_BINARY_UNKNOWN -> Unit
+        else -> return cached
+    }
+
+    synchronized(pythonBinaryCache) {
+        when (val cached = pythonBinaryCache.get()) {
+            PYTHON_BINARY_MISSING -> return null
+            PYTHON_BINARY_UNKNOWN -> Unit
+            else -> return cached
+        }
+
+        val discovered = discoverPythonBinary()
+        pythonBinaryCache.set(discovered ?: PYTHON_BINARY_MISSING)
+        return discovered
+    }
+}
+
+private fun discoverPythonBinary(): String? {
     val candidates = listOf(
         "/data/data/com.termux/files/usr/bin/python3",
         "/data/data/com.termux/files/usr/bin/python",
@@ -491,8 +657,15 @@ private fun findPythonBinary(): String? {
     )
     for (bin in candidates) {
         try {
-            val process = Runtime.getRuntime().exec(arrayOf(bin, "--version"))
-            if (process.waitFor() == 0) return bin
+            val process = ProcessBuilder(bin, "--version")
+                .redirectErrorStream(true)
+                .start()
+            val completed = process.waitFor(2, TimeUnit.SECONDS)
+            if (!completed) {
+                process.destroyForcibly()
+            } else if (process.exitValue() == 0) {
+                return bin
+            }
         } catch (_: Exception) {
             // Not available
         }

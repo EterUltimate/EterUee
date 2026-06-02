@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import me.rerere.hugeicons.stroke.MoreVertical
 import com.eterultimate.eteruee.ui.components.nav.BackButton
 import com.eterultimate.eteruee.ui.components.webview.WebView
+import com.eterultimate.eteruee.ui.components.webview.disableLocalFileAccess
 import com.eterultimate.eteruee.ui.components.webview.rememberWebViewState
 import com.eterultimate.eteruee.ui.theme.JetbrainsMono
 import com.eterultimate.eteruee.utils.base64Decode
@@ -43,12 +44,14 @@ import com.eterultimate.eteruee.utils.base64Decode
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WebViewPage(url: String, content: String) {
+    val uriHandler = LocalUriHandler.current
     val state = if (url.isNotEmpty()) {
         rememberWebViewState(
             url = url,
             settings = {
                 builtInZoomControls = true
                 displayZoomControls = false
+                allowContentAccess = true
             })
     } else {
         rememberWebViewState(
@@ -58,6 +61,16 @@ fun WebViewPage(url: String, content: String) {
             settings = {
                 builtInZoomControls = true
                 displayZoomControls = false
+                allowContentAccess = false
+                disableLocalFileAccess()
+            },
+            onUrlRequest = { requestedUrl ->
+                if (requestedUrl.startsWith("https://eteruee.local")) {
+                    false
+                } else {
+                    runCatching { uriHandler.openUri(requestedUrl) }
+                    true
+                }
             }
         )
     }
@@ -96,7 +109,6 @@ fun WebViewPage(url: String, content: String) {
                         Icon(HugeIcons.ArrowRight01, contentDescription = "Forward")
                     }
 
-                    val urlHandler = LocalUriHandler.current
                     IconButton(
                         onClick = { showDropdown = true }
                     ) {
@@ -113,7 +125,7 @@ fun WebViewPage(url: String, content: String) {
                                     showDropdown = false
                                     state.currentUrl?.let { url ->
                                         if (url.isNotBlank()) {
-                                            urlHandler.openUri(url)
+                                            uriHandler.openUri(url)
                                         }
                                     }
                                 }

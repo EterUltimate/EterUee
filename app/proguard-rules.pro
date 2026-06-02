@@ -55,3 +55,7 @@
 -keep class go.** { *; }
 -dontwarn com.hiddify.core.**
 -dontwarn go.**
+
+# Shizuku provider/API entry points are discovered across process boundaries.
+-keep class rikka.shizuku.** { *; }
+-keep class moe.shizuku.** { *; }

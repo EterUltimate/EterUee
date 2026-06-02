@@ -1,5 +1,7 @@
 package com.eterultimate.eteruee.roleplay.ui.pages.worldinfo
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -7,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,12 +31,23 @@ fun WorldInfoListPage(
     viewModel: WorldInfoListViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let(viewModel::importWorldInfo)
+    }
     
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("世界书") },
                 actions = {
+                    IconButton(
+                        onClick = { importLauncher.launch(arrayOf("application/json", "text/json", "text/plain")) },
+                        enabled = !uiState.isImporting
+                    ) {
+                        Icon(Icons.Default.Upload, contentDescription = "导入世界书")
+                    }
                     IconButton(onClick = onCreateWorldInfo) {
                         Icon(Icons.Default.Add, contentDescription = "创建世界书")
                     }
@@ -41,35 +55,72 @@ fun WorldInfoListPage(
             )
         }
     ) { paddingValues ->
-        if (uiState.worldInfos.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("暂无世界书", style = MaterialTheme.typography.titleMedium)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = onCreateWorldInfo) {
-                        Text("创建第一个世界书")
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            uiState.errorMessage?.let { error ->
+                Snackbar(
+                    modifier = Modifier.padding(8.dp),
+                    action = {
+                        TextButton(onClick = { viewModel.clearMessage() }) {
+                            Text("关闭")
+                        }
                     }
+                ) {
+                    Text(error)
                 }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(uiState.worldInfos) { worldInfo ->
-                    WorldInfoCard(
-                        worldInfo = worldInfo,
-                        onClick = { onWorldInfoClick(worldInfo) },
-                        onDeleteClick = { viewModel.deleteWorldInfo(worldInfo.id) }
-                    )
+            uiState.successMessage?.let { success ->
+                Snackbar(
+                    modifier = Modifier.padding(8.dp),
+                    action = {
+                        TextButton(onClick = { viewModel.clearMessage() }) {
+                            Text("关闭")
+                        }
+                    }
+                ) {
+                    Text(success)
+                }
+            }
+
+            if (uiState.worldInfos.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("暂无世界书", style = MaterialTheme.typography.titleMedium)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(onClick = onCreateWorldInfo) {
+                                Text("创建第一个世界书")
+                            }
+                            OutlinedButton(
+                                onClick = {
+                                    importLauncher.launch(arrayOf("application/json", "text/json", "text/plain"))
+                                },
+                                enabled = !uiState.isImporting
+                            ) {
+                                Text(if (uiState.isImporting) "导入中..." else "导入世界书")
+                            }
+                        }
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(uiState.worldInfos) { worldInfo ->
+                        WorldInfoCard(
+                            worldInfo = worldInfo,
+                            onClick = { onWorldInfoClick(worldInfo) },
+                            onDeleteClick = { viewModel.deleteWorldInfo(worldInfo.id) }
+                        )
+                    }
                 }
             }
         }

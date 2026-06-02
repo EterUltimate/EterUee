@@ -12,8 +12,11 @@ import {
   Globe,
   Loader2,
   MessageCircleQuestion,
+  Network,
   Search,
   Send,
+  Server,
+  Terminal,
   Video,
   Wrench,
   X,
@@ -31,10 +34,7 @@ import {
 } from "~/components/ui/drawer";
 import { useIsMobile } from "~/hooks/use-mobile";
 import { resolveFileUrl } from "~/lib/files";
-import type {
-  TextPart as UITextPart,
-  ToolPart as UIToolPart,
-} from "~/types";
+import type { TextPart as UITextPart, ToolPart as UIToolPart } from "~/types";
 
 import { ControlledChainOfThoughtStep } from "../chain-of-thought";
 import { AudioPart as AudioPartRenderer } from "./audio-part";
@@ -44,7 +44,12 @@ import { VideoPart as VideoPartRenderer } from "./video-part";
 interface ToolPartProps {
   tool: UIToolPart;
   loading?: boolean;
-  onToolApproval?: (toolCallId: string, approved: boolean, reason: string, answer?: string) => void | Promise<void>;
+  onToolApproval?: (
+    toolCallId: string,
+    approved: boolean,
+    reason: string,
+    answer?: string,
+  ) => void | Promise<void>;
   isFirst?: boolean;
   isLast?: boolean;
 }
@@ -56,6 +61,11 @@ const TOOL_NAMES = {
   GET_TIME_INFO: "get_time_info",
   CLIPBOARD: "clipboard_tool",
   ASK_USER: "ask_user",
+  SHELL: "shell_execute",
+  SSH: "ssh_execute",
+  TRAFFIC_CONTROL: "traffic_control",
+  DEVICE_INFO: "device_info",
+  ADB_SHELL: "adb_shell_execute",
 } as const;
 
 const MEMORY_ACTIONS = {
@@ -115,6 +125,10 @@ function getToolIcon(toolName: string, action?: string) {
   }
 
   if (toolName === TOOL_NAMES.ASK_USER) return MessageCircleQuestion;
+  if (toolName === TOOL_NAMES.SHELL || toolName === TOOL_NAMES.ADB_SHELL) return Terminal;
+  if (toolName === TOOL_NAMES.SSH) return Server;
+  if (toolName === TOOL_NAMES.TRAFFIC_CONTROL) return Network;
+  if (toolName === TOOL_NAMES.DEVICE_INFO) return Server;
 
   return Wrench;
 }
@@ -142,6 +156,11 @@ function getToolTitle(toolName: string, args: unknown, t: TFunction): string {
   }
 
   if (toolName === TOOL_NAMES.ASK_USER) return t("tool_part.ask_user_title");
+  if (toolName === TOOL_NAMES.SHELL) return t("tool_part.shell_execute");
+  if (toolName === TOOL_NAMES.SSH) return t("tool_part.ssh_execute");
+  if (toolName === TOOL_NAMES.TRAFFIC_CONTROL) return t("tool_part.traffic_control");
+  if (toolName === TOOL_NAMES.DEVICE_INFO) return t("tool_part.device_info");
+  if (toolName === TOOL_NAMES.ADB_SHELL) return t("tool_part.adb_shell_execute");
 
   return t("tool_part.tool_call_with_name", { toolName });
 }
@@ -266,13 +285,7 @@ function parseAskUserQuestions(args: unknown): AskUserQuestion[] {
   }
 }
 
-function AskUserToolStep({
-  tool,
-  loading,
-  onToolApproval,
-  isFirst,
-  isLast,
-}: ToolPartProps) {
+function AskUserToolStep({ tool, loading, onToolApproval, isFirst, isLast }: ToolPartProps) {
   const { t } = useTranslation("message");
   const [expanded, setExpanded] = React.useState(true);
 
@@ -332,9 +345,7 @@ function AskUserToolStep({
       <div className="space-y-3 w-full">
         {questions.map((q) => (
           <div key={q.id} className="space-y-1.5">
-            {questions.length > 1 && (
-              <div className="text-sm text-foreground">{q.question}</div>
-            )}
+            {questions.length > 1 && <div className="text-sm text-foreground">{q.question}</div>}
 
             {isPending && onToolApproval ? (
               <>
@@ -371,7 +382,9 @@ function AskUserToolStep({
               </>
             ) : isAnswered ? (
               <div className="text-sm text-primary">
-                {answeredValues[q.id] ?? tool.approvalState.type === "answered" ? answeredValues[q.id] || "" : ""}
+                {(answeredValues[q.id] ?? tool.approvalState.type === "answered")
+                  ? answeredValues[q.id] || ""
+                  : ""}
               </div>
             ) : null}
           </div>
@@ -379,12 +392,7 @@ function AskUserToolStep({
 
         {isPending && onToolApproval && (
           <div className="flex justify-end">
-            <Button
-              size="sm"
-              variant="secondary"
-              disabled={!allAnswered}
-              onClick={handleSubmit}
-            >
+            <Button size="sm" variant="secondary" disabled={!allAnswered} onClick={handleSubmit}>
               <Send className="mr-1.5 h-3.5 w-3.5" />
               {t("tool_part.ask_user_submit")}
             </Button>
@@ -624,9 +632,12 @@ export function ToolPart({
                         }
                         return <JsonBlock key={i} value={parsed} />;
                       }
-                      if (part.type === "image") return <ImagePartRenderer key={i} url={part.url} />;
-                      if (part.type === "video") return <VideoPartRenderer key={i} url={part.url} />;
-                      if (part.type === "audio") return <AudioPartRenderer key={i} url={part.url} />;
+                      if (part.type === "image")
+                        return <ImagePartRenderer key={i} url={part.url} />;
+                      if (part.type === "video")
+                        return <VideoPartRenderer key={i} url={part.url} />;
+                      if (part.type === "audio")
+                        return <AudioPartRenderer key={i} url={part.url} />;
                       return null;
                     })}
                   </div>

@@ -1018,6 +1018,7 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="skills_page_import_description">输入 GitHub 仓库 URL，将自动下载根目录中的 SKILL.md 文件。</string>
   <string name="skills_page_import_failed">导入失败：%s</string>
   <string name="skills_page_import_from_github">从 GitHub 导入</string>
+  <string name="skills_page_import_from_zip">导入 ZIP 包</string>
   <string name="skills_page_import_success">技能已导入：%s</string>
   <string name="skills_page_more_actions">更多操作</string>
   <string name="skills_page_name_error">找不到名称字段，请检查 frontmatter 格式</string>

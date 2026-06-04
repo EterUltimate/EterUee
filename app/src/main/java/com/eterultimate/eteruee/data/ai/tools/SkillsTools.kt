@@ -51,7 +51,7 @@ fun createSkillTools(
                             put("type", "string")
                             put(
                                 "description",
-                                "Optional relative path to a file inside the skill directory. Omit to read the default SKILL.md instructions. Only use paths extracted from Markdown links in the SKILL.md content. Do NOT guess or infer paths."
+                                "Optional relative path to a file in the skill package. Omit to read the default SKILL.md instructions. Only use paths extracted from Markdown links in the SKILL.md content. Do NOT guess or infer paths."
                             )
                         })
                     },
@@ -70,7 +70,7 @@ fun createSkillTools(
                         ?: error("Skill '$name' not found")
                 } else {
                     val target = skillManager.resolveSkillFile(name, path)
-                        ?: error("Path '$path' is outside the skill directory")
+                        ?: error("Path '$path' is outside the skill package")
                     require(target.exists()) { "File '$path' not found in skill '$name'" }
                     target.readText()
                 }

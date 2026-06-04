@@ -1,5 +1,7 @@
 package com.eterultimate.eteruee.ui.pages.extensions
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,6 +50,7 @@ import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Add01
 import me.rerere.hugeicons.stroke.Delete01
 import me.rerere.hugeicons.stroke.Download01
+import me.rerere.hugeicons.stroke.FileZip
 import me.rerere.hugeicons.stroke.MoreVertical
 import me.rerere.hugeicons.stroke.Puzzle
 import com.eterultimate.eteruee.data.files.SkillFrontmatterParser
@@ -71,7 +74,22 @@ fun SkillsPage() {
     val context = LocalContext.current
     var showAddDialog by rememberSaveable { mutableStateOf(false) }
     var showImportDialog by rememberSaveable { mutableStateOf(false) }
+    var isZipImporting by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<SkillMetadata?>(null) }
+    val zipImportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        isZipImporting = true
+        vm.importSkillZip(uri) { success, message ->
+            isZipImporting = false
+            if (success) {
+                toaster.show(context.getString(R.string.skills_page_import_success, message))
+            } else {
+                toaster.show(context.getString(R.string.skills_page_import_failed, message))
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -92,6 +110,22 @@ fun SkillsPage() {
                         HugeIcons.Download01,
                         contentDescription = stringResource(R.string.skills_page_import_from_github)
                     )
+                }
+                SmallFloatingActionButton(
+                    onClick = {
+                        if (!isZipImporting) {
+                            zipImportLauncher.launch(arrayOf("application/zip", "application/octet-stream"))
+                        }
+                    }
+                ) {
+                    if (isZipImporting) {
+                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                    } else {
+                        Icon(
+                            HugeIcons.FileZip,
+                            contentDescription = stringResource(R.string.skills_page_import_from_zip)
+                        )
+                    }
                 }
                 FloatingActionButton(onClick = { showAddDialog = true }) {
                     Icon(HugeIcons.Add01, contentDescription = null)

@@ -1016,6 +1016,7 @@
   <string name="skills_page_import_description">Enter a GitHub repository URL, and the SKILL.md file in the root directory will be downloaded automatically.</string>
   <string name="skills_page_import_failed">Import failed: %s</string>
   <string name="skills_page_import_from_github">Import from GitHub</string>
+  <string name="skills_page_import_from_zip">Import ZIP package</string>
   <string name="skills_page_import_success">Skill imported: %s</string>
   <string name="skills_page_more_actions">More actions</string>
   <string name="skills_page_name_error">Cannot find the name field, please check the frontmatter format</string>

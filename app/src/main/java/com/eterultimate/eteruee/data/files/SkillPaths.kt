@@ -27,6 +27,15 @@ internal object SkillPaths {
         return canonicalTarget.takeIf { it.isSameOrInside(canonicalSkillDir) }
     }
 
+    fun resolveSkillPackageFile(packageRoot: File, relativePath: String): File? {
+        if (relativePath.isBlank()) return null
+
+        val canonicalPackageRoot = packageRoot.canonicalFile
+        val canonicalTarget = canonicalPackageRoot.resolve(relativePath).canonicalFile
+
+        return canonicalTarget.takeIf { it.isSameOrInside(canonicalPackageRoot) }
+    }
+
     private fun File.isSameOrInside(root: File): Boolean {
         val rootPath = root.canonicalFile.path
         val currentPath = canonicalFile.path

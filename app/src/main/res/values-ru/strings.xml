@@ -1002,6 +1002,7 @@
   <string name="skills_page_import_description">Введите URL репозитория GitHub, и файл SKILL.md в корневом каталоге будет загружен автоматически.</string>
   <string name="skills_page_import_failed">Не удалось импортировать: %s</string>
   <string name="skills_page_import_from_github">Импорт из GitHub</string>
+  <string name="skills_page_import_from_zip">Импорт ZIP-пакета</string>
   <string name="skills_page_import_success">Навык импортирован: %s</string>
   <string name="skills_page_more_actions">Дополнительные действия</string>
   <string name="skills_page_name_error">Не удаётся найти поле name, проверьте формат frontmatter</string>

@@ -1002,6 +1002,7 @@ mDNSアドレス: .localホスト名を使用し、IPを知らなくても同じ
   <string name="skills_page_import_description">GitHubリポジトリのURLを入力すると、ルートディレクトリのSKILL.mdファイルが自動的にダウンロードされます。</string>
   <string name="skills_page_import_failed">インポートに失敗しました: %s</string>
   <string name="skills_page_import_from_github">GitHubからインポート</string>
+  <string name="skills_page_import_from_zip">ZIPパッケージをインポート</string>
   <string name="skills_page_import_success">スキルをインポートしました: %s</string>
   <string name="skills_page_more_actions">その他のアクション</string>
   <string name="skills_page_name_error">名前フィールドが見つかりません。フロントマター形式を確認してください</string>

@@ -1002,6 +1002,7 @@ mDNS 주소: .local 호스트네임을 사용하며, IP를 몰라도 같은 네�
   <string name="skills_page_import_description">GitHub 저장소 URL을 입력하면 루트 디렉터리의 SKILL.md 파일이 자동으로 다운로드됩니다.</string>
   <string name="skills_page_import_failed">가져오기 실패: %s</string>
   <string name="skills_page_import_from_github">GitHub에서 가져오기</string>
+  <string name="skills_page_import_from_zip">ZIP 패키지 가져오기</string>
   <string name="skills_page_import_success">스킬 가져오기 완료: %s</string>
   <string name="skills_page_more_actions">더 많은 작업</string>
   <string name="skills_page_name_error">이름 필드를 찾을 수 없습니다. 프론트매터 형식을 확인하세요.</string>

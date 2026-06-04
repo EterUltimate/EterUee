@@ -1009,6 +1009,7 @@
   <string name="skills_page_import_description">輸入 GitHub 儲存庫網址，系統將自動下載根目錄中的 SKILL.md 檔案。</string>
   <string name="skills_page_import_failed">匯入失敗：%s</string>
   <string name="skills_page_import_from_github">從 GitHub 匯入</string>
+  <string name="skills_page_import_from_zip">匯入 ZIP 套件</string>
   <string name="skills_page_import_success">已匯入技能：%s</string>
   <string name="skills_page_more_actions">更多操作</string>
   <string name="skills_page_name_error">找不到名稱欄位，請檢查 frontmatter 格式</string>

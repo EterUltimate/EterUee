@@ -1,5 +1,6 @@
 package com.eterultimate.eteruee.ui.pages.extensions
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -66,20 +67,10 @@ class SkillsVM(
                     return@launch
                 }
 
-                val skillMdEntry = files.find { it.first == "SKILL.md" } ?: run {
+                val skillMdEntries = files.filter { it.first.substringAfterLast('/') == "SKILL.md" }
+                val skillMdEntry = skillMdEntries.find { it.first == "SKILL.md" }
+                if (skillMdEntries.isEmpty()) {
                     withContext(Dispatchers.Main) { onResult(false, "目录中未找到 SKILL.md") }
-                    return@launch
-                }
-
-                val skillMdContent = downloadText(skillMdEntry.second) ?: run {
-                    withContext(Dispatchers.Main) { onResult(false, "下载 SKILL.md 失败，请检查链接或网络") }
-                    return@launch
-                }
-
-                val frontmatter = SkillFrontmatterParser.parse(skillMdContent)
-                val name = frontmatter["name"]
-                if (name.isNullOrBlank()) {
-                    withContext(Dispatchers.Main) { onResult(false, "SKILL.md 格式错误：缺少 name 字段") }
                     return@launch
                 }
 
@@ -93,14 +84,59 @@ class SkillsVM(
                     fileContents[relativePath] = content
                 }
 
-                val saved = skillManager.saveSkillFilesAtomically(name, fileContents)
-                if (!saved) {
-                    withContext(Dispatchers.Main) { onResult(false, "保存失败") }
+                val importedNames = if (skillMdEntries.size == 1 && skillMdEntry != null) {
+                    val skillMdContent = fileContents[skillMdEntry.first] ?: run {
+                        withContext(Dispatchers.Main) { onResult(false, "下载 SKILL.md 失败，请检查链接或网络") }
+                        return@launch
+                    }
+
+                    val frontmatter = SkillFrontmatterParser.parse(skillMdContent)
+                    val name = frontmatter["name"]
+                    if (name.isNullOrBlank()) {
+                        withContext(Dispatchers.Main) { onResult(false, "SKILL.md 格式错误：缺少 name 字段") }
+                        return@launch
+                    }
+
+                    val saved = skillManager.saveSkillFilesAtomically(name, fileContents)
+                    if (!saved) {
+                        withContext(Dispatchers.Main) { onResult(false, "保存失败") }
+                        return@launch
+                    }
+                    listOf(name)
+                } else {
+                    val packageName = info.path.substringAfterLast('/').ifBlank { info.repo }
+                    val imported = skillManager.saveSkillPackageFiles(
+                        packageName = packageName,
+                        files = fileContents.mapValues { it.value.toByteArray() }
+                    )
+                    if (imported.isNullOrEmpty()) {
+                        withContext(Dispatchers.Main) { onResult(false, "保存失败") }
+                        return@launch
+                    }
+                    imported.map { it.name }
+                }
+
+                _skills.value = skillManager.listSkills()
+                withContext(Dispatchers.Main) { onResult(true, importedNames.joinToString(", ")) }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) { onResult(false, e.message ?: "未知错误") }
+            }
+        }
+    }
+
+    fun importSkillZip(uri: Uri, onResult: (Boolean, String) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val imported = skillManager.importSkillZip(uri)
+                if (imported.isNullOrEmpty()) {
+                    withContext(Dispatchers.Main) { onResult(false, "ZIP 中未找到有效的 SKILL.md") }
                     return@launch
                 }
 
                 _skills.value = skillManager.listSkills()
-                withContext(Dispatchers.Main) { onResult(true, name) }
+                withContext(Dispatchers.Main) {
+                    onResult(true, imported.joinToString(", ") { it.name })
+                }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) { onResult(false, e.message ?: "未知错误") }
             }

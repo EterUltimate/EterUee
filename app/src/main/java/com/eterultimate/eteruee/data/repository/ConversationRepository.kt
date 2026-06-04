@@ -344,6 +344,10 @@ class ConversationRepository(
                     e.printStackTrace()
                     offset += pageSize
                     continue
+                } catch (e: IllegalStateException) {
+                    e.printStackTrace()
+                    offset += pageSize
+                    continue
                 }
                 if (page.isEmpty()) break
                 page.forEach { entity ->

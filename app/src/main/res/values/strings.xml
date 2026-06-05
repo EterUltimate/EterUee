@@ -290,6 +290,8 @@
   <string name="chat_page_export_image_expand_reasoning">Expand Reasoning</string>
   <string name="chat_page_export_markdown">Markdown</string>
   <string name="chat_page_export_markdown_desc">Export conversation as a markdown file</string>
+  <string name="chat_page_export_html">HTML</string>
+  <string name="chat_page_export_html_desc">Export conversation as an HTML file with embedded images</string>
   <string name="chat_page_export_share_via">Share via</string>
   <string name="chat_page_export_success">Exported to %1$s</string>
   <string name="chat_page_history">Chat History</string>

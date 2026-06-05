@@ -164,6 +164,32 @@ fun ChatExportSheet(
                     )
                 }
 
+                val htmlSuccessMessage =
+                    stringResource(id = R.string.chat_page_export_success, "HTML")
+                OutlinedCard(
+                    onClick = {
+                        exportToHtml(context, conversation, selectedMessages)
+                        toaster.show(
+                            htmlSuccessMessage,
+                            type = ToastType.Success
+                        )
+                        onDismissRequest()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    ListItem(
+                        headlineContent = {
+                            Text(stringResource(id = R.string.chat_page_export_html))
+                        },
+                        supportingContent = {
+                            Text(stringResource(id = R.string.chat_page_export_html_desc))
+                        },
+                        leadingContent = {
+                            Icon(HugeIcons.File02, contentDescription = null)
+                        }
+                    )
+                }
+
                 val imageSuccessMessage =
                     stringResource(id = R.string.chat_page_export_success, "Image")
                 OutlinedCard(
@@ -378,6 +404,250 @@ private fun exportToMarkdown(
         e.printStackTrace()
     }
 }
+
+private fun exportToHtml(
+    context: Context,
+    conversation: Conversation,
+    messages: List<UIMessage>
+) {
+    val filename =
+        "chat-export-${LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))}.html"
+    val html = buildChatExportHtml(conversation, messages)
+
+    try {
+        val dir = context.appTempFolder
+        val file = dir.resolve(filename)
+        if (!file.exists()) {
+            file.createNewFile()
+        } else {
+            file.delete()
+            file.createNewFile()
+        }
+        FileOutputStream(file).use {
+            it.write(html.toByteArray(Charsets.UTF_8))
+        }
+
+        val uri = FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            file
+        )
+        shareFile(context, uri, "text/html")
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
+
+private fun buildChatExportHtml(
+    conversation: Conversation,
+    messages: List<UIMessage>
+): String = buildString {
+    appendLine("<!DOCTYPE html>")
+    appendLine("<html lang=\"en\">")
+    appendLine("<head>")
+    appendLine("  <meta charset=\"utf-8\">")
+    appendLine("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">")
+    appendLine("  <title>${conversation.title.escapeHtml()}</title>")
+    appendLine("  <style>")
+    appendLine(
+        """
+        :root {
+          color-scheme: light dark;
+          --bg: #f7f7f8;
+          --surface: #ffffff;
+          --surface-soft: #f1f3f5;
+          --text: #1f2328;
+          --muted: #687076;
+          --border: #d8dee4;
+          --accent: #2563eb;
+        }
+        @media (prefers-color-scheme: dark) {
+          :root {
+            --bg: #101113;
+            --surface: #181a1f;
+            --surface-soft: #23262d;
+            --text: #eceff4;
+            --muted: #a1a8b3;
+            --border: #343841;
+            --accent: #7aa2ff;
+          }
+        }
+        * { box-sizing: border-box; }
+        body {
+          margin: 0;
+          padding: 24px;
+          background: var(--bg);
+          color: var(--text);
+          font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        main {
+          max-width: 920px;
+          margin: 0 auto;
+        }
+        header {
+          margin-bottom: 24px;
+          padding-bottom: 16px;
+          border-bottom: 1px solid var(--border);
+        }
+        h1 {
+          margin: 0 0 8px;
+          font-size: 28px;
+          line-height: 1.25;
+        }
+        .meta {
+          color: var(--muted);
+          font-size: 14px;
+        }
+        .message {
+          margin: 16px 0;
+          padding: 16px;
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          background: var(--surface);
+        }
+        .message.user {
+          border-color: var(--accent);
+        }
+        .role {
+          margin-bottom: 12px;
+          color: var(--muted);
+          font-size: 13px;
+          font-weight: 700;
+          letter-spacing: .04em;
+          text-transform: uppercase;
+        }
+        .text,
+        blockquote,
+        pre {
+          margin: 12px 0;
+          white-space: pre-wrap;
+          overflow-wrap: anywhere;
+        }
+        img {
+          display: block;
+          max-width: 100%;
+          max-height: 70vh;
+          margin: 12px 0;
+          border-radius: 8px;
+          border: 1px solid var(--border);
+          object-fit: contain;
+        }
+        blockquote {
+          padding: 10px 12px;
+          border-left: 4px solid var(--accent);
+          border-radius: 6px;
+          background: var(--surface-soft);
+          color: var(--muted);
+        }
+        pre {
+          padding: 12px;
+          border-radius: 8px;
+          background: var(--surface-soft);
+          overflow-x: auto;
+        }
+        code {
+          font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+          font-size: 0.9em;
+        }
+        .attachment {
+          display: inline-block;
+          margin: 8px 0;
+          color: var(--accent);
+          word-break: break-all;
+        }
+        """.trimIndent()
+    )
+    appendLine("  </style>")
+    appendLine("</head>")
+    appendLine("<body>")
+    appendLine("<main>")
+    appendLine("<header>")
+    appendLine("  <h1>${conversation.title.escapeHtml()}</h1>")
+    appendLine("  <div class=\"meta\">Exported on ${LocalDateTime.now().toLocalString().escapeHtml()}</div>")
+    appendLine("</header>")
+
+    messages.forEach { message ->
+        if (message.parts.isEmptyUIMessage()) return@forEach
+        val roleLabel = if (message.role == MessageRole.USER) "User" else "Assistant"
+        val roleClass = if (message.role == MessageRole.USER) "user" else "assistant"
+        appendLine("<section class=\"message $roleClass\">")
+        appendLine("  <div class=\"role\">$roleLabel</div>")
+        appendMessagePartsAsHtml(message.parts)
+        appendLine("</section>")
+    }
+
+    appendLine("</main>")
+    appendLine("</body>")
+    appendLine("</html>")
+}
+
+private fun StringBuilder.appendMessagePartsAsHtml(parts: List<UIMessagePart>) {
+    parts.forEach { part ->
+        when (part) {
+            is UIMessagePart.Text -> {
+                if (part.text.isNotBlank()) {
+                    appendLine("  <div class=\"text\">${part.text.escapeHtml()}</div>")
+                }
+            }
+
+            is UIMessagePart.Image -> {
+                val src = part.encodeBase64().getOrNull()?.base64 ?: part.url
+                appendLine("  <img src=\"${src.escapeHtmlAttribute()}\" alt=\"Image\">")
+            }
+
+            is UIMessagePart.Reasoning -> {
+                if (part.reasoning.isNotBlank()) {
+                    appendLine("  <blockquote>${part.reasoning.escapeHtml()}</blockquote>")
+                }
+            }
+
+            is UIMessagePart.Tool -> appendToolPartAsHtml(part)
+
+            is UIMessagePart.Document -> {
+                appendLine(
+                    "  <a class=\"attachment\" href=\"${part.url.escapeHtmlAttribute()}\">Document: ${part.fileName.escapeHtml()}</a>"
+                )
+            }
+
+            is UIMessagePart.Video -> {
+                appendLine("  <a class=\"attachment\" href=\"${part.url.escapeHtmlAttribute()}\">Video</a>")
+            }
+
+            is UIMessagePart.Audio -> {
+                appendLine("  <a class=\"attachment\" href=\"${part.url.escapeHtmlAttribute()}\">Audio</a>")
+            }
+
+            else -> {}
+        }
+    }
+}
+
+private fun StringBuilder.appendToolPartAsHtml(tool: UIMessagePart.Tool) {
+    appendLine("  <div class=\"text\"><strong>Tool:</strong> <code>${tool.toolName.escapeHtml()}</code></div>")
+    if (tool.toolCallId.isNotBlank()) {
+        appendLine("  <div class=\"text\"><strong>Call ID:</strong> <code>${tool.toolCallId.escapeHtml()}</code></div>")
+    }
+    appendLine("  <pre><code>${JsonInstantPretty.encodeToString(tool.inputAsJson()).escapeHtml()}</code></pre>")
+    if (tool.output.isNotEmpty()) {
+        appendLine("  <div class=\"text\"><strong>Output:</strong></div>")
+        appendMessagePartsAsHtml(tool.output)
+    }
+}
+
+private fun String.escapeHtml(): String = buildString(length) {
+    this@escapeHtml.forEach { char ->
+        when (char) {
+            '&' -> append("&amp;")
+            '<' -> append("&lt;")
+            '>' -> append("&gt;")
+            '"' -> append("&quot;")
+            '\'' -> append("&#39;")
+            else -> append(char)
+        }
+    }
+}
+
+private fun String.escapeHtmlAttribute(): String = escapeHtml()
 
 private suspend fun exportToImage(
     context: Context,

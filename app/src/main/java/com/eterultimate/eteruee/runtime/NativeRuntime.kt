@@ -2,6 +2,7 @@ package com.eterultimate.eteruee.runtime
 
 import java.io.File
 import java.net.ServerSocket
+import java.nio.file.Files
 
 object NativeRuntime {
     private val nativeLoaded: Boolean = isAndroidRuntime() && runCatching {
@@ -29,7 +30,7 @@ object NativeRuntime {
     fun clearDirectory(directory: File): Boolean {
         if (nativeLoaded) {
             val nativeCleared = runCatching {
-                nativeClearDirectory(directory.absolutePath) == 0 && directory.isDirectory
+                nativeClearDirectory(directory.absolutePath) == 0
             }.getOrDefault(false)
             if (nativeCleared) return true
         }
@@ -56,16 +57,18 @@ object NativeRuntime {
     }
 
     private fun clearDirectoryJvm(directory: File): Boolean {
-        if (directory.exists() && !directory.isDirectory) {
+        val isSymlink = Files.isSymbolicLink(directory.toPath())
+        if (isSymlink || (directory.exists() && !directory.isDirectory)) {
             if (!directory.delete()) return false
         }
         if (!directory.exists() && !directory.mkdirs()) return false
 
+        val children = directory.listFiles() ?: return false
         var success = true
-        directory.listFiles()?.forEach { child ->
+        children.forEach { child ->
             success = child.deleteRecursively() && success
         }
-        return success && directory.isDirectory
+        return success
     }
 
     private fun isAndroidRuntime(): Boolean {

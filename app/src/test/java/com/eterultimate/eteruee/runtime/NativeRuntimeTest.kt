@@ -3,6 +3,7 @@ package com.eterultimate.eteruee.runtime
 import java.io.File
 import java.net.ServerSocket
 import java.nio.file.Files
+import org.junit.Assume.assumeNoException
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -38,6 +39,27 @@ class NativeRuntimeTest {
         assertTrue(root.isDirectory)
 
         parent.deleteRecursively()
+    }
+
+    @Test
+    fun clearDirectoryDeletesSymlinkWithoutClearingTarget() {
+        val parent = Files.createTempDirectory("eteruee-native-runtime-")
+        val target = Files.createDirectory(parent.resolve("target"))
+        Files.writeString(target.resolve("payload.txt"), "payload")
+        val link = parent.resolve("temp-link")
+
+        try {
+            Files.createSymbolicLink(link, target)
+        } catch (e: Exception) {
+            assumeNoException(e)
+        }
+
+        assertTrue(NativeRuntime.clearDirectory(link.toFile()))
+        assertTrue(Files.isDirectory(link))
+        assertFalse(Files.isSymbolicLink(link))
+        assertTrue(Files.exists(target.resolve("payload.txt")))
+
+        parent.toFile().deleteRecursively()
     }
 
     @Test

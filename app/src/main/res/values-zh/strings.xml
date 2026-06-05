@@ -290,6 +290,8 @@
   <string name="chat_page_export_image_expand_reasoning">展开思维过程</string>
   <string name="chat_page_export_markdown">Markdown</string>
   <string name="chat_page_export_markdown_desc">将对话导出为markdown文件</string>
+  <string name="chat_page_export_html">HTML</string>
+  <string name="chat_page_export_html_desc">将对话导出为内嵌图片的 HTML 文件</string>
   <string name="chat_page_export_share_via">分享方式</string>
   <string name="chat_page_export_success">已导出为%1$s</string>
   <string name="chat_page_history">聊天历史</string>

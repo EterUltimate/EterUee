@@ -52,6 +52,45 @@ int deleteTree(const char* path) {
     return 0;
 }
 
+int ensureDirectory(const char* path) {
+    if (mkdir(path, 0700) == 0) return 0;
+    return errno == EEXIST ? 0 : errno;
+}
+
+int clearDirectory(const char* path) {
+    struct stat info {};
+    if (lstat(path, &info) != 0) {
+        return errno == ENOENT ? ensureDirectory(path) : errno;
+    }
+
+    if (!S_ISDIR(info.st_mode) || S_ISLNK(info.st_mode)) {
+        const int deleteResult = deleteTree(path);
+        return deleteResult == 0 ? ensureDirectory(path) : deleteResult;
+    }
+
+    DIR* dir = opendir(path);
+    if (dir == nullptr) return errno;
+
+    int firstError = 0;
+    while (dirent* entry = readdir(dir)) {
+        const char* name = entry->d_name;
+        if (name[0] == '.' && (name[1] == '\0' || (name[1] == '.' && name[2] == '\0'))) {
+            continue;
+        }
+
+        std::string child(path);
+        child.push_back('/');
+        child.append(name);
+
+        const int childResult = deleteTree(child.c_str());
+        if (childResult != 0 && firstError == 0) {
+            firstError = childResult;
+        }
+    }
+    closedir(dir);
+    return firstError;
+}
+
 bool isTcpPortAvailable(const int port) {
     if (port < 1 || port > 65535) return false;
 
@@ -82,6 +121,22 @@ Java_com_eterultimate_eteruee_runtime_NativeRuntime_nativeDeleteTree(
     if (chars == nullptr) return ENOMEM;
 
     const int result = deleteTree(chars);
+    env->ReleaseStringUTFChars(path, chars);
+    return result;
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_eterultimate_eteruee_runtime_NativeRuntime_nativeClearDirectory(
+    JNIEnv* env,
+    jobject /* thiz */,
+    jstring path
+) {
+    if (path == nullptr) return EINVAL;
+
+    const char* chars = env->GetStringUTFChars(path, nullptr);
+    if (chars == nullptr) return ENOMEM;
+
+    const int result = clearDirectory(chars);
     env->ReleaseStringUTFChars(path, chars);
     return result;
 }

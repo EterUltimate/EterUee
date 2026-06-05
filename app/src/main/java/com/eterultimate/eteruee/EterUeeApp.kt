@@ -22,7 +22,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import com.eterultimate.eteruee.common.android.appTempFolder
 import com.eterultimate.eteruee.di.appModule
 import com.eterultimate.eteruee.di.dataSourceModule
 import com.eterultimate.eteruee.di.repositoryModule
@@ -39,6 +38,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.androidx.workmanager.koin.workManagerFactory
 import org.koin.core.context.startKoin
+import java.io.File
 
 private const val TAG = "EterUeeApp"
 private const val DEFERRED_STARTUP_DELAY_MS = 1_500L
@@ -112,10 +112,7 @@ class EterUeeApp : Application() {
 
     private fun deleteTempFiles() {
         runCatching {
-            val dir = appTempFolder
-            if (dir.exists()) {
-                NativeRuntime.deleteDirectoryTree(dir)
-            }
+            NativeRuntime.clearDirectory(File(cacheDir, "temp"))
         }.onFailure {
             Log.e(TAG, "deleteTempFiles failed", it)
         }

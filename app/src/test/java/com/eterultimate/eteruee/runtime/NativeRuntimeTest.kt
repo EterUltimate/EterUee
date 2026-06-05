@@ -19,6 +19,28 @@ class NativeRuntimeTest {
     }
 
     @Test
+    fun clearDirectoryRemovesNestedFilesAndKeepsRoot() {
+        val root = Files.createTempDirectory("eteruee-native-runtime-").toFile()
+        val nested = File(root, "a/b/c").apply { mkdirs() }
+        File(nested, "payload.txt").writeText("payload")
+
+        assertTrue(NativeRuntime.clearDirectory(root))
+        assertTrue(root.isDirectory)
+        assertFalse(File(root, "a").exists())
+    }
+
+    @Test
+    fun clearDirectoryCreatesMissingRoot() {
+        val parent = Files.createTempDirectory("eteruee-native-runtime-").toFile()
+        val root = File(parent, "missing-temp")
+
+        assertTrue(NativeRuntime.clearDirectory(root))
+        assertTrue(root.isDirectory)
+
+        parent.deleteRecursively()
+    }
+
+    @Test
     fun isTcpPortAvailableReflectsBoundPort() {
         val server = ServerSocket(0)
         val port = server.localPort

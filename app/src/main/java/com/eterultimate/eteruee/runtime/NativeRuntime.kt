@@ -11,6 +11,8 @@ object NativeRuntime {
 
     private external fun nativeDeleteTree(path: String): Int
 
+    private external fun nativeClearDirectory(path: String): Int
+
     private external fun nativeIsTcpPortAvailable(port: Int): Boolean
 
     fun deleteDirectoryTree(directory: File): Boolean {
@@ -22,6 +24,16 @@ object NativeRuntime {
         }.getOrDefault(false)
 
         return nativeDeleted || directory.deleteRecursively()
+    }
+
+    fun clearDirectory(directory: File): Boolean {
+        if (nativeLoaded) {
+            val nativeCleared = runCatching {
+                nativeClearDirectory(directory.absolutePath) == 0 && directory.isDirectory
+            }.getOrDefault(false)
+            if (nativeCleared) return true
+        }
+        return clearDirectoryJvm(directory)
     }
 
     fun isTcpPortAvailable(port: Int): Boolean {
@@ -41,6 +53,19 @@ object NativeRuntime {
         } catch (_: Exception) {
             false
         }
+    }
+
+    private fun clearDirectoryJvm(directory: File): Boolean {
+        if (directory.exists() && !directory.isDirectory) {
+            if (!directory.delete()) return false
+        }
+        if (!directory.exists() && !directory.mkdirs()) return false
+
+        var success = true
+        directory.listFiles()?.forEach { child ->
+            success = child.deleteRecursively() && success
+        }
+        return success && directory.isDirectory
     }
 
     private fun isAndroidRuntime(): Boolean {

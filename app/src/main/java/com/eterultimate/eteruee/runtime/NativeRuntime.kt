@@ -2,6 +2,7 @@ package com.eterultimate.eteruee.runtime
 
 import java.io.File
 import java.net.ServerSocket
+import java.nio.file.Files
 
 object NativeRuntime {
     private val nativeLoaded: Boolean = isAndroidRuntime() && runCatching {
@@ -10,6 +11,8 @@ object NativeRuntime {
     }.getOrDefault(false)
 
     private external fun nativeDeleteTree(path: String): Int
+
+    private external fun nativeClearDirectory(path: String): Int
 
     private external fun nativeIsTcpPortAvailable(port: Int): Boolean
 
@@ -22,6 +25,16 @@ object NativeRuntime {
         }.getOrDefault(false)
 
         return nativeDeleted || directory.deleteRecursively()
+    }
+
+    fun clearDirectory(directory: File): Boolean {
+        if (nativeLoaded) {
+            val nativeCleared = runCatching {
+                nativeClearDirectory(directory.absolutePath) == 0
+            }.getOrDefault(false)
+            if (nativeCleared) return true
+        }
+        return clearDirectoryJvm(directory)
     }
 
     fun isTcpPortAvailable(port: Int): Boolean {
@@ -41,6 +54,21 @@ object NativeRuntime {
         } catch (_: Exception) {
             false
         }
+    }
+
+    private fun clearDirectoryJvm(directory: File): Boolean {
+        val isSymlink = Files.isSymbolicLink(directory.toPath())
+        if (isSymlink || (directory.exists() && !directory.isDirectory)) {
+            if (!directory.delete()) return false
+        }
+        if (!directory.exists() && !directory.mkdirs()) return false
+
+        val children = directory.listFiles() ?: return false
+        var success = true
+        children.forEach { child ->
+            success = child.deleteRecursively() && success
+        }
+        return success
     }
 
     private fun isAndroidRuntime(): Boolean {

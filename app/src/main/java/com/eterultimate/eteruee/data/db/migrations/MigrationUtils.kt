@@ -1,5 +1,6 @@
 ﻿package com.eterultimate.eteruee.data.db.migrations
 
+import androidx.room.PooledConnection
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.SQLiteStatement
 import kotlinx.serialization.json.JsonArray
@@ -23,6 +24,24 @@ internal inline fun <T> SQLiteConnection.query(
     block: (SQLiteStatement) -> T,
 ): T {
     return prepare(sql).use { statement ->
+        statement.bindArgs(bindArgs)
+        block(statement)
+    }
+}
+
+internal suspend fun PooledConnection.execSQL(sql: String, bindArgs: Array<out Any?> = emptyArray()) {
+    usePrepared(sql) { statement ->
+        statement.bindArgs(bindArgs)
+        statement.step()
+    }
+}
+
+internal suspend inline fun <T> PooledConnection.query(
+    sql: String,
+    bindArgs: Array<out Any?> = emptyArray(),
+    crossinline block: (SQLiteStatement) -> T,
+): T {
+    return usePrepared(sql) { statement ->
         statement.bindArgs(bindArgs)
         block(statement)
     }

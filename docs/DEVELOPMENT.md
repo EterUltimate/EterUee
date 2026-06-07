@@ -168,7 +168,7 @@ Shell 工具需要用户批准后执行，适合应用作用域文件操作和�
 当前内置 EterUee provider：
 
 ```text
-https://newapi.eterultimate.asia/v1
+https://sapi.eterultimate.asia/v1
 ```
 
 更新检查：

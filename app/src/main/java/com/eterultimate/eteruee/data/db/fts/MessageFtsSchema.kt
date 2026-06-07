@@ -1,6 +1,7 @@
 package com.eterultimate.eteruee.data.db.fts
 
 import android.database.Cursor
+import androidx.room.PooledConnection
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.eterultimate.eteruee.data.db.migrations.execSQL
@@ -33,6 +34,13 @@ object MessageFtsSchema {
         connection.execSQL(createSql)
     }
 
+    suspend fun ensure(connection: PooledConnection) {
+        if (connection.isLegacySimpleTokenizerTable()) {
+            connection.execSQL("DROP TABLE IF EXISTS message_fts")
+        }
+        connection.execSQL(createSql)
+    }
+
     private fun SupportSQLiteDatabase.isLegacySimpleTokenizerTable(): Boolean {
         return query(
             "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'message_fts'"
@@ -43,6 +51,20 @@ object MessageFtsSchema {
     }
 
     private fun SQLiteConnection.isLegacySimpleTokenizerTable(): Boolean {
+        return query(
+            "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'message_fts'"
+        ) { statement ->
+            if (statement.step()) {
+                val sql = if (statement.isNull(0)) null else statement.getText(0)
+                sql?.contains("tokenize = 'simple'", ignoreCase = true) == true ||
+                    sql?.contains("tokenize='simple'", ignoreCase = true) == true
+            } else {
+                false
+            }
+        }
+    }
+
+    private suspend fun PooledConnection.isLegacySimpleTokenizerTable(): Boolean {
         return query(
             "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'message_fts'"
         ) { statement ->

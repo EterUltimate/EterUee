@@ -21,6 +21,7 @@ import com.eterultimate.eteruee.data.ai.GenerationHandler
 import com.eterultimate.eteruee.data.ai.transformers.TemplateTransformer
 import com.eterultimate.eteruee.data.api.EterUeeAPI
 import com.eterultimate.eteruee.data.api.SponsorAPI
+import com.eterultimate.eteruee.data.datastore.DEFAULT_ETERUEE_OFFICIAL_API_BASE_URL
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.db.AppDatabase
 import com.eterultimate.eteruee.data.db.fts.MessageFtsManager
@@ -217,7 +218,7 @@ val dataSourceModule = module {
 
     single<Retrofit> {
         Retrofit.Builder()
-            .baseUrl("https://api.eteruee.com")
+            .baseUrl(DEFAULT_ETERUEE_OFFICIAL_API_BASE_URL)
             .addConverterFactory(get<Json>().asConverterFactory("application/json; charset=UTF8".toMediaType()))
             .build()
     }

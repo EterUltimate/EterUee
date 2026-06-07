@@ -62,7 +62,7 @@ The main app persists long-lived application data through Room-backed repositori
 The built-in EterUee provider currently uses:
 
 ```text
-https://newapi.eterultimate.asia/v1
+https://sapi.eterultimate.asia/v1
 ```
 
 The legacy provider URL is still kept in code for migration/backward compatibility.

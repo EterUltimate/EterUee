@@ -6,7 +6,8 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import androidx.paging.map
-import androidx.room.withTransaction
+import androidx.room.immediateTransaction
+import androidx.room.useWriterConnection
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -203,7 +204,7 @@ class ConversationRepository(
     }
 
     suspend fun insertConversation(conversation: Conversation) {
-        database.withTransaction {
+        database.withDriverTransaction {
             conversationDAO.insert(
                 conversationToConversationEntity(conversation)
             )
@@ -213,7 +214,7 @@ class ConversationRepository(
     }
 
     suspend fun updateConversation(conversation: Conversation) {
-        database.withTransaction {
+        database.withDriverTransaction {
             conversationDAO.update(
                 conversationToConversationEntity(conversation)
             )
@@ -232,7 +233,7 @@ class ConversationRepository(
             conversation
         }
         messageFtsManager.deleteConversation(conversation.id.toString())
-        database.withTransaction {
+        database.withDriverTransaction {
             // message_node 会通过 CASCADE 自动删除
             conversationDAO.delete(
                 conversationToConversationEntity(conversation)
@@ -333,7 +334,7 @@ class ConversationRepository(
             .mapNotNull { runCatching { Uuid.parse(it) }.getOrNull() }
             .toSet()
 
-        return database.withTransaction {
+        return database.withDriverTransaction {
             val nodes = mutableListOf<MessageNode>()
             var offset = 0
             val pageSize = 64
@@ -398,3 +399,10 @@ data class ConversationPageResult(
     val items: List<Conversation>,
     val nextOffset: Int?,
 )
+
+private suspend fun <T> AppDatabase.withDriverTransaction(block: suspend () -> T): T =
+    useWriterConnection { connection ->
+        connection.immediateTransaction {
+            block()
+        }
+    }

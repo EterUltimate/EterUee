@@ -259,7 +259,10 @@ class SettingsStore(
                 val normalizedProvider = when {
                     provider is ProviderSetting.OpenAI &&
                         provider.id == DEFAULT_ETERUEE_PROVIDER_ID &&
-                        provider.baseUrl == LEGACY_ETERUEE_PROVIDER_BASE_URL ->
+                        provider.baseUrl in setOf(
+                            LEGACY_ETERUEE_PROVIDER_BASE_URL,
+                            PREVIOUS_ETERUEE_PROVIDER_BASE_URL,
+                        ) ->
                         provider.copy(baseUrl = DEFAULT_ETERUEE_PROVIDER_BASE_URL)
 
                     else -> provider

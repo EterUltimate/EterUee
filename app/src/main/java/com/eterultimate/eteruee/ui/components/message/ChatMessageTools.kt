@@ -76,6 +76,7 @@ import me.rerere.hugeicons.stroke.Search01
 import me.rerere.hugeicons.stroke.Tick01
 import me.rerere.hugeicons.stroke.Time02
 import me.rerere.hugeicons.stroke.Tools
+import me.rerere.hugeicons.stroke.VideoReplay
 import me.rerere.hugeicons.stroke.VolumeHigh
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.event.AppEvent
@@ -105,6 +106,7 @@ private object ToolNames {
     const val TTS = "text_to_speech"
     const val ASK_USER = "ask_user"
     const val USE_SKILL = "use_skill"
+    const val GENERATE_VIDEO = "generate_video"
 }
 
 private object MemoryActions {
@@ -132,6 +134,7 @@ private fun getToolIcon(toolName: String, action: String?) = when (toolName) {
     ToolNames.TTS -> HugeIcons.VolumeHigh
     ToolNames.ASK_USER -> HugeIcons.BubbleChatQuestion
     ToolNames.USE_SKILL -> HugeIcons.MagicWand01
+    ToolNames.GENERATE_VIDEO -> HugeIcons.VideoReplay
     else -> HugeIcons.Tools
 }
 
@@ -205,6 +208,13 @@ fun ChainOfThoughtScope.ChatMessageToolStep(
             if (path != null) "Skill: $skillName / $path" else "Skill: $skillName"
         }
 
+        ToolNames.GENERATE_VIDEO -> {
+            val preview = arguments.getStringContent("prompt")?.let { prompt ->
+                if (prompt.length > 24) prompt.take(24) + "…" else prompt
+            } ?: ""
+            "Generate video: $preview"
+        }
+
         else -> stringResource(R.string.chat_message_tool_call_generic, tool.toolName)
     }
 
@@ -218,6 +228,7 @@ fun ChainOfThoughtScope.ChatMessageToolStep(
 
         ToolNames.SCRAPE_WEB -> arguments.getStringContent("url") != null
         ToolNames.TTS -> arguments.getStringContent("text") != null
+        ToolNames.GENERATE_VIDEO -> arguments.getStringContent("prompt") != null
         else -> false
     } || isDenied || images.isNotEmpty()
 
@@ -363,6 +374,16 @@ fun ChainOfThoughtScope.ChatMessageToolStep(
                                 )
                             }
                         }
+                    }
+                    if (tool.toolName == ToolNames.GENERATE_VIDEO) {
+                        val prompt = arguments.getStringContent("prompt") ?: ""
+                        Text(
+                            text = prompt,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     }
                     if (images.isNotEmpty()) {
                         LazyRow(

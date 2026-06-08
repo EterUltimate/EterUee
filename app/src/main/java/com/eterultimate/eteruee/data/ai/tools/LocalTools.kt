@@ -16,10 +16,14 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import com.eterultimate.eteruee.ai.core.InputSchema
 import com.eterultimate.eteruee.ai.core.Tool
+import com.eterultimate.eteruee.ai.provider.ProviderManager
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.data.event.AppEvent
 import com.eterultimate.eteruee.data.event.AppEventBus
+import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.device.DeviceAgentManager
+import com.eterultimate.eteruee.data.files.FilesManager
+import com.eterultimate.eteruee.data.repository.GenMediaRepository
 import com.eterultimate.eteruee.network.HiddifyCoreManager
 import com.eterultimate.eteruee.utils.readClipboardText
 import com.eterultimate.eteruee.utils.writeClipboardText
@@ -75,6 +79,10 @@ sealed class LocalToolOption {
     @Serializable
     @SerialName("device_agent")
     data object DeviceAgent : LocalToolOption()
+
+    @Serializable
+    @SerialName("video_generation")
+    data object VideoGeneration : LocalToolOption()
 }
 
 data class ScriptExecutionResult(
@@ -250,6 +258,10 @@ class LocalTools(
     private val eventBus: AppEventBus,
     private val hiddifyCoreManager: HiddifyCoreManager,
     private val deviceAgentManager: DeviceAgentManager,
+    private val settingsStore: SettingsStore,
+    private val providerManager: ProviderManager,
+    private val filesManager: FilesManager,
+    private val genMediaRepository: GenMediaRepository,
 ) {
     val javascriptTool by lazy {
         Tool(
@@ -534,6 +546,15 @@ class LocalTools(
 
     val adbShellTool by lazy { DeviceAgentTools.createAdbShellTool(deviceAgentManager) }
 
+    val videoGenerationTool by lazy {
+        VideoGenerationTools.createVideoGenerationTool(
+            settingsStore = settingsStore,
+            providerManager = providerManager,
+            filesManager = filesManager,
+            genMediaRepository = genMediaRepository,
+        )
+    }
+
     fun getTools(options: List<LocalToolOption>): List<Tool> {
         val tools = mutableListOf<Tool>()
         if (options.contains(LocalToolOption.JavascriptEngine)) {
@@ -566,6 +587,9 @@ class LocalTools(
         if (options.contains(LocalToolOption.DeviceAgent)) {
             tools.add(deviceInfoTool)
             tools.add(adbShellTool)
+        }
+        if (options.contains(LocalToolOption.VideoGeneration)) {
+            tools.add(videoGenerationTool)
         }
         return tools
     }

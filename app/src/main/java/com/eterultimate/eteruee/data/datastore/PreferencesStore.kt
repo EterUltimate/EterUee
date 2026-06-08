@@ -374,6 +374,7 @@ class SettingsStore(
             preferences[TRANSLATE_MODEL] = settings.translateModeId.toString()
             preferences[SUGGESTION_MODEL] = settings.suggestionModelId.toString()
             preferences[IMAGE_GENERATION_MODEL] = settings.imageGenerationModelId.toString()
+            preferences[VIDEO_GENERATION_MODEL] = settings.videoGenerationModelId.toString()
 
             preferences[TITLE_PROMPT] = settings.titlePrompt
             preferences[TRANSLATION_PROMPT] = settings.translatePrompt

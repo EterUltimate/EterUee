@@ -93,6 +93,8 @@
   <string name="assistant_page_local_tools_time_info_title">時間資訊</string>
   <string name="assistant_page_local_tools_tts_desc">讓 AI 使用裝置的 TTS 引擎為您朗讀文字</string>
   <string name="assistant_page_local_tools_tts_title">文字轉語音</string>
+  <string name="assistant_page_local_tools_video_generation_desc">允許 AI 在核准後使用已設定的影片生成模型生成影片</string>
+  <string name="assistant_page_local_tools_video_generation_title">影片生成</string>
   <string name="assistant_page_manage_memory_title">管理記憶</string>
   <string name="assistant_page_max_tokens">最大Token數</string>
   <string name="assistant_page_max_tokens_desc">最大生成Token數量。留空表示無限制。</string>

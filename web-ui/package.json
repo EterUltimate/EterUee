@@ -56,7 +56,7 @@
     "@types/node": "^24.10.13",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "oxfmt": "^0.32.0",
+    "oxfmt": "^0.54.0",
     "oxlint": "^1.67.0",
     "tailwindcss": "^4.1.13",
     "tsx": "^4.21.0",

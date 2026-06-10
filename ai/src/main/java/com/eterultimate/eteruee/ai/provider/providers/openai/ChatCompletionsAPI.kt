@@ -186,7 +186,6 @@ class ChatCompletionsAPI(
                                     ?: throw Exception("delta/message is null")
                                 val finishReason =
                                     choice["finish_reason"]?.jsonPrimitive?.contentOrNull
-                                        ?: "unknown"
                                 add(
                                     UIMessageChoice(
                                         index = 0,

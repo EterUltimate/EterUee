@@ -115,6 +115,7 @@ fun ChatList(
     conversation: Conversation,
     state: LazyListState,
     loading: Boolean,
+    loadingNodeId: Uuid? = null,
     processingStatus: String? = null,
     previewMode: Boolean,
     settings: Settings,
@@ -158,6 +159,7 @@ fun ChatList(
                 conversation = conversation,
                 state = state,
                 loading = loading,
+                loadingNodeId = loadingNodeId,
                 processingStatus = processingStatus,
                 settings = settings,
                 hazeState = hazeState,
@@ -188,6 +190,7 @@ private fun ChatListNormal(
     conversation: Conversation,
     state: LazyListState,
     loading: Boolean,
+    loadingNodeId: Uuid? = null,
     processingStatus: String? = null,
     settings: Settings,
     hazeState: HazeState,
@@ -322,7 +325,9 @@ private fun ChatListNormal(
                             node = node,
                             model = node.currentMessage.modelId?.let { settings.findModelById(it) },
                             assistant = settings.getAssistantById(conversation.assistantId),
-                            loading = loading && index == conversation.messageNodes.lastIndex,
+                            loading = loading && (loadingNodeId == node.id ||
+                                (loadingNodeId == null && index == conversation.messageNodes.lastIndex)),
+                            showInlineLoading = loading && loadingNodeId == node.id,
                             onRegenerate = {
                                 onRegenerate(node.currentMessage)
                             },
@@ -368,7 +373,7 @@ private fun ChatListNormal(
                 }
             }
 
-            if (loading) {
+            if (loading && loadingNodeId == null) {
                 item(LoadingIndicatorKey) {
                     Row(
                         modifier = Modifier.padding(8.dp),

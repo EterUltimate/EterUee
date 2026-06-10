@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.eterultimate.eteruee.ai.provider.Model
-import com.eterultimate.eteruee.ai.sdk.AISDK
 import com.eterultimate.eteruee.ai.ui.UIMessage
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.ai.ui.isEmptyInputMessage
@@ -29,22 +28,17 @@ import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.datastore.getCurrentChatModel
 import com.eterultimate.eteruee.data.files.FilesManager
-import com.eterultimate.eteruee.data.ai.ChatSubagentExecutor
-import com.eterultimate.eteruee.data.ai.ChatToolExecutor
-import com.eterultimate.eteruee.data.files.SkillManager
 import com.eterultimate.eteruee.data.model.Assistant
 import com.eterultimate.eteruee.data.model.Avatar
 import com.eterultimate.eteruee.data.model.Conversation
 import com.eterultimate.eteruee.data.model.MessageNode
 import com.eterultimate.eteruee.data.model.NodeFavoriteTarget
-import com.eterultimate.eteruee.data.model.toMessageNode
 import com.eterultimate.eteruee.data.repository.ConversationRepository
 import com.eterultimate.eteruee.data.repository.FavoriteRepository
 import com.eterultimate.eteruee.service.ChatError
 import com.eterultimate.eteruee.service.ChatService
 import com.eterultimate.eteruee.ui.hooks.writeStringPreference
 import com.eterultimate.eteruee.ui.hooks.ChatInputState
-import com.eterultimate.eteruee.ui.hooks.ChatStateHolder
 import com.eterultimate.eteruee.utils.UiState
 import com.eterultimate.eteruee.utils.UpdateInfo
 import com.eterultimate.eteruee.utils.UpdateChecker
@@ -53,32 +47,22 @@ import kotlinx.coroutines.flow.asStateFlow
 import java.util.Locale
 import kotlin.uuid.Uuid
 
-private const val TAG = "ChatVM"
-
 class ChatVM(
     id: String,
     private val context: Application,
     private val settingsStore: SettingsStore,
     private val conversationRepo: ConversationRepository,
     private val chatService: ChatService,
-    private val aiSDK: AISDK,
     val updateChecker: UpdateChecker,
     private val analytics: FirebaseAnalytics,
     private val filesManager: FilesManager,
     private val favoriteRepository: FavoriteRepository,
-    private val skillManager: SkillManager,
-    private val localTools: com.eterultimate.eteruee.data.ai.tools.LocalTools,
 ) : ViewModel() {
     private val _conversationId: Uuid = Uuid.parse(id)
     val conversation: StateFlow<Conversation> = chatService.getConversationFlow(_conversationId)
     var chatListInitialized by mutableStateOf(false) // 聊天列表是否已经滚动到底部
-
-    // AI SDK 状态持有者
-    val chatState = ChatStateHolder(
-        conversationId = _conversationId,
-        aiSDK = aiSDK,
-        scope = viewModelScope
-    )
+    var regeneratingNodeId by mutableStateOf<Uuid?>(null)
+        private set
 
     // 聊天输入状态 - 保存在 ViewModel 中避免 TransactionTooLargeException
     val inputState = ChatInputState()
@@ -104,59 +88,18 @@ class ChatVM(
     // MCP管理器
     val mcpManager = chatService.mcpManager
 
-    // Subagent 支持
-    private var chatSubagentExecutor: ChatSubagentExecutor? = null
-
     // Subagent 启用状态（可从设置中控制）
     val enableSubagent = settings.map {
         it.enableSubagent
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     init {
-        // 配置工具执行器
-        chatState.toolExecutor = ChatToolExecutor(
-            settings = settings.value,
-            mcpManager = mcpManager,
-            localTools = localTools,
-            skillManager = skillManager
-        )
-
-        // 配置 Subagent 执行器
-        chatSubagentExecutor = ChatSubagentExecutor(
-            mcpManager = mcpManager,
-            localTools = localTools,
-            skillManager = skillManager
-        )
-        chatState.subagentToolExecutor = chatSubagentExecutor?.createToolExecutor(settings.value)
-
         // 添加对话引用
         chatService.addConversationReference(_conversationId)
 
         // 初始化对话
         viewModelScope.launch {
             chatService.initializeConversation(_conversationId)
-        }
-
-        // 同步对话内容到 chatState
-        viewModelScope.launch {
-            conversation.collect { conv ->
-                // 只有在非加载状态下才从 Service 同步内容，避免覆盖流式生成的过程
-                if (!chatState.isLoading.value) {
-                    chatState.setNodes(conv.messageNodes)
-                }
-            }
-        }
-
-        chatState.onFinish = { result ->
-            viewModelScope.launch {
-                // 将最终生成的完整消息保存到数据库
-                chatService.updateConversationState(_conversationId) { conv ->
-                    conv.copy(
-                        messageNodes = conv.messageNodes + result.message.toMessageNode()
-                    )
-                }
-                chatService.saveConversation(_conversationId, conversation.value)
-            }
         }
 
         // 记住对话ID, 方便下次启动恢复
@@ -251,27 +194,7 @@ class ChatVM(
         if (content.isEmptyInputMessage()) return
         analytics.logEvent("ai_send_message", null)
 
-        val model = currentChatModel.value ?: return
-        val text = content.filterIsInstance<UIMessagePart.Text>().joinToString("") { it.text }
-        val attachments = content.filter { it !is UIMessagePart.Text }
-
-        // 更新 subagent 工具执行器（设置可能已更改）
-        if (chatSubagentExecutor != null) {
-            chatState.subagentToolExecutor = chatSubagentExecutor?.createToolExecutor(settings.value)
-        }
-
-        // 检查是否启用 subagent 模式
-        val useSubagent = enableSubagent.value
-
-        if (answer) {
-            // 先保存用户消息到 DB
-            chatService.sendMessage(_conversationId, content, answer = false)
-            // 触发 AI 生成（根据设置决定是否使用 subagent）
-            chatState.handleSubmit(model, text, attachments, addMessage = false, useSubagent = useSubagent)
-        } else {
-            // 如果不触发生成，仍然使用 service 保存消息
-            chatService.sendMessage(_conversationId, content, false)
-        }
+        chatService.sendMessage(_conversationId, content, answer)
     }
 
     fun handleMessageEdit(parts: List<UIMessagePart>, messageId: Uuid) {
@@ -320,7 +243,16 @@ class ChatVM(
         regenerateAssistantMsg: Boolean = true
     ) {
         analytics.logEvent("ai_regenerate_at_message", null)
+        regeneratingNodeId = if (message.role == com.eterultimate.eteruee.ai.core.MessageRole.ASSISTANT && regenerateAssistantMsg) {
+            conversation.value.getMessageNodeByMessageId(message.id)?.id
+        } else {
+            null
+        }
         chatService.regenerateAtMessage(_conversationId, message, regenerateAssistantMsg)
+    }
+
+    fun clearRegeneratingNode() {
+        regeneratingNodeId = null
     }
 
     fun handleToolApproval(
@@ -341,7 +273,6 @@ class ChatVM(
     }
 
     fun stopGeneration() {
-        chatState.stop()
         viewModelScope.launch {
             chatService.stopGeneration(_conversationId)
         }

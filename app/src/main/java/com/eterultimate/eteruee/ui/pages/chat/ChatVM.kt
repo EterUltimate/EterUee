@@ -73,6 +73,11 @@ class ChatVM(
             .getGenerationJobStateFlow(_conversationId)
             .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    val isLoading: StateFlow<Boolean> =
+        conversationJob
+            .map { it?.isActive == true }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     val processingStatus: StateFlow<String?> =
         chatService
             .getProcessingStatusFlow(_conversationId)
@@ -244,7 +249,7 @@ class ChatVM(
     ) {
         analytics.logEvent("ai_regenerate_at_message", null)
         regeneratingNodeId = if (message.role == com.eterultimate.eteruee.ai.core.MessageRole.ASSISTANT && regenerateAssistantMsg) {
-            conversation.value.getMessageNodeByMessageId(message.id)?.id
+            conversation.value.getMessageNodeByMessage(message)?.id
         } else {
             null
         }

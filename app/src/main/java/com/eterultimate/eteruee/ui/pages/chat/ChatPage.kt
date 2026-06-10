@@ -85,8 +85,7 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>, nodeId: Uuid? = null) {
 
     val setting by vm.settings.collectAsStateWithLifecycle()
     val conversation by vm.conversation.collectAsStateWithLifecycle()
-    val generationJob by vm.conversationJob.collectAsStateWithLifecycle()
-    val isLoading = generationJob?.isActive == true
+    val isLoading by vm.isLoading.collectAsStateWithLifecycle()
     val regeneratingNodeId = vm.regeneratingNodeId
     val processingStatus by vm.processingStatus.collectAsStateWithLifecycle()
     val currentChatModel by vm.currentChatModel.collectAsStateWithLifecycle()

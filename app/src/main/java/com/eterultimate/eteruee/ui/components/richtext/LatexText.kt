@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.TextUnit
 import ru.noties.jlatexmath.JLatexMathDrawable
+import ru.noties.jlatexmath.JLatexMathSplitter
 
 fun assumeLatexSize(latex: String, fontSize: Float): Rect {
     return runCatching {
@@ -93,6 +94,37 @@ fun getLatexDrawable(
     }.onFailure {
         it.printStackTrace()
     }.getOrNull()
+}
+
+fun splitLatex(
+    latex: String,
+    maxWidthPx: Float,
+    fontSize: Float,
+    color: Int
+): List<JLatexMathDrawable> {
+    return runCatching {
+        JLatexMathSplitter.split(processLatex(latex), maxWidthPx, fontSize, color)
+    }.onFailure {
+        it.printStackTrace()
+    }.getOrElse { emptyList() }
+}
+
+@Composable
+fun LatexDrawable(
+    drawable: JLatexMathDrawable,
+    modifier: Modifier = Modifier
+) {
+    val density = LocalDensity.current
+    with(density) {
+        Canvas(
+            modifier = modifier.size(
+                width = drawable.bounds.width().toDp(),
+                height = drawable.bounds.height().toDp()
+            )
+        ) {
+            drawable.draw(drawContext.canvas.nativeCanvas)
+        }
+    }
 }
 
 private val inlineDollarRegex = Regex("""^\$(.*?)\$""", RegexOption.DOT_MATCHES_ALL)

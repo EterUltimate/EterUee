@@ -14,8 +14,6 @@ import com.eterultimate.eteruee.ai.core.InputSchema
 import com.eterultimate.eteruee.ai.core.Tool
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.data.model.AssistantMemory
-import com.eterultimate.eteruee.utils.toLocalString
-import java.time.LocalDate
 
 fun buildMemoryTools(
     json: Json,
@@ -35,7 +33,7 @@ fun buildMemoryTools(
             Do not store sensitive information (e.g., ethnicity, religion, sexual orientation, political views, sex life, criminal records).
             You may store: preferred name, preferences, plans, work-related notes, chat style preferences, first chat time, etc.
             Do not show memory content directly in the conversation unless the user explicitly asks.
-            Today is ${LocalDate.now().toLocalString(true)}.
+            Use the conversation's runtime context when date-sensitive memory wording is needed.
             Similar memories should be merged; prefer updating existing records.
 
             Examples:

@@ -40,7 +40,10 @@ internal fun applyTimeReminder(messages: List<UIMessage>): List<UIMessage> {
             val gapSeconds = (currInstant - prevInstant).inWholeSeconds
 
             if (gapSeconds > TIME_GAP_THRESHOLD_SECONDS) {
-                result.add(buildTimeReminderMessage(gapSeconds, currInstant))
+                result.add(
+                    buildTimeReminderMessage(gapSeconds, currInstant)
+                        .copy(createdAt = current.createdAt)
+                )
             }
         }
         result.add(current)

@@ -10,10 +10,8 @@ import com.eterultimate.eteruee.ai.core.Tool
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.utils.JsonInstantPretty
-import com.eterultimate.eteruee.utils.toLocalString
 import com.eterultimate.eteruee.search.SearchService
 import com.eterultimate.eteruee.search.SearchServiceOptions
-import java.time.LocalDate
 import kotlin.uuid.Uuid
 
 fun createSearchTools(settings: Settings): Set<Tool> {
@@ -25,7 +23,7 @@ fun createSearchTools(settings: Settings): Set<Tool> {
                     Search the web for up-to-date or specific information.
                     Use this when the user asks for the latest news, current facts, or needs verification.
                     Generate focused keywords and run multiple searches if needed.
-                    Today is ${LocalDate.now().toLocalString(true)}.
+                    Use the conversation's runtime context for today's date when forming time-sensitive queries.
 
                     Response format:
                     - items[].id (short id), title, url, text

@@ -6,12 +6,12 @@ import android.os.Build
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import com.eterultimate.eteruee.ai.core.MessageRole
 import com.eterultimate.eteruee.ai.provider.Model
 import com.eterultimate.eteruee.ai.ui.UIMessage
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.datastore.SettingsStore
-import com.eterultimate.eteruee.data.datastore.getCurrentAssistant
 import com.eterultimate.eteruee.data.model.Assistant
 import com.eterultimate.eteruee.utils.LocationProvider
 import org.koin.core.component.KoinComponent
@@ -36,8 +36,14 @@ interface PlaceholderProvider {
     val placeholders: Map<String, PlaceholderInfo>
 }
 
+enum class PlaceholderCachePolicy {
+    STABLE,
+    RUNTIME,
+}
+
 data class PlaceholderInfo(
     val displayName: @Composable () -> Unit,
+    val cachePolicy: PlaceholderCachePolicy = PlaceholderCachePolicy.STABLE,
     val resolver: (PlaceholderCtx) -> String
 )
 
@@ -47,9 +53,10 @@ class PlaceholderBuilder {
     fun placeholder(
         key: String,
         displayName: @Composable () -> Unit,
+        cachePolicy: PlaceholderCachePolicy = PlaceholderCachePolicy.STABLE,
         resolver: (PlaceholderCtx) -> String
     ) {
-        placeholders[key] = PlaceholderInfo(displayName, resolver)
+        placeholders[key] = PlaceholderInfo(displayName, cachePolicy, resolver)
     }
 
     fun build(): Map<String, PlaceholderInfo> = placeholders.toMap()
@@ -61,15 +68,27 @@ fun buildPlaceholders(block: PlaceholderBuilder.() -> Unit): Map<String, Placeho
 
 object DefaultPlaceholderProvider : PlaceholderProvider {
     override val placeholders: Map<String, PlaceholderInfo> = buildPlaceholders {
-        placeholder("cur_date", { Text(stringResource(R.string.placeholder_current_date)) }) {
+        placeholder(
+            "cur_date",
+            { Text(stringResource(R.string.placeholder_current_date)) },
+            PlaceholderCachePolicy.RUNTIME
+        ) {
             LocalDate.now().toDateString()
         }
 
-        placeholder("cur_time", { Text(stringResource(R.string.placeholder_current_time)) }) {
+        placeholder(
+            "cur_time",
+            { Text(stringResource(R.string.placeholder_current_time)) },
+            PlaceholderCachePolicy.RUNTIME
+        ) {
             LocalTime.now().toTimeString()
         }
 
-        placeholder("cur_datetime", { Text(stringResource(R.string.placeholder_current_datetime)) }) {
+        placeholder(
+            "cur_datetime",
+            { Text(stringResource(R.string.placeholder_current_datetime)) },
+            PlaceholderCachePolicy.RUNTIME
+        ) {
             LocalDateTime.now().toDateTimeString()
         }
 
@@ -97,7 +116,11 @@ object DefaultPlaceholderProvider : PlaceholderProvider {
             "${Build.BRAND} ${Build.MODEL}"
         }
 
-        placeholder("battery_level", { Text(stringResource(R.string.placeholder_battery_level)) }) {
+        placeholder(
+            "battery_level",
+            { Text(stringResource(R.string.placeholder_battery_level)) },
+            PlaceholderCachePolicy.RUNTIME
+        ) {
             it.context.batteryLevel().toString()
         }
 
@@ -113,7 +136,11 @@ object DefaultPlaceholderProvider : PlaceholderProvider {
             it.settingsStore.settingsFlow.value.displaySetting.userNickname.ifBlank { "user" }
         }
 
-        placeholder("current_location", { Text(stringResource(R.string.placeholder_current_location)) }) {
+        placeholder(
+            "current_location",
+            { Text(stringResource(R.string.placeholder_current_location)) },
+            PlaceholderCachePolicy.RUNTIME
+        ) {
             LocationProvider.getCurrentLocation(it.context)
         }
     }
@@ -147,42 +174,124 @@ object PlaceholderTransformer : InputMessageTransformer, KoinComponent {
         messages: List<UIMessage>,
     ): List<UIMessage> {
         val settingsStore = get<SettingsStore>()
-        return messages.map {
-            it.copy(
-                parts = it.parts.map { part ->
-                    if (part is UIMessagePart.Text) {
-                        part.copy(
-                            text = replacePlaceholders(text = part.text, ctx = ctx, settingsStore = settingsStore)
-                        )
-                    } else {
-                        part
-                    }
-                }
-            )
-        }
-    }
-
-    private fun replacePlaceholders(
-        text: String,
-        ctx: TransformerContext,
-        settingsStore: SettingsStore
-    ): String {
-        var result = text
-
-        val ctx = PlaceholderCtx(
+        val placeholderCtx = PlaceholderCtx(
             context = ctx.context,
             settingsStore = settingsStore,
             model = ctx.model,
             assistant = ctx.assistant
         )
-        defaultProvider.placeholders.forEach { (key, placeholderInfo) ->
-            val value = placeholderInfo.resolver(ctx)
-            result = result
-                .replace(oldValue = "{{$key}}", newValue = value, ignoreCase = true)
-                .replace(oldValue = "{$key}", newValue = value, ignoreCase = true)
-        }
-
-        return result
+        return applyPlaceholdersForCache(
+            messages = messages,
+            placeholders = defaultProvider.placeholders,
+            placeholderCtx = placeholderCtx,
+        )
     }
+}
+
+internal fun applyPlaceholdersForCache(
+    messages: List<UIMessage>,
+    placeholders: Map<String, PlaceholderInfo>,
+    placeholderCtx: PlaceholderCtx,
+): List<UIMessage> {
+    return applyPlaceholdersForCache(
+        messages = messages,
+        placeholders = placeholders,
+        resolvePlaceholder = { _, placeholder -> placeholder.resolver(placeholderCtx) },
+    )
+}
+
+internal fun applyPlaceholdersForCache(
+    messages: List<UIMessage>,
+    placeholders: Map<String, PlaceholderInfo>,
+    resolvePlaceholder: (key: String, placeholder: PlaceholderInfo) -> String,
+): List<UIMessage> {
+    val systemRuntimeKeys = linkedSetOf<String>()
+    val transformed = messages.map { message ->
+        message.copy(
+            parts = message.parts.map { part ->
+                if (part is UIMessagePart.Text) {
+                    val text = replacePlaceholders(
+                        text = part.text,
+                        role = message.role,
+                        placeholders = placeholders,
+                        resolvePlaceholder = resolvePlaceholder,
+                        systemRuntimeKeys = systemRuntimeKeys,
+                    )
+                    part.copy(text = text)
+                } else {
+                    part
+                }
+            }
+        )
+    }
+
+    if (systemRuntimeKeys.isEmpty()) return transformed
+
+    return transformed.toMutableList().apply {
+        add(
+            runtimeContextInsertIndex(transformed),
+            buildRuntimeContextMessage(systemRuntimeKeys, placeholders, resolvePlaceholder)
+        )
+    }
+}
+
+private fun replacePlaceholders(
+    text: String,
+    role: MessageRole,
+    placeholders: Map<String, PlaceholderInfo>,
+    resolvePlaceholder: (key: String, placeholder: PlaceholderInfo) -> String,
+    systemRuntimeKeys: MutableSet<String>,
+): String {
+    var result = text
+    placeholders.forEach { (key, placeholderInfo) ->
+        if (!result.containsPlaceholder(key)) return@forEach
+
+        val value = if (role == MessageRole.SYSTEM && placeholderInfo.cachePolicy == PlaceholderCachePolicy.RUNTIME) {
+            systemRuntimeKeys.add(key)
+            "<runtime_context>$key</runtime_context>"
+        } else {
+            resolvePlaceholder(key, placeholderInfo)
+        }
+        result = result.replacePlaceholder(key, value)
+    }
+    return result
+}
+
+private fun buildRuntimeContextMessage(
+    keys: Set<String>,
+    placeholders: Map<String, PlaceholderInfo>,
+    resolvePlaceholder: (key: String, placeholder: PlaceholderInfo) -> String,
+): UIMessage {
+    val content = buildString {
+        appendLine("<runtime_context>")
+        appendLine("Dynamic values referenced by the stable system prompt:")
+        keys.sorted().forEach { key ->
+            val placeholder = placeholders[key] ?: return@forEach
+            val value = resolvePlaceholder(key, placeholder)
+            appendLine("- $key: $value")
+        }
+        append("</runtime_context>")
+    }
+    // Keep this as a synthetic user turn: PromptInjection has already run, and
+    // some providers handle mid-conversation SYSTEM messages inconsistently.
+    return UIMessage.user(content)
+}
+
+private fun runtimeContextInsertIndex(messages: List<UIMessage>): Int {
+    if (messages.isEmpty()) return 0
+    val firstNonSystemIndex = messages.indexOfFirst { it.role != MessageRole.SYSTEM }
+        .takeIf { it >= 0 }
+        ?: messages.size
+    val targetIndex = (messages.size - 1).coerceAtLeast(firstNonSystemIndex)
+    return findSafeInsertIndex(messages, targetIndex)
+}
+
+private fun String.containsPlaceholder(key: String): Boolean {
+    return contains("{{$key}}", ignoreCase = true) || contains("{$key}", ignoreCase = true)
+}
+
+private fun String.replacePlaceholder(key: String, value: String): String {
+    return replace(oldValue = "{{$key}}", newValue = value, ignoreCase = true)
+        .replace(oldValue = "{$key}", newValue = value, ignoreCase = true)
 }
 

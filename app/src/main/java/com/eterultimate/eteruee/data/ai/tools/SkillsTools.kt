@@ -15,7 +15,9 @@ fun createSkillTools(
     allSkills: List<SkillMetadata>,
     skillManager: SkillManager,
 ): List<Tool> {
-    val available = allSkills.filter { it.name in enabledSkills }
+    val available = allSkills
+        .filter { it.name in enabledSkills }
+        .sortedWith(compareBy<SkillMetadata> { it.name }.thenBy { it.description })
     if (available.isEmpty()) return emptyList()
 
     return listOf(
@@ -62,7 +64,8 @@ fun createSkillTools(
                 val name = it.jsonObject["name"]?.jsonPrimitive?.content
                     ?: error("name is required")
                 if (name !in enabledSkills) {
-                    error("Skill '$name' is not available. Available skills: ${enabledSkills.joinToString()}")
+                    val availableNames = available.map { skill -> skill.name }.sorted()
+                    error("Skill '$name' is not available. Available skills: ${availableNames.joinToString()}")
                 }
                 val path = it.jsonObject["path"]?.jsonPrimitive?.content
                 val content = if (path.isNullOrBlank()) {

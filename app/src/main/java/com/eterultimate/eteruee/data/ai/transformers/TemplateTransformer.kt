@@ -2,6 +2,10 @@
 
 import io.pebbletemplates.pebble.PebbleEngine
 import io.pebbletemplates.pebble.loader.Loader
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
+import kotlin.time.toJavaInstant
+import com.eterultimate.eteruee.ai.core.MessageRole
 import com.eterultimate.eteruee.ai.ui.UIMessage
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.data.datastore.SettingsStore
@@ -10,7 +14,6 @@ import com.eterultimate.eteruee.utils.toLocalTime
 import java.io.Reader
 import java.io.StringReader
 import java.io.StringWriter
-import java.time.Instant
 
 class TemplateTransformer(
     private val engine: PebbleEngine,
@@ -22,6 +25,13 @@ class TemplateTransformer(
     ): List<UIMessage> {
         val template = engine.getTemplate(ctx.assistant.id.toString())
         return messages.map { message ->
+            // System placeholders are handled by PlaceholderTransformer; templating
+            // the stable prefix here would reintroduce per-request mutations.
+            if (message.role == MessageRole.SYSTEM) return@map message
+
+            val messageInstant = message.createdAt
+                .toInstant(TimeZone.currentSystemDefault())
+                .toJavaInstant()
             message.copy(
                 parts = message.parts.map { part ->
                     when (part) {
@@ -31,8 +41,8 @@ class TemplateTransformer(
                                 result, mapOf(
                                     "message" to part.text,
                                     "role" to message.role.name.lowercase(),
-                                    "time" to Instant.now().toLocalTime(),
-                                    "date" to Instant.now().toLocalDate(),
+                                    "time" to messageInstant.toLocalTime(),
+                                    "date" to messageInstant.toLocalDate(),
                                 )
                             )
                             part.copy(

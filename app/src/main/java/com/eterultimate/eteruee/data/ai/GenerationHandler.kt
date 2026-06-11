@@ -121,7 +121,7 @@ class GenerationHandler(
                     ).let(this::addAll)
                 }
                 addAll(tools)
-            }
+            }.sortedBy { it.name }
 
             // Check if we have tool calls ready to continue after user interaction.
             val pendingTools = messages.lastOrNull()?.getTools()?.filter {

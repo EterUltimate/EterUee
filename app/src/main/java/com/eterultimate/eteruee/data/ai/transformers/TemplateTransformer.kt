@@ -25,6 +25,8 @@ class TemplateTransformer(
     ): List<UIMessage> {
         val template = engine.getTemplate(ctx.assistant.id.toString())
         return messages.map { message ->
+            // System placeholders are handled by PlaceholderTransformer; templating
+            // the stable prefix here would reintroduce per-request mutations.
             if (message.role == MessageRole.SYSTEM) return@map message
 
             val messageInstant = message.createdAt

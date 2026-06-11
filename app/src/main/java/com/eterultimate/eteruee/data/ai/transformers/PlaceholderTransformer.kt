@@ -272,6 +272,8 @@ private fun buildRuntimeContextMessage(
         }
         append("</runtime_context>")
     }
+    // Keep this as a synthetic user turn: PromptInjection has already run, and
+    // some providers handle mid-conversation SYSTEM messages inconsistently.
     return UIMessage.user(content)
 }
 

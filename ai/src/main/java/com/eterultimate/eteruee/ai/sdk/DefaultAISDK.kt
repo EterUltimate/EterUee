@@ -100,7 +100,7 @@ class DefaultAISDK(
                 emit(chunk)
             }
         }
-            .map { chunk -> convertMessageChunkToTextChunk(chunk) }
+            .map { chunk -> chunk.toTextChunk() }
             .catch { e ->
                 Log.e(TAG, "streamText error", e)
                 throw AISDKException("Stream failed: ${e.message}", e)
@@ -113,46 +113,47 @@ class DefaultAISDK(
         throw UnsupportedOperationException("generateObject is not yet implemented")
     }
 
-    /**
-     * 将 MessageChunk 转换为 TextChunk
-     */
-    private fun convertMessageChunkToTextChunk(chunk: MessageChunk): TextChunk {
-        // 检查是否有 usage 信息
-        chunk.usage?.let {
-            return TextChunk.Usage(it)
-        }
+}
 
-        // 检查是否有 finish reason
-        if (chunk.choices.any { it.finishReason != null }) {
-            return TextChunk.Finish
-        }
-
-        // 提取文本增量
-        val textDeltas = chunk.choices.flatMap { choice ->
-            choice.delta?.parts?.filterIsInstance<com.eterultimate.eteruee.ai.ui.UIMessagePart.Text>() ?: emptyList()
-        }
-
-        if (textDeltas.isNotEmpty()) {
-            return TextChunk.TextDelta(textDeltas.joinToString("") { it.text })
-        }
-
-        // 提取工具调用
-        val toolCalls = chunk.choices.flatMap { choice ->
-            choice.delta?.parts?.filterIsInstance<com.eterultimate.eteruee.ai.ui.UIMessagePart.Tool>() ?: emptyList()
-        }
-
-        if (toolCalls.isNotEmpty()) {
-            val toolCall = toolCalls.first()
-            return TextChunk.ToolCall(
-                toolCallId = toolCall.toolCallId,
-                toolName = toolCall.toolName,
-                arguments = toolCall.input
-            )
-        }
-
-        // 如果没有内容,返回空文本块
-        return TextChunk.TextDelta("")
+/**
+ * 将 MessageChunk 转换为 TextChunk
+ */
+internal fun MessageChunk.toTextChunk(): TextChunk {
+    // 检查是否有 usage 信息
+    usage?.let {
+        return TextChunk.Usage(it)
     }
+
+    // 检查是否有 finish reason
+    if (choices.any { it.finishReason != null }) {
+        return TextChunk.Finish
+    }
+
+    // 提取文本增量
+    val textDeltas = choices.flatMap { choice ->
+        choice.delta?.parts?.filterIsInstance<com.eterultimate.eteruee.ai.ui.UIMessagePart.Text>() ?: emptyList()
+    }
+
+    if (textDeltas.isNotEmpty()) {
+        return TextChunk.TextDelta(textDeltas.joinToString("") { it.text })
+    }
+
+    // 提取工具调用
+    val toolCalls = choices.flatMap { choice ->
+        choice.delta?.parts?.filterIsInstance<com.eterultimate.eteruee.ai.ui.UIMessagePart.Tool>() ?: emptyList()
+    }
+
+    if (toolCalls.isNotEmpty()) {
+        val toolCall = toolCalls.first()
+        return TextChunk.ToolCall(
+            toolCallId = toolCall.toolCallId,
+            toolName = toolCall.toolName,
+            arguments = toolCall.input
+        )
+    }
+
+    // 如果没有内容,返回空文本块
+    return TextChunk.TextDelta("")
 }
 
 /**

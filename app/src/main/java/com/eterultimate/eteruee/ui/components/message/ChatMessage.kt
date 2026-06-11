@@ -90,6 +90,7 @@ import com.eterultimate.eteruee.ui.components.richtext.ZoomableAsyncImage
 import com.eterultimate.eteruee.ui.components.richtext.buildMarkdownPreviewHtml
 import com.eterultimate.eteruee.ui.components.ui.ChainOfThought
 import com.eterultimate.eteruee.ui.components.ui.Favicon
+import com.eterultimate.eteruee.ui.components.ui.RabbitLoadingIndicator
 import com.eterultimate.eteruee.ui.context.LocalNavController
 import com.eterultimate.eteruee.ui.modifier.shimmer
 import com.eterultimate.eteruee.ui.context.LocalSettings
@@ -107,6 +108,7 @@ fun ChatMessage(
     node: MessageNode,
     modifier: Modifier = Modifier,
     loading: Boolean = false,
+    showInlineLoading: Boolean = false,
     model: Model? = null,
     assistant: Assistant? = null,
     lastMessage: Boolean = false,
@@ -187,8 +189,23 @@ fun ChatMessage(
             }
         }
 
-        val showActions = if (lastMessage) {
-            !loading
+        AnimatedVisibility(
+            visible = showInlineLoading && message.role == MessageRole.ASSISTANT,
+            enter = slideInVertically { it / 2 } + fadeIn(),
+            exit = slideOutVertically { it / 2 } + fadeOut()
+        ) {
+            Row(
+                modifier = Modifier.padding(top = 2.dp, start = 2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                RabbitLoadingIndicator(modifier = Modifier.size(28.dp))
+            }
+        }
+
+        val showActions = if (loading) {
+            false
+        } else if (lastMessage) {
+            true
         } else {
             message.parts.isEmptyUIMessage().not()
         }

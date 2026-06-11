@@ -85,7 +85,8 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>, nodeId: Uuid? = null) {
 
     val setting by vm.settings.collectAsStateWithLifecycle()
     val conversation by vm.conversation.collectAsStateWithLifecycle()
-    val isLoading by vm.chatState.isLoading.collectAsStateWithLifecycle()
+    val isLoading by vm.isLoading.collectAsStateWithLifecycle()
+    val regeneratingNodeId = vm.regeneratingNodeId
     val processingStatus by vm.processingStatus.collectAsStateWithLifecycle()
     val currentChatModel by vm.currentChatModel.collectAsStateWithLifecycle()
     val enableWebSearch by vm.enableWebSearch.collectAsStateWithLifecycle()
@@ -106,6 +107,12 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>, nodeId: Uuid? = null) {
     LaunchedEffect(drawerState.isOpen) {
         if (drawerState.isOpen) {
             softwareKeyboardController?.hide()
+        }
+    }
+
+    LaunchedEffect(isLoading) {
+        if (!isLoading) {
+            vm.clearRegeneratingNode()
         }
     }
 
@@ -173,6 +180,7 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>, nodeId: Uuid? = null) {
                 ChatPageContent(
                     inputState = inputState,
                     isLoading = isLoading,
+                    regeneratingNodeId = regeneratingNodeId,
                     processingStatus = processingStatus,
                     setting = setting,
                     conversation = conversation,
@@ -206,6 +214,7 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>, nodeId: Uuid? = null) {
                 ChatPageContent(
                     inputState = inputState,
                     isLoading = isLoading,
+                    regeneratingNodeId = regeneratingNodeId,
                     processingStatus = processingStatus,
                     setting = setting,
                     conversation = conversation,
@@ -233,6 +242,7 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>, nodeId: Uuid? = null) {
 private fun ChatPageContent(
     inputState: ChatInputState,
     isLoading: Boolean,
+    regeneratingNodeId: Uuid?,
     processingStatus: String? = null,
     setting: Settings,
     bigScreen: Boolean,
@@ -370,6 +380,7 @@ private fun ChatPageContent(
                 conversation = conversation,
                 state = chatListState,
                 loading = isLoading,
+                loadingNodeId = regeneratingNodeId,
                 processingStatus = processingStatus,
                 previewMode = previewMode,
                 settings = setting,

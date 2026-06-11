@@ -8,7 +8,7 @@
 | --- | --- |
 | 开发线 | `dev`，工作树位于 `C:\Users\zacza\Desktop\x\EterUee` |
 | 发布线 | `main`，工作树位于 `C:\Users\zacza\Desktop\x\EterUee-main-merge` |
-| 最新非 Apple 发布 | `v5.2.17`，发布于 GitHub Releases |
+| 最新非 Apple 发布 | `v5.2.18`，发布于 GitHub Releases |
 | 发布资产 | Windows EXE、Linux DEB、Android split APK、universal APK、AAB、desktop manifests、`SHA256SUMS.txt` |
 | CI 状态 | `main` 最新发布后修复提交已通过 CI 与 Static Analysis |
 
@@ -74,7 +74,7 @@
 
 ### Release
 
-- `main` 发布线已成功发布 `v5.2.17` 非 Apple release。
+- `main` 发布线已成功发布 `v5.2.18` 非 Apple release。
 - release 包含 Windows、Linux、Android APK/AAB 和校验文件。
 - 发布后修复了 Static Analysis 中 OSSF Scorecard 发布结果签名失败的问题，保留 SARIF 上传。
 

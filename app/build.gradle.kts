@@ -182,6 +182,15 @@ android {
         jniLibs {
             useLegacyPackaging = true
         }
+        resources {
+            excludes += setOf(
+                "aix/**",
+                "darwin/**",
+                "freebsd/**",
+                "linux/**",
+                "win/**",
+            )
+        }
     }
     externalNativeBuild {
         cmake {

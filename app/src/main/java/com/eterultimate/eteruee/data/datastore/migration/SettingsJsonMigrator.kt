@@ -61,6 +61,12 @@ object SettingsJsonMigrator {
                 }
             }
 
+            // V4: 为内置默认助手补齐本地运行时能力和默认 jshook MCP
+            root["assistants"]?.let { element ->
+                val migrated = mergeDefaultAssistantRuntimeAccess(JsonInstant.encodeToString(element))
+                root["assistants"] = JsonInstant.parseToJsonElement(migrated)
+            }
+
             JsonInstant.encodeToString(JsonObject(root))
         }.onFailure {
             Log.e(TAG, "migrate: Failed to migrate settings JSON, using original", it)

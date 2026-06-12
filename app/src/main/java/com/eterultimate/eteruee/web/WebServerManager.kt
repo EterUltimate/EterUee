@@ -19,6 +19,7 @@ import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.repository.ConversationRepository
 import com.eterultimate.eteruee.data.sync.webdav.WebDavSync
 import com.eterultimate.eteruee.device.DeviceAgentManager
+import com.eterultimate.eteruee.linux.LinuxEnvironmentManager
 import com.eterultimate.eteruee.roleplay.domain.service.CharacterService as RoleplayCharacterService
 import com.eterultimate.eteruee.roleplay.domain.service.ChatService as RoleplayChatService
 import com.eterultimate.eteruee.roleplay.domain.service.GroupService as RoleplayGroupService
@@ -62,6 +63,7 @@ class WebServerManager(
     private val roleplayPresetService: RoleplayPresetService,
     private val localTools: LocalTools,
     private val deviceAgentManager: DeviceAgentManager,
+    private val linuxEnvironmentManager: LinuxEnvironmentManager,
 ) {
     private var server: EmbeddedServer<CIOApplicationEngine, CIOApplicationEngine.Configuration>? = null
     private val nsdRegistrar = NsdServiceRegistrar(context)
@@ -112,6 +114,7 @@ class WebServerManager(
                         roleplayPresetService = roleplayPresetService,
                         localTools = localTools,
                         deviceAgentManager = deviceAgentManager,
+                        linuxEnvironmentManager = linuxEnvironmentManager,
                     )
                 }.start(wait = false)
 

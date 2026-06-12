@@ -13,6 +13,7 @@ import com.eterultimate.eteruee.data.ai.DynamicAISDK
 import com.eterultimate.eteruee.data.ai.tools.LocalTools
 import com.eterultimate.eteruee.data.event.AppEventBus
 import com.eterultimate.eteruee.device.DeviceAgentManager
+import com.eterultimate.eteruee.linux.LinuxEnvironmentManager
 import com.eterultimate.eteruee.network.HiddifyCoreManager
 import com.eterultimate.eteruee.service.ChatService
 import com.eterultimate.eteruee.utils.EmojiData
@@ -45,7 +46,7 @@ val appModule = module {
     }
 
     single {
-        LocalTools(get(), get(), get(), get(), get(), get(), get(), get())
+        LocalTools(get(), get(), get(), get(), get(), get(), get(), get(), get())
     }
 
     single {
@@ -70,6 +71,10 @@ val appModule = module {
 
     single {
         DeviceAgentManager(get())
+    }
+
+    single {
+        LinuxEnvironmentManager(get(), get())
     }
 
     single {
@@ -127,6 +132,7 @@ val appModule = module {
             roleplayPresetService = get<RoleplayPresetService>(),
             localTools = get(),
             deviceAgentManager = get(),
+            linuxEnvironmentManager = get(),
         )
     }
 }

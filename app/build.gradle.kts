@@ -352,6 +352,7 @@ dependencies {
 
     // Apache Commons Text
     implementation(libs.commons.text)
+    implementation(libs.commons.compress)
 
     // Toast (Sonner)
     implementation(libs.sonner)
@@ -388,6 +389,10 @@ dependencies {
     // Shizuku privileged shell/API bridge
     implementation(libs.shizuku.api)
     implementation(libs.shizuku.provider)
+
+    // Arch Linux rootfs extraction
+    implementation(libs.xz)
+    implementation(libs.zstd.jni)
 
     // modules
     implementation(project(":ai"))

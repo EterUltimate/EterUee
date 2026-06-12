@@ -27,6 +27,8 @@ import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.repository.ConversationRepository
 import com.eterultimate.eteruee.data.sync.webdav.WebDavSync
 import com.eterultimate.eteruee.device.DeviceAgentManager
+import com.eterultimate.eteruee.linux.LinuxEnvironmentManager
+import com.eterultimate.eteruee.plugin.createBuiltInAppCapabilityRegistry
 import com.eterultimate.eteruee.roleplay.domain.service.CharacterService as RoleplayCharacterService
 import com.eterultimate.eteruee.roleplay.domain.service.ChatService as RoleplayChatService
 import com.eterultimate.eteruee.roleplay.domain.service.GroupService as RoleplayGroupService
@@ -44,6 +46,7 @@ import com.eterultimate.eteruee.web.routes.backupRoutes
 import com.eterultimate.eteruee.web.routes.conversationRoutes
 import com.eterultimate.eteruee.web.routes.deviceRoutes
 import com.eterultimate.eteruee.web.routes.filesRoutes
+import com.eterultimate.eteruee.web.routes.pluginRoutes
 import com.eterultimate.eteruee.web.routes.relayRoutes
 import com.eterultimate.eteruee.web.routes.roleplayRoutes
 import com.eterultimate.eteruee.web.routes.settingsRoutes
@@ -85,8 +88,19 @@ fun Application.configureWebApi(
     roleplayPresetService: RoleplayPresetService,
     localTools: LocalTools,
     deviceAgentManager: DeviceAgentManager,
+    linuxEnvironmentManager: LinuxEnvironmentManager,
 ) {
     val jwtEnabled = settingsStore.settingsFlow.value.webServerJwtEnabled
+    val pluginCapabilityRegistry = createBuiltInAppCapabilityRegistry(
+        context = context,
+        settingsStore = settingsStore,
+        conversationRepo = conversationRepo,
+        chatService = chatService,
+        filesManager = filesManager,
+        localTools = localTools,
+        deviceAgentManager = deviceAgentManager,
+        linuxEnvironmentManager = linuxEnvironmentManager,
+    )
 
     install(ContentNegotiation) {
         json(JsonInstant)
@@ -197,7 +211,7 @@ fun Application.configureWebApi(
                         settingsStore = settingsStore,
                         filesManager = filesManager,
                     )
-                    deviceRoutes(deviceAgentManager)
+                    deviceRoutes(deviceAgentManager, linuxEnvironmentManager)
                     backupRoutes(context, settingsStore, webDavSync)
                     relayRoutes(httpRelayService)
                     roleplayRoutes(
@@ -210,6 +224,7 @@ fun Application.configureWebApi(
                         presetService = roleplayPresetService,
                         localTools = localTools,
                     )
+                    pluginRoutes(pluginCapabilityRegistry)
                 }
             } else {
                 agentApiRoutes(
@@ -220,7 +235,7 @@ fun Application.configureWebApi(
                     settingsStore = settingsStore,
                     filesManager = filesManager,
                 )
-                deviceRoutes(deviceAgentManager)
+                deviceRoutes(deviceAgentManager, linuxEnvironmentManager)
                 backupRoutes(context, settingsStore, webDavSync)
                 relayRoutes(httpRelayService)
                 roleplayRoutes(
@@ -233,6 +248,7 @@ fun Application.configureWebApi(
                     presetService = roleplayPresetService,
                     localTools = localTools,
                 )
+                pluginRoutes(pluginCapabilityRegistry)
             }
         }
     }

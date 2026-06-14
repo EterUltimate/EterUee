@@ -8,6 +8,7 @@
 | --- | --- |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | 当前 Android、AI SDK、Web UI、RolePlay、Termux shell、Hiddify Core 的架构边界 |
 | [DEVELOPMENT.md](./DEVELOPMENT.md) | 本地环境、相邻仓库、构建命令、测试命令、工作树注意事项 |
+| [LINUX_RUNTIME.md](./LINUX_RUNTIME.md) | proot Arch/Ubuntu rootfs、Web API、工具 API、插件能力和运行时路径 |
 | [RELEASE.md](./RELEASE.md) | 非 Apple release 构建、发布、资产验证、CI 验证流程 |
 | [PROJECT_STATUS.md](./PROJECT_STATUS.md) | 当前进度、已落地功能、进行中集成、已知缺口 |
 | [BRANCHES.md](./BRANCHES.md) | 当前 `dev` / `main` / 辅助 worktree 的用途和操作边界 |

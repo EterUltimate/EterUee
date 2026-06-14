@@ -24,6 +24,7 @@ import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.device.DeviceAgentManager
 import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.repository.GenMediaRepository
+import com.eterultimate.eteruee.linux.LinuxEnvironmentManager
 import com.eterultimate.eteruee.network.HiddifyCoreManager
 import com.eterultimate.eteruee.utils.readClipboardText
 import com.eterultimate.eteruee.utils.writeClipboardText
@@ -71,6 +72,10 @@ sealed class LocalToolOption {
     @Serializable
     @SerialName("shell")
     data object Shell : LocalToolOption()
+
+    @Serializable
+    @SerialName("linux_environment")
+    data object LinuxEnvironment : LocalToolOption()
 
     @Serializable
     @SerialName("traffic_control")
@@ -258,6 +263,7 @@ class LocalTools(
     private val eventBus: AppEventBus,
     private val hiddifyCoreManager: HiddifyCoreManager,
     private val deviceAgentManager: DeviceAgentManager,
+    private val linuxEnvironmentManager: LinuxEnvironmentManager,
     private val settingsStore: SettingsStore,
     private val providerManager: ProviderManager,
     private val filesManager: FilesManager,
@@ -538,7 +544,9 @@ class LocalTools(
 
     val sshTool by lazy { SshTools.createSshExecuteTool() }
 
-    val shellTool by lazy { ShellTools.createShellExecuteTool(context) }
+    val shellTool by lazy { ShellTools.createShellExecuteTool(context, linuxEnvironmentManager) }
+
+    val linuxEnvironmentTool by lazy { ShellTools.createLinuxEnvironmentTool(linuxEnvironmentManager) }
 
     val trafficControlTool by lazy { TrafficControlTools.createTrafficControlTool(hiddifyCoreManager) }
 
@@ -580,6 +588,9 @@ class LocalTools(
         }
         if (options.contains(LocalToolOption.Shell)) {
             tools.add(shellTool)
+        }
+        if (options.contains(LocalToolOption.LinuxEnvironment)) {
+            tools.add(linuxEnvironmentTool)
         }
         if (options.contains(LocalToolOption.TrafficControl)) {
             tools.add(trafficControlTool)

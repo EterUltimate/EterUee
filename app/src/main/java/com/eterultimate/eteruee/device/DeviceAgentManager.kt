@@ -51,6 +51,13 @@ class DeviceAgentManager(
             shizukuVersion = version,
             serverUid = serverUid,
             serverMode = serverUid?.let(::serverModeName),
+            wirelessDebuggingReady = running && serverUid == 2000,
+            setupHint = shizukuSetupHint(
+                installed = installed,
+                running = running,
+                permissionGranted = permissionGranted,
+                serverUid = serverUid,
+            ),
             permissionGranted = permissionGranted,
             permissionRationale = permissionRationale,
             canRunAdbShell = running && permissionGranted,
@@ -279,6 +286,8 @@ data class DeviceAgentStatus(
     val shizukuVersion: Int? = null,
     val serverUid: Int? = null,
     val serverMode: String? = null,
+    val wirelessDebuggingReady: Boolean = false,
+    val setupHint: String? = null,
     val permissionGranted: Boolean,
     val permissionRationale: Boolean,
     val canRunAdbShell: Boolean,
@@ -354,6 +363,22 @@ private fun serverModeName(uid: Int): String {
         0 -> "root"
         2000 -> "adb"
         else -> "uid:$uid"
+    }
+}
+
+private fun shizukuSetupHint(
+    installed: Boolean,
+    running: Boolean,
+    permissionGranted: Boolean,
+    serverUid: Int?,
+): String {
+    return when {
+        !installed -> "Install Shizuku, then start it from Wireless debugging or USB debugging."
+        !running -> "Open Shizuku, pair it with Android Wireless debugging, then start the service."
+        !permissionGranted -> "Grant EterUee API access in the Shizuku permission dialog."
+        serverUid == 2000 -> "Shizuku is running as ADB shell, suitable for wireless debugging shell commands."
+        serverUid == 0 -> "Shizuku is running as root; ADB shell commands are available with elevated privileges."
+        else -> "Shizuku is running as uid:$serverUid; shell command scope depends on the current Shizuku mode."
     }
 }
 

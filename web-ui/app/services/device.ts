@@ -6,6 +6,8 @@ export interface DeviceAgentStatus {
   shizukuVersion?: number | null;
   serverUid?: number | null;
   serverMode?: string | null;
+  wirelessDebuggingReady: boolean;
+  setupHint?: string | null;
   permissionGranted: boolean;
   permissionRationale: boolean;
   canRunAdbShell: boolean;
@@ -71,8 +73,43 @@ export interface DeviceShellResult {
   serverMode?: string | null;
 }
 
+export interface LinuxEnvironmentStatus {
+  distribution: string;
+  distributionName: string;
+  supportedDistributions: string[];
+  installed: boolean;
+  rootfsPath: string;
+  termuxUsrPath: string;
+  prootPath: string;
+  prootExecutable: boolean;
+  installScriptPath: string;
+  rootfsArchivePath?: string | null;
+  primaryAbi: string;
+  supportedRootfsUrl?: string | null;
+  termuxPackageUrls: string[];
+  runner?: string | null;
+  canExecuteLinux: boolean;
+  message: string;
+}
+
+export interface LinuxShellResult {
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+  executor: string;
+  shell: string;
+  workingDir: string;
+  command: string;
+  distribution: string;
+  distributionName: string;
+  rootfsPath: string;
+  prootPath: string;
+  fallback: boolean;
+}
+
 export interface DeviceShellRequest {
   command: string;
+  distribution?: string | null;
   workingDir?: string | null;
   stdin?: string | null;
   timeoutSeconds?: number;
@@ -100,4 +137,21 @@ export function getInstalledApps(includeSystem = false, limit = 250): Promise<De
 
 export function executeDeviceShell(request: DeviceShellRequest): Promise<DeviceShellResult> {
   return api.post<DeviceShellResult>("device/shell", request);
+}
+
+export function getLinuxStatus(distribution = "arch"): Promise<LinuxEnvironmentStatus> {
+  const query = new URLSearchParams({ distribution });
+  return api.get<LinuxEnvironmentStatus>(`device/linux/status?${query.toString()}`);
+}
+
+export function prepareLinuxEnvironment(distribution = "arch"): Promise<LinuxEnvironmentStatus> {
+  return api.post<LinuxEnvironmentStatus>("device/linux/prepare", { distribution });
+}
+
+export function installLinuxEnvironment(distribution = "arch", timeoutSeconds = 600): Promise<LinuxShellResult> {
+  return api.post<LinuxShellResult>("device/linux/install", { distribution, timeoutSeconds });
+}
+
+export function executeLinuxShell(request: DeviceShellRequest): Promise<LinuxShellResult> {
+  return api.post<LinuxShellResult>("device/linux/shell", request);
 }

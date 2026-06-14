@@ -14,6 +14,8 @@ import com.eterultimate.eteruee.ai.provider.Model
 import com.eterultimate.eteruee.ai.provider.ModelAbility
 import com.eterultimate.eteruee.ai.provider.ProviderSetting
 import com.eterultimate.eteruee.R
+import com.eterultimate.eteruee.data.ai.mcp.McpCommonOptions
+import com.eterultimate.eteruee.data.ai.mcp.McpServerConfig
 import com.eterultimate.eteruee.ui.components.richtext.MarkdownBlock
 import kotlin.uuid.Uuid
 
@@ -23,6 +25,10 @@ const val DEFAULT_ETERUEE_OFFICIAL_API_BASE_URL = "https://sapi.eterultimate.asi
 const val DEFAULT_ETERUEE_PROVIDER_BASE_URL = "$DEFAULT_ETERUEE_OFFICIAL_API_BASE_URL/v1"
 const val PREVIOUS_ETERUEE_PROVIDER_BASE_URL = "https://newapi.eterultimate.asia/v1"
 const val LEGACY_ETERUEE_PROVIDER_BASE_URL = "https://api.eteruee.com/v1"
+val DEFAULT_LOCAL_SAPI_PROVIDER_ID = Uuid.parse("0d68b477-5918-4a0e-8bdb-91e596ecf9d5")
+val DEFAULT_JSHOOK_MCP_SERVER_ID = Uuid.parse("27429a87-8db8-4f95-9f94-61ca3e82002e")
+const val DEFAULT_LOCAL_SAPI_PROVIDER_BASE_URL = "http://10.0.2.2:3000/v1"
+const val DEFAULT_JSHOOK_MCP_URL = "http://10.0.2.2:3001/mcp"
 
 val DEFAULT_PROVIDERS = listOf(
     ProviderSetting.OpenAI(
@@ -41,6 +47,30 @@ val DEFAULT_PROVIDERS = listOf(
                 modelId = "auto",
                 displayName = "Auto",
                 inputModalities = listOf(Modality.TEXT),
+                outputModalities = listOf(Modality.TEXT),
+                abilities = listOf(ModelAbility.TOOL, ModelAbility.REASONING),
+            )
+        )
+    ),
+    ProviderSetting.OpenAI(
+        id = DEFAULT_LOCAL_SAPI_PROVIDER_ID,
+        name = "SAPI Local",
+        baseUrl = DEFAULT_LOCAL_SAPI_PROVIDER_BASE_URL,
+        apiKey = "",
+        enabled = false,
+        builtIn = true,
+        description = {
+            Text("Local SAPI gateway on the host machine. Android emulator reaches host localhost through 10.0.2.2.")
+        },
+        shortDescription = {
+            Text("Local OpenAI-compatible SAPI gateway")
+        },
+        models = listOf(
+            Model(
+                id = Uuid.parse("dc9e32f8-8f07-4f14-915d-39ef78a58fc8"),
+                modelId = "auto",
+                displayName = "SAPI Auto",
+                inputModalities = listOf(Modality.TEXT, Modality.IMAGE),
                 outputModalities = listOf(Modality.TEXT),
                 abilities = listOf(ModelAbility.TOOL, ModelAbility.REASONING),
             )
@@ -272,4 +302,15 @@ val DEFAULT_PROVIDERS = listOf(
             )
         }
     ),
+)
+
+val DEFAULT_MCP_SERVERS = listOf(
+    McpServerConfig.StreamableHTTPServer(
+        id = DEFAULT_JSHOOK_MCP_SERVER_ID,
+        commonOptions = McpCommonOptions(
+            enable = true,
+            name = "jshookmcp",
+        ),
+        url = DEFAULT_JSHOOK_MCP_URL,
+    )
 )

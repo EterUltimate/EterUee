@@ -15,6 +15,7 @@ EterUee 是一个原生 Android LLM 客户端，围绕本地优先的对话、�
 - 更新检查来源改为 `https://github.com/EterUltimate/EterUee/releases`。
 - 内置 EterUee 提供商默认地址为 `https://newapi.eterultimate.asia/v1`，描述为官方提供的 API。
 - 通过本地相邻仓库 `../termux-app` 集成 `termux/termux-app` 的 terminal 模块，作为默认本地 shell 界面。
+- 托管 proot Linux 环境默认支持 Arch Linux，并提供 Ubuntu 24.04 可选 rootfs 模块。
 - 通过 `../hiddify-core/bin/hiddify-core.aar` 可选集成 `hiddify/hiddify-core`，用于本地流量管控实验。
 - RolePlay 模块已接入应用导航，覆盖角色、聊天、世界书、群组、预设、书签和可视化编辑器。
 - React Web UI 会构建进 Android `web` 模块，并由内置 Ktor 服务提供访问。
@@ -31,6 +32,7 @@ EterUee 的目标是作为完整的 Android AI 工作区运行：
 - 使用本地 Room 数据和文件资产运行角色扮演工作流。
 - 通过设备内置 Web 服务向局域网浏览器暴露会话界面。
 - 使用嵌入式 Termux 终端视图和应用作用域 shell runner，不要求安装独立 Termux 应用。
+- 通过 proot 安装和运行应用私有的 Arch Linux 或 Ubuntu 24.04 rootfs，用于已批准的 shell 工具。
 - 可选加载 Hiddify Core 进行本地流量管控实验。
 
 ## 架构
@@ -49,7 +51,7 @@ Android app (app)
     |     common, document, highlight, search, tts, roleplay, material3
     |
     +-- 本地运行时集成
-    |     terminal-emulator, terminal-view, LocalShellRunner, HiddifyCoreManager
+    |     terminal-emulator, terminal-view, LocalShellRunner, LinuxEnvironmentManager, HiddifyCoreManager
     |
     +-- 内置 Web 服务 (web)
           Ktor API, SSE, 来自 web-ui 的 React 静态资源
@@ -70,6 +72,7 @@ Android app (app)
 | `web` | 嵌入 Ktor 并托管 React Web UI 的 Android library |
 | `web-ui` | React Router 7 浏览器前端，构建产物复制到 `web/src/main/resources/static` |
 | `terminal-emulator`, `terminal-view` | 来自 `../termux-app` 的本地 Termux 模块 |
+| `app/src/main/java/com/eterultimate/eteruee/linux` | 托管 proot Linux runtime，支持 Arch Linux 和可选 Ubuntu 24.04 |
 | `../hiddify-core/bin/hiddify-core.aar` | `app` 可选加载的 Hiddify Core gomobile 绑定 |
 
 详见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
@@ -168,6 +171,7 @@ npx --yes pnpm@10.24.0 run build
 - [docs/README.md](docs/README.md)：文档索引
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)：架构与运行时边界
 - [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)：本地设置、验证和协作流程
+- [docs/LINUX_RUNTIME.md](docs/LINUX_RUNTIME.md)：proot Arch/Ubuntu runtime、Web API、工具 API 和插件能力说明
 - [docs/RELEASE.md](docs/RELEASE.md)：构建、发布和验证清单
 - [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md)：当前进度与已知缺口
 

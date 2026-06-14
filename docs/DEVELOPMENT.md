@@ -148,10 +148,11 @@ go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 -color
 
 ## 本地 Shell
 
-Shell 功能由两层组成：
+Shell 功能由三层组成：
 
 - `ShellPage` 使用 Termux terminal view/emulator 提供交互式终端。
 - `ShellTools` 使用 `LocalShellRunner` 执行工具调用中的本地命令。
+- `LinuxEnvironmentManager` 使用共享 Termux `proot` runtime 运行应用私有 Linux rootfs。
 
 `LocalShellRunner` 默认使用：
 
@@ -162,6 +163,37 @@ working dir: app external files directory
 ```
 
 Shell 工具需要用户批准后执行，适合应用作用域文件操作和轻量本地自动化。
+
+## proot Linux runtime
+
+默认发行版是 Arch Linux。可选 Ubuntu 24.04 rootfs 模块使用独立目录，不覆盖 Arch：
+
+```text
+files/linux/usr
+files/linux/archlinux
+files/linux/ubuntu
+files/linux/downloads
+```
+
+Web API、Web UI Device Agent、`linux_environment` 工具和插件能力均支持：
+
+```json
+{"distribution":"arch"}
+```
+
+```json
+{"distribution":"ubuntu"}
+```
+
+定向验证：
+
+```bash
+./gradlew :app:compileDebugKotlin --console=plain
+cd web-ui
+npx --yes pnpm@10.24.0 run typecheck
+```
+
+运行时路径、API 请求体和工具参数见 [LINUX_RUNTIME.md](./LINUX_RUNTIME.md)。
 
 ## Provider 与更新源
 

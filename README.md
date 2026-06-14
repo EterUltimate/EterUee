@@ -15,6 +15,7 @@ Recent work has moved the project beyond a basic Android chat client:
 - Update checks now use `https://github.com/EterUltimate/EterUee/releases`.
 - The built-in EterUee provider defaults to `https://newapi.eterultimate.asia/v1` and is described as the official API.
 - `termux/termux-app` terminal modules are integrated as the default local shell surface through local sibling checkout `../termux-app`.
+- Managed proot Linux environments support Arch Linux by default and Ubuntu 24.04 as an optional rootfs module.
 - `hiddify/hiddify-core` is integrated as an optional local traffic-control core through `../hiddify-core/bin/hiddify-core.aar`.
 - The roleplay module is wired into the app navigation and continues to cover characters, chats, world info, groups, presets, bookmarks, and visual editors.
 - The React Web UI is built into the Android `web` module and served by the embedded Ktor server.
@@ -31,6 +32,7 @@ EterUee is intended to run as a full Android AI workspace:
 - Run roleplay workflows with local Room data and file-backed assets.
 - Expose conversations through a local browser UI hosted from the device.
 - Use an embedded Termux terminal view and an app-scoped shell runner without requiring the standalone Termux app.
+- Install and run app-private Arch Linux or Ubuntu 24.04 rootfs environments through proot for approved shell tools.
 - Optionally load Hiddify Core for local traffic-control experiments.
 
 ## Architecture
@@ -49,7 +51,7 @@ Android app (app)
     |     common, document, highlight, search, tts, roleplay, material3
     |
     +-- Local runtime integrations
-    |     terminal-emulator, terminal-view, LocalShellRunner, HiddifyCoreManager
+    |     terminal-emulator, terminal-view, LocalShellRunner, LinuxEnvironmentManager, HiddifyCoreManager
     |
     +-- Embedded web server (web)
           Ktor API, SSE, static React Web UI resources from web-ui
@@ -70,6 +72,7 @@ Core module responsibilities:
 | `web` | Android library that embeds Ktor and serves the bundled React Web UI |
 | `web-ui` | React Router 7 browser frontend copied into `web/src/main/resources/static` |
 | `terminal-emulator`, `terminal-view` | Local Termux modules from `../termux-app` |
+| `app/src/main/java/com/eterultimate/eteruee/linux` | Managed proot Linux runtime for Arch Linux and optional Ubuntu 24.04 |
 | `../hiddify-core/bin/hiddify-core.aar` | Optional local Hiddify Core gomobile binding consumed by `app` |
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the detailed architecture map.
@@ -168,6 +171,7 @@ Start with:
 - [docs/README.md](docs/README.md): documentation index
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): architecture and runtime boundaries
 - [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md): local setup, validation, and contribution workflow
+- [docs/LINUX_RUNTIME.md](docs/LINUX_RUNTIME.md): proot Arch/Ubuntu runtime, Web API, tool API, and plugin capability notes
 - [docs/RELEASE.md](docs/RELEASE.md): build, publish, and verification checklist
 - [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md): current progress and known gaps
 

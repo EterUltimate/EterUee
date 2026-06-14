@@ -221,6 +221,7 @@ export default function RoleplayPage() {
   const [temperature, setTemperature] = React.useState(0.7);
   const [maxTokens, setMaxTokens] = React.useState(2048);
   const characterImportInputRef = React.useRef<HTMLInputElement>(null);
+  const chatImportInputRef = React.useRef<HTMLInputElement>(null);
   const worldImportInputRef = React.useRef<HTMLInputElement>(null);
   const presetImportInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -598,6 +599,61 @@ export default function RoleplayPage() {
     }
   }, [selectedCharacter, selectedCharacterId]);
 
+  const importChat = React.useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.currentTarget.files?.[0];
+      event.currentTarget.value = "";
+      if (!file) return;
+      const characterId = selectedCharacterId ?? summary?.characters[0]?.id;
+      if (!characterId) {
+        toast.error("Select a character before importing chat");
+        return;
+      }
+      try {
+        const { item } = await roleplayApi.chats.importFile(file, characterId, selectedGroupId);
+        setSelectedChatId(item.chatId);
+        setSection("chat");
+        await loadChatMessages(item.chatId);
+        await refresh();
+        toast.success("Chat imported");
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Failed to import chat");
+      }
+    },
+    [loadChatMessages, refresh, selectedCharacterId, selectedGroupId, summary?.characters],
+  );
+
+  const exportChat = React.useCallback(
+    async (format: "jsonl" | "txt" | "html") => {
+      if (!selectedChatId) return;
+      try {
+        const blob = await (format === "jsonl"
+          ? roleplayApi.chats.exportJsonl(selectedChatId)
+          : format === "txt"
+            ? roleplayApi.chats.exportTxt(selectedChatId)
+            : roleplayApi.chats.exportHtml(selectedChatId));
+        downloadBlob(blob, `${fileStem(selectedChatId, "chat")}-chat.${format}`);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Failed to export chat");
+      }
+    },
+    [selectedChatId],
+  );
+
+  const addBookmark = React.useCallback(async () => {
+    if (!selectedChatId || selectedMessageIndex == null) return;
+    try {
+      await roleplayApi.chats.addBookmark(
+        selectedChatId,
+        selectedMessageIndex,
+        `Message ${selectedMessageIndex + 1}`,
+      );
+      toast.success("Bookmark added");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to add bookmark");
+    }
+  }, [selectedChatId, selectedMessageIndex]);
+
   const importWorldInfo = React.useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.currentTarget.files?.[0];
@@ -677,6 +733,13 @@ export default function RoleplayPage() {
         accept=".json,application/json"
         className="hidden"
         onChange={importWorldInfo}
+      />
+      <input
+        ref={chatImportInputRef}
+        type="file"
+        accept=".jsonl,.json,text/plain,application/json"
+        className="hidden"
+        onChange={importChat}
       />
       <input
         ref={presetImportInputRef}
@@ -843,6 +906,9 @@ export default function RoleplayPage() {
                 onAddSwipe={() => void addSwipe()}
                 onPreviousSwipe={() => void rotateSwipe("previous")}
                 onNextSwipe={() => void rotateSwipe("next")}
+                onImport={() => chatImportInputRef.current?.click()}
+                onExport={(format) => void exportChat(format)}
+                onBookmark={() => void addBookmark()}
                 onClear={async () => {
                   if (!selectedChatId) return;
                   await roleplayApi.chats.clear(selectedChatId);
@@ -1254,6 +1320,9 @@ function ChatPanel({
   onAddSwipe,
   onPreviousSwipe,
   onNextSwipe,
+  onImport,
+  onExport,
+  onBookmark,
   onClear,
 }: {
   selectedChatId: string | null;
@@ -1287,6 +1356,9 @@ function ChatPanel({
   onAddSwipe: () => void;
   onPreviousSwipe: () => void;
   onNextSwipe: () => void;
+  onImport: () => void;
+  onExport: (format: "jsonl" | "txt" | "html") => void;
+  onBookmark: () => void;
   onClear: () => void;
 }) {
   const selectedNode = selectedMessageIndex == null ? null : messageNodes[selectedMessageIndex];
@@ -1302,6 +1374,35 @@ function ChatPanel({
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="outline">{messages.length} messages</Badge>
           <Badge variant="secondary">{modelLabel}</Badge>
+          <Button variant="outline" size="sm" onClick={onImport}>
+            <Upload className="size-4" />
+            Import
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onExport("jsonl")}
+            disabled={!selectedChatId || messages.length === 0}
+          >
+            <Download className="size-4" />
+            JSONL
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onExport("txt")}
+            disabled={!selectedChatId || messages.length === 0}
+          >
+            TXT
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onExport("html")}
+            disabled={!selectedChatId || messages.length === 0}
+          >
+            HTML
+          </Button>
           <Input
             type="number"
             value={temperature}
@@ -1427,7 +1528,10 @@ function ChatPanel({
                 onClick={onNextSwipe}
                 disabled={selectedMessageIndex == null || selectedSwipeCount <= 1}
               >
-                <ChevronRight className="size-4" />
+                  <ChevronRight className="size-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={onBookmark} disabled={selectedMessageIndex == null}>
+                <BookOpen className="size-4" />
               </Button>
             </div>
           </div>

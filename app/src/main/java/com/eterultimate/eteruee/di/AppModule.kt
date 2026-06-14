@@ -13,6 +13,7 @@ import com.eterultimate.eteruee.data.ai.DynamicAISDK
 import com.eterultimate.eteruee.data.ai.tools.LocalTools
 import com.eterultimate.eteruee.data.event.AppEventBus
 import com.eterultimate.eteruee.device.DeviceAgentManager
+import com.eterultimate.eteruee.linux.LinuxEnvironmentManager
 import com.eterultimate.eteruee.network.HiddifyCoreManager
 import com.eterultimate.eteruee.service.ChatService
 import com.eterultimate.eteruee.utils.EmojiData
@@ -25,6 +26,7 @@ import com.eterultimate.eteruee.tts.provider.TTSManager
 import com.eterultimate.eteruee.roleplay.domain.service.CharacterService as RoleplayCharacterService
 import com.eterultimate.eteruee.roleplay.domain.service.ChatService as RoleplayChatService
 import com.eterultimate.eteruee.roleplay.domain.service.GroupService as RoleplayGroupService
+import com.eterultimate.eteruee.roleplay.domain.service.BookmarkService as RoleplayBookmarkService
 import com.eterultimate.eteruee.roleplay.domain.service.PresetService as RoleplayPresetService
 import com.eterultimate.eteruee.roleplay.domain.service.WorldInfoService as RoleplayWorldInfoService
 import org.koin.dsl.module
@@ -45,7 +47,7 @@ val appModule = module {
     }
 
     single {
-        LocalTools(get(), get(), get(), get(), get(), get(), get(), get())
+        LocalTools(get(), get(), get(), get(), get(), get(), get(), get(), get())
     }
 
     single {
@@ -70,6 +72,10 @@ val appModule = module {
 
     single {
         DeviceAgentManager(get())
+    }
+
+    single {
+        LinuxEnvironmentManager(get(), get())
     }
 
     single {
@@ -124,9 +130,11 @@ val appModule = module {
             roleplayChatService = get<RoleplayChatService>(),
             roleplayWorldInfoService = get<RoleplayWorldInfoService>(),
             roleplayGroupService = get<RoleplayGroupService>(),
+            roleplayBookmarkService = get<RoleplayBookmarkService>(),
             roleplayPresetService = get<RoleplayPresetService>(),
             localTools = get(),
             deviceAgentManager = get(),
+            linuxEnvironmentManager = get(),
         )
     }
 }

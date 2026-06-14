@@ -23,6 +23,7 @@ Compose Android app
   +-- Runtime integrations
   |     embedded Ktor Web UI
   |     Termux terminal modules
+  |     proot Linux rootfs runtime
   |     Hiddify Core binding
   |
   +-- Feature modules
@@ -48,6 +49,7 @@ The app layer owns navigation, settings, persistence wiring, dependency injectio
 | `material3` | Local Material color utilities |
 | `terminal-emulator` | Termux terminal emulator module from `../termux-app` |
 | `terminal-view` | Termux terminal view module from `../termux-app` |
+| `app/src/main/java/com/eterultimate/eteruee/linux` | App-private proot Linux runtime for Arch Linux and optional Ubuntu 24.04 |
 
 ## Data And Settings
 
@@ -107,12 +109,14 @@ The provider layer should keep these properties:
 
 ## Local Tools And Shell
 
-Local tools are coordinated through `LocalTools`. The shell tool is now backed by the app-local shell runtime:
+Local tools are coordinated through `LocalTools`. The shell tool can use either the app-local Android shell or a managed proot Linux runtime:
 
 ```text
 ShellTools
-  -> LocalShellRunner
-  -> /system/bin/sh
+  -> LinuxEnvironmentManager
+  -> proot + Arch Linux / Ubuntu 24.04 rootfs
+  -> fallback LocalShellRunner
+  -> /system/bin/sh on Android
 ```
 
 The interactive shell page uses Termux terminal components:
@@ -124,7 +128,17 @@ ShellPage
   -> terminal-view / terminal-emulator
 ```
 
-The shell runner is app-scoped. It uses the app external files directory as the default working directory, app cache as `TMPDIR`, and `/system/bin:/system/xbin` as `PATH`. It does not require the standalone Termux app.
+The Android shell runner is app-scoped. It uses the app external files directory as the default working directory, app cache as `TMPDIR`, and `/system/bin:/system/xbin` as `PATH`. It does not require the standalone Termux app.
+
+The managed Linux runtime uses a shared Termux `proot` runtime and per-distribution rootfs directories:
+
+```text
+files/linux/usr
+files/linux/archlinux
+files/linux/ubuntu
+```
+
+The default distribution is `arch`. `ubuntu` installs Ubuntu Base 24.04.4 as an optional module. Web routes, local tools, and plugin capabilities accept a `distribution` parameter. See [LINUX_RUNTIME.md](./LINUX_RUNTIME.md).
 
 ## Termux Integration
 

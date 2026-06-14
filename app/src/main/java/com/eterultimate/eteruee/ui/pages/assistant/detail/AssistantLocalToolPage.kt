@@ -200,6 +200,20 @@ private fun AssistantLocalToolContent(
             )
             item(
                 headlineContent = {
+                    Text(stringResource(R.string.assistant_page_local_tools_linux_environment_title))
+                },
+                supportingContent = {
+                    Text(stringResource(R.string.assistant_page_local_tools_linux_environment_desc))
+                },
+                trailingContent = {
+                    Switch(
+                        checked = assistant.localTools.contains(LocalToolOption.LinuxEnvironment),
+                        onCheckedChange = { toggleLocalTool(LocalToolOption.LinuxEnvironment, it) }
+                    )
+                }
+            )
+            item(
+                headlineContent = {
                     Text(stringResource(R.string.assistant_page_local_tools_traffic_control_title))
                 },
                 supportingContent = {

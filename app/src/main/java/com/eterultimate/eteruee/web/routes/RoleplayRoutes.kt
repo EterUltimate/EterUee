@@ -26,8 +26,10 @@ import com.eterultimate.eteruee.roleplay.data.model.PresetType
 import com.eterultimate.eteruee.roleplay.data.model.WorldInfo
 import com.eterultimate.eteruee.roleplay.data.model.WorldInfoEntry
 import com.eterultimate.eteruee.roleplay.data.tavern.TavernCharacterCardFormat
+import com.eterultimate.eteruee.roleplay.data.tavern.TavernChatCodec
 import com.eterultimate.eteruee.roleplay.data.tavern.TavernPresetCodec
 import com.eterultimate.eteruee.roleplay.data.tavern.TavernWorldInfoCodec
+import com.eterultimate.eteruee.roleplay.domain.service.BookmarkService
 import com.eterultimate.eteruee.roleplay.domain.service.CharacterService
 import com.eterultimate.eteruee.roleplay.domain.service.ChatService
 import com.eterultimate.eteruee.roleplay.domain.service.GroupService
@@ -74,6 +76,7 @@ fun Route.roleplayRoutes(
     characterService: CharacterService,
     chatService: ChatService,
     groupService: GroupService,
+    bookmarkService: BookmarkService,
     presetService: PresetService,
     worldInfoService: WorldInfoService,
     localTools: LocalTools,
@@ -212,8 +215,60 @@ fun Route.roleplayRoutes(
         }
 
         route("/chats") {
+            post("/import") {
+                val characterId = call.request.queryParameters["characterId"].requiredQuery("characterId")
+                    .toUuid("character id")
+                val groupId = call.request.queryParameters["groupId"]?.toUuid("group id")
+                val upload = call.receiveRoleplayUpload()
+                val fileName = upload.fileName.fallbackNameFromFile("Imported Chat")
+                findCharacter(characterService, characterId)
+                groupId?.let { findGroup(groupService, it) }
+                val payload = TavernChatCodec.decodeJsonl(
+                    lines = upload.bytes.toString(Charsets.UTF_8).lineSequence(),
+                    characterId = characterId,
+                    groupId = groupId,
+                )
+                val chat = chatService.importChat(
+                    characterId = characterId,
+                    groupId = groupId,
+                    title = payload.metadata.title.ifBlank { fileName },
+                    messages = payload.messages,
+                    metadataTemplate = payload.metadata,
+                ).getOrThrow()
+                call.respond(HttpStatusCode.Created, ChatImportResponse(chat))
+            }
             get("/{id}") {
                 call.respond(findChat(chatService, call.parameters["id"].toUuid("chat id")))
+            }
+            get("/{id}/export.jsonl") {
+                val chat = findChat(chatService, call.parameters["id"].toUuid("chat id"))
+                val messages = chatService.exportMessages(chat.chatId).getOrThrow()
+                val jsonl = TavernChatCodec.encodeJsonl(chat, messages)
+                call.response.header(
+                    HttpHeaders.ContentDisposition,
+                    attachmentDisposition("${chat.title.safeFileStem()}-chat.jsonl")
+                )
+                call.respondBytes(jsonl.toByteArray(Charsets.UTF_8), ContentType.Application.Json)
+            }
+            get("/{id}/export.txt") {
+                val chat = findChat(chatService, call.parameters["id"].toUuid("chat id"))
+                val messages = chatService.exportMessages(chat.chatId).getOrThrow()
+                val text = encodeChatText(chat, messages)
+                call.response.header(
+                    HttpHeaders.ContentDisposition,
+                    attachmentDisposition("${chat.title.safeFileStem()}-chat.txt")
+                )
+                call.respondBytes(text.toByteArray(Charsets.UTF_8), ContentType.Text.Plain)
+            }
+            get("/{id}/export.html") {
+                val chat = findChat(chatService, call.parameters["id"].toUuid("chat id"))
+                val messages = chatService.exportMessages(chat.chatId).getOrThrow()
+                val html = encodeChatHtml(chat, messages)
+                call.response.header(
+                    HttpHeaders.ContentDisposition,
+                    attachmentDisposition("${chat.title.safeFileStem()}-chat.html")
+                )
+                call.respondBytes(html.toByteArray(Charsets.UTF_8), ContentType.Text.Html)
             }
             delete("/{id}") {
                 chatService.deleteChat(call.parameters["id"].toUuid("chat id")).getOrThrow()
@@ -355,6 +410,39 @@ fun Route.roleplayRoutes(
                 val chatId = call.parameters["id"].toUuid("chat id")
                 findChat(chatService, chatId)
                 call.respond(chatService.getBranches(chatId))
+            }
+            get("/{id}/bookmarks") {
+                val chatId = call.parameters["id"].toUuid("chat id")
+                findChat(chatService, chatId)
+                call.respond(bookmarkService.getBookmarksByChat(chatId).first())
+            }
+            post("/{id}/bookmarks") {
+                val chatId = call.parameters["id"].toUuid("chat id")
+                findChat(chatService, chatId)
+                val request = call.receive<SaveBookmarkRequest>()
+                if (request.messageIndex < 0) throw BadRequestException("messageIndex must be >= 0")
+                val bookmark = bookmarkService.addBookmark(
+                    chatId = chatId,
+                    messageIndex = request.messageIndex,
+                    title = request.title,
+                    note = request.note,
+                ).getOrThrow()
+                call.respond(HttpStatusCode.Created, bookmark)
+            }
+            put("/{id}/bookmarks/{bookmarkId}") {
+                val chatId = call.parameters["id"].toUuid("chat id")
+                findChat(chatService, chatId)
+                val bookmarkId = call.parameters["bookmarkId"].toUuid("bookmark id")
+                val request = call.receive<SaveBookmarkRequest>()
+                bookmarkService.updateBookmark(bookmarkId, request.title, request.note).getOrThrow()
+                call.respond(mapOf("status" to "updated"))
+            }
+            delete("/{id}/bookmarks/{bookmarkId}") {
+                val chatId = call.parameters["id"].toUuid("chat id")
+                findChat(chatService, chatId)
+                val bookmarkId = call.parameters["bookmarkId"].toUuid("bookmark id")
+                bookmarkService.deleteBookmark(bookmarkId).getOrThrow()
+                call.respond(mapOf("status" to "deleted"))
             }
             post("/{id}/branches/{branchId}/select") {
                 val chatId = call.parameters["id"].toUuid("chat id")
@@ -626,6 +714,11 @@ data class PresetImportResponse(
 )
 
 @Serializable
+data class ChatImportResponse(
+    val item: ChatMetadata,
+)
+
+@Serializable
 data class SaveCharacterRequest(
     val name: String,
     val description: String = "",
@@ -743,6 +836,13 @@ data class SavePresetRequest(
         )
     }
 }
+
+@Serializable
+data class SaveBookmarkRequest(
+    val messageIndex: Int = 0,
+    val title: String = "",
+    val note: String = "",
+)
 
 private suspend fun findCharacter(service: CharacterService, id: Uuid): Character {
     return service.getCharacterById(id) ?: throw NotFoundException("Character not found")
@@ -890,6 +990,53 @@ private fun attachmentDisposition(fileName: String): String {
         .encode(sanitized, StandardCharsets.UTF_8.name())
         .replace("+", "%20")
     return "attachment; filename=\"$fallback\"; filename*=UTF-8''$encoded"
+}
+
+private fun String?.requiredQuery(name: String): String {
+    return this?.trim()?.takeIf { it.isNotEmpty() }
+        ?: throw BadRequestException("$name query parameter is required")
+}
+
+private fun encodeChatText(chat: ChatMetadata, messages: List<ChatMessage>): String {
+    return buildString {
+        appendLine(chat.title.ifBlank { "Roleplay Chat" })
+        appendLine("Exported: ${Instant.now()}")
+        appendLine("Messages: ${messages.size}")
+        appendLine()
+        messages.forEach { message ->
+            appendLine("[${message.role.name.lowercase()}] ${message.timestamp}")
+            appendLine(message.content)
+            appendLine()
+        }
+    }
+}
+
+private fun encodeChatHtml(chat: ChatMetadata, messages: List<ChatMessage>): String {
+    return buildString {
+        appendLine("<!doctype html>")
+        appendLine("<html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">")
+        appendLine("<title>${escapeHtml(chat.title.ifBlank { "Roleplay Chat" })}</title>")
+        appendLine("<style>body{font-family:system-ui,sans-serif;max-width:880px;margin:0 auto;padding:24px;background:#f7f7f8;color:#202124}.message{background:white;border:1px solid #ddd;border-radius:8px;padding:12px;margin:12px 0}.meta{font-size:12px;color:#6b7280;margin-bottom:8px}.content{white-space:pre-wrap;line-height:1.55}</style>")
+        appendLine("</head><body>")
+        appendLine("<h1>${escapeHtml(chat.title.ifBlank { "Roleplay Chat" })}</h1>")
+        appendLine("<p>Exported: ${Instant.now()} · Messages: ${messages.size}</p>")
+        messages.forEach { message ->
+            appendLine("<article class=\"message\">")
+            appendLine("<div class=\"meta\">${message.role.name.lowercase()} · ${message.timestamp}</div>")
+            appendLine("<div class=\"content\">${escapeHtml(message.content)}</div>")
+            appendLine("</article>")
+        }
+        appendLine("</body></html>")
+    }
+}
+
+private fun escapeHtml(text: String): String {
+    return text
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("\"", "&quot;")
+        .replace("'", "&#39;")
 }
 
 private suspend fun resolveRoleplayModel(

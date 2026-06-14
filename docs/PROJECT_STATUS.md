@@ -8,7 +8,7 @@
 | --- | --- |
 | 开发线 | `dev`，工作树位于 `C:\Users\zacza\Desktop\x\EterUee` |
 | 发布线 | `main`，工作树位于 `C:\Users\zacza\Desktop\x\EterUee-main-merge` |
-| 最新非 Apple 发布 | `v5.2.17`，发布于 GitHub Releases |
+| 最新非 Apple 发布 | `v5.2.18`，发布于 GitHub Releases |
 | 发布资产 | Windows EXE、Linux DEB、Android split APK、universal APK、AAB、desktop manifests、`SHA256SUMS.txt` |
 | CI 状态 | `main` 最新发布后修复提交已通过 CI 与 Static Analysis |
 
@@ -46,7 +46,10 @@
 - `ShellPage` 提供嵌入式终端视图。
 - `LocalShellRunner` 使用 `/system/bin/sh` 执行 app-scoped 命令。
 - `ShellTools` 通过 `shell_execute` 工具暴露本地 shell 执行能力，并要求用户批准。
-- 当前目标是嵌入式终端和 app-scoped shell，不是完整 Termux 包管理环境。
+- `LinuxEnvironmentManager` 提供共享 Termux `proot` runtime 和应用私有 rootfs。
+- 默认支持 Arch Linux，新增 Ubuntu 24.04 可选 rootfs 模块。
+- Web UI Device Agent、Ktor Web API、本地工具和插件能力均支持 `distribution=arch|ubuntu`。
+- 当前目标是嵌入式终端、app-scoped shell 和 proot userland，不是完整 Termux 包管理环境。
 
 ### Hiddify Core / 流量管控
 
@@ -74,7 +77,7 @@
 
 ### Release
 
-- `main` 发布线已成功发布 `v5.2.17` 非 Apple release。
+- `main` 发布线已成功发布 `v5.2.18` 非 Apple release。
 - release 包含 Windows、Linux、Android APK/AAB 和校验文件。
 - 发布后修复了 Static Analysis 中 OSSF Scorecard 发布结果签名失败的问题，保留 SARIF 上传。
 
@@ -84,7 +87,7 @@
 | --- | --- | --- |
 | `dev` 与 `main` 工作流差异 | `main` 的 CI/static-analysis/release workflow 更新可能领先 `dev` | 合并或 cherry-pick 发布线 workflow 修复，避免分支长期漂移 |
 | Hiddify Core | app 端为可选 binding，依赖本地 AAR | 固化 AAR 构建脚本或 CI 下载/校验策略 |
-| Termux 集成 | 已集成 terminal view/emulator | 明确是否需要扩展到包管理、PATH 扩展、用户态文件系统 |
+| Termux/proot 集成 | 已集成 terminal view/emulator，并支持 Arch/Ubuntu rootfs | 明确是否需要扩展到包管理、PATH 扩展、用户态文件系统 |
 | Web UI API | 有 stream-v2 文档和 Ktor 服务 | 保持 Web UI typed client 与 Ktor SSE/event 结构同步 |
 | RolePlay | 功能面较广，文档中仍有历史分支信息 | 清理 RolePlay 文档里的旧仓库 URL、旧分支名和过期状态 |
 | 文档体系 | 根 README 和 docs 入口已更新 | 后续架构变更同步维护 PROJECT_STATUS 与 ARCHITECTURE |

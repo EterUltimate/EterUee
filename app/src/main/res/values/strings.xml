@@ -1140,6 +1140,8 @@
   <string name="ssh_page_title">SSH</string>
   <string name="assistant_page_local_tools_shell_desc">Execute shell commands on the device</string>
   <string name="assistant_page_local_tools_shell_title">Shell</string>
+  <string name="assistant_page_local_tools_linux_environment_desc">Prepare and use the managed Arch Linux environment after approval</string>
+  <string name="assistant_page_local_tools_linux_environment_title">Arch Linux</string>
   <string name="assistant_page_local_tools_ssh_desc">Execute commands on remote servers via SSH</string>
   <string name="assistant_page_local_tools_ssh_title">SSH</string>
   <string name="assistant_page_local_tools_traffic_control_desc">Inspect and control local Hiddify Core traffic routing</string>

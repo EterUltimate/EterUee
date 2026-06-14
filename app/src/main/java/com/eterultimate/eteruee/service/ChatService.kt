@@ -35,6 +35,7 @@ import kotlinx.serialization.json.jsonObject
 import com.eterultimate.eteruee.ai.core.MessageRole
 import com.eterultimate.eteruee.ai.core.ReasoningLevel
 import com.eterultimate.eteruee.ai.core.Tool
+import com.eterultimate.eteruee.ai.provider.Model
 import com.eterultimate.eteruee.ai.provider.ModelAbility
 import com.eterultimate.eteruee.ai.provider.ProviderManager
 import com.eterultimate.eteruee.ai.provider.TextGenerationParams
@@ -92,6 +93,16 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.uuid.Uuid
 
 private const val TAG = "ChatService"
+
+internal fun backgroundTextGenerationParams(
+    model: Model,
+    reasoningLevel: ReasoningLevel = ReasoningLevel.OFF,
+): TextGenerationParams = TextGenerationParams(
+    model = model,
+    reasoningLevel = reasoningLevel,
+    customHeaders = model.customHeaders,
+    customBody = model.customBodies,
+)
 
 data class ChatError(
     val id: Uuid = Uuid.random(),
@@ -726,10 +737,7 @@ class ChatService(
                                 .takeLast(4).joinToString("\n\n") { it.summaryAsText() })
                     ),
                 ),
-                params = TextGenerationParams(
-                    model = model,
-                    reasoningLevel = ReasoningLevel.OFF,
-                ),
+                params = backgroundTextGenerationParams(model),
             )
 
             // 生成完，conversation可能不是最新了，因此需要重新获取
@@ -776,10 +784,7 @@ class ChatService(
                                 .takeLast(8).joinToString("\n\n") { it.summaryAsText() }),
                     )
                 ),
-                params = TextGenerationParams(
-                    model = model,
-                    reasoningLevel = ReasoningLevel.OFF,
-                ),
+                params = backgroundTextGenerationParams(model),
             )
             val suggestions =
                 result.choices[0].message?.toText()?.split("\n")?.map { it.trim() }
@@ -859,9 +864,7 @@ class ChatService(
             val result = providerHandler.generateText(
                 providerSetting = provider,
                 messages = listOf(UIMessage.user(prompt)),
-                params = TextGenerationParams(
-                    model = model,
-                ),
+                params = backgroundTextGenerationParams(model),
             )
 
             return result.choices[0].message?.toText()?.trim()

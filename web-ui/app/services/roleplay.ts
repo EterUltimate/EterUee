@@ -2,6 +2,7 @@ import api, { appendWebAuthQuery } from "~/services/api";
 import type {
   CreateRoleplayChatRequest,
   GenerateRoleplayRequest,
+  RoleplayBookmark,
   RoleplayCharacter,
   RoleplayChatMessage,
   RoleplayChatMetadata,
@@ -118,6 +119,14 @@ export const roleplayApi = {
   },
 
   chats: {
+    importFile: (file: File, characterId: string, groupId?: string | null) => {
+      const query = new URLSearchParams({ characterId });
+      if (groupId) query.set("groupId", groupId);
+      return api.postMultipart<RoleplayImportResult<RoleplayChatMetadata>>(
+        `roleplay/chats/import?${query.toString()}`,
+        fileFormData(file),
+      );
+    },
     get: (id: string) => api.get<RoleplayChatMetadata>(`roleplay/chats/${id}`),
     delete: (id: string) => api.delete<{ status: string }>(`roleplay/chats/${id}`),
     rename: (id: string, title: string) =>
@@ -149,6 +158,20 @@ export const roleplayApi = {
       api.put<{ status: string }>(`roleplay/chats/${id}/messages/index/${index}`, { content }),
     deleteMessageAt: (id: string, index: number) =>
       api.delete<{ status: string }>(`roleplay/chats/${id}/messages/index/${index}`),
+    bookmarks: (id: string) => api.get<RoleplayBookmark[]>(`roleplay/chats/${id}/bookmarks`),
+    addBookmark: (id: string, messageIndex: number, title = "", note = "") =>
+      api.post<RoleplayBookmark>(`roleplay/chats/${id}/bookmarks`, { messageIndex, title, note }),
+    updateBookmark: (id: string, bookmarkId: string, title: string, note = "") =>
+      api.put<{ status: string }>(`roleplay/chats/${id}/bookmarks/${bookmarkId}`, {
+        messageIndex: 0,
+        title,
+        note,
+      }),
+    deleteBookmark: (id: string, bookmarkId: string) =>
+      api.delete<{ status: string }>(`roleplay/chats/${id}/bookmarks/${bookmarkId}`),
+    exportJsonl: (id: string) => downloadRoleplayFile(`roleplay/chats/${id}/export.jsonl`),
+    exportTxt: (id: string) => downloadRoleplayFile(`roleplay/chats/${id}/export.txt`),
+    exportHtml: (id: string) => downloadRoleplayFile(`roleplay/chats/${id}/export.html`),
     generate: streamRoleplayGeneration,
     generateUrl: (id: string) => `/api/roleplay/chats/${id}/generate`,
   },

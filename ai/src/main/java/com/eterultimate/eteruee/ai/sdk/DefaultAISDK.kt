@@ -3,7 +3,7 @@ package com.eterultimate.eteruee.ai.sdk
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.JsonObject
 import com.eterultimate.eteruee.ai.core.TokenUsage
 import com.eterultimate.eteruee.ai.provider.ProviderManager
@@ -89,18 +89,16 @@ class DefaultAISDK(
         )
 
         // streamText 是 suspend 函数,需要在协程中调用
-        return kotlinx.coroutines.flow.flow {
+        return flow {
             val provider = providerManager.getProviderByType(providerSetting)
-            val flow = provider.streamText(
-                providerSetting,
-                request.messages,
-                params
-            )
-            flow.collect { chunk ->
+            provider.streamText(
+                providerSetting = providerSetting,
+                messages = request.messages,
+                params = params
+            ).collect { chunk ->
                 emit(chunk)
             }
-        }
-            .map { chunk -> chunk.toTextChunk() }
+        }.toTextChunkFlow()
             .catch { e ->
                 Log.e(TAG, "streamText error", e)
                 throw AISDKException("Stream failed: ${e.message}", e)
@@ -119,14 +117,55 @@ class DefaultAISDK(
  * 将 MessageChunk 转换为 TextChunk
  */
 internal fun MessageChunk.toTextChunk(): TextChunk {
+    return toTextChunks().first()
+}
+
+internal fun Flow<MessageChunk>.toTextChunkFlow(): Flow<TextChunk> = flow {
+    var pendingFinish = false
+    var finishEmitted = false
+
+    collect { chunk ->
+        var hasUsage = false
+        chunk.toTextChunks().forEach { textChunk ->
+            when (textChunk) {
+                is TextChunk.Finish -> {
+                    pendingFinish = true
+                }
+
+                is TextChunk.Usage -> {
+                    hasUsage = true
+                    emit(textChunk)
+                }
+
+                else -> emit(textChunk)
+            }
+        }
+
+        if (pendingFinish && hasUsage) {
+            emit(TextChunk.Finish)
+            pendingFinish = false
+            finishEmitted = true
+        }
+    }
+
+    if (!finishEmitted) {
+        emit(TextChunk.Finish)
+    }
+}
+
+/**
+ * 将 MessageChunk 转换为一个或多个 TextChunk
+ */
+internal fun MessageChunk.toTextChunks(): List<TextChunk> = buildList {
     // 检查是否有 usage 信息
     usage?.let {
-        return TextChunk.Usage(it)
+        add(TextChunk.Usage(it))
     }
 
     // 检查是否有 finish reason
     if (choices.any { it.finishReason != null }) {
-        return TextChunk.Finish
+        add(TextChunk.Finish)
+        return@buildList
     }
 
     // 提取文本增量
@@ -135,7 +174,8 @@ internal fun MessageChunk.toTextChunk(): TextChunk {
     }
 
     if (textDeltas.isNotEmpty()) {
-        return TextChunk.TextDelta(textDeltas.joinToString("") { it.text })
+        add(TextChunk.TextDelta(textDeltas.joinToString("") { it.text }))
+        return@buildList
     }
 
     // 提取工具调用
@@ -145,15 +185,20 @@ internal fun MessageChunk.toTextChunk(): TextChunk {
 
     if (toolCalls.isNotEmpty()) {
         val toolCall = toolCalls.first()
-        return TextChunk.ToolCall(
-            toolCallId = toolCall.toolCallId,
-            toolName = toolCall.toolName,
-            arguments = toolCall.input
+        add(
+            TextChunk.ToolCall(
+                toolCallId = toolCall.toolCallId,
+                toolName = toolCall.toolName,
+                arguments = toolCall.input
+            )
         )
+        return@buildList
     }
 
     // 如果没有内容,返回空文本块
-    return TextChunk.TextDelta("")
+    if (isEmpty()) {
+        add(TextChunk.TextDelta(""))
+    }
 }
 
 /**

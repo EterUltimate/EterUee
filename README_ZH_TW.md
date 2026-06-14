@@ -15,6 +15,7 @@ EterUee 是一個原生 Android LLM 客戶端，圍繞本地優先的對話、�
 - 更新檢查來源改為 `https://github.com/EterUltimate/EterUee/releases`。
 - 內建 EterUee 供應商預設地址為 `https://newapi.eterultimate.asia/v1`，描述為官方提供的 API。
 - 透過本地相鄰倉庫 `../termux-app` 整合 `termux/termux-app` 的 terminal 模組，作為預設本地 shell 介面。
+- 託管 proot Linux 環境預設支援 Arch Linux，並提供 Ubuntu 24.04 可選 rootfs 模組。
 - 透過 `../hiddify-core/bin/hiddify-core.aar` 可選整合 `hiddify/hiddify-core`，用於本地流量管控實驗。
 - RolePlay 模組已接入應用導航，涵蓋角色、聊天、世界書、群組、預設、書籤和視覺化編輯器。
 - React Web UI 會建置進 Android `web` 模組，並由內建 Ktor 服務提供存取。
@@ -31,6 +32,7 @@ EterUee 的目標是作為完整的 Android AI 工作區執行：
 - 使用本地 Room 資料和檔案資產執行角色扮演工作流程。
 - 透過裝置內建 Web 服務向區域網路瀏覽器暴露會話介面。
 - 使用嵌入式 Termux 終端視圖和應用作用域 shell runner，不要求安裝獨立 Termux 應用。
+- 透過 proot 安裝和執行應用私有的 Arch Linux 或 Ubuntu 24.04 rootfs，用於已批准的 shell 工具。
 - 可選載入 Hiddify Core 進行本地流量管控實驗。
 
 ## 架構
@@ -49,7 +51,7 @@ Android app (app)
     |     common, document, highlight, search, tts, roleplay, material3
     |
     +-- 本地執行時整合
-    |     terminal-emulator, terminal-view, LocalShellRunner, HiddifyCoreManager
+    |     terminal-emulator, terminal-view, LocalShellRunner, LinuxEnvironmentManager, HiddifyCoreManager
     |
     +-- 內建 Web 服務 (web)
           Ktor API, SSE, 來自 web-ui 的 React 靜態資源
@@ -70,6 +72,7 @@ Android app (app)
 | `web` | 嵌入 Ktor 並託管 React Web UI 的 Android library |
 | `web-ui` | React Router 7 瀏覽器前端，建置產物複製到 `web/src/main/resources/static` |
 | `terminal-emulator`, `terminal-view` | 來自 `../termux-app` 的本地 Termux 模組 |
+| `app/src/main/java/com/eterultimate/eteruee/linux` | 託管 proot Linux runtime，支援 Arch Linux 和可選 Ubuntu 24.04 |
 | `../hiddify-core/bin/hiddify-core.aar` | `app` 可選載入的 Hiddify Core gomobile binding |
 
 詳見 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
@@ -104,7 +107,7 @@ Android Gradle settings 透過以下路徑引用 Termux 模組：
 
 前置條件：
 
-- 本地 Android 建置需要 JDK 17+；CI 使用 JDK 21。
+- 本地 Android 建置和 CI 使用 JDK 26。
 - Android SDK 需要可用的 compile SDK 37。
 - Firebase 建置需要 `app/google-services.json`。
 - 本地 shell 模組需要相鄰的 `termux-app` 倉庫。
@@ -168,6 +171,7 @@ npx --yes pnpm@10.24.0 run build
 - [docs/README.md](docs/README.md)：文件索引
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)：架構與執行時邊界
 - [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)：本地設定、驗證和協作流程
+- [docs/LINUX_RUNTIME.md](docs/LINUX_RUNTIME.md)：proot Arch/Ubuntu runtime、Web API、工具 API 和插件能力說明
 - [docs/RELEASE.md](docs/RELEASE.md)：建置、發布和驗證清單
 - [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md)：目前進度與已知缺口
 

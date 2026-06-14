@@ -267,6 +267,41 @@ class ChatServiceImpl(
         }
     }
 
+    override suspend fun importChat(
+        characterId: Uuid,
+        groupId: Uuid?,
+        title: String,
+        messages: List<ChatMessage>,
+        metadataTemplate: ChatMetadata?
+    ): Result<ChatMetadata> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val chatId = Uuid.random()
+                val now = Instant.now()
+                val metadata = (metadataTemplate ?: ChatMetadata(characterId = characterId, groupId = groupId)).copy(
+                    chatId = chatId,
+                    characterId = characterId,
+                    groupId = groupId,
+                    title = title.ifBlank {
+                        metadataTemplate?.title?.takeIf { it.isNotBlank() } ?: "Imported Chat"
+                    },
+                    messageCount = messages.size,
+                    activeBranchId = chatId,
+                    rootNodes = listOf(chatId),
+                    createdAt = now,
+                    updatedAt = now
+                )
+
+                persistChat(metadata)
+                fileStorage.saveMessagesToJsonl(branchChatFile(metadata, chatId), messages)
+                Result.success(metadata)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Result.failure(e)
+            }
+        }
+    }
+
     override suspend fun editMessage(chatId: Uuid, messageIndex: Int, content: String): Result<Unit> {
         return updateMessageAtIndex(chatId, messageIndex) { message ->
             message.copy(content = content, timestamp = Instant.now())
@@ -280,6 +315,18 @@ class ChatServiceImpl(
             val chatFile = activeChatFile(chat)
 
             fileStorage.getChatLineCount(chatFile)
+        }
+    }
+
+    override suspend fun exportMessages(chatId: Uuid): Result<List<ChatMessage>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val chat = getChatById(chatId) ?: return@withContext Result.failure(Exception("Chat not found"))
+                Result.success(fileStorage.loadMessagesFromJsonl(activeChatFile(chat)))
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Result.failure(e)
+            }
         }
     }
 

@@ -15,6 +15,7 @@ import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.defaultheaders.DefaultHeaders
 import io.ktor.server.routing.routing
 import io.ktor.server.sse.SSE
+import io.ktor.server.websocket.WebSockets
 
 fun startWebServer(
     port: Int = WebUiConfig.DEFAULT_PORT,
@@ -31,6 +32,7 @@ fun startWebServer(
             anyMethod()
         }
         install(SSE)
+        install(WebSockets)
         install(DefaultHeaders)
         routing {
             staticResources("/", "static") {

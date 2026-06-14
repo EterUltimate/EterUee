@@ -1,13 +1,17 @@
 package com.eterultimate.eteruee
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.fadeIn
@@ -36,8 +40,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -55,8 +61,11 @@ import coil3.svg.SvgDecoder
 import com.dokar.sonner.Toaster
 import com.dokar.sonner.rememberToasterState
 import kotlinx.serialization.Serializable
+import com.eterultimate.eteruee.ai.provider.ProviderSetting
+import com.eterultimate.eteruee.data.ai.mcp.McpServerConfig
 import com.eterultimate.eteruee.highlight.Highlighter
 import com.eterultimate.eteruee.highlight.LocalHighlighter
+import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.db.DatabaseMigrationTracker
 import com.eterultimate.eteruee.data.db.MigrationState
@@ -129,18 +138,27 @@ import com.eterultimate.eteruee.roleplay.ui.pages.bookmark.BookmarkPage
 import com.eterultimate.eteruee.ui.theme.LocalDarkMode
 import com.eterultimate.eteruee.ui.theme.EterUeeTheme
 import com.eterultimate.eteruee.utils.CrashHandler
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import org.koin.android.ext.android.inject
 import org.koin.compose.koinInject
 import kotlin.uuid.Uuid
 
 private const val TAG = "RouteActivity"
+private const val LOCAL_NETWORK_PERMISSION_PREFS = "runtime_permissions"
+private const val LOCAL_NETWORK_PERMISSION_REQUESTED = "local_network_requested"
 
 class RouteActivity : ComponentActivity() {
     private val highlighter by inject<Highlighter>()
     private val okHttpClient by inject<OkHttpClient>()
     private val settingsStore by inject<SettingsStore>()
     private var navStack: MutableList<NavKey>? = null
+    private val localNetworkPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        Log.i(TAG, "ACCESS_LOCAL_NETWORK permission granted: $granted")
+    }
 
     // Volume key listener registry — last registered handler wins
     internal val volumeKeyListeners = mutableListOf<(isVolumeUp: Boolean) -> Boolean>()
@@ -167,6 +185,7 @@ class RouteActivity : ComponentActivity() {
             finish()
             return
         }
+        requestLocalNetworkPermissionForRuntimeAccess()
         setContent {
             EterUeeTheme {
                 setSingletonImageLoaderFactory { context ->
@@ -194,6 +213,29 @@ class RouteActivity : ComponentActivity() {
     private fun disableNavigationBarContrast() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false
+        }
+    }
+
+    private fun requestLocalNetworkPermissionForRuntimeAccess() {
+        if (Build.VERSION.SDK_INT < 37) return
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_LOCAL_NETWORK,
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+        val prefs = getSharedPreferences(LOCAL_NETWORK_PERMISSION_PREFS, MODE_PRIVATE)
+        if (prefs.getBoolean(LOCAL_NETWORK_PERMISSION_REQUESTED, false)) return
+
+        lifecycleScope.launch {
+            val settings = runCatching { settingsStore.settingsFlowRaw.first() }.getOrNull()
+                ?: return@launch
+            if (!settings.usesLocalNetworkRuntime()) return@launch
+
+            prefs.edit().putBoolean(LOCAL_NETWORK_PERMISSION_REQUESTED, true).apply()
+            localNetworkPermissionLauncher.launch(Manifest.permission.ACCESS_LOCAL_NETWORK)
         }
     }
 
@@ -646,6 +688,37 @@ class RouteActivity : ComponentActivity() {
             }
         }
     }
+}
+
+private fun Settings.usesLocalNetworkRuntime(): Boolean {
+    val hasLocalMcpServer = mcpServers.any { server ->
+        server.commonOptions.enable && server.endpointUrl()?.isLocalNetworkEndpoint() == true
+    }
+    val hasLocalProvider = providers.any { provider ->
+        provider.enabled && provider.endpointUrl()?.isLocalNetworkEndpoint() == true
+    }
+    return hasLocalMcpServer || hasLocalProvider
+}
+
+private fun McpServerConfig.endpointUrl(): String? = when (this) {
+    is McpServerConfig.SseTransportServer -> url
+    is McpServerConfig.StreamableHTTPServer -> url
+    is McpServerConfig.StdioTransportServer -> null
+}
+
+private fun ProviderSetting.endpointUrl(): String? = when (this) {
+    is ProviderSetting.OpenAI -> baseUrl
+    is ProviderSetting.Google -> baseUrl
+    is ProviderSetting.Claude -> baseUrl
+}
+
+private fun String.isLocalNetworkEndpoint(): Boolean {
+    val host = runCatching { toUri().host?.lowercase() }.getOrNull() ?: return false
+    if (host == "localhost" || host == "::1" || host.endsWith(".local")) return true
+    if (host.startsWith("127.") || host.startsWith("10.") || host.startsWith("192.168.")) return true
+    if (host.startsWith("169.254.")) return true
+    val parts = host.split('.').mapNotNull { it.toIntOrNull() }
+    return parts.size == 4 && parts[0] == 172 && parts[1] in 16..31
 }
 
 sealed interface Screen : NavKey {

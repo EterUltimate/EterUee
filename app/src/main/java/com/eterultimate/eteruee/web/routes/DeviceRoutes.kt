@@ -2,6 +2,8 @@ package com.eterultimate.eteruee.web.routes
 
 import com.eterultimate.eteruee.device.DeviceAgentManager
 import com.eterultimate.eteruee.device.DeviceShellResult
+import com.eterultimate.eteruee.linux.LinuxCommandResult
+import com.eterultimate.eteruee.linux.LinuxEnvironmentManager
 import com.eterultimate.eteruee.web.BadRequestException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
@@ -14,6 +16,7 @@ import kotlinx.serialization.Serializable
 
 fun Route.deviceRoutes(
     deviceAgentManager: DeviceAgentManager,
+    linuxEnvironmentManager: LinuxEnvironmentManager,
 ) {
     route("/device") {
         get("/status") {
@@ -50,12 +53,64 @@ fun Route.deviceRoutes(
             )
             call.respond(HttpStatusCode.OK, result)
         }
+
+        route("/linux") {
+            get("/status") {
+                call.respond(linuxEnvironmentManager.getStatus(call.linuxDistribution()))
+            }
+
+            post("/prepare") {
+                val request = runCatching { call.receive<LinuxDistributionRequest>() }
+                    .getOrDefault(LinuxDistributionRequest(call.linuxDistribution()))
+                call.respond(linuxEnvironmentManager.prepareInstallerScript(request.distribution))
+            }
+
+            post("/install") {
+                val request = runCatching { call.receive<LinuxInstallRequest>() }
+                    .getOrDefault(LinuxInstallRequest(distribution = call.linuxDistribution()))
+                val result = linuxEnvironmentManager.install(
+                    distribution = request.distribution,
+                    timeoutSeconds = request.timeoutSeconds,
+                )
+                call.respond(HttpStatusCode.OK, result)
+            }
+
+            post("/shell") {
+                val request = call.receive<DeviceShellRequest>()
+                if (request.command.isBlank()) {
+                    throw BadRequestException("command must not be blank")
+                }
+                val result: LinuxCommandResult = linuxEnvironmentManager.execute(
+                    distribution = request.distribution,
+                    command = request.command,
+                    workingDir = request.workingDir,
+                    stdin = request.stdin,
+                    timeoutSeconds = request.timeoutSeconds,
+                )
+                call.respond(HttpStatusCode.OK, result)
+            }
+        }
     }
 }
+
+private fun io.ktor.server.application.ApplicationCall.linuxDistribution(): String =
+    request.queryParameters["distribution"]?.takeIf { it.isNotBlank() } ?: "arch"
+
+@Serializable
+data class LinuxDistributionRequest(
+    val distribution: String = "arch",
+)
+
+@Serializable
+data class LinuxInstallRequest(
+    val distribution: String = "arch",
+    val timeoutSeconds: Int = 600,
+)
 
 @Serializable
 data class DeviceShellRequest(
     val command: String,
+    val distribution: String = "arch",
     val workingDir: String? = null,
     val stdin: String? = null,
     val timeoutSeconds: Int = 30,

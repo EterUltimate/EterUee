@@ -29,11 +29,13 @@ import com.eterultimate.eteruee.data.ai.prompts.DEFAULT_SUGGESTION_PROMPT
 import com.eterultimate.eteruee.data.ai.prompts.DEFAULT_TITLE_PROMPT
 import com.eterultimate.eteruee.data.ai.prompts.DEFAULT_TRANSLATION_PROMPT
 import com.eterultimate.eteruee.data.ai.prompts.LEARNING_MODE_PROMPT
+import com.eterultimate.eteruee.data.ai.tools.LocalToolOption
 import com.eterultimate.eteruee.data.datastore.migration.PreferenceStoreV1Migration
 import com.eterultimate.eteruee.data.datastore.migration.PreferenceStoreV2Migration
 import com.eterultimate.eteruee.data.datastore.migration.PreferenceStoreV3Migration
 import com.eterultimate.eteruee.data.datastore.migration.PreferenceStoreV4Migration
 import com.eterultimate.eteruee.data.datastore.migration.PreferenceStoreV5Migration
+import com.eterultimate.eteruee.data.datastore.migration.PreferenceStoreV6Migration
 import com.eterultimate.eteruee.data.model.Assistant
 import com.eterultimate.eteruee.data.model.Avatar
 import com.eterultimate.eteruee.data.model.InjectionPosition
@@ -66,6 +68,7 @@ private val Context.settingsStore by preferencesDataStore(
             PreferenceStoreV3Migration(),
             PreferenceStoreV4Migration(),
             PreferenceStoreV5Migration(),
+            PreferenceStoreV6Migration(),
         )
     }
 )
@@ -212,7 +215,7 @@ class SettingsStore(
                 searchServiceSelected = preferences[SEARCH_SELECTED] ?: 0,
                 mcpServers = preferences[MCP_SERVERS]?.let {
                     JsonInstant.decodeFromString(it)
-                } ?: emptyList(),
+                } ?: DEFAULT_MCP_SERVERS,
                 webDavConfig = preferences[WEBDAV_CONFIG]?.let {
                     JsonInstant.decodeFromString(it)
                 } ?: WebDavConfig(),
@@ -288,10 +291,17 @@ class SettingsStore(
                     ttsProviders.add(defaultTTSProvider.copyProvider())
                 }
             }
+            val mcpServers = it.mcpServers.ifEmpty { DEFAULT_MCP_SERVERS }.toMutableList()
+            DEFAULT_MCP_SERVERS.forEach { defaultMcpServer ->
+                if (mcpServers.none { server -> server.id == defaultMcpServer.id }) {
+                    mcpServers.add(defaultMcpServer.clone())
+                }
+            }
             it.copy(
                 providers = providers,
                 assistants = assistants,
-                ttsProviders = ttsProviders
+                ttsProviders = ttsProviders,
+                mcpServers = mcpServers,
             )
         }
         .map { settings ->
@@ -528,7 +538,7 @@ data class Settings(
     val searchServices: List<SearchServiceOptions> = listOf(SearchServiceOptions.DEFAULT),
     val searchCommonOptions: SearchCommonOptions = SearchCommonOptions(),
     val searchServiceSelected: Int = 0,
-    val mcpServers: List<McpServerConfig> = emptyList(),
+    val mcpServers: List<McpServerConfig> = DEFAULT_MCP_SERVERS,
     val webDavConfig: WebDavConfig = WebDavConfig(),
     val s3Config: S3Config = S3Config(),
     val postgresGatewayConfig: PostgresGatewayConfig = PostgresGatewayConfig(),
@@ -685,11 +695,19 @@ private fun Model.findModelProviderFromList(providers: List<ProviderSetting>): P
 }
 
 internal val DEFAULT_ASSISTANT_ID = Uuid.parse("0950e2dc-9bd5-4801-afa3-aa887aa36b4e")
+internal val DEFAULT_ASSISTANT_LOCAL_TOOLS = listOf(
+    LocalToolOption.TimeInfo,
+    LocalToolOption.Shell,
+    LocalToolOption.LinuxEnvironment,
+    LocalToolOption.DeviceAgent,
+)
 internal val DEFAULT_ASSISTANTS = listOf(
     Assistant(
         id = DEFAULT_ASSISTANT_ID,
         name = "",
-        systemPrompt = ""
+        systemPrompt = "",
+        mcpServers = setOf(DEFAULT_JSHOOK_MCP_SERVER_ID),
+        localTools = DEFAULT_ASSISTANT_LOCAL_TOOLS,
     ),
     Assistant(
         id = Uuid.parse("3d47790c-c415-4b90-9388-751128adb0a0"),

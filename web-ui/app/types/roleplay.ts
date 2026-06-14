@@ -52,6 +52,16 @@ export interface RoleplayChatMessage {
   isStreaming: boolean;
 }
 
+export interface RoleplayBookmark {
+  id: string;
+  chatId: string;
+  messageIndex: number;
+  title: string;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface RoleplayMessageNode {
   id: string;
   messages: RoleplayChatMessage[];

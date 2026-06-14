@@ -30,6 +30,17 @@ interface ChatService {
         groupId: kotlin.uuid.Uuid? = null,
         title: String = ""
     ): Result<ChatMetadata>
+
+    /**
+     * 导入已有聊天消息。
+     */
+    suspend fun importChat(
+        characterId: kotlin.uuid.Uuid,
+        groupId: kotlin.uuid.Uuid? = null,
+        title: String = "",
+        messages: List<ChatMessage>,
+        metadataTemplate: ChatMetadata? = null
+    ): Result<ChatMetadata>
     
     /**
      * 删除聊天
@@ -144,6 +155,11 @@ interface ChatService {
      * 获取消息总数
      */
     suspend fun getMessageCount(chatId: kotlin.uuid.Uuid): Int
+
+    /**
+     * 导出当前活动分支的完整消息。
+     */
+    suspend fun exportMessages(chatId: kotlin.uuid.Uuid): Result<List<ChatMessage>>
     
     // ==================== AI生成 ====================
     

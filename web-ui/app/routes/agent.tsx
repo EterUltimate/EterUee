@@ -22,17 +22,30 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/input";
 import { ScrollArea } from "~/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import {
   executeDeviceShell,
+  executeLinuxShell,
   getDeviceInfo,
   getDeviceStatus,
   getInstalledApps,
+  getLinuxStatus,
+  installLinuxEnvironment,
+  prepareLinuxEnvironment,
   requestShizukuPermission,
   type DeviceAgentStatus,
   type DeviceAppInfo,
   type DeviceInfo,
   type DeviceShellResult,
+  type LinuxEnvironmentStatus,
+  type LinuxShellResult,
 } from "~/services/device";
 import { cn } from "~/lib/utils";
 
@@ -73,6 +86,7 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 export default function AgentRoute() {
   const [status, setStatus] = React.useState<DeviceAgentStatus | null>(null);
   const [info, setInfo] = React.useState<DeviceInfo | null>(null);
+  const [linuxStatus, setLinuxStatus] = React.useState<LinuxEnvironmentStatus | null>(null);
   const [apps, setApps] = React.useState<DeviceAppInfo[]>([]);
   const [includeSystemApps, setIncludeSystemApps] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
@@ -82,13 +96,24 @@ export default function AgentRoute() {
   const [command, setCommand] = React.useState("id && getprop ro.build.version.release");
   const [workingDir, setWorkingDir] = React.useState("/data/local/tmp");
   const [shellHistory, setShellHistory] = React.useState<DeviceShellResult[]>([]);
+  const [linuxDistribution, setLinuxDistribution] = React.useState("arch");
+  const [linuxRunning, setLinuxRunning] = React.useState(false);
+  const [linuxInstallRunning, setLinuxInstallRunning] = React.useState(false);
+  const [linuxCommand, setLinuxCommand] = React.useState("uname -a && cat /etc/os-release | head");
+  const [linuxWorkingDir, setLinuxWorkingDir] = React.useState("/root");
+  const [linuxHistory, setLinuxHistory] = React.useState<LinuxShellResult[]>([]);
 
   const refresh = React.useCallback(async () => {
     setLoading(true);
     try {
-      const [nextStatus, nextInfo] = await Promise.all([getDeviceStatus(), getDeviceInfo()]);
+      const [nextStatus, nextInfo, nextLinuxStatus] = await Promise.all([
+        getDeviceStatus(),
+        getDeviceInfo(),
+        getLinuxStatus(linuxDistribution),
+      ]);
       setStatus(nextStatus);
       setInfo(nextInfo);
+      setLinuxStatus(nextLinuxStatus);
     } catch (error) {
       console.error("Device refresh failed", error);
       toast.error(error instanceof Error ? error.message : "Failed to refresh device state");
@@ -151,7 +176,59 @@ export default function AgentRoute() {
     }
   }, [command, workingDir]);
 
+  const prepareLinux = React.useCallback(async () => {
+    setLinuxInstallRunning(true);
+    try {
+      const nextStatus = await prepareLinuxEnvironment(linuxDistribution);
+      setLinuxStatus(nextStatus);
+      toast.info(nextStatus.message);
+    } catch (error) {
+      console.error("Linux prepare failed", error);
+      toast.error(error instanceof Error ? error.message : "Failed to prepare Linux environment");
+    } finally {
+      setLinuxInstallRunning(false);
+    }
+  }, [linuxDistribution]);
+
+  const installLinux = React.useCallback(async () => {
+    setLinuxInstallRunning(true);
+    try {
+      const result = await installLinuxEnvironment(linuxDistribution);
+      setLinuxHistory((previous) => [result, ...previous].slice(0, 20));
+      setLinuxStatus(await getLinuxStatus(linuxDistribution));
+      toast.info(result.exitCode === 0 ? "Linux environment is ready" : "Linux install finished with errors");
+    } catch (error) {
+      console.error("Linux install failed", error);
+      toast.error(error instanceof Error ? error.message : "Linux install failed");
+    } finally {
+      setLinuxInstallRunning(false);
+    }
+  }, [linuxDistribution]);
+
+  const runLinuxShell = React.useCallback(async () => {
+    const trimmed = linuxCommand.trim();
+    if (!trimmed) return;
+
+    setLinuxRunning(true);
+    try {
+      const result = await executeLinuxShell({
+        command: trimmed,
+        distribution: linuxDistribution,
+        workingDir: linuxWorkingDir.trim() || undefined,
+        timeoutSeconds: 120,
+      });
+      setLinuxHistory((previous) => [result, ...previous].slice(0, 20));
+      setLinuxStatus(await getLinuxStatus(linuxDistribution));
+    } catch (error) {
+      console.error("Linux shell failed", error);
+      toast.error(error instanceof Error ? error.message : "Linux command failed");
+    } finally {
+      setLinuxRunning(false);
+    }
+  }, [linuxCommand, linuxDistribution, linuxWorkingDir]);
+
   const ready = status?.canRunAdbShell === true;
+  const linuxReady = linuxStatus?.canExecuteLinux === true;
 
   return (
     <main className="min-h-[100dvh] bg-background text-foreground">
@@ -200,10 +277,16 @@ export default function AgentRoute() {
                   value={status?.permissionGranted ? "Granted" : "Not granted"}
                 />
                 <InfoRow label="Server" value={status?.serverMode ?? "-"} />
+                <InfoRow label="Wireless ADB" value={status?.wirelessDebuggingReady ? "Ready" : "Not ready"} />
                 <InfoRow label="Version" value={status?.shizukuVersion ?? "-"} />
                 <div className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
                   {status?.message ?? "Loading..."}
                 </div>
+                {status?.setupHint ? (
+                  <div className="rounded-md border px-3 py-2 text-sm text-muted-foreground">
+                    {status.setupHint}
+                  </div>
+                ) : null}
               </CardContent>
             </Card>
 
@@ -268,6 +351,122 @@ export default function AgentRoute() {
                         </Badge>
                         <span className="min-w-0 flex-1 truncate font-mono">{result.command}</span>
                         <span className="text-muted-foreground">{result.serverMode}</span>
+                      </div>
+                      <pre className="max-h-72 overflow-auto whitespace-pre-wrap p-3 text-xs">
+                        {result.stdout || result.stderr || "(no output)"}
+                        {result.stdout && result.stderr ? "\n" : ""}
+                        {result.stderr ? `stderr:\n${result.stderr}` : ""}
+                      </pre>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between gap-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Terminal className="size-4" />
+                  Linux Shell
+                </CardTitle>
+                <StatusBadge ready={linuxReady} />
+              </CardHeader>
+              <CardContent className="grid gap-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <Select value={linuxDistribution} onValueChange={setLinuxDistribution}>
+                    <SelectTrigger className="w-44">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="arch">Arch Linux</SelectItem>
+                      <SelectItem value="ubuntu">Ubuntu 24.04</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <span className="text-xs text-muted-foreground">
+                    Installs each rootfs into its own proot directory.
+                  </span>
+                </div>
+                <div className="grid gap-2 md:grid-cols-2">
+                  <InfoRow label="Distribution" value={linuxStatus?.distributionName ?? linuxDistribution} />
+                  <InfoRow label="ABI" value={linuxStatus?.primaryAbi ?? "-"} />
+                  <InfoRow label="Runner" value={linuxStatus?.runner ? "proot" : "-"} />
+                  <InfoRow label="Rootfs" value={linuxStatus?.rootfsPath ?? "-"} />
+                  <InfoRow label="proot" value={linuxStatus?.prootExecutable ? "Executable" : "Missing"} />
+                </div>
+                <div className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
+                  {linuxStatus?.message ?? "Loading..."}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => void prepareLinux()}
+                    disabled={linuxInstallRunning}
+                  >
+                    Prepare
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => void installLinux()}
+                    disabled={linuxInstallRunning}
+                  >
+                    {linuxInstallRunning ? "Working..." : `Install ${linuxStatus?.distributionName ?? linuxDistribution}`}
+                  </Button>
+                </div>
+                <Input
+                  value={linuxWorkingDir}
+                  onChange={(event) => setLinuxWorkingDir(event.target.value)}
+                  placeholder="/root"
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                />
+                <div className="rounded-md border bg-[#101418] p-3 text-[#e7ecef]">
+                  <div className="mb-2 flex items-center gap-2 text-xs text-[#8bd5a7]">
+                    <span>root@{linuxStatus?.distribution ?? linuxDistribution}:{linuxWorkingDir || "/root"}$</span>
+                  </div>
+                  <Textarea
+                    value={linuxCommand}
+                    onChange={(event) => setLinuxCommand(event.target.value)}
+                    className="min-h-28 border-0 bg-transparent p-0 font-mono text-sm text-[#e7ecef] shadow-none focus-visible:ring-0"
+                    autoCapitalize="off"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    onKeyDown={(event) => {
+                      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+                        event.preventDefault();
+                        void runLinuxShell();
+                      }
+                    }}
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-xs text-muted-foreground">
+                    Runs inside EterUee's managed Linux rootfs through proot.
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={() => void runLinuxShell()}
+                    disabled={!linuxReady || linuxRunning}
+                  >
+                    <Play className="size-4" />
+                    Run
+                  </Button>
+                </div>
+
+                <div className="space-y-3">
+                  {linuxHistory.map((result, index) => (
+                    <div
+                      key={`${result.command}-${index}`}
+                      className="rounded-md border bg-muted/40"
+                    >
+                      <div className="flex flex-wrap items-center gap-2 border-b px-3 py-2 text-xs">
+                        <Badge variant={result.exitCode === 0 ? "default" : "destructive"}>
+                          exit {result.exitCode}
+                        </Badge>
+                        <span className="min-w-0 flex-1 truncate font-mono">{result.command}</span>
+                        <span className="text-muted-foreground">{result.executor}</span>
                       </div>
                       <pre className="max-h-72 overflow-auto whitespace-pre-wrap p-3 text-xs">
                         {result.stdout || result.stderr || "(no output)"}

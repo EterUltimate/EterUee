@@ -559,6 +559,27 @@ class ChatService(
                             )
                         )
                     }
+                    val invalidMcpServerNames = settings.mcpServers
+                        .filter { it.commonOptions.enable && it.id in assistant.mcpServers }
+                        .map { it.commonOptions.name }
+                        .distinct()
+                        .filter { name ->
+                            name.isEmpty() || !name.all { char ->
+                                char in 'a'..'z' || char in 'A'..'Z' || char in '0'..'9'
+                            }
+                        }
+                    if (invalidMcpServerNames.isNotEmpty()) {
+                        addError(
+                            error = IllegalStateException(
+                                context.getString(
+                                    R.string.error_mcp_invalid_server_name,
+                                    invalidMcpServerNames.joinToString(", ")
+                                )
+                            ),
+                            conversationId = conversationId,
+                        )
+                        return
+                    }
                     mcpManager.getAllAvailableTools().forEach { (serverId, tool) ->
                         add(
                             Tool(

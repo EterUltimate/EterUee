@@ -44,10 +44,10 @@
 
 - 已接入 `termux/termux-app` 的 `terminal-emulator` 与 `terminal-view` 模块。
 - `ShellPage` 提供嵌入式终端视图。
-- `LocalShellRunner` 使用 `/system/bin/sh` 执行 app-scoped 命令。
+- `LocalShellRunner` 使用 `/system/bin/sh` 执行 workspace sandbox 内的 app-scoped 命令。
 - `ShellTools` 通过 `shell_execute` 工具暴露本地 shell 执行能力，并要求用户批准。
-- `LinuxEnvironmentManager` 提供共享 Termux `proot` runtime 和应用私有 rootfs。
-- 默认支持 Arch Linux，新增 Ubuntu 24.04 可选 rootfs 模块。
+- `LinuxEnvironmentManager` 提供共享 Termux `proot` runtime 和 workspace 私有 rootfs。
+- 默认采用 RikkaHub 2.3.0 风格 `files/linux/tmp` workspace sandbox；Arch Linux 是默认运行时，Ubuntu 24.04 作为 `ubuntu-proot` 可安装插件。
 - Web UI Device Agent、Ktor Web API、本地工具和插件能力均支持 `distribution=arch|ubuntu`。
 - 当前目标是嵌入式终端、app-scoped shell 和 proot userland，不是完整 Termux 包管理环境。
 
@@ -87,7 +87,7 @@
 | --- | --- | --- |
 | `dev` 与 `main` 工作流差异 | `main` 的 CI/static-analysis/release workflow 更新可能领先 `dev` | 合并或 cherry-pick 发布线 workflow 修复，避免分支长期漂移 |
 | Hiddify Core | app 端为可选 binding，依赖本地 AAR | 固化 AAR 构建脚本或 CI 下载/校验策略 |
-| Termux/proot 集成 | 已集成 terminal view/emulator，并支持 Arch/Ubuntu rootfs | 明确是否需要扩展到包管理、PATH 扩展、用户态文件系统 |
+| Termux/proot 集成 | 已集成 terminal view/emulator，默认 workspace sandbox，并支持 Arch/Ubuntu rootfs | 明确是否需要扩展到包管理、PATH 扩展、用户态文件系统 |
 | Web UI API | 有 stream-v2 文档和 Ktor 服务 | 保持 Web UI typed client 与 Ktor SSE/event 结构同步 |
 | RolePlay | 功能面较广，文档中仍有历史分支信息 | 清理 RolePlay 文档里的旧仓库 URL、旧分支名和过期状态 |
 | 文档体系 | 根 README 和 docs 入口已更新 | 后续架构变更同步维护 PROJECT_STATUS 与 ARCHITECTURE |

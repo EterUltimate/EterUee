@@ -94,13 +94,13 @@ export default function AgentRoute() {
   const [permissionLoading, setPermissionLoading] = React.useState(false);
   const [shellRunning, setShellRunning] = React.useState(false);
   const [command, setCommand] = React.useState("id && getprop ro.build.version.release");
-  const [workingDir, setWorkingDir] = React.useState("/data/local/tmp");
+  const [workingDir, setWorkingDir] = React.useState("");
   const [shellHistory, setShellHistory] = React.useState<DeviceShellResult[]>([]);
   const [linuxDistribution, setLinuxDistribution] = React.useState("arch");
   const [linuxRunning, setLinuxRunning] = React.useState(false);
   const [linuxInstallRunning, setLinuxInstallRunning] = React.useState(false);
   const [linuxCommand, setLinuxCommand] = React.useState("uname -a && cat /etc/os-release | head");
-  const [linuxWorkingDir, setLinuxWorkingDir] = React.useState("/root");
+  const [linuxWorkingDir, setLinuxWorkingDir] = React.useState("/workspace");
   const [linuxHistory, setLinuxHistory] = React.useState<LinuxShellResult[]>([]);
 
   const refresh = React.useCallback(async () => {
@@ -242,7 +242,7 @@ export default function AgentRoute() {
           <div className="min-w-0 flex-1">
             <h1 className="text-xl font-semibold tracking-normal">Device Agent</h1>
             <p className="text-sm text-muted-foreground">
-              WebUI access to device software, hardware, apps, and Shizuku ADB shell.
+              WebUI access to device software, hardware, workspace sandbox, and Shizuku ADB shell.
             </p>
           </div>
           {status && <StatusBadge ready={ready} />}
@@ -301,14 +301,14 @@ export default function AgentRoute() {
                 <Input
                   value={workingDir}
                   onChange={(event) => setWorkingDir(event.target.value)}
-                  placeholder="/data/local/tmp"
+                  placeholder="Workspace sandbox"
                   autoCapitalize="off"
                   autoCorrect="off"
                   spellCheck={false}
                 />
                 <div className="rounded-md border bg-[#101418] p-3 text-[#e7ecef]">
                   <div className="mb-2 flex items-center gap-2 text-xs text-[#8bd5a7]">
-                    <span>shell@device:{workingDir || "/data/local/tmp"}$</span>
+                    <span>shell@workspace:{workingDir || "default"}$</span>
                   </div>
                   <Textarea
                     value={command}
@@ -327,7 +327,7 @@ export default function AgentRoute() {
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <div className="text-xs text-muted-foreground">
-                    Requires Shizuku running through wireless or USB debugging.
+                    Runs through Shizuku when ready. Leave cwd blank for the workspace sandbox.
                   </div>
                   <Button
                     type="button"
@@ -383,13 +383,15 @@ export default function AgentRoute() {
                     </SelectContent>
                   </Select>
                   <span className="text-xs text-muted-foreground">
-                    Installs each rootfs into its own proot directory.
+                    Arch is the default sandbox runtime. Ubuntu installs as the optional ubuntu-proot plugin.
                   </span>
                 </div>
                 <div className="grid gap-2 md:grid-cols-2">
                   <InfoRow label="Distribution" value={linuxStatus?.distributionName ?? linuxDistribution} />
                   <InfoRow label="ABI" value={linuxStatus?.primaryAbi ?? "-"} />
                   <InfoRow label="Runner" value={linuxStatus?.runner ? "proot" : "-"} />
+                  <InfoRow label="Workspace" value={linuxStatus?.workspacePath ?? "-"} />
+                  <InfoRow label="Mount" value={linuxStatus?.workspaceMountPath ?? "/workspace"} />
                   <InfoRow label="Rootfs" value={linuxStatus?.rootfsPath ?? "-"} />
                   <InfoRow label="proot" value={linuxStatus?.prootExecutable ? "Executable" : "Missing"} />
                 </div>
@@ -417,14 +419,14 @@ export default function AgentRoute() {
                 <Input
                   value={linuxWorkingDir}
                   onChange={(event) => setLinuxWorkingDir(event.target.value)}
-                  placeholder="/root"
+                    placeholder="/workspace"
                   autoCapitalize="off"
                   autoCorrect="off"
                   spellCheck={false}
                 />
                 <div className="rounded-md border bg-[#101418] p-3 text-[#e7ecef]">
                   <div className="mb-2 flex items-center gap-2 text-xs text-[#8bd5a7]">
-                    <span>root@{linuxStatus?.distribution ?? linuxDistribution}:{linuxWorkingDir || "/root"}$</span>
+                    <span>root@{linuxStatus?.distribution ?? linuxDistribution}:{linuxWorkingDir || "/workspace"}$</span>
                   </div>
                   <Textarea
                     value={linuxCommand}
@@ -443,7 +445,7 @@ export default function AgentRoute() {
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <div className="text-xs text-muted-foreground">
-                    Runs inside EterUee's managed Linux rootfs through proot.
+                    Runs inside the managed Linux rootfs with the workspace mounted at /workspace.
                   </div>
                   <Button
                     type="button"

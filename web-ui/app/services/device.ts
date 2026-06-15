@@ -79,6 +79,9 @@ export interface LinuxEnvironmentStatus {
   supportedDistributions: string[];
   installed: boolean;
   rootfsPath: string;
+  sandboxRoot: string;
+  workspacePath: string;
+  workspaceMountPath: string;
   termuxUsrPath: string;
   prootPath: string;
   prootExecutable: boolean;

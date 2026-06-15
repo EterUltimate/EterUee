@@ -22,6 +22,7 @@ import com.eterultimate.eteruee.utils.JsonInstant
 import com.eterultimate.eteruee.utils.UpdateChecker
 import com.eterultimate.eteruee.web.WebServerManager
 import com.eterultimate.eteruee.web.relay.HttpRelayService
+import com.eterultimate.eteruee.workspace.WorkspaceSandboxManager
 import com.eterultimate.eteruee.tts.provider.TTSManager
 import com.eterultimate.eteruee.roleplay.domain.service.CharacterService as RoleplayCharacterService
 import com.eterultimate.eteruee.roleplay.domain.service.ChatService as RoleplayChatService
@@ -74,8 +75,12 @@ val appModule = module {
         DeviceAgentManager(get())
     }
 
-    single {
-        LinuxEnvironmentManager(get(), get())
+    single<WorkspaceSandboxManager> {
+        WorkspaceSandboxManager(get<android.content.Context>())
+    }
+
+    single<LinuxEnvironmentManager> {
+        LinuxEnvironmentManager(get(), get(), get())
     }
 
     single {

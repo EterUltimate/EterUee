@@ -114,7 +114,7 @@ Local tools are coordinated through `LocalTools`. The shell tool can use either 
 ```text
 ShellTools
   -> LinuxEnvironmentManager
-  -> proot + Arch Linux / Ubuntu 24.04 rootfs
+  -> workspace sandbox + proot + Arch Linux / optional Ubuntu 24.04 plugin
   -> fallback LocalShellRunner
   -> /system/bin/sh on Android
 ```
@@ -128,17 +128,19 @@ ShellPage
   -> terminal-view / terminal-emulator
 ```
 
-The Android shell runner is app-scoped. It uses the app external files directory as the default working directory, app cache as `TMPDIR`, and `/system/bin:/system/xbin` as `PATH`. It does not require the standalone Termux app.
+The Android shell runner is app-scoped. It uses the default workspace sandbox as the working directory, workspace `tmp/` as `TMPDIR`, and `/system/bin:/system/xbin` as `PATH`. It does not require the standalone Termux app.
 
-The managed Linux runtime uses a shared Termux `proot` runtime and per-distribution rootfs directories:
+The managed Linux runtime follows the RikkaHub 2.3.0 workspace/sandbox shape. It uses a shared Termux `proot` runtime and per-distribution rootfs directories inside `files/workspace/default/linux`:
 
 ```text
-files/linux/usr
-files/linux/archlinux
-files/linux/ubuntu
+files/workspace/default/files      # host shell cwd, mounted as /workspace
+files/workspace/default/tmp        # TMPDIR / PROOT_TMP_DIR
+files/workspace/default/linux/usr
+files/workspace/default/linux/archlinux
+files/workspace/default/linux/ubuntu
 ```
 
-The default distribution is `arch`. `ubuntu` installs Ubuntu Base 24.04.4 as an optional module. Web routes, local tools, and plugin capabilities accept a `distribution` parameter. See [LINUX_RUNTIME.md](./LINUX_RUNTIME.md).
+The default distribution is `arch`. `ubuntu` installs Ubuntu Base 24.04.4 as the optional `ubuntu-proot` plugin. Web routes, local tools, and plugin capabilities accept a `distribution` parameter. See [LINUX_RUNTIME.md](./LINUX_RUNTIME.md).
 
 ## Termux Integration
 

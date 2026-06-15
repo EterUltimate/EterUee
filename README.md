@@ -15,7 +15,7 @@ Recent work has moved the project beyond a basic Android chat client:
 - Update checks now use `https://github.com/EterUltimate/EterUee/releases`.
 - The built-in EterUee provider defaults to `https://newapi.eterultimate.asia/v1` and is described as the official API.
 - `termux/termux-app` terminal modules are integrated as the default local shell surface through local sibling checkout `../termux-app`.
-- Managed proot Linux environments support Arch Linux by default and Ubuntu 24.04 as an optional rootfs module.
+- Managed workspace sandboxes follow the RikkaHub 2.3.0 files/linux/tmp layout, with Arch Linux as the default proot runtime and Ubuntu 24.04 available as the optional `ubuntu-proot` plugin.
 - `hiddify/hiddify-core` is integrated as an optional local traffic-control core through `../hiddify-core/bin/hiddify-core.aar`.
 - The roleplay module is wired into the app navigation and continues to cover characters, chats, world info, groups, presets, bookmarks, and visual editors.
 - The React Web UI is built into the Android `web` module and served by the embedded Ktor server.
@@ -32,7 +32,7 @@ EterUee is intended to run as a full Android AI workspace:
 - Run roleplay workflows with local Room data and file-backed assets.
 - Expose conversations through a local browser UI hosted from the device.
 - Use an embedded Termux terminal view and an app-scoped shell runner without requiring the standalone Termux app.
-- Install and run app-private Arch Linux or Ubuntu 24.04 rootfs environments through proot for approved shell tools.
+- Install and run app-private proot environments from the workspace sandbox; Arch is default, Ubuntu is installed explicitly through the `ubuntu-proot` plugin.
 - Optionally load Hiddify Core for local traffic-control experiments.
 
 ## Architecture
@@ -72,7 +72,8 @@ Core module responsibilities:
 | `web` | Android library that embeds Ktor and serves the bundled React Web UI |
 | `web-ui` | React Router 7 browser frontend copied into `web/src/main/resources/static` |
 | `terminal-emulator`, `terminal-view` | Local Termux modules from `../termux-app` |
-| `app/src/main/java/com/eterultimate/eteruee/linux` | Managed proot Linux runtime for Arch Linux and optional Ubuntu 24.04 |
+| `app/src/main/java/com/eterultimate/eteruee/workspace` | Default workspace sandbox rooted at `files/workspace/default` |
+| `app/src/main/java/com/eterultimate/eteruee/linux` | Managed proot Linux runtime for the sandbox, with Arch by default and optional Ubuntu 24.04 plugin |
 | `../hiddify-core/bin/hiddify-core.aar` | Optional local Hiddify Core gomobile binding consumed by `app` |
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the detailed architecture map.

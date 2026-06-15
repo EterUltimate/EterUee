@@ -1,15 +1,27 @@
 # Linux Runtime
 
 EterUee can install and run app-private Linux rootfs environments through the bundled proot runtime.
+The default execution model follows the RikkaHub 2.3.0 workspace/sandbox shape:
+
+```text
+files/workspace/default/
+  files/                  # default host shell cwd
+  linux/                  # proot runtime, downloads, and rootfs images
+  tmp/                    # shell/proot temp files
+```
+
+Host shell commands default to `files/workspace/default/files`. Linux commands bind that directory to
+`/workspace` and use `/workspace` as the default working directory.
 
 ## Supported Distributions
 
 | ID | Name | Rootfs directory | Install helper |
 | --- | --- | --- | --- |
-| `arch` | Arch Linux | `files/linux/archlinux` | `files/linux/install-archlinux.sh` |
-| `ubuntu` | Ubuntu 24.04 | `files/linux/ubuntu` | `files/linux/install-ubuntu.sh` |
+| `arch` | Arch Linux | Default sandbox runtime | `files/workspace/default/linux/archlinux` |
+| `ubuntu` | Ubuntu 24.04 | Optional `ubuntu-proot` plugin | `files/workspace/default/linux/ubuntu` |
 
-Default distribution: `arch`.
+Default distribution: `arch`. Ubuntu is not the default sandbox runtime; install it explicitly as
+the `ubuntu-proot` plugin.
 
 Ubuntu rootfs sources use Ubuntu Base 24.04.4 from:
 
@@ -28,7 +40,10 @@ ABI mapping:
 ## Runtime Layout
 
 ```text
-files/linux/
+files/workspace/default/
+  files/                  # mounted as /workspace inside proot
+  tmp/                    # PROOT_TMP_DIR / TMPDIR
+  linux/
   downloads/
   usr/                    # shared Termux proot runtime
   archlinux/              # Arch rootfs
@@ -62,7 +77,10 @@ Important fields:
 - `distribution`: `arch` or `ubuntu`.
 - `distributionName`: display name.
 - `supportedDistributions`: currently `["arch", "ubuntu"]`.
-- `rootfsPath`: app-private rootfs path.
+- `sandboxRoot`: app-private workspace sandbox root.
+- `workspacePath`: host workspace files directory.
+- `workspaceMountPath`: always `/workspace` inside proot.
+- `rootfsPath`: app-private rootfs path under the sandbox.
 - `prootPath`: shared proot binary path.
 - `canExecuteLinux`: command execution readiness.
 
@@ -88,14 +106,16 @@ Downloads the shared proot runtime if needed, downloads the selected rootfs if n
 
 ```http
 POST /api/device/linux/shell
-{"distribution":"ubuntu","command":"cat /etc/os-release","workingDir":"/root","timeoutSeconds":60}
+{"distribution":"ubuntu","command":"cat /etc/os-release","workingDir":"/workspace","timeoutSeconds":60}
 ```
 
 Runs through:
 
 ```text
-proot -0 -r <rootfs> -b /dev -b /proc -b /sys -b <app external files>:/mnt/eteruee -w <workingDir> /usr/bin/env -i ...
+proot -0 -r <rootfs> -b /dev -b /proc -b /sys -b <workspace files>:/workspace -w <workingDir> /usr/bin/env -i ...
 ```
+
+When `workingDir` is omitted, EterUee uses `/workspace`.
 
 ## Local Tool API
 
@@ -114,7 +134,7 @@ proot -0 -r <rootfs> -b /dev -b /proc -b /sys -b <app external files>:/mnt/eteru
 ```
 
 ```json
-{"action":"exec","distribution":"ubuntu","command":"uname -a && cat /etc/os-release","workingDir":"/root","timeout":60}
+{"action":"exec","distribution":"ubuntu","command":"uname -a && cat /etc/os-release","workingDir":"/workspace","timeout":60}
 ```
 
 `shell_execute` accepts:
@@ -153,10 +173,17 @@ Example:
 {"id":"linux.shell","input":{"distribution":"ubuntu","command":"cat /etc/os-release"}}
 ```
 
+Ubuntu can also be installed through the plugin installer surface:
+
+```json
+{"id":"plugin.install","input":{"id":"ubuntu-proot","timeout":600}}
+```
+
 ## Notes
 
 - Rootfs files are app-private and are not release artifacts.
-- Installing Ubuntu does not overwrite Arch.
+- Installing Ubuntu does not overwrite Arch and is treated as an optional plugin/runtime.
 - Installing Arch does not overwrite Ubuntu.
+- Shell execution is workspace-first; commands must use `/workspace` for shared user files inside proot.
 - The runtime is proot-based userland execution, not a privileged container.
 - Network access is required for first-time rootfs/proot downloads.

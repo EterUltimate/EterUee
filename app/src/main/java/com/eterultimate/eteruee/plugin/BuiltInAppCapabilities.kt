@@ -67,6 +67,7 @@ fun createBuiltInAppCapabilityRegistry(
         LinuxPrepareCapability(linuxEnvironmentManager),
         LinuxInstallCapability(linuxEnvironmentManager),
         LinuxShellCapability(linuxEnvironmentManager),
+        PluginInstallCapability(linuxEnvironmentManager),
     )
 )
 
@@ -78,6 +79,7 @@ fun defaultPluginPermissions(): Set<PluginPermission> = setOf(
     PluginPermission.ToolsRead,
     PluginPermission.ToolsExecute,
     PluginPermission.DeviceRead,
+    PluginPermission.PluginInstall,
 )
 
 class AppInfoCapability : AppCapability {
@@ -447,7 +449,7 @@ class LinuxStatusCapability(
     private val linuxEnvironmentManager: LinuxEnvironmentManager,
 ) : AppCapability {
     override val id = "linux.status"
-    override val description = "Read EterUee managed Linux/proot environment readiness for Arch or Ubuntu."
+    override val description = "Read EterUee managed workspace sandbox and Linux/proot readiness."
     override val inputSchema = linuxDistributionSchema()
     override val permissions = setOf(PluginPermission.DeviceRead)
 
@@ -490,13 +492,41 @@ class LinuxInstallCapability(
         )
 }
 
+class PluginInstallCapability(
+    private val linuxEnvironmentManager: LinuxEnvironmentManager,
+) : AppCapability {
+    override val id = "plugin.install"
+    override val description = "Install optional runtime plugins. Supported id: ubuntu-proot."
+    override val inputSchema = objectSchema(
+        properties = buildJsonObject {
+            put("id", stringSchema("Plugin id. Use ubuntu-proot to install Ubuntu 24.04 under proot."))
+            put("timeout", integerSchema("Install timeout in seconds. Defaults to 600."))
+        },
+        required = listOf("id")
+    )
+    override val permissions = setOf(PluginPermission.PluginInstall)
+
+    override suspend fun execute(input: JsonObject, context: PluginCallContext): JsonElement {
+        return when (val id = input.requiredString("id")) {
+            "ubuntu-proot" -> JsonInstant.encodeToJsonElement(
+                linuxEnvironmentManager.install(
+                    distribution = "ubuntu",
+                    timeoutSeconds = input.optionalInt("timeout") ?: 600,
+                )
+            )
+
+            else -> throw BadRequestException("Unsupported plugin id: $id")
+        }
+    }
+}
+
 class LinuxShellCapability(
     private val linuxEnvironmentManager: LinuxEnvironmentManager,
 ) : AppCapability {
     override val id = "linux.shell"
     override val description = "Execute a command inside EterUee's managed Arch or Ubuntu Linux/proot environment."
     override val inputSchema = shellSchema(
-        defaultWorkingDir = "/root",
+        defaultWorkingDir = "/workspace",
         defaultTimeout = 60,
         includeDistribution = true,
     )
@@ -562,7 +592,8 @@ private fun booleanSchema(description: String): JsonObject = buildJsonObject {
     put("description", description)
 }
 
-private fun linuxDistributionProperty(): JsonObject = stringSchema("Linux distribution: arch or ubuntu. Defaults to arch.")
+private fun linuxDistributionProperty(): JsonObject =
+    stringSchema("Linux distribution: arch or ubuntu. Defaults to arch. Ubuntu is installed through plugin.install id=ubuntu-proot.")
 
 private fun linuxDistributionSchema(): JsonObject = objectSchema(
     properties = buildJsonObject {

@@ -3,6 +3,8 @@ package com.eterultimate.eteruee.linux
 import android.content.Context
 import android.os.Build
 import com.eterultimate.eteruee.shell.LocalShellRunner
+import com.eterultimate.eteruee.workspace.WORKSPACE_MOUNT_PATH
+import com.eterultimate.eteruee.workspace.WorkspaceSandboxManager
 import com.github.luben.zstd.ZstdInputStream
 import java.io.BufferedInputStream
 import java.io.File
@@ -154,11 +156,18 @@ private val TERMUX_BOOTSTRAP_PACKAGES = mapOf(
 class LinuxEnvironmentManager(
     private val context: Context,
     private val okHttpClient: OkHttpClient,
+    private val workspaceSandboxManager: WorkspaceSandboxManager,
 ) {
     private val executor = Executors.newCachedThreadPool()
 
     private val baseDir: File
-        get() = File(context.filesDir, "linux")
+        get() = workspaceSandboxManager.defaultWorkspace().linuxDir
+
+    private val workspaceFilesDir: File
+        get() = workspaceSandboxManager.defaultWorkspace().filesDir
+
+    private val workspaceTempDir: File
+        get() = workspaceSandboxManager.defaultWorkspace().tempDir
 
     private val downloadDir: File
         get() = File(baseDir, "downloads")
@@ -194,6 +203,9 @@ class LinuxEnvironmentManager(
             supportedDistributions = LINUX_DISTRIBUTIONS.map { it.id },
             installed = rootfsInstalled,
             rootfsPath = rootfsDir.absolutePath,
+            sandboxRoot = workspaceSandboxManager.defaultWorkspace().workspaceDir.absolutePath,
+            workspacePath = workspaceFilesDir.absolutePath,
+            workspaceMountPath = WORKSPACE_MOUNT_PATH,
             termuxUsrPath = termuxUsrDir.absolutePath,
             prootPath = prootBinary.absolutePath,
             prootExecutable = prootExecutable,
@@ -305,7 +317,7 @@ class LinuxEnvironmentManager(
                 exitCode = -1,
                 executor = spec.executorName,
                 shell = "bash",
-                workingDir = workingDir?.takeIf { it.isNotBlank() } ?: "/root",
+                workingDir = workingDir?.takeIf { it.isNotBlank() } ?: WORKSPACE_MOUNT_PATH,
                 command = command,
                 distribution = spec.id,
                 distributionName = spec.displayName,
@@ -315,7 +327,7 @@ class LinuxEnvironmentManager(
             )
 
         val timeout = timeoutSeconds.coerceIn(1, MAX_TIMEOUT_SECONDS).toLong()
-        val linuxWorkingDir = workingDir?.takeIf { it.isNotBlank() } ?: "/root"
+        val linuxWorkingDir = workingDir?.takeIf { it.isNotBlank() } ?: WORKSPACE_MOUNT_PATH
         val process = ProcessBuilder(
             runner,
             "-0",
@@ -328,7 +340,7 @@ class LinuxEnvironmentManager(
             "-b",
             "/sys",
             "-b",
-            "${LocalShellRunner.defaultWorkingDir(context).absolutePath}:/mnt/eteruee",
+            "${workspaceFilesDir.absolutePath}:$WORKSPACE_MOUNT_PATH",
             "-w",
             linuxWorkingDir,
             "/usr/bin/env",
@@ -339,6 +351,9 @@ class LinuxEnvironmentManager(
             "LANG=C.UTF-8",
             "/bin/bash",
             "-lc",
+            "cd -- \"\$1\" && eval \"\$2\"",
+            "eteruee",
+            linuxWorkingDir,
             command,
         )
             .directory(baseDir)
@@ -639,7 +654,8 @@ class LinuxEnvironmentManager(
             "PATH" to "$usr/bin:/system/bin:/system/xbin",
             "LD_LIBRARY_PATH" to "$usr/lib",
             "PROOT_LOADER" to "$usr/libexec/proot/loader",
-            "PROOT_TMP_DIR" to context.cacheDir.absolutePath,
+            "PROOT_TMP_DIR" to workspaceTempDir.absolutePath,
+            "TMPDIR" to workspaceTempDir.absolutePath,
         )
     }
 
@@ -723,7 +739,7 @@ class LinuxEnvironmentManager(
             fi
             export LD_LIBRARY_PATH="${termuxUsrDir.absolutePath}/lib"
             export PROOT_LOADER="${termuxUsrDir.absolutePath}/libexec/proot/loader"
-            "${'$'}PROOT" -0 -r "${'$'}ROOTFS_DIR" -b /dev -b /proc -b /sys -w /root /bin/sh -lc 'printf "${spec.displayName} ready: "; head -n 1 /etc/os-release'
+            "${'$'}PROOT" -0 -r "${'$'}ROOTFS_DIR" -b /dev -b /proc -b /sys -b "${workspaceFilesDir.absolutePath}:$WORKSPACE_MOUNT_PATH" -w $WORKSPACE_MOUNT_PATH /bin/sh -lc 'printf "${spec.displayName} ready: "; head -n 1 /etc/os-release'
         """.trimIndent()
     }
 }
@@ -788,6 +804,9 @@ data class LinuxEnvironmentStatus(
     val supportedDistributions: List<String> = emptyList(),
     val installed: Boolean,
     val rootfsPath: String,
+    val sandboxRoot: String,
+    val workspacePath: String,
+    val workspaceMountPath: String = WORKSPACE_MOUNT_PATH,
     val termuxUsrPath: String,
     val prootPath: String,
     val prootExecutable: Boolean,

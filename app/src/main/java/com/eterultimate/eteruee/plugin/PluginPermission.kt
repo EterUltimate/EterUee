@@ -12,6 +12,7 @@ enum class PluginPermission(val scope: String) {
     ToolsExecute("tools:execute"),
     DeviceRead("device:read"),
     DeviceControl("device:control"),
+    PluginInstall("plugin:install"),
     NetworkRelay("network:relay");
 
     companion object {

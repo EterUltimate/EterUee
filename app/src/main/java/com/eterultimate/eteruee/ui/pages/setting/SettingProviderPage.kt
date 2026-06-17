@@ -80,6 +80,7 @@ import com.eterultimate.eteruee.ui.hooks.useEditState
 import com.eterultimate.eteruee.ui.pages.setting.components.ProviderConfigure
 import com.eterultimate.eteruee.ui.theme.CustomColors
 import com.eterultimate.eteruee.utils.ImageUtils
+import com.eterultimate.eteruee.utils.plus
 import org.koin.androidx.compose.koinViewModel
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyStaggeredGridState
@@ -163,7 +164,7 @@ fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(top = innerPadding.calculateTopPadding())
         ) {
             // Search bar
             OutlinedTextField(
@@ -193,7 +194,8 @@ fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
                     .fillMaxWidth()
                     .weight(1f)
                     .imePadding(),
-                contentPadding = PaddingValues(16.dp),
+                contentPadding = PaddingValues(16.dp) +
+                    PaddingValues(bottom = innerPadding.calculateBottomPadding()),
                 verticalItemSpacing = 8.dp,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 state = lazyListState,

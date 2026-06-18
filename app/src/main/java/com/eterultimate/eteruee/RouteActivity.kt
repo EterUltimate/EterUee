@@ -94,7 +94,6 @@ import com.eterultimate.eteruee.ui.pages.assistant.detail.AssistantRequestPage
 import com.eterultimate.eteruee.ui.pages.backup.BackupPage
 import com.eterultimate.eteruee.ui.pages.chat.ChatPage
 import com.eterultimate.eteruee.ui.pages.debug.DebugPage
-import com.eterultimate.eteruee.ui.pages.developer.DeveloperPage
 import com.eterultimate.eteruee.ui.pages.extensions.ExtensionsPage
 import com.eterultimate.eteruee.ui.pages.extensions.PromptPage
 import com.eterultimate.eteruee.ui.pages.extensions.QuickMessagesPage
@@ -491,10 +490,6 @@ class RouteActivity : ComponentActivity() {
                                 SettingTrafficControlPage()
                             }
 
-                            entry<Screen.Developer> {
-                                DeveloperPage()
-                            }
-
                             entry<Screen.Debug> {
                                 DebugPage()
                             }
@@ -822,9 +817,6 @@ sealed interface Screen : NavKey {
 
     @Serializable
     data object SettingTrafficControl : Screen
-
-    @Serializable
-    data object Developer : Screen
 
     @Serializable
     data object Debug : Screen

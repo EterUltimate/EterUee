@@ -7,7 +7,6 @@ import com.google.firebase.remoteconfig.remoteConfig
 import kotlinx.serialization.json.Json
 import com.eterultimate.eteruee.highlight.Highlighter
 import com.eterultimate.eteruee.AppScope
-import com.eterultimate.eteruee.data.ai.AILoggingManager
 import com.eterultimate.eteruee.ai.sdk.AISDK
 import com.eterultimate.eteruee.data.ai.DynamicAISDK
 import com.eterultimate.eteruee.data.ai.tools.LocalTools
@@ -93,10 +92,6 @@ val appModule = module {
 
     single {
         Firebase.analytics
-    }
-
-    single {
-        AILoggingManager()
     }
 
     single {

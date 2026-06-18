@@ -74,7 +74,6 @@ class GenerationHandler(
     private val json: Json,
     private val memoryRepo: MemoryRepository,
     private val conversationRepo: ConversationRepository,
-    private val aiLoggingManager: AILoggingManager,
 ) {
     fun generateText(
         settings: Settings,
@@ -415,14 +414,6 @@ class GenerationHandler(
             }
         )
         if (stream) {
-            aiLoggingManager.addLog(
-                AILogging.Generation(
-                    params = params,
-                    messages = messages,
-                    providerSetting = provider,
-                    stream = true
-                )
-            )
             providerImpl.streamText(
                 providerSetting = provider,
                 messages = internalMessages,
@@ -441,14 +432,6 @@ class GenerationHandler(
                 onUpdateMessages(messages)
             }
         } else {
-            aiLoggingManager.addLog(
-                AILogging.Generation(
-                    params = params,
-                    messages = messages,
-                    providerSetting = provider,
-                    stream = false
-                )
-            )
             val chunk = providerImpl.generateText(
                 providerSetting = provider,
                 messages = internalMessages,
@@ -520,15 +503,6 @@ class GenerationHandler(
                 addAll(model.customBodies)
             }
         )
-        aiLoggingManager.addLog(
-            AILogging.Generation(
-                params = params,
-                messages = internalMessages,
-                providerSetting = provider,
-                stream = assistant.streamOutput
-            )
-        )
-
         val toolExecutor = DefaultSubagentToolExecutor(InMemoryToolExecutor(executableTools, json))
         var outputMessages = ensureAssistantMessage(messages)
         var generatedText = outputMessages.last().toText()

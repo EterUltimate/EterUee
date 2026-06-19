@@ -46,11 +46,11 @@ class SkillManager(
     }
 
     fun saveSkill(name: String, content: String): SkillMetadata? {
+        if (!saveSkillBinaryFilesAtomically(name, mapOf("SKILL.md" to content.toByteArray()))) {
+            return null
+        }
         val skillDir = resolveSkillDir(name) ?: return null
-        skillDir.mkdirs()
-        val skillFile = skillDir.resolve("SKILL.md")
-        skillFile.writeText(content)
-        return parseSkillFile(skillFile, skillDir)
+        return parseSkillFile(skillDir.resolve("SKILL.md"), skillDir)
     }
 
     suspend fun deleteSkill(name: String): Boolean = withContext(Dispatchers.IO) {

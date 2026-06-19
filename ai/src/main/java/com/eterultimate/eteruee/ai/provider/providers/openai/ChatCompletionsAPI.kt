@@ -354,6 +354,10 @@ class ChatCompletionsAPI(
                         }
                     }
 
+                    host.matchesHostOrSubdomain("aiping.cn") -> {
+                        put("enable_thinking", level.isEnabled)
+                    }
+
                     host.matchesHostOrSubdomain("open.bigmodel.cn") -> {
                         put("thinking", buildJsonObject {
                             put("type", if (!level.isEnabled) "disabled" else "enabled")

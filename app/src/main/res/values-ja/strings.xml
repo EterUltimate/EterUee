@@ -1216,4 +1216,5 @@ mDNSアドレス: .localホスト名を使用し、IPを知らなくても同じ
   <string name="error_mcp_invalid_server_name">無効なMCPサーバー名です（英数字のみ使用可能）：%1$s</string>
   <string name="log_page_record_requests">リクエスト記録</string>
   <string name="log_page_record_requests_desc">リクエストヘッダー、ボディ、レスポンスメタデータをキャプチャします</string>
+  <string name="assistant_page_context_message_truncation_warning">コンテキストを制限すると、頻繁なコンテキストの切り詰めが発生し、プロンプトキャッシュが妨げられる可能性があります。</string>
 </resources>

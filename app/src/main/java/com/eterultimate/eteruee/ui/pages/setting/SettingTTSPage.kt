@@ -373,6 +373,7 @@ private fun TTSProviderItem(
                             is TTSProviderSetting.Groq -> "Groq"
                             is TTSProviderSetting.XAI -> "xAI"
                             is TTSProviderSetting.MiMo -> "MiMo"
+                            is TTSProviderSetting.ElevenLabs -> "ElevenLabs"
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant

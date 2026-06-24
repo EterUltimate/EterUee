@@ -964,7 +964,11 @@ mDNS 주소: .local 호스트네임을 사용하며, IP를 몰라도 같은 네�
   <string name="setting_tts_page_provider_type">제공업체 유형</string>
   <string name="setting_tts_page_provider_type_description">TTS 제공업체 유형 선택</string>
   <string name="setting_tts_page_selected">선택됨</string>
+  <string name="setting_tts_page_similarity_boost">유사도 향상</string>
+  <string name="setting_tts_page_similarity_boost_description">음성이 원본과 얼마나 일치하는지 제어 (0.0 - 1.0)</string>
   <string name="setting_tts_page_speech_rate">말하기 속도</string>
+  <string name="setting_tts_page_stability">안정성</string>
+  <string name="setting_tts_page_stability_description">음성의 안정성 제어 (0.0 - 1.0, 낮을수록 더 표현력 풍부)</string>
   <string name="setting_tts_page_speech_rate_description">말하기 속도 제어 (0.1 - 3.0, 1.0은 일반)</string>
   <string name="setting_tts_page_speed">속도</string>
   <string name="setting_tts_page_speed_description">말하기 속도 (0.25 - 4.0)</string>

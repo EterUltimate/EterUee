@@ -4,6 +4,7 @@ import android.content.Context
 import kotlinx.coroutines.flow.Flow
 import com.eterultimate.eteruee.tts.model.AudioChunk
 import com.eterultimate.eteruee.tts.model.TTSRequest
+import com.eterultimate.eteruee.tts.provider.providers.ElevenLabsTTSProvider
 import com.eterultimate.eteruee.tts.provider.providers.GeminiTTSProvider
 import com.eterultimate.eteruee.tts.provider.providers.GroqTTSProvider
 import com.eterultimate.eteruee.tts.provider.providers.MiMoTTSProvider
@@ -22,6 +23,7 @@ class TTSManager(private val context: Context) {
     private val groqProvider = GroqTTSProvider()
     private val xaiProvider = XAITTSProvider()
     private val miMoProvider = MiMoTTSProvider()
+    private val elevenLabsProvider = ElevenLabsTTSProvider()
 
     fun generateSpeech(
         providerSetting: TTSProviderSetting,
@@ -36,6 +38,7 @@ class TTSManager(private val context: Context) {
             is TTSProviderSetting.Groq -> groqProvider.generateSpeech(context, providerSetting, request)
             is TTSProviderSetting.XAI -> xaiProvider.generateSpeech(context, providerSetting, request)
             is TTSProviderSetting.MiMo -> miMoProvider.generateSpeech(context, providerSetting, request)
+            is TTSProviderSetting.ElevenLabs -> elevenLabsProvider.generateSpeech(context, providerSetting, request)
         }
     }
 }

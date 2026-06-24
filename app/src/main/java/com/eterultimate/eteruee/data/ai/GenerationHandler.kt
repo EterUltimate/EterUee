@@ -51,7 +51,6 @@ import com.eterultimate.eteruee.data.datastore.findModelById
 import com.eterultimate.eteruee.data.datastore.findProvider
 import com.eterultimate.eteruee.data.model.Assistant
 import com.eterultimate.eteruee.data.model.AssistantMemory
-import com.eterultimate.eteruee.data.repository.ConversationRepository
 import com.eterultimate.eteruee.data.repository.MemoryRepository
 import com.eterultimate.eteruee.utils.applyPlaceholders
 import java.util.Locale
@@ -73,7 +72,6 @@ class GenerationHandler(
     private val aiSDK: AISDK,
     private val json: Json,
     private val memoryRepo: MemoryRepository,
-    private val conversationRepo: ConversationRepository,
 ) {
     fun generateText(
         settings: Settings,
@@ -627,10 +625,6 @@ class GenerationHandler(
                 if (assistant.enableMemory) {
                     appendLine()
                     append(buildMemoryPrompt(memories = memories))
-                }
-                if (assistant.enableRecentChatsReference) {
-                    appendLine()
-                    append(buildRecentChatsPrompt(assistant, conversationRepo))
                 }
                 tools.forEach { tool ->
                     appendLine()

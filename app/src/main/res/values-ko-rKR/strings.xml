@@ -112,7 +112,7 @@
   <string name="assistant_page_quick_message_title">제목</string>
   <string name="assistant_page_quick_messages">빠른 메시지</string>
   <string name="assistant_page_recent_chats">최근 채팅 참조</string>
-  <string name="assistant_page_recent_chats_desc">활성화 시, 어시스턴트가 최근 채팅 기록을 참조하여 더 맥락에 맞는 응답을 제공합니다</string>
+  <string name="assistant_page_recent_chats_desc">활성화되면 어시스턴트가 과거 대화에서 관련 정보를 검색할 수 있습니다.</string>
   <string name="assistant_page_regex_affecting_scopes">영향 범위:</string>
   <string name="assistant_page_regex_desc">메시지를 보내거나 받기 전에 변환할 정규식 패턴을 정의하세요</string>
   <string name="assistant_page_regex_find_regex">정규식 찾기</string>
@@ -1217,4 +1217,6 @@ mDNS 주소: .local 호스트네임을 사용하며, IP를 몰라도 같은 네�
   <string name="log_page_record_requests">요청 기록</string>
   <string name="log_page_record_requests_desc">요청 헤더, 본문 및 응답 메타데이터를 기록합니다.</string>
   <string name="assistant_page_context_message_truncation_warning">컨텍스트를 제한하면 빈번한 컨텍스트 절단이 발생하고 프롬프트 캐싱을 방해할 수 있습니다.</string>
+  <string name="chat_message_tool_recent_chats">최근 채팅 보기</string>
+  <string name="chat_message_tool_conversation_search">검색 기록: %1$s</string>
 </resources>

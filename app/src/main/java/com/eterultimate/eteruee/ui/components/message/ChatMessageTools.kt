@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -70,6 +71,7 @@ import me.rerere.hugeicons.stroke.Delete01
 import me.rerere.hugeicons.stroke.Eraser
 import me.rerere.hugeicons.stroke.GlobalSearch
 import me.rerere.hugeicons.stroke.MagicWand01
+import me.rerere.hugeicons.stroke.Message02
 import me.rerere.hugeicons.stroke.QuillWrite01
 import me.rerere.hugeicons.stroke.Refresh01
 import me.rerere.hugeicons.stroke.Search01
@@ -107,6 +109,8 @@ private object ToolNames {
     const val ASK_USER = "ask_user"
     const val USE_SKILL = "use_skill"
     const val GENERATE_VIDEO = "generate_video"
+    const val RECENT_CHATS = "recent_chats"
+    const val CONVERSATION_SEARCH = "conversation_search"
 }
 
 private object MemoryActions {
@@ -135,6 +139,8 @@ private fun getToolIcon(toolName: String, action: String?) = when (toolName) {
     ToolNames.ASK_USER -> HugeIcons.BubbleChatQuestion
     ToolNames.USE_SKILL -> HugeIcons.MagicWand01
     ToolNames.GENERATE_VIDEO -> HugeIcons.VideoReplay
+    ToolNames.RECENT_CHATS -> HugeIcons.Message02
+    ToolNames.CONVERSATION_SEARCH -> HugeIcons.Search01
     else -> HugeIcons.Tools
 }
 
@@ -215,6 +221,12 @@ fun ChainOfThoughtScope.ChatMessageToolStep(
             "Generate video: $preview"
         }
 
+        ToolNames.RECENT_CHATS -> stringResource(R.string.chat_message_tool_recent_chats)
+        ToolNames.CONVERSATION_SEARCH -> stringResource(
+            R.string.chat_message_tool_conversation_search,
+            arguments.getStringContent("query") ?: ""
+        )
+
         else -> stringResource(R.string.chat_message_tool_call_generic, tool.toolName)
     }
 
@@ -229,6 +241,8 @@ fun ChainOfThoughtScope.ChatMessageToolStep(
         ToolNames.SCRAPE_WEB -> arguments.getStringContent("url") != null
         ToolNames.TTS -> arguments.getStringContent("text") != null
         ToolNames.GENERATE_VIDEO -> arguments.getStringContent("prompt") != null
+        ToolNames.RECENT_CHATS -> (content as? JsonArray)?.isNotEmpty() == true
+        ToolNames.CONVERSATION_SEARCH -> (content as? JsonArray)?.isNotEmpty() == true
         else -> false
     } || isDenied || images.isNotEmpty()
 
@@ -384,6 +398,31 @@ fun ChainOfThoughtScope.ChatMessageToolStep(
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
+                    }
+                    if (tool.toolName == ToolNames.RECENT_CHATS) {
+                        val titles = (content as? JsonArray)
+                            ?.mapNotNull { it.getStringContent("title") }
+                            ?: emptyList()
+                        if (titles.isNotEmpty()) {
+                            Text(
+                                text = titles.joinToString(", "),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.shimmer(isLoading = loading),
+                                maxLines = 3,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                    if (tool.toolName == ToolNames.CONVERSATION_SEARCH) {
+                        val results = (content as? JsonArray) ?: JsonArray(emptyList())
+                        if (results.isNotEmpty()) {
+                            Text(
+                                text = stringResource(R.string.chat_message_tool_search_results_count, results.size),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                            )
+                        }
                     }
                     if (images.isNotEmpty()) {
                         LazyRow(

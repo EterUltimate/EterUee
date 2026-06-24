@@ -114,7 +114,7 @@
   <string name="assistant_page_quick_message_title">标题</string>
   <string name="assistant_page_quick_messages">快捷消息</string>
   <string name="assistant_page_recent_chats">参考历史聊天记录</string>
-  <string name="assistant_page_recent_chats_desc">启用后，助手将参考最近的聊天历史记录来提供更有上下文的回应</string>
+  <string name="assistant_page_recent_chats_desc">启用后，允许助手在过去的对话中搜索相关信息</string>
   <string name="assistant_page_regex_affecting_scopes">影响范围：</string>
   <string name="assistant_page_regex_desc">定义正则表达式模式，在发送/接收消息前对其进行转换</string>
   <string name="assistant_page_regex_find_regex">查找正则表达式</string>
@@ -1305,5 +1305,7 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="log_page_record_requests">记录请求</string>
   <string name="log_page_record_requests_desc">捕获请求标头、正文和响应元数据</string>
   <string name="assistant_page_context_message_truncation_warning">限制上下文可能导致频繁的上下文截断，并阻止提示词缓存</string>
+  <string name="chat_message_tool_recent_chats">查看最近的对话</string>
+  <string name="chat_message_tool_conversation_search">搜索历史：%1$s</string>
 </resources>
 

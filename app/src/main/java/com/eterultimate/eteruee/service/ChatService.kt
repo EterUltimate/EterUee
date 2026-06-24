@@ -56,6 +56,7 @@ import com.eterultimate.eteruee.data.ai.GenerationChunk
 import com.eterultimate.eteruee.data.ai.GenerationHandler
 import com.eterultimate.eteruee.data.ai.mcp.McpManager
 import com.eterultimate.eteruee.data.ai.tools.LocalTools
+import com.eterultimate.eteruee.data.ai.tools.createConversationTools
 import com.eterultimate.eteruee.data.ai.tools.createSearchTools
 import com.eterultimate.eteruee.data.ai.tools.createSkillTools
 import com.eterultimate.eteruee.data.files.SkillManager
@@ -550,6 +551,9 @@ class ChatService(
                         addAll(createSearchTools(settings))
                     }
                     addAll(localTools.getTools(assistant.localTools))
+                    if (assistant.enableRecentChatsReference) {
+                        addAll(createConversationTools(conversationRepo, assistant.id))
+                    }
                     if (assistant.enabledSkills.isNotEmpty()) {
                         addAll(
                             createSkillTools(

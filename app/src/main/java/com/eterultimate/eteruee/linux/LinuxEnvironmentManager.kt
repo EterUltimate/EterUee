@@ -2,6 +2,7 @@ package com.eterultimate.eteruee.linux
 
 import android.content.Context
 import android.os.Build
+import com.eterultimate.eteruee.data.files.FileFolders
 import com.eterultimate.eteruee.shell.LocalShellRunner
 import com.eterultimate.eteruee.workspace.WORKSPACE_MOUNT_PATH
 import com.eterultimate.eteruee.workspace.WorkspaceSandboxManager
@@ -33,6 +34,7 @@ private const val MAX_TERMUX_PACKAGE_ENTRY_BYTES = 64L * 1024 * 1024
 private const val TERMUX_PREFIX_PATH = "data/data/com.termux/files/usr/"
 private const val TERMUX_REPO_BASE_URL = "https://packages.termux.dev/apt/termux-main/"
 private const val UBUNTU_BASE_RELEASE_URL = "https://cdimage.ubuntu.com/ubuntu-base/releases/24.04/release/"
+private const val UPLOAD_MOUNT_PATH = "/upload"
 
 private val ARCH_ROOTFS_SOURCES = mapOf(
     "arm64-v8a" to RootfsSource(
@@ -165,6 +167,9 @@ class LinuxEnvironmentManager(
 
     private val workspaceFilesDir: File
         get() = workspaceSandboxManager.defaultWorkspace().filesDir
+
+    private val uploadFilesDir: File
+        get() = File(context.filesDir, FileFolders.UPLOAD).apply { mkdirs() }
 
     private val workspaceTempDir: File
         get() = workspaceSandboxManager.defaultWorkspace().tempDir
@@ -341,6 +346,8 @@ class LinuxEnvironmentManager(
             "/sys",
             "-b",
             "${workspaceFilesDir.absolutePath}:$WORKSPACE_MOUNT_PATH",
+            "-b",
+            "${uploadFilesDir.absolutePath}:$UPLOAD_MOUNT_PATH",
             "-w",
             linuxWorkingDir,
             "/usr/bin/env",
@@ -739,7 +746,7 @@ class LinuxEnvironmentManager(
             fi
             export LD_LIBRARY_PATH="${termuxUsrDir.absolutePath}/lib"
             export PROOT_LOADER="${termuxUsrDir.absolutePath}/libexec/proot/loader"
-            "${'$'}PROOT" -0 -r "${'$'}ROOTFS_DIR" -b /dev -b /proc -b /sys -b "${workspaceFilesDir.absolutePath}:$WORKSPACE_MOUNT_PATH" -w $WORKSPACE_MOUNT_PATH /bin/sh -lc 'printf "${spec.displayName} ready: "; head -n 1 /etc/os-release'
+            "${'$'}PROOT" -0 -r "${'$'}ROOTFS_DIR" -b /dev -b /proc -b /sys -b "${workspaceFilesDir.absolutePath}:$WORKSPACE_MOUNT_PATH" -b "${uploadFilesDir.absolutePath}:$UPLOAD_MOUNT_PATH" -w $WORKSPACE_MOUNT_PATH /bin/sh -lc 'printf "${spec.displayName} ready: "; head -n 1 /etc/os-release'
         """.trimIndent()
     }
 }

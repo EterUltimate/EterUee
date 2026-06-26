@@ -24,6 +24,7 @@ import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -59,6 +60,7 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.longOrNull
 import com.eterultimate.eteruee.ai.ui.ToolApprovalState
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.common.http.jsonObjectOrNull
@@ -75,6 +77,7 @@ import me.rerere.hugeicons.stroke.Message02
 import me.rerere.hugeicons.stroke.QuillWrite01
 import me.rerere.hugeicons.stroke.Refresh01
 import me.rerere.hugeicons.stroke.Search01
+import me.rerere.hugeicons.stroke.SmartPhone01
 import me.rerere.hugeicons.stroke.Tick01
 import me.rerere.hugeicons.stroke.Time02
 import me.rerere.hugeicons.stroke.Tools
@@ -98,12 +101,17 @@ import com.eterultimate.eteruee.utils.JsonInstantPretty
 import com.eterultimate.eteruee.utils.jsonPrimitiveOrNull
 import com.eterultimate.eteruee.utils.openUrl
 import org.koin.compose.koinInject
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 private object ToolNames {
     const val MEMORY = "memory_tool"
     const val SEARCH_WEB = "search_web"
     const val SCRAPE_WEB = "scrape_web"
     const val GET_TIME_INFO = "get_time_info"
+    const val SCREEN_TIME = "get_screen_time"
     const val CLIPBOARD = "clipboard_tool"
     const val TTS = "text_to_speech"
     const val ASK_USER = "ask_user"
@@ -134,6 +142,7 @@ private fun getToolIcon(toolName: String, action: String?) = when (toolName) {
     ToolNames.SEARCH_WEB -> HugeIcons.Search01
     ToolNames.SCRAPE_WEB -> HugeIcons.GlobalSearch
     ToolNames.GET_TIME_INFO -> HugeIcons.Time02
+    ToolNames.SCREEN_TIME -> HugeIcons.SmartPhone01
     ToolNames.CLIPBOARD -> HugeIcons.Clipboard
     ToolNames.TTS -> HugeIcons.VolumeHigh
     ToolNames.ASK_USER -> HugeIcons.BubbleChatQuestion
@@ -146,6 +155,11 @@ private fun getToolIcon(toolName: String, action: String?) = when (toolName) {
 
 private fun JsonElement?.getStringContent(key: String): String? =
     this?.jsonObjectOrNull?.get(key)?.jsonPrimitiveOrNull?.contentOrNull
+
+private const val SCREEN_TIME_SUMMARY_MAX_APPS = 3
+
+private fun screenTimeApps(content: JsonElement?): List<JsonElement> =
+    (content?.jsonObjectOrNull?.get("apps") as? JsonArray)?.toList() ?: emptyList()
 
 @Composable
 fun ChainOfThoughtScope.ChatMessageToolStep(
@@ -195,6 +209,7 @@ fun ChainOfThoughtScope.ChatMessageToolStep(
 
         ToolNames.SCRAPE_WEB -> stringResource(R.string.chat_message_tool_scrape_web)
         ToolNames.GET_TIME_INFO -> stringResource(R.string.chat_message_tool_get_time)
+        ToolNames.SCREEN_TIME -> stringResource(R.string.chat_message_tool_screen_time)
         ToolNames.CLIPBOARD -> when (memoryAction) {
             ClipboardActions.READ -> stringResource(R.string.chat_message_tool_clipboard_read)
             ClipboardActions.WRITE -> stringResource(R.string.chat_message_tool_clipboard_write)
@@ -239,6 +254,8 @@ fun ChainOfThoughtScope.ChatMessageToolStep(
             (content?.jsonObject?.get("items")?.jsonArray?.isNotEmpty() == true)
 
         ToolNames.SCRAPE_WEB -> arguments.getStringContent("url") != null
+        ToolNames.SCREEN_TIME -> content.getStringContent("error") == "NO_PERMISSION" ||
+            screenTimeApps(content).isNotEmpty()
         ToolNames.TTS -> arguments.getStringContent("text") != null
         ToolNames.GENERATE_VIDEO -> arguments.getStringContent("prompt") != null
         ToolNames.RECENT_CHATS -> (content as? JsonArray)?.isNotEmpty() == true
@@ -361,6 +378,19 @@ fun ChainOfThoughtScope.ChatMessageToolStep(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
                         )
+                    }
+                    if (tool.toolName == ToolNames.SCREEN_TIME) {
+                        if (content.getStringContent("error") == "NO_PERMISSION") {
+                            Text(
+                                text = stringResource(
+                                    R.string.assistant_page_local_tools_screen_time_permission_required
+                                ),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        } else {
+                            ScreenTimeSummary(content = content, loading = loading)
+                        }
                     }
                     if (tool.toolName == ToolNames.TTS) {
                         val text = arguments.getStringContent("text") ?: ""
@@ -515,6 +545,10 @@ private fun ToolCallPreviewSheet(
                 )
 
                 toolName == ToolNames.SCRAPE_WEB -> ScrapeWebPreview(content = content)
+
+                toolName == ToolNames.SCREEN_TIME && screenTimeApps(content).isNotEmpty() ->
+                    ScreenTimePreview(content = content)
+
                 else -> GenericToolPreview(
                     toolName = toolName,
                     arguments = arguments,
@@ -528,6 +562,156 @@ private fun ToolCallPreviewSheet(
             }
         },
     )
+}
+
+@Composable
+private fun ScreenTimeSummary(content: JsonElement?, loading: Boolean) {
+    val apps = screenTimeApps(content)
+    if (apps.isEmpty()) return
+    val totalMinutes = content?.jsonObjectOrNull?.get("total_minutes")
+        ?.jsonPrimitiveOrNull?.longOrNull ?: 0
+
+    Column(
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+        modifier = Modifier.shimmer(isLoading = loading),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.tool_ui_screen_time_total),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                text = formatMinutes(totalMinutes),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+        }
+        apps.take(SCREEN_TIME_SUMMARY_MAX_APPS).forEach { app ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = app.getStringContent("app_name")
+                        ?: app.getStringContent("package") ?: "",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = formatMinutes(app.screenTimeMinutes()),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ScreenTimePreview(content: JsonElement?) {
+    val apps = screenTimeApps(content)
+    val totalMinutes = content?.jsonObjectOrNull?.get("total_minutes")
+        ?.jsonPrimitiveOrNull?.longOrNull ?: 0
+    val maxAppMs = apps.maxOfOrNull { it.screenTimeMs() }?.takeIf { it > 0 } ?: 1L
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxHeight(0.8f)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.tool_ui_screen_time_total),
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        text = formatMinutes(totalMinutes),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+                val begin = content.getStringContent("start")
+                val finish = content.getStringContent("end")
+                if (begin != null && finish != null) {
+                    Text(
+                        text = "${formatRangeTime(begin)} → ${formatRangeTime(finish)}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    )
+                }
+            }
+        }
+        items(apps) { app ->
+            val name = app.getStringContent("app_name")
+                ?: app.getStringContent("package") ?: return@items
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = name,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        text = formatMinutes(app.screenTimeMinutes()),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    )
+                }
+                LinearProgressIndicator(
+                    progress = { (app.screenTimeMs().toFloat() / maxAppMs).coerceIn(0f, 1f) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+    }
+}
+
+private fun JsonElement.screenTimeMs(): Long =
+    jsonObjectOrNull?.get("total_ms")?.jsonPrimitiveOrNull?.longOrNull ?: 0
+
+private fun JsonElement.screenTimeMinutes(): Long =
+    jsonObjectOrNull?.get("total_minutes")?.jsonPrimitiveOrNull?.longOrNull ?: (screenTimeMs() / 60000)
+
+private val SCREEN_TIME_RANGE_FORMATTER: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("MM-dd HH:mm")
+
+private fun formatRangeTime(iso: String): String = runCatching {
+    ZonedDateTime.parse(iso).format(SCREEN_TIME_RANGE_FORMATTER)
+}.recoverCatching {
+    OffsetDateTime.parse(iso).format(SCREEN_TIME_RANGE_FORMATTER)
+}.recoverCatching {
+    LocalDateTime.parse(iso).format(SCREEN_TIME_RANGE_FORMATTER)
+}.getOrDefault(iso)
+
+private fun formatMinutes(minutes: Long): String {
+    val hours = minutes / 60
+    val remainingMinutes = minutes % 60
+    return when {
+        hours > 0 && remainingMinutes > 0 -> "${hours}h ${remainingMinutes}m"
+        hours > 0 -> "${hours}h"
+        else -> "${remainingMinutes}m"
+    }
 }
 
 @Composable

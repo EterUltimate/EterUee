@@ -1312,5 +1312,10 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="assistant_page_context_message_truncation_warning">限制上下文可能导致频繁的上下文截断，并阻止提示词缓存</string>
   <string name="chat_message_tool_recent_chats">查看最近的对话</string>
   <string name="chat_message_tool_conversation_search">搜索历史：%1$s</string>
+  <string name="assistant_page_local_tools_screen_time_title">屏幕时间</string>
+  <string name="assistant_page_local_tools_screen_time_desc">让AI读取你的应用屏幕使用时间</string>
+  <string name="assistant_page_local_tools_screen_time_permission_required">请在设置中授予“使用情况访问权限”以使用屏幕使用时间</string>
+  <string name="chat_message_tool_screen_time">读取屏幕时间</string>
+  <string name="tool_ui_screen_time_total">总屏幕时间</string>
 </resources>
 

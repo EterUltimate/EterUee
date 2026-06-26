@@ -54,6 +54,10 @@ sealed class LocalToolOption {
     data object TimeInfo : LocalToolOption()
 
     @Serializable
+    @SerialName("screen_time")
+    data object ScreenTime : LocalToolOption()
+
+    @Serializable
     @SerialName("clipboard")
     data object Clipboard : LocalToolOption()
 
@@ -384,6 +388,10 @@ class LocalTools(
         )
     }
 
+    val screenTimeTool by lazy {
+        ScreenTimeTools.createScreenTimeTool(context, eventBus)
+    }
+
     val clipboardTool by lazy {
         Tool(
             name = "clipboard_tool",
@@ -573,6 +581,9 @@ class LocalTools(
         }
         if (options.contains(LocalToolOption.TimeInfo)) {
             tools.add(timeTool)
+        }
+        if (options.contains(LocalToolOption.ScreenTime)) {
+            tools.add(screenTimeTool)
         }
         if (options.contains(LocalToolOption.Clipboard)) {
             tools.add(clipboardTool)

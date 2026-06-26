@@ -1224,4 +1224,9 @@ mDNS 주소: .local 호스트네임을 사용하며, IP를 몰라도 같은 네�
   <string name="assistant_page_context_message_truncation_warning">컨텍스트를 제한하면 빈번한 컨텍스트 절단이 발생하고 프롬프트 캐싱을 방해할 수 있습니다.</string>
   <string name="chat_message_tool_recent_chats">최근 채팅 보기</string>
   <string name="chat_message_tool_conversation_search">검색 기록: %1$s</string>
+  <string name="assistant_page_local_tools_screen_time_title">화면 시간</string>
+  <string name="assistant_page_local_tools_screen_time_desc">AI가 앱 화면 사용 시간을 읽을 수 있도록 합니다.</string>
+  <string name="assistant_page_local_tools_screen_time_permission_required">스크린 시간을 사용하려면 설정에서 사용 액세스 권한을 허용해 주세요.</string>
+  <string name="chat_message_tool_screen_time">화면 시간 읽기</string>
+  <string name="tool_ui_screen_time_total">전체 화면 시간</string>
 </resources>

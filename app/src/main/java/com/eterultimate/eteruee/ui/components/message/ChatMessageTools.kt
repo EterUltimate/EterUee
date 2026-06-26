@@ -723,6 +723,10 @@ private fun SearchWebPreview(
     val items = content.jsonObject["items"]?.jsonArray ?: emptyList()
     val answer = content.getStringContent("answer")
     val query = arguments.getStringContent("query") ?: ""
+    val images = content.jsonObject["images"]?.jsonArray
+        ?.mapNotNull { it.jsonPrimitive.contentOrNull }
+        ?.filter { it.isNotBlank() }
+        ?: emptyList()
 
     LazyColumn(
         modifier = Modifier
@@ -748,6 +752,25 @@ private fun SearchWebPreview(
                             .fillMaxWidth(),
                         style = MaterialTheme.typography.bodySmall
                     )
+                }
+            }
+        }
+
+        if (images.isNotEmpty()) {
+            item {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    items(images) { imageUrl ->
+                        ZoomableAsyncImage(
+                            model = imageUrl,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .height(120.dp)
+                                .wrapContentWidth(),
+                        )
+                    }
                 }
             }
         }

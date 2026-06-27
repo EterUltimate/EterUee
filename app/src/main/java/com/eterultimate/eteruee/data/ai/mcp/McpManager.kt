@@ -55,6 +55,25 @@ private const val TAG = "McpManager"
 private const val MAX_RECONNECT_ATTEMPTS = 5
 private const val BASE_RECONNECT_DELAY_MS = 1000L
 private const val MAX_RECONNECT_DELAY_MS = 30000L
+private const val MCP_TOOL_PREFIX = "mcp__"
+private const val MCP_TOOL_SERVER_KEY_LENGTH = 12
+
+internal fun mcpProviderToolName(serverId: Uuid, toolName: String): String {
+    val serverKey = serverId.toString().replace("-", "").take(MCP_TOOL_SERVER_KEY_LENGTH)
+    return "$MCP_TOOL_PREFIX${serverKey}__$toolName"
+}
+
+internal fun mcpDisplayToolName(providerToolName: String): String {
+    val withoutPrefix = providerToolName.removePrefix(MCP_TOOL_PREFIX)
+    val hasServerKey = withoutPrefix.length > MCP_TOOL_SERVER_KEY_LENGTH + 2 &&
+        withoutPrefix.substring(MCP_TOOL_SERVER_KEY_LENGTH).startsWith("__") &&
+        withoutPrefix.take(MCP_TOOL_SERVER_KEY_LENGTH).all { it in '0'..'9' || it in 'a'..'f' }
+    return if (providerToolName.startsWith(MCP_TOOL_PREFIX) && hasServerKey) {
+        withoutPrefix.substring(MCP_TOOL_SERVER_KEY_LENGTH + 2)
+    } else {
+        withoutPrefix
+    }
+}
 
 class McpManager(
     private val settingsStore: SettingsStore,
@@ -95,7 +114,9 @@ class McpManager(
                 .collect { mcpServerConfigs ->
                     runCatching {
                         Log.i(TAG, "update configs: $mcpServerConfigs")
-                        val newConfigs = mcpServerConfigs.filter { it.commonOptions.enable }
+                        val newConfigs = mcpServerConfigs.filter {
+                            it.commonOptions.enable && it.commonOptions.name.isNotBlank()
+                        }
                         val currentConfigs = clients.keys.toList()
                         val (toAdd, toRemove) = currentConfigs.checkDifferent(
                             other = newConfigs,
@@ -123,7 +144,7 @@ class McpManager(
         return clients.entries.find { it.key.id == config.id }?.value
     }
 
-    fun getAllAvailableTools(): List<Pair<Uuid, McpTool>> {
+    fun getAllAvailableTools(): List<Triple<Uuid, String, McpTool>> {
         val settings = settingsStore.settingsFlow.value
         return settings.mcpServers
             .filter {
@@ -132,7 +153,7 @@ class McpManager(
             .flatMap { server ->
                 server.commonOptions.tools
                     .filter { tool -> tool.enable }
-                    .map { tool -> server.id to tool }
+                    .map { tool -> Triple(server.id, server.commonOptions.name, tool) }
             }
     }
 

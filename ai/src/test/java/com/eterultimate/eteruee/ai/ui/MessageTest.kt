@@ -175,6 +175,26 @@ class MessageTest {
         assertTrue(message.isValidToUpload())
     }
 
+    @Test
+    fun `summaryAsText should preserve existing full text by default`() {
+        val message = UIMessage(
+            role = MessageRole.USER,
+            parts = listOf(UIMessagePart.Text("hello world"))
+        )
+
+        assertEquals("[USER]: hello world", message.summaryAsText())
+    }
+
+    @Test
+    fun `summaryAsText should truncate long text when max length is provided`() {
+        val message = UIMessage(
+            role = MessageRole.USER,
+            parts = listOf(UIMessagePart.Text("hello world"))
+        )
+
+        assertEquals("[USER]: he...", message.summaryAsText(maxLength = 10))
+    }
+
     // ==================== migrateToolMessages Tests ====================
 
     @Test

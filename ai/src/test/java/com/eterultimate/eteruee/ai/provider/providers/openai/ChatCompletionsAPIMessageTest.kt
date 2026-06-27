@@ -544,6 +544,25 @@ class ChatCompletionsAPIMessageTest {
         assertTrue(!request.containsKey("reasoning_effort"))
     }
 
+    @Test
+    fun `buildChatCompletionRequest should route aiping reasoning params`() {
+        val reasoningModel = Model(
+            modelId = "deepseek-v4",
+            abilities = listOf(ModelAbility.REASONING)
+        )
+
+        val request = invokeBuildChatCompletionRequest(
+            providerSetting = ProviderSetting.OpenAI(
+                baseUrl = "https://api.aiping.cn/v1"
+            ),
+            model = reasoningModel,
+            reasoningLevel = ReasoningLevel.OFF
+        )
+
+        assertEquals("false", request["enable_thinking"]?.jsonPrimitive?.content)
+        assertTrue(!request.containsKey("reasoning_effort"))
+    }
+
     // ==================== Helper Functions ====================
 
     private fun createExecutedTool(

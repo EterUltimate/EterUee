@@ -12,6 +12,7 @@ import com.eterultimate.eteruee.roleplay.data.local.RolePlayFileStorage
 import com.eterultimate.eteruee.roleplay.data.local.dao.ChatDAO
 import com.eterultimate.eteruee.roleplay.data.local.entity.ChatEntity
 import com.eterultimate.eteruee.roleplay.data.model.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -592,6 +593,8 @@ class ChatServiceImpl(
         maxTokens: Int
     ): Flow<ChatGenerationEvent> {
         return flow {
+            val fullMessage = StringBuilder()
+            var saved = false
             try {
                 val chat = getChatById(chatId) ?: run {
                     emit(ChatGenerationEvent.Error(Exception("Chat not found")))
@@ -605,7 +608,6 @@ class ChatServiceImpl(
                     temperature = temperature,
                     maxTokens = maxTokens
                 )
-                val fullMessage = StringBuilder()
                 aiSDK.streamText(request).collect { chunk ->
                     when (chunk) {
                         is TextChunk.TextDelta -> {
@@ -614,14 +616,28 @@ class ChatServiceImpl(
                         }
 
                         is TextChunk.Finish -> {
-                            val saved = appendAssistantMessage(chatId, fullMessage.toString()).getOrThrow()
-                            emit(ChatGenerationEvent.Complete(saved))
+                            val completedMessage = appendAssistantMessage(chatId, fullMessage.toString()).getOrThrow()
+                            saved = true
+                            emit(ChatGenerationEvent.Complete(completedMessage))
                         }
 
                         else -> Unit
                     }
                 }
+                if (!saved && fullMessage.isNotBlank()) {
+                    val completedMessage = appendAssistantMessage(chatId, fullMessage.toString()).getOrThrow()
+                    saved = true
+                    emit(ChatGenerationEvent.Complete(completedMessage))
+                }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
+                if (!saved && fullMessage.isNotBlank()) {
+                    appendAssistantMessage(chatId, fullMessage.toString()).onSuccess { partial ->
+                        saved = true
+                        emit(ChatGenerationEvent.Complete(partial))
+                    }
+                }
                 emit(ChatGenerationEvent.Error(e))
             }
         }

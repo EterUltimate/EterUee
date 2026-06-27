@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.isActive
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -118,6 +119,8 @@ class ChatViewModel(
         currentGenerationJob?.cancel()
 
         currentGenerationJob = viewModelScope.launch {
+            var assistantMessageContent = ""
+            var assistantMessageSaved = false
             try {
                 _uiState.value = _uiState.value.copy(isGenerating = true)
 
@@ -147,8 +150,6 @@ class ChatViewModel(
                     temperature = 0.7f,
                     maxTokens = 2048
                 )
-
-                var assistantMessageContent = ""
 
                 if (enableSubagent) {
                     aiSDK.streamTextWithSubagent(
@@ -191,6 +192,7 @@ class ChatViewModel(
 
                             is SubagentTextChunk.Finish -> {
                                 saveAssistantMessage(chatId, assistantMessageContent)
+                                assistantMessageSaved = true
                                 _uiState.value = _uiState.value.copy(
                                     isGenerating = false,
                                     subagentStatus = null
@@ -199,6 +201,10 @@ class ChatViewModel(
                             }
 
                             is SubagentTextChunk.Error -> {
+                                if (!assistantMessageSaved && assistantMessageContent.isNotBlank()) {
+                                    saveAssistantMessage(chatId, assistantMessageContent)
+                                    assistantMessageSaved = true
+                                }
                                 _uiState.value = _uiState.value.copy(
                                     isGenerating = false,
                                     subagentStatus = null,
@@ -222,6 +228,7 @@ class ChatViewModel(
 
                             is TextChunk.Finish -> {
                                 saveAssistantMessage(chatId, assistantMessageContent)
+                                assistantMessageSaved = true
                                 _uiState.value = _uiState.value.copy(isGenerating = false)
                                 currentGenerationJob = null
                             }
@@ -230,9 +237,24 @@ class ChatViewModel(
                         }
                     }
                 }
+                if (!assistantMessageSaved && assistantMessageContent.isNotBlank()) {
+                    saveAssistantMessage(chatId, assistantMessageContent)
+                    assistantMessageSaved = true
+                    _uiState.value = _uiState.value.copy(
+                        isGenerating = false,
+                        subagentStatus = null,
+                    )
+                    currentGenerationJob = null
+                }
             } catch (e: Exception) {
                 // 如果是取消异常，不显示错误
-                if (e !is kotlinx.coroutines.CancellationException) {
+                if (e is CancellationException) {
+                    throw e
+                } else {
+                    if (!assistantMessageSaved && assistantMessageContent.isNotBlank()) {
+                        saveAssistantMessage(chatId, assistantMessageContent)
+                        assistantMessageSaved = true
+                    }
                     _uiState.value = _uiState.value.copy(
                         isGenerating = false,
                         subagentStatus = null,

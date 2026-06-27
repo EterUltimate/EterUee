@@ -3,6 +3,7 @@ package com.eterultimate.eteruee.roleplay.data.local
 import android.content.Context
 import android.net.Uri
 import com.eterultimate.eteruee.roleplay.data.model.*
+import com.eterultimate.eteruee.roleplay.data.serialization.CompactRoleplayJson
 import com.eterultimate.eteruee.roleplay.data.serialization.RoleplayJson
 import com.eterultimate.eteruee.roleplay.data.tavern.TavernChatCodec
 import kotlinx.coroutines.Dispatchers
@@ -47,6 +48,7 @@ class RolePlayFileStorage(private val context: Context) {
     
     // JSON 序列化器
     private val json = RoleplayJson
+    private val jsonl = CompactRoleplayJson
     
     // ==================== 角色卡文件操作 ====================
     
@@ -201,7 +203,7 @@ class RolePlayFileStorage(private val context: Context) {
      */
     suspend fun appendMessageToFile(file: File, message: ChatMessage) = withContext(Dispatchers.IO) {
         FileWriter(file, true).use { writer ->
-            writer.write(json.encodeToString(message))
+            writer.write(jsonl.encodeToString(message))
             writer.write("\n")
         }
     }
@@ -254,7 +256,7 @@ class RolePlayFileStorage(private val context: Context) {
     suspend fun saveMessagesToJsonl(file: File, messages: List<ChatMessage>) = withContext(Dispatchers.IO) {
         FileWriter(file).use { writer ->
             messages.forEach { message ->
-                writer.write(json.encodeToString(message))
+                writer.write(jsonl.encodeToString(message))
                 writer.write("\n")
             }
         }

@@ -584,6 +584,7 @@ private fun HtmlMathBlock(formula: String) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
+            fontSize = LocalTextStyle.current.fontSize,
         )
     } else {
         Text(
@@ -1006,7 +1007,11 @@ private fun AnnotatedString.Builder.appendHtmlInlineElement(
                                     placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter,
                                 ),
                                 children = {
-                                    MathInline(latex = formula, modifier = Modifier)
+                                    MathInline(
+                                        latex = formula,
+                                        modifier = Modifier,
+                                        fontSize = style.fontSize,
+                                    )
                                 },
                             ),
                         )

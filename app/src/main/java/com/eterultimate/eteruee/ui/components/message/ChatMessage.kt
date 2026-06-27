@@ -372,7 +372,7 @@ private fun MessagePartsBlock(
             is MessagePartBlock.ContentBlock -> key(block.index) {
                 when (val part = block.part) {
                     is UIMessagePart.Text -> {
-                        SelectionContainer {
+                        val textContent = @Composable {
                             if (role == MessageRole.USER) {
                                 Surface(
                                     modifier = Modifier.animateContentSize(),
@@ -421,6 +421,13 @@ private fun MessagePartsBlock(
                                             .animateContentSize()
                                     )
                                 }
+                            }
+                        }
+                        if (loading) {
+                            textContent()
+                        } else {
+                            SelectionContainer {
+                                textContent()
                             }
                         }
                     }

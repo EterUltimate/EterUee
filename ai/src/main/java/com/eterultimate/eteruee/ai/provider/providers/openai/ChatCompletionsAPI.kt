@@ -583,7 +583,8 @@ class ChatCompletionsAPI(
                             put("type", "function")
                             put("function", buildJsonObject {
                                 put("name", tool.toolName)
-                                put("arguments", tool.input)
+                                // 使用 inputAsJson() 归一化，避免流式中断导致的残缺 JSON 被发送
+                                put("arguments", tool.inputAsJson().toString())
                             })
                         })
                     }

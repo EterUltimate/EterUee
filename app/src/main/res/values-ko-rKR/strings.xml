@@ -1229,4 +1229,23 @@ mDNS 주소: .local 호스트네임을 사용하며, IP를 몰라도 같은 네�
   <string name="assistant_page_local_tools_screen_time_permission_required">스크린 시간을 사용하려면 설정에서 사용 액세스 권한을 허용해 주세요.</string>
   <string name="chat_message_tool_screen_time">화면 시간 읽기</string>
   <string name="tool_ui_screen_time_total">전체 화면 시간</string>
+  <string name="permission_calendar_read">캘린더 읽기</string>
+  <string name="permission_calendar_read_desc">일정 관련 질문에 답변하기 위해 캘린더 이벤트를 읽습니다.</string>
+  <string name="permission_calendar_write">캘린더 쓰기</string>
+  <string name="permission_calendar_write_desc">사용자를 대신하여 캘린더 이벤트를 생성합니다</string>
+  <string name="assistant_page_local_tools_calendar_title">캘린더</string>
+  <string name="assistant_page_local_tools_calendar_desc">AI가 캘린더 이벤트를 조회하고 생성할 수 있도록 합니다</string>
+  <string name="chat_message_tool_calendar_query">캘린더 일정 조회</string>
+  <string name="chat_message_tool_calendar_create">일정 생성: %1$s</string>
+  <string name="chat_page_move_to_folder">폴더로 이동</string>
+  <string name="chat_page_remove_from_folder">폴더에서 제거</string>
+  <string name="chat_page_create_folder">새 폴더</string>
+  <string name="chat_page_folder_name">폴더 이름</string>
+  <string name="chat_page_rename_folder">폴더 이름 바꾸기</string>
+  <string name="chat_page_delete_folder">폴더 삭제</string>
+  <string name="chat_page_rename">이름 변경</string>
+  <string name="chat_page_folder_default">채팅</string>
+  <string name="chat_page_folder_add">새로 만들기</string>
+  <string name="chat_page_delete_folder_confirm">폴더 "%1$s"를 삭제하시겠습니까? 내부의 대화는 삭제되지 않고 폴더에서만 제거됩니다.</string>
+  <string name="chat_page_delete_folder_generating">이 폴더의 일부 대화가 아직 생성 중입니다. 삭제하기 전에 중지해 주세요.</string>
 </resources>

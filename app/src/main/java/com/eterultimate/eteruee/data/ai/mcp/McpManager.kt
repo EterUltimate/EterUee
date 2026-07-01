@@ -51,7 +51,6 @@ import com.eterultimate.eteruee.data.event.AppEvent
 import com.eterultimate.eteruee.data.event.AppEventBus
 import com.eterultimate.eteruee.data.datastore.getCurrentAssistant
 import com.eterultimate.eteruee.data.files.FilesManager
-import com.eterultimate.eteruee.data.files.saveUploadFromBytes
 import com.eterultimate.eteruee.utils.JsonInstant
 import com.eterultimate.eteruee.utils.checkDifferent
 import okhttp3.OkHttpClient

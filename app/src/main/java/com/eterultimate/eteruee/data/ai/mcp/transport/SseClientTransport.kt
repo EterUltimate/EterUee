@@ -196,7 +196,7 @@ class SseClientTransport(
             _onError(e)
         }
 
-        _onClose()
+        invokeOnCloseCallback()
     }
 }
 

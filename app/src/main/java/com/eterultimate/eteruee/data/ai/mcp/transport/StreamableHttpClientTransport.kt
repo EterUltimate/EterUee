@@ -191,7 +191,7 @@ public class StreamableHttpClientTransport(
             // Ignore errors during cleanup
         } finally {
             initialized.store(false)
-            _onClose()
+            invokeOnCloseCallback()
         }
     }
 

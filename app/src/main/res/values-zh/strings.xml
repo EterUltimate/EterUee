@@ -1317,5 +1317,24 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="assistant_page_local_tools_screen_time_permission_required">请在设置中授予“使用情况访问权限”以使用屏幕使用时间</string>
   <string name="chat_message_tool_screen_time">读取屏幕时间</string>
   <string name="tool_ui_screen_time_total">总屏幕时间</string>
+  <string name="permission_calendar_read">读取日历</string>
+  <string name="permission_calendar_read_desc">读取日历事件，以回答您与日程相关的问题</string>
+  <string name="permission_calendar_write">写入日历</string>
+  <string name="permission_calendar_write_desc">代表您创建日历事件</string>
+  <string name="assistant_page_local_tools_calendar_title">日历</string>
+  <string name="assistant_page_local_tools_calendar_desc">让AI查询和创建日历事件</string>
+  <string name="chat_message_tool_calendar_query">查询日历事件</string>
+  <string name="chat_message_tool_calendar_create">创建事件: %1$s</string>
+  <string name="chat_page_move_to_folder">移动到文件夹</string>
+  <string name="chat_page_remove_from_folder">移出文件夹</string>
+  <string name="chat_page_create_folder">新建文件夹</string>
+  <string name="chat_page_folder_name">文件夹名称</string>
+  <string name="chat_page_rename_folder">重命名文件夹</string>
+  <string name="chat_page_delete_folder">删除文件夹</string>
+  <string name="chat_page_rename">重命名</string>
+  <string name="chat_page_folder_default">聊天</string>
+  <string name="chat_page_folder_add">新建</string>
+  <string name="chat_page_delete_folder_confirm">删除文件夹 "%1$s"？其中的对话不会被删除，只会从文件夹中移除。</string>
+  <string name="chat_page_delete_folder_generating">此文件夹中有对话仍在生成中，请停止后再删除。</string>
 </resources>
 

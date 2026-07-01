@@ -8,12 +8,14 @@ import androidx.room.TypeConverters
 import com.eterultimate.eteruee.ai.core.TokenUsage
 import com.eterultimate.eteruee.data.db.dao.ConversationDAO
 import com.eterultimate.eteruee.data.db.dao.FavoriteDAO
+import com.eterultimate.eteruee.data.db.dao.FolderDAO
 import com.eterultimate.eteruee.data.db.dao.GenMediaDAO
 import com.eterultimate.eteruee.data.db.dao.ManagedFileDAO
 import com.eterultimate.eteruee.data.db.dao.MemoryDAO
 import com.eterultimate.eteruee.data.db.dao.MessageNodeDAO
 import com.eterultimate.eteruee.data.db.entity.ConversationEntity
 import com.eterultimate.eteruee.data.db.entity.FavoriteEntity
+import com.eterultimate.eteruee.data.db.entity.FolderEntity
 import com.eterultimate.eteruee.data.db.entity.GenMediaEntity
 import com.eterultimate.eteruee.data.db.entity.ManagedFileEntity
 import com.eterultimate.eteruee.data.db.entity.MemoryEntity
@@ -30,9 +32,10 @@ import com.eterultimate.eteruee.utils.JsonInstant
         GenMediaEntity::class,
         MessageNodeEntity::class,
         ManagedFileEntity::class,
-        FavoriteEntity::class
+        FavoriteEntity::class,
+        FolderEntity::class,
     ],
-    version = 20,
+    version = 21,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
@@ -48,6 +51,7 @@ import com.eterultimate.eteruee.utils.JsonInstant
         AutoMigration(from = 17, to = 18),
         AutoMigration(from = 18, to = 19),
         AutoMigration(from = 19, to = 20),
+        AutoMigration(from = 20, to = 21),
     ],
     exportSchema = true
 )
@@ -64,6 +68,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun managedFileDao(): ManagedFileDAO
 
     abstract fun favoriteDao(): FavoriteDAO
+
+    abstract fun folderDao(): FolderDAO
 }
 
 object TokenUsageConverter {

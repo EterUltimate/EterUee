@@ -27,6 +27,8 @@ data class Conversation(
     val customSystemPrompt: String? = null,
     val modeInjectionIds: Set<Uuid> = emptySet(),
     val lorebookIds: Set<Uuid> = emptySet(),
+    // 所属文件夹（助手内分组），null 表示未归入任何文件夹
+    val folderId: Uuid? = null,
     @Transient
     val newConversation: Boolean = false
 ) {

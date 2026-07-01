@@ -44,7 +44,6 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import coil3.compose.AsyncImage
-import me.rerere.common.android.appTempFolder
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Edit03
 import com.eterultimate.eteruee.R
@@ -52,6 +51,7 @@ import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.model.Avatar
 import com.eterultimate.eteruee.ui.components.ai.useCropLauncher
 import com.eterultimate.eteruee.ui.hooks.rememberAvatarShape
+import com.eterultimate.eteruee.utils.appTempFolder
 import org.koin.compose.koinInject
 import java.io.File
 

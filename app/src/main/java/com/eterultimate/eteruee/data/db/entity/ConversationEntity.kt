@@ -28,5 +28,7 @@ data class ConversationEntity(
     val modeInjectionIds: String = "[]",
     @ColumnInfo("lorebook_ids", defaultValue = "[]")
     val lorebookIds: String = "[]",
+    @ColumnInfo("folder_id", defaultValue = "")
+    val folderId: String = "",
 )
 

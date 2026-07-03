@@ -1082,8 +1082,8 @@ private fun FilesPicker(
             .padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxWidth().wrapContentWidth(Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.Start),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             TakePicButton(onLaunchCamera = onTakePic)

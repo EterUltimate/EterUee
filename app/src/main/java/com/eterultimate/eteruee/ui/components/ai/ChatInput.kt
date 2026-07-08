@@ -1174,7 +1174,9 @@ private fun FilesPicker(
             settings = settings,
             onUpdateAssistant = onUpdateAssistant,
             onUpdateConversation = onUpdateConversation,
-            onDismiss = { onShowInjectionSheetChange(false) })
+            onDismiss = { onShowInjectionSheetChange(false) },
+            onDismissAll = onDismiss,
+        )
     }
 
     // Compress Context Dialog
@@ -1360,13 +1362,13 @@ private fun InjectionQuickConfigSheet(
     settings: Settings,
     onUpdateAssistant: (Assistant) -> Unit,
     onUpdateConversation: (Conversation) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onDismissAll: () -> Unit,
 ) {
     val sheetState = rememberBottomSheetState(
         initialValue = SheetValue.Hidden,
         enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
     )
-    val scope = rememberCoroutineScope()
     val navController = LocalNavController.current
 
     ModalBottomSheet(
@@ -1387,25 +1389,16 @@ private fun InjectionQuickConfigSheet(
                 onUpdateConversation = onUpdateConversation,
                 modifier = Modifier.weight(1f),
                 onNavigateToQuickMessages = {
-                    scope.launch {
-                        sheetState.hide()
-                        onDismiss()
-                        navController.navigate(Screen.QuickMessages)
-                    }
+                    onDismissAll()
+                    navController.navigate(Screen.QuickMessages)
                 },
                 onNavigateToPrompts = {
-                    scope.launch {
-                        sheetState.hide()
-                        onDismiss()
-                        navController.navigate(Screen.Prompts)
-                    }
+                    onDismissAll()
+                    navController.navigate(Screen.Prompts)
                 },
                 onNavigateToSkills = {
-                    scope.launch {
-                        sheetState.hide()
-                        onDismiss()
-                        navController.navigate(Screen.Skills)
-                    }
+                    onDismissAll()
+                    navController.navigate(Screen.Skills)
                 })
 
             Spacer(modifier = Modifier.height(16.dp))

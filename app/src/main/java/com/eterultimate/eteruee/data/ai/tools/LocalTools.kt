@@ -21,6 +21,8 @@ import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.data.event.AppEvent
 import com.eterultimate.eteruee.data.event.AppEventBus
 import com.eterultimate.eteruee.data.datastore.SettingsStore
+import com.eterultimate.eteruee.data.datastore.getSelectedTTSProvider
+import com.eterultimate.eteruee.tts.provider.TTSManager
 import com.eterultimate.eteruee.device.DeviceAgentManager
 import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.repository.GenMediaRepository
@@ -272,6 +274,7 @@ class LocalTools(
     private val providerManager: ProviderManager,
     private val filesManager: FilesManager,
     private val genMediaRepository: GenMediaRepository,
+    private val ttsManager: TTSManager,
 ) {
     val javascriptTool by lazy {
         Tool(

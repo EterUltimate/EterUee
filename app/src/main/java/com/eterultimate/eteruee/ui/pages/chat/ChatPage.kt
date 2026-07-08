@@ -65,6 +65,7 @@ import com.eterultimate.eteruee.ui.context.Navigator
 import com.eterultimate.eteruee.ui.hooks.ChatInputState
 import com.eterultimate.eteruee.ui.hooks.EditStateContent
 import com.eterultimate.eteruee.ui.hooks.useEditState
+import com.eterultimate.eteruee.utils.ImageUtils
 import com.eterultimate.eteruee.utils.base64Decode
 import com.eterultimate.eteruee.utils.navigateToChatPage
 import org.koin.androidx.compose.koinViewModel

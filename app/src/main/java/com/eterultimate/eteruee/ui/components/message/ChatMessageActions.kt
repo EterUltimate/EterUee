@@ -61,6 +61,7 @@ import com.eterultimate.eteruee.ui.context.LocalSettings
 import com.eterultimate.eteruee.ui.context.LocalTTSState
 import com.eterultimate.eteruee.utils.copyMessageToClipboard
 import com.eterultimate.eteruee.utils.extractQuotedContentAsText
+import com.eterultimate.eteruee.utils.removeBracketedContent
 import com.eterultimate.eteruee.utils.toLocalString
 import java.util.Locale
 import androidx.compose.ui.graphics.RectangleShape
@@ -134,10 +135,12 @@ fun ColumnScope.ChatMessageActionButtons(
                         onClick = {
                             if (!isSpeaking) {
                                 val text = message.toText()
-                                val textToSpeak = if (settings.displaySetting.ttsOnlyReadQuoted) {
-                                    text.extractQuotedContentAsText() ?: text
-                                } else {
-                                    text
+                                var textToSpeak = text
+                                if (settings.displaySetting.ttsOnlyReadQuoted) {
+                                    textToSpeak = textToSpeak.extractQuotedContentAsText() ?: textToSpeak
+                                }
+                                if (settings.displaySetting.ttsOnlyReadOutsideBrackets) {
+                                    textToSpeak = textToSpeak.removeBracketedContent() ?: textToSpeak
                                 }
                                 tts.speak(textToSpeak)
                             } else {

@@ -9,6 +9,7 @@ import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.data.model.Conversation
 import com.eterultimate.eteruee.ui.context.LocalTTSState
 import com.eterultimate.eteruee.utils.extractQuotedContentAsText
+import com.eterultimate.eteruee.utils.removeBracketedContent
 
 @Composable
 fun TTSAutoPlay(vm: ChatVM, setting: Settings, conversation: Conversation) {
@@ -22,10 +23,12 @@ fun TTSAutoPlay(vm: ChatVM, setting: Settings, conversation: Conversation) {
                 val lastMessage = currentConversation.currentMessages.lastOrNull()
                 if (lastMessage != null && lastMessage.role == MessageRole.ASSISTANT) {
                     val text = lastMessage.toText()
-                    val textToSpeak = if (updatedSetting.displaySetting.ttsOnlyReadQuoted) {
-                        text.extractQuotedContentAsText() ?: text
-                    } else {
-                        text
+                    var textToSpeak = text
+                    if (updatedSetting.displaySetting.ttsOnlyReadQuoted) {
+                        textToSpeak = textToSpeak.extractQuotedContentAsText() ?: textToSpeak
+                    }
+                    if (updatedSetting.displaySetting.ttsOnlyReadOutsideBrackets) {
+                        textToSpeak = textToSpeak.removeBracketedContent() ?: textToSpeak
                     }
                     if (textToSpeak.isNotBlank()) {
                         tts.speak(textToSpeak)

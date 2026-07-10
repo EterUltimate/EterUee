@@ -77,6 +77,9 @@ import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.Screen
 import com.eterultimate.eteruee.data.ai.tools.executeJavaScriptCode
 import com.eterultimate.eteruee.data.ai.tools.executePythonScript
+import com.eterultimate.eteruee.ui.components.webview.WebView
+import com.eterultimate.eteruee.ui.components.webview.WebViewContentCache
+import com.eterultimate.eteruee.ui.components.webview.rememberWebViewState
 import com.eterultimate.eteruee.ui.context.LocalNavController
 import com.eterultimate.eteruee.ui.context.LocalSettings
 import com.eterultimate.eteruee.ui.context.Navigator
@@ -85,7 +88,6 @@ import com.eterultimate.eteruee.ui.theme.AtomOneDarkPalette
 import com.eterultimate.eteruee.ui.theme.AtomOneLightPalette
 import com.eterultimate.eteruee.ui.theme.JetbrainsMono
 import com.eterultimate.eteruee.ui.theme.LocalDarkMode
-import com.eterultimate.eteruee.utils.base64Encode
 import com.eterultimate.eteruee.utils.toDp
 import kotlin.time.Clock
 
@@ -545,7 +547,8 @@ private fun HighlightCodeActions(
                                 }
                                 else -> code
                             }
-                            navController.navigate(Screen.WebView(content = content.base64Encode()))
+                            val contentId = WebViewContentCache.store(context.cacheDir, content)
+                            navController.navigate(Screen.WebView(contentId = contentId))
                         }
                         .padding(4.dp)
                         .size(iconSize)

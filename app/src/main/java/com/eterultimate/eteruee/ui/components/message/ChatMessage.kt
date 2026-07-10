@@ -88,6 +88,7 @@ import com.eterultimate.eteruee.data.model.replaceRegexes
 import com.eterultimate.eteruee.ui.components.richtext.MarkdownBlock
 import com.eterultimate.eteruee.ui.components.richtext.ZoomableAsyncImage
 import com.eterultimate.eteruee.ui.components.richtext.buildMarkdownPreviewHtml
+import com.eterultimate.eteruee.ui.components.webview.WebViewContentCache
 import com.eterultimate.eteruee.ui.components.ui.ChainOfThought
 import com.eterultimate.eteruee.ui.components.ui.Favicon
 import com.eterultimate.eteruee.ui.components.ui.RabbitLoadingIndicator
@@ -97,7 +98,6 @@ import com.eterultimate.eteruee.ui.context.LocalSettings
 import com.eterultimate.eteruee.ui.theme.extendColors
 import com.eterultimate.eteruee.data.datastore.ChatFontFamily
 import com.eterultimate.eteruee.utils.JsonInstant
-import com.eterultimate.eteruee.utils.base64Encode
 import com.eterultimate.eteruee.utils.openUrl
 import com.eterultimate.eteruee.utils.urlDecode
 import java.util.Locale
@@ -265,7 +265,8 @@ fun ChatMessage(
                         markdown = textContent,
                         colorScheme = colorScheme
                     )
-                    navController.navigate(Screen.WebView(content = htmlContent.base64Encode()))
+                    val contentId = WebViewContentCache.store(context.cacheDir, htmlContent)
+                    navController.navigate(Screen.WebView(contentId = contentId))
                 }
             },
             onDismissRequest = {

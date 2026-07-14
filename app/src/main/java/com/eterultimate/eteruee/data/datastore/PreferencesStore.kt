@@ -471,6 +471,20 @@ class SettingsStore(
         }
     }
 
+    suspend fun updateAssistantWebSearch(assistantId: Uuid, enabled: Boolean) {
+        update { settings ->
+            settings.copy(
+                assistants = settings.assistants.map { assistant ->
+                    if (assistant.id == assistantId) {
+                        assistant.copy(enableWebSearch = enabled)
+                    } else {
+                        assistant
+                    }
+                }
+            )
+        }
+    }
+
     suspend fun updateAssistantMcpServers(assistantId: Uuid, mcpServers: Set<Uuid>) {
         update { settings ->
             settings.copy(

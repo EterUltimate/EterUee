@@ -26,6 +26,7 @@ import com.eterultimate.eteruee.ai.ui.isEmptyInputMessage
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.data.datastore.SettingsStore
+import com.eterultimate.eteruee.data.datastore.getCurrentAssistant
 import com.eterultimate.eteruee.data.datastore.getCurrentChatModel
 import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.model.Assistant
@@ -117,9 +118,13 @@ class ChatVM(
         chatService.removeConversationReference(_conversationId)
     }
 
-    // 网络搜索
+    // 用户设置
+    val settings: StateFlow<Settings> =
+        settingsStore.settingsFlow.stateIn(viewModelScope, SharingStarted.Eagerly, Settings.dummy())
+
+    // 网络搜索(每个助手独立)
     val enableWebSearch = settings.map {
-        it.enableWebSearch
+        it.getCurrentAssistant().enableWebSearch
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     // 当前模型

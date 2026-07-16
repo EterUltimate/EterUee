@@ -3,7 +3,6 @@
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.analytics
 import com.google.firebase.crashlytics.crashlytics
-import com.google.firebase.remoteconfig.remoteConfig
 import kotlinx.serialization.json.Json
 import com.eterultimate.eteruee.highlight.Highlighter
 import com.eterultimate.eteruee.AppScope
@@ -84,10 +83,6 @@ val appModule = module {
 
     single {
         Firebase.crashlytics
-    }
-
-    single {
-        Firebase.remoteConfig
     }
 
     single {

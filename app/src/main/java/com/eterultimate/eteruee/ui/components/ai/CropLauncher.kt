@@ -16,6 +16,12 @@ import androidx.core.net.toFile
 import com.eterultimate.eteruee.utils.appTempFolder
 import com.yalantis.ucrop.UCrop
 import com.yalantis.ucrop.UCropActivity
+import com.dokar.sonner.ToastType
+import com.yalantis.ucrop.UCrop
+import com.yalantis.ucrop.UCropActivity
+import com.eterultimate.eteruee.common.android.Logging
+
+import com.eterultimate.eteruee.ui.context.LocalToaster
 import java.io.File
 
 @Composable
@@ -26,14 +32,29 @@ internal fun useCropLauncher(
     freeStyleCropEnabled: Boolean = true
 ): Pair<ActivityResultLauncher<Intent>, (Uri) -> Unit> {
     val context = LocalContext.current
+    val toaster = LocalToaster.current
     var cropOutputUri by remember { mutableStateOf<Uri?>(null) }
 
     val cropActivityLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == android.app.Activity.RESULT_OK) {
-            cropOutputUri?.let { croppedUri ->
-                onCroppedImageReady(croppedUri)
+        when (result.resultCode) {
+            android.app.Activity.RESULT_OK -> {
+                cropOutputUri?.let { croppedUri ->
+                    onCroppedImageReady(croppedUri)
+                }
+            }
+
+            UCrop.RESULT_ERROR -> {
+                val error = result.data?.let { UCrop.getError(it) }
+                Logging.log(
+                    "CropLauncher",
+                    "crop failed: ${error?.message} | ${error?.stackTraceToString()}"
+                )
+                toaster.show(
+                    "Failed to crop image: ${error?.message ?: "unknown error"}",
+                    type = ToastType.Error
+                )
             }
         }
         cropOutputUri?.toFile()?.delete()

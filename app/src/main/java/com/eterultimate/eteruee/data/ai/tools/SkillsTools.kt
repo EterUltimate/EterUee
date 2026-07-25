@@ -7,13 +7,13 @@ import kotlinx.serialization.json.put
 import com.eterultimate.eteruee.ai.core.InputSchema
 import com.eterultimate.eteruee.ai.core.Tool
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
-import com.eterultimate.eteruee.data.files.SkillManager
+import com.eterultimate.eteruee.data.files.SkillFrontmatterParser
 import com.eterultimate.eteruee.data.files.SkillMetadata
+import com.eterultimate.eteruee.data.files.SkillPaths
 
 fun createSkillTools(
     enabledSkills: Set<String>,
     allSkills: List<SkillMetadata>,
-    skillManager: SkillManager,
 ): List<Tool> {
     val available = allSkills
         .filter { it.name in enabledSkills }
@@ -63,17 +63,15 @@ fun createSkillTools(
             execute = {
                 val name = it.jsonObject["name"]?.jsonPrimitive?.content
                     ?: error("name is required")
-                if (name !in enabledSkills) {
-                    val availableNames = available.map { skill -> skill.name }.sorted()
-                    error("Skill '$name' is not available. Available skills: ${availableNames.joinToString()}")
-                }
+                val skill = available.firstOrNull { it.name == name }
+                    ?: error("Skill '$name' is not enabled. Enabled skills: ${available.joinToString { it.name }}")
                 val path = it.jsonObject["path"]?.jsonPrimitive?.content
                 val content = if (path.isNullOrBlank()) {
-                    skillManager.readSkillBody(name)
-                        ?: error("Skill '$name' not found")
+                    require(skill.skillFile.exists()) { "Skill '$name' not found" }
+                    SkillFrontmatterParser.extractBody(skill.skillFile.readText())
                 } else {
-                    val target = skillManager.resolveSkillFile(name, path)
-                        ?: error("Path '$path' is outside the skill package")
+                    val target = SkillPaths.resolveSkillFile(skill.skillDir, path)
+                        ?: error("Path '$path' is outside the skill directory")
                     require(target.exists()) { "File '$path' not found in skill '$name'" }
                     target.readText()
                 }

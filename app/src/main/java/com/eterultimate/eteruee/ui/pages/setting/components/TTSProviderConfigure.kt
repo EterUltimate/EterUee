@@ -5,23 +5,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.ui.components.ui.FormItem
 import com.eterultimate.eteruee.ui.components.ui.OutlinedNumberInput
+import com.eterultimate.eteruee.ui.components.ui.SelectTextField
 import com.eterultimate.eteruee.tts.provider.TTSProviderSetting
 
 @Composable
@@ -35,122 +29,100 @@ fun TTSProviderConfigure(
         modifier = modifier.verticalScroll(rememberScrollState())
     ) {
         // Provider type selector
-        var expanded by remember { mutableStateOf(false) }
         val providers = remember { TTSProviderSetting.Types }
 
         FormItem(
             label = { Text(stringResource(R.string.setting_tts_page_provider_type)) },
             description = { Text(stringResource(R.string.setting_tts_page_provider_type_description)) },
         ) {
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded }
-            ) {
-                OutlinedTextField(
-                    value = when (setting) {
-                        is TTSProviderSetting.OpenAI -> "OpenAI"
-                        is TTSProviderSetting.Gemini -> "Gemini"
-                        is TTSProviderSetting.SystemTTS -> "System TTS"
-                        is TTSProviderSetting.MiniMax -> "MiniMax"
-                        is TTSProviderSetting.Qwen -> "Qwen"
-                        is TTSProviderSetting.Groq -> "Groq"
-                        is TTSProviderSetting.XAI -> "xAI"
-                        is TTSProviderSetting.MiMo -> "MiMo"
-                        is TTSProviderSetting.Step -> "Step"
-                        is TTSProviderSetting.ElevenLabs -> "ElevenLabs"
-                    },
-                    onValueChange = {},
-                    readOnly = true,
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                )
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    providers.forEach { providerClass ->
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    when (providerClass) {
-                                        TTSProviderSetting.OpenAI::class -> "OpenAI"
-                                        TTSProviderSetting.Gemini::class -> "Gemini"
-                                        TTSProviderSetting.SystemTTS::class -> "System TTS"
-                                        TTSProviderSetting.MiniMax::class -> "MiniMax"
-                                        TTSProviderSetting.Qwen::class -> "Qwen"
-                                        TTSProviderSetting.Groq::class -> "Groq"
-                                        TTSProviderSetting.XAI::class -> "xAI"
-                                        TTSProviderSetting.MiMo::class -> "MiMo"
-                                        TTSProviderSetting.ElevenLabs::class -> "ElevenLabs"
-                                        TTSProviderSetting.Step::class -> "Step"
-                                        else -> providerClass.simpleName ?: "Unknown"
-                                    }
-                                )
-                            },
-                            onClick = {
-                                expanded = false
-                                val newSetting = when (providerClass) {
-                                    TTSProviderSetting.OpenAI::class -> TTSProviderSetting.OpenAI(
-                                        id = setting.id,
-                                        name = "OpenAI TTS"
-                                    )
-
-                                    TTSProviderSetting.Gemini::class -> TTSProviderSetting.Gemini(
-                                        id = setting.id,
-                                        name = "Gemini TTS"
-                                    )
-
-                                    TTSProviderSetting.SystemTTS::class -> TTSProviderSetting.SystemTTS(
-                                        id = setting.id,
-                                        name = "System TTS"
-                                    )
-
-                                    TTSProviderSetting.MiniMax::class -> TTSProviderSetting.MiniMax(
-                                        id = setting.id,
-                                        name = "MiniMax TTS"
-                                    )
-
-                                    TTSProviderSetting.Qwen::class -> TTSProviderSetting.Qwen(
-                                        id = setting.id,
-                                        name = "Qwen TTS"
-                                    )
-
-                                    TTSProviderSetting.Groq::class -> TTSProviderSetting.Groq(
-                                        id = setting.id,
-                                        name = "Groq TTS"
-                                    )
-
-                                    TTSProviderSetting.XAI::class -> TTSProviderSetting.XAI(
-                                        id = setting.id,
-                                        name = "xAI TTS"
-                                    )
-
-                                    TTSProviderSetting.MiMo::class -> TTSProviderSetting.MiMo(
-                                        id = setting.id,
-                                        name = "MiMo TTS"
-                                    )
-                                    TTSProviderSetting.ElevenLabs::class -> TTSProviderSetting.ElevenLabs(
-                                        id = setting.id,
-                                        name = "ElevenLabs TTS"
-                                    )
-
-                                    TTSProviderSetting.Step::class -> TTSProviderSetting.Step(
-                                        id = setting.id,
-                                        name = "Step TTS"
-                                    )
-
-                                    else -> setting
-                                }
-                                onValueChange(newSetting)
-                            }
-                        )
+            SelectTextField(
+                value = when (setting) {
+                    is TTSProviderSetting.OpenAI -> "OpenAI"
+                    is TTSProviderSetting.Gemini -> "Gemini"
+                    is TTSProviderSetting.SystemTTS -> "System TTS"
+                    is TTSProviderSetting.MiniMax -> "MiniMax"
+                    is TTSProviderSetting.Qwen -> "Qwen"
+                    is TTSProviderSetting.Groq -> "Groq"
+                    is TTSProviderSetting.XAI -> "xAI"
+                    is TTSProviderSetting.MiMo -> "MiMo"
+                    is TTSProviderSetting.Step -> "Step"
+                    is TTSProviderSetting.ElevenLabs -> "ElevenLabs"
+                },
+                options = providers,
+                readOnly = true,
+                modifier = Modifier.fillMaxWidth(),
+                optionToString = { providerClass ->
+                    when (providerClass) {
+                        TTSProviderSetting.OpenAI::class -> "OpenAI"
+                        TTSProviderSetting.Gemini::class -> "Gemini"
+                        TTSProviderSetting.SystemTTS::class -> "System TTS"
+                        TTSProviderSetting.MiniMax::class -> "MiniMax"
+                        TTSProviderSetting.Qwen::class -> "Qwen"
+                        TTSProviderSetting.Groq::class -> "Groq"
+                        TTSProviderSetting.XAI::class -> "xAI"
+                        TTSProviderSetting.MiMo::class -> "MiMo"
+                        TTSProviderSetting.ElevenLabs::class -> "ElevenLabs"
+                        TTSProviderSetting.Step::class -> "Step"
+                        else -> providerClass.simpleName ?: "Unknown"
                     }
+                },
+                onOptionSelected = { providerClass ->
+                    val newSetting = when (providerClass) {
+                        TTSProviderSetting.OpenAI::class -> TTSProviderSetting.OpenAI(
+                            id = setting.id,
+                            name = "OpenAI TTS"
+                        )
+
+                        TTSProviderSetting.Gemini::class -> TTSProviderSetting.Gemini(
+                            id = setting.id,
+                            name = "Gemini TTS"
+                        )
+
+                        TTSProviderSetting.SystemTTS::class -> TTSProviderSetting.SystemTTS(
+                            id = setting.id,
+                            name = "System TTS"
+                        )
+
+                        TTSProviderSetting.MiniMax::class -> TTSProviderSetting.MiniMax(
+                            id = setting.id,
+                            name = "MiniMax TTS"
+                        )
+
+                        TTSProviderSetting.Qwen::class -> TTSProviderSetting.Qwen(
+                            id = setting.id,
+                            name = "Qwen TTS"
+                        )
+
+                        TTSProviderSetting.Groq::class -> TTSProviderSetting.Groq(
+                            id = setting.id,
+                            name = "Groq TTS"
+                        )
+
+                        TTSProviderSetting.XAI::class -> TTSProviderSetting.XAI(
+                            id = setting.id,
+                            name = "xAI TTS"
+                        )
+
+                        TTSProviderSetting.MiMo::class -> TTSProviderSetting.MiMo(
+                            id = setting.id,
+                            name = "MiMo TTS"
+                        )
+
+                        TTSProviderSetting.ElevenLabs::class -> TTSProviderSetting.ElevenLabs(
+                            id = setting.id,
+                            name = "ElevenLabs TTS"
+                        )
+
+                        TTSProviderSetting.Step::class -> TTSProviderSetting.Step(
+                            id = setting.id,
+                            name = "Step TTS"
+                        )
+
+                        else -> setting
+                    }
+                    onValueChange(newSetting)
                 }
-            }
+            )
         }
 
         // Name
@@ -235,44 +207,23 @@ private fun OpenAITTSConfiguration(
     }
 
     // Voice
-    var voiceExpanded by remember { mutableStateOf(false) }
     val voices = listOf("alloy", "echo", "fable", "onyx", "nova", "shimmer")
 
     FormItem(
         label = { Text(stringResource(R.string.setting_tts_page_voice)) },
         description = { Text(stringResource(R.string.setting_tts_page_voice_description)) }
     ) {
-        ExposedDropdownMenuBox(
-            expanded = voiceExpanded,
-            onExpandedChange = { voiceExpanded = !voiceExpanded }
-        ) {
-            OutlinedTextField(
-                value = setting.voice,
-                onValueChange = { newVoice ->
-                    onValueChange(setting.copy(voice = newVoice))
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(MenuAnchorType.PrimaryEditable),
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = voiceExpanded)
-                }
-            )
-            ExposedDropdownMenu(
-                expanded = voiceExpanded,
-                onDismissRequest = { voiceExpanded = false }
-            ) {
-                voices.forEach { voice ->
-                    DropdownMenuItem(
-                        text = { Text(voice) },
-                        onClick = {
-                            voiceExpanded = false
-                            onValueChange(setting.copy(voice = voice))
-                        }
-                    )
-                }
-            }
-        }
+        SelectTextField(
+            value = setting.voice,
+            options = voices,
+            onValueChange = { newVoice ->
+                onValueChange(setting.copy(voice = newVoice))
+            },
+            onOptionSelected = { voice ->
+                onValueChange(setting.copy(voice = voice))
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 
@@ -393,7 +344,6 @@ private fun MiniMaxTTSConfiguration(
     }
 
     // Voice ID
-    var voiceIdExpanded by remember { mutableStateOf(false) }
     val voiceIds = listOf(
         "male-qn-qingse",
         "male-qn-jingying",
@@ -412,78 +362,17 @@ private fun MiniMaxTTSConfiguration(
         label = { Text(stringResource(R.string.setting_tts_page_voice_id)) },
         description = { Text(stringResource(R.string.setting_tts_page_voice_id_description)) }
     ) {
-        ExposedDropdownMenuBox(
-            expanded = voiceIdExpanded,
-            onExpandedChange = { voiceIdExpanded = !voiceIdExpanded }
-        ) {
-            OutlinedTextField(
-                value = setting.voiceId,
-                onValueChange = { newVoiceId ->
-                    onValueChange(setting.copy(voiceId = newVoiceId))
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(MenuAnchorType.PrimaryEditable),
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = voiceIdExpanded)
-                }
-            )
-            ExposedDropdownMenu(
-                expanded = voiceIdExpanded,
-                onDismissRequest = { voiceIdExpanded = false }
-            ) {
-                voiceIds.forEach { voiceId ->
-                    DropdownMenuItem(
-                        text = { Text(voiceId) },
-                        onClick = {
-                            voiceIdExpanded = false
-                            onValueChange(setting.copy(voiceId = voiceId))
-                        }
-                    )
-                }
-            }
-        }
-    }
-
-    // Emotion
-    var emotionExpanded by remember { mutableStateOf(false) }
-    val emotions = listOf("calm", "happy", "sad", "angry", "fearful", "disgusted", "surprised")
-
-    FormItem(
-        label = { Text(stringResource(R.string.setting_tts_page_emotion)) },
-        description = { Text(stringResource(R.string.setting_tts_page_emotion_description)) }
-    ) {
-        ExposedDropdownMenuBox(
-            expanded = emotionExpanded,
-            onExpandedChange = { emotionExpanded = !emotionExpanded }
-        ) {
-            OutlinedTextField(
-                value = setting.emotion,
-                onValueChange = { newEmotion ->
-                    onValueChange(setting.copy(emotion = newEmotion))
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(MenuAnchorType.PrimaryEditable),
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = emotionExpanded)
-                }
-            )
-            ExposedDropdownMenu(
-                expanded = emotionExpanded,
-                onDismissRequest = { emotionExpanded = false }
-            ) {
-                emotions.forEach { emotion ->
-                    DropdownMenuItem(
-                        text = { Text(emotion) },
-                        onClick = {
-                            emotionExpanded = false
-                            onValueChange(setting.copy(emotion = emotion))
-                        }
-                    )
-                }
-            }
-        }
+        SelectTextField(
+            value = setting.voiceId,
+            options = voiceIds,
+            onValueChange = { newVoiceId ->
+                onValueChange(setting.copy(voiceId = newVoiceId))
+            },
+            onOptionSelected = { voiceId ->
+                onValueChange(setting.copy(voiceId = voiceId))
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 
     // Speed
@@ -661,7 +550,6 @@ private fun QwenTTSConfiguration(
     }
 
     // Voice
-    var voiceExpanded by remember { mutableStateOf(false) }
     val voices = listOf(
         "Cherry", "Serene", "Ethan", "Chelsie",
         "Momo", "Vivian", "Moon", "Maia", "Kai",
@@ -675,78 +563,37 @@ private fun QwenTTSConfiguration(
         label = { Text(stringResource(R.string.setting_tts_page_voice)) },
         description = { Text(stringResource(R.string.setting_tts_page_voice_description)) }
     ) {
-        ExposedDropdownMenuBox(
-            expanded = voiceExpanded,
-            onExpandedChange = { voiceExpanded = !voiceExpanded }
-        ) {
-            OutlinedTextField(
-                value = setting.voice,
-                onValueChange = { newVoice ->
-                    onValueChange(setting.copy(voice = newVoice))
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(MenuAnchorType.PrimaryEditable),
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = voiceExpanded)
-                }
-            )
-            ExposedDropdownMenu(
-                expanded = voiceExpanded,
-                onDismissRequest = { voiceExpanded = false }
-            ) {
-                voices.forEach { voice ->
-                    DropdownMenuItem(
-                        text = { Text(voice) },
-                        onClick = {
-                            voiceExpanded = false
-                            onValueChange(setting.copy(voice = voice))
-                        }
-                    )
-                }
-            }
-        }
+        SelectTextField(
+            value = setting.voice,
+            options = voices,
+            onValueChange = { newVoice ->
+                onValueChange(setting.copy(voice = newVoice))
+            },
+            onOptionSelected = { voice ->
+                onValueChange(setting.copy(voice = voice))
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 
     // Language Type
-    var languageExpanded by remember { mutableStateOf(false) }
     val languageTypes = listOf("Auto", "Chinese", "English", "Japanese", "Korean")
 
     FormItem(
         label = { Text("Language Type") },
         description = { Text("Language type for TTS synthesis") }
     ) {
-        ExposedDropdownMenuBox(
-            expanded = languageExpanded,
-            onExpandedChange = { languageExpanded = !languageExpanded }
-        ) {
-            OutlinedTextField(
-                value = setting.languageType,
-                onValueChange = { newLanguageType ->
-                    onValueChange(setting.copy(languageType = newLanguageType))
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(MenuAnchorType.PrimaryEditable),
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = languageExpanded)
-                }
-            )
-            ExposedDropdownMenu(
-                expanded = languageExpanded,
-                onDismissRequest = { languageExpanded = false }
-            ) {
-                languageTypes.forEach { languageType ->
-                    DropdownMenuItem(
-                        text = { Text(languageType) },
-                        onClick = {
-                            languageExpanded = false
-                            onValueChange(setting.copy(languageType = languageType))
-                        }
-                    )
-                }
-            }
-        }
+        SelectTextField(
+            value = setting.languageType,
+            options = languageTypes,
+            onValueChange = { newLanguageType ->
+                onValueChange(setting.copy(languageType = newLanguageType))
+            },
+            onOptionSelected = { languageType ->
+                onValueChange(setting.copy(languageType = languageType))
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 
@@ -801,44 +648,23 @@ private fun GroqTTSConfiguration(
     }
 
     // Voice
-    var voiceExpanded by remember { mutableStateOf(false) }
     val voices = listOf("austin", "natalie", "kailin")
 
     FormItem(
         label = { Text(stringResource(R.string.setting_tts_page_voice)) },
         description = { Text(stringResource(R.string.setting_tts_page_voice_description)) }
     ) {
-        ExposedDropdownMenuBox(
-            expanded = voiceExpanded,
-            onExpandedChange = { voiceExpanded = !voiceExpanded }
-        ) {
-            OutlinedTextField(
-                value = setting.voice,
-                onValueChange = { newVoice ->
-                    onValueChange(setting.copy(voice = newVoice))
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(MenuAnchorType.PrimaryEditable),
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = voiceExpanded)
-                }
-            )
-            ExposedDropdownMenu(
-                expanded = voiceExpanded,
-                onDismissRequest = { voiceExpanded = false }
-            ) {
-                voices.forEach { voice ->
-                    DropdownMenuItem(
-                        text = { Text(voice) },
-                        onClick = {
-                            voiceExpanded = false
-                            onValueChange(setting.copy(voice = voice))
-                        }
-                    )
-                }
-            }
-        }
+        SelectTextField(
+            value = setting.voice,
+            options = voices,
+            onValueChange = { newVoice ->
+                onValueChange(setting.copy(voice = newVoice))
+            },
+            onOptionSelected = { voice ->
+                onValueChange(setting.copy(voice = voice))
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 
@@ -878,7 +704,6 @@ private fun XAITTSConfiguration(
     }
 
     // Voice ID
-    var voiceExpanded by remember { mutableStateOf(false) }
     val voices = listOf(
         "eve" to "Eve",
         "ara" to "Ara",
@@ -891,41 +716,21 @@ private fun XAITTSConfiguration(
         label = { Text(stringResource(R.string.setting_tts_page_voice)) },
         description = { Text(stringResource(R.string.setting_tts_page_voice_description)) }
     ) {
-        ExposedDropdownMenuBox(
-            expanded = voiceExpanded,
-            onExpandedChange = { voiceExpanded = !voiceExpanded }
-        ) {
-            OutlinedTextField(
-                value = setting.voiceId,
-                onValueChange = { newVoiceId ->
-                    onValueChange(setting.copy(voiceId = newVoiceId))
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(MenuAnchorType.PrimaryEditable),
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = voiceExpanded)
-                }
-            )
-            ExposedDropdownMenu(
-                expanded = voiceExpanded,
-                onDismissRequest = { voiceExpanded = false }
-            ) {
-                voices.forEach { (voiceId, description) ->
-                    DropdownMenuItem(
-                        text = { Text(description) },
-                        onClick = {
-                            voiceExpanded = false
-                            onValueChange(setting.copy(voiceId = voiceId))
-                        }
-                    )
-                }
-            }
-        }
+        SelectTextField(
+            value = setting.voiceId,
+            options = voices,
+            onValueChange = { newVoiceId ->
+                onValueChange(setting.copy(voiceId = newVoiceId))
+            },
+            onOptionSelected = { (voiceId, _) ->
+                onValueChange(setting.copy(voiceId = voiceId))
+            },
+            optionToString = { (_, description) -> description },
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 
     // Language
-    var languageExpanded by remember { mutableStateOf(false) }
     val languages = listOf(
         "auto" to "Auto-detect",
         "en" to "English",
@@ -951,37 +756,18 @@ private fun XAITTSConfiguration(
     FormItem(
         label = { Text("Language") },
     ) {
-        ExposedDropdownMenuBox(
-            expanded = languageExpanded,
-            onExpandedChange = { languageExpanded = !languageExpanded }
-        ) {
-            OutlinedTextField(
-                value = setting.language,
-                onValueChange = { newLanguage ->
-                    onValueChange(setting.copy(language = newLanguage))
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(MenuAnchorType.PrimaryEditable),
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = languageExpanded)
-                }
-            )
-            ExposedDropdownMenu(
-                expanded = languageExpanded,
-                onDismissRequest = { languageExpanded = false }
-            ) {
-                languages.forEach { (code, displayName) ->
-                    DropdownMenuItem(
-                        text = { Text("$displayName ($code)") },
-                        onClick = {
-                            languageExpanded = false
-                            onValueChange(setting.copy(language = code))
-                        }
-                    )
-                }
-            }
-        }
+        SelectTextField(
+            value = setting.language,
+            options = languages,
+            onValueChange = { newLanguage ->
+                onValueChange(setting.copy(language = newLanguage))
+            },
+            onOptionSelected = { (code, _) ->
+                onValueChange(setting.copy(language = code))
+            },
+            optionToString = { (code, displayName) -> "$displayName ($code)" },
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 
@@ -1021,7 +807,6 @@ private fun ElevenLabsTTSConfiguration(
     }
 
     // Model
-    var modelExpanded by remember { mutableStateOf(false) }
     val models = listOf(
         "eleven_multilingual_v2" to "Eleven Multilingual v2",
         "eleven_v3" to "Eleven v3",
@@ -1032,37 +817,18 @@ private fun ElevenLabsTTSConfiguration(
         label = { Text(stringResource(R.string.setting_tts_page_model)) },
         description = { Text(stringResource(R.string.setting_tts_page_model_description)) }
     ) {
-        ExposedDropdownMenuBox(
-            expanded = modelExpanded,
-            onExpandedChange = { modelExpanded = !modelExpanded }
-        ) {
-            OutlinedTextField(
-                value = setting.model,
-                onValueChange = { newModel ->
-                    onValueChange(setting.copy(model = newModel))
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(MenuAnchorType.PrimaryEditable),
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = modelExpanded)
-                }
-            )
-            ExposedDropdownMenu(
-                expanded = modelExpanded,
-                onDismissRequest = { modelExpanded = false }
-            ) {
-                models.forEach { (modelId, displayName) ->
-                    DropdownMenuItem(
-                        text = { Text("$displayName ($modelId)") },
-                        onClick = {
-                            modelExpanded = false
-                            onValueChange(setting.copy(model = modelId))
-                        }
-                    )
-                }
-            }
-        }
+        SelectTextField(
+            value = setting.model,
+            options = models,
+            onValueChange = { newModel ->
+                onValueChange(setting.copy(model = newModel))
+            },
+            onOptionSelected = { (modelId, _) ->
+                onValueChange(setting.copy(model = modelId))
+            },
+            optionToString = { (modelId, displayName) -> "$displayName ($modelId)" },
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 
     // Voice ID
@@ -1147,7 +913,6 @@ private fun StepTTSConfiguration(
     }
 
     // Model
-    var modelExpanded by remember { mutableStateOf(false) }
     val models = listOf(
         "step-tts-mini" to "step-tts-mini (轻量, 便宜)",
         "step-tts-vivid" to "step-tts-vivid (情感丰富)",
@@ -1159,41 +924,21 @@ private fun StepTTSConfiguration(
         label = { Text(stringResource(R.string.setting_tts_page_model)) },
         description = { Text(stringResource(R.string.setting_tts_page_model_description)) }
     ) {
-        ExposedDropdownMenuBox(
-            expanded = modelExpanded,
-            onExpandedChange = { modelExpanded = !modelExpanded }
-        ) {
-            OutlinedTextField(
-                value = setting.model,
-                onValueChange = { newModel ->
-                    onValueChange(setting.copy(model = newModel))
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(MenuAnchorType.PrimaryEditable),
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = modelExpanded)
-                }
-            )
-            ExposedDropdownMenu(
-                expanded = modelExpanded,
-                onDismissRequest = { modelExpanded = false }
-            ) {
-                models.forEach { (modelId, description) ->
-                    DropdownMenuItem(
-                        text = { Text(description) },
-                        onClick = {
-                            modelExpanded = false
-                            onValueChange(setting.copy(model = modelId))
-                        }
-                    )
-                }
-            }
-        }
+        SelectTextField(
+            value = setting.model,
+            options = models,
+            onValueChange = { newModel ->
+                onValueChange(setting.copy(model = newModel))
+            },
+            onOptionSelected = { (modelId, _) ->
+                onValueChange(setting.copy(model = modelId))
+            },
+            optionToString = { (_, description) -> description },
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 
     // Voice
-    var voiceExpanded by remember { mutableStateOf(false) }
     // 部分常用 voice-id, 完整列表见官方开发指南
     // https://platform.stepfun.com/docs/zh/guides/developer/tts
     val voices = listOf(
@@ -1234,78 +979,38 @@ private fun StepTTSConfiguration(
         label = { Text(stringResource(R.string.setting_tts_page_voice)) },
         description = { Text(stringResource(R.string.setting_tts_page_voice_description)) }
     ) {
-        ExposedDropdownMenuBox(
-            expanded = voiceExpanded,
-            onExpandedChange = { voiceExpanded = !voiceExpanded }
-        ) {
-            OutlinedTextField(
-                value = setting.voice,
-                onValueChange = { newVoice ->
-                    onValueChange(setting.copy(voice = newVoice))
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(MenuAnchorType.PrimaryEditable),
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = voiceExpanded)
-                }
-            )
-            ExposedDropdownMenu(
-                expanded = voiceExpanded,
-                onDismissRequest = { voiceExpanded = false }
-            ) {
-                voices.forEach { (voiceId, description) ->
-                    DropdownMenuItem(
-                        text = { Text(description) },
-                        onClick = {
-                            voiceExpanded = false
-                            onValueChange(setting.copy(voice = voiceId))
-                        }
-                    )
-                }
-            }
-        }
+        SelectTextField(
+            value = setting.voice,
+            options = voices,
+            onValueChange = { newVoice ->
+                onValueChange(setting.copy(voice = newVoice))
+            },
+            onOptionSelected = { (voiceId, _) ->
+                onValueChange(setting.copy(voice = voiceId))
+            },
+            optionToString = { (_, description) -> description },
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 
     // Response Format
-    var formatExpanded by remember { mutableStateOf(false) }
     val formats = listOf("mp3", "wav", "pcm", "opus", "flac")
 
     FormItem(
         label = { Text("Response Format") },
         description = { Text("音频编码格式 (注意 StepFun API 字段名为 camelCase)") }
     ) {
-        ExposedDropdownMenuBox(
-            expanded = formatExpanded,
-            onExpandedChange = { formatExpanded = !formatExpanded }
-        ) {
-            OutlinedTextField(
-                value = setting.responseFormat,
-                onValueChange = { newFormat ->
-                    onValueChange(setting.copy(responseFormat = newFormat))
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(MenuAnchorType.PrimaryEditable),
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = formatExpanded)
-                }
-            )
-            ExposedDropdownMenu(
-                expanded = formatExpanded,
-                onDismissRequest = { formatExpanded = false }
-            ) {
-                formats.forEach { format ->
-                    DropdownMenuItem(
-                        text = { Text(format) },
-                        onClick = {
-                            formatExpanded = false
-                            onValueChange(setting.copy(responseFormat = format))
-                        }
-                    )
-                }
-            }
-        }
+        SelectTextField(
+            value = setting.responseFormat,
+            options = formats,
+            onValueChange = { newFormat ->
+                onValueChange(setting.copy(responseFormat = newFormat))
+            },
+            onOptionSelected = { format ->
+                onValueChange(setting.copy(responseFormat = format))
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 
     // Speed
@@ -1343,43 +1048,22 @@ private fun StepTTSConfiguration(
     }
 
     // Sample Rate
-    var sampleRateExpanded by remember { mutableStateOf(false) }
     val sampleRates = listOf(8000, 16000, 22050, 24000)
 
     FormItem(
         label = { Text("Sample Rate") },
         description = { Text("采样率 (Hz)") }
     ) {
-        ExposedDropdownMenuBox(
-            expanded = sampleRateExpanded,
-            onExpandedChange = { sampleRateExpanded = !sampleRateExpanded }
-        ) {
-            OutlinedTextField(
-                value = setting.sampleRate.toString(),
-                onValueChange = {},
-                readOnly = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = sampleRateExpanded)
-                }
-            )
-            ExposedDropdownMenu(
-                expanded = sampleRateExpanded,
-                onDismissRequest = { sampleRateExpanded = false }
-            ) {
-                sampleRates.forEach { rate ->
-                    DropdownMenuItem(
-                        text = { Text("$rate Hz") },
-                        onClick = {
-                            sampleRateExpanded = false
-                            onValueChange(setting.copy(sampleRate = rate))
-                        }
-                    )
-                }
-            }
-        }
+        SelectTextField(
+            value = setting.sampleRate.toString(),
+            options = sampleRates,
+            readOnly = true,
+            onOptionSelected = { rate ->
+                onValueChange(setting.copy(sampleRate = rate))
+            },
+            optionToString = { rate -> "$rate Hz" },
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 
     // Instruction (仅 stepaudio-2.5-tts 生效)

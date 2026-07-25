@@ -1079,11 +1079,8 @@
   <string name="text_area_save">Save</string>
   <string name="theme_name_autumn">Autumn Yellow</string>
   <string name="theme_name_black">Neutral Black</string>
-  <string name="theme_name_chatgpt">ChatGPT Style</string>
-  <string name="theme_name_claude">Claude Style</string>
-  <string name="theme_name_gemini">Gemini Style</string>
-  <string name="theme_name_hitech">HiTech</string>
-  <string name="theme_name_minimal">Minimal</string>
+  <string name="theme_name_claude">Claude</string>
+  <string name="theme_name_minimal">Minimal White</string>
   <string name="theme_name_ocean">Ocean Blue</string>
   <string name="theme_name_sakura">Sakura Pink</string>
   <string name="theme_name_soft_glass">Soft Glass</string>
@@ -1352,4 +1349,7 @@
   <string name="chat_generation_network_timeout">Connection timed out</string>
   <string name="chat_generation_network_unreachable">Unable to connect to server</string>
   <string name="chat_generation_network_disconnected">Network connection lost</string>
+<string name="theme_name_chatgpt">ChatGPT Style</string>
+<string name="theme_name_gemini">Gemini Style</string>
+<string name="theme_name_hitech">HiTech</string>
 </resources>

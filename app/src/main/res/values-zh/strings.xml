@@ -1079,11 +1079,7 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="text_area_save">保存</string>
   <string name="theme_name_autumn">秋黄</string>
   <string name="theme_name_black">中性黑</string>
-  <string name="theme_name_chatgpt">ChatGPT 风格</string>
-  <string name="theme_name_claude">Claude 风格</string>
-  <string name="theme_name_gemini">Gemini 风格</string>
-  <string name="theme_name_hitech">HiTech</string>
-  <string name="theme_name_minimal">极简主题</string>
+  <string name="theme_name_minimal">极简白</string>
   <string name="theme_name_ocean">海湾蓝</string>
   <string name="theme_name_sakura">樱花粉</string>
   <string name="theme_name_soft_glass">柔和毛玻璃</string>
@@ -1359,4 +1355,8 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="setting_update_reminder_resume_now">立即恢复</string>
   <string name="reasoning_max">最大</string>
   <string name="backup_page_import_overwrite_confirm">导入备份会覆盖 App 数据，是否继续</string>
+<string name="theme_name_chatgpt">ChatGPT 风格</string>
+<string name="theme_name_claude">Claude 风格</string>
+<string name="theme_name_gemini">Gemini 风格</string>
+<string name="theme_name_hitech">HiTech</string>
 </resources>

@@ -98,6 +98,7 @@ import com.eterultimate.eteruee.ai.provider.ModelAbility
 import com.eterultimate.eteruee.ai.provider.ModelType
 import com.eterultimate.eteruee.ai.provider.ProviderSetting
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
+import com.eterultimate.eteruee.utils.ImageUtils
 import com.eterultimate.eteruee.utils.appTempFolder
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Add01

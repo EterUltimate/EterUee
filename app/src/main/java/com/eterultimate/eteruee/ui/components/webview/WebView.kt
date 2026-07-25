@@ -7,7 +7,6 @@ import android.util.Log
 import android.view.ViewGroup.LayoutParams
 import android.view.inputmethod.InputMethodManager
 import android.webkit.ConsoleMessage
-import android.webkit.WebResourceRequest
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse

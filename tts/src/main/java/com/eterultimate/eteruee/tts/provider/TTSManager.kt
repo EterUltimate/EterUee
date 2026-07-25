@@ -60,7 +60,6 @@ class TTSManager(private val context: Context) {
             is TTSProviderSetting.XAI -> xaiProvider.promptGuidance
             is TTSProviderSetting.MiMo -> miMoProvider.promptGuidance
             is TTSProviderSetting.ElevenLabs -> elevenLabsProvider.promptGuidance
-            is TTSProviderSetting.FishAudio -> fishAudioProvider.promptGuidance
             is TTSProviderSetting.Step -> stepProvider.promptGuidance
         }
     }

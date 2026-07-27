@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import me.rerere.hugeicons.stroke.MoreVertical
 import com.eterultimate.eteruee.ui.components.nav.BackButton
+import com.eterultimate.eteruee.ui.components.webview.WEB_VIEW_BASE_URL
 import com.eterultimate.eteruee.ui.components.webview.WebView
 import com.eterultimate.eteruee.ui.components.webview.disableLocalFileAccess
 import com.eterultimate.eteruee.ui.components.webview.WebViewContentCache
@@ -61,7 +62,7 @@ fun WebViewPage(url: String, contentId: String) {
         }
         rememberWebViewState(
             data = content,
-            baseUrl = "https://eteruee.local",
+            baseUrl = WEB_VIEW_BASE_URL,
             mimeType = "text/html",
             settings = {
                 builtInZoomControls = true

@@ -38,6 +38,9 @@ import me.rerere.hugeicons.stroke.Cancel01
 import me.rerere.hugeicons.stroke.Download01
 import me.rerere.hugeicons.stroke.View
 import com.eterultimate.eteruee.R
+import com.eterultimate.eteruee.Screen
+import com.eterultimate.eteruee.ui.components.webview.WEB_VIEW_ASSET_URL
+import com.eterultimate.eteruee.ui.components.webview.WEB_VIEW_BASE_URL
 import com.eterultimate.eteruee.ui.components.webview.WebView
 import com.eterultimate.eteruee.ui.components.webview.rememberWebViewState
 import com.eterultimate.eteruee.ui.context.LocalToaster
@@ -122,6 +125,7 @@ fun Mermaid(
 
     val webViewState = rememberWebViewState(
         data = html,
+        baseUrl = WEB_VIEW_BASE_URL,
         mimeType = "text/html",
         encoding = "UTF-8",
         interfaces = mapOf(
@@ -279,9 +283,8 @@ private fun buildMermaidHtml(
         <html>
         <head>
             <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=5.0">
-            <title>Mermaid Diagram</title>
-            <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+            <meta name="viewport" content="width=1024">
+            <script src="${WEB_VIEW_ASSET_URL}/html/mermaid.min.js"></script>
             <style>
                 body {
                     margin: 0;

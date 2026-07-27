@@ -9,6 +9,8 @@ import android.view.inputmethod.InputMethodManager
 import android.webkit.ConsoleMessage
 import android.webkit.WebResourceRequest
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -53,6 +55,14 @@ internal class MyWebViewClient(private val state: WebViewState) : WebViewClient(
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
         val url = request?.url?.toString() ?: return false
         return state.onUrlRequest?.invoke(url) == true
+    }
+
+    override fun shouldInterceptRequest(
+        view: WebView,
+        request: WebResourceRequest
+    ): WebResourceResponse? {
+        return WebViewLocalAssets.intercept(view.context.applicationContext, request.url)
+            ?: super.shouldInterceptRequest(view, request)
     }
 
     override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {

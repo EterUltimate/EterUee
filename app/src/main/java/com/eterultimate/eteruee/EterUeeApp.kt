@@ -11,8 +11,6 @@ import androidx.compose.runtime.tooling.ComposeStackTraceMode
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig
-import com.google.firebase.remoteconfig.remoteConfigSettings
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -74,7 +72,6 @@ class EterUeeApp : Application() {
         val appScope = get<AppScope>()
         appScope.launch(Dispatchers.IO) {
             delay(DEFERRED_STARTUP_DELAY_MS)
-            launch { initRemoteConfig() }
             launch { deleteTempFiles() }
             launch { syncManagedFiles() }
             launch { incrementLaunchCount() }
@@ -82,20 +79,6 @@ class EterUeeApp : Application() {
         appScope.launch {
             delay(WEB_SERVER_STARTUP_DELAY_MS)
             startWebServerIfEnabled()
-        }
-    }
-
-    private fun initRemoteConfig() {
-        runCatching {
-            get<FirebaseRemoteConfig>().apply {
-                setConfigSettingsAsync(remoteConfigSettings {
-                    minimumFetchIntervalInSeconds = 1800
-                })
-                setDefaultsAsync(R.xml.remote_config_defaults)
-                fetchAndActivate()
-            }
-        }.onFailure {
-            Log.e(TAG, "initRemoteConfig failed", it)
         }
     }
 

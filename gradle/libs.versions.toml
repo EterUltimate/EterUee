@@ -204,3 +204,4 @@ android-test = { id = "com.android.test", version.ref = "agp" }
 baselineprofile = { id = "androidx.baselineprofile", version.ref = "baselineprofile" }
 
 material3 = "1.5.0-alpha24"
+composeMultiplatform = "1.11.1"

@@ -66,9 +66,11 @@ ktor = "3.5.0"
 sqlite-vector = "1.0.0"
 jmdns = "3.6.3"
 slf4j = "2.0.18"
-sqlite-android = "-SNAPSHOT"
-termux = "0.118.0"
-diffutils = "4.17"
+jsch = "2.28.3"
+shizuku = "13.1.5"
+xz = "1.12"
+zstd-jni = "1.5.7-11"
+
 snakeyaml = "2.6"
 
 [libraries]
@@ -153,8 +155,6 @@ commons-text = { module = "org.apache.commons:commons-text", version.ref = "comm
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }
 modelcontextprotocol-kotlin-sdk = { module = "io.modelcontextprotocol:kotlin-sdk", version.ref = "mcp" }
 pebble = { module = "io.pebbletemplates:pebble", version.ref = "pebble" }
-diffutils = { module = "io.github.java-diff-utils:java-diff-utils", version.ref = "diffutils" }
-snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "browser" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
@@ -191,6 +191,8 @@ shizuku-api = { module = "dev.rikka.shizuku:api", version.ref = "shizuku" }
 shizuku-provider = { module = "dev.rikka.shizuku:provider", version.ref = "shizuku" }
 xz = { group = "org.tukaani", name = "xz", version.ref = "xz" }
 zstd-jni = { group = "com.github.luben", name = "zstd-jni", version.ref = "zstd-jni" }
+
+snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

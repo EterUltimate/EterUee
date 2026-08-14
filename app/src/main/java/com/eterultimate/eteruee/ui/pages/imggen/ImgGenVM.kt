@@ -187,9 +187,6 @@ class ImgGenVM(
                 val provider = model.findProvider(settings.providers)
                     ?: throw IllegalStateException("Provider not found")
 
-                val providerSetting = settings.providers.find { it.id == provider.id }
-                    ?: throw IllegalStateException("Provider setting not found")
-
                 val params = ImageGenerationParams(
                     model = model,
                     prompt = _prompt.value,
@@ -200,7 +197,7 @@ class ImgGenVM(
                 )
 
                 val result = providerManager.getProviderByType(provider)
-                    .generateImage(providerSetting, params)
+                    .generateImage(provider, params)
 
                 val newImages = mutableListOf<GeneratedImage>()
 
@@ -248,9 +245,6 @@ class ImgGenVM(
                 val provider = model.findProvider(settings.providers)
                     ?: throw IllegalStateException("Provider not found")
 
-                val providerSetting = settings.providers.find { it.id == provider.id }
-                    ?: throw IllegalStateException("Provider setting not found")
-
                 val sourceImages = _referenceImages.value
                 val params = ImageEditParams(
                     model = model,
@@ -263,7 +257,7 @@ class ImgGenVM(
                 )
 
                 val result = providerManager.getProviderByType(provider)
-                    .editImage(providerSetting, params)
+                    .editImage(provider, params)
 
                 val newImages = mutableListOf<GeneratedImage>()
 
@@ -312,9 +306,6 @@ class ImgGenVM(
                 val provider = model.findProvider(settings.providers)
                     ?: throw IllegalStateException("Provider not found")
 
-                val providerSetting = settings.providers.find { it.id == provider.id }
-                    ?: throw IllegalStateException("Provider setting not found")
-
                 val params = VideoGenerationParams(
                     model = model,
                     prompt = _prompt.value,
@@ -327,7 +318,7 @@ class ImgGenVM(
                 )
 
                 val result = providerManager.getProviderByType(provider)
-                    .generateVideo(providerSetting, params)
+                    .generateVideo(provider, params)
 
                 val newVideos = mutableListOf<GeneratedImage>()
 

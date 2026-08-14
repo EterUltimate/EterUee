@@ -1352,26 +1352,5 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="setting_update_reminder_pause_days">%1$d 天</string>
   <string name="setting_update_reminder_resume_now">立即恢复</string>
   <string name="reasoning_max">最大</string>
-  <string name="backup_page_import_overwrite_confirm">导入备份会覆盖 App 数据，是否继续</string>
-  <string name="setting_page_preferences_network">网络</string>
-  <string name="setting_page_preferences_network_desc">User-Agent 和网络请求设置</string>
-  <string name="setting_page_preferences_network_user_agent">User-Agent</string>
-  <string name="setting_page_preferences_network_user_agent_desc">留空以使用 %1$s</string>
-  <string name="setting_page_preferences_network_proxy">代理</string>
-  <string name="setting_page_preferences_network_proxy_desc">支持 HTTP 和 SOCKS5 代理 URL。留空以使用系统设置。</string>
-  <string name="setting_page_preferences_network_proxy_invalid">请输入包含主机和端口的有效代理 URL。</string>
-  <string name="setting_provider_page_test_non_streaming">非流式</string>
-  <string name="setting_provider_page_test_streaming">流式</string>
-  <string name="setting_provider_page_test_tool_call">工具调用</string>
-  <string name="setting_provider_page_test_tool_called">已调用: %1$s  参数: %2$s</string>
-  <string name="setting_provider_page_test_tool_not_called">未调用工具，响应：%s</string>
-  <string name="workspace_terminal_close_confirm_title">关闭终端 %1$d？</string>
-  <string name="workspace_terminal_close_confirm_message">关闭此标签页将终止其中仍在运行的任何进程。</string>
-  <string name="workspace_terminal_close">关闭</string>
-    <string name="chat_generation_network_retrying">%1$s，正在重试（%2$d/%3$d）…</string>
-    <string name="chat_generation_network_unknown_host">无法解析服务器地址</string>
-    <string name="chat_generation_network_timeout">连接超时</string>
-    <string name="chat_generation_network_unreachable">无法连接到服务器</string>
-    <string name="chat_generation_network_disconnected">网络连接已断开</string>
 </resources>
 

@@ -57,6 +57,7 @@ import com.eterultimate.eteruee.ui.theme.CustomColors
 import com.eterultimate.eteruee.ui.theme.JetbrainsMono
 import com.eterultimate.eteruee.ui.theme.LocalDarkMode
 import com.eterultimate.eteruee.utils.plus
+import com.eterultimate.eteruee.search.DoubaoSearchMode
 import com.eterultimate.eteruee.search.SearchCommonOptions
 import com.eterultimate.eteruee.search.SearchResult
 import com.eterultimate.eteruee.search.SearchService
@@ -179,6 +180,9 @@ private fun SearchServiceOptionsEditor(
         }
         is SearchServiceOptions.ZhipuOptions -> {
             ZhipuOptions(options) { onUpdateOptions(it) }
+        }
+        is SearchServiceOptions.DoubaoOptions -> {
+            DoubaoOptions(options) { onUpdateOptions(it) }
         }
         is SearchServiceOptions.SearXNGOptions -> {
             SearXNGOptions(options) { onUpdateOptions(it) }
@@ -427,6 +431,35 @@ internal fun ZhipuOptions(
             },
             modifier = Modifier.fillMaxWidth()
         )
+    }
+}
+
+@Composable
+internal fun DoubaoOptions(
+    options: SearchServiceOptions.DoubaoOptions,
+    onUpdateOptions: (SearchServiceOptions.DoubaoOptions) -> Unit
+) {
+    FormItem(label = { Text(stringResource(R.string.search_detail_api_key)) }) {
+        OutlinedTextField(
+            value = options.apiKey,
+            onValueChange = { onUpdateOptions(options.copy(apiKey = it)) },
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+
+    FormItem(label = { Text("Mode") }) {
+        val modes = DoubaoSearchMode.entries
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            modes.forEachIndexed { index, mode ->
+                SegmentedButton(
+                    shape = SegmentedButtonDefaults.itemShape(index, modes.size),
+                    onClick = { onUpdateOptions(options.copy(mode = mode)) },
+                    selected = options.mode == mode
+                ) {
+                    Text(mode.name.lowercase().replaceFirstChar(Char::uppercase))
+                }
+            }
+        }
     }
 }
 

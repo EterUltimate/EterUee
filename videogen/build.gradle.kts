@@ -1,10 +1,15 @@
 plugins {
-    id("rikkahub.android.library")
+    alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.serialization)
 }
 
 android {
-    namespace = "me.rerere.videogen"
+    namespace = "com.eterultimate.eteruee.videogen"
+    compileSdk = 37
+
+    defaultConfig {
+        minSdk = 26
+    }
 }
 
 dependencies {

@@ -1,4 +1,4 @@
-package me.rerere.videogen
+package com.eterultimate.eteruee.videogen
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("me.rerere.videogen.test", appContext.packageName)
+        assertEquals("com.eterultimate.eteruee.videogen.test", appContext.packageName)
     }
 }

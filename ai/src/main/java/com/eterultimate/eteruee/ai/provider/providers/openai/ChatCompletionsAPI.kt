@@ -273,8 +273,11 @@ class ChatCompletionsAPI(
                 }
             }
 
-            if (params.model.outputModalities.contains(Modality.IMAGE)) {
-                if (host.matchesHostOrSubdomain("openrouter.ai")) {
+            // OpenRouter 适配: 会话 ID 头 + 多模态参数
+            val isOpenRouter = host.matchesHostOrSubdomain("openrouter.ai")
+            if (isOpenRouter) {
+                params.sessionId?.let { put("session_id", it) }
+                if(params.model.outputModalities.contains(Modality.IMAGE)) {
                     put("modalities", buildJsonArray {
                         add("image")
                         add("text")
@@ -452,8 +455,8 @@ class ChatCompletionsAPI(
                 ModelRegistry.KIMI_K2_6.match(model.modelId) ||
                 ModelRegistry.KIMI_K3.match(model.modelId) ||
                 ModelRegistry.KIMI_K3_ALIAS.match(model.modelId)
-        return !ModelRegistry.OPENAI_O_MODELS.match(model.modelId) && 
-               !ModelRegistry.GPT_5.match(model.modelId) && 
+        return !ModelRegistry.OPENAI_O_MODELS.match(model.modelId) &&
+               !ModelRegistry.GPT_5.match(model.modelId) &&
                !isMoonshotRestricted
     }
 

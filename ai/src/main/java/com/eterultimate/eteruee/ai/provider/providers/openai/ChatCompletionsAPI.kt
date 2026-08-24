@@ -23,6 +23,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
+import com.eterultimate.eteruee.ai.core.InputSchema
 import com.eterultimate.eteruee.ai.core.MessageRole
 import com.eterultimate.eteruee.ai.core.ReasoningLevel
 import com.eterultimate.eteruee.ai.core.TokenUsage
@@ -435,6 +436,7 @@ class ChatCompletionsAPI(
                                     "parameters",
                                     json.encodeToJsonElement(
                                         tool.parameters()
+                                            ?: InputSchema.Obj(properties = JsonObject(emptyMap()))
                                     )
                                 )
                             })

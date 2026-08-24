@@ -1330,4 +1330,25 @@
   <string name="assistant_page_context_message_limit_count">Context message limit: %d</string>
   <string name="assistant_page_context_message_limit_unlimited">Unlimited context messages</string>
   <string name="assistant_page_context_message_limit_warning">Limiting context invalidates the prompt cache each time the context is trimmed. A larger limit trims less often; unlimited never trims and keeps the cache fully intact.</string>
+  <string name="setting_update_reminder_enabled">Update reminders are enabled</string>
+  <string name="setting_update_reminder_paused_until">Paused until %1$s</string>
+  <string name="setting_update_reminder_pause_title">Pause update reminders</string>
+  <string name="setting_update_reminder_pause_description">Choose how long to pause update reminders. They will resume automatically.</string>
+  <string name="setting_update_reminder_pause_days">%1$d days</string>
+  <string name="setting_update_reminder_resume_now">Resume now</string>
+  <string name="backup_page_import_overwrite_confirm">Importing a backup will overwrite app data. Continue?</string>
+  <string name="chat_generation_network_retrying">%1$s. Retrying (%2$d/%3$d)…</string>
+  <string name="chat_generation_network_unknown_host">Unable to resolve server address</string>
+  <string name="chat_generation_network_timeout">Connection timed out</string>
+  <string name="chat_generation_network_unreachable">Unable to connect to server</string>
+  <string name="chat_generation_network_disconnected">Network connection lost</string>
+  <string name="setting_provider_page_test_non_streaming">Non-streaming</string>
+  <string name="setting_provider_page_test_streaming">Streaming</string>
+  <string name="setting_provider_page_test_tool_call">Tool Call</string>
+  <string name="setting_provider_page_test_tool_called">Called: %1$s  Args: %2$s</string>
+  <string name="setting_provider_page_test_tool_not_called">Tool not called, response: %s</string>
+<string name="theme_name_chatgpt">ChatGPT Style</string>
+<string name="theme_name_gemini">Gemini Style</string>
+<string name="theme_name_hitech">HiTech</string>
 </resources>
+

@@ -87,17 +87,9 @@ class ChatVM(
         .getConversationJobs()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
-    // 用户设置
-    val settings: StateFlow<Settings> =
-        settingsStore.settingsFlow.stateIn(viewModelScope, SharingStarted.Eagerly, Settings.dummy())
-
     // MCP管理器
     val mcpManager = chatService.mcpManager
 
-    // Subagent 启用状态（可从设置中控制）
-    val enableSubagent = settings.map {
-        it.enableSubagent
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     init {
         // 添加对话引用
@@ -121,6 +113,11 @@ class ChatVM(
     // 用户设置
     val settings: StateFlow<Settings> =
         settingsStore.settingsFlow.stateIn(viewModelScope, SharingStarted.Eagerly, Settings.dummy())
+
+    // Subagent 启用状态（可从设置中控制）
+    val enableSubagent = settings.map {
+        it.enableSubagent
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     // 网络搜索(每个助手独立)
     val enableWebSearch = settings.map {

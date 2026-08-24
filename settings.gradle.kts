@@ -45,6 +45,7 @@ include(":desktop")
 include(":document")
 include(":web")
 include(":roleplay")
+include(":videogen")
 include(":material3")
 
 val termuxAppDir = file("../termux-app").takeIf { it.isDirectory } ?: file("termux-app")

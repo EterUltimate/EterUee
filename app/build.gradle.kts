@@ -399,6 +399,7 @@ dependencies {
     // modules
     implementation(project(":ai"))
     implementation(project(":web"))
+    implementation(project(":videogen"))
     implementation(project(":document"))
     implementation(project(":highlight"))
     implementation(project(":search"))

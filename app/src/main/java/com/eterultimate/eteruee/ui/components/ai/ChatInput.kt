@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.imeAnimationTarget
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,6 +39,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
@@ -72,6 +74,8 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -175,6 +179,16 @@ fun ChatInput(
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
+
+    val containerShape = MaterialTheme.shapes.largeIncreased
+    val density = LocalDensity.current
+    // Unlike isImeVisible, the target changes as soon as the IME animation starts.
+    val imeTargetVisible = WindowInsets.imeAnimationTarget.getBottom(density) > 0
+    val modelListState = rememberModelListState(
+        modelId = assistant.chatModelId ?: settings.chatModelId,
+        providers = settings.providers,
+        type = ModelType.CHAT,
+    )
 
     fun sendMessage() {
         focusManager.clearFocus(force = true)
@@ -468,55 +482,15 @@ fun ChatInput(
                                 .horizontalScroll(rememberScrollState()),
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            // Model Picker
-                            ModelSelector(
-                                modelId = assistant.chatModelId ?: settings.chatModelId,
-                                providers = settings.providers,
-                                onSelect = {
-                                    onUpdateChatModel(it)
-                                    dismissExpand()
-                                },
-                                type = ModelType.CHAT,
-                                onlyIcon = true,
-                                modifier = Modifier,
-                            )
-
-                            // Search
-                            val enableSearchMsg = stringResource(R.string.web_search_enabled)
-                            val disableSearchMsg = stringResource(R.string.web_search_disabled)
-                            val chatModel = settings.getCurrentChatModel()
-                            SearchPickerButton(
-                                enableSearch = enableSearch,
-                                settings = settings,
-                                onToggleSearch = { enabled ->
-                                    onToggleSearch(enabled)
-                                    toaster.show(
-                                        message = if (enabled) enableSearchMsg else disableSearchMsg,
-                                        duration = 1.seconds,
-                                        type = if (enabled) {
-                                            ToastType.Success
-                                        } else {
-                                            ToastType.Normal
-                                        }
-                                    )
-                                },
-                                onUpdateSearchService = onUpdateSearchService,
-                                model = chatModel,
-                            )
-
-                            SubagentToggleButton(
-                                enabled = enableSubagent,
-                                onToggle = onToggleSubagent
-                            )
-
-                            // Reasoning
-                            val model = settings.getCurrentChatModel()
-                            if (model?.abilities?.contains(ModelAbility.REASONING) == true) {
-                                ReasoningButton(
-                                    reasoningLevel = assistant.reasoningLevel,
-                                    onUpdateReasoningLevel = {
-                                        onUpdateAssistant(assistant.copy(reasoningLevel = it))
-                                    },
+                            Row(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                // Model Picker
+                                ModelSelectorButton(
+                                    state = modelListState,
                                     onlyIcon = true,
                                 )
                             }
@@ -594,54 +568,66 @@ fun ChatInput(
                 }
             }
 
-            // Expanded content
-            Box(
-                modifier = Modifier
-                    .animateContentSize()
-                    .fillMaxWidth()
-            ) {
-                BackHandler(
-                    enabled = expand != ExpandState.Collapsed,
-                ) {
-                    dismissExpand()
-                }
-                if (expand == ExpandState.Files) {
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(0.dp))
-                            .then(
-                                if (settings.displaySetting.enableBlurEffect) Modifier.hazeEffect(
-                                    state = hazeState,
-                                    style = HazeMaterials.ultraThin()
-                                )
-                                else Modifier
-                            ),
-                        shape = RoundedCornerShape(0.dp),
-                        tonalElevation = 0.dp,
-                        color = if (settings.displaySetting.enableBlurEffect) Color.Transparent else hazeTintColor,
-                    ) {
-                        FilesPicker(
-                            conversation = conversation,
-                            state = state,
-                            assistant = assistant,
-                            onCompressContext = onCompressContext,
-                            onUpdateAssistant = onUpdateAssistant,
-                            onUpdateConversation = onUpdateConversation,
-                            showInjectionSheet = showInjectionSheet,
-                            onShowInjectionSheetChange = { showInjectionSheet = it },
-                            showCompressDialog = showCompressDialog,
-                            onShowCompressDialogChange = { showCompressDialog = it },
-                            onDismiss = { dismissExpand() },
-                            onTakePic = onLaunchCamera,
-                            onPickImage = { imagePickerLauncher.launch("image/*") },
-                            onPickVideo = { videoPickerLauncher.launch("video/*") },
-                            onPickAudio = { audioPickerLauncher.launch("audio/*") },
-                            onPickFile = { filePickerLauncher.launch(arrayOf("*/*")) },
-                        )
-                    }
-                }
-            }
+        }
+    }
+
+    ModelListSheet(
+        state = modelListState,
+        onSelect = onUpdateChatModel,
+    )
+}
+
+@Composable
+private fun SendButton(
+    loading: Boolean,
+    empty: Boolean,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val containerColor = when {
+        loading -> MaterialTheme.colorScheme.errorContainer
+        empty -> MaterialTheme.colorScheme.surfaceContainerHigh
+        else -> MaterialTheme.colorScheme.primary
+    }
+    val contentColor = when {
+        loading -> MaterialTheme.colorScheme.onErrorContainer
+        empty -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+        else -> MaterialTheme.colorScheme.onPrimary
+    }
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .size(30.dp)
+            .testTag("chat_send_button")
+            .clip(CircleShape)
+            .combinedClickable(
+                enabled = loading || !empty,
+                onClick = onClick,
+                onLongClick = onLongClick,
+            )
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            shape = CircleShape,
+            color = containerColor,
+            content = {},
+        )
+        if (loading) {
+            KeepScreenOn()
+            Icon(
+                imageVector = HugeIcons.Cancel01,
+                contentDescription = stringResource(R.string.stop),
+                tint = contentColor,
+                modifier = Modifier.size(18.dp)
+            )
+        } else {
+            Icon(
+                imageVector = HugeIcons.ArrowUp02,
+                contentDescription = stringResource(R.string.send),
+                tint = contentColor,
+                modifier = Modifier.size(18.dp)
+            )
         }
     }
 }

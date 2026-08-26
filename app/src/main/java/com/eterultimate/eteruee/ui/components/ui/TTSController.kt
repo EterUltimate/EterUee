@@ -2,6 +2,7 @@ package com.eterultimate.eteruee.ui.components.ui
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.animation.AnimatedVisibility
+import com.dokar.sonner.ToastType
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -24,7 +25,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.ArrowLeft01
@@ -34,17 +34,26 @@ import me.rerere.hugeicons.stroke.Forward02
 import me.rerere.hugeicons.stroke.Pause
 import me.rerere.hugeicons.stroke.Play
 import com.eterultimate.eteruee.ui.context.LocalTTSState
+import com.eterultimate.eteruee.ui.context.LocalToaster
 import com.eterultimate.eteruee.ui.hooks.CustomTtsState
 import com.eterultimate.eteruee.tts.model.PlaybackState
 import com.eterultimate.eteruee.tts.model.PlaybackStatus
 
 @Composable
 fun TTSController() {
-    val context = LocalContext.current
     val ttsState = LocalTTSState.current
+    val toaster = LocalToaster.current
 
     val isSpeaking by ttsState.isSpeaking.collectAsState()
     var isVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(ttsState, toaster) {
+        ttsState.error.collect { error ->
+            if (error != null) {
+                toaster.show(message = error, type = ToastType.Error)
+            }
+        }
+    }
 
     LaunchedEffect(isSpeaking) {
         if (isSpeaking) {

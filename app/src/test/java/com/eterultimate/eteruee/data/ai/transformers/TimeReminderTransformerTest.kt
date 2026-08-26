@@ -5,6 +5,7 @@ import com.eterultimate.eteruee.ai.ui.UIMessage
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import kotlinx.datetime.LocalDateTime
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -32,5 +33,29 @@ class TimeReminderTransformerTest {
         assertTrue(result[1].toText().contains("<time_reminder>"))
         assertEquals(secondCreatedAt, result[1].createdAt)
         assertEquals(secondCreatedAt, result[2].createdAt)
+    }
+
+    @Test
+    fun `synthetic reminder should be marked as synthetic`() {
+        val firstCreatedAt = LocalDateTime(2026, 6, 11, 8, 0)
+        val secondCreatedAt = LocalDateTime(2026, 6, 11, 12, 0)
+        val messages = listOf(
+            UIMessage(
+                role = MessageRole.USER,
+                parts = listOf(UIMessagePart.Text("First")),
+                createdAt = firstCreatedAt
+            ),
+            UIMessage(
+                role = MessageRole.USER,
+                parts = listOf(UIMessagePart.Text("Second")),
+                createdAt = secondCreatedAt
+            )
+        )
+
+        val result = applyTimeReminder(messages)
+
+        assertTrue(result[1].isSynthetic)
+        assertFalse(result[0].isSynthetic)
+        assertFalse(result[2].isSynthetic)
     }
 }

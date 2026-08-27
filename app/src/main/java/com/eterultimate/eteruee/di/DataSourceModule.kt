@@ -21,6 +21,7 @@ import com.eterultimate.eteruee.data.ai.AIRequestInterceptor
 import com.eterultimate.eteruee.data.ai.RequestLoggingInterceptor
 import com.eterultimate.eteruee.data.ai.transformers.AssistantTemplateLoader
 import com.eterultimate.eteruee.data.ai.GenerationHandler
+import com.eterultimate.eteruee.data.ai.TranslationHandler
 import com.eterultimate.eteruee.data.ai.transformers.TemplateTransformer
 import com.eterultimate.eteruee.data.api.EterUeeAPI
 import com.eterultimate.eteruee.data.api.SponsorAPI
@@ -129,6 +130,10 @@ val dataSourceModule = module {
             json = get(),
             memoryRepo = get()
         )
+    }
+
+    single {
+        TranslationHandler(providerManager = get())
     }
 
     single<OkHttpClient> {

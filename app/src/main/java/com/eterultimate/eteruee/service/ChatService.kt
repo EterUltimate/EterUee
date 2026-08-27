@@ -54,6 +54,7 @@ import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.RouteActivity
 import com.eterultimate.eteruee.data.ai.GenerationChunk
 import com.eterultimate.eteruee.data.ai.GenerationHandler
+import com.eterultimate.eteruee.data.ai.TranslationHandler
 import com.eterultimate.eteruee.data.ai.mcp.McpManager
 import com.eterultimate.eteruee.data.ai.mcp.mcpDisplayToolName
 import com.eterultimate.eteruee.data.ai.mcp.mcpProviderToolName
@@ -146,6 +147,7 @@ class ChatService(
     private val conversationRepo: ConversationRepository,
     private val memoryRepository: MemoryRepository,
     private val generationHandler: GenerationHandler,
+    private val translationHandler: TranslationHandler,
     private val templateTransformer: TemplateTransformer,
     private val providerManager: ProviderManager,
     private val localTools: LocalTools,
@@ -1131,7 +1133,7 @@ class ChatService(
                 val loadingText = context.getString(R.string.translating)
                 updateTranslationField(conversationId, message.id, loadingText)
 
-                generationHandler.translateText(
+                translationHandler.translateText(
                     settings = settings,
                     sourceText = messageText,
                     targetLanguage = targetLanguage

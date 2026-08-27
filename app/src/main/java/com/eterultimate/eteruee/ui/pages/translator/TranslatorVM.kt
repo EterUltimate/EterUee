@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import com.eterultimate.eteruee.data.ai.GenerationHandler
+import com.eterultimate.eteruee.data.ai.TranslationHandler
 import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import java.util.Locale
@@ -18,7 +18,7 @@ private const val TAG = "TranslatorVM"
 
 class TranslatorVM(
     private val settingsStore: SettingsStore,
-    private val generationHandler: GenerationHandler,
+    private val translationHandler: TranslationHandler,
 ) : ViewModel() {
     val settings: StateFlow<Settings> = settingsStore.settingsFlow
         .stateIn(viewModelScope, SharingStarted.Lazily, Settings.dummy())
@@ -72,7 +72,7 @@ class TranslatorVM(
 
         currentJob = viewModelScope.launch {
             runCatching {
-                generationHandler.translateText(
+                translationHandler.translateText(
                     settings = settings.value,
                     sourceText = inputText,
                     targetLanguage = targetLanguage.value

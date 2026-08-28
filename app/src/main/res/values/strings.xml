@@ -965,6 +965,8 @@
   <string name="setting_tts_page_base_url_description">API base URL endpoint</string>
   <string name="setting_tts_page_base_url_placeholder">https://api.openai.com/v1</string>
   <string name="setting_tts_page_default_name">System TTS</string>
+  <string name="setting_tts_page_playback_speed">Playback speed</string>
+  <string name="setting_tts_page_playback_speed_desc">Default speed for TTS playback (0.5x - 2.0x)</string>
   <string name="setting_tts_page_edit_provider">Edit Provider</string>
   <string name="setting_tts_page_emotion">Emotion</string>
   <string name="setting_tts_page_emotion_description">Emotion style for speech synthesis</string>

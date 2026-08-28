@@ -135,6 +135,7 @@ class SettingsStore(
         // TTS
         val TTS_PROVIDERS = stringPreferencesKey("tts_providers")
         val SELECTED_TTS_PROVIDER = stringPreferencesKey("selected_tts_provider")
+        val DEFAULT_TTS_PLAYBACK_SPEED = floatPreferencesKey("default_tts_playback_speed")
 
         // Web Server
         val WEB_SERVER_ENABLED = booleanPreferencesKey("web_server_enabled")
@@ -230,6 +231,7 @@ class SettingsStore(
                 } ?: emptyList(),
                 selectedTTSProviderId = preferences[SELECTED_TTS_PROVIDER]?.let { Uuid.parse(it) }
                     ?: DEFAULT_SYSTEM_TTS_ID,
+                defaultTTSPlaybackSpeed = preferences[DEFAULT_TTS_PLAYBACK_SPEED]?.coerceIn(0.5f, 2.0f) ?: 1.0f,
                 modeInjections = preferences[MODE_INJECTIONS]?.let {
                     JsonInstant.decodeFromString(it)
                 } ?: emptyList(),
@@ -415,6 +417,7 @@ class SettingsStore(
             } else {
                 preferences.remove(SELECTED_TTS_PROVIDER)
             }
+            preferences[DEFAULT_TTS_PLAYBACK_SPEED] = settings.defaultTTSPlaybackSpeed.coerceIn(0.5f, 2.0f)
             preferences[MODE_INJECTIONS] = JsonInstant.encodeToString(settings.modeInjections)
             preferences[LOREBOOKS] = JsonInstant.encodeToString(settings.lorebooks)
             preferences[QUICK_MESSAGES] = JsonInstant.encodeToString(settings.quickMessages)
@@ -544,6 +547,7 @@ data class Settings(
     val postgresGatewayConfig: PostgresGatewayConfig = PostgresGatewayConfig(),
     val ttsProviders: List<TTSProviderSetting> = DEFAULT_TTS_PROVIDERS,
     val selectedTTSProviderId: Uuid = DEFAULT_SYSTEM_TTS_ID,
+    val defaultTTSPlaybackSpeed: Float = 1.0f,
     val modeInjections: List<PromptInjection.ModeInjection> = DEFAULT_MODE_INJECTIONS,
     val lorebooks: List<Lorebook> = emptyList(),
     val quickMessages: List<QuickMessage> = emptyList(),

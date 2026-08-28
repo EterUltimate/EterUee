@@ -966,6 +966,8 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="setting_tts_page_base_url_description">API基础URL端点</string>
   <string name="setting_tts_page_base_url_placeholder">https://api.openai.com/v1</string>
   <string name="setting_tts_page_default_name">系统TTS</string>
+  <string name="setting_tts_page_playback_speed">朗读速度</string>
+  <string name="setting_tts_page_playback_speed_desc">TTS 默认朗读速度（0.5x - 2.0x）</string>
   <string name="setting_tts_page_edit_provider">编辑提供商</string>
   <string name="setting_tts_page_emotion">情感</string>
   <string name="setting_tts_page_emotion_description">语音合成的情感风格</string>

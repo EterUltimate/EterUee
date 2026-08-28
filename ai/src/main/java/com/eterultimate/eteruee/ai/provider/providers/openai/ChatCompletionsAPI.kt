@@ -748,13 +748,15 @@ class ChatCompletionsAPI(
                     )
                 }
                 toolCalls.forEach { toolCalls ->
-                    val type = toolCalls.jsonObject["type"]?.jsonPrimitive?.contentOrNull
+                    // 某些供应商会在流式响应中返回 null tool_calls 元素，跳过避免解码崩溃 (rikkahub 2.4.9)
+                    val toolCallObject = toolCalls.jsonObjectOrNull ?: return@forEach
+                    val type = toolCallObject["type"]?.jsonPrimitive?.contentOrNull
                     if (!type.isNullOrEmpty() && type != "function") error("tool call type not supported: $type")
-                    val toolCallId = toolCalls.jsonObject["id"]?.jsonPrimitive?.contentOrNull
+                    val toolCallId = toolCallObject["id"]?.jsonPrimitive?.contentOrNull
                     val toolName =
-                        toolCalls.jsonObject["function"]?.jsonObject?.get("name")?.jsonPrimitive?.contentOrNull
+                        toolCallObject["function"]?.jsonObject?.get("name")?.jsonPrimitive?.contentOrNull
                     val arguments =
-                        toolCalls.jsonObject["function"]?.jsonObject?.get("arguments")?.jsonPrimitive?.contentOrNull
+                        toolCallObject["function"]?.jsonObject?.get("arguments")?.jsonPrimitive?.contentOrNull
                     add(
                         UIMessagePart.Tool(
                             toolCallId = toolCallId ?: "",

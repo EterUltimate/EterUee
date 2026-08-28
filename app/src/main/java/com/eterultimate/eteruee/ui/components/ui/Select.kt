@@ -1,6 +1,5 @@
 package com.eterultimate.eteruee.ui.components.ui
 
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement

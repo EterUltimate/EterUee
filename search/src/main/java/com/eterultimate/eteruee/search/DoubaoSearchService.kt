@@ -1,4 +1,4 @@
-package me.rerere.search
+package com.eterultimate.eteruee.search
 
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -13,10 +13,10 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import com.eterultimate.eteruee.ai.core.InputSchema
-import me.rerere.search.SearchResult.SearchResultItem
-import me.rerere.search.SearchService.Companion.httpClient
-import me.rerere.search.SearchService.Companion.json
-import me.rerere.search.SearchService.Companion.keyRoulette
+import com.eterultimate.eteruee.search.SearchResult.SearchResultItem
+import com.eterultimate.eteruee.search.SearchService.Companion.httpClient
+import com.eterultimate.eteruee.search.SearchService.Companion.json
+import com.eterultimate.eteruee.search.SearchService.Companion.keyRoulette
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody

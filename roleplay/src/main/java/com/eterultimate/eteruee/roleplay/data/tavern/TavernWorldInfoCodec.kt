@@ -48,6 +48,32 @@ object TavernWorldInfoCodec {
         return RoleplayJson.encodeToString(JsonElement.serializer(), toWorldInfoJson(worldInfo))
     }
 
+    /**
+     * 从角色卡内嵌的 character_book 解码世界书。
+     * 条目为空或格式非法时返回 null，由调用方决定是否降级处理。
+     */
+    fun decodeCharacterBook(book: JsonElement, fallbackName: String = "Imported Lorebook"): WorldInfo? {
+        val root = book.jsonObjectOrNull() ?: return null
+        val entries = decodeEntries(root["entries"])
+        if (entries.isEmpty()) return null
+        val extensions = root["extensions"]?.jsonObjectOrNull()?.filterValues { it !is JsonNull } ?: emptyMap()
+        return WorldInfo(
+            name = root.string("name", fallbackName),
+            description = root.string("description"),
+            entries = entries,
+            scanDepth = extensions.int("scan_depth", root.int("scanDepth", 4)) ?: 4,
+            selectiveLogic = if (entries.any { it.secondaryKeys.isNotEmpty() }) {
+                SelectiveLogic.AND
+            } else {
+                SelectiveLogic.OR
+            },
+            extensions = extensions,
+            originalData = root,
+            createdAt = Instant.now(),
+            updatedAt = Instant.now()
+        )
+    }
+
     fun encodeCharacterBook(worldInfo: WorldInfo): JsonObject {
         val original = worldInfo.originalData?.jsonObjectOrNull()?.toMutableMap() ?: mutableMapOf()
         original["name"] = JsonPrimitive(worldInfo.name)

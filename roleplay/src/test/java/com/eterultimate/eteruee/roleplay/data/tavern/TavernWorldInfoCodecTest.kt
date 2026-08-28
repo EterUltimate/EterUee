@@ -1,5 +1,6 @@
 package com.eterultimate.eteruee.roleplay.data.tavern
 
+import com.eterultimate.eteruee.roleplay.data.serialization.RoleplayJson
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -65,5 +66,43 @@ class TavernWorldInfoCodecTest {
         assertEquals("memo", worldInfo.entries.first().comment)
         assertFalse(worldInfo.entries.first().enabled)
         assertEquals(0.4f, worldInfo.entries.first().probability, 0.001f)
+    }
+
+    @Test
+    fun `decodeCharacterBook parses embedded character book`() {
+        val book = RoleplayJson.parseToJsonElement(
+            """
+            {
+              "name": "Embedded Book",
+              "entries": [
+                {
+                  "keys": ["forest"],
+                  "content": "A dark forest",
+                  "enabled": true,
+                  "insertion_order": 10,
+                  "position": "before_char"
+                }
+              ]
+            }
+            """.trimIndent()
+        )
+
+        val worldInfo = TavernWorldInfoCodec.decodeCharacterBook(book, fallbackName = "Card Lorebook")
+
+        org.junit.Assert.assertNotNull(worldInfo)
+        assertEquals("Embedded Book", worldInfo?.name)
+        assertEquals(1, worldInfo?.entries?.size)
+        assertEquals("A dark forest", worldInfo?.entries?.first()?.content)
+    }
+
+    @Test
+    fun `decodeCharacterBook returns null for empty entries`() {
+        val book = RoleplayJson.parseToJsonElement(
+            """
+            { "name": "Empty", "entries": [] }
+            """.trimIndent()
+        )
+
+        org.junit.Assert.assertNull(TavernWorldInfoCodec.decodeCharacterBook(book))
     }
 }

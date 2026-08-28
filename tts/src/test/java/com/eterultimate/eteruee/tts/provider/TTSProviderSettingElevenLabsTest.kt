@@ -7,7 +7,7 @@ import org.junit.Test
 import kotlin.uuid.Uuid
 
 class TTSProviderSettingElevenLabsTest {
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
     @Test
     fun testElevenLabsSerialization() {

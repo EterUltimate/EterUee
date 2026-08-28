@@ -12,8 +12,8 @@ import com.eterultimate.eteruee.data.datastore.getCurrentAssistant
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import com.eterultimate.eteruee.ai.core.Tool
+import com.eterultimate.eteruee.data.ai.mcp.mcpProviderToolName
 import com.eterultimate.eteruee.utils.JsonInstant
-import kotlinx.serialization.json.JsonElement
 
 class ChatToolExecutor(
     private val settings: Settings,
@@ -39,10 +39,10 @@ class ChatToolExecutor(
                         )
                     )
                 }
-                mcpManager.getAllAvailableTools().forEach { (serverId, tool) ->
+                mcpManager.getAllAvailableTools().forEach { (serverId, _, tool) ->
                     add(
                         Tool(
-                            name = "mcp__" + tool.name,
+                            name = mcpProviderToolName(serverId, tool.name),
                             description = tool.description ?: "",
                             parameters = { tool.inputSchema },
                             needsApproval = tool.needsApproval,

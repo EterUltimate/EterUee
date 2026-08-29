@@ -62,13 +62,13 @@ jobs:
           test -s ../hiddify-core/bin/hiddify-core.aar
 
       - name: Set up JDK 26
-        uses: actions/setup-java@v5.6.0
+        uses: actions/setup-java@v5.7.0
         with:
           distribution: oracle
           java-version: ${{ env.JAVA_VERSION }}
 
       - name: Gradle cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.gradle/caches
@@ -179,7 +179,7 @@ jobs:
             Set-Content ../termux-app/terminal-view/build.gradle
 
       - name: Set up JDK 24 for desktop packaging
-        uses: actions/setup-java@v5.6.0
+        uses: actions/setup-java@v5.7.0
         with:
           distribution: oracle
           java-version: ${{ env.DESKTOP_JAVA_VERSION }}
@@ -245,7 +245,7 @@ jobs:
             ../termux-app/terminal-view/build.gradle
 
       - name: Set up JDK 24 for desktop packaging
-        uses: actions/setup-java@v5.6.0
+        uses: actions/setup-java@v5.7.0
         with:
           distribution: oracle
           java-version: ${{ env.DESKTOP_JAVA_VERSION }}

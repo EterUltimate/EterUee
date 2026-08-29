@@ -8,6 +8,7 @@ import com.eterultimate.eteruee.tts.model.AudioChunk
 import com.eterultimate.eteruee.tts.model.AudioFormat
 import com.eterultimate.eteruee.tts.model.TTSRequest
 import com.eterultimate.eteruee.tts.provider.TTSProvider
+import com.eterultimate.eteruee.tts.provider.TTSProviderException
 import com.eterultimate.eteruee.tts.provider.TTSProviderSetting
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -52,7 +53,10 @@ class ElevenLabsTTSProvider : TTSProvider<TTSProviderSetting.ElevenLabs> {
             val errorBody = response.body?.string()
             Log.e(TAG, "generateSpeech: ${response.code} ${response.message}")
             Log.e(TAG, "generateSpeech: $errorBody")
-            throw Exception("ElevenLabs TTS request failed: ${response.code} ${response.message}")
+            throw TTSProviderException(
+                message = "ElevenLabs TTS request failed: ${response.code} ${response.message}",
+                statusCode = response.code
+            )
         }
 
         val audioData = response.body.bytes()

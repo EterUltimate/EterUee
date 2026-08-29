@@ -153,7 +153,7 @@ leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", ve
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 commons-text = { module = "org.apache.commons:commons-text", version.ref = "commons-text" }
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }
-modelcontextprotocol-kotlin-sdk = { module = "io.modelcontextprotocol:kotlin-sdk", version.ref = "mcp" }
+modelcontextprotocol-kotlin-sdk = { module = "io.modelcontextprotocol:kotlin-sdk-client", version.ref = "mcp" }
 pebble = { module = "io.pebbletemplates:pebble", version.ref = "pebble" }
 androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "browser" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }

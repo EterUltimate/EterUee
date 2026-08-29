@@ -9,6 +9,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonArrayBuilder
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.add
@@ -22,6 +23,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
+import com.eterultimate.eteruee.ai.core.InputSchema
 import com.eterultimate.eteruee.ai.core.MessageRole
 import com.eterultimate.eteruee.ai.core.ReasoningLevel
 import com.eterultimate.eteruee.ai.core.TokenUsage
@@ -271,8 +273,11 @@ class ChatCompletionsAPI(
                 }
             }
 
-            if (params.model.outputModalities.contains(Modality.IMAGE)) {
-                if (host.matchesHostOrSubdomain("openrouter.ai")) {
+            // OpenRouter 适配: 会话 ID 头 + 多模态参数
+            val isOpenRouter = host.matchesHostOrSubdomain("openrouter.ai")
+            if (isOpenRouter) {
+                params.sessionId?.let { put("session_id", it) }
+                if(params.model.outputModalities.contains(Modality.IMAGE)) {
                     put("modalities", buildJsonArray {
                         add("image")
                         add("text")
@@ -364,9 +369,22 @@ class ChatCompletionsAPI(
                         })
                     }
 
+                    host.matchesHostOrSubdomain("api.xiaomimimo.com") || host.matchesHostOrSubdomain("token-plan-cn.xiaomimimo.com") -> {
+                        // 小米 MiMo
+                        // https://mimo.mi.com/docs/zh-CN/api/chat/openai-api
+                        put("thinking", buildJsonObject {
+                            put("type", if (!level.isEnabled) "disabled" else "enabled")
+                        })
+                    }
+
                     host.matchesHostOrSubdomain("api.moonshot.cn") -> {
                         put("thinking", buildJsonObject {
                             put("type", if (!level.isEnabled) "disabled" else "enabled")
+                            // K2.6 的 thinking.keep 默认为 null（忽略历史思考），思考开启时
+                            // 需显式传 "all" 才是保留式思考；文档推荐与 enabled 搭配（#1586）
+                            if (level.isEnabled && ModelRegistry.KIMI_K2_6.match(params.model.modelId)) {
+                                put("keep", "all")
+                            }
                         })
                     }
 
@@ -375,7 +393,12 @@ class ChatCompletionsAPI(
                             put("type", if (!level.isEnabled) "disabled" else "enabled")
                         })
                         if (level.isEnabled && level != ReasoningLevel.AUTO) {
-                            put("reasoning_effort", level.effort)
+                            val effort = when (level) {
+                                ReasoningLevel.MEDIUM, ReasoningLevel.HIGH -> "high"
+                                ReasoningLevel.MAX -> "max"
+                                else -> level.effort
+                            }
+                            put("reasoning_effort", effort)
                         }
                     }
 
@@ -383,7 +406,7 @@ class ChatCompletionsAPI(
                         if ("deepseek-v4" in params.model.modelId.lowercase()) {
                             if (level != ReasoningLevel.AUTO) {
                                 val effort = when (level) {
-                                    ReasoningLevel.XHIGH -> "max"
+                                    ReasoningLevel.XHIGH, ReasoningLevel.MAX -> "max"
                                     ReasoningLevel.OFF -> "none"
                                     else -> "high"
                                 }
@@ -424,6 +447,7 @@ class ChatCompletionsAPI(
                                     "parameters",
                                     json.encodeToJsonElement(
                                         tool.parameters()
+                                            ?: InputSchema.Obj(properties = JsonObject(emptyMap()))
                                     )
                                 )
                             })
@@ -435,7 +459,13 @@ class ChatCompletionsAPI(
     }
 
     private fun isModelAllowTemperature(model: Model): Boolean {
-        return !ModelRegistry.OPENAI_O_MODELS.match(model.modelId) && !ModelRegistry.GPT_5.match(model.modelId)
+        val isMoonshotRestricted = ModelRegistry.KIMI_K2_5.match(model.modelId) ||
+                ModelRegistry.KIMI_K2_6.match(model.modelId) ||
+                ModelRegistry.KIMI_K3.match(model.modelId) ||
+                ModelRegistry.KIMI_K3_ALIAS.match(model.modelId)
+        return !ModelRegistry.OPENAI_O_MODELS.match(model.modelId) &&
+               !ModelRegistry.GPT_5.match(model.modelId) &&
+               !isMoonshotRestricted
     }
 
     private fun buildMessages(messages: List<UIMessage>) = buildJsonArray {
@@ -491,9 +521,7 @@ class ChatCompletionsAPI(
                             put("role", "tool")
                             put("name", tool.toolName)
                             put("tool_call_id", tool.toolCallId)
-                            put(
-                                "content",
-                                tool.output.filterIsInstance<UIMessagePart.Text>().joinToString("\n") { it.text })
+                            put("content", tool.toToolResultContent())
                         })
                     }
                 }
@@ -583,7 +611,8 @@ class ChatCompletionsAPI(
                             put("type", "function")
                             put("function", buildJsonObject {
                                 put("name", tool.toolName)
-                                put("arguments", tool.input)
+                                // 使用 inputAsJson() 归一化，避免流式中断导致的残缺 JSON 被发送
+                                put("arguments", tool.inputAsJson().toString())
                             })
                         })
                     }
@@ -632,6 +661,73 @@ class ChatCompletionsAPI(
         })
     }
 
+    private fun UIMessagePart.Tool.toToolResultContent(): JsonElement =
+        if (output.none { it is UIMessagePart.Image || it is UIMessagePart.Video || it is UIMessagePart.Audio }) {
+            JsonPrimitive(output.filterIsInstance<UIMessagePart.Text>().joinToString("\n") { it.text })
+        } else {
+            buildJsonArray {
+                output.forEach { part ->
+                    when (part) {
+                        is UIMessagePart.Text -> {
+                            if (part.text.isNotBlank()) {
+                                add(buildJsonObject {
+                                    put("type", "text")
+                                    put("text", part.text)
+                                })
+                            }
+                        }
+
+                        is UIMessagePart.Image -> {
+                            add(buildJsonObject {
+                                part.encodeBase64().onSuccess { encodedImage ->
+                                    put("type", "image_url")
+                                    put("image_url", buildJsonObject {
+                                        put("url", encodedImage.base64)
+                                    })
+                                }.onFailure {
+                                    Log.w(TAG, "encode tool result image failed: ${part.url}", it)
+                                    put("type", "text")
+                                    put("text", "Error: Failed to encode image to base64")
+                                }
+                            })
+                        }
+
+                        is UIMessagePart.Video -> {
+                            add(buildJsonObject {
+                                part.encodeBase64().onSuccess { encodedVideo ->
+                                    put("type", "video_url")
+                                    put("video_url", buildJsonObject {
+                                        put("url", encodedVideo)
+                                    })
+                                }.onFailure {
+                                    Log.w(TAG, "encode tool result video failed: ${part.url}", it)
+                                    put("type", "text")
+                                    put("text", "Error: Failed to encode video to base64")
+                                }
+                            })
+                        }
+
+                        is UIMessagePart.Audio -> {
+                            add(buildJsonObject {
+                                part.encodeBase64().onSuccess { encodedAudio ->
+                                    put("type", "audio_url")
+                                    put("audio_url", buildJsonObject {
+                                        put("url", encodedAudio)
+                                    })
+                                }.onFailure {
+                                    Log.w(TAG, "encode tool result audio failed: ${part.url}", it)
+                                    put("type", "text")
+                                    put("text", "Error: Failed to encode audio to base64")
+                                }
+                            })
+                        }
+
+                        else -> {}
+                    }
+                }
+            }
+        }
+
     private fun parseMessage(jsonObject: JsonObject): UIMessage = parseMessage(
         jsonObject = jsonObject,
         wrapImagesAsDataUri = false
@@ -670,13 +766,15 @@ class ChatCompletionsAPI(
                     )
                 }
                 toolCalls.forEach { toolCalls ->
-                    val type = toolCalls.jsonObject["type"]?.jsonPrimitive?.contentOrNull
+                    // 某些供应商会在流式响应中返回 null tool_calls 元素，跳过避免解码崩溃 (rikkahub 2.4.9)
+                    val toolCallObject = toolCalls.jsonObjectOrNull ?: return@forEach
+                    val type = toolCallObject["type"]?.jsonPrimitive?.contentOrNull
                     if (!type.isNullOrEmpty() && type != "function") error("tool call type not supported: $type")
-                    val toolCallId = toolCalls.jsonObject["id"]?.jsonPrimitive?.contentOrNull
+                    val toolCallId = toolCallObject["id"]?.jsonPrimitive?.contentOrNull
                     val toolName =
-                        toolCalls.jsonObject["function"]?.jsonObject?.get("name")?.jsonPrimitive?.contentOrNull
+                        toolCallObject["function"]?.jsonObject?.get("name")?.jsonPrimitive?.contentOrNull
                     val arguments =
-                        toolCalls.jsonObject["function"]?.jsonObject?.get("arguments")?.jsonPrimitive?.contentOrNull
+                        toolCallObject["function"]?.jsonObject?.get("arguments")?.jsonPrimitive?.contentOrNull
                     add(
                         UIMessagePart.Tool(
                             toolCallId = toolCallId ?: "",
@@ -817,7 +915,11 @@ class ChatCompletionsAPI(
             promptTokens = jsonObject["prompt_tokens"]?.jsonPrimitive?.intOrNull ?: 0,
             completionTokens = jsonObject["completion_tokens"]?.jsonPrimitive?.intOrNull ?: 0,
             totalTokens = jsonObject["total_tokens"]?.jsonPrimitive?.intOrNull ?: 0,
+            // 各 provider 汇报缓存命中的字段形状不统一，按方言兜底解析（#1576）：
+            // OpenAI 嵌套 -> Moonshot 顶层 cached_tokens -> DeepSeek prompt_cache_hit_tokens
             cachedTokens = jsonObject["prompt_tokens_details"]?.jsonObjectOrNull?.get("cached_tokens")?.jsonPrimitive?.intOrNull
+                ?: jsonObject["cached_tokens"]?.jsonPrimitive?.intOrNull
+                ?: jsonObject["prompt_cache_hit_tokens"]?.jsonPrimitive?.intOrNull
                 ?: 0
         )
     }

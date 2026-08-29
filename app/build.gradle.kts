@@ -23,8 +23,8 @@ android {
         applicationId = "com.eterultimate.eteruee"
         minSdk = 26
         targetSdk = 37
-        versionCode = 173
-        versionName = "5.2.18"
+        versionCode = 174
+        versionName = "5.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -280,7 +280,6 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
-    implementation(libs.firebase.config)
 
     // DataStore
     implementation(libs.androidx.datastore.preferences)
@@ -329,6 +328,9 @@ dependencies {
 
     // serialization
     implementation(libs.kotlinx.serialization.json)
+
+    // YAML front matter
+    implementation(libs.snakeyaml)
 
     // zxing
     implementation(libs.zxing.core)
@@ -397,6 +399,7 @@ dependencies {
     // modules
     implementation(project(":ai"))
     implementation(project(":web"))
+    implementation(project(":videogen"))
     implementation(project(":document"))
     implementation(project(":highlight"))
     implementation(project(":search"))

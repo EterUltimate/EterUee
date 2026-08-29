@@ -47,6 +47,12 @@ import androidx.compose.ui.graphics.RectangleShape
 
 private val levels = ReasoningLevel.entries
 private val levelCount = levels.size
+private val labeledLevels = setOf(
+    ReasoningLevel.OFF,
+    ReasoningLevel.AUTO,
+    ReasoningLevel.LOW,
+    ReasoningLevel.MAX,
+)
 
 @Composable
 fun ReasoningButton(
@@ -145,6 +151,7 @@ fun ReasoningPicker(
                         ReasoningLevel.MEDIUM -> ReasoningMedium
                         ReasoningLevel.HIGH -> ReasoningHigh
                         ReasoningLevel.XHIGH -> ReasoningHigh
+                        ReasoningLevel.MAX -> ReasoningHigh
                     },
                     contentDescription = null,
                     modifier = Modifier.size(32.dp),
@@ -253,10 +260,12 @@ private fun ReasoningScale(
                                 .background(tickColor)
                         )
                         Text(
-                            text = level.label(),
+                            text = if (level in labeledLevels) level.label() else "",
                             style = MaterialTheme.typography.labelSmall,
                             textAlign = TextAlign.Center,
                             color = labelColor,
+                            minLines = 1,
+                            maxLines = 1,
                         )
                     }
                 }
@@ -274,6 +283,7 @@ private fun ReasoningIcon(level: ReasoningLevel) {
         ReasoningLevel.MEDIUM -> Icon(ReasoningMedium, null)
         ReasoningLevel.HIGH -> Icon(ReasoningHigh, null)
         ReasoningLevel.XHIGH -> Icon(ReasoningHigh, null)
+        ReasoningLevel.MAX -> Icon(ReasoningHigh, null)
     }
 }
 
@@ -285,6 +295,7 @@ private fun ReasoningLevel.label(): String = when (this) {
     ReasoningLevel.MEDIUM -> stringResource(R.string.reasoning_medium)
     ReasoningLevel.HIGH -> stringResource(R.string.reasoning_heavy)
     ReasoningLevel.XHIGH -> stringResource(R.string.reasoning_xhigh)
+    ReasoningLevel.MAX -> stringResource(R.string.reasoning_max)
 }
 
 @Composable

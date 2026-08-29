@@ -174,6 +174,8 @@ private fun ReasoningContent(
                 modifier = Modifier.fillMaxSize(),
             )
         }
+        // 流式生成期间不启用 SelectionContainer，避免 selectable 列表并发修改导致的
+        // ConcurrentModificationException（详见 ChatMessage.kt 文本块同样处理）。
         if (loading) {
             reasoningContent()
         } else {

@@ -137,7 +137,12 @@ fun SkillsPage() {
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = innerPadding + PaddingValues(16.dp),
+            contentPadding = innerPadding + PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 16.dp,
+                bottom = 16.dp + 72.dp,
+            ),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (skills.isEmpty()) {
@@ -169,7 +174,7 @@ fun SkillsPage() {
                 }
             }
 
-            items(skills, key = { it.name }) { skill ->
+            items(skills, key = { it.skillDir.absolutePath }) { skill ->
                 SkillCard(
                     skill = skill,
                     onClick = { navController.navigate(Screen.SkillDetail(skill.name)) },

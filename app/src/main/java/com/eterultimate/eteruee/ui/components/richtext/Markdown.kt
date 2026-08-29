@@ -42,6 +42,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -444,7 +445,7 @@ private fun MarkdownNode(
         }
 
         MarkdownElementTypes.STRONG -> {
-            ProvideTextStyle(TextStyle(fontWeight = FontWeight.SemiBold)) {
+            ProvideTextStyle(TextStyle(fontWeight = FontWeight.Bold)) {
                 node.children.fastForEach { child ->
                     MarkdownNode(
                         node = child, content = content, modifier = modifier, onClickCitation = onClickCitation
@@ -497,9 +498,8 @@ private fun MarkdownNode(
             val enableLatexRendering = LocalSettings.current.displaySetting.enableLatexRendering
             if (enableLatexRendering) {
                 MathInline(
-                    formula,
-                    modifier = modifier.padding(horizontal = 1.dp),
-                    fontSize = LocalTextStyle.current.fontSize,
+                    formula, modifier = modifier.padding(horizontal = 1.dp),
+                    fontSize = LocalTextStyle.current.fontSize
                 )
             } else {
                 Text(
@@ -518,7 +518,7 @@ private fun MarkdownNode(
                     formula, modifier = modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp),
-                    fontSize = LocalTextStyle.current.fontSize,
+                    fontSize = LocalTextStyle.current.fontSize
                 )
             } else {
                 Text(
@@ -835,6 +835,8 @@ private fun TableNode(node: ASTNode, content: String, modifier: Modifier = Modif
         modifier = modifier.padding(vertical = 8.dp),
         columnMinWidths = List(columnCount) { 80.dp },
         columnMaxWidths = List(columnCount) { 200.dp },
+        outerBorder = null,
+        shape = RectangleShape,
     )
 }
 
@@ -894,7 +896,7 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
         }
 
         node.type == MarkdownElementTypes.STRONG -> {
-            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
+            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
                 node.children.trim(MarkdownTokenTypes.EMPH, 2).fastForEach {
                     appendMarkdownNodeContent(
                         node = it,
@@ -1038,9 +1040,7 @@ private fun AnnotatedString.Builder.appendMarkdownNodeContent(
                             placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter
                         ), children = {
                             MathInline(
-                                latex = formula,
-                                modifier = Modifier,
-                                fontSize = style.fontSize,
+                                latex = formula, modifier = Modifier
                             )
                         })
                     )

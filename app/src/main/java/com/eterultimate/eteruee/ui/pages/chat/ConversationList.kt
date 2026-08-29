@@ -54,6 +54,7 @@ import com.eterultimate.eteruee.ui.theme.extendColors
 import com.eterultimate.eteruee.utils.toLocalString
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Delete01
+import me.rerere.hugeicons.stroke.Folder01
 import me.rerere.hugeicons.stroke.Forward02
 import me.rerere.hugeicons.stroke.MoreVertical
 import me.rerere.hugeicons.stroke.Pin
@@ -89,6 +90,7 @@ fun ColumnScope.ConversationList(
     onRegenerateTitle: (Conversation) -> Unit = {},
     onPin: (Conversation) -> Unit = {},
     onMoveToAssistant: (Conversation) -> Unit = {},
+    onMoveToFolder: (Conversation) -> Unit = {},
     onBatchDelete: (List<Conversation>) -> Unit = {}
 ) {
     var selectionMode by remember { mutableStateOf(false) }
@@ -201,6 +203,7 @@ fun ColumnScope.ConversationList(
                         onRegenerateTitle = onRegenerateTitle,
                         onPin = onPin,
                         onMoveToAssistant = onMoveToAssistant,
+                        onMoveToFolder = onMoveToFolder,
                         modifier = Modifier.animateItem()
                     )
                 }
@@ -337,6 +340,7 @@ private fun ConversationItem(
     onRegenerateTitle: (Conversation) -> Unit = {},
     onPin: (Conversation) -> Unit = {},
     onMoveToAssistant: (Conversation) -> Unit = {},
+    onMoveToFolder: (Conversation) -> Unit = {},
     onClick: (Conversation) -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -468,6 +472,19 @@ private fun ConversationItem(
                     },
                     leadingIcon = {
                         Icon(HugeIcons.Forward02, null)
+                    }
+                )
+
+                DropdownMenuItem(
+                    text = {
+                        Text(stringResource(R.string.chat_page_move_to_folder))
+                    },
+                    onClick = {
+                        onMoveToFolder(conversation)
+                        showDropdownMenu = false
+                    },
+                    leadingIcon = {
+                        Icon(HugeIcons.Folder01, null)
                     }
                 )
 

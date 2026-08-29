@@ -2,6 +2,7 @@
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
@@ -16,15 +17,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dokar.sonner.ToastType
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.ai.tools.LocalToolOption
 import com.eterultimate.eteruee.data.model.Assistant
 import com.eterultimate.eteruee.ui.components.nav.BackButton
 import com.eterultimate.eteruee.ui.components.ui.CardGroup
+import com.eterultimate.eteruee.ui.context.LocalToaster
 import com.eterultimate.eteruee.ui.theme.CustomColors
+import com.eterultimate.eteruee.utils.hasUsageStatsPermission
+import com.eterultimate.eteruee.utils.openUsageAccessSettings
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -55,7 +61,7 @@ fun AssistantLocalToolPage(id: String) {
         containerColor = CustomColors.topBarColors.containerColor,
     ) { innerPadding ->
         AssistantLocalToolContent(
-            modifier = Modifier.padding(innerPadding),
+            innerPadding = innerPadding,
             assistant = assistant,
             onUpdate = { vm.update(it) }
         )
@@ -64,11 +70,20 @@ fun AssistantLocalToolPage(id: String) {
 
 @Composable
 private fun AssistantLocalToolContent(
-    modifier: Modifier = Modifier,
+    innerPadding: PaddingValues,
     assistant: Assistant,
     onUpdate: (Assistant) -> Unit
 ) {
+    val context = LocalContext.current
+    val toaster = LocalToaster.current
+    val permissionRequiredText =
+        stringResource(R.string.assistant_page_local_tools_screen_time_permission_required)
+
     fun toggleLocalTool(option: LocalToolOption, enabled: Boolean) {
+        if (enabled && option == LocalToolOption.ScreenTime && !context.hasUsageStatsPermission()) {
+            toaster.show(message = permissionRequiredText, type = ToastType.Warning)
+            context.openUsageAccessSettings()
+        }
         val newLocalTools = if (enabled) {
             assistant.localTools + option
         } else {
@@ -78,10 +93,11 @@ private fun AssistantLocalToolContent(
     }
 
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
             .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp)
+            .padding(innerPadding)
             .imePadding(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -111,6 +127,20 @@ private fun AssistantLocalToolContent(
                     Switch(
                         checked = assistant.localTools.contains(LocalToolOption.TimeInfo),
                         onCheckedChange = { toggleLocalTool(LocalToolOption.TimeInfo, it) }
+                    )
+                }
+            )
+            item(
+                headlineContent = {
+                    Text(stringResource(R.string.assistant_page_local_tools_screen_time_title))
+                },
+                supportingContent = {
+                    Text(stringResource(R.string.assistant_page_local_tools_screen_time_desc))
+                },
+                trailingContent = {
+                    Switch(
+                        checked = assistant.localTools.contains(LocalToolOption.ScreenTime),
+                        onCheckedChange = { toggleLocalTool(LocalToolOption.ScreenTime, it) }
                     )
                 }
             )

@@ -57,9 +57,13 @@ private fun buildTimeReminderMessage(gapSeconds: Long, instant: Instant): UIMess
     val dayOfWeek = javaInstant.atZone(ZoneId.systemDefault()).dayOfWeek
         .getDisplayName(TextStyle.FULL, Locale.getDefault())
     val timeStr = javaInstant.toLocalDateTime()
-    val gapText = formatGap(gapSeconds)
-    val content = "<time_reminder>Current time: $dayOfWeek, $timeStr ($gapText since last message)</time_reminder>"
-    return UIMessage.user(content)
+    val content = if (gapSeconds != null) {
+        val gapText = formatGap(gapSeconds)
+        "<time_reminder>Current time: $dayOfWeek, $timeStr ($gapText since last message)</time_reminder>"
+    } else {
+        "<time_reminder>Current time: $dayOfWeek, $timeStr</time_reminder>"
+    }
+    return UIMessage.user(content).copy(isSynthetic = true)
 }
 
 private fun formatGap(seconds: Long): String {

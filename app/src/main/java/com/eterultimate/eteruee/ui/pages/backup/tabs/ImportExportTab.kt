@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,6 +48,7 @@ fun ImportExportTab(
     val context = LocalContext.current
     var isExporting by remember { mutableStateOf(false) }
     var isRestoring by remember { mutableStateOf(false) }
+    var showImportConfirmDialog by remember { mutableStateOf(false) }
 
     // 导入类型：local 为本地备份，chatbox 为 Chatbox 导入，cherry 为 Cherry Studio 导入
     var importType by remember { mutableStateOf("local") }
@@ -115,21 +118,21 @@ fun ImportExportTab(
                         }
 
                         "chatbox" -> {
-                            // Chatbox导入：处理json文件
+                            // Chatbox Backup v2：处理 ZIP 文件
                             val tempFile =
-                                File(context.cacheDir, "temp_chatbox_${System.currentTimeMillis()}.json")
+                                File(context.cacheDir, "temp_chatbox_${System.currentTimeMillis()}.zip")
 
-                            context.contentResolver.openInputStream(sourceUri)?.use { inputStream ->
-                                FileOutputStream(tempFile).use { outputStream ->
-                                    inputStream.copyTo(outputStream)
+                            try {
+                                context.contentResolver.openInputStream(sourceUri)?.use { inputStream ->
+                                    FileOutputStream(tempFile).use { outputStream ->
+                                        inputStream.copyTo(outputStream)
+                                    }
                                 }
+
+                                vm.restoreFromChatBox(tempFile)
+                            } finally {
+                                tempFile.delete()
                             }
-
-                            // 从Chatbox文件恢复
-                            vm.restoreFromChatBox(tempFile)
-
-                            // 清理临时文件
-                            tempFile.delete()
                         }
 
                         "cherry" -> {
@@ -211,8 +214,7 @@ fun ImportExportTab(
                 item(
                     onClick = if (!isRestoring) {
                         {
-                            importType = "local"
-                            openDocumentLauncher.launch(arrayOf("application/zip"))
+                            showImportConfirmDialog = true
                         }
                     } else null,
                     headlineContent = { Text(stringResource(R.string.backup_page_local_backup_import)) },
@@ -248,7 +250,7 @@ fun ImportExportTab(
                     onClick = if (!isRestoring) {
                         {
                             importType = "chatbox"
-                            openDocumentLauncher.launch(arrayOf("application/json"))
+                            openDocumentLauncher.launch(arrayOf("application/zip"))
                         }
                     } else null,
                     headlineContent = { Text(stringResource(R.string.backup_page_import_from_chatbox)) },
@@ -281,5 +283,29 @@ fun ImportExportTab(
                 )
             }
         }
+    }
+
+    if (showImportConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showImportConfirmDialog = false },
+            title = { Text(stringResource(R.string.backup_page_local_backup_import)) },
+            text = { Text(stringResource(R.string.backup_page_import_overwrite_confirm)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showImportConfirmDialog = false
+                        importType = "local"
+                        openDocumentLauncher.launch(arrayOf("application/zip"))
+                    }
+                ) {
+                    Text(stringResource(R.string.confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showImportConfirmDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
     }
 }

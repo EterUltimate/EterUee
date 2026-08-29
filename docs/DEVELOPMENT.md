@@ -152,27 +152,27 @@ Shell 功能由三层组成：
 
 - `ShellPage` 使用 Termux terminal view/emulator 提供交互式终端。
 - `ShellTools` 使用 `LocalShellRunner` 执行工具调用中的本地命令。
-- `LinuxEnvironmentManager` 使用共享 Termux `proot` runtime 运行应用私有 Linux rootfs。
+- `LinuxEnvironmentManager` 使用共享 Termux `proot` runtime 运行 workspace 私有 Linux rootfs。
 
-`LocalShellRunner` 默认使用：
+`LocalShellRunner` 默认使用 workspace sandbox：
 
 ```text
 shell: /system/bin/sh
 PATH: /system/bin:/system/xbin
-working dir: app external files directory
+working dir: files/workspace/default/files
 ```
 
 Shell 工具需要用户批准后执行，适合应用作用域文件操作和轻量本地自动化。
 
 ## proot Linux runtime
 
-默认发行版是 Arch Linux。可选 Ubuntu 24.04 rootfs 模块使用独立目录，不覆盖 Arch：
+默认发行版是 Arch Linux。可选 Ubuntu 24.04 以 `ubuntu-proot` 插件形式安装，使用独立目录，不覆盖 Arch：
 
 ```text
-files/linux/usr
-files/linux/archlinux
-files/linux/ubuntu
-files/linux/downloads
+files/workspace/default/linux/usr
+files/workspace/default/linux/archlinux
+files/workspace/default/linux/ubuntu
+files/workspace/default/linux/downloads
 ```
 
 Web API、Web UI Device Agent、`linux_environment` 工具和插件能力均支持：

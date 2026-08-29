@@ -47,7 +47,6 @@ import me.rerere.hugeicons.stroke.Bookshelf01
 import me.rerere.hugeicons.stroke.Brain02
 import me.rerere.hugeicons.stroke.Clapping01
 import me.rerere.hugeicons.stroke.Database02
-import me.rerere.hugeicons.stroke.Developer
 import me.rerere.hugeicons.stroke.GlobalSearch
 import me.rerere.hugeicons.stroke.ImageUpload
 import me.rerere.hugeicons.stroke.InLove
@@ -122,17 +121,6 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                     BackButton()
                 },
                 scrollBehavior = scrollBehavior,
-                actions = {
-                    if(settings.developerMode) {
-                        IconButton(
-                            onClick = {
-                                navController.navigate(Screen.Developer)
-                            }
-                        ) {
-                            Icon(HugeIcons.Developer, "Developer")
-                        }
-                    }
-                },
                 colors = CustomColors.topBarColors
             )
         },
@@ -228,6 +216,12 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                         leadingContent = { Icon(HugeIcons.McpServer, null) },
                         supportingContent = { Text(stringResource(R.string.setting_page_mcp_desc)) },
                         headlineContent = { Text(stringResource(R.string.setting_page_mcp)) },
+                    )
+                    item(
+                        onClick = { navController.navigate(Screen.SettingNetwork) },
+                        leadingContent = { Icon(HugeIcons.GlobalSearch, null) },
+                        supportingContent = { Text(stringResource(R.string.setting_page_network_desc)) },
+                        headlineContent = { Text(stringResource(R.string.setting_page_network)) },
                     )
                     item(
                         onClick = { navController.navigate(Screen.SettingWeb) },

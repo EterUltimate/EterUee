@@ -41,6 +41,7 @@ fun Dp.toSp(): TextUnit = with(LocalDensity.current) {
 
 @Composable
 fun TextUnit.toDp(): Dp = with(LocalDensity.current) {
+    // Density.toDp(TextUnit) 仅支持 Sp 单位，Em/Unspecified 会抛 "Only Sp can convert to Px"
     if (this@toDp.isSp) this@toDp.toDp() else 0.dp
 }
 

@@ -54,10 +54,12 @@ import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.RouteActivity
 import com.eterultimate.eteruee.data.ai.GenerationChunk
 import com.eterultimate.eteruee.data.ai.GenerationHandler
+import com.eterultimate.eteruee.data.ai.TranslationHandler
 import com.eterultimate.eteruee.data.ai.mcp.McpManager
 import com.eterultimate.eteruee.data.ai.mcp.mcpDisplayToolName
 import com.eterultimate.eteruee.data.ai.mcp.mcpProviderToolName
 import com.eterultimate.eteruee.data.ai.tools.LocalTools
+import com.eterultimate.eteruee.data.ai.tools.createConversationTools
 import com.eterultimate.eteruee.data.ai.tools.createSearchTools
 import com.eterultimate.eteruee.data.ai.tools.createSkillTools
 import com.eterultimate.eteruee.data.files.SkillManager
@@ -83,6 +85,7 @@ import com.eterultimate.eteruee.data.model.AssistantAffectScope
 import com.eterultimate.eteruee.data.model.replaceRegexes
 import com.eterultimate.eteruee.data.model.toMessageNode
 import com.eterultimate.eteruee.data.repository.ConversationRepository
+import com.eterultimate.eteruee.data.repository.FolderRepository
 import com.eterultimate.eteruee.data.repository.MemoryRepository
 import com.eterultimate.eteruee.web.BadRequestException
 import com.eterultimate.eteruee.web.NotFoundException
@@ -144,12 +147,14 @@ class ChatService(
     private val conversationRepo: ConversationRepository,
     private val memoryRepository: MemoryRepository,
     private val generationHandler: GenerationHandler,
+    private val translationHandler: TranslationHandler,
     private val templateTransformer: TemplateTransformer,
     private val providerManager: ProviderManager,
     private val localTools: LocalTools,
     val mcpManager: McpManager,
     private val filesManager: FilesManager,
     private val skillManager: SkillManager,
+    private val folderRepository: FolderRepository,
 ) {
     // 统一会话管理
     private val sessions = ConcurrentHashMap<Uuid, ConversationSession>()
@@ -273,8 +278,7 @@ class ChatService(
     }
 
     fun getProcessingStatusFlow(conversationId: Uuid): StateFlow<String?> {
-        val session = sessions[conversationId] ?: return MutableStateFlow(null)
-        return session.processingStatus
+        return getOrCreateSession(conversationId).processingStatus
     }
 
     fun getConversationJobs(): Flow<Map<Uuid, Job?>> {
@@ -507,7 +511,7 @@ class ChatService(
 
             // memory tool
             if (!model.abilities.contains(ModelAbility.TOOL)) {
-                if (settings.enableWebSearch || mcpManager.getAllAvailableTools().isNotEmpty()) {
+                if (assistant.enableWebSearch || mcpManager.getAllAvailableTools().isNotEmpty()) {
                     addError(
                         IllegalStateException(context.getString(R.string.tools_warning)),
                         conversationId,
@@ -534,6 +538,7 @@ class ChatService(
                     }
                 },
                 assistant = assistant,
+                conversationId = conversationId,
                 conversationSystemPrompt = conversation.customSystemPrompt,
                 conversationModeInjectionIds = conversation.modeInjectionIds,
                 conversationLorebookIds = conversation.lorebookIds,
@@ -548,18 +553,41 @@ class ChatService(
                 },
                 outputTransformers = outputTransformers,
                 tools = buildList {
-                    if (settings.enableWebSearch) {
+                    if (assistant.enableWebSearch) {
                         addAll(createSearchTools(settings))
                     }
                     addAll(localTools.getTools(assistant.localTools))
+                    if (assistant.enableRecentChatsReference) {
+                        addAll(createConversationTools(conversationRepo, assistant.id))
+                    }
                     if (assistant.enabledSkills.isNotEmpty()) {
                         addAll(
                             createSkillTools(
                                 enabledSkills = assistant.enabledSkills,
                                 allSkills = skillManager.listSkills(),
-                                skillManager = skillManager,
                             )
                         )
+                    }
+                    val invalidMcpServerNames = settings.mcpServers
+                        .filter { it.commonOptions.enable && it.id in assistant.mcpServers }
+                        .map { it.commonOptions.name }
+                        .distinct()
+                        .filter { name ->
+                            name.isEmpty() || !name.all { char ->
+                                char in 'a'..'z' || char in 'A'..'Z' || char in '0'..'9'
+                            }
+                        }
+                    if (invalidMcpServerNames.isNotEmpty()) {
+                        addError(
+                            error = IllegalStateException(
+                                context.getString(
+                                    R.string.error_mcp_invalid_server_name,
+                                    invalidMcpServerNames.joinToString(", ")
+                                )
+                            ),
+                            conversationId = conversationId,
+                        )
+                        return
                     }
                     mcpManager.getAllAvailableTools().forEach { (serverId, _, tool) ->
                         add(
@@ -1019,6 +1047,43 @@ class ChatService(
         updateConversation(conversationId, update(current))
     }
 
+    /**
+     * 移动会话到文件夹（folderId 为 null 表示移出到未归类）。
+     *
+     * 若该会话当前有活跃 session（正在查看或后台生成），先同步内存态再落库：
+     * 否则仅改数据库 folder_id，而内存里那份 Conversation 仍是旧 folderId，
+     * 后续任意 saveConversation(id, state.value) 会用整对象把 folder_id 覆盖回旧值，导致移动丢失。
+     * 先改内存可确保这段窗口内的整对象保存也带上新 folderId。
+     */
+    suspend fun moveConversationToFolder(conversationId: Uuid, folderId: Uuid?) {
+        if (sessions.containsKey(conversationId)) {
+            updateConversationState(conversationId) { it.copy(folderId = folderId) }
+        }
+        conversationRepo.updateConversationFolderId(conversationId, folderId)
+    }
+
+    /**
+     * 文件夹内是否存在正在生成回复的会话。
+     * 仅活跃 session 可能在生成；内存态 folderId 为权威（移动会先同步内存态）。
+     */
+    fun hasGeneratingConversationInFolder(folderId: Uuid): Boolean {
+        return sessions.values.any { it.isGenerating && it.state.value.folderId == folderId }
+    }
+
+    /**
+     * 删除文件夹（folder_id 归属会被清空，会话本身保留）。
+     *
+     * 先把内存中归属该文件夹的活跃 session folderId 置空，再删库：
+     * 否则 clearFolder 只改了数据库，而活跃 session 内存态仍指向该文件夹，
+     * 后续整对象保存会写回一个已被删除的 folder_id，导致会话在列表中悬空。
+     */
+    suspend fun deleteFolder(folderId: Uuid) {
+        sessions.values
+            .filter { it.state.value.folderId == folderId }
+            .forEach { updateConversationState(it.id) { c -> c.copy(folderId = null) } }
+        folderRepository.deleteFolder(folderId)
+    }
+
     private fun checkFilesDelete(newConversation: Conversation, oldConversation: Conversation) {
         val newFiles = newConversation.files
         val oldFiles = oldConversation.files
@@ -1068,7 +1133,7 @@ class ChatService(
                 val loadingText = context.getString(R.string.translating)
                 updateTranslationField(conversationId, message.id, loadingText)
 
-                generationHandler.translateText(
+                translationHandler.translateText(
                     settings = settings,
                     sourceText = messageText,
                     targetLanguage = targetLanguage

@@ -515,9 +515,8 @@ class ChatCompletionsAPIMessageTest {
             model = imageModel
         )
 
-        val aihubmixModalities = aihubmixRequest["modalities"]!!.jsonArray
-        assertEquals("text", aihubmixModalities[0].jsonPrimitive.content)
-        assertEquals("image", aihubmixModalities[1].jsonPrimitive.content)
+        // aihubmix 不再发送 modalities（对齐上游 session_id 重构后的语义）
+        assertEquals(null, aihubmixRequest["modalities"])
 
         val openrouterModalities = openrouterRequest["modalities"]!!.jsonArray
         assertEquals("image", openrouterModalities[0].jsonPrimitive.content)

@@ -231,26 +231,28 @@ class ResponseAPI(
             }
 
             // tools
-            if (params.model.abilities.contains(ModelAbility.TOOL) && params.tools.isNotEmpty()) {
+            // Response API 的 tools 是扁平数组, 函数工具和内置工具可以共存, 必须写在同一个 key 下,
+            // 否则后写入的会覆盖前者
+            val useFunctionTools =
+                params.model.abilities.contains(ModelAbility.TOOL) && params.tools.isNotEmpty()
+            if (useFunctionTools || params.model.tools.isNotEmpty()) {
                 putJsonArray("tools") {
-                    params.tools.forEach { tool ->
-                        add(buildJsonObject {
-                            put("type", "function")
-                            put("name", tool.name)
-                            put("description", tool.description)
-                            put(
-                                "parameters",
-                                json.encodeToJsonElement(
-                                    tool.parameters()
+                    if (useFunctionTools) {
+                        params.tools.forEach { tool ->
+                            add(buildJsonObject {
+                                put("type", "function")
+                                put("name", tool.name)
+                                put("description", tool.description)
+                                put(
+                                    "parameters",
+                                    json.encodeToJsonElement(
+                                        tool.parameters()
+                                    )
                                 )
-                            )
-                        })
+                            })
+                        }
                     }
-                }
-            }
-            // built-in tools
-            if (params.model.tools.isNotEmpty()) {
-                putJsonArray("tools") {
+                    // built-in tools
                     params.model.tools.forEach { builtInTool ->
                         when (builtInTool) {
                             BuiltInTools.Search -> {
@@ -352,7 +354,8 @@ class ResponseAPI(
                             put("type", "function_call")
                             put("call_id", tool.toolCallId)
                             put("name", tool.toolName)
-                            put("arguments", tool.input)
+                            // 使用 inputAsJson() 归一化，避免流式中断导致的残缺 JSON 被发送
+                            put("arguments", tool.inputAsJson().toString())
                         })
                         add(buildJsonObject {
                             put("type", "function_call_output")

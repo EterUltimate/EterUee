@@ -2,6 +2,7 @@
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -80,7 +81,7 @@ fun AssistantBasicPage(id: String) {
         containerColor = CustomColors.topBarColors.containerColor,
     ) { innerPadding ->
         AssistantBasicContent(
-            modifier = Modifier.padding(innerPadding),
+            innerPadding = innerPadding,
             assistant = assistant,
             providers = providers,
             tags = tags,
@@ -92,7 +93,7 @@ fun AssistantBasicPage(id: String) {
 
 @Composable
 internal fun AssistantBasicContent(
-    modifier: Modifier = Modifier,
+    innerPadding: PaddingValues,
     assistant: Assistant,
     providers: List<com.eterultimate.eteruee.ai.provider.ProviderSetting>,
     tags: List<DataTag>,
@@ -100,10 +101,11 @@ internal fun AssistantBasicContent(
     vm: AssistantDetailVM
 ) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
             .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp)
+            .padding(innerPadding)
             .imePadding(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -139,7 +141,7 @@ internal fun AssistantBasicContent(
                 },
                 modifier = Modifier.padding(8.dp),
 
-            ) {
+                ) {
                 OutlinedTextField(
                     value = assistant.name,
                     onValueChange = {
@@ -361,6 +363,14 @@ internal fun AssistantBasicContent(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
                 )
+
+                if (assistant.contextMessageSize > 0) {
+                    Text(
+                        text = stringResource(R.string.assistant_page_context_message_truncation_warning),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
             }
             HorizontalDivider()
             FormItem(

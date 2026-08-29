@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.data.files
+package com.eterultimate.eteruee.data.files
 
 import java.io.File
 
@@ -42,4 +42,3 @@ internal object SkillPaths {
         return currentPath == rootPath || currentPath.startsWith(rootPath + File.separator)
     }
 }
-

@@ -6,7 +6,6 @@ import com.eterultimate.eteruee.ui.pages.backup.BackupVM
 import com.eterultimate.eteruee.ui.pages.chat.ChatDrawerVM
 import com.eterultimate.eteruee.ui.pages.chat.ChatVM
 import com.eterultimate.eteruee.ui.pages.debug.DebugVM
-import com.eterultimate.eteruee.ui.pages.developer.DeveloperVM
 import com.eterultimate.eteruee.ui.pages.favorite.FavoriteVM
 import com.eterultimate.eteruee.ui.pages.search.SearchVM
 import com.eterultimate.eteruee.ui.pages.history.HistoryVM
@@ -60,7 +59,6 @@ val viewModelModule = module {
     }
     viewModelOf(::BackupVM)
     viewModelOf(::ImgGenVM)
-    viewModelOf(::DeveloperVM)
     viewModelOf(::PromptVM)
     viewModelOf(::QuickMessagesVM)
     viewModelOf(::SkillsVM)

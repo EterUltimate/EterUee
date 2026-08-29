@@ -86,7 +86,7 @@ jobs:
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           else
             echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Android signing secrets are not configured; skipping Android APK/AAB release artifacts."
+            echo "::notice::Android signing secrets are not configured; skipping Android APK release artifact."
           fi
 
       - name: Prepare build files
@@ -115,10 +115,6 @@ jobs:
       - name: Build release APK
         if: steps.signing.outputs.enabled == 'true'
         run: ./gradlew assembleRelease --no-daemon
-
-      - name: Build release AAB (AppBundle)
-        if: steps.signing.outputs.enabled == 'true'
-        run: ./gradlew bundleRelease --no-daemon
 
       - name: Sign APK verification
         if: steps.signing.outputs.enabled == 'true'
@@ -152,14 +148,6 @@ jobs:
         with:
           name: release-apk
           path: app/build/outputs/apk/release/*.apk
-          retention-days: 30
-
-      - name: Upload AAB artifacts
-        if: steps.signing.outputs.enabled == 'true'
-        uses: actions/upload-artifact@v7
-        with:
-          name: release-aab
-          path: app/build/outputs/bundle/release/*.aab
           retention-days: 30
 
   desktop-windows:
@@ -360,7 +348,6 @@ jobs:
           overwrite_files: true
           files: |
             release-artifacts/**/*.apk
-            release-artifacts/**/*.aab
             release-artifacts/**/*.exe
             release-artifacts/**/*.deb
             release-artifacts/**/desktop-release-manifest-*.txt

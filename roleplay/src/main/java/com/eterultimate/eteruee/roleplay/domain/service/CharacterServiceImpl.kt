@@ -8,11 +8,15 @@ import androidx.paging.PagingData
 import androidx.paging.map
 import com.eterultimate.eteruee.roleplay.data.local.RolePlayFileStorage
 import com.eterultimate.eteruee.roleplay.data.local.dao.CharacterDAO
+import com.eterultimate.eteruee.roleplay.data.local.dao.WorldInfoDAO
 import com.eterultimate.eteruee.roleplay.data.local.entity.CharacterEntity
+import com.eterultimate.eteruee.roleplay.data.local.entity.WorldInfoEntity
 import com.eterultimate.eteruee.roleplay.data.model.Character
+import com.eterultimate.eteruee.roleplay.data.model.WorldInfo
 import com.eterultimate.eteruee.roleplay.data.tavern.TavernCharacterCardFormat
 import com.eterultimate.eteruee.roleplay.data.tavern.TavernCharacterCodec
 import com.eterultimate.eteruee.roleplay.data.tavern.TavernPngCodec
+import com.eterultimate.eteruee.roleplay.data.tavern.TavernWorldInfoCodec
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -25,6 +29,7 @@ import kotlin.uuid.Uuid
 class CharacterServiceImpl(
     private val context: Context,
     private val characterDao: CharacterDAO,
+    private val worldInfoDao: WorldInfoDAO,
     private val fileStorage: RolePlayFileStorage
 ) : CharacterService {
 
@@ -321,6 +326,7 @@ class CharacterServiceImpl(
         val stored = character.copy(avatarUrl = avatarPath ?: character.avatarUrl)
         fileStorage.saveCharacterJson(stored, stored.avatarUrl)
         characterDao.insertCharacter(CharacterEntity.fromModel(stored))
+        saveEmbeddedWorldInfo(stored)
         return Result.success(stored)
     }
 
@@ -329,7 +335,22 @@ class CharacterServiceImpl(
         val stored = character.copy(avatarUrl = null)
         fileStorage.saveCharacterJson(stored, stored.avatarUrl)
         characterDao.insertCharacter(CharacterEntity.fromModel(stored))
+        saveEmbeddedWorldInfo(stored)
         return Result.success(stored)
+    }
+
+    /**
+     * 将角色卡内嵌的 character_book 落成独立的世界书记录，
+     * 避免导入含内嵌世界书的角色卡后条目丢失（TauriTavern#210）。
+     */
+    private suspend fun saveEmbeddedWorldInfo(character: Character) {
+        val book = character.characterBook ?: return
+        val worldInfo = TavernWorldInfoCodec.decodeCharacterBook(
+            book = book,
+            fallbackName = character.name.ifBlank { "Imported Lorebook" },
+        ) ?: return
+        worldInfoDao.insertWorldInfo(WorldInfoEntity.fromModel(worldInfo))
+        fileStorage.saveWorldInfoJson(worldInfo)
     }
 
     private suspend fun buildPngCharacterBytes(

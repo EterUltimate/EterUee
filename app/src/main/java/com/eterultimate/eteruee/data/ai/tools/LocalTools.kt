@@ -21,6 +21,8 @@ import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.data.event.AppEvent
 import com.eterultimate.eteruee.data.event.AppEventBus
 import com.eterultimate.eteruee.data.datastore.SettingsStore
+import com.eterultimate.eteruee.data.datastore.getSelectedTTSProvider
+import com.eterultimate.eteruee.tts.provider.TTSManager
 import com.eterultimate.eteruee.device.DeviceAgentManager
 import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.repository.GenMediaRepository
@@ -52,6 +54,10 @@ sealed class LocalToolOption {
     @Serializable
     @SerialName("time_info")
     data object TimeInfo : LocalToolOption()
+
+    @Serializable
+    @SerialName("screen_time")
+    data object ScreenTime : LocalToolOption()
 
     @Serializable
     @SerialName("clipboard")
@@ -268,6 +274,7 @@ class LocalTools(
     private val providerManager: ProviderManager,
     private val filesManager: FilesManager,
     private val genMediaRepository: GenMediaRepository,
+    private val ttsManager: TTSManager,
 ) {
     val javascriptTool by lazy {
         Tool(
@@ -382,6 +389,10 @@ class LocalTools(
                 listOf(UIMessagePart.Text(payload.toString()))
             }
         )
+    }
+
+    val screenTimeTool by lazy {
+        ScreenTimeTools.createScreenTimeTool(context, eventBus)
     }
 
     val clipboardTool by lazy {
@@ -573,6 +584,9 @@ class LocalTools(
         }
         if (options.contains(LocalToolOption.TimeInfo)) {
             tools.add(timeTool)
+        }
+        if (options.contains(LocalToolOption.ScreenTime)) {
+            tools.add(screenTimeTool)
         }
         if (options.contains(LocalToolOption.Clipboard)) {
             tools.add(clipboardTool)

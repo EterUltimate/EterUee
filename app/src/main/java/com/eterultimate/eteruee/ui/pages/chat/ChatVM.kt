@@ -26,6 +26,7 @@ import com.eterultimate.eteruee.ai.ui.isEmptyInputMessage
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.data.datastore.SettingsStore
+import com.eterultimate.eteruee.data.datastore.getCurrentAssistant
 import com.eterultimate.eteruee.data.datastore.getCurrentChatModel
 import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.model.Assistant
@@ -86,17 +87,9 @@ class ChatVM(
         .getConversationJobs()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
-    // 用户设置
-    val settings: StateFlow<Settings> =
-        settingsStore.settingsFlow.stateIn(viewModelScope, SharingStarted.Eagerly, Settings.dummy())
-
     // MCP管理器
     val mcpManager = chatService.mcpManager
 
-    // Subagent 启用状态（可从设置中控制）
-    val enableSubagent = settings.map {
-        it.enableSubagent
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     init {
         // 添加对话引用
@@ -117,9 +110,18 @@ class ChatVM(
         chatService.removeConversationReference(_conversationId)
     }
 
-    // 网络搜索
+    // 用户设置
+    val settings: StateFlow<Settings> =
+        settingsStore.settingsFlow.stateIn(viewModelScope, SharingStarted.Eagerly, Settings.dummy())
+
+    // Subagent 启用状态（可从设置中控制）
+    val enableSubagent = settings.map {
+        it.enableSubagent
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    // 网络搜索(每个助手独立)
     val enableWebSearch = settings.map {
-        it.enableWebSearch
+        it.getCurrentAssistant().enableWebSearch
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     // 当前模型
@@ -138,8 +140,8 @@ class ChatVM(
     val generationDoneFlow: SharedFlow<Uuid> = chatService.generationDoneFlow
 
     // 更新设置
-    fun updateSettings(newSettings: Settings) {
-        viewModelScope.launch {
+    fun updateSettings(newSettings: Settings): Job {
+        return viewModelScope.launch {
             val oldSettings = settings.value
             // 检查用户头像是否有变化，如果有则删除旧头像
             checkUserAvatarDelete(oldSettings, newSettings)
@@ -296,11 +298,10 @@ class ChatVM(
         }
     }
 
-    fun deleteConversation(conversation: Conversation) {
+    fun deleteConversation(conversation: Conversation): Job =
         viewModelScope.launch {
             conversationRepo.deleteConversation(conversation)
         }
-    }
 
     fun updatePinnedStatus(conversation: Conversation) {
         viewModelScope.launch {
@@ -311,7 +312,11 @@ class ChatVM(
     fun moveConversationToAssistant(conversation: Conversation, targetAssistantId: Uuid) {
         viewModelScope.launch {
             val conversationFull = conversationRepo.getConversationById(conversation.id) ?: return@launch
-            val updatedConversation = conversationFull.copy(assistantId = targetAssistantId)
+            // 文件夹是助手内分组，切换助手后原文件夹在新助手下不可见，需清空归属避免会话丢失
+            val updatedConversation = conversationFull.copy(
+                assistantId = targetAssistantId,
+                folderId = null,
+            )
             if (conversation.id == _conversationId) {
                 chatService.saveConversation(_conversationId, updatedConversation)
                 settingsStore.updateAssistant(targetAssistantId)

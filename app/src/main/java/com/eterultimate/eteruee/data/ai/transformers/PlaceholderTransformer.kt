@@ -17,8 +17,6 @@ import com.eterultimate.eteruee.utils.LocationProvider
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.time.temporal.Temporal
@@ -74,22 +72,6 @@ object DefaultPlaceholderProvider : PlaceholderProvider {
             PlaceholderCachePolicy.RUNTIME
         ) {
             LocalDate.now().toDateString()
-        }
-
-        placeholder(
-            "cur_time",
-            { Text(stringResource(R.string.placeholder_current_time)) },
-            PlaceholderCachePolicy.RUNTIME
-        ) {
-            LocalTime.now().toTimeString()
-        }
-
-        placeholder(
-            "cur_datetime",
-            { Text(stringResource(R.string.placeholder_current_datetime)) },
-            PlaceholderCachePolicy.RUNTIME
-        ) {
-            LocalDateTime.now().toDateTimeString()
         }
 
         placeholder("model_id", { Text(stringResource(R.string.placeholder_model_id)) }) {

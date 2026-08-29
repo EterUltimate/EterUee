@@ -75,7 +75,7 @@ val roleplayModule = module {
     single { RolePlayFileStorage(androidContext()) }
     
     // Services
-    single<CharacterService> { CharacterServiceImpl(androidContext(), get(), get()) }
+    single<CharacterService> { CharacterServiceImpl(androidContext(), get(), get(), get()) }
     single<ChatService> { ChatServiceImpl(androidContext(), get(), get(), get()) }
     single<WorldInfoService> { WorldInfoServiceImpl(androidContext(), get(), get()) }
     single<GroupService> { GroupServiceImpl(androidContext(), get(), get(), get()) }

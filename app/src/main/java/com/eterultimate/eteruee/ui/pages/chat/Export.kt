@@ -78,7 +78,7 @@ import com.eterultimate.eteruee.ai.ui.UIMessage
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.ai.ui.isEmptyUIMessage
 import com.eterultimate.eteruee.ai.util.encodeBase64
-import com.eterultimate.eteruee.common.android.appTempFolder
+import com.eterultimate.eteruee.utils.appTempFolder
 import com.eterultimate.eteruee.highlight.Highlighter
 import com.eterultimate.eteruee.highlight.LocalHighlighter
 import com.eterultimate.eteruee.R

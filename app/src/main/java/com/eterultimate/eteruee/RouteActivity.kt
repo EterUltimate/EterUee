@@ -94,7 +94,6 @@ import com.eterultimate.eteruee.ui.pages.assistant.detail.AssistantRequestPage
 import com.eterultimate.eteruee.ui.pages.backup.BackupPage
 import com.eterultimate.eteruee.ui.pages.chat.ChatPage
 import com.eterultimate.eteruee.ui.pages.debug.DebugPage
-import com.eterultimate.eteruee.ui.pages.developer.DeveloperPage
 import com.eterultimate.eteruee.ui.pages.extensions.ExtensionsPage
 import com.eterultimate.eteruee.ui.pages.extensions.PromptPage
 import com.eterultimate.eteruee.ui.pages.extensions.QuickMessagesPage
@@ -116,6 +115,7 @@ import com.eterultimate.eteruee.ui.pages.setting.SettingProviderDetailPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingProviderPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingSearchDetailPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingSearchPage
+import com.eterultimate.eteruee.ui.pages.setting.SettingPreferencesNetworkPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingThemePage
 import com.eterultimate.eteruee.ui.pages.setting.SettingTTSPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingTrafficControlPage
@@ -138,6 +138,7 @@ import com.eterultimate.eteruee.roleplay.ui.pages.bookmark.BookmarkPage
 import com.eterultimate.eteruee.ui.theme.LocalDarkMode
 import com.eterultimate.eteruee.ui.theme.EterUeeTheme
 import com.eterultimate.eteruee.utils.CrashHandler
+import com.eterultimate.eteruee.utils.openUsageAccessSettings
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
@@ -283,6 +284,8 @@ class RouteActivity : ComponentActivity() {
             eventBus.events.collect { event ->
                 when (event) {
                     is AppEvent.Speak -> tts.speak(event.text)
+                    is AppEvent.OpenUsageAccessSettings -> this@RouteActivity.openUsageAccessSettings()
+                    is AppEvent.McpOAuthCallback -> Unit
                 }
             }
         }
@@ -430,7 +433,11 @@ class RouteActivity : ComponentActivity() {
                             }
 
                             entry<Screen.WebView> { key ->
-                                WebViewPage(key.url, key.content)
+                                WebViewPage(key.url, key.contentId)
+                            }
+
+                            entry<Screen.SettingNetwork> {
+                                SettingPreferencesNetworkPage()
                             }
 
                             entry<Screen.SettingTheme> {
@@ -489,10 +496,6 @@ class RouteActivity : ComponentActivity() {
 
                             entry<Screen.SettingTrafficControl> {
                                 SettingTrafficControlPage()
-                            }
-
-                            entry<Screen.Developer> {
-                                DeveloperPage()
                             }
 
                             entry<Screen.Debug> {
@@ -779,7 +782,10 @@ sealed interface Screen : NavKey {
     data object ImageGen : Screen
 
     @Serializable
-    data class WebView(val url: String = "", val content: String = "") : Screen
+    data class WebView(val url: String = "", val contentId: String = "") : Screen
+
+    @Serializable
+    data object SettingNetwork : Screen
 
     @Serializable
     data object SettingTheme : Screen
@@ -822,9 +828,6 @@ sealed interface Screen : NavKey {
 
     @Serializable
     data object SettingTrafficControl : Screen
-
-    @Serializable
-    data object Developer : Screen
 
     @Serializable
     data object Debug : Screen

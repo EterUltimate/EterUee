@@ -2,6 +2,7 @@ package com.eterultimate.eteruee.shell
 
 import android.content.Context
 import android.util.Log
+import com.eterultimate.eteruee.workspace.WorkspaceSandboxManager
 import java.io.File
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
@@ -25,14 +26,14 @@ object LocalShellRunner {
     )
 
     fun defaultWorkingDir(context: Context): File {
-        return context.getExternalFilesDir(null) ?: context.filesDir
+        return WorkspaceSandboxManager(context).defaultWorkspace().filesDir
     }
 
     fun defaultEnvironment(context: Context): Map<String, String> {
         val home = context.filesDir.absolutePath
         return mapOf(
             "HOME" to home,
-            "TMPDIR" to context.cacheDir.absolutePath,
+            "TMPDIR" to WorkspaceSandboxManager(context).defaultWorkspace().tempDir.absolutePath,
             "PATH" to "/system/bin:/system/xbin",
             "SHELL" to SHELL_PATH,
             "TERM" to "xterm-256color",

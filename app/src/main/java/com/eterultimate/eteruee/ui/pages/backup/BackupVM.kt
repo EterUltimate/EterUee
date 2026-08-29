@@ -1,14 +1,19 @@
 ﻿package com.eterultimate.eteruee.ui.pages.backup
 
 import android.util.Log
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.data.datastore.SettingsStore
+import com.eterultimate.eteruee.data.datastore.WebDavConfig
+import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.repository.ConversationRepository
 import com.eterultimate.eteruee.data.sync.importer.ChatboxImporter
 import com.eterultimate.eteruee.data.sync.importer.CherryStudioProviderImporter
@@ -28,6 +33,7 @@ class BackupVM(
     private val s3Sync: S3Sync,
     private val postgresGatewaySync: PostgresGatewaySync,
     private val conversationRepository: ConversationRepository,
+    private val filesManager: FilesManager,
 ) : ViewModel() {
     val settings = settingsStore.settingsFlow.stateIn(
         scope = viewModelScope,
@@ -93,53 +99,65 @@ class BackupVM(
         webDavSync.restoreFromLocalFile(file, settings.value.webDavConfig)
     }
 
-    suspend fun restoreFromChatBox(file: File): ChatboxRestoreResult {
-        val payload = ChatboxImporter.import(
+    suspend fun restoreFromChatBox(file: File): ChatboxRestoreResult = withContext(Dispatchers.IO) {
+        val currentSettings = settings.value
+        var importedConversations = 0
+        var skippedExistingConversations = 0
+        val result = ChatboxImporter.importStreaming(
             file = file,
-            assistantId = settings.value.assistantId,
-            providers = settings.value.providers,
+            assistantId = currentSettings.assistantId,
+            providers = currentSettings.providers,
+            shouldImportConversation = { conversationId ->
+                val exists = conversationRepository.existsConversationById(conversationId)
+                if (exists) skippedExistingConversations++
+                !exists
+            },
+            saveImage = { resource ->
+                val entity = filesManager.saveUploadFromBytes(
+                    bytes = resource.bytes,
+                    displayName = resource.fileName,
+                    mimeType = resource.mimeType,
+                )
+                filesManager.getFile(entity).toUri().toString()
+            },
+            onConversation = { conversation ->
+                conversationRepository.insertConversation(conversation)
+                importedConversations++
+            }
         )
-        val targetAssistantId = settings.value.assistantId
-        val mergedProviders = payload.providers + settings.value.providers
-        val shouldAllowConversationSystemPrompt = payload.conversations.conversations.any {
-            !it.customSystemPrompt.isNullOrBlank()
-        }
-        settingsStore.update(
-            settings.value.copy(
-                providers = mergedProviders,
-                assistants = settings.value.assistants.map { assistant ->
-                    if (shouldAllowConversationSystemPrompt && assistant.id == targetAssistantId) {
+
+        val targetAssistantId = currentSettings.assistantId
+        settingsStore.update { latestSettings ->
+            latestSettings.copy(
+                providers = result.providers + latestSettings.providers.filterNot { existing ->
+                    result.providers.any { imported -> imported.id == existing.id }
+                },
+                assistants = latestSettings.assistants.map { assistant ->
+                    if (result.hasConversationSystemPrompt && assistant.id == targetAssistantId) {
                         assistant.copy(allowConversationSystemPrompt = true)
                     } else {
                         assistant
                     }
                 }
             )
-        )
-
-        var importedConversations = 0
-        var skippedExistingConversations = 0
-        payload.conversations.conversations.forEach { conversation ->
-            if (conversationRepository.existsConversationById(conversation.id)) {
-                skippedExistingConversations++
-            } else {
-                conversationRepository.insertConversation(conversation)
-                importedConversations++
-            }
         }
 
         Log.i(
             TAG,
-            "restoreFromChatBox: import ${payload.providers.size} providers, " +
+            "restoreFromChatBox: import ${result.providers.size} providers, " +
                 "$importedConversations conversations, skip $skippedExistingConversations existing, " +
-                "drop ${payload.conversations.skippedImageParts} images"
+                "import ${result.importedImageParts} images, drop ${result.skippedImageParts} images, " +
+                "skip ${result.skippedForkMessages} fork messages and ${result.skippedSessions} sessions"
         )
-        return ChatboxRestoreResult(
-            importedProviders = payload.providers.size,
+        ChatboxRestoreResult(
+            importedProviders = result.providers.size,
             importedConversations = importedConversations,
             skippedExistingConversations = skippedExistingConversations,
-            skippedImageParts = payload.conversations.skippedImageParts,
-            skippedEmptyMessages = payload.conversations.skippedEmptyMessages,
+            importedImageParts = result.importedImageParts,
+            skippedImageParts = result.skippedImageParts,
+            skippedEmptyMessages = result.skippedEmptyMessages,
+            skippedForkMessages = result.skippedForkMessages,
+            skippedSessions = result.skippedSessions,
         )
     }
 
@@ -218,6 +236,9 @@ data class ChatboxRestoreResult(
     val importedProviders: Int,
     val importedConversations: Int,
     val skippedExistingConversations: Int,
+    val importedImageParts: Int,
     val skippedImageParts: Int,
     val skippedEmptyMessages: Int,
+    val skippedForkMessages: Int,
+    val skippedSessions: Int,
 )

@@ -37,6 +37,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -60,6 +61,7 @@ import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.datastore.DEFAULT_SYSTEM_TTS_ID
 import com.eterultimate.eteruee.ui.components.nav.BackButton
 import com.eterultimate.eteruee.ui.components.ui.AutoAIIcon
+import com.eterultimate.eteruee.ui.components.ui.FormItem
 import com.eterultimate.eteruee.ui.components.ui.Tag
 import com.eterultimate.eteruee.ui.components.ui.TagType
 import com.eterultimate.eteruee.ui.context.LocalNavController
@@ -169,6 +171,22 @@ fun SettingTTSPage(vm: SettingVM = koinViewModel()) {
                             )
                         }
                     )
+                }
+            }
+
+            item {
+                FormItem(
+                    label = { Text(stringResource(R.string.setting_tts_page_playback_speed)) },
+                    description = { Text(stringResource(R.string.setting_tts_page_playback_speed_desc)) }
+                ) {
+                    Slider(
+                        value = settings.defaultTTSPlaybackSpeed,
+                        onValueChange = {
+                            vm.updateSettings(settings.copy(defaultTTSPlaybackSpeed = it.coerceIn(0.5f, 2.0f)))
+                        },
+                        valueRange = 0.5f..2.0f,
+                    )
+                    Text(text = "${settings.defaultTTSPlaybackSpeed}x")
                 }
             }
         }
@@ -373,6 +391,8 @@ private fun TTSProviderItem(
                             is TTSProviderSetting.Groq -> "Groq"
                             is TTSProviderSetting.XAI -> "xAI"
                             is TTSProviderSetting.MiMo -> "MiMo"
+                            is TTSProviderSetting.Step -> "Step"
+                            is TTSProviderSetting.ElevenLabs -> "ElevenLabs"
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant

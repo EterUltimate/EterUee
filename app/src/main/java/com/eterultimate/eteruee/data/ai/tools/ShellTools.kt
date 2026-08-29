@@ -24,9 +24,9 @@ object ShellTools {
         name = "shell_execute",
         description = """
             Execute a shell command on the local device through EterUee's built-in Termux terminal layer.
-            No external Termux app is required. By default, EterUee uses the managed Linux/proot
-            environment when it is installed; otherwise it falls back to the app-local Android shell.
-            Set distribution to ubuntu to target the optional Ubuntu/proot environment.
+            No external Termux app is required. By default, EterUee runs inside the workspace sandbox
+            and uses the managed Linux/proot environment when it is installed; otherwise it falls back
+            to the app-local Android shell. Ubuntu is available as an installable plugin/runtime option.
             Returns stdout, stderr, exit code, shell path, and working directory.
             Use for local file operations, system info, and app-scoped automation.
         """.trimIndent().replace("\n", " "),
@@ -39,7 +39,7 @@ object ShellTools {
                     })
                     put("workingDir", buildJsonObject {
                         put("type", "string")
-                        put("description", "Working directory for the command (default: EterUee app external files directory)")
+                        put("description", "Working directory for the command. Default: EterUee workspace sandbox.")
                     })
                     put("stdin", buildJsonObject {
                         put("type", "string")
@@ -134,8 +134,8 @@ object ShellTools {
     ): Tool = Tool(
         name = "linux_environment",
         description = """
-            Inspect or prepare EterUee's managed Linux environment for LLM tools.
-            Actions: status returns rootfs/proot readiness; prepare writes the installer helper;
+            Inspect or prepare EterUee's managed Linux workspace sandbox for LLM tools.
+            Actions: status returns workspace/rootfs/proot readiness; prepare writes the installer helper;
             install downloads the Termux proot runtime and extracts the selected rootfs after approval;
             exec runs a command inside the selected Linux distribution when installation is complete.
         """.trimIndent().replace("\n", " "),
@@ -152,7 +152,7 @@ object ShellTools {
                     })
                     put("workingDir", buildJsonObject {
                         put("type", "string")
-                        put("description", "Linux working directory for exec, default /root")
+                        put("description", "Linux working directory for exec. Default: /workspace")
                     })
                     put("stdin", buildJsonObject {
                         put("type", "string")

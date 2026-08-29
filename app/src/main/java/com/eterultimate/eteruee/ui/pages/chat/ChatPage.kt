@@ -65,6 +65,7 @@ import com.eterultimate.eteruee.ui.context.Navigator
 import com.eterultimate.eteruee.ui.hooks.ChatInputState
 import com.eterultimate.eteruee.ui.hooks.EditStateContent
 import com.eterultimate.eteruee.ui.hooks.useEditState
+import com.eterultimate.eteruee.utils.ImageUtils
 import com.eterultimate.eteruee.utils.base64Decode
 import com.eterultimate.eteruee.utils.navigateToChatPage
 import org.koin.androidx.compose.koinViewModel
@@ -120,6 +121,8 @@ fun ChatPage(id: Uuid, text: String?, files: List<Uri>, nodeId: Uuid? = null) {
     val isBigScreen =
         windowAdaptiveInfo.width > windowAdaptiveInfo.height && windowAdaptiveInfo.width >= 1100.dp
 
+    // 进入大屏（永久抽屉）模式时重置抽屉状态为关闭，
+    // 避免从横屏旋转回竖屏后，模态抽屉残留为打开状态且无法关闭（#1304）
     LaunchedEffect(isBigScreen) {
         if (isBigScreen && drawerState.isOpen) {
             drawerState.close()
@@ -309,7 +312,18 @@ private fun ChatPageContent(
                     },
                     enableSearch = enableWebSearch,
                     onToggleSearch = {
-                        vm.updateSettings(setting.copy(enableWebSearch = !enableWebSearch))
+                        val current = setting.getCurrentAssistant()
+                        vm.updateSettings(
+                            setting.copy(
+                                assistants = setting.assistants.map { assistant ->
+                                    if (assistant.id == current.id) {
+                                        assistant.copy(enableWebSearch = !enableWebSearch)
+                                    } else {
+                                        assistant
+                                    }
+                                }
+                            )
+                        )
                     },
                     enableSubagent = enableSubagent,
                     onToggleSubagent = {
@@ -440,7 +454,7 @@ private fun ChatPageContent(
                 onJumpToMessage = { index ->
                     previewMode = false
                     scope.launch {
-                        chatListState.animateScrollToItem(index)
+                        chatListState.requestScrollToItem(index)
                     }
                 },
                 onToolApproval = { toolCallId, approved, reason ->

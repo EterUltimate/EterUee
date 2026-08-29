@@ -1,16 +1,16 @@
-﻿package com.eterultimate.eteruee.ai.provider.providers
+package com.eterultimate.eteruee.ai.provider.providers
 
 import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import com.eterultimate.eteruee.ai.provider.EmbeddingGenerationParams
@@ -20,7 +20,6 @@ import com.eterultimate.eteruee.ai.provider.ImageGenerationParams
 import com.eterultimate.eteruee.ai.provider.Model
 import com.eterultimate.eteruee.ai.provider.Provider
 import com.eterultimate.eteruee.ai.provider.ProviderSetting
-import com.eterultimate.eteruee.ai.provider.ReferenceImage
 import com.eterultimate.eteruee.ai.provider.TextGenerationParams
 import com.eterultimate.eteruee.ai.provider.VideoGenerationParams
 import com.eterultimate.eteruee.ai.provider.providers.openai.ChatCompletionsAPI
@@ -28,11 +27,12 @@ import com.eterultimate.eteruee.ai.provider.providers.openai.ResponseAPI
 import com.eterultimate.eteruee.ai.ui.ImageAspectRatio
 import com.eterultimate.eteruee.ai.ui.ImageGenerationItem
 import com.eterultimate.eteruee.ai.ui.ImageGenerationResult
-import com.eterultimate.eteruee.ai.ui.VideoGenerationItem
-import com.eterultimate.eteruee.ai.ui.VideoGenerationResult
 import com.eterultimate.eteruee.ai.ui.MessageChunk
 import com.eterultimate.eteruee.ai.ui.UIMessage
+import com.eterultimate.eteruee.ai.ui.VideoGenerationItem
+import com.eterultimate.eteruee.ai.ui.VideoGenerationResult
 import com.eterultimate.eteruee.ai.util.KeyRoulette
+import com.eterultimate.eteruee.ai.util.configureReferHeaders
 import com.eterultimate.eteruee.ai.util.json
 import com.eterultimate.eteruee.ai.util.mergeCustomBody
 import com.eterultimate.eteruee.ai.util.toHeaders
@@ -42,6 +42,9 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 class OpenAIProvider(
     private val client: OkHttpClient,
@@ -173,6 +176,7 @@ class OpenAIProvider(
             .addHeader("Authorization", "Bearer $key")
             .addHeader("Content-Type", "application/json")
             .post(requestBody.toRequestBody("application/json".toMediaType()))
+            .configureReferHeaders(providerSetting.baseUrl)
             .build()
 
         val response = client.newCall(request).await()
@@ -212,13 +216,18 @@ class OpenAIProvider(
                 put("model", params.model.modelId)
                 put("prompt", params.prompt)
                 put("n", params.numOfImages)
-                put(
-                    "size", when (params.aspectRatio) {
-                        ImageAspectRatio.SQUARE -> "1024x1024"
-                        ImageAspectRatio.LANDSCAPE -> "1536x1024"
-                        ImageAspectRatio.PORTRAIT -> "1024x1536"
-                    }
-                )
+                // Grok 生图接口不支持 size 参数，传入会导致 400 (rikkahub#1602)
+                val isGrok = providerSetting.baseUrl.contains("x.ai", ignoreCase = true) ||
+                    params.model.modelId.contains("grok", ignoreCase = true)
+                if (!isGrok) {
+                    put(
+                        "size", when (params.aspectRatio) {
+                            ImageAspectRatio.SQUARE -> "1024x1024"
+                            ImageAspectRatio.LANDSCAPE -> "1536x1024"
+                            ImageAspectRatio.PORTRAIT -> "1024x1536"
+                        }
+                    )
+                }
             }.mergeCustomBody(params.customBody)
         )
 
@@ -235,22 +244,7 @@ class OpenAIProvider(
             error("Failed to generate image: ${response.code} ${response.body?.string()}")
         }
 
-        val bodyStr = response.body?.string() ?: ""
-        val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
-        val data = bodyJson["data"]?.jsonArray ?: error("No data in response")
-
-        val items = data.map { imageJson ->
-            val imageObj = imageJson.jsonObject
-            val b64Json = imageObj["b64_json"]?.jsonPrimitive?.contentOrNull
-                ?: error("No b64_json in response")
-
-            ImageGenerationItem(
-                data = b64Json,
-                mimeType = "image/png"
-            )
-        }
-
-        ImageGenerationResult(items = items)
+        ImageGenerationResult(items = parseImageResponse(response.body.string()))
     }
 
     override suspend fun editImage(
@@ -280,29 +274,23 @@ class OpenAIProvider(
 
         val imageFieldName = if (params.images.size == 1) "image" else "image[]"
         params.images.forEach { path ->
-            val imageFile = java.io.File(path)
+            val imageFile = File(path)
             require(imageFile.exists()) {
                 "Image file does not exist: $path"
             }
-            val extension = imageFile.extension.lowercase()
-            require(extension in setOf("png", "jpg", "jpeg", "webp")) {
-                "Unsupported image file type for OpenAI edit: $extension"
-            }
-            val mediaType = when (extension) {
-                "jpg", "jpeg" -> "image/jpeg"
-                "webp" -> "image/webp"
-                else -> "image/png"
+            require(imageFile.extension.lowercase() in SUPPORTED_EDIT_IMAGE_EXTENSIONS) {
+                "Unsupported image file type for OpenAI edit: ${imageFile.extension}"
             }
             bodyBuilder.addFormDataPart(
                 imageFieldName,
                 imageFile.name,
-                imageFile.readBytes().toRequestBody(mediaType.toMediaType())
+                imageFile.readBytes().toRequestBody(imageFile.imageMediaType().toMediaType())
             )
         }
 
         params.customBody.forEach { customBody ->
             val value = when (val element = customBody.value) {
-                is kotlinx.serialization.json.JsonPrimitive -> element.contentOrNull ?: element.toString()
+                is JsonPrimitive -> element.contentOrNull ?: element.toString()
                 else -> element.toString()
             }
             bodyBuilder.addFormDataPart(customBody.key, value)
@@ -313,6 +301,7 @@ class OpenAIProvider(
             .headers(params.customHeaders.toHeaders())
             .addHeader("Authorization", "Bearer $key")
             .post(bodyBuilder.build())
+            .configureReferHeaders(providerSetting.baseUrl)
             .build()
 
         val response = client.newCall(request).await()
@@ -320,22 +309,7 @@ class OpenAIProvider(
             error("Failed to edit image: ${response.code} ${response.body?.string()}")
         }
 
-        val bodyStr = response.body?.string() ?: ""
-        val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
-        val data = bodyJson["data"]?.jsonArray ?: error("No data in response")
-
-        val items = data.map { imageJson ->
-            val imageObj = imageJson.jsonObject
-            val b64Json = imageObj["b64_json"]?.jsonPrimitive?.contentOrNull
-                ?: error("No b64_json in response")
-
-            ImageGenerationItem(
-                data = b64Json,
-                mimeType = "image/png"
-            )
-        }
-
-        ImageGenerationResult(items = items)
+        ImageGenerationResult(items = parseImageResponse(response.body.string()))
     }
 
     override suspend fun generateVideo(
@@ -348,7 +322,6 @@ class OpenAIProvider(
 
         val key = keyRoulette.next(providerSetting.apiKey, providerSetting.id.toString())
 
-        // Build content array
         val contentArray = buildJsonArray {
             add(buildJsonObject {
                 put("type", "text")
@@ -363,13 +336,11 @@ class OpenAIProvider(
             }
         }
 
-        // Build request body
         val requestBodyObj = buildJsonObject {
             put("model", params.model.modelId)
             put("content", contentArray)
         }
 
-        // Build parameters object
         val parametersObj = buildJsonObject {
             put("generateAudio", params.generateAudio)
             put("durationSeconds", params.durationSeconds)
@@ -386,7 +357,6 @@ class OpenAIProvider(
 
         val submitBody = json.encodeToString(finalBody)
 
-        // Step 1: Submit task
         val submitRequest = Request.Builder()
             .url("${providerSetting.baseUrl}/contents/generations/tasks")
             .headers(params.customHeaders.toHeaders())
@@ -405,9 +375,8 @@ class OpenAIProvider(
         val taskId = submitJson["id"]?.jsonPrimitive?.contentOrNull
             ?: error("No task id in submit response")
 
-        // Step 2: Poll for result
-        val maxPollDurationMs = 10 * 60 * 1000L // 10 minutes max
-        val pollIntervalMs = 5000L // 5 seconds between polls
+        val maxPollDurationMs = 10 * 60 * 1000L
+        val pollIntervalMs = 5000L
         val startTime = System.currentTimeMillis()
 
         while (System.currentTimeMillis() - startTime < maxPollDurationMs) {
@@ -450,7 +419,6 @@ class OpenAIProvider(
                 }
                 "cancelled" -> error("Video generation was cancelled")
                 "expired" -> error("Video generation task expired")
-                // queued, running → continue polling
             }
 
             kotlinx.coroutines.delay(pollIntervalMs)
@@ -458,5 +426,63 @@ class OpenAIProvider(
 
         error("Video generation timed out after ${maxPollDurationMs / 1000} seconds")
     }
-}
 
+    private suspend fun parseImageResponse(bodyStr: String): List<ImageGenerationItem> {
+        val body = json.parseToJsonElement(bodyStr).jsonObject
+        val defaultFormat = body["output_format"]?.jsonPrimitive?.contentOrNull ?: "png"
+        val data = body["data"]?.jsonArray ?: error("No data in image response")
+        return data.map { element ->
+            val image = element.jsonObject
+            val b64Json = image["b64_json"]?.jsonPrimitive?.contentOrNull
+            if (b64Json != null) {
+                val outputFormat = image["output_format"]?.jsonPrimitive?.contentOrNull ?: defaultFormat
+                ImageGenerationItem(
+                    data = b64Json,
+                    mimeType = outputFormat.toImageMimeType()
+                )
+            } else {
+                val url = image["url"]?.jsonPrimitive?.contentOrNull
+                    ?: error("No b64_json or url in image response")
+                downloadImageAsBase64(url)
+            }
+        }
+    }
+
+    @OptIn(ExperimentalEncodingApi::class)
+    private suspend fun downloadImageAsBase64(url: String): ImageGenerationItem {
+        val request = Request.Builder()
+            .url(url)
+            .get()
+            .build()
+
+        val response = client.newCall(request).await()
+        if (!response.isSuccessful) {
+            error("Failed to download generated image: ${response.code} ${response.body.string()}")
+        }
+
+        val body = response.body
+        val mimeType = body.contentType()?.toString() ?: "image/png"
+        val base64 = Base64.encode(body.bytes())
+
+        return ImageGenerationItem(
+            data = base64,
+            mimeType = mimeType
+        )
+    }
+
+    private fun File.imageMediaType(): String = when (extension.lowercase()) {
+        "jpg", "jpeg" -> "image/jpeg"
+        "webp" -> "image/webp"
+        else -> "image/png"
+    }
+
+    private fun String.toImageMimeType(): String = when (lowercase()) {
+        "jpg", "jpeg" -> "image/jpeg"
+        "webp" -> "image/webp"
+        else -> "image/png"
+    }
+
+    companion object {
+        private val SUPPORTED_EDIT_IMAGE_EXTENSIONS = setOf("png", "jpg", "jpeg", "webp")
+    }
+}

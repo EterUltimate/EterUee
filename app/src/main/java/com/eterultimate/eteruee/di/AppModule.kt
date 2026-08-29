@@ -3,11 +3,9 @@
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.analytics
 import com.google.firebase.crashlytics.crashlytics
-import com.google.firebase.remoteconfig.remoteConfig
 import kotlinx.serialization.json.Json
 import com.eterultimate.eteruee.highlight.Highlighter
 import com.eterultimate.eteruee.AppScope
-import com.eterultimate.eteruee.data.ai.AILoggingManager
 import com.eterultimate.eteruee.ai.sdk.AISDK
 import com.eterultimate.eteruee.data.ai.DynamicAISDK
 import com.eterultimate.eteruee.data.ai.tools.LocalTools
@@ -22,6 +20,7 @@ import com.eterultimate.eteruee.utils.JsonInstant
 import com.eterultimate.eteruee.utils.UpdateChecker
 import com.eterultimate.eteruee.web.WebServerManager
 import com.eterultimate.eteruee.web.relay.HttpRelayService
+import com.eterultimate.eteruee.workspace.WorkspaceSandboxManager
 import com.eterultimate.eteruee.tts.provider.TTSManager
 import com.eterultimate.eteruee.roleplay.domain.service.CharacterService as RoleplayCharacterService
 import com.eterultimate.eteruee.roleplay.domain.service.ChatService as RoleplayChatService
@@ -47,7 +46,7 @@ val appModule = module {
     }
 
     single {
-        LocalTools(get(), get(), get(), get(), get(), get(), get(), get(), get())
+        LocalTools(get(), get(), get(), get(), get(), get(), get(), get(), get(), get())
     }
 
     single {
@@ -74,8 +73,12 @@ val appModule = module {
         DeviceAgentManager(get())
     }
 
-    single {
-        LinuxEnvironmentManager(get(), get())
+    single<WorkspaceSandboxManager> {
+        WorkspaceSandboxManager(get<android.content.Context>())
+    }
+
+    single<LinuxEnvironmentManager> {
+        LinuxEnvironmentManager(get(), get(), get())
     }
 
     single {
@@ -83,15 +86,7 @@ val appModule = module {
     }
 
     single {
-        Firebase.remoteConfig
-    }
-
-    single {
         Firebase.analytics
-    }
-
-    single {
-        AILoggingManager()
     }
 
     single {
@@ -106,12 +101,14 @@ val appModule = module {
             conversationRepo = get(),
             memoryRepository = get(),
             generationHandler = get(),
+            translationHandler = get(),
             templateTransformer = get(),
             providerManager = get(),
             localTools = get(),
             mcpManager = get(),
             filesManager = get(),
-            skillManager = get()
+            skillManager = get(),
+            folderRepository = get()
         )
     }
 

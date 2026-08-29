@@ -52,6 +52,7 @@ class PluginProtocolTest {
         assertEquals(PluginPermission.ConversationRead, PluginPermission.fromScope("conversation:read"))
         assertEquals(PluginPermission.DeviceRead, PluginPermission.fromScope("device:read"))
         assertEquals(PluginPermission.DeviceControl, PluginPermission.fromScope("device:control"))
+        assertEquals(PluginPermission.PluginInstall, PluginPermission.fromScope("plugin:install"))
         assertEquals(null, PluginPermission.fromScope("unknown:scope"))
     }
 }

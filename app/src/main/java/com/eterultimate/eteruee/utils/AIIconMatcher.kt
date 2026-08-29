@@ -14,7 +14,7 @@ fun computeAIIconByName(name: String): String? {
         PATTERN_CLAUDE.containsMatchIn(lowerName) -> "claude-color.svg"
         PATTERN_ANTHROPIC.containsMatchIn(lowerName) -> "anthropic.svg"
         PATTERN_DEEPSEEK.containsMatchIn(lowerName) -> "deepseek-color.svg"
-        PATTERN_GROK.containsMatchIn(lowerName) -> "grok.svg"
+        PATTERN_GROK.containsMatchIn(lowerName) -> "xai.svg"
         PATTERN_QWEN.containsMatchIn(lowerName) -> "qwen-color.svg"
         PATTERN_DOUBAO.containsMatchIn(lowerName) -> "doubao-color.svg"
         PATTERN_OPENROUTER.containsMatchIn(lowerName) -> "openrouter.svg"
@@ -50,7 +50,9 @@ fun computeAIIconByName(name: String): String? {
         PATTERN_LING.containsMatchIn(lowerName) -> "ling.png"
         PATTERN_MIMO.containsMatchIn(lowerName) -> "xiaomimimo.svg"
         PATTERN_LONGCAT.containsMatchIn(lowerName) -> "longcat-color.svg"
+        PATTERN_ELEVENLABS.containsMatchIn(lowerName) -> "elevenlabs.svg"
         PATTERN_ETERUEE.containsMatchIn(lowerName) -> "eteruee.svg"
+        PATTERN_RIKKAHUB.containsMatchIn(lowerName) -> "rikkahub.svg"
         PATTERN_SEARCH_LINKUP.containsMatchIn(lowerName) -> "linkup.png"
         PATTERN_SEARCH_BING.containsMatchIn(lowerName) -> "bing.png"
         PATTERN_SEARCH_TAVILY.containsMatchIn(lowerName) -> "tavily.png"
@@ -76,7 +78,7 @@ private val PATTERN_CLAUDE = Regex("claude")
 private val PATTERN_DEEPSEEK = Regex("deepseek")
 private val PATTERN_GROK = Regex("grok")
 private val PATTERN_QWEN = Regex("qwen|qwq|qvq")
-private val PATTERN_DOUBAO = Regex("doubao")
+private val PATTERN_DOUBAO = Regex("doubao|豆包|火山")
 private val PATTERN_OPENROUTER = Regex("openrouter")
 private val PATTERN_ZHIPU = Regex("zhipu|智谱|glm")
 private val PATTERN_MISTRAL = Regex("mistral")
@@ -94,7 +96,7 @@ private val PATTERN_CLOUDFLARE = Regex("cloudflare")
 private val PATTERN_MINIMAX = Regex("minimax")
 private val PATTERN_XAI = Regex("xai")
 private val PATTERN_JUHENEXT = Regex("juhenext")
-private val PATTERN_KIMI = Regex("kimi")
+private val PATTERN_KIMI = Regex("kimi|k3")
 private val PATTERN_MOONSHOT = Regex("moonshot|月之暗面")
 private val PATTERN_302 = Regex("302")
 private val PATTERN_STEP = Regex("step|阶跃")
@@ -110,6 +112,8 @@ private val PATTERN_TOKENPONY = Regex("tokenpony|小马算力")
 private val PATTERN_LING = Regex("ling|ring|百灵")
 private val PATTERN_MIMO = Regex("mimo|xiaomi|小米")
 private val PATTERN_LONGCAT = Regex("longcat")
+private val PATTERN_ELEVENLABS = Regex("elevenlabs")
+private val PATTERN_RIKKAHUB = Regex("rikkahub")
 
 private val PATTERN_SEARCH_LINKUP = Regex("linkup")
 private val PATTERN_SEARCH_BING = Regex("bing")

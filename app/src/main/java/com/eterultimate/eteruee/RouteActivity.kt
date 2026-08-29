@@ -115,6 +115,7 @@ import com.eterultimate.eteruee.ui.pages.setting.SettingProviderDetailPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingProviderPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingSearchDetailPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingSearchPage
+import com.eterultimate.eteruee.ui.pages.setting.SettingPreferencesNetworkPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingThemePage
 import com.eterultimate.eteruee.ui.pages.setting.SettingTTSPage
 import com.eterultimate.eteruee.ui.pages.setting.SettingTrafficControlPage
@@ -433,6 +434,10 @@ class RouteActivity : ComponentActivity() {
 
                             entry<Screen.WebView> { key ->
                                 WebViewPage(key.url, key.contentId)
+                            }
+
+                            entry<Screen.SettingNetwork> {
+                                SettingPreferencesNetworkPage()
                             }
 
                             entry<Screen.SettingTheme> {
@@ -778,6 +783,9 @@ sealed interface Screen : NavKey {
 
     @Serializable
     data class WebView(val url: String = "", val contentId: String = "") : Screen
+
+    @Serializable
+    data object SettingNetwork : Screen
 
     @Serializable
     data object SettingTheme : Screen

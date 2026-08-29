@@ -13,6 +13,9 @@ import io.pebbletemplates.pebble.PebbleEngine
 import kotlinx.serialization.json.Json
 import com.eterultimate.eteruee.ai.provider.ProviderManager
 import com.eterultimate.eteruee.common.http.AcceptLanguageBuilder
+import com.eterultimate.eteruee.data.network.SettingsProxyAuthenticator
+import com.eterultimate.eteruee.data.network.SettingsProxySelector
+import com.eterultimate.eteruee.data.network.SettingsSocks5Authenticator
 import com.eterultimate.eteruee.BuildConfig
 import com.eterultimate.eteruee.data.ai.AIRequestInterceptor
 import com.eterultimate.eteruee.data.ai.RequestLoggingInterceptor
@@ -45,6 +48,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 
 val dataSourceModule = module {
     single {
@@ -128,9 +132,22 @@ val dataSourceModule = module {
     }
 
     single<OkHttpClient> {
+        val settingsStore: SettingsStore = get()
         val acceptLang = AcceptLanguageBuilder.fromAndroid(get())
             .build()
-        OkHttpClient.Builder()
+        java.net.Authenticator.setDefault(SettingsSocks5Authenticator(settingsStore))
+        val initialNetworkSetting = settingsStore.settingsFlow.value.networkSetting
+        val appliedProxySetting = AtomicReference(
+            Triple(
+                initialNetworkSetting.proxyUrl,
+                initialNetworkSetting.proxyUsername,
+                initialNetworkSetting.proxyPassword,
+            )
+        )
+        lateinit var client: OkHttpClient
+        client = OkHttpClient.Builder()
+            .proxySelector(SettingsProxySelector(settingsStore))
+            .proxyAuthenticator(SettingsProxyAuthenticator(settingsStore))
             .connectTimeout(20, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.MINUTES)
             .writeTimeout(120, TimeUnit.SECONDS)
@@ -138,12 +155,25 @@ val dataSourceModule = module {
             .followRedirects(true)
             .retryOnConnectionFailure(true)
             .addInterceptor { chain ->
+                val networkSetting = settingsStore.settingsFlow.value.networkSetting
+                val currentProxySetting = Triple(
+                    networkSetting.proxyUrl,
+                    networkSetting.proxyUsername,
+                    networkSetting.proxyPassword,
+                )
+                if (appliedProxySetting.getAndSet(currentProxySetting) != currentProxySetting) {
+                    client.connectionPool.evictAll()
+                }
+
                 val originalRequest = chain.request()
                 val requestBuilder = originalRequest.newBuilder()
                     .addHeader(HttpHeaders.AcceptLanguage, acceptLang)
 
                 if (originalRequest.header(HttpHeaders.UserAgent) == null) {
-                    requestBuilder.addHeader(HttpHeaders.UserAgent, "EterUee-Android/${BuildConfig.VERSION_NAME}")
+                    val userAgent = settingsStore.settingsFlow.value.networkSetting.userAgent
+                        .trim()
+                        .ifEmpty { "EterUee-Android/${BuildConfig.VERSION_NAME}" }
+                    requestBuilder.addHeader(HttpHeaders.UserAgent, userAgent)
                 }
 
                 chain.proceed(requestBuilder.build())
@@ -166,7 +196,8 @@ val dataSourceModule = module {
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.HEADERS
             })
-            .build().also { SearchService.init(it, get()) }
+            .build()
+        client.also { SearchService.init(it, get()) }
     }
 
     single {

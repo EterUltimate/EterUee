@@ -218,6 +218,12 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                         headlineContent = { Text(stringResource(R.string.setting_page_mcp)) },
                     )
                     item(
+                        onClick = { navController.navigate(Screen.SettingNetwork) },
+                        leadingContent = { Icon(HugeIcons.GlobalSearch, null) },
+                        supportingContent = { Text(stringResource(R.string.setting_page_network_desc)) },
+                        headlineContent = { Text(stringResource(R.string.setting_page_network)) },
+                    )
+                    item(
                         onClick = { navController.navigate(Screen.SettingWeb) },
                         leadingContent = { Icon(HugeIcons.ServerStack01, null) },
                         supportingContent = { Text(stringResource(R.string.setting_page_web_server_desc)) },

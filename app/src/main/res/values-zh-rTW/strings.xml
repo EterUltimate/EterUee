@@ -1363,4 +1363,6 @@
   <string name="setting_page_preferences_network_auto_retry_desc">發生網路錯誤時自動重試模型請求，最多重試 3 次。</string>
   <string name="search_page_scope_current_assistant">目前助手</string>
   <string name="search_page_scope_all_assistants">全部助手</string>
+  <string name="setting_tts_page_playback_speed">朗讀速度</string>
+  <string name="setting_tts_page_playback_speed_desc">TTS 預設朗讀速度（0.5x - 2.0x）</string>
 </resources>

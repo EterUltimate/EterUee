@@ -1293,4 +1293,6 @@ mDNSアドレス: .localホスト名を使用し、IPを知らなくても同じ
   <string name="setting_page_preferences_network_auto_retry_desc">ネットワークエラー時、モデルリクエストを最大3回再試行します。</string>
   <string name="search_page_scope_current_assistant">現在のアシスタント</string>
   <string name="search_page_scope_all_assistants">すべてのアシスタント</string>
+  <string name="setting_tts_page_playback_speed">読み上げ速度</string>
+  <string name="setting_tts_page_playback_speed_desc">TTS のデフォルト読み上げ速度（0.5x - 2.0x）</string>
 </resources>

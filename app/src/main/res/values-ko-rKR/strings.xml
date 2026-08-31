@@ -1293,4 +1293,6 @@ mDNS 주소: .local 호스트네임을 사용하며, IP를 몰라도 같은 네�
   <string name="setting_page_preferences_network_auto_retry_desc">네트워크 오류 발생 시 모델 요청을 최대 3회 재시도합니다.</string>
   <string name="search_page_scope_current_assistant">현재 어시스턴트</string>
   <string name="search_page_scope_all_assistants">모든 어시스턴트</string>
+  <string name="setting_tts_page_playback_speed">읽기 속도</string>
+  <string name="setting_tts_page_playback_speed_desc">TTS 기본 재생 속도 (0.5x - 2.0x)</string>
 </resources>

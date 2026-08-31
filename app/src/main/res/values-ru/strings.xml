@@ -1293,4 +1293,6 @@
   <string name="setting_page_preferences_network_auto_retry_desc">Повторять запросы модели до 3 раз при сетевых ошибках.</string>
   <string name="search_page_scope_current_assistant">Текущий ассистент</string>
   <string name="search_page_scope_all_assistants">Все ассистенты</string>
+  <string name="setting_tts_page_playback_speed">Скорость чтения</string>
+  <string name="setting_tts_page_playback_speed_desc">Скорость воспроизведения TTS по умолчанию (0,5x - 2,0x)</string>
 </resources>

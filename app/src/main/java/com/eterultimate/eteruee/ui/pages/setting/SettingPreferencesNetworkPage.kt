@@ -51,6 +51,7 @@ import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.network.toProxyOrNull
 import com.eterultimate.eteruee.ui.components.nav.BackButton
 import com.eterultimate.eteruee.ui.components.ui.CardGroup
+import com.eterultimate.eteruee.ui.components.ui.Switch
 import com.eterultimate.eteruee.ui.context.LocalToaster
 import com.eterultimate.eteruee.ui.theme.CustomColors
 import com.eterultimate.eteruee.utils.plus
@@ -275,6 +276,34 @@ fun SettingPreferencesNetworkPage(vm: SettingVM = koinViewModel()) {
             contentPadding = contentPadding + PaddingValues(8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            item {
+                CardGroup(
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    item(
+                        headlineContent = {
+                            Text(stringResource(R.string.setting_page_preferences_network_auto_retry))
+                        },
+                        supportingContent = {
+                            Text(stringResource(R.string.setting_page_preferences_network_auto_retry_desc))
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = settings.networkSetting.enableAutoRetry,
+                                onCheckedChange = { enabled ->
+                                    vm.updateSettings(
+                                        settings.copy(
+                                            networkSetting = settings.networkSetting.copy(
+                                                enableAutoRetry = enabled,
+                                            ),
+                                        )
+                                    )
+                                },
+                            )
+                        },
+                    )
+                }
+            }
             item {
                 CardGroup(
                     modifier = Modifier.padding(horizontal = 8.dp),

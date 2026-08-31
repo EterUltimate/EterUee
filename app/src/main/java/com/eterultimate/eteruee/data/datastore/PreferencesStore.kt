@@ -586,6 +586,15 @@ data class Settings(
 }
 
 @Serializable
+data class NetworkSetting(
+    val userAgent: String = "",
+    val proxyUrl: String = "",
+    val proxyUsername: String = "",
+    val proxyPassword: String = "",
+    val enableAutoRetry: Boolean = true,
+)
+
+@Serializable
 enum class ChatFontFamily {
     @SerialName("default")
     DEFAULT,
@@ -780,10 +789,4 @@ val DEFAULT_MODE_INJECTIONS = listOf(
     )
 )
 
-@Serializable
-data class NetworkSetting(
-    val userAgent: String = "",
-    val proxyUrl: String = "",
-    val proxyUsername: String = "",
-    val proxyPassword: String = "",
-)
+

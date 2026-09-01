@@ -42,7 +42,7 @@
     "remark-math": "^6.0.0",
     "shiki": "^4.3.0",
     "sonner": "^2.0.7",
-    "streamdown": "^2.2.0",
+    "streamdown": "^2.6.0",
     "tailwind-merge": "^3.4.0",
     "use-stick-to-bottom": "^1.1.2",
     "uuid": "^13.0.0",

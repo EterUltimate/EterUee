@@ -1380,4 +1380,6 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
 <string name="theme_name_chatgpt">ChatGPT 风格</string>
 <string name="theme_name_gemini">Gemini 风格</string>
 <string name="theme_name_hitech">HiTech</string>
+  <string name="search_page_scope_current_assistant">当前助手</string>
+  <string name="search_page_scope_all_assistants">所有助手</string>
 </resources>

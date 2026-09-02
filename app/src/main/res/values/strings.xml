@@ -1364,5 +1364,7 @@
 <string name="theme_name_chatgpt">ChatGPT Style</string>
 <string name="theme_name_gemini">Gemini Style</string>
 <string name="theme_name_hitech">HiTech</string>
+  <string name="search_page_scope_current_assistant">Current Assistant</string>
+  <string name="search_page_scope_all_assistants">All Assistants</string>
 </resources>
 

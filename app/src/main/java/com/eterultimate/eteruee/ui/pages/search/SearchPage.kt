@@ -26,6 +26,9 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -135,6 +138,33 @@ fun SearchPage(vm: SearchVM = koinViewModel()) {
                     onSearch = { vm.search() }
                 ),
             )
+
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 8.dp),
+            ) {
+                MessageSearchScope.entries.forEachIndexed { index, scope ->
+                    SegmentedButton(
+                        selected = vm.searchScope == scope,
+                        onClick = { vm.onScopeChange(scope) },
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = MessageSearchScope.entries.size,
+                        ),
+                    ) {
+                        Text(
+                            stringResource(
+                                when (scope) {
+                                    MessageSearchScope.CURRENT_ASSISTANT -> R.string.search_page_scope_current_assistant
+                                    MessageSearchScope.ALL_ASSISTANTS -> R.string.search_page_scope_all_assistants
+                                }
+                            )
+                        )
+                    }
+                }
+            }
 
             Box(modifier = Modifier.weight(1f)) {
                 if (vm.isLoading || vm.isRebuilding) {

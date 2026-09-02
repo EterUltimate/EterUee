@@ -1,4 +1,4 @@
-﻿package com.eterultimate.eteruee.ui.pages.search
+package com.eterultimate.eteruee.ui.pages.search
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -8,16 +8,30 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import com.eterultimate.eteruee.data.datastore.SettingsStore
+import com.eterultimate.eteruee.data.datastore.getCurrentAssistant
 import com.eterultimate.eteruee.data.db.fts.MessageSearchResult
 import com.eterultimate.eteruee.data.repository.ConversationRepository
+import kotlin.uuid.Uuid
+
+enum class MessageSearchScope {
+    CURRENT_ASSISTANT,
+    ALL_ASSISTANTS,
+}
 
 class SearchVM(
     private val conversationRepo: ConversationRepository,
+    private val settingsStore: SettingsStore,
 ) : ViewModel() {
     private val _searchQuery = MutableStateFlow("")
+    private var currentAssistantId: Uuid? = null
 
     var searchQuery by mutableStateOf("")
+        private set
+    var searchScope by mutableStateOf(MessageSearchScope.CURRENT_ASSISTANT)
         private set
     var results by mutableStateOf<List<MessageSearchResult>>(emptyList())
         private set
@@ -34,11 +48,30 @@ class SearchVM(
                 .debounce(300L)
                 .collectLatest { query -> performSearch(query) }
         }
+        viewModelScope.launch {
+            settingsStore.settingsFlow
+                .map { it.getCurrentAssistant().id }
+                .distinctUntilChanged()
+                .collect { assistantId ->
+                    currentAssistantId = assistantId
+                    if (searchScope == MessageSearchScope.CURRENT_ASSISTANT) {
+                        performSearch(searchQuery)
+                    }
+                }
+        }
     }
 
     fun onQueryChange(query: String) {
         searchQuery = query
         _searchQuery.value = query
+    }
+
+    fun onScopeChange(scope: MessageSearchScope) {
+        if (searchScope == scope) return
+        searchScope = scope
+        viewModelScope.launch {
+            performSearch(searchQuery)
+        }
     }
 
     fun search() {
@@ -62,16 +95,19 @@ class SearchVM(
     }
 
     private suspend fun performSearch(query: String) {
-        if (query.isBlank()) {
+        val assistantId = when (searchScope) {
+            MessageSearchScope.CURRENT_ASSISTANT -> currentAssistantId
+            MessageSearchScope.ALL_ASSISTANTS -> null
+        }
+        if (query.isBlank() || (searchScope == MessageSearchScope.CURRENT_ASSISTANT && assistantId == null)) {
             results = emptyList()
             return
         }
         isLoading = true
         try {
-            results = conversationRepo.searchMessages(query)
+            results = conversationRepo.searchMessages(query, assistantId)
         } finally {
             isLoading = false
         }
     }
 }
-

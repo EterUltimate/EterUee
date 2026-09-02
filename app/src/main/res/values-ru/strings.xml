@@ -1291,4 +1291,6 @@
   <string name="setting_files_page_clean_range_description">Выберите файлы для окончательного удаления. Это действие нельзя отменить.</string>
   <string name="setting_page_preferences_network_auto_retry">Автоповтор</string>
   <string name="setting_page_preferences_network_auto_retry_desc">Повторять запросы модели до 3 раз при сетевых ошибках.</string>
+  <string name="search_page_scope_current_assistant">Текущий ассистент</string>
+  <string name="search_page_scope_all_assistants">Все ассистенты</string>
 </resources>

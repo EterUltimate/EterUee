@@ -195,6 +195,23 @@ class MessageTest {
         assertEquals("[USER]: he...", message.summaryAsText(maxLength = 10))
     }
 
+    @Test
+    fun `summaryAsText should omit inline base64 data urls from text parts`() {
+        val message = UIMessage(
+            role = MessageRole.ASSISTANT,
+            parts = listOf(
+                UIMessagePart.Text(
+                    "Generated image: data:image/png;base64,AAAABBBBCCCC keep this caption"
+                )
+            )
+        )
+
+        val summary = message.summaryAsText()
+
+        assertEquals("[ASSISTANT]: Generated image: [omitted inline data] keep this caption", summary)
+        assertFalse(summary.contains("AAAABBBBCCCC"))
+    }
+
     // ==================== migrateToolMessages Tests ====================
 
     @Test

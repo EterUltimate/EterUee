@@ -87,13 +87,22 @@ class BackupManager(
                         for (entry in zip.entries()) {
                             currentCoroutineContext().ensureActive()
                             if (entry.isDirectory) continue
+                            // Defense in depth: drop traversal segments before any path use
+                            // (resolveInside rejects them too, this keeps the check local).
+                            if (entry.name.split('/').any { it == ".." || it == "." }) continue
                             val target = when (entry.name) {
                                 "settings.json" -> File(staging, "settings.json")
                                 DatabaseBackup.ARCHIVE_DATABASE -> if (includeDatabase) stagedDatabase else null
                                 DatabaseBackup.WAL -> if (includeDatabase) stagedWal else null
                                 DatabaseBackup.SHM -> null // Rebuilt by SQLite; never restore shared-memory state.
                                 else -> if (includeFiles && isAttachment(entry.name)) {
-                                    PendingRestore.resolveInside(File(payload, "files"), entry.name)
+                                    val staged = PendingRestore.resolveInside(File(payload, "files"), entry.name)
+                                    // Canonical containment re-check at the sink: the staged
+                                    // target must stay inside the staging files directory.
+                                    check(staged.canonicalPath.startsWith(File(payload, "files").canonicalPath + File.separator)) {
+                                        "Backup entry escapes the staging directory"
+                                    }
+                                    staged
                                 } else null
                             } ?: continue
                             require(seen.add(entry.name)) { "Duplicate backup entry: ${entry.name}" }

@@ -272,7 +272,8 @@ class ConversationRepository(
         filesManager.deleteChatFiles(fullConversation.files)
     }
 
-    suspend fun searchMessages(keyword: String) = messageFtsManager.search(keyword)
+    suspend fun searchMessages(keyword: String, assistantId: Uuid? = null) =
+        messageFtsManager.search(keyword, assistantId?.toString())
 
     suspend fun rebuildAllIndexes(onProgress: (current: Int, total: Int) -> Unit = { _, _ -> }) {
         messageFtsManager.deleteAll()

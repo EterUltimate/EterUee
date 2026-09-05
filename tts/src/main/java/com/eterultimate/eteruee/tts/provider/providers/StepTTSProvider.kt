@@ -10,6 +10,7 @@ import com.eterultimate.eteruee.tts.model.AudioChunk
 import com.eterultimate.eteruee.tts.model.AudioFormat
 import com.eterultimate.eteruee.tts.model.TTSRequest
 import com.eterultimate.eteruee.tts.provider.TTSProvider
+import com.eterultimate.eteruee.tts.provider.TTSProviderException
 import com.eterultimate.eteruee.tts.provider.TTSProviderSetting
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -76,8 +77,9 @@ class StepTTSProvider : TTSProvider<TTSProviderSetting.Step> {
         if (!response.isSuccessful) {
             // 把错误响应体读出来方便排查 (4xx 通常返回 JSON 错误信息)
             val errorBody = runCatching { response.body?.string() }.getOrNull().orEmpty()
-            throw Exception(
-                "Step TTS request failed: HTTP ${response.code} ${response.message}. body=$errorBody"
+            throw TTSProviderException(
+                message = "Step TTS request failed: HTTP ${response.code} ${response.message}. body=$errorBody",
+                statusCode = response.code
             )
         }
 

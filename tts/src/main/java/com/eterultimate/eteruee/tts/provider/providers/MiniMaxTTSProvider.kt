@@ -14,6 +14,7 @@ import com.eterultimate.eteruee.tts.model.AudioChunk
 import com.eterultimate.eteruee.tts.model.AudioFormat
 import com.eterultimate.eteruee.tts.model.TTSRequest
 import com.eterultimate.eteruee.tts.provider.TTSProvider
+import com.eterultimate.eteruee.tts.provider.TTSProviderException
 import com.eterultimate.eteruee.tts.provider.TTSProviderSetting
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -124,6 +125,14 @@ class MiniMaxTTSProvider : TTSProvider<TTSProviderSetting.MiniMax> {
 
                 is SseEvent.Failure -> {
                     Log.e(TAG, "SSE connection failed", it.throwable)
+                    val statusCode = it.response?.code
+                    if (statusCode != null) {
+                        throw TTSProviderException(
+                            message = "MiniMax TTS streaming failed: HTTP $statusCode",
+                            statusCode = statusCode,
+                            cause = it.throwable
+                        )
+                    }
                     throw it.throwable ?: Exception("MiniMax TTS streaming failed")
                 }
             }

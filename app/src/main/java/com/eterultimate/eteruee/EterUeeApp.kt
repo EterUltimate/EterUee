@@ -20,6 +20,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import com.eterultimate.eteruee.di.appModule
 import com.eterultimate.eteruee.di.dataSourceModule
 import com.eterultimate.eteruee.di.repositoryModule
@@ -27,6 +28,9 @@ import com.eterultimate.eteruee.di.viewModelModule
 import com.eterultimate.eteruee.roleplay.di.roleplayModule
 import com.eterultimate.eteruee.data.files.FilesManager
 import com.eterultimate.eteruee.data.datastore.SettingsStore
+import com.eterultimate.eteruee.data.sync.BackupManager
+import com.eterultimate.eteruee.data.sync.RestoreFailedException
+import com.eterultimate.eteruee.utils.JsonInstant
 import com.eterultimate.eteruee.runtime.NativeRuntime
 import com.eterultimate.eteruee.service.WebServerService
 import com.eterultimate.eteruee.utils.CrashHandler
@@ -49,6 +53,18 @@ const val WEB_SERVER_NOTIFICATION_CHANNEL_ID = "web_server"
 class EterUeeApp : Application() {
     override fun onCreate() {
         super.onCreate()
+        // Restore files and settings before eager Koin singletons or workers can access them.
+        try {
+            val restored = runBlocking(Dispatchers.IO) {
+                BackupManager.applyPendingRestore(this@EterUeeApp, JsonInstant)
+            }
+            if (restored) {
+                android.widget.Toast.makeText(this, R.string.backup_page_restore_success, android.widget.Toast.LENGTH_LONG).show()
+            }
+        } catch (e: RestoreFailedException) {
+            android.util.Log.e(TAG, "Backup restore rolled back", e)
+            android.widget.Toast.makeText(this, "备份恢复失败，已保留原数据。请重新导入备份。", android.widget.Toast.LENGTH_LONG).show()
+        }
         startKoin {
             androidLogger()
             androidContext(this@EterUeeApp)

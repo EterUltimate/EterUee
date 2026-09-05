@@ -1,10 +1,5 @@
 ﻿package com.eterultimate.eteruee.di
 
-import androidx.room.Room
-import androidx.room.RoomDatabase
-import androidx.sqlite.SQLiteConnection
-import androidx.sqlite.db.SupportSQLiteDatabase
-import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import android.content.Context
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
@@ -28,14 +23,9 @@ import com.eterultimate.eteruee.data.api.SponsorAPI
 import com.eterultimate.eteruee.data.datastore.DEFAULT_ETERUEE_OFFICIAL_API_BASE_URL
 import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.db.AppDatabase
+import com.eterultimate.eteruee.data.db.AppDatabaseFactory
+import com.eterultimate.eteruee.data.sync.BackupManager
 import com.eterultimate.eteruee.data.db.fts.MessageFtsManager
-import com.eterultimate.eteruee.data.db.fts.MessageFtsSchema
-import com.eterultimate.eteruee.data.db.migrations.Migration_6_7
-import com.eterultimate.eteruee.data.db.migrations.MIGRATION_17_18
-import com.eterultimate.eteruee.data.db.migrations.Migration_11_12
-import com.eterultimate.eteruee.data.db.migrations.Migration_13_14
-import com.eterultimate.eteruee.data.db.migrations.Migration_14_15
-import com.eterultimate.eteruee.data.db.migrations.Migration_15_16
 import com.eterultimate.eteruee.data.ai.mcp.McpManager
 import com.eterultimate.eteruee.data.sync.webdav.WebDavSync
 import com.eterultimate.eteruee.search.SearchService
@@ -58,20 +48,7 @@ val dataSourceModule = module {
 
     single {
         val context: Context = get()
-        Room.databaseBuilder(context, AppDatabase::class.java, "rikka_hub")
-            .setDriver(BundledSQLiteDriver())
-            .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
-            .addMigrations(Migration_6_7, Migration_11_12, Migration_13_14, Migration_14_15, Migration_15_16, MIGRATION_17_18)
-            .addCallback(object : RoomDatabase.Callback() {
-                override fun onOpen(db: SupportSQLiteDatabase) {
-                    MessageFtsSchema.ensure(db)
-                }
-
-                override fun onOpen(connection: SQLiteConnection) {
-                    MessageFtsSchema.ensure(connection)
-                }
-            })
-            .build()
+        AppDatabaseFactory.create(context)
     }
 
     single {
@@ -213,10 +190,11 @@ val dataSourceModule = module {
         ProviderManager(client = get(), context = get())
     }
 
+    single { BackupManager(context = get(), database = get(), settingsStore = get(), json = get()) }
+
     single {
         WebDavSync(
-            settingsStore = get(),
-            json = get(),
+            backupManager = get(),
             context = get(),
             httpClient = get()
         )
@@ -239,8 +217,7 @@ val dataSourceModule = module {
 
     single {
         S3Sync(
-            settingsStore = get(),
-            json = get(),
+            backupManager = get(),
             context = get(),
             httpClient = get()
         )

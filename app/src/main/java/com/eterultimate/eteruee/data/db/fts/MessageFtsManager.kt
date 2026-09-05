@@ -67,13 +67,24 @@ class MessageFtsManager(private val database: AppDatabase) {
         }
     }
 
-    suspend fun search(keyword: String): List<MessageSearchResult> = withContext(Dispatchers.IO) {
+    suspend fun search(keyword: String, assistantId: String? = null): List<MessageSearchResult> = withContext(Dispatchers.IO) {
         val ftsQuery = keyword.toFtsQuery()
         if (ftsQuery.isBlank()) {
             return@withContext emptyList()
         }
 
         val results = mutableListOf<MessageSearchResult>()
+        val assistantFilter = if (assistantId != null) {
+            """
+            AND EXISTS (
+                SELECT 1 FROM ConversationEntity AS conversation
+                WHERE conversation.id = message_fts.conversation_id
+                  AND conversation.assistant_id = ?
+            )
+            """.trimIndent()
+        } else {
+            ""
+        }
         database.useWriterConnection { connection ->
             MessageFtsSchema.ensure(connection)
             runCatching {
@@ -83,10 +94,11 @@ class MessageFtsManager(private val database: AppDatabase) {
                            snippet(message_fts, 0, '[', ']', '...', 30) AS snippet
                     FROM message_fts
                     WHERE text MATCH ?
+                    $assistantFilter
                     ORDER BY rank, update_at DESC
                     LIMIT 50
                     """.trimIndent(),
-                    arrayOf(ftsQuery)
+                    if (assistantId != null) arrayOf(ftsQuery, assistantId) else arrayOf(ftsQuery)
                 ) { statement ->
                     while (statement.step()) {
                         results.add(statement.toSearchResult())
@@ -98,7 +110,7 @@ class MessageFtsManager(private val database: AppDatabase) {
             }
 
             if (results.isEmpty()) {
-                results.addAll(searchByLike(connection, keyword))
+                results.addAll(searchByLike(connection, keyword, assistantId))
             }
         }
 
@@ -106,18 +118,34 @@ class MessageFtsManager(private val database: AppDatabase) {
         results
     }
 
-    private suspend fun searchByLike(connection: PooledConnection, keyword: String): List<MessageSearchResult> {
+    private suspend fun searchByLike(
+        connection: PooledConnection,
+        keyword: String,
+        assistantId: String? = null,
+    ): List<MessageSearchResult> {
         val results = mutableListOf<MessageSearchResult>()
+        val assistantFilter = if (assistantId != null) {
+            """
+            AND EXISTS (
+                SELECT 1 FROM ConversationEntity AS conversation
+                WHERE conversation.id = message_fts.conversation_id
+                  AND conversation.assistant_id = ?
+            )
+            """.trimIndent()
+        } else {
+            ""
+        }
         connection.query(
             """
             SELECT node_id, message_id, conversation_id, title, update_at,
                    substr(text, 1, 200) AS snippet
             FROM message_fts
             WHERE text LIKE ? ESCAPE '\'
+            $assistantFilter
             ORDER BY update_at DESC
             LIMIT 50
             """.trimIndent(),
-            arrayOf("%${keyword.escapeLike()}%")
+            if (assistantId != null) arrayOf("%${keyword.escapeLike()}%", assistantId) else arrayOf("%${keyword.escapeLike()}%")
         ) { statement ->
             while (statement.step()) {
                 results.add(statement.toSearchResult())

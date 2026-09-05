@@ -973,20 +973,41 @@ private fun ChainOfThoughtScope.AskUserToolStep(
     val isAnswered = tool.approvalState is ToolApprovalState.Answered
     val arguments = tool.inputAsJson()
 
-    // Parse questions from arguments
-    val questions = remember(arguments) {
-        runCatching {
-            arguments.jsonObject["questions"]?.jsonArray?.map { q ->
-                val obj = q.jsonObject
+    // Parse questions from arguments. Fault-tolerant parsing: models/proxies may emit
+    // double-encoded arrays ("[{...}]" instead of [{...}]) or object-shaped options
+    // ({"text": ...}). A single malformed question must not discard the whole list,
+    // which rendered a blank card with a submittable empty answer (rikkahub#1848).
+    val argumentsObject = remember(arguments) { runCatching { arguments.jsonObject }.getOrNull() }
+    val questions = remember(argumentsObject) {
+        val raw = argumentsObject?.get("questions")
+        val arr: JsonArray? = raw as? JsonArray
+            ?: (raw as? JsonPrimitive)?.let {
+                runCatching { JsonInstant.parseToJsonElement(it.content).jsonArray }.getOrNull()
+            }
+        arr.orEmpty().mapNotNull { q ->
+            val obj = runCatching { q.jsonObject }.getOrNull() ?: return@mapNotNull null
+            runCatching {
                 AskUserQuestion(
                     id = obj["id"]?.jsonPrimitive?.contentOrNull ?: "",
                     question = obj["question"]?.jsonPrimitive?.contentOrNull ?: "",
-                    options = obj["options"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull } ?: emptyList(),
+                    options = (obj["options"] as? JsonArray)?.mapNotNull { o ->
+                        when (o) {
+                            is JsonPrimitive -> o.contentOrNull
+                            is JsonObject ->
+                                ((o["text"] ?: o["label"] ?: o["option"]) as? JsonPrimitive)?.contentOrNull
+                            else -> null
+                        }
+                    } ?: emptyList(),
                     selectionType = obj["selection_type"]?.jsonPrimitive?.contentOrNull ?: "text"
                 )
-            } ?: emptyList()
-        }.getOrElse { emptyList() }
+            }.getOrNull()
+        }.filter { it.question.isNotBlank() || it.options.isNotEmpty() }
     }
+    // True when the tool call carried questions but none could be parsed
+    val parseFailed = questions.isEmpty() && argumentsObject?.containsKey("questions") == true
+
+    // Fallback free-text answer used when parsing failed
+    var rawAnswer by remember { mutableStateOf("") }
 
     // Track answers for text/single questions
     val answers = remember { mutableStateMapOf<String, String>() }
@@ -1142,6 +1163,24 @@ private fun ChainOfThoughtScope.AskUserToolStep(
                     }
                 }
 
+                if (parseFailed && isPending && onToolAnswer != null) {
+                    // Fallback UI: never leave the user with an unusable blank card (#1848)
+                    Text(
+                        text = "Failed to parse question arguments / 问题参数解析失败，请直接文字回答：",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                    OutlinedTextField(
+                        value = rawAnswer,
+                        onValueChange = { rawAnswer = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        textStyle = MaterialTheme.typography.bodySmall,
+                        singleLine = false,
+                        minLines = 1,
+                        maxLines = 4,
+                    )
+                }
+
                 // Submit button
                 if (isPending && onToolAnswer != null) {
                     FilledTonalButton(
@@ -1154,14 +1193,22 @@ private fun ChainOfThoughtScope.AskUserToolStep(
                                             else -> put(q.id, JsonPrimitive(answers[q.id] ?: ""))
                                         }
                                     }
+                                    if (questions.isEmpty()) {
+                                        put("_raw", JsonPrimitive(rawAnswer))
+                                    }
                                 })
                             }
                             onToolAnswer(tool.toolCallId, answerPayload.toString())
                         },
-                        enabled = questions.all { q ->
-                            when (q.selectionType) {
-                                "multi" -> !multiAnswers[q.id].isNullOrEmpty()
-                                else -> !answers[q.id].isNullOrBlank()
+                        enabled = if (questions.isEmpty()) {
+                            // Guard against the vacuous-truth submit of an empty list (#1848)
+                            rawAnswer.isNotBlank()
+                        } else {
+                            questions.all { q ->
+                                when (q.selectionType) {
+                                    "multi" -> !multiAnswers[q.id].isNullOrEmpty()
+                                    else -> !answers[q.id].isNullOrBlank()
+                                }
                             }
                         },
                         modifier = Modifier.align(Alignment.End),

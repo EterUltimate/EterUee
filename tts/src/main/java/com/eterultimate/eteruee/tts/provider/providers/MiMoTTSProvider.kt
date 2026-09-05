@@ -14,6 +14,7 @@ import com.eterultimate.eteruee.tts.model.AudioChunk
 import com.eterultimate.eteruee.tts.model.AudioFormat
 import com.eterultimate.eteruee.tts.model.TTSRequest
 import com.eterultimate.eteruee.tts.provider.TTSProvider
+import com.eterultimate.eteruee.tts.provider.TTSProviderException
 import com.eterultimate.eteruee.tts.provider.TTSProviderSetting
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -102,7 +103,17 @@ internal class MiMoSseProcessor(
                 )
             }
 
-            is SseEvent.Failure -> throw event.throwable ?: Exception("MiMo TTS streaming failed")
+            is SseEvent.Failure -> {
+                val statusCode = event.response?.code
+                if (statusCode != null) {
+                    throw TTSProviderException(
+                        message = "MiMo TTS streaming failed: HTTP $statusCode",
+                        statusCode = statusCode,
+                        cause = event.throwable
+                    )
+                }
+                throw event.throwable ?: Exception("MiMo TTS streaming failed")
+            }
         }
     }
 }

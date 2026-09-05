@@ -11,6 +11,7 @@ import com.eterultimate.eteruee.tts.model.AudioChunk
 import com.eterultimate.eteruee.tts.model.AudioFormat
 import com.eterultimate.eteruee.tts.model.TTSRequest
 import com.eterultimate.eteruee.tts.provider.TTSProvider
+import com.eterultimate.eteruee.tts.provider.TTSProviderException
 import com.eterultimate.eteruee.tts.provider.TTSProviderSetting
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -96,7 +97,13 @@ class GeminiTTSProvider : TTSProvider<TTSProviderSetting.Gemini> {
         val response = httpClient.newCall(httpRequest).execute()
 
         if (!response.isSuccessful) {
-            throw Exception("Gemini TTS request failed: ${response.code} ${response.message}")
+            val statusCode = response.code
+            val statusMessage = response.message
+            response.close()
+            throw TTSProviderException(
+                message = "Gemini TTS request failed: $statusCode $statusMessage",
+                statusCode = statusCode
+            )
         }
 
         val responseJson = response.body.string()

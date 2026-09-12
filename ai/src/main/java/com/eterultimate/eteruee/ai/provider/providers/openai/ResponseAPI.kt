@@ -41,6 +41,7 @@ import com.eterultimate.eteruee.ai.ui.UIMessageChoice
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.ai.util.KeyRoulette
 import com.eterultimate.eteruee.ai.util.configureReferHeaders
+import com.eterultimate.eteruee.ai.util.configureSessionHeaders
 import com.eterultimate.eteruee.ai.util.encodeBase64
 import com.eterultimate.eteruee.ai.util.json
 import com.eterultimate.eteruee.ai.util.mergeCustomBody
@@ -88,6 +89,7 @@ class ResponseAPI(
             )
             .addHeader("Content-Type", "application/json")
             .configureReferHeaders(providerSetting.baseUrl)
+            .configureSessionHeaders(providerSetting.baseUrl, params.sessionId)
             .build()
 
         Log.i(TAG, "generateText: ${json.encodeToString(requestBody)}")
@@ -125,6 +127,7 @@ class ResponseAPI(
                 "Bearer ${keyRoulette.next(providerSetting.apiKey, providerSetting.id.toString())}"
             )
             .configureReferHeaders(providerSetting.baseUrl)
+            .configureSessionHeaders(providerSetting.baseUrl, params.sessionId)
             .build()
 
         Log.i(TAG, "streamText: ${json.encodeToString(requestBody)}")

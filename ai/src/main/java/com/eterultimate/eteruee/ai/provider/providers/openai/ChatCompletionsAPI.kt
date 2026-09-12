@@ -2,9 +2,12 @@ package com.eterultimate.eteruee.ai.provider.providers.openai
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -254,8 +257,8 @@ class ChatCompletionsAPI(
             println("[awaitClose] 关闭eventSource ")
             eventSource.cancel()
         }
-    }
-
+        // trySend 在缓冲满时会静默丢弃 delta，导致回复中间缺字 (#1295)，因此缓冲必须无界
+    }.buffer(Channel.UNLIMITED).flowOn(Dispatchers.IO)
 
     private fun buildChatCompletionRequest(
         messages: List<UIMessage>,

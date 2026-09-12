@@ -24,7 +24,7 @@ class MessageNodeStatsTest {
         database = Room.inMemoryDatabaseBuilder(
             InstrumentationRegistry.getInstrumentation().targetContext,
             AppDatabase::class.java,
-        ).openHelperFactory(RequerySQLiteOpenHelperFactory()).build()
+        ).build()
         dao = database.messageNodeDao()
         database.conversationDao().insert(
             ConversationEntity(

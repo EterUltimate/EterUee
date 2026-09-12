@@ -183,7 +183,7 @@ fun ChainOfThoughtScope.ChatMessageToolStep(
     var expanded by remember { mutableStateOf(true) }
     val eventBus: AppEventBus = koinInject()
     val scope = rememberCoroutineScope()
-    val isPending = tool.approvalState is ToolApprovalState.Pending
+    val isPending = tool.isPending
     val isDenied = tool.approvalState is ToolApprovalState.Denied
     val arguments = tool.inputAsJson()
     val memoryAction = arguments.getStringContent("action")
@@ -1022,7 +1022,7 @@ private fun ChainOfThoughtScope.AskUserToolStep(
     loading: Boolean,
     onToolAnswer: ((toolCallId: String, answer: String) -> Unit)?,
 ) {
-    val isPending = tool.approvalState is ToolApprovalState.Pending
+    val isPending = tool.isPending
     val isAnswered = tool.approvalState is ToolApprovalState.Answered
     val arguments = tool.inputAsJson()
 

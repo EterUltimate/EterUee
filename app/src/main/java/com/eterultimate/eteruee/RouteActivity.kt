@@ -147,6 +147,8 @@ import kotlin.uuid.Uuid
 
 private const val TAG = "RouteActivity"
 private const val ACTION_TRANSLATE = "com.eterultimate.eteruee.action.TRANSLATE"
+private const val LOCAL_NETWORK_PERMISSION_PREFS = "runtime_permissions"
+private const val LOCAL_NETWORK_PERMISSION_REQUESTED = "local_network_requested"
 
 class RouteActivity : ComponentActivity() {
     private val highlighter by inject<Highlighter>()
@@ -154,6 +156,11 @@ class RouteActivity : ComponentActivity() {
     private val settingsStore by inject<SettingsStore>()
     private var navStack: MutableList<NavKey>? = null
     private val pendingIntents = ArrayDeque<Intent>()
+    private val localNetworkPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        Log.i(TAG, "ACCESS_LOCAL_NETWORK permission granted: $granted")
+    }
 
     // Volume key listener registry — last registered handler wins
     internal val volumeKeyListeners = mutableListOf<(isVolumeUp: Boolean) -> Boolean>()
@@ -239,6 +246,29 @@ class RouteActivity : ComponentActivity() {
         }
         if (destination != null && backStack.lastOrNull() != destination) {
             backStack.add(destination)
+        }
+    }
+
+    private fun requestLocalNetworkPermissionForRuntimeAccess() {
+        if (Build.VERSION.SDK_INT < 37) return
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_LOCAL_NETWORK,
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+        val prefs = getSharedPreferences(LOCAL_NETWORK_PERMISSION_PREFS, MODE_PRIVATE)
+        if (prefs.getBoolean(LOCAL_NETWORK_PERMISSION_REQUESTED, false)) return
+
+        lifecycleScope.launch {
+            val settings = runCatching { settingsStore.settingsFlowRaw.first() }.getOrNull()
+                ?: return@launch
+            if (!settings.usesLocalNetworkRuntime()) return@launch
+
+            prefs.edit().putBoolean(LOCAL_NETWORK_PERMISSION_REQUESTED, true).apply()
+            localNetworkPermissionLauncher.launch(Manifest.permission.ACCESS_LOCAL_NETWORK)
         }
     }
 

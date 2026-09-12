@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -344,6 +345,7 @@ private fun ConversationItem(
     onClick: (Conversation) -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
+    val focusManager = LocalFocusManager.current
     val backgroundColor = if (isSelected) {
         MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
     } else if (selected) {
@@ -371,6 +373,9 @@ private fun ConversationItem(
                     if (!inSelectionMode) {
                         onEnterSelectionMode(conversation)
                     }
+                    // Also clear chat input focus when the drawer is permanently visible.
+                    focusManager.clearFocus(force = true)
+                    showDropdownMenu = true
                 }
             )
             .background(backgroundColor),

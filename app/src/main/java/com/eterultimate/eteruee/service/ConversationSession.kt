@@ -92,6 +92,7 @@ class ConversationSession(
                 }
             }
         }
+        job?.start()
     }
 
     fun getJob(): Job? = _generationJob.value

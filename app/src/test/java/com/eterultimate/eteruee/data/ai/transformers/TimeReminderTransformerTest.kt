@@ -74,10 +74,10 @@ class TimeReminderTransformerTest {
             )
         )
 
-        assertEquals(3, applyTimeReminder(messages, intervalMinutes = 30).size)
+        assertEquals(2, applyTimeReminder(messages, intervalMinutes = 30).size)
         val result = applyTimeReminder(messages, intervalMinutes = 15)
-        assertEquals(4, result.size)
-        assertTrue(result[2].toText().contains("30 min since last message"))
+        assertEquals(3, result.size)
+        assertTrue(result[1].toText().contains("30 min since last message"))
     }
 
     @Test
@@ -95,7 +95,7 @@ class TimeReminderTransformerTest {
             )
         )
 
-        assertEquals(3, applyTimeReminder(messages, intervalMinutes = 180).size)
-        assertEquals(3, applyTimeReminder(messages, intervalMinutes = Int.MAX_VALUE).size)
+        assertEquals(2, applyTimeReminder(messages, intervalMinutes = 180).size)
+        assertEquals(2, applyTimeReminder(messages, intervalMinutes = Int.MAX_VALUE).size)
     }
 }

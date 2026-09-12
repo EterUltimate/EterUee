@@ -12,4 +12,14 @@
             android:data="eteruee://shortcut" />
         <categories android:name="android.shortcut.conversation" />
     </shortcut>
+    <shortcut
+        android:shortcutId="translator"
+        android:enabled="true"
+        android:icon="@drawable/ic_translate"
+        android:shortcutShortLabel="@string/translator_page_title"
+        android:shortcutLongLabel="@string/translator_page_title">
+        <intent
+            android:action="com.eterultimate.eteruee.action.TRANSLATE"
+            android:targetClass="com.eterultimate.eteruee.RouteActivity" />
+    </shortcut>
 </shortcuts>

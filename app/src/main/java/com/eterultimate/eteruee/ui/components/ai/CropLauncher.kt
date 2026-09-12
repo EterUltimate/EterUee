@@ -69,7 +69,10 @@ internal fun useCropLauncher(
             setAllowedGestures(
                 UCropActivity.SCALE, UCropActivity.ROTATE, UCropActivity.NONE
             )
-            setCompressionFormat(Bitmap.CompressFormat.PNG)
+            // 聊天附件输出文件为 .jpg，大图 PNG 编码耗时明显且本流程无收益，
+            // 改用 JPEG 保持确认操作响应速度（rikkahub PR #1892 / #1891）
+            setCompressionFormat(Bitmap.CompressFormat.JPEG)
+            setCompressionQuality(90)
         }).withMaxResultSize(4096, 4096)
         aspectRatio?.let { (x, y) ->
             crop = crop.withAspectRatio(x, y)

@@ -1323,7 +1323,7 @@
   <string name="setting_display_page_tts_read_outside_brackets_title">TTS 不朗讀括號內的內容</string>
   <string name="setting_display_page_tts_read_outside_brackets_desc">啟用後，TTS 將不朗讀括號內的內容</string>
   <string name="assistant_page_context_message_limit">上下文訊息限制</string>
-  <string name="assistant_page_context_message_limit_desc">限制發送給模型的最近訊息數量。當超出限制時，上下文會一次性修剪到大約一半，而不是每次輪次刪除一條訊息，這樣請求前綴保持穩定，提示詞緩存可以在多次輪次中繼續運作。</string>
+  <string name="assistant_page_context_message_limit_desc">限制傳送給模型的最近訊息數量</string>
   <string name="assistant_page_context_message_limit_count">上下文訊息限制：%d</string>
   <string name="assistant_page_context_message_limit_unlimited">無限上下文訊息</string>
   <string name="assistant_page_context_message_limit_warning">限制上下文會在每次上下文被裁減時使提示詞快取失效。較大的限制裁減頻率較低；無限則永不裁減並保持快取完整。</string>
@@ -1365,4 +1365,17 @@
   <string name="search_page_scope_all_assistants">全部助手</string>
   <string name="setting_tts_page_playback_speed">朗讀速度</string>
   <string name="setting_tts_page_playback_speed_desc">TTS 預設朗讀速度（0.5x - 2.0x）</string>
+  <string name="assistant_page_time_reminder_interval">時間提醒間隔</string>
+  <string name="assistant_page_time_reminder_interval_label">間隔 (分鐘)</string>
+  <string name="assistant_page_time_reminder_interval_hint">輸入正整數。當訊息間隔超過此時間間隔時，會插入提醒。</string>
+  <string name="assistant_page_time_reminder_interval_desc">當訊息間隔超過此時間間隔時插入提醒。第一則使用者訊息前一律提醒。</string>
+  <string name="assistant_page_time_reminder_interval_value">%1$d 分</string>
+  <string name="assistant_page_context_message_limit_hint">輸入 0 表示無限制；否則，數值越大越好。建議設為 0 或至少 20。</string>
+  <string name="imggen_page_delete_images_title">刪除圖片</string>
+  <string name="imggen_page_delete_images_message">刪除選取的圖片（%1$d）？此操作無法復原。</string>
+  <string name="imggen_page_delete_images_success">已刪除 %1$d 張圖片</string>
+  <string name="imggen_page_delete_images_failed">已刪除：%1$d。失敗：%2$d。請再試一次。</string>
+  <string name="imggen_page_deleting">刪除中…</string>
+  <string name="imggen_page_selected_count">已選取：%1$d</string>
+  <string name="imggen_page_select_image">選擇圖片</string>
 </resources>

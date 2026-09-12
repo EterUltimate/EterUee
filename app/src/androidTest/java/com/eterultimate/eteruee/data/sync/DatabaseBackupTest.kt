@@ -1,6 +1,9 @@
 package com.eterultimate.eteruee.data.sync
 
 import android.database.sqlite.SQLiteDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.sqlite.db.SupportSQLiteOpenHelper
+import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.After
@@ -32,11 +35,33 @@ class DatabaseBackupTest {
         SQLiteDatabase.CREATE_IF_NECESSARY,
     )
 
+    private fun scalarString(db: SQLiteDatabase, sql: String): String = db.rawQuery(sql, null).use { c ->
+        c.moveToFirst()
+        c.getString(0)
+    }
+
+    private fun scalarLong(db: SQLiteDatabase, sql: String): Long = db.rawQuery(sql, null).use { c ->
+        c.moveToFirst()
+        c.getLong(0)
+    }
+
+    // DatabaseBackup API 接受 SupportSQLiteDatabase（生产方来自 Room openHelper），测试用 framework 工厂包装同一文件
+    private fun supportDb(file: File): SupportSQLiteDatabase {
+        val configuration = SupportSQLiteOpenHelper.Configuration.builder(context)
+            .name(file.path)
+            .callback(object : SupportSQLiteOpenHelper.Callback(1) {
+                override fun onCreate(db: SupportSQLiteDatabase) {}
+                override fun onUpgrade(db: SupportSQLiteDatabase, oldVersion: Int, newVersion: Int) {}
+            })
+            .build()
+        return FrameworkSQLiteOpenHelperFactory().create(configuration).writableDatabase
+    }
+
     private fun createWalDatabase(file: File): SQLiteDatabase = open(file).apply {
         enableWriteAheadLogging()
-        query("PRAGMA wal_autocheckpoint=0").use { assertTrue(it.moveToFirst()) }
+        rawQuery("PRAGMA wal_autocheckpoint=0", null).use { assertTrue(it.moveToFirst()) }
         execSQL("CREATE TABLE messages (id INTEGER PRIMARY KEY, text TEXT)")
-        query("PRAGMA wal_checkpoint(TRUNCATE)").use { assertTrue(it.moveToFirst()) }
+        rawQuery("PRAGMA wal_checkpoint(TRUNCATE)", null).use { assertTrue(it.moveToFirst()) }
         execSQL("INSERT INTO messages(text) VALUES ('committed only in WAL')")
         assertTrue(File(file.path + "-wal").length() > 0)
     }
@@ -52,7 +77,7 @@ class DatabaseBackupTest {
         assertFalse(File(staged.path + "-wal").exists())
         assertFalse(File(staged.path + "-shm").exists())
         open(staged).use {
-            assertEquals("committed only in WAL", it.stringForQuery("SELECT text FROM messages", null))
+            assertEquals("committed only in WAL", scalarString(it, "SELECT text FROM messages"))
         }
     }
 
@@ -62,7 +87,7 @@ class DatabaseBackupTest {
         createWalDatabase(source).use {
             it.execSQL("CREATE VIRTUAL TABLE search USING fts5(text, tokenize='unicode61')")
             it.execSQL("INSERT INTO search(text) VALUES ('hello backup')")
-            DatabaseBackup.createSnapshot(it, snapshot)
+            DatabaseBackup.createSnapshot(supportDb(source), snapshot)
             // Subsequent writes must not appear in the already-created snapshot.
             it.execSQL("INSERT INTO messages(text) VALUES ('after snapshot')")
         }
@@ -70,8 +95,8 @@ class DatabaseBackupTest {
         assertFalse(File(snapshot.path + "-shm").exists())
         DatabaseBackup.normalize(context, snapshot)
         open(snapshot).use {
-            assertEquals(1L, it.longForQuery("SELECT count(*) FROM messages", null))
-            assertEquals(1L, it.longForQuery("SELECT count(*) FROM search WHERE search MATCH 'hello'", null))
+            assertEquals(1L, scalarLong(it, "SELECT count(*) FROM messages"))
+            assertEquals(1L, scalarLong(it, "SELECT count(*) FROM search WHERE search MATCH 'hello'"))
         }
     }
 

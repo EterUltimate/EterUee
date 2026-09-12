@@ -263,6 +263,7 @@ interface AskUserQuestion {
   id: string;
   question: string;
   options: string[];
+  selectionType: "text" | "single" | "multi";
 }
 
 function parseAskUserQuestions(args: unknown): AskUserQuestion[] {
@@ -277,7 +278,11 @@ function parseAskUserQuestions(args: unknown): AskUserQuestion[] {
         if (!id || !question) return null;
         const rawOptions = Array.isArray(record.options) ? record.options : [];
         const options = rawOptions.filter((o): o is string => typeof o === "string");
-        return { id, question, options } satisfies AskUserQuestion;
+        const selectionType: AskUserQuestion["selectionType"] =
+          record.selection_type === "single" || record.selection_type === "multi"
+            ? record.selection_type
+            : "text";
+        return { id, question, options, selectionType } satisfies AskUserQuestion;
       })
       .filter((q): q is AskUserQuestion => q !== null);
   } catch {
@@ -292,8 +297,9 @@ function AskUserToolStep({ tool, loading, onToolApproval, isFirst, isLast }: Too
   const args = React.useMemo(() => safeJsonParse(tool.input), [tool.input]);
   const questions = React.useMemo(() => parseAskUserQuestions(args), [args]);
   const [answers, setAnswers] = React.useState<Record<string, string>>({});
+  const [multiAnswers, setMultiAnswers] = React.useState<Record<string, string[]>>({});
 
-  const isPending = tool.approvalState.type === "pending";
+  const isPending = tool.output.length === 0 && tool.approvalState.type === "pending";
   const isAnswered = tool.approvalState.type === "answered";
 
   const firstQuestion = questions[0]?.question ?? "...";
@@ -302,18 +308,36 @@ function AskUserToolStep({ tool, loading, onToolApproval, isFirst, isLast }: Too
       ? firstQuestion
       : t("tool_part.ask_user_questions_count", { count: questions.length });
 
-  const allAnswered = questions.length > 0 && questions.every((q) => answers[q.id]?.trim());
+  const getAnswer = (q: AskUserQuestion): string => {
+    const text = answers[q.id] ?? "";
+    return q.selectionType === "multi"
+      ? [...(multiAnswers[q.id] ?? []), ...(text.trim() ? [text] : [])].join(", ")
+      : text;
+  };
+  const allAnswered = questions.length > 0 && questions.every((q) => getAnswer(q).trim());
 
   const handleSubmit = () => {
     if (!onToolApproval || !allAnswered) return;
     const payload = JSON.stringify({
-      answers: Object.fromEntries(questions.map((q) => [q.id, answers[q.id] ?? ""])),
+      answers: Object.fromEntries(questions.map((q) => [q.id, getAnswer(q)])),
     });
     void onToolApproval(tool.toolCallId, true, "", payload);
   };
 
   const setAnswer = (questionId: string, value: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
+  };
+
+  const toggleOption = (questionId: string, option: string) => {
+    setMultiAnswers((prev) => {
+      const selected = prev[questionId] ?? [];
+      return {
+        ...prev,
+        [questionId]: selected.includes(option)
+          ? selected.filter((value) => value !== option)
+          : [...selected, option],
+      };
+    });
   };
 
   // Parse answered state for display
@@ -355,9 +379,16 @@ function AskUserToolStep({ tool, loading, onToolApproval, isFirst, isLast }: Too
                       <button
                         key={option}
                         type="button"
-                        onClick={() => setAnswer(q.id, option)}
+                        aria-pressed={q.selectionType === "multi"
+                          ? (multiAnswers[q.id] ?? []).includes(option)
+                          : answers[q.id] === option}
+                        onClick={() => q.selectionType === "multi"
+                          ? toggleOption(q.id, option)
+                          : setAnswer(q.id, option)}
                         className={`rounded-full border px-3 py-1 text-xs transition-colors ${
-                          answers[q.id] === option
+                          (q.selectionType === "multi"
+                            ? (multiAnswers[q.id] ?? []).includes(option)
+                            : answers[q.id] === option)
                             ? "border-primary bg-primary/10 text-primary"
                             : "border-muted-foreground/30 text-muted-foreground hover:border-primary/50"
                         }`}
@@ -447,7 +478,7 @@ export function ToolPart({
 
   const memoryAction = getStringField(args, "action");
   const title = getToolTitle(tool.toolName, args, t);
-  const isPending = tool.approvalState.type === "pending";
+  const isPending = tool.output.length === 0 && tool.approvalState.type === "pending";
   const isDenied = tool.approvalState.type === "denied";
   const deniedReason =
     tool.approvalState.type === "denied" ? (tool.approvalState.reason ?? "") : "";

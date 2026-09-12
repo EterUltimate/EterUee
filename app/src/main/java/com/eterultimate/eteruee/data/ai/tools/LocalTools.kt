@@ -490,7 +490,8 @@ class LocalTools(
             description = """
                 Ask the user one or more questions when you need clarification, additional information, or confirmation.
                 Each question can optionally provide a list of suggested options for the user to choose from.
-                The user may select an option or provide their own free-text answer for each question.
+                The user may provide a free-text answer for every question, including single and multi selection questions.
+                For multi selection questions, custom text can be combined with selected options.
                 The answers will be returned as a JSON object mapping question IDs to the user's responses.
             """.trimIndent().replace("\n", " "),
             parameters = {
@@ -532,7 +533,7 @@ class LocalTools(
                                         )
                                         put(
                                             "description",
-                                            "Answer type: text (free text input, default), single (select exactly one option), multi (select one or more options)"
+                                            "Answer type: text (free text input, default), single (select one option or enter custom text), multi (select options and/or enter custom text)"
                                         )
                                     })
                                 })

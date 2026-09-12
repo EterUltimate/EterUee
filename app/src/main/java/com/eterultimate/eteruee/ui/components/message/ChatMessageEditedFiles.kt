@@ -43,7 +43,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.File02
@@ -67,7 +67,7 @@ internal fun EditedFilesList(
         parts.filterIsInstance<UIMessagePart.Tool>()
             .filter { it.toolName in WORKSPACE_FILE_TOOL_NAMES && it.isExecuted }
             .mapNotNull { tool ->
-                tool.inputAsJson().jsonObject["path"]?.jsonPrimitive?.contentOrNull
+(tool.inputAsJson() as? JsonObject)?.get("path")?.jsonPrimitive?.contentOrNull
             }
             .mapNotNull { path ->
                 val relativePath = resolveWorkspaceRelativePath(path) ?: return@mapNotNull null

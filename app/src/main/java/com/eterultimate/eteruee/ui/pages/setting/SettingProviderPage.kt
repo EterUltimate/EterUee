@@ -539,7 +539,7 @@ private fun handleImageQRCode(
 @Composable
 private fun AddButton(onAdd: (ProviderSetting) -> Unit) {
     val dialogState = useEditState<ProviderSetting> {
-        onAdd(it)
+        onAdd(it.copyProvider(name = it.name.trim()))
     }
 
     IconButton(

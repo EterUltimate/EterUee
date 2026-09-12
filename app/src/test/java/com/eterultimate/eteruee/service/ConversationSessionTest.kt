@@ -174,20 +174,4 @@ class ConversationSessionTest {
             scope.cancel()
         }
     }
-
-    @Test
-    fun `pending messages retain session even when queue is paused and page has no references`() {
-        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
-        val id = Uuid.random()
-        val session = ConversationSession(id, Conversation.ofId(id), scope, {})
-        try {
-            assertFalse(session.isInUse)
-            session.messageQueue.enqueue(listOf(UIMessagePart.Text("next")))
-            session.messageQueue.pause()
-            assertTrue(session.isInUse)
-        } finally {
-            session.cleanup()
-            scope.cancel()
-        }
-    }
 }

@@ -1295,4 +1295,9 @@ mDNSアドレス: .localホスト名を使用し、IPを知らなくても同じ
   <string name="search_page_scope_all_assistants">すべてのアシスタント</string>
   <string name="setting_tts_page_playback_speed">読み上げ速度</string>
   <string name="setting_tts_page_playback_speed_desc">TTS のデフォルト読み上げ速度（0.5x - 2.0x）</string>
+  <string name="assistant_page_time_reminder_interval">時間リマインダー間隔</string>
+  <string name="assistant_page_time_reminder_interval_label">間隔（分）</string>
+  <string name="assistant_page_time_reminder_interval_hint">正の整数を入力してください。メッセージ間隔がこの値を超えると、リマインダーが挿入されます。</string>
+  <string name="assistant_page_time_reminder_interval_desc">メッセージ間隔がこの間隔を超えた場合にリマインダーを挿入します。最初のユーザーメッセージの前には常にリマインドします。</string>
+  <string name="assistant_page_time_reminder_interval_value">%1$d 分</string>
 </resources>

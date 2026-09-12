@@ -1365,4 +1365,9 @@
   <string name="search_page_scope_all_assistants">全部助手</string>
   <string name="setting_tts_page_playback_speed">朗讀速度</string>
   <string name="setting_tts_page_playback_speed_desc">TTS 預設朗讀速度（0.5x - 2.0x）</string>
+  <string name="assistant_page_time_reminder_interval">時間提醒間隔</string>
+  <string name="assistant_page_time_reminder_interval_label">間隔 (分鐘)</string>
+  <string name="assistant_page_time_reminder_interval_hint">輸入正整數。當訊息間隔超過此時間間隔時，會插入提醒。</string>
+  <string name="assistant_page_time_reminder_interval_desc">當訊息間隔超過此時間間隔時插入提醒。第一則使用者訊息前一律提醒。</string>
+  <string name="assistant_page_time_reminder_interval_value">%1$d 分</string>
 </resources>

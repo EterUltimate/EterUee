@@ -1382,4 +1382,9 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
 <string name="theme_name_hitech">HiTech</string>
   <string name="search_page_scope_current_assistant">当前助手</string>
   <string name="search_page_scope_all_assistants">所有助手</string>
+  <string name="assistant_page_time_reminder_interval">时间提醒间隔</string>
+  <string name="assistant_page_time_reminder_interval_label">间隔（分钟）</string>
+  <string name="assistant_page_time_reminder_interval_hint">请输入正整数。当消息间隔超过该时间间隔时，将插入一条提醒。</string>
+  <string name="assistant_page_time_reminder_interval_desc">当消息间隔超过此设定值时插入提醒。始终在第一条用户消息之前提醒。</string>
+  <string name="assistant_page_time_reminder_interval_value">%1$d 分钟</string>
 </resources>

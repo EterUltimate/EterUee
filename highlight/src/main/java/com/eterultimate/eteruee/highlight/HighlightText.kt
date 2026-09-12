@@ -1,5 +1,6 @@
 package com.eterultimate.eteruee.highlight
 
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -74,6 +75,8 @@ fun HighlightText(
     Text(
         modifier = modifier,
         text = annotatedString,
+        // 禁用代码块连字特性，避免等宽字体下的合字影响代码阅读
+        style = LocalTextStyle.current.copy(fontFeatureSettings = "'calt' 0, 'liga' 0, 'clig' 0"),
         fontSize = fontSize,
         fontFamily = fontFamily,
         fontStyle = fontStyle,

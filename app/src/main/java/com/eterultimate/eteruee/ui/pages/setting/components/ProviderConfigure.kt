@@ -264,12 +264,8 @@ private fun ColumnScope.ProviderConfigureOpenAI(
 
     OutlinedTextField(
         value = provider.name,
-        onValueChange = {
-            onEdit(provider.copy(name = it.trim()))
-        },
-        label = {
-            Text(stringResource(id = R.string.setting_provider_page_name))
-        },
+        onValueChange = { onEdit(provider.copy(name = it)) },
+        label = { Text(stringResource(R.string.setting_provider_page_name)) },
         modifier = Modifier.fillMaxWidth(),
     )
 
@@ -355,12 +351,8 @@ private fun ColumnScope.ProviderConfigureClaude(
 
     OutlinedTextField(
         value = provider.name,
-        onValueChange = {
-            onEdit(provider.copy(name = it.trim()))
-        },
-        label = {
-            Text(stringResource(id = R.string.setting_provider_page_name))
-        },
+        onValueChange = { onEdit(provider.copy(name = it)) },
+        label = { Text(stringResource(R.string.setting_provider_page_name)) },
         modifier = Modifier.fillMaxWidth(),
         maxLines = 3,
     )
@@ -454,13 +446,9 @@ private fun ColumnScope.ProviderConfigureGoogle(
 
     OutlinedTextField(
         value = provider.name,
-        onValueChange = {
-            onEdit(provider.copy(name = it.trim()))
-        },
-        label = {
-            Text(stringResource(id = R.string.setting_provider_page_name))
-        },
-        modifier = Modifier.fillMaxWidth()
+        onValueChange = { onEdit(provider.copy(name = it)) },
+        label = { Text(stringResource(R.string.setting_provider_page_name)) },
+        modifier = Modifier.fillMaxWidth(),
     )
 
     Row(

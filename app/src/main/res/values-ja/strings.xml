@@ -543,7 +543,7 @@
   <string name="reasoning_picker_title">モデルの思考深度を調整</string>
   <string name="reasoning_xhigh">XHigh</string>
   <string name="regenerate">再生成</string>
-  <string name="regenerate_confirm_message">このメッセージを再生成してもよろしいですか？</string>
+  <string name="regenerate_confirm_message">このメッセージを再生成してもよろしいですか？このメッセージより下のメッセージはすべて削除されます。</string>
   <string name="render_with_webview">WebViewで表示</string>
   <string name="eteruee_provider_description">EterUee 公式提供の API です。</string>
   <string name="safe_mode_assistants">アシスタント</string>

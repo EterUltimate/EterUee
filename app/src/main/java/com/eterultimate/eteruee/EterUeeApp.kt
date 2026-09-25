@@ -100,10 +100,8 @@ class EterUeeApp : Application() {
 
     private suspend fun incrementLaunchCount() {
         runCatching {
-            val store = get<SettingsStore>()
-            val current = store.settingsFlowRaw.first()
-            store.update(current.copy(launchCount = current.launchCount + 1))
-            Log.i(TAG, "incrementLaunchCount: ${current.launchCount + 1}")
+            val count = get<SettingsStore>().incrementLaunchCount()
+            Log.i(TAG, "incrementLaunchCount: $count")
         }.onFailure {
             Log.e(TAG, "incrementLaunchCount failed", it)
         }

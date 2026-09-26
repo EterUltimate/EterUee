@@ -496,6 +496,17 @@ class SettingsStore(
         return count
     }
 
+    // 只原子地追加 assistants 单 key, 不能用 update() 写回整份快照（避免覆盖并发更新）
+    suspend fun addAssistants(newAssistants: List<Assistant>) {
+        if (newAssistants.isEmpty()) return
+        dataStore.edit { preferences ->
+            val current = preferences[ASSISTANTS]
+                ?.let { runCatching { JsonInstant.decodeFromString<List<Assistant>>(it) }.getOrNull() }
+                .orEmpty()
+            preferences[ASSISTANTS] = JsonInstant.encodeToString(current + newAssistants)
+        }
+    }
+
     suspend fun updateAssistant(assistantId: Uuid) {
         dataStore.edit { preferences ->
             preferences[SELECT_ASSISTANT] = assistantId.toString()

@@ -73,7 +73,8 @@ class DebugVM(
         val recovered = missing.mapIndexed { index, (id, _) ->
             Assistant(id = id, name = "恢复的助手 ${index + 1}")
         }
-        settingsStore.update(settings.copy(assistants = settings.assistants + recovered))
+        // 只原子地追加 assistants 单 key，避免整快照写回覆盖并发更新
+        settingsStore.addAssistants(recovered)
         return recovered.size
     }
 

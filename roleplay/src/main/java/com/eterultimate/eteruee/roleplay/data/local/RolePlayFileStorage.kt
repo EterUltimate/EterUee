@@ -75,6 +75,24 @@ class RolePlayFileStorage(private val context: Context) {
             tmp.delete()
         }
     }
+    // JSONL 流式原子写：逐行写入临时文件，避免大会话整体物化内存，同样 fsync + rename 原子替换。
+    private fun atomicWriteJsonl(file: File, messages: List<ChatMessage>) {
+        val tmp = File(file.parentFile, file.name + ".tmp")
+        try {
+            FileOutputStream(tmp).use { out ->
+                messages.forEach { message ->
+                    out.write(jsonl.encodeToString(message).toByteArray(Charsets.UTF_8))
+                    out.write(10)
+                }
+                out.flush()
+                out.fd.sync()
+            }
+            check(tmp.renameTo(file)) { "atomic rename failed: " + tmp + " -> " + file }
+        } finally {
+            tmp.delete()
+        }
+    }
+
 
     /**
      * 保存角色卡JSON
@@ -271,9 +289,7 @@ class RolePlayFileStorage(private val context: Context) {
      * 保存消息列表到JSONL文件(覆盖写入)
      */
     suspend fun saveMessagesToJsonl(file: File, messages: List<ChatMessage>) = withContext(Dispatchers.IO) {
-        // 保持原语义：每行一条 JSON，文件以换行结尾
-        val content = messages.joinToString("\n") { jsonl.encodeToString(it) }
-        atomicWriteText(file, if (messages.isEmpty()) "" else content + "\n")
+        atomicWriteJsonl(file, messages)
     }
     
     /**

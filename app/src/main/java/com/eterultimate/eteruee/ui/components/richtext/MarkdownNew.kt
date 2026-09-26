@@ -907,6 +907,7 @@ private fun AnnotatedString.Builder.appendHtmlInlineElement(
         "code" -> withStyle(
             SpanStyle(
                 fontFamily = FontFamily.Monospace,
+                fontFeatureSettings = "'calt' 0, 'liga' 0, 'clig' 0",
                 fontSize = 0.95.em,
                 background = colorScheme.surfaceVariant,
                 color = colorScheme.primary,

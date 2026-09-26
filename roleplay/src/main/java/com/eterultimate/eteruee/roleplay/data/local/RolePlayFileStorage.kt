@@ -12,6 +12,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import java.io.BufferedReader
+import java.io.FileOutputStream
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
@@ -59,6 +60,22 @@ class RolePlayFileStorage(private val context: Context) {
         return baseDir.resolve("characters").resolve(characterId.toString()).apply { mkdirs() }
     }
     
+    // 对齐 TauriTavern f142daeaf：临时文件写入 + fsync + rename 原子替换，
+    // 避免崩溃/断电在原文件上留下半截 JSON/JSONL（rename 失败时原文件保持完整）。
+    private fun atomicWriteText(file: File, content: String) {
+        val tmp = File(file.parentFile, file.name + ".tmp")
+        try {
+            FileOutputStream(tmp).use { out ->
+                out.write(content.toByteArray(Charsets.UTF_8))
+                out.flush()
+                out.fd.sync()
+            }
+            check(tmp.renameTo(file)) { "atomic rename failed: " + tmp + " -> " + file }
+        } finally {
+            tmp.delete()
+        }
+    }
+
     /**
      * 保存角色卡JSON
      */
@@ -73,7 +90,7 @@ class RolePlayFileStorage(private val context: Context) {
             character
         }
         
-        jsonFile.writeText(json.encodeToString(characterWithLocalAvatar))
+        atomicWriteText(jsonFile, json.encodeToString(characterWithLocalAvatar))
     }
     
     /**
@@ -254,12 +271,9 @@ class RolePlayFileStorage(private val context: Context) {
      * 保存消息列表到JSONL文件(覆盖写入)
      */
     suspend fun saveMessagesToJsonl(file: File, messages: List<ChatMessage>) = withContext(Dispatchers.IO) {
-        FileWriter(file).use { writer ->
-            messages.forEach { message ->
-                writer.write(jsonl.encodeToString(message))
-                writer.write("\n")
-            }
-        }
+        // 保持原语义：每行一条 JSON，文件以换行结尾
+        val content = messages.joinToString("\n") { jsonl.encodeToString(it) }
+        atomicWriteText(file, if (messages.isEmpty()) "" else content + "\n")
     }
     
     /**
@@ -317,7 +331,7 @@ class RolePlayFileStorage(private val context: Context) {
     suspend fun saveWorldInfoJson(worldInfo: WorldInfo) = withContext(Dispatchers.IO) {
         val dir = getWorldInfoDir()
         val jsonFile = dir.resolve("${worldInfo.id}.json")
-        jsonFile.writeText(json.encodeToString(worldInfo))
+        atomicWriteText(jsonFile, json.encodeToString(worldInfo))
     }
     
     /**
@@ -357,7 +371,7 @@ class RolePlayFileStorage(private val context: Context) {
     suspend fun saveGroupJson(group: Group) = withContext(Dispatchers.IO) {
         val dir = getGroupDir(group.id)
         val jsonFile = dir.resolve("group.json")
-        jsonFile.writeText(json.encodeToString(group))
+        atomicWriteText(jsonFile, json.encodeToString(group))
     }
     
     /**

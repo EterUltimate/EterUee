@@ -1246,9 +1246,19 @@ class ChatService(
                 )
             }
 
+        // fork 标题沿用原会话标题并自动加序号，避免重名（rikkahub 458c16df6）
+        val existingTitles = conversationRepo
+            .getConversationsOfAssistant(currentConversation.assistantId)
+            .first()
+            .mapTo(mutableSetOf()) { it.title }
+        val forkTitle = generateSequence(1) { it + 1 }
+            .map { "${currentConversation.title}($it)" }
+            .first { it !in existingTitles }
+
         val forkConversation = Conversation(
             id = Uuid.random(),
             assistantId = currentConversation.assistantId,
+            title = forkTitle,
             messageNodes = copiedNodes,
             customSystemPrompt = currentConversation.customSystemPrompt,
             modeInjectionIds = currentConversation.modeInjectionIds,

@@ -12,6 +12,7 @@ import com.eterultimate.eteruee.tts.provider.providers.MiniMaxTTSProvider
 import com.eterultimate.eteruee.tts.provider.providers.OpenAITTSProvider
 import com.eterultimate.eteruee.tts.provider.providers.QwenTTSProvider
 import com.eterultimate.eteruee.tts.provider.providers.StepTTSProvider
+import com.eterultimate.eteruee.tts.provider.providers.VolcengineTTSProvider
 import com.eterultimate.eteruee.tts.provider.providers.SystemTTSProvider
 import com.eterultimate.eteruee.tts.provider.providers.XAITTSProvider
 
@@ -25,6 +26,7 @@ class TTSManager(private val context: Context) {
     private val xaiProvider = XAITTSProvider()
     private val miMoProvider = MiMoTTSProvider()
     private val stepProvider = StepTTSProvider()
+    private val volcengineProvider = VolcengineTTSProvider()
     private val elevenLabsProvider = ElevenLabsTTSProvider()
 
     fun generateSpeech(
@@ -42,6 +44,7 @@ class TTSManager(private val context: Context) {
             is TTSProviderSetting.MiMo -> miMoProvider.generateSpeech(context, providerSetting, request)
             is TTSProviderSetting.ElevenLabs -> elevenLabsProvider.generateSpeech(context, providerSetting, request)
             is TTSProviderSetting.Step -> stepProvider.generateSpeech(context, providerSetting, request)
+            is TTSProviderSetting.Volcengine -> volcengineProvider.generateSpeech(context, providerSetting, request)
         }
     }
 
@@ -61,6 +64,7 @@ class TTSManager(private val context: Context) {
             is TTSProviderSetting.MiMo -> miMoProvider.promptGuidance
             is TTSProviderSetting.ElevenLabs -> elevenLabsProvider.promptGuidance
             is TTSProviderSetting.Step -> stepProvider.promptGuidance
+            is TTSProviderSetting.Volcengine -> volcengineProvider.promptGuidance
         }
     }
 }

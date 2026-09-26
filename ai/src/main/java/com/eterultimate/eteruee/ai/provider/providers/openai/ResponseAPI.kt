@@ -480,7 +480,10 @@ class ResponseAPI(
             "response.output_item.added" -> {
                 val item = jsonObject["item"]?.jsonObject ?: error("chunk item not found")
                 val type = item["type"]?.jsonPrimitive?.content ?: error("chunk type not found")
-                val id = item["id"]?.jsonPrimitive?.content ?: error("chunk id not found")
+                // function_call 的 item.id 在规范中是可选的，只有 call_id 必填，部分兼容网关不带 id
+                val id = item["id"]?.jsonPrimitive?.contentOrNull
+                    ?: item["call_id"]?.jsonPrimitive?.contentOrNull
+                    ?: error("chunk id not found")
                 if (type == "function_call") {
                     return MessageChunk(
                         id = id,
@@ -554,7 +557,10 @@ class ResponseAPI(
             "response.output_item.done" -> {
                 val item = jsonObject["item"]?.jsonObject ?: error("chunk item not found")
                 val type = item["type"]?.jsonPrimitive?.content ?: error("chunk type not found")
-                val id = item["id"]?.jsonPrimitive?.content ?: error("chunk id not found")
+                // function_call 的 item.id 在规范中是可选的，只有 call_id 必填，部分兼容网关不带 id
+                val id = item["id"]?.jsonPrimitive?.contentOrNull
+                    ?: item["call_id"]?.jsonPrimitive?.contentOrNull
+                    ?: error("chunk id not found")
                 if (type == "reasoning") {
                     val encryptedContent = item["encrypted_content"]?.jsonPrimitive?.content
                     return MessageChunk(
@@ -605,8 +611,10 @@ class ResponseAPI(
             }
 
             "response.function_call_arguments.done" -> {
-                val toolCallId =
-                    jsonObject["item_id"]?.jsonPrimitive?.content ?: error("item_id not found")
+                // 部分兼容网关的 arguments 事件不带 item_id，只带 call_id，回退到 call_id
+                val toolCallId = jsonObject["item_id"]?.jsonPrimitive?.contentOrNull
+                    ?: jsonObject["call_id"]?.jsonPrimitive?.contentOrNull
+                    ?: error("item_id not found")
                 val arguments =
                     jsonObject["arguments"]?.jsonPrimitive?.content ?: error("arguments not found")
                 return MessageChunk(

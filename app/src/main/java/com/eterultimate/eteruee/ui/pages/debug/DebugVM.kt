@@ -14,6 +14,7 @@ import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.data.datastore.DEFAULT_ASSISTANT_ID
 import com.eterultimate.eteruee.data.datastore.Settings
 import com.eterultimate.eteruee.data.datastore.SettingsStore
+import com.eterultimate.eteruee.data.model.Assistant
 import com.eterultimate.eteruee.data.model.Conversation
 import com.eterultimate.eteruee.data.model.MessageNode
 import com.eterultimate.eteruee.data.repository.ConversationRepository
@@ -33,14 +34,48 @@ class DebugVM(
     private val _conversationCount = MutableStateFlow<Int?>(null)
     val conversationCount: StateFlow<Int?> = _conversationCount.asStateFlow()
 
+    // 聊天记录中引用的助手 ID -> 对话数
+    private val _conversationAssistants = MutableStateFlow<Map<Uuid, Int>?>(null)
+    val conversationAssistants: StateFlow<Map<Uuid, Int>?> = _conversationAssistants.asStateFlow()
+
     init {
         refreshConversationCount()
+        scanConversationAssistants()
     }
 
     fun refreshConversationCount() {
         viewModelScope.launch {
             _conversationCount.value = conversationRepository.countConversations()
         }
+    }
+
+    fun scanConversationAssistants() {
+        viewModelScope.launch {
+            _conversationAssistants.value = conversationRepository.countConversationsByAssistant()
+        }
+    }
+
+    /**
+     * 为聊天记录中引用、但设置里已不存在的助手 ID 创建占位助手，使这些聊天记录重新可见
+     * @return 恢复的助手数量, settings 未加载时返回 null
+     */
+    suspend fun recoverAssistantsFromConversations(): Int? {
+        val settings = settingsStore.settingsFlow.value
+        if (settings.init) return null
+        val conversationAssistants = conversationRepository.countConversationsByAssistant()
+        _conversationAssistants.value = conversationAssistants
+        val existingIds = settings.assistants.map { it.id }.toSet()
+        val missing = conversationAssistants
+            .filterKeys { it !in existingIds }
+            .entries
+            .sortedByDescending { it.value }
+        if (missing.isEmpty()) return 0
+        val recovered = missing.mapIndexed { index, (id, _) ->
+            Assistant(id = id, name = "恢复的助手 ${index + 1}")
+        }
+        // 只原子地追加 assistants 单 key，避免整快照写回覆盖并发更新
+        settingsStore.addAssistants(recovered)
+        return recovered.size
     }
 
     fun updateSettings(settings: Settings) {

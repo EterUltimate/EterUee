@@ -295,7 +295,7 @@ private fun EditFileDialog(
     onDismiss: () -> Unit,
     onConfirm: (content: String) -> Unit,
 ) {
-    var content by rememberSaveable(skillFile.relativePath) { mutableStateOf(initialContent) }
+    var content by remember(skillFile.relativePath) { mutableStateOf(initialContent) }
 
     AlertDialog(
         onDismissRequest = onDismiss,

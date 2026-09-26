@@ -127,7 +127,8 @@ object TavernCharacterCodec {
             "extensions" to JsonObject(extensions)
         )
 
-        character.characterBook?.let { data["character_book"] = ensureCharacterBookExtensions(it) }
+        // 内嵌世界书原样保留（含非 object 的 extensions），不做规整（对齐 TauriTavern bb2bd12cd）
+        character.characterBook?.let { data["character_book"] = it }
 
         return JsonObject(
             linkedMapOf(
@@ -151,12 +152,6 @@ object TavernCharacterCodec {
                 "fav" to JsonPrimitive(false)
             )
         )
-    }
-
-    private fun ensureCharacterBookExtensions(value: JsonElement): JsonElement {
-        val book = value.jsonObjectOrNull() ?: return value
-        if (book["extensions"] is JsonObject) return value
-        return JsonObject(book + ("extensions" to JsonObject(emptyMap())))
     }
 
     private fun JsonObject?.string(key: String, fallback: String = ""): String {

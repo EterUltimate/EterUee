@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
@@ -353,15 +354,17 @@ private fun CodeBlockWithLineNumbersWrapped(
                 Row(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        text = (index + 1).toString().padStart(lineNumberWidth, ' '),
-                        fontSize = textStyle.fontSize,
-                        lineHeight = textStyle.lineHeight,
-                        fontFamily = JetbrainsMono,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                        softWrap = false,
-                        modifier = Modifier.padding(end = 8.dp)
-                    )
+                    DisableSelection {
+                        Text(
+                            text = (index + 1).toString().padStart(lineNumberWidth, ' '),
+                            fontSize = textStyle.fontSize,
+                            lineHeight = textStyle.lineHeight,
+                            fontFamily = JetbrainsMono,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                            softWrap = false,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                    }
                     HighlightText(
                         code = line,
                         language = language,

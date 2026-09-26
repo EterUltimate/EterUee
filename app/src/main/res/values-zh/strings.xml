@@ -553,7 +553,7 @@
   <string name="reasoning_picker_title">调整模型思考深度</string>
   <string name="reasoning_xhigh">超高</string>
   <string name="regenerate">重新生成</string>
-  <string name="regenerate_confirm_message">确定要重新生成此消息吗？</string>
+  <string name="regenerate_confirm_message">确定要重新生成此消息吗？此消息下方所有消息会被清理</string>
   <string name="render_with_webview">网页视图渲染</string>
   <string name="eteruee_provider_description">官方提供的 API。</string>
   <string name="safe_mode_assistants">助手</string>

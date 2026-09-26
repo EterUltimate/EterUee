@@ -1,6 +1,7 @@
 package com.eterultimate.eteruee.roleplay.data.tavern
 
 import com.eterultimate.eteruee.roleplay.data.model.Character
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -56,6 +57,25 @@ class TavernCharacterCodecTest {
         assertEquals("chara_card_v3", decoded.spec)
         assertEquals("3.0", decoded.specVersion)
         assertTrue(decoded.characterBook is JsonObject)
+    }
+
+    @Test
+    fun `encode preserves non-object character_book extensions verbatim`() {
+        // 对齐 TauriTavern bb2bd12cd：非 object 的 extensions（未知形状）必须原样保留，禁止规整
+        val book = """
+            {
+              "name": "Legacy Book",
+              "entries": [],
+              "extensions": "future-shape"
+            }
+        """.trimIndent()
+        val character = sampleCharacter().copy(characterBook = Json.Default.parseToJsonElement(book))
+
+        val encoded = TavernCharacterCodec.encode(character, TavernCharacterCardFormat.V3)
+        val root = Json.Default.parseToJsonElement(encoded).jsonObject
+        val bookOut = root["data"]!!.jsonObject["character_book"]!!.jsonObject
+
+        assertEquals(JsonPrimitive("future-shape"), bookOut["extensions"])
     }
 
     @Test

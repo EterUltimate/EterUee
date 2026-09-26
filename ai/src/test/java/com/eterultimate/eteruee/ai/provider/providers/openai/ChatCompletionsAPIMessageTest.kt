@@ -302,7 +302,7 @@ class ChatCompletionsAPIMessageTest {
         val nextMsg = result[assistantIndex + 1].jsonObject
         assertEquals("tool", nextMsg["role"]?.jsonPrimitive?.content)
         assertEquals("call_abc", nextMsg["tool_call_id"]?.jsonPrimitive?.content)
-        assertEquals("my_tool", nextMsg["name"]?.jsonPrimitive?.content)
+        assertTrue("Tool results must omit unsupported name field", !nextMsg.containsKey("name"))
     }
 
     @Test
@@ -538,9 +538,9 @@ class ChatCompletionsAPIMessageTest {
             reasoningLevel = ReasoningLevel.HIGH
         )
 
-        assertEquals("true", request["enable_thinking"]?.jsonPrimitive?.content)
-        assertEquals("8000", request["thinking_budget"]?.jsonPrimitive?.content)
-        assertTrue(!request.containsKey("reasoning_effort"))
+        assertEquals("high", request["reasoning_effort"]?.jsonPrimitive?.content)
+        assertTrue(!request.containsKey("enable_thinking"))
+        assertTrue(!request.containsKey("thinking_budget"))
     }
 
     @Test

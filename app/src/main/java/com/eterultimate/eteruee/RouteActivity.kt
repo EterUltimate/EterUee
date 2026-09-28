@@ -149,6 +149,7 @@ private const val TAG = "RouteActivity"
 private const val ACTION_TRANSLATE = "com.eterultimate.eteruee.action.TRANSLATE"
 private const val LOCAL_NETWORK_PERMISSION_PREFS = "runtime_permissions"
 private const val LOCAL_NETWORK_PERMISSION_REQUESTED = "local_network_requested"
+private const val ACTION_IMAGE_GEN = "com.eterultimate.eteruee.action.IMAGE_GEN"
 
 class RouteActivity : ComponentActivity() {
     private val highlighter by inject<Highlighter>()
@@ -235,6 +236,7 @@ class RouteActivity : ComponentActivity() {
         }
         val destination = when (intent.action) {
             ACTION_TRANSLATE -> Screen.Translator
+            ACTION_IMAGE_GEN -> Screen.ImageGen
             Intent.ACTION_SEND -> Screen.ShareHandler(
                 text = intent.getStringExtra(Intent.EXTRA_TEXT).orEmpty(),
                 streamUri = intent.getStringExtra(Intent.EXTRA_STREAM),

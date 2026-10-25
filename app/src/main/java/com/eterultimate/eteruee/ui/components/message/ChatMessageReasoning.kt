@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -129,6 +130,14 @@ private fun ReasoningContent(
     loading: Boolean,
 ) {
     val isPreview = expandState == ReasoningCardState.Preview
+    // 思考内容正文跟随聊天字体大小设置缩放，和消息正文保持一致（rikkahub 43d9e30e1）
+    val fontSizeRatio = LocalSettings.current.displaySetting.fontSizeRatio
+    val bodySmall = MaterialTheme.typography.bodySmall
+    val reasoningTextStyle = bodySmall.copy(
+        fontSize = bodySmall.fontSize * fontSizeRatio,
+        lineHeight = bodySmall.lineHeight * fontSizeRatio,
+        fontFamily = LocalTextStyle.current.fontFamily,
+    )
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -170,7 +179,7 @@ private fun ReasoningContent(
                     scope = AssistantAffectScope.ASSISTANT,
                     visual = true,
                 ),
-                style = MaterialTheme.typography.bodySmall,
+                style = reasoningTextStyle,
                 modifier = Modifier.fillMaxSize(),
             )
         }

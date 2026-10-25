@@ -1378,4 +1378,6 @@
   <string name="imggen_page_deleting">刪除中…</string>
   <string name="imggen_page_selected_count">已選取：%1$d</string>
   <string name="imggen_page_select_image">選擇圖片</string>
+<string name="skills_page_search_placeholder">搜尋技能</string>
+<string name="skills_page_search_no_result">找不到符合的技能</string>
 </resources>

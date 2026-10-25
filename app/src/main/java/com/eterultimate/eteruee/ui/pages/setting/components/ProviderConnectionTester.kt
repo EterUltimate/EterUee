@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import com.eterultimate.eteruee.ai.core.ReasoningLevel
 import com.eterultimate.eteruee.ai.core.Tool
 import com.eterultimate.eteruee.ai.provider.ModelType
 import com.eterultimate.eteruee.ai.provider.ProviderManager
@@ -133,7 +134,8 @@ fun ProviderConnectionTester(
                                         params = TextGenerationParams(
                                             model = model!!,
                                             customHeaders = model!!.customHeaders,
-                                            customBody = model!!.customBodies
+                                            customBody = model!!.customBodies,
+                                            reasoningLevel = ReasoningLevel.AUTO
                                         )
                                     )
                                     val text = chunk.choices.firstOrNull()?.message?.parts
@@ -151,7 +153,8 @@ fun ProviderConnectionTester(
                                         params = TextGenerationParams(
                                             model = model!!,
                                             customHeaders = model!!.customHeaders,
-                                            customBody = model!!.customBodies
+                                            customBody = model!!.customBodies,
+                                            reasoningLevel = ReasoningLevel.AUTO
                                         )
                                     )
                                     flow.collect { chunk ->
@@ -177,7 +180,8 @@ fun ProviderConnectionTester(
                                             model = model!!,
                                             tools = listOf(testTool),
                                             customHeaders = model!!.customHeaders,
-                                            customBody = model!!.customBodies
+                                            customBody = model!!.customBodies,
+                                            reasoningLevel = ReasoningLevel.AUTO
                                         )
                                     )
                                     val message = chunk.choices.firstOrNull()?.message

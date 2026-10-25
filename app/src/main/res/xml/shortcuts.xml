@@ -22,4 +22,14 @@
             android:action="com.eterultimate.eteruee.action.TRANSLATE"
             android:targetClass="com.eterultimate.eteruee.RouteActivity" />
     </shortcut>
+    <shortcut
+        android:shortcutId="image_gen"
+        android:enabled="true"
+        android:icon="@drawable/ic_image_generation"
+        android:shortcutShortLabel="@string/imggen_page_title"
+        android:shortcutLongLabel="@string/imggen_page_title">
+        <intent
+            android:action="com.eterultimate.eteruee.action.IMAGE_GEN"
+            android:targetClass="com.eterultimate.eteruee.RouteActivity" />
+    </shortcut>
 </shortcuts>

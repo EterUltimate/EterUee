@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -13,6 +14,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.putJsonObject
 import com.eterultimate.eteruee.ai.provider.EmbeddingGenerationParams
 import com.eterultimate.eteruee.ai.provider.EmbeddingGenerationResult
 import com.eterultimate.eteruee.ai.provider.ImageEditParams
@@ -38,6 +40,7 @@ import com.eterultimate.eteruee.ai.util.mergeCustomBody
 import com.eterultimate.eteruee.ai.util.toHeaders
 import com.eterultimate.eteruee.common.http.await
 import com.eterultimate.eteruee.common.http.getByKey
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -217,7 +220,9 @@ class OpenAIProvider(
                 put("prompt", params.prompt)
                 put("n", params.numOfImages)
                 // Grok 生图接口不支持 size 参数，传入会导致 400 (rikkahub#1602)
-                val isGrok = providerSetting.baseUrl.contains("x.ai", ignoreCase = true) ||
+                // 只匹配 x.ai 本身及其子域名，避免 "xxx-max.ai" 之类的中转域名被误判 (rikkahub 4e4bfa62b)
+                val host = providerSetting.baseUrl.toHttpUrlOrNull()?.host?.lowercase()
+                val isGrok = host == "x.ai" || host?.endsWith(".x.ai") == true ||
                     params.model.modelId.contains("grok", ignoreCase = true)
                 if (!isGrok) {
                     put(
@@ -259,6 +264,14 @@ class OpenAIProvider(
         }
 
         val key = keyRoulette.next(providerSetting.apiKey, providerSetting.id.toString())
+
+        // OpenRouter 没有 /images/edits，参考图通过图像生成接口的 input_references 传入 (rikkahub 85af5b910)
+        if (providerSetting.baseUrl.toHttpUrlOrNull()?.host?.lowercase() == "openrouter.ai") {
+            return@withContext ImageGenerationResult(
+                items = editImageWithInputReferences(providerSetting, params, key)
+            )
+        }
+
         val bodyBuilder = okhttp3.MultipartBody.Builder()
             .setType(okhttp3.MultipartBody.FORM)
             .addFormDataPart("model", params.model.modelId)
@@ -310,6 +323,71 @@ class OpenAIProvider(
         }
 
         ImageGenerationResult(items = parseImageResponse(response.body.string()))
+    }
+
+    @OptIn(ExperimentalEncodingApi::class)
+    private suspend fun editImageWithInputReferences(
+        providerSetting: ProviderSetting.OpenAI,
+        params: ImageEditParams,
+        key: String,
+    ): List<ImageGenerationItem> = withContext(Dispatchers.IO) {
+        val requestBody = json.encodeToString(
+            buildJsonObject {
+                put("model", params.model.modelId)
+                put("prompt", params.prompt)
+                put("n", params.numOfImages)
+                put(
+                    "size", when (params.aspectRatio) {
+                        ImageAspectRatio.SQUARE -> "1024x1024"
+                        ImageAspectRatio.LANDSCAPE -> "1536x1024"
+                        ImageAspectRatio.PORTRAIT -> "1024x1536"
+                    }
+                )
+                putJsonArray("input_references") {
+                    var totalBytes = 0L
+                    params.images.forEach { path ->
+                        val imageFile = File(path)
+                        require(imageFile.exists()) {
+                            "Image file does not exist: $path"
+                        }
+                        require(imageFile.extension.lowercase() in SUPPORTED_EDIT_IMAGE_EXTENSIONS) {
+                            "Unsupported image file type for OpenAI edit: ${imageFile.extension}"
+                        }
+                        val bytes = imageFile.readBytes()
+                        totalBytes += bytes.size
+                        // base64 前限制参考图总量，避免多份全量拷贝（原文/字节/base64/JSON）撑爆堆内存
+                        require(totalBytes <= MAX_INPUT_REFERENCE_BYTES) {
+                            "Total reference image size exceeds ${MAX_INPUT_REFERENCE_BYTES / (1024 * 1024)}MB"
+                        }
+                        addJsonObject {
+                            put("type", "image_url")
+                            putJsonObject("image_url") {
+                                put(
+                                    "url",
+                                    "data:${imageFile.imageMediaType()};base64,${Base64.encode(bytes)}"
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+                .mergeCustomBody(params.customBody)
+        )
+
+        val request = Request.Builder()
+            .url("${providerSetting.baseUrl}/images/generations")
+            .headers(params.customHeaders.toHeaders())
+            .addHeader("Authorization", "Bearer $key")
+            .addHeader("Content-Type", "application/json")
+            .post(requestBody.toRequestBody("application/json".toMediaType()))
+            .configureReferHeaders(providerSetting.baseUrl)
+            .build()
+
+        val response = client.newCall(request).await()
+        if (!response.isSuccessful) {
+            error("Failed to edit image: ${response.code} ${response.body?.string()}")
+        }
+        parseImageResponse(response.body.string())
     }
 
     override suspend fun generateVideo(
@@ -484,5 +562,6 @@ class OpenAIProvider(
 
     companion object {
         private val SUPPORTED_EDIT_IMAGE_EXTENSIONS = setOf("png", "jpg", "jpeg", "webp")
+        private const val MAX_INPUT_REFERENCE_BYTES = 24L * 1024 * 1024
     }
 }

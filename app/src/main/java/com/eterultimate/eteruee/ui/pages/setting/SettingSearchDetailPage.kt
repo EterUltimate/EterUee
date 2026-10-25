@@ -224,6 +224,9 @@ private fun SearchServiceOptionsEditor(
         is SearchServiceOptions.SerperOptions -> {
             SerperOptions(options) { onUpdateOptions(it) }
         }
+        is SearchServiceOptions.DeepSeekOptions -> {
+            DeepSeekOptions(options) { onUpdateOptions(it) }
+        }
         is SearchServiceOptions.CustomJsOptions -> {
             CustomJsOptions(options) { onUpdateOptions(it) }
         }
@@ -392,6 +395,23 @@ internal fun TavilyOptions(
             }
         }
     }
+
+    FormItem(
+        label = {
+            Text("Include Answer")
+        },
+        description = {
+            Text("Let Tavily generate an answer summary alongside the search results")
+        },
+        tail = {
+            Switch(
+                checked = options.includeAnswer,
+                onCheckedChange = { checked ->
+                    onUpdateOptions(options.copy(includeAnswer = checked))
+                }
+            )
+        }
+    )
 }
 
 @Composable
@@ -606,6 +626,26 @@ internal fun BraveOptions(
 internal fun SerperOptions(
     options: SearchServiceOptions.SerperOptions,
     onUpdateOptions: (SearchServiceOptions.SerperOptions) -> Unit
+) {
+    FormItem(
+        label = {
+            Text(stringResource(R.string.search_detail_api_key))
+        }
+    ) {
+        OutlinedTextField(
+            value = options.apiKey,
+            onValueChange = {
+                onUpdateOptions(options.copy(apiKey = it))
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+internal fun DeepSeekOptions(
+    options: SearchServiceOptions.DeepSeekOptions,
+    onUpdateOptions: (SearchServiceOptions.DeepSeekOptions) -> Unit
 ) {
     FormItem(
         label = {

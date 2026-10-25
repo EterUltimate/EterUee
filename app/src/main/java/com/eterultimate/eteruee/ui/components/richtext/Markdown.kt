@@ -102,6 +102,8 @@ private val parser by lazy {
 
 private val INLINE_LATEX_REGEX = Regex("\\\\\\((.+?)\\\\\\)")
 private val BLOCK_LATEX_REGEX = Regex("\\\\\\[(.+?)\\\\\\]", RegexOption.DOT_MATCHES_ALL)
+// 公式换行 \\（如 \\[4pt]），不能当成块级公式 \[ 的开头（rikkahub eb530b0ff）
+private val LATEX_LINE_BREAK_REGEX = Regex("""\\\\""")
 val THINKING_REGEX = Regex("<think>([\\s\\S]*?)(?:</think>|$)", RegexOption.DOT_MATCHES_ALL)
 private val CODE_BLOCK_REGEX = Regex("```[\\s\\S]*?```|`[^`\n]*`", RegexOption.DOT_MATCHES_ALL)
 private val BREAK_LINE_REGEX = Regex("(?i)<br\\s*/?>")
@@ -113,10 +115,12 @@ private fun preProcess(content: String): String {
     CODE_BLOCK_REGEX.findAll(content).forEach { match ->
         codeBlocks.add(match.range)
     }
+    val latexLineBreaks = LATEX_LINE_BREAK_REGEX.findAll(content).map { it.range }.toList()
 
-    // 检查位置是否在代码块内
+    // 检查位置是否在代码块或公式换行内
     fun isInCodeBlock(position: Int): Boolean {
-        return codeBlocks.any { range -> position in range }
+        return codeBlocks.any { range -> position in range } ||
+            latexLineBreaks.any { range -> position in range }
     }
 
     // 替换行内公式 \( ... \) 到 $ ... $，但跳过代码块内的内容
@@ -187,6 +191,8 @@ private fun MarkdownPreview() {
     }
 }
 
+private val LINE_ENDING_REGEX = Regex("""\r\n?""")
+
 private data class MarkdownParseResult(
     val preprocessed: String,
     val astTree: ASTNode,
@@ -199,7 +205,8 @@ private fun ASTNode.containsHtml(): Boolean {
 }
 
 private fun parseMarkdown(content: String): MarkdownParseResult {
-    val preprocessed = preProcess(content)
+    // 解析器只认 \n 作为换行，CRLF 里残留的 \r 会让围栏行匹配不上（rikkahub c91d21463, #2154）
+    val preprocessed = preProcess(content.replace(LINE_ENDING_REGEX, "\n"))
     val astTree = parser.buildMarkdownTreeFromString(preprocessed)
     return MarkdownParseResult(preprocessed, astTree, astTree.containsHtml())
 }

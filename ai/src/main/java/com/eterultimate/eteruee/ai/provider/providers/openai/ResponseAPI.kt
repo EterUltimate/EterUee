@@ -10,7 +10,9 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonArrayBuilder
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.add
@@ -144,7 +146,8 @@ class ResponseAPI(
                     return
                 }
                 Log.d(TAG, "onEvent: $id/$type $data")
-                val json = json.parseToJsonElement(data).jsonObject
+                // 部分中转会在流中夹杂 `data: null` 之类的非对象事件，直接跳过（rikkahub 240deb5fe, #2137）
+                val json = json.parseToJsonElement(data).jsonObjectOrNull ?: return
                 val chunk = parseResponseDelta(json)
                 if (chunk != null) {
                     trySend(chunk)
@@ -258,6 +261,9 @@ class ResponseAPI(
                                         tool.parameters()
                                     )
                                 )
+                                // Response API 不传 strict 时默认按严格模式处理, 会把 schema 里的可选字段全部变成必填,
+                                // 模型只能给本应省略的字段硬填默认值 (0 / "" / []), 导致工具参数校验失败 (rikkahub#1990)
+                                put("strict", false)
                             })
                         }
                     }
@@ -607,6 +613,33 @@ class ResponseAPI(
                             )
                         )
                     )
+                } else if (type == "function_call_output") {
+                    // 部分兼容网关会在服务端执行函数工具，结果经 output_item.done 的
+                    // function_call_output 返回（rikkahub 675e59f0d, #2181）；
+                    // Tool.merge 会按 call_id 把 output 追加到已有工具上，避免客户端重复执行
+                    val callId = item["call_id"]?.jsonPrimitive?.content ?: error("call_id not found")
+                    return MessageChunk(
+                        id = callId,
+                        model = "",
+                        choices = listOf(
+                            UIMessageChoice(
+                                index = 0,
+                                delta = UIMessage(
+                                    role = MessageRole.ASSISTANT,
+                                    parts = listOf(
+                                        UIMessagePart.Tool(
+                                            toolCallId = callId,
+                                            toolName = "",
+                                            input = "",
+                                            output = listOf(UIMessagePart.Text(item.functionCallOutputText()))
+                                        )
+                                    )
+                                ),
+                                message = null,
+                                finishReason = null
+                            )
+                        )
+                    )
                 }
             }
 
@@ -697,6 +730,16 @@ class ResponseAPI(
                     )
                 }
 
+                // 部分兼容网关会在服务端执行函数工具，并把结果作为 function_call_output 一起返回（rikkahub 675e59f0d, #2181）
+                "function_call_output" -> {
+                    val callId = output["call_id"]?.jsonPrimitive?.content ?: error("call_id not found")
+                    val index = parts.indexOfLast { it is UIMessagePart.Tool && it.toolCallId == callId }
+                    if (index >= 0) {
+                        val tool = parts[index] as UIMessagePart.Tool
+                        parts[index] = tool.copy(output = listOf(UIMessagePart.Text(output.functionCallOutputText())))
+                    }
+                }
+
                 "message" -> {
                     val content = output["content"]?.jsonArray ?: error("content not found")
                     content.map { it.jsonObject }.forEach { part ->
@@ -750,6 +793,17 @@ class ResponseAPI(
 
 private fun isModelAllowTemperature(model: Model): Boolean {
     return !ModelRegistry.OPENAI_O_MODELS.match(model.modelId) && !ModelRegistry.GPT_5.match(model.modelId)
+}
+
+// function_call_output.output 可以是字符串，也可以是 input_text 等内容数组
+internal fun JsonObject.functionCallOutputText(): String = when (val output = get("output")) {
+    null, is JsonNull -> ""
+    is JsonPrimitive -> output.content
+    is JsonArray -> output.mapNotNull { item ->
+        item.jsonObjectOrNull?.takeIf { it["type"]?.jsonPrimitive?.contentOrNull == "input_text" }
+            ?.get("text")?.jsonPrimitive?.contentOrNull
+    }.takeIf { it.isNotEmpty() }?.joinToString("\n") ?: output.toString()
+    else -> output.toString()
 }
 
 private fun List<UIMessagePart>.isOnlyTextPart(): Boolean {

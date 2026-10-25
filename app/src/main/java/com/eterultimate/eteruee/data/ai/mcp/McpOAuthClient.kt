@@ -359,5 +359,13 @@ class McpOAuthClient(
             val url = serverUrl.toHttpUrlOrNull() ?: return serverUrl
             return url.newBuilder().fragment(null).build().toString()
         }
+
+        /** 服务器 origin，用于未提供受保护资源元数据时作为授权服务器 issuer。 */
+        fun serverOrigin(serverUrl: String): String? {
+            val url = serverUrl.toHttpUrlOrNull() ?: return null
+            val defaultPort = HttpUrl.defaultPort(url.scheme)
+            val port = if (url.port == defaultPort) "" else ":${url.port}"
+            return "${url.scheme}://${url.host}$port"
+        }
     }
 }

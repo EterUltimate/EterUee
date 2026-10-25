@@ -26,7 +26,9 @@ env:
   TERMUX_APP_COMMIT: '30ebb2dee381d292ade0f2868cfde0f9f20b89fe'
   HIDDIFY_CORE_VERSION: 'v4.1.0'
   HIDDIFY_CORE_ANDROID_SHA256: '6c4841f7aab23eb1fb17831349ecdfc3ca9c31553b8cbe5effd820cb12607f56'
-  GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g
+  # 命令行系统属性优先于 gradle.properties：此前这里的 Xmx4g 覆盖了 #154 的 6g，
+  # 使 CI 一直跑在 4g 堆上，packageDebug 偶发 OOM/挂起；上调到与上游一致的 8g
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx8g
 
 jobs:
   web-ui:

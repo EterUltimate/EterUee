@@ -201,6 +201,7 @@ sealed class SearchServiceOptions {
         override val id: Uuid = Uuid.random(),
         val apiKey: String = "",
         val depth: String = "advanced",
+        val includeAnswer: Boolean = true,
     ) : SearchServiceOptions()
 
     @Serializable

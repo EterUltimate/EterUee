@@ -16,8 +16,10 @@ import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStoreFile
 import io.pebbletemplates.pebble.PebbleEngine
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.retryWhen
@@ -468,9 +470,13 @@ class SettingsStore(
         .onEach {
             get<PebbleEngine>().templateCache.invalidateAll()
         }
+        // 整份设置的 JSON 解码很重，收集方多在主线程，不能让它们各自在自己的线程上解码
+        // （每次写设置 dataStore.data 都会重新发射并触发整条解码链，rikkahub 640496127）
+        .flowOn(Dispatchers.Default)
 
     val settingsFlow = settingsFlowRaw
         .distinctUntilChanged()
+        .flowOn(Dispatchers.Default)
         .toMutableStateFlow(scope, Settings.dummy())
 
     suspend fun update(settings: Settings) {

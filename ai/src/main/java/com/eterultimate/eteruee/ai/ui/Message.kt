@@ -165,7 +165,7 @@ data class UIMessage(
     fun summaryAsText(maxLength: Int = Int.MAX_VALUE): String {
         val text = "[${role.name}]: " + parts.joinToString(separator = "\n") { part ->
             when (part) {
-                is UIMessagePart.Text -> part.text
+                is UIMessagePart.Text -> part.text.stripInlineDataUrlsForSummary()
                 else -> ""
             }
         }
@@ -224,6 +224,12 @@ data class UIMessage(
         )
     }
 }
+
+private fun String.stripInlineDataUrlsForSummary(): String =
+    replace(INLINE_DATA_URL_REGEX, "[omitted inline data]")
+
+private val INLINE_DATA_URL_REGEX =
+    Regex("""data:[\w.+-]+/[\w.+-]+(?:;[\w.+-]+=[\w.+-]+)*;base64,[A-Za-z0-9+/=_-]+""")
 
 /**
  * 处理MessageChunk合并

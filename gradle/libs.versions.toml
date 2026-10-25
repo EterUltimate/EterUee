@@ -69,7 +69,7 @@ slf4j = "2.0.18"
 jsch = "2.28.7"
 shizuku = "13.1.5"
 xz = "1.12"
-zstd-jni = "1.5.7-11"
+zstd-jni = "1.5.7-16"
 
 snakeyaml = "2.6"
 

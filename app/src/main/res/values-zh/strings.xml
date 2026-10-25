@@ -1394,4 +1394,6 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="imggen_page_deleting">删除中…</string>
   <string name="imggen_page_selected_count">已选择：%1$d</string>
   <string name="imggen_page_select_image">选择图片</string>
+<string name="skills_page_search_placeholder">搜索技能</string>
+<string name="skills_page_search_no_result">没有匹配的技能</string>
 </resources>

@@ -1378,5 +1378,7 @@
   <string name="imggen_page_deleting">Deleting…</string>
   <string name="imggen_page_selected_count">Selected: %1$d</string>
   <string name="imggen_page_select_image">Select image</string>
+<string name="skills_page_search_placeholder">Search skills</string>
+<string name="skills_page_search_no_result">No matching skills</string>
 </resources>
 

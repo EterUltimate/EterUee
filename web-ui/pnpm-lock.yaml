@@ -36,8 +36,8 @@ importers:
         specifier: ^1.11.21
         version: 1.11.21
       file-type:
-        specifier: ^22.0.2
-        version: 22.0.2
+        specifier: ^22.2.0
+        version: 22.2.0
       i18next:
         specifier: ^26.4.2
         version: 26.4.2(typescript@5.9.3)
@@ -2253,8 +2253,8 @@ packages:
     peerDependencies:
       react: ^18 || ^19
 
-  '@tokenizer/inflate@0.4.1':
-    resolution: {integrity: sha512-2mAv+8pkG6GIZiF1kNg1jAjh27IDxEPKwdGul3snfztFerfPGI1LjDezZp3i7BElXompqEtPmoPx6c2wgtWsOA==}
+  '@tokenizer/inflate@0.5.1':
+    resolution: {integrity: sha512-56U2O6fDLFtqokwWh597IdeUgtM7j+TT9tb1soybhgA6cy163gAcVmoQr8H4Ud/CkgCkViwcuLyqtn6wYqw59Q==}
     engines: {node: '>=18'}
 
   '@tokenizer/token@0.3.0':
@@ -2613,8 +2613,8 @@ packages:
       picomatch:
         optional: true
 
-  file-type@22.0.2:
-    resolution: {integrity: sha512-0H8TsCUGBLx+V5adH3EY52hTAcyLKbV1D4gq5cIOJ6DnQAHeV9Z2Hhuc5CoBX4YmvB2oL+JIC84z0qO7JsCoNw==}
+  file-type@22.2.0:
+    resolution: {integrity: sha512-XmEVJsRpQMVYC+sWFW+FKAVo2P7/lPctDdWH4UQ1r6oxhdrTobnowdM3z+ZJ93a4J8D3yDpxX0bEvRuFev0vUQ==}
     engines: {node: '>=22'}
 
   finalhandler@1.3.2:
@@ -3586,8 +3586,8 @@ packages:
   stringify-entities@4.0.4:
     resolution: {integrity: sha512-IwfBptatlO+QCJUo19AqvrPNqlVMpW9YEL2LIVY+Rpv2qsjCGxaDLNRgeGsQWJhfItebuJhsGSLjaBbNSQ+ieg==}
 
-  strtok3@10.3.5:
-    resolution: {integrity: sha512-ki4hZQfh5rX0QDLLkOCj+h+CVNkqmp/CMf8v8kZpkNVK6jGQooMytqzLZYUVYIZcFZ6yDB70EfD8POcFXiF5oA==}
+  strtok3@10.6.2:
+    resolution: {integrity: sha512-BkdixFFUt7r7LsX6aGNPVyYMLjW+M1USLlKPNbZsrZEmLFh5tGqhdfckKo6xgsZIJqdDD0CZGkeCJJwNWQIKQA==}
     engines: {node: '>=18'}
 
   style-to-js@1.1.21:
@@ -3674,8 +3674,8 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
-  uint8array-extras@1.5.0:
-    resolution: {integrity: sha512-rvKSBiC5zqCCiDZ9kAOszZcDvdAHwwIKJG33Ykj43OKcWsnmcBRL09YTU4nOeHZ8Y2a7l1MgTd08SBe9A8Qj6A==}
+  uint8array-extras@1.6.0:
+    resolution: {integrity: sha512-8iAasVS4wUx0gPLjH8Xtz2PeDzTSiy8QiLGu2DT3X5GU+egFEQhpnbtkehbAwjvDcxIERmCYcysiODFmE3Ud0Q==}
     engines: {node: '>=18'}
 
   undici-types@8.9.0:
@@ -5750,7 +5750,7 @@ snapshots:
       '@tanstack/query-core': 5.102.8
       react: 19.2.7
 
-  '@tokenizer/inflate@0.4.1':
+  '@tokenizer/inflate@0.5.1':
     dependencies:
       debug: 4.4.3
       token-types: 6.1.2
@@ -6139,12 +6139,12 @@ snapshots:
     optionalDependencies:
       picomatch: 4.0.4
 
-  file-type@22.0.2:
+  file-type@22.2.0:
     dependencies:
-      '@tokenizer/inflate': 0.4.1
-      strtok3: 10.3.5
+      '@tokenizer/inflate': 0.5.1
+      strtok3: 10.6.2
       token-types: 6.1.2
-      uint8array-extras: 1.5.0
+      uint8array-extras: 1.6.0
     transitivePeerDependencies:
       - supports-color
 
@@ -7498,7 +7498,7 @@ snapshots:
       character-entities-html4: 2.1.0
       character-entities-legacy: 3.0.0
 
-  strtok3@10.3.5:
+  strtok3@10.6.2:
     dependencies:
       '@tokenizer/token': 0.3.0
 
@@ -7568,7 +7568,7 @@ snapshots:
 
   typescript@5.9.3: {}
 
-  uint8array-extras@1.5.0: {}
+  uint8array-extras@1.6.0: {}
 
   undici-types@8.9.0: {}
 

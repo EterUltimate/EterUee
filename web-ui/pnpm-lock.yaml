@@ -51,8 +51,8 @@ importers:
         specifier: ^0.17.0
         version: 0.17.0
       ky:
-        specifier: ^1.14.3
-        version: 1.14.3
+        specifier: ^2.2.0
+        version: 2.2.0
       lucide-react:
         specifier: ^1.40.0
         version: 1.40.0(react@19.2.7)
@@ -2843,9 +2843,9 @@ packages:
     resolution: {integrity: sha512-Vdw0ATsQ9V+LuegM/BTwQqV/6cTl5lbGcIrU+BCgLxyf6bo38ybOr372tuSIxir3CN720flu1meYR6XzNMwQnw==}
     hasBin: true
 
-  ky@1.14.3:
-    resolution: {integrity: sha512-9zy9lkjac+TR1c2tG+mkNSVlyOpInnWdSMiue4F+kq8TwJSgv6o8jhLRg8Ho6SnZ9wOYUq/yozts9qQCfk7bIw==}
-    engines: {node: '>=18'}
+  ky@2.2.0:
+    resolution: {integrity: sha512-4+B63kyZt+Y8snQiUGydK1vgY9xYQJZEh9K/nIAIEts+gYJzy1EiAw3BbK8xpWRuWUpN70SNCMjqRGTm75xxIA==}
+    engines: {node: '>=22'}
 
   lightningcss-android-arm64@1.32.0:
     resolution: {integrity: sha512-YK7/ClTt4kAK0vo6w3X+Pnm0D2cf2vPHbhOXdoNti1Ga0al1P4TBZhwjATvjNwLEBCnKvjJc2jQgHXH0NEwlAg==}
@@ -6422,7 +6422,7 @@ snapshots:
     dependencies:
       commander: 8.3.0
 
-  ky@1.14.3: {}
+  ky@2.2.0: {}
 
   lightningcss-android-arm64@1.32.0:
     optional: true

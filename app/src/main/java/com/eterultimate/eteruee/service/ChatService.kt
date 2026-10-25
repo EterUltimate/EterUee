@@ -1079,6 +1079,10 @@ class ChatService(
             updateConversationState(conversationId) { it.copy(folderId = folderId) }
         }
         conversationRepo.updateConversationFolderId(conversationId, folderId)
+        // 写库期间页面可能刚好打开了这个会话，加载时读到的可能是旧值，再同步一次内存（rikkahub 4ed5f38d9）
+        if (sessions.containsKey(conversationId)) {
+            updateConversationState(conversationId) { it.copy(folderId = folderId) }
+        }
     }
 
     /**

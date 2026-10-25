@@ -144,12 +144,10 @@ private fun DefaultTranslationModelSetting(
                 ModelSelector(
                     modelId = settings.translateModeId,
                     type = ModelType.CHAT,
-                    onSelect = {
-                        vm.updateSettings(
-                            settings.copy(
-                                translateModeId = it.id
-                            )
-                        )
+                    onSelect = { model ->
+                        vm.updateSettings { settings ->
+                            settings.copy(translateModeId = model.id)
+                        }
                     },
                     providers = settings.providers,
                     modifier = Modifier.wrapContentWidth()
@@ -187,7 +185,9 @@ private fun DefaultTranslationModelSetting(
                     ReasoningButton(
                         reasoningLevel = ReasoningLevel.fromBudgetTokens(settings.translateThinkingBudget),
                         onUpdateReasoningLevel = {
-                            vm.updateSettings(settings.copy(translateThinkingBudget = it.budgetTokens))
+                            vm.updateSettings { settings ->
+                            settings.copy(translateThinkingBudget = it.budgetTokens)
+                        }
                         }
                     )
                 }
@@ -203,22 +203,18 @@ private fun DefaultTranslationModelSetting(
                     OutlinedTextField(
                         value = settings.translatePrompt,
                         onValueChange = {
-                            vm.updateSettings(
-                                settings.copy(
-                                    translatePrompt = it
-                                )
-                            )
+                            vm.updateSettings { settings ->
+                                settings.copy(translatePrompt = it)
+                            }
                         },
                         modifier = Modifier.fillMaxWidth(),
                         maxLines = 10,
                     )
                     TextButton(
                         onClick = {
-                            vm.updateSettings(
-                                settings.copy(
+                            vm.updateSettings { it.copy(
                                     translatePrompt = DEFAULT_TRANSLATION_PROMPT
-                                )
-                            )
+                                ) }
                         }
                     ) {
                         Text(stringResource(R.string.setting_model_page_reset_to_default))
@@ -253,12 +249,10 @@ private fun DefaultSuggestionModelSetting(
                 ModelSelector(
                     modelId = settings.suggestionModelId,
                     type = ModelType.CHAT,
-                    onSelect = {
-                        vm.updateSettings(
-                            settings.copy(
-                                suggestionModelId = it.id
-                            )
-                        )
+                    onSelect = { model ->
+                        vm.updateSettings { settings ->
+                            settings.copy(suggestionModelId = model.id)
+                        }
                     },
                     providers = settings.providers,
                     allowClear = true,
@@ -300,22 +294,18 @@ private fun DefaultSuggestionModelSetting(
                     OutlinedTextField(
                         value = settings.suggestionPrompt,
                         onValueChange = {
-                            vm.updateSettings(
-                                settings.copy(
-                                    suggestionPrompt = it
-                                )
-                            )
+                            vm.updateSettings { settings ->
+                                settings.copy(suggestionPrompt = it)
+                            }
                         },
                         modifier = Modifier.fillMaxWidth(),
                         maxLines = 8
                     )
                     TextButton(
                         onClick = {
-                            vm.updateSettings(
-                                settings.copy(
+                            vm.updateSettings { it.copy(
                                     suggestionPrompt = DEFAULT_SUGGESTION_PROMPT
-                                )
-                            )
+                                ) }
                         }
                     ) {
                         Text(stringResource(R.string.setting_model_page_reset_to_default))
@@ -347,12 +337,10 @@ private fun DefaultTitleModelSetting(
                 ModelSelector(
                     modelId = settings.titleModelId,
                     type = ModelType.CHAT,
-                    onSelect = {
-                        vm.updateSettings(
-                            settings.copy(
-                                titleModelId = it.id
-                            )
-                        )
+                    onSelect = { model ->
+                        vm.updateSettings { settings ->
+                            settings.copy(titleModelId = model.id)
+                        }
                     },
                     providers = settings.providers,
                     allowClear = true,
@@ -394,22 +382,18 @@ private fun DefaultTitleModelSetting(
                     OutlinedTextField(
                         value = settings.titlePrompt,
                         onValueChange = {
-                            vm.updateSettings(
-                                settings.copy(
-                                    titlePrompt = it
-                                )
-                            )
+                            vm.updateSettings { settings ->
+                                settings.copy(titlePrompt = it)
+                            }
                         },
                         modifier = Modifier.fillMaxWidth(),
                         maxLines = 8
                     )
                     TextButton(
                         onClick = {
-                            vm.updateSettings(
-                                settings.copy(
+                            vm.updateSettings { it.copy(
                                     titlePrompt = DEFAULT_TITLE_PROMPT
-                                )
-                            )
+                                ) }
                         }
                     ) {
                         Text(stringResource(R.string.setting_model_page_reset_to_default))
@@ -440,12 +424,10 @@ private fun DefaultChatModelSetting(
                 ModelSelector(
                     modelId = settings.chatModelId,
                     type = ModelType.CHAT,
-                    onSelect = {
-                        vm.updateSettings(
-                            settings.copy(
-                                chatModelId = it.id
-                            )
-                        )
+                    onSelect = { model ->
+                        vm.updateSettings { settings ->
+                            settings.copy(chatModelId = model.id)
+                        }
                     },
                     providers = settings.providers,
                     modifier = Modifier.wrapContentWidth()
@@ -479,12 +461,10 @@ private fun DefaultOcrModelSetting(
                 ModelSelector(
                     modelId = settings.ocrModelId,
                     type = ModelType.CHAT,
-                    onSelect = {
-                        vm.updateSettings(
-                            settings.copy(
-                                ocrModelId = it.id
-                            )
-                        )
+                    onSelect = { model ->
+                        vm.updateSettings { settings ->
+                            settings.copy(ocrModelId = model.id)
+                        }
                     },
                     providers = settings.providers,
                     modifier = Modifier.wrapContentWidth()
@@ -525,22 +505,18 @@ private fun DefaultOcrModelSetting(
                     OutlinedTextField(
                         value = settings.ocrPrompt,
                         onValueChange = {
-                            vm.updateSettings(
-                                settings.copy(
-                                    ocrPrompt = it
-                                )
-                            )
+                            vm.updateSettings { settings ->
+                                settings.copy(ocrPrompt = it)
+                            }
                         },
                         modifier = Modifier.fillMaxWidth(),
                         maxLines = 10,
                     )
                     TextButton(
                         onClick = {
-                            vm.updateSettings(
-                                settings.copy(
+                            vm.updateSettings { it.copy(
                                     ocrPrompt = DEFAULT_OCR_PROMPT
-                                )
-                            )
+                                ) }
                         }
                     ) {
                         Text(stringResource(R.string.setting_model_page_reset_to_default))
@@ -575,12 +551,10 @@ private fun DefaultCompressModelSetting(
                 ModelSelector(
                     modelId = settings.compressModelId,
                     type = ModelType.CHAT,
-                    onSelect = {
-                        vm.updateSettings(
-                            settings.copy(
-                                compressModelId = it.id
-                            )
-                        )
+                    onSelect = { model ->
+                        vm.updateSettings { settings ->
+                            settings.copy(compressModelId = model.id)
+                        }
                     },
                     providers = settings.providers,
                     modifier = Modifier.wrapContentWidth()
@@ -621,22 +595,18 @@ private fun DefaultCompressModelSetting(
                     OutlinedTextField(
                         value = settings.compressPrompt,
                         onValueChange = {
-                            vm.updateSettings(
-                                settings.copy(
-                                    compressPrompt = it
-                                )
-                            )
+                            vm.updateSettings { settings ->
+                                settings.copy(compressPrompt = it)
+                            }
                         },
                         modifier = Modifier.fillMaxWidth(),
                         maxLines = 10,
                     )
                     TextButton(
                         onClick = {
-                            vm.updateSettings(
-                                settings.copy(
+                            vm.updateSettings { it.copy(
                                     compressPrompt = DEFAULT_COMPRESS_PROMPT
-                                )
-                            )
+                                ) }
                         }
                     ) {
                         Text(stringResource(R.string.setting_model_page_reset_to_default))

@@ -91,12 +91,8 @@ fun SettingTTSPage(vm: SettingVM = koinViewModel()) {
                     BackButton()
                 },
                 actions = {
-                    AddTTSProviderButton {
-                        vm.updateSettings(
-                            settings.copy(
-                                ttsProviders = listOf(it) + settings.ttsProviders
-                            )
-                        )
+                    AddTTSProviderButton { added ->
+                        vm.updateSettings { it.copy(ttsProviders = listOf(added) + it.ttsProviders) }
                     }
                 },
                 scrollBehavior = scrollBehavior,
@@ -111,7 +107,7 @@ fun SettingTTSPage(vm: SettingVM = koinViewModel()) {
             val newProviders = settings.ttsProviders.toMutableList().apply {
                 add(to.index, removeAt(from.index))
             }
-            vm.updateSettings(settings.copy(ttsProviders = newProviders))
+            vm.updateSettings { it.copy(ttsProviders = newProviders) }
         }
 
         LazyColumn(
@@ -154,7 +150,7 @@ fun SettingTTSPage(vm: SettingVM = koinViewModel()) {
                         },
                         isSelected = settings.selectedTTSProviderId == provider.id,
                         onSelect = {
-                            vm.updateSettings(settings.copy(selectedTTSProviderId = provider.id))
+                            vm.updateSettings { it.copy(selectedTTSProviderId = provider.id) }
                         },
                         onEdit = {
                             editingProvider = provider
@@ -163,12 +159,10 @@ fun SettingTTSPage(vm: SettingVM = koinViewModel()) {
                             val newProviders = settings.ttsProviders - provider
                             val newSelectedId =
                                 if (settings.selectedTTSProviderId == provider.id) DEFAULT_SYSTEM_TTS_ID else settings.selectedTTSProviderId
-                            vm.updateSettings(
-                                settings.copy(
+                            vm.updateSettings { it.copy(
                                     ttsProviders = newProviders,
                                     selectedTTSProviderId = newSelectedId
-                                )
-                            )
+                                ) }
                         }
                     )
                 }
@@ -181,8 +175,8 @@ fun SettingTTSPage(vm: SettingVM = koinViewModel()) {
                 ) {
                     Slider(
                         value = settings.defaultTTSPlaybackSpeed,
-                        onValueChange = {
-                            vm.updateSettings(settings.copy(defaultTTSPlaybackSpeed = it.coerceIn(0.5f, 2.0f)))
+                        onValueChange = { value ->
+                            vm.updateSettings { it.copy(defaultTTSPlaybackSpeed = value.coerceIn(0.5f, 2.0f)) }
                         },
                         valueRange = 0.5f..2.0f,
                     )
@@ -244,7 +238,7 @@ fun SettingTTSPage(vm: SettingVM = koinViewModel()) {
                             val newProviders = settings.ttsProviders.map {
                                 if (it.id == provider.id) currentProvider else it
                             }
-                            vm.updateSettings(settings.copy(ttsProviders = newProviders))
+                            vm.updateSettings { it.copy(ttsProviders = newProviders) }
                             editingProvider = null
                         },
                         modifier = Modifier.weight(1f)

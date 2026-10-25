@@ -49,9 +49,10 @@ class BackupVM(
         loadS3BackupFileItems()
     }
 
-    fun updateSettings(settings: Settings) {
+    // 基于最新设置做转换后写回，避免 UI 手里的快照过期时覆盖并发更新（rikkahub 3462d9ee1）
+    fun updateSettings(transform: (Settings) -> Settings) {
         viewModelScope.launch {
-            settingsStore.update(settings)
+            settingsStore.update(transform)
         }
     }
 
@@ -170,11 +171,7 @@ class BackupVM(
 
         Log.i(TAG, "restoreFromCherryStudio: import ${importProviders.size} providers: $importProviders")
 
-        updateSettings(
-            settings.value.copy(
-                providers = importProviders + settings.value.providers,
-            )
-        )
+        updateSettings { it.copy(providers = importProviders + it.providers) }
     }
 
     // S3 Backup methods

@@ -111,6 +111,18 @@ internal fun backgroundTextGenerationParams(
     sessionId = conversationId.toString(),
 )
 
+private val forkTitleSuffixRegex = Regex("""\((\d+)\)$""")
+
+internal fun forkConversationTitle(sourceTitle: String, existingTitles: Set<String>): String {
+    // 源标题已带 (N) 后缀时递增序号，避免多次 fork 后叠加成 xxx(1)(1)(1)
+    val suffix = forkTitleSuffixRegex.find(sourceTitle)
+    val baseTitle = suffix?.let { sourceTitle.removeRange(it.range) } ?: sourceTitle
+    val start = suffix?.groupValues?.get(1)?.toIntOrNull()?.plus(1) ?: 1
+    return generateSequence(start) { it + 1 }
+        .map { "$baseTitle($it)" }
+        .first { it !in existingTitles }
+}
+
 data class ChatError(
     val id: Uuid = Uuid.random(),
     val title: String? = null,
@@ -1251,9 +1263,7 @@ class ChatService(
             .getConversationsOfAssistant(currentConversation.assistantId)
             .first()
             .mapTo(mutableSetOf()) { it.title }
-        val forkTitle = generateSequence(1) { it + 1 }
-            .map { "${currentConversation.title}($it)" }
-            .first { it !in existingTitles }
+        val forkTitle = forkConversationTitle(currentConversation.title, existingTitles)
 
         val forkConversation = Conversation(
             id = Uuid.random(),

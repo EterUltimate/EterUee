@@ -14,7 +14,9 @@ commons-compress = "1.28.0"
 lifecycleRuntimeKtx = "2.11.0"
 activityCompose = "1.13.0"
 composeBom = "2026.08.00"
-material3 = "1.5.0-beta02"
+# 1.5.0-beta02 起 ExposedDropdownMenu/MenuAnchorType API 变更，需要上游 MD3 Expressive
+# 组件改造（ReasoningPicker/Select/TranslatorPage，本仓库未移植）才能编译；固定在 alpha24
+material3 = "1.5.0-alpha24"
 composeMultiplatform = "1.12.0"
 media3 = "1.11.0"
 metadataExtractor = "2.21.0"

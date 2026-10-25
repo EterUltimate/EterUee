@@ -101,7 +101,7 @@ fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
         val newProviders = settings.providers.toMutableList().apply {
             add(to.index, removeAt(from.index))
         }
-        vm.updateSettings(settings.copy(providers = newProviders))
+        vm.updateSettings { it.copy(providers = newProviders) }
     }
 
     val filteredProviders = remember(settings.providers, searchQuery) {
@@ -125,25 +125,17 @@ fun SettingProviderPage(vm: SettingVM = koinViewModel()) {
                 },
                 actions = {
                     RecommendProviderButton { provider ->
-                        vm.updateSettings(
-                            settings.copy(
-                                providers = listOf(provider.copyProvider(Uuid.random())) + settings.providers
-                            )
-                        )
+                        vm.updateSettings { it.copy(
+                                providers = listOf(provider.copyProvider(Uuid.random())) + it.providers
+                            ) }
                     }
-                    ImportProviderButton {
-                        vm.updateSettings(
-                            settings.copy(
-                                providers = listOf(it.copyProvider(Uuid.random())) + settings.providers
-                            )
-                        )
+                    ImportProviderButton { imported ->
+                        vm.updateSettings { it.copy(
+                                providers = listOf(imported.copyProvider(Uuid.random())) + it.providers
+                            ) }
                     }
-                    AddButton {
-                        vm.updateSettings(
-                            settings.copy(
-                                providers = listOf(it) + settings.providers
-                            )
-                        )
+                    AddButton { added ->
+                        vm.updateSettings { it.copy(providers = listOf(added) + it.providers) }
                     }
                 },
                 scrollBehavior = scrollBehavior,

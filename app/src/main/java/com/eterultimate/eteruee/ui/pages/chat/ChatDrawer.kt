@@ -136,13 +136,11 @@ fun ChatDrawerContent(
 
     // 昵称编辑状态
     val nicknameEditState = useEditState<String> { newNickname ->
-        vm.updateSettings(
-            settings.copy(
-                displaySetting = settings.displaySetting.copy(
+        vm.updateSettings { it.copy(
+                displaySetting = it.displaySetting.copy(
                     userNickname = newNickname
                 )
-            )
-        )
+            ) }
     }
 
     // 移动对话状态
@@ -189,13 +187,11 @@ fun ChatDrawerContent(
                     name = settings.displaySetting.userNickname.ifBlank { stringResource(R.string.user_default_name) },
                     value = settings.displaySetting.userAvatar,
                     onUpdate = { newAvatar ->
-                        vm.updateSettings(
-                            settings.copy(
-                                displaySetting = settings.displaySetting.copy(
+                        vm.updateSettings { it.copy(
+                                displaySetting = it.displaySetting.copy(
                                     userAvatar = newAvatar
                                 )
-                            )
-                        )
+                            ) }
                     },
                     modifier = Modifier.size(50.dp),
                 )
@@ -297,7 +293,7 @@ fun ChatDrawerContent(
             AssistantPicker(
                 settings = settings,
                 onUpdateSettings = {
-                    val updateJob = vm.updateSettings(it)
+                    val updateJob = vm.updateSettings { it }
                     scope.launch {
                         updateJob.join()
                         val id = if (context.readBooleanPreference("create_new_conversation_on_start", true)) {

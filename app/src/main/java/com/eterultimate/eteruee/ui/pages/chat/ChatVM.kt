@@ -139,13 +139,14 @@ class ChatVM(
     // 生成完成
     val generationDoneFlow: SharedFlow<Uuid> = chatService.generationDoneFlow
 
-    // 更新设置
-    fun updateSettings(newSettings: Settings): Job {
+    // 更新设置（基于最新设置做转换后写回，避免 UI 快照过期覆盖并发更新，rikkahub 3462d9ee1）
+    fun updateSettings(transform: (Settings) -> Settings): Job {
         return viewModelScope.launch {
-            val oldSettings = settings.value
-            // 检查用户头像是否有变化，如果有则删除旧头像
-            checkUserAvatarDelete(oldSettings, newSettings)
-            settingsStore.update(newSettings)
+            settingsStore.update { current ->
+                val newSettings = transform(current)
+                checkUserAvatarDelete(current, newSettings)
+                newSettings
+            }
         }
     }
 

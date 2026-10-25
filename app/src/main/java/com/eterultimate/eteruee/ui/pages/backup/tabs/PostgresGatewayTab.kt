@@ -61,7 +61,7 @@ fun PostgresGatewayTab(vm: BackupVM) {
     var isBackingUp by remember { mutableStateOf(false) }
 
     fun updateConfig(newConfig: PostgresGatewayConfig) {
-        vm.updateSettings(settings.copy(postgresGatewayConfig = newConfig))
+        vm.updateSettings { it.copy(postgresGatewayConfig = newConfig) }
     }
 
     val lastBackupText = if (settings.backupReminderConfig.lastBackupTime == 0L) {

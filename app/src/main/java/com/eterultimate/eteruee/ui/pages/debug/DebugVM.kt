@@ -78,9 +78,10 @@ class DebugVM(
         return recovered.size
     }
 
-    fun updateSettings(settings: Settings) {
+    // 基于最新设置做转换后写回，避免 UI 手里的快照过期时覆盖并发更新（rikkahub 3462d9ee1）
+    fun updateSettings(transform: (Settings) -> Settings) {
         viewModelScope.launch {
-            settingsStore.update(settings)
+            settingsStore.update(transform)
         }
     }
 

@@ -315,22 +315,23 @@ private fun ChatPageContent(
                     },
                     enableSearch = enableWebSearch,
                     onToggleSearch = {
-                        val current = setting.getCurrentAssistant()
-                        vm.updateSettings(
-                            setting.copy(
-                                assistants = setting.assistants.map { assistant ->
-                                    if (assistant.id == current.id) {
-                                        assistant.copy(enableWebSearch = !enableWebSearch)
+                        vm.updateSettings { settings ->
+                            settings.copy(
+                                assistants = settings.assistants.map { assistant ->
+                                    if (assistant.id == settings.getCurrentAssistant().id) {
+                                        assistant.copy(enableWebSearch = !assistant.enableWebSearch)
                                     } else {
                                         assistant
                                     }
                                 }
                             )
-                        )
+                        }
                     },
                     enableSubagent = enableSubagent,
-                    onToggleSubagent = {
-                        vm.updateSettings(setting.copy(enableSubagent = it))
+                    onToggleSubagent = { enabled ->
+                        vm.updateSettings { settings ->
+                            settings.copy(enableSubagent = enabled)
+                        }
                     },
                     onSendClick = {
                         if (currentChatModel == null) {
@@ -368,9 +369,9 @@ private fun ChatPageContent(
                         vm.setChatModel(assistant = setting.getCurrentAssistant(), model = it)
                     },
                     onUpdateAssistant = {
-                        vm.updateSettings(
-                            setting.copy(
-                                assistants = setting.assistants.map { assistant ->
+                        vm.updateSettings { settings ->
+                            settings.copy(
+                                assistants = settings.assistants.map { assistant ->
                                     if (assistant.id == it.id) {
                                         it
                                     } else {
@@ -378,18 +379,16 @@ private fun ChatPageContent(
                                     }
                                 }
                             )
-                        )
+                        }
                     },
                     onUpdateConversation = {
                         vm.updateConversation(it)
                         vm.saveConversationAsync()
                     },
                     onUpdateSearchService = { index ->
-                        vm.updateSettings(
-                            setting.copy(
+                        vm.updateSettings { it.copy(
                                 searchServiceSelected = index
-                            )
-                        )
+                            ) }
                     },
                     onCompressContext = { additionalPrompt, targetTokens, keepRecentMessages ->
                         vm.handleCompressContext(additionalPrompt, targetTokens, keepRecentMessages)

@@ -385,7 +385,7 @@ class FilesManager(
         repository.deleteById(id) > 0
     }
 
-    suspend fun deleteAll(folder: String = FileFolders.UPLOAD): Boolean = withContext(Dispatchers.IO) {
+    suspend fun deleteAll(folder: String = FileFolders.UPLOAD, keepRelativePaths: Set<String> = emptySet()): Boolean = withContext(Dispatchers.IO) {
         val dir = File(context.filesDir, folder)
         val entries = dir.listFiles()
         if (dir.exists() && entries == null) {
@@ -394,13 +394,24 @@ class FilesManager(
 
         var allDeletedFromDisk = true
         entries.orEmpty().forEach { entry ->
+            // 助手头像/背景等用户主动配置的持久化资源不在清理范围（rikkahub#2127）
+            if ("$folder/${entry.name}" in keepRelativePaths) return@forEach
             if (!runCatching { entry.deleteRecursively() }.getOrDefault(false)) {
                 allDeletedFromDisk = false
             }
         }
 
+        val kept = repository.listByFolder(folder).first().filter { it.relativePath in keepRelativePaths }
         if (allDeletedFromDisk) {
-            repository.deleteByFolder(folder)
+            if (kept.isEmpty()) {
+                repository.deleteByFolder(folder)
+            } else {
+                repository.listByFolder(folder).first().forEach { entity ->
+                    if (entity.relativePath !in keepRelativePaths) {
+                        repository.deleteById(entity.id)
+                    }
+                }
+            }
             return@withContext true
         }
 
@@ -412,13 +423,24 @@ class FilesManager(
         false
     }
 
+    /**
+     * 把仍在使用中的文件 URI（助手头像、聊天背景等）换算成 filesDir 内的相对路径，
+     * 供清理接口排除；非 file: URI 或不在 filesDir 内的路径会被忽略。
+     */
+    fun resolveProtectedRelativePaths(uris: List<String>): Set<String> = uris
+        .filter { it.startsWith("file:") }
+        .mapNotNull { getRelativePathInFilesDir(Uri.parse(it).toFile()) }
+        .toSet()
+
     suspend fun deleteOlderThan(
         folder: String = FileFolders.UPLOAD,
         cutoffMillis: Long,
+        keepRelativePaths: Set<String> = emptySet(),
     ): Boolean = withContext(Dispatchers.IO) {
         var allDeleted = true
         repository.listByFolder(folder).first()
             .filter { it.createdAt < cutoffMillis }
+            .filter { it.relativePath !in keepRelativePaths }
             .forEach { entity ->
                 val file = getFile(entity)
                 val deletedFromDisk = !file.exists() || runCatching {

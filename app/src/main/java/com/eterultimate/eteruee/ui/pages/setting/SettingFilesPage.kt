@@ -61,9 +61,12 @@ import com.eterultimate.eteruee.data.db.entity.ManagedFileEntity
 import com.eterultimate.eteruee.R
 import com.eterultimate.eteruee.data.files.FileFolders
 import com.eterultimate.eteruee.data.files.FilesManager
+import com.eterultimate.eteruee.data.datastore.SettingsStore
+import com.eterultimate.eteruee.data.model.Avatar
 import com.eterultimate.eteruee.ui.components.nav.BackButton
 import com.eterultimate.eteruee.ui.context.LocalToaster
 import com.eterultimate.eteruee.ui.theme.CustomColors
+import kotlinx.coroutines.flow.first
 import org.koin.compose.koinInject
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -72,6 +75,7 @@ import java.util.concurrent.TimeUnit
 @Composable
 fun SettingFilesPage(
     filesManager: FilesManager = koinInject(),
+    settingsStore: SettingsStore = koinInject(),
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val gridState = rememberLazyStaggeredGridState()
@@ -137,12 +141,23 @@ fun SettingFilesPage(
                 onClean = {
                     showCleanSheet = false
                     scope.launch {
+                        // 清理时保留仍在使用的助手头像/背景（rikkahub#2127）
+                        val settings = settingsStore.settingsFlow.first()
+                        val protectedPaths = filesManager.resolveProtectedRelativePaths(
+                            settings.assistants.flatMap { assistant ->
+                                buildList {
+                                    (assistant.avatar as? Avatar.Image)?.let { add(it.url) }
+                                    assistant.background?.let { add(it) }
+                                }
+                            }
+                        )
                         val ok = selectedCleanRange.days?.let { days ->
                             filesManager.deleteOlderThan(
                                 folder = selectedFolder,
                                 cutoffMillis = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(days.toLong()),
+                                keepRelativePaths = protectedPaths,
                             )
-                        } ?: filesManager.deleteAll(selectedFolder)
+                        } ?: filesManager.deleteAll(selectedFolder, keepRelativePaths = protectedPaths)
                         toaster.show(if (ok) cleanedToast else cleanFailedToast)
                     }
                 },

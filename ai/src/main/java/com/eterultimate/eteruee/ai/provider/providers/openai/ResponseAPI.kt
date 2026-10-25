@@ -144,7 +144,8 @@ class ResponseAPI(
                     return
                 }
                 Log.d(TAG, "onEvent: $id/$type $data")
-                val json = json.parseToJsonElement(data).jsonObject
+                // 部分中转会在流中夹杂 `data: null` 之类的非对象事件，直接跳过（rikkahub 240deb5fe, #2137）
+                val json = json.parseToJsonElement(data).jsonObjectOrNull ?: return
                 val chunk = parseResponseDelta(json)
                 if (chunk != null) {
                     trySend(chunk)

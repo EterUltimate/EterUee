@@ -18,7 +18,9 @@ import com.eterultimate.eteruee.ai.ui.UIMessage
 import com.eterultimate.eteruee.ai.ui.UIMessagePart
 import com.eterultimate.eteruee.common.android.Logging
 import com.eterultimate.eteruee.AppScope
+import com.eterultimate.eteruee.data.datastore.SettingsStore
 import com.eterultimate.eteruee.data.db.entity.ManagedFileEntity
+import com.eterultimate.eteruee.data.model.Avatar
 import com.eterultimate.eteruee.data.repository.FilesRepository
 import com.eterultimate.eteruee.utils.exportImage
 import com.eterultimate.eteruee.utils.exportImageFile
@@ -30,6 +32,7 @@ class FilesManager(
     private val context: Context,
     private val repository: FilesRepository,
     private val appScope: AppScope,
+    private val settingsStore: SettingsStore,
 ) {
     companion object {
         private const val TAG = "FilesManager"
@@ -385,29 +388,32 @@ class FilesManager(
         repository.deleteById(id) > 0
     }
 
-    suspend fun deleteAll(folder: String = FileFolders.UPLOAD, keepRelativePaths: Set<String> = emptySet()): Boolean = withContext(Dispatchers.IO) {
+    suspend fun deleteAll(folder: String = FileFolders.UPLOAD): Boolean = withContext(Dispatchers.IO) {
         val dir = File(context.filesDir, folder)
         val entries = dir.listFiles()
         if (dir.exists() && entries == null) {
             return@withContext false
         }
+        val keep = currentProtectedRelativePaths()
 
         var allDeletedFromDisk = true
         entries.orEmpty().forEach { entry ->
-            // 助手头像/背景等用户主动配置的持久化资源不在清理范围（rikkahub#2127）
-            if ("$folder/${entry.name}" in keepRelativePaths) return@forEach
+            // 助手头像/背景等用户主动配置的持久化资源不在清理范围（rikkahub#2127）；
+            // 目录名是受保护路径的前缀时整目录保留，避免嵌套在子目录内的受保护文件被连带删除
+            val entryPath = "$folder/${entry.name}"
+            if (entryPath in keep || keep.any { it.startsWith("$entryPath/") }) return@forEach
             if (!runCatching { entry.deleteRecursively() }.getOrDefault(false)) {
                 allDeletedFromDisk = false
             }
         }
 
-        val kept = repository.listByFolder(folder).first().filter { it.relativePath in keepRelativePaths }
+        val kept = repository.listByFolder(folder).first().filter { it.relativePath in keep }
         if (allDeletedFromDisk) {
             if (kept.isEmpty()) {
                 repository.deleteByFolder(folder)
             } else {
                 repository.listByFolder(folder).first().forEach { entity ->
-                    if (entity.relativePath !in keepRelativePaths) {
+                    if (entity.relativePath !in keep) {
                         repository.deleteById(entity.id)
                     }
                 }
@@ -424,23 +430,31 @@ class FilesManager(
     }
 
     /**
-     * 把仍在使用中的文件 URI（助手头像、聊天背景等）换算成 filesDir 内的相对路径，
-     * 供清理接口排除；非 file: URI 或不在 filesDir 内的路径会被忽略。
+     * 清理时仍在使用中的文件（助手头像、聊天背景等）的 filesDir 相对路径，
+     * 在删除时刻读取设置，避免页面快照与删除之间的竞态；非 file: URI 或
+     * 不在 filesDir 内的路径会被忽略。
      */
-    fun resolveProtectedRelativePaths(uris: List<String>): Set<String> = uris
-        .filter { it.startsWith("file:") }
-        .mapNotNull { getRelativePathInFilesDir(Uri.parse(it).toFile()) }
-        .toSet()
+    private suspend fun currentProtectedRelativePaths(): Set<String> {
+        val settings = settingsStore.settingsFlow.first()
+        return settings.assistants.flatMap { assistant ->
+            buildList {
+                (assistant.avatar as? Avatar.Image)?.let { add(it.url) }
+                assistant.background?.let { add(it) }
+            }
+        }.filter { it.startsWith("file:") }
+            .mapNotNull { getRelativePathInFilesDir(Uri.parse(it).toFile()) }
+            .toSet()
+    }
 
     suspend fun deleteOlderThan(
         folder: String = FileFolders.UPLOAD,
         cutoffMillis: Long,
-        keepRelativePaths: Set<String> = emptySet(),
     ): Boolean = withContext(Dispatchers.IO) {
+        val keep = currentProtectedRelativePaths()
         var allDeleted = true
         repository.listByFolder(folder).first()
             .filter { it.createdAt < cutoffMillis }
-            .filter { it.relativePath !in keepRelativePaths }
+            .filter { it.relativePath !in keep }
             .forEach { entity ->
                 val file = getFile(entity)
                 val deletedFromDisk = !file.exists() || runCatching {

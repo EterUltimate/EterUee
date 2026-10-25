@@ -344,17 +344,27 @@ class OpenAIProvider(
                     }
                 )
                 putJsonArray("input_references") {
+                    var totalBytes = 0L
                     params.images.forEach { path ->
                         val imageFile = File(path)
                         require(imageFile.exists()) {
                             "Image file does not exist: $path"
+                        }
+                        require(imageFile.extension.lowercase() in SUPPORTED_EDIT_IMAGE_EXTENSIONS) {
+                            "Unsupported image file type for OpenAI edit: ${imageFile.extension}"
+                        }
+                        val bytes = imageFile.readBytes()
+                        totalBytes += bytes.size
+                        // base64 前限制参考图总量，避免多份全量拷贝（原文/字节/base64/JSON）撑爆堆内存
+                        require(totalBytes <= MAX_INPUT_REFERENCE_BYTES) {
+                            "Total reference image size exceeds ${MAX_INPUT_REFERENCE_BYTES / (1024 * 1024)}MB"
                         }
                         addJsonObject {
                             put("type", "image_url")
                             putJsonObject("image_url") {
                                 put(
                                     "url",
-                                    "data:${imageFile.imageMediaType()};base64,${Base64.encode(imageFile.readBytes())}"
+                                    "data:${imageFile.imageMediaType()};base64,${Base64.encode(bytes)}"
                                 )
                             }
                         }
@@ -552,5 +562,6 @@ class OpenAIProvider(
 
     companion object {
         private val SUPPORTED_EDIT_IMAGE_EXTENSIONS = setOf("png", "jpg", "jpeg", "webp")
+        private const val MAX_INPUT_REFERENCE_BYTES = 24L * 1024 * 1024
     }
 }

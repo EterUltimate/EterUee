@@ -360,9 +360,13 @@ class McpOAuthClient(
             return url.newBuilder().fragment(null).build().toString()
         }
 
-        /** 服务器 origin，用于未提供受保护资源元数据时作为授权服务器 issuer。 */
+        /** 服务器 origin，用于未提供受保护资源元数据时作为授权服务器 issuer。
+         *
+         * 授权码/令牌不能经明文 http 传输，非回环地址必须 https（Sourcery 评审意见）。 */
         fun serverOrigin(serverUrl: String): String? {
             val url = serverUrl.toHttpUrlOrNull() ?: return null
+            val isLoopback = url.host == "localhost" || url.host == "127.0.0.1" || url.host == "[::1]"
+            if (!url.isHttps && !isLoopback) return null
             val defaultPort = HttpUrl.defaultPort(url.scheme)
             val port = if (url.port == defaultPort) "" else ":${url.port}"
             return "${url.scheme}://${url.host}$port"

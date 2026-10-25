@@ -16,6 +16,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -172,6 +174,12 @@ class ChatService(
 ) {
     // 统一会话管理
     private val sessions = ConcurrentHashMap<Uuid, ConversationSession>()
+
+    // 按键互斥：避免并发 fork 抢到相同标题、并发移动文件夹时旧移动的内存同步覆盖新移动
+    private val keyMutexes = ConcurrentHashMap<Uuid, Mutex>()
+
+    private suspend fun <T> withKeyMutex(key: Uuid, block: suspend () -> T): T =
+        keyMutexes.computeIfAbsent(key) { Mutex() }.withLock { block() }
     private val _sessionsVersion = MutableStateFlow(0L)
 
     // 错误状态
@@ -1074,12 +1082,13 @@ class ChatService(
      * 后续任意 saveConversation(id, state.value) 会用整对象把 folder_id 覆盖回旧值，导致移动丢失。
      * 先改内存可确保这段窗口内的整对象保存也带上新 folderId。
      */
-    suspend fun moveConversationToFolder(conversationId: Uuid, folderId: Uuid?) {
+    suspend fun moveConversationToFolder(conversationId: Uuid, folderId: Uuid?) = withKeyMutex(conversationId) {
         if (sessions.containsKey(conversationId)) {
             updateConversationState(conversationId) { it.copy(folderId = folderId) }
         }
         conversationRepo.updateConversationFolderId(conversationId, folderId)
-        // 写库期间页面可能刚好打开了这个会话，加载时读到的可能是旧值，再同步一次内存（rikkahub 4ed5f38d9）
+        // 写库期间页面可能刚好打开了这个会话，加载时读到的可能是旧值，再同步一次内存（rikkahub 4ed5f38d9）；
+        // 互斥保证两次移动不会交错，这里同步的总是最新一次移动的目标
         if (sessions.containsKey(conversationId)) {
             updateConversationState(conversationId) { it.copy(folderId = folderId) }
         }
@@ -1262,25 +1271,28 @@ class ChatService(
                 )
             }
 
-        // fork 标题沿用原会话标题并自动加序号，避免重名（rikkahub 458c16df6）
-        val existingTitles = conversationRepo
-            .getConversationsOfAssistant(currentConversation.assistantId)
-            .first()
-            .mapTo(mutableSetOf()) { it.title }
-        val forkTitle = forkConversationTitle(currentConversation.title, existingTitles)
+        // fork 标题沿用原会话标题并自动加序号，避免重名（rikkahub 458c16df6）；
+        // 标题分配到落库期间用助手级互斥串行，避免并发 fork 抢到相同标题
+        return withKeyMutex(currentConversation.assistantId) {
+            val existingTitles = conversationRepo
+                .getConversationsOfAssistant(currentConversation.assistantId)
+                .first()
+                .mapTo(mutableSetOf()) { it.title }
+            val forkTitle = forkConversationTitle(currentConversation.title, existingTitles)
 
-        val forkConversation = Conversation(
-            id = Uuid.random(),
-            assistantId = currentConversation.assistantId,
-            title = forkTitle,
-            messageNodes = copiedNodes,
-            customSystemPrompt = currentConversation.customSystemPrompt,
-            modeInjectionIds = currentConversation.modeInjectionIds,
-            lorebookIds = currentConversation.lorebookIds,
-        )
+            val forkConversation = Conversation(
+                id = Uuid.random(),
+                assistantId = currentConversation.assistantId,
+                title = forkTitle,
+                messageNodes = copiedNodes,
+                customSystemPrompt = currentConversation.customSystemPrompt,
+                modeInjectionIds = currentConversation.modeInjectionIds,
+                lorebookIds = currentConversation.lorebookIds,
+            )
 
-        saveConversation(forkConversation.id, forkConversation)
-        return forkConversation
+            saveConversation(forkConversation.id, forkConversation)
+            forkConversation
+        }
     }
 
     suspend fun selectMessageNode(

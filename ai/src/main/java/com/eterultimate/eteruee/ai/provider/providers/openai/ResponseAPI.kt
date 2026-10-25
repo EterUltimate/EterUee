@@ -613,6 +613,33 @@ class ResponseAPI(
                             )
                         )
                     )
+                } else if (type == "function_call_output") {
+                    // 部分兼容网关会在服务端执行函数工具，结果经 output_item.done 的
+                    // function_call_output 返回（rikkahub 675e59f0d, #2181）；
+                    // Tool.merge 会按 call_id 把 output 追加到已有工具上，避免客户端重复执行
+                    val callId = item["call_id"]?.jsonPrimitive?.content ?: error("call_id not found")
+                    return MessageChunk(
+                        id = callId,
+                        model = "",
+                        choices = listOf(
+                            UIMessageChoice(
+                                index = 0,
+                                delta = UIMessage(
+                                    role = MessageRole.ASSISTANT,
+                                    parts = listOf(
+                                        UIMessagePart.Tool(
+                                            toolCallId = callId,
+                                            toolName = "",
+                                            input = "",
+                                            output = listOf(UIMessagePart.Text(item.functionCallOutputText()))
+                                        )
+                                    )
+                                ),
+                                message = null,
+                                finishReason = null
+                            )
+                        )
+                    )
                 }
             }
 

@@ -530,7 +530,15 @@ private fun ColumnScope.ModelList(
                                         haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
                                         val order = draggingFavoriteOrder ?: return@longPressDraggableHandle
                                         coroutineScope.launch {
-                                            settingsStore.update { it.copy(favoriteModels = order) }
+                                            settingsStore.update { latest ->
+                                                // 拖动期间可能并发增删收藏：按拖动顺序排列仍存在的收藏，
+                                                // 并保留拖动序里没有的新收藏，避免整列表覆盖丢更新
+                                                latest.copy(
+                                                    favoriteModels =
+                                                    order.filter { it in latest.favoriteModels } +
+                                                        latest.favoriteModels.filter { it !in order }
+                                                )
+                                            }
                                             // 写盘时界面已经收到新设置，这时再撤掉本地顺序不会闪回旧顺序。
                                             // 写盘期间可能已经开始下一次拖动，那时的本地顺序要留给下一次松手保存
                                             if (draggingFavoriteOrder === order) draggingFavoriteOrder = null

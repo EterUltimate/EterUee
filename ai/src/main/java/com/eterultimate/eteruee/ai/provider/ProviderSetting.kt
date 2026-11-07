@@ -11,7 +11,15 @@ data class BalanceOption(
     val enabled: Boolean = false, // 是否开启余额获取功能
     val apiPath: String = "/credits", // 余额获取API路径
     val resultPath: String = "data.total_usage", // 余额获取JSON路径
+    val method: BalanceQueryMethod = BalanceQueryMethod.GET, // 请求方法，POST 时发送 body (rikkahub 6328f4a8d)
+    val body: String = "", // POST 请求体，JSON 文本，支持 {{apiKey}}/{{baseUrl}} 模板变量
 )
+
+@Serializable
+enum class BalanceQueryMethod {
+    GET,
+    POST,
+}
 
 @Serializable
 sealed class ProviderSetting {

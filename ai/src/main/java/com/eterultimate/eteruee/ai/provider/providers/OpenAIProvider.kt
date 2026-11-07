@@ -15,6 +15,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
+import com.eterultimate.eteruee.ai.provider.BalanceQueryMethod
 import com.eterultimate.eteruee.ai.provider.EmbeddingGenerationParams
 import com.eterultimate.eteruee.ai.provider.EmbeddingGenerationResult
 import com.eterultimate.eteruee.ai.provider.ImageEditParams
@@ -95,10 +96,22 @@ class OpenAIProvider(
         } else {
             "${providerSetting.baseUrl}${providerSetting.balanceOption.apiPath}"
         }
+        // 自定义余额查询支持 POST + JSON 请求体，body 里的 {{apiKey}}/{{baseUrl}} 按同一 key 渲染 (rikkahub 6328f4a8d)
+        val renderTemplate: (String) -> String = { template ->
+            template.replace("{{apiKey}}", key).replace("{{baseUrl}}", providerSetting.baseUrl)
+        }
         val request = Request.Builder()
             .url(url)
             .addHeader("Authorization", "Bearer $key")
-            .get()
+            .apply {
+                when (providerSetting.balanceOption.method) {
+                    BalanceQueryMethod.GET -> get()
+                    BalanceQueryMethod.POST -> post(
+                        renderTemplate(providerSetting.balanceOption.body)
+                            .toRequestBody("application/json".toMediaType())
+                    )
+                }
+            }
             .build()
         val response = client.newCall(request).await()
         if (!response.isSuccessful) {
@@ -108,7 +121,7 @@ class OpenAIProvider(
         val bodyStr = response.body.string()
         val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
         val value = bodyJson.getByKey(providerSetting.balanceOption.resultPath)
-        val digitalValue = value.toFloatOrNull()
+        val digitalValue = value.toDoubleOrNull()
         if(digitalValue != null) {
             "%.2f".format(digitalValue)
         } else {

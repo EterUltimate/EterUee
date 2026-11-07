@@ -15,6 +15,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.eterultimate.eteruee.ai.provider.BalanceOption
+import com.eterultimate.eteruee.ai.provider.BalanceQueryMethod
 import com.eterultimate.eteruee.ai.provider.ProviderSetting
 import com.eterultimate.eteruee.common.http.isJsonExprValid
 import com.eterultimate.eteruee.R
@@ -83,6 +87,18 @@ fun SettingProviderBalanceOption(
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                // 自定义余额查询支持 POST + JSON 请求体 (rikkahub 6328f4a8d)
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    BalanceQueryMethod.entries.forEachIndexed { index, method ->
+                        SegmentedButton(
+                            selected = balanceOption.method == method,
+                            onClick = { onEdit(balanceOption.copy(method = method)) },
+                            shape = SegmentedButtonDefaults.itemShape(index, BalanceQueryMethod.entries.size),
+                        ) {
+                            Text(method.name)
+                        }
+                    }
+                }
                 OutlinedTextField(
                     value = balanceOption.apiPath,
                     onValueChange = { onEdit(balanceOption.copy(apiPath = it)) },
@@ -90,6 +106,16 @@ fun SettingProviderBalanceOption(
                     isError = !balanceOption.apiPath.matches(ApiPathRegex),
                     modifier = Modifier.fillMaxWidth()
                 )
+                if (balanceOption.method == BalanceQueryMethod.POST) {
+                    OutlinedTextField(
+                        value = balanceOption.body,
+                        onValueChange = { onEdit(balanceOption.copy(body = it)) },
+                        label = { Text("Body (JSON)") },
+                        minLines = 3,
+                        modifier = Modifier.fillMaxWidth(),
+                        textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = JetbrainsMono)
+                    )
+                }
                 OutlinedTextField(
                     value = balanceOption.resultPath,
                     onValueChange = { onEdit(balanceOption.copy(resultPath = it)) },

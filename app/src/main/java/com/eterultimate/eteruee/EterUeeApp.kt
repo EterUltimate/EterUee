@@ -21,6 +21,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import com.eterultimate.eteruee.ai.util.ImageEncodeCache
 import com.eterultimate.eteruee.di.appModule
 import com.eterultimate.eteruee.di.dataSourceModule
 import com.eterultimate.eteruee.di.repositoryModule
@@ -75,6 +76,9 @@ class EterUeeApp : Application() {
 
         // set cursor window size to 32MB
         DatabaseUtil.setCursorWindowSize(32 * 1024 * 1024)
+
+        // 历史图片编码结果磁盘缓存（rikkahub#2292）
+        ImageEncodeCache.init(File(cacheDir, "encoded_images"))
 
         // install crash handler
         CrashHandler.install(this)

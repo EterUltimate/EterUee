@@ -66,6 +66,7 @@ import com.eterultimate.eteruee.ai.provider.Model
 import com.eterultimate.eteruee.ai.provider.ModelAbility
 import com.eterultimate.eteruee.ai.provider.ModelType
 import com.eterultimate.eteruee.ai.provider.ProviderSetting
+import com.eterultimate.eteruee.ai.provider.filterByKeywords
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.ArrowRight01
 import me.rerere.hugeicons.stroke.Brain02
@@ -322,7 +323,8 @@ private fun ColumnScope.ModelList(
     // 拖动排序时先改这份本地顺序，松手再写回设置。设置是异步回到界面的，拖到边缘自动滚动时拖拽库每帧都会按
     // 旧布局再算一次移动，直接改设置会让顺序被反复改回去，看起来就是来回抽搐
     var draggingFavoriteOrder by remember { mutableStateOf<List<Uuid>?>(null) }
-    val favoriteModels = (draggingFavoriteOrder ?: settings.value.favoriteModels).mapNotNull { modelId ->
+    // 收藏列表里的重复 id 会让 LazyColumn 的 "favorite:<uuid>" key 重复直接崩溃（rikkahub#2288），读取时先去重
+    val favoriteModels = (draggingFavoriteOrder ?: settings.value.favoriteModels).distinct().mapNotNull { modelId ->
         val model = settings.value.providers.findModelById(modelId) ?: return@mapNotNull null
         if (model.type != modelType) return@mapNotNull null
         val provider = model.findProvider(providers = settings.value.providers, checkOverwrite = false) ?: return@mapNotNull null
@@ -337,12 +339,8 @@ private fun ColumnScope.ModelList(
         }
     }
 
-    val searchFilteredModelsByProvider = remember(providers, modelType, searchKeywords) {
-        providers.associate { provider ->
-            provider.id to provider.models.fastFilter {
-                it.type == modelType && it.displayName.contains(searchKeywords, true)
-            }
-        }
+    val searchFilteredModelsByProvider = remember(typeFilteredModelsByProvider, searchKeywords) {
+        typeFilteredModelsByProvider.mapValues { (_, models) -> models.filterByKeywords(searchKeywords) }
     }
 
     // 计算当前选中模型的位置
@@ -601,8 +599,13 @@ private fun ColumnScope.ModelList(
                                             )
 
                                         } else {
+                                            // 已在收藏中时不重复追加，避免重复 id 触发 LazyColumn key 崩溃（rikkahub#2288）
                                             settings.copy(
-                                                favoriteModels = settings.favoriteModels + model.id
+                                                favoriteModels = if (model.id in settings.favoriteModels) {
+                                                    settings.favoriteModels
+                                                } else {
+                                                    settings.favoriteModels + model.id
+                                                }
                                             )
                                         }
                                     }

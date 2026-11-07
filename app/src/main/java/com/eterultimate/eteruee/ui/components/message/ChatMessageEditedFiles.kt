@@ -97,7 +97,9 @@ internal fun EditedFilesList(
         if (uri == null) return@rememberLauncherForActivityResult
         scope.launch {
             runCatching {
-                val outputStream = context.contentResolver.openOutputStream(uri) ?: return@runCatching
+                // openOutputStream 可能抛出安全异常（部分设备 SAF 限制），需在 IO 线程内捕获 (rikkahub 79f4b6fb2)
+                val outputStream = withContext(Dispatchers.IO) { context.contentResolver.openOutputStream(uri) }
+                    ?: return@runCatching
                 exportWorkspaceFile(workspaceSandboxManager, file, outputStream)
             }
         }

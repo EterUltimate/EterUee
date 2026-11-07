@@ -125,6 +125,12 @@ private fun File.compressAndEncode(
         return Pair(encodeToBase64Streaming(), mimeType)
     }
 
+    // 同一张历史图片每轮请求都会重复解码+重编码（rikkahub#2292），命中缓存时直接复用
+    val cacheKey = ImageEncodeCache.cacheKey(absolutePath, lastModified(), length(), quality)
+    ImageEncodeCache.get(cacheKey)?.let { cached ->
+        return Pair(cached.toString(Charsets.ISO_8859_1), "image/jpeg")
+    }
+
     // 读取图片尺寸
     val options = BitmapFactory.Options().apply {
         inJustDecodeBounds = true
@@ -149,7 +155,9 @@ private fun File.compressAndEncode(
         Base64OutputStream(byteArrayOutputStream, Base64.NO_WRAP).use { base64Stream ->
             normalizedBitmap.compress(Bitmap.CompressFormat.JPEG, quality, base64Stream)
         }
-        Pair(byteArrayOutputStream.toString(Charsets.ISO_8859_1.name()), "image/jpeg")
+        val encoded = byteArrayOutputStream.toByteArray()
+        ImageEncodeCache.put(cacheKey, encoded)
+        Pair(encoded.toString(Charsets.ISO_8859_1), "image/jpeg")
     } finally {
         if (normalizedBitmap !== bitmap) {
             normalizedBitmap.recycle()

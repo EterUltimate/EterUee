@@ -16,5 +16,12 @@ enum class MessageRole {
 
     @SerialName("tool")
     TOOL,
+    ;
+
+    companion object {
+        // 宽松匹配 role 字符串，部分中转会返回空字符串或非标准值，匹配不到时返回 null (rikkahub 1575d179d)
+        fun fromValueOrNull(value: String?): MessageRole? =
+            entries.firstOrNull { it.name.equals(value, ignoreCase = true) }
+    }
 }
 

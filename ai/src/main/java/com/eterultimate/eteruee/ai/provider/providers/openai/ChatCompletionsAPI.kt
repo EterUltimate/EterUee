@@ -261,9 +261,12 @@ class ChatCompletionsAPI(
         stream: Boolean = false,
     ): JsonObject {
         val host = providerSetting.baseUrl.toHttpUrl().host
+        // Mistral 的 Chat Completions 不接受 assistant 消息上的 reasoning_content 字段（422 extra_forbidden，
+        // rikkahub#2271），官方 API 场景下不回传思考内容
+        val allowReasoningField = !host.endsWith("mistral.ai")
         return buildJsonObject {
             put("model", params.model.modelId)
-            put("messages", buildMessages(messages))
+            put("messages", buildMessages(messages, allowReasoningField = allowReasoningField))
 
             if (isModelAllowTemperature(params.model)) {
                 if (params.temperature != null) put("temperature", params.temperature)
@@ -474,7 +477,7 @@ class ChatCompletionsAPI(
                !isMoonshotRestricted
     }
 
-    private fun buildMessages(messages: List<UIMessage>) = buildJsonArray {
+    private fun buildMessages(messages: List<UIMessage>, allowReasoningField: Boolean = true) = buildJsonArray {
         val filteredMessages = messages.filter { it.isValidToUpload() }
 
         // Find the index of the last user message
@@ -482,7 +485,7 @@ class ChatCompletionsAPI(
 
         filteredMessages.forEachIndexed { index, message ->
             if (message.role == MessageRole.ASSISTANT) {
-                val includeReasoning = index > lastUserIndex
+                val includeReasoning = index > lastUserIndex && allowReasoningField
                 addAssistantMessages(message, includeReasoning = includeReasoning)
             } else {
                 addNonAssistantMessage(message)
@@ -739,9 +742,8 @@ class ChatCompletionsAPI(
     )
 
     private fun parseMessage(jsonObject: JsonObject, wrapImagesAsDataUri: Boolean): UIMessage {
-        val role = MessageRole.valueOf(
-            jsonObject["role"]?.jsonPrimitive?.contentOrNull?.uppercase() ?: "ASSISTANT"
-        )
+        val role = MessageRole.fromValueOrNull(jsonObject["role"]?.jsonPrimitiveOrNull?.contentOrNull)
+            ?: MessageRole.ASSISTANT
 
         // 也许支持其他模态的输出content?
         val content = jsonObject["content"]?.jsonPrimitiveOrNull?.contentOrNull ?: ""

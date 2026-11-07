@@ -47,10 +47,11 @@ class ChatCompletionsAPIMessageTest {
     private fun invokeBuildMessages(messages: List<UIMessage>): JsonArray {
         val method = ChatCompletionsAPI::class.java.getDeclaredMethod(
             "buildMessages",
-            List::class.java
+            List::class.java,
+            Boolean::class.javaPrimitiveType
         )
         method.isAccessible = true
-        return method.invoke(api, messages) as JsonArray
+        return method.invoke(api, messages, true) as JsonArray
     }
 
     private fun invokeParseMessage(message: JsonObject): UIMessage {
@@ -562,7 +563,68 @@ class ChatCompletionsAPIMessageTest {
         assertTrue(!request.containsKey("reasoning_effort"))
     }
 
+    @Test
+    fun `buildChatCompletionRequest should strip reasoning_content for Mistral API`() {
+        // Mistral Chat Completions 拒绝 assistant 消息上的 reasoning_content 字段（422 extra_forbidden，rikkahub#2271）
+        val messages = listOf(
+            UIMessage.user("What is 1+1?"),
+            UIMessage(
+                role = MessageRole.ASSISTANT,
+                parts = listOf(
+                    UIMessagePart.Reasoning(reasoning = "Let me think about this..."),
+                    UIMessagePart.Text("The answer is 2")
+                )
+            )
+        )
+
+        val mistralRequest = invokeBuildChatCompletionRequestWithMessages(
+            providerSetting = ProviderSetting.OpenAI(baseUrl = "https://api.mistral.ai/v1"),
+            model = Model(modelId = "mistral-large-latest"),
+            messages = messages
+        )
+        val mistralAssistant = mistralRequest["messages"]!!.jsonArray
+            .map { it.jsonObject }
+            .filter { it["role"]?.jsonPrimitive?.content == "assistant" }
+        assertTrue(mistralAssistant.isNotEmpty())
+        assertTrue(mistralAssistant.none { it.containsKey("reasoning_content") })
+
+        // 非 Mistral 提供商行为不变，仍回传思考内容
+        val openaiRequest = invokeBuildChatCompletionRequestWithMessages(
+            providerSetting = ProviderSetting.OpenAI(baseUrl = "https://api.openai.com/v1"),
+            model = Model(modelId = "gpt-4"),
+            messages = messages
+        )
+        val openaiAssistant = openaiRequest["messages"]!!.jsonArray
+            .map { it.jsonObject }
+            .filter { it["role"]?.jsonPrimitive?.content == "assistant" }
+        assertTrue(openaiAssistant.any {
+            it["reasoning_content"]?.jsonPrimitive?.content == "Let me think about this..."
+        })
+    }
+
     // ==================== Helper Functions ====================
+
+    private fun invokeBuildChatCompletionRequestWithMessages(
+        providerSetting: ProviderSetting.OpenAI,
+        model: Model,
+        messages: List<UIMessage>,
+    ): JsonObject {
+        val method = ChatCompletionsAPI::class.java.getDeclaredMethod(
+            "buildChatCompletionRequest",
+            List::class.java,
+            TextGenerationParams::class.java,
+            ProviderSetting.OpenAI::class.java,
+            Boolean::class.javaPrimitiveType
+        )
+        method.isAccessible = true
+        return method.invoke(
+            api,
+            messages,
+            TextGenerationParams(model = model),
+            providerSetting,
+            false
+        ) as JsonObject
+    }
 
     private fun createExecutedTool(
         callId: String,

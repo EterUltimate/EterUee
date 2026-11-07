@@ -64,9 +64,12 @@ class ExporterState<T>(
 
     internal fun writeToUri(uri: Uri) {
         scope.launch(Dispatchers.IO) {
-            context.contentResolver.openOutputStream(uri)?.use { output ->
-                output.write(value.toByteArray())
-            }
+            // 部分设备 SAF 打开输出流会抛异常导致崩溃 (rikkahub 79f4b6fb2)
+            runCatching {
+                context.contentResolver.openOutputStream(uri)?.use { output ->
+                    output.write(value.toByteArray())
+                }
+            }.onFailure { it.printStackTrace() }
         }
     }
 }

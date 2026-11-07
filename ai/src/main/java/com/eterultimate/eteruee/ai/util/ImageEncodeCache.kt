@@ -30,7 +30,8 @@ object ImageEncodeCache {
     }
 
     internal fun cacheKey(path: String, lastModified: Long, length: Long, quality: Int): String {
-        val digest = MessageDigest.getInstance("MD5")
+        // 仅作缓存键使用（非安全用途），选 SHA-256 避免 CodeQL 对 MD5 的密码学告警
+        val digest = MessageDigest.getInstance("SHA-256")
             .digest("$path|$lastModified|$length|$quality|$ENCODER_VERSION".toByteArray())
         return digest.joinToString("") { "%02x".format(it) }
     }
